@@ -2,12 +2,18 @@
 // Reference: javascript_database integration
 import { 
   users, characters, plots, prompts, guides, savedItems,
+  settings, names, conflicts, themes, moods,
   type User, type InsertUser,
   type Character, type InsertCharacter,
   type Plot, type InsertPlot,
   type Prompt, type InsertPrompt,
   type Guide, type InsertGuide,
-  type SavedItem, type InsertSavedItem
+  type SavedItem, type InsertSavedItem,
+  type Setting, type InsertSetting,
+  type GeneratedName, type InsertName,
+  type Conflict, type InsertConflict,
+  type Theme, type InsertTheme,
+  type Mood, type InsertMood
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -39,6 +45,31 @@ export interface IStorage {
   getGuide(id: string): Promise<Guide | undefined>;
   getAllGuides(): Promise<Guide[]>;
   searchGuides(query: string, category?: string, difficulty?: string): Promise<Guide[]>;
+  
+  // Setting methods
+  createSetting(setting: InsertSetting): Promise<Setting>;
+  getSetting(id: string): Promise<Setting | undefined>;
+  getUserSettings(userId: string | null): Promise<Setting[]>;
+  
+  // Name methods
+  createNames(names: InsertName[]): Promise<GeneratedName[]>;
+  getName(id: string): Promise<GeneratedName | undefined>;
+  getUserNames(userId: string | null): Promise<GeneratedName[]>;
+  
+  // Conflict methods
+  createConflict(conflict: InsertConflict): Promise<Conflict>;
+  getConflict(id: string): Promise<Conflict | undefined>;
+  getUserConflicts(userId: string | null): Promise<Conflict[]>;
+  
+  // Theme methods
+  createTheme(theme: InsertTheme): Promise<Theme>;
+  getTheme(id: string): Promise<Theme | undefined>;
+  getUserThemes(userId: string | null): Promise<Theme[]>;
+  
+  // Mood methods
+  createMood(mood: InsertMood): Promise<Mood>;
+  getMood(id: string): Promise<Mood | undefined>;
+  getUserMoods(userId: string | null): Promise<Mood[]>;
   
   // Saved items methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -201,6 +232,131 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(guides)
       .where(and(...conditions))
       .orderBy(desc(guides.rating), desc(guides.createdAt));
+  }
+  
+  // Setting methods
+  async createSetting(setting: InsertSetting): Promise<Setting> {
+    const [newSetting] = await db
+      .insert(settings)
+      .values(setting)
+      .returning();
+    return newSetting;
+  }
+
+  async getSetting(id: string): Promise<Setting | undefined> {
+    const [setting] = await db.select().from(settings).where(eq(settings.id, id));
+    return setting || undefined;
+  }
+
+  async getUserSettings(userId: string | null): Promise<Setting[]> {
+    if (userId) {
+      return await db.select().from(settings)
+        .where(eq(settings.userId, userId))
+        .orderBy(desc(settings.createdAt));
+    }
+    return await db.select().from(settings)
+      .orderBy(desc(settings.createdAt))
+      .limit(10);
+  }
+  
+  // Name methods
+  async createNames(namesList: InsertName[]): Promise<GeneratedName[]> {
+    const newNames = await db
+      .insert(names)
+      .values(namesList)
+      .returning();
+    return newNames;
+  }
+
+  async getName(id: string): Promise<GeneratedName | undefined> {
+    const [name] = await db.select().from(names).where(eq(names.id, id));
+    return name || undefined;
+  }
+
+  async getUserNames(userId: string | null): Promise<GeneratedName[]> {
+    if (userId) {
+      return await db.select().from(names)
+        .where(eq(names.userId, userId))
+        .orderBy(desc(names.createdAt));
+    }
+    return await db.select().from(names)
+      .orderBy(desc(names.createdAt))
+      .limit(10);
+  }
+  
+  // Conflict methods
+  async createConflict(conflict: InsertConflict): Promise<Conflict> {
+    const [newConflict] = await db
+      .insert(conflicts)
+      .values(conflict)
+      .returning();
+    return newConflict;
+  }
+
+  async getConflict(id: string): Promise<Conflict | undefined> {
+    const [conflict] = await db.select().from(conflicts).where(eq(conflicts.id, id));
+    return conflict || undefined;
+  }
+
+  async getUserConflicts(userId: string | null): Promise<Conflict[]> {
+    if (userId) {
+      return await db.select().from(conflicts)
+        .where(eq(conflicts.userId, userId))
+        .orderBy(desc(conflicts.createdAt));
+    }
+    return await db.select().from(conflicts)
+      .orderBy(desc(conflicts.createdAt))
+      .limit(10);
+  }
+  
+  // Theme methods
+  async createTheme(theme: InsertTheme): Promise<Theme> {
+    const [newTheme] = await db
+      .insert(themes)
+      .values(theme)
+      .returning();
+    return newTheme;
+  }
+
+  async getTheme(id: string): Promise<Theme | undefined> {
+    const [theme] = await db.select().from(themes).where(eq(themes.id, id));
+    return theme || undefined;
+  }
+
+  async getUserThemes(userId: string | null): Promise<Theme[]> {
+    if (userId) {
+      return await db.select().from(themes)
+        .where(eq(themes.userId, userId))
+        .orderBy(desc(themes.createdAt));
+    }
+    return await db.select().from(themes)
+      .orderBy(desc(themes.createdAt))
+      .limit(10);
+  }
+  
+  // Mood methods
+  async createMood(mood: InsertMood): Promise<Mood> {
+    const [newMood] = await db
+      .insert(moods)
+      .values(mood)
+      .returning();
+    return newMood;
+  }
+
+  async getMood(id: string): Promise<Mood | undefined> {
+    const [mood] = await db.select().from(moods).where(eq(moods.id, id));
+    return mood || undefined;
+  }
+
+  async getUserMoods(userId: string | null): Promise<Mood[]> {
+    if (userId) {
+      return await db.select().from(moods)
+        .where(eq(moods.userId, userId))
+        .orderBy(desc(moods.createdAt));
+    }
+    return await db.select().from(moods)
+      .orderBy(desc(moods.createdAt))
+      .limit(10);
   }
   
   // Saved items methods
