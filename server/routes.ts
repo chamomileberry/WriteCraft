@@ -553,31 +553,132 @@ function generateRandomPersonalities(count: number): string[] {
 }
 
 function generateRandomBackstory(): string {
-  const backstories = [
-    "Grew up in a small village and dreams of seeing the world",
-    "Lost their family at a young age and was raised by mentors",
-    "Discovered a hidden talent that changed their life",
-    "Carries a secret that could change everything",
-    "Was betrayed by someone they trusted completely",
-    "Found an ancient artifact that awakened dormant powers",
-    "Escaped from a life of luxury to find their true purpose",
-    "Survived a great disaster that shaped their worldview"
+  const formerProfessions = [
+    "circus acrobat", "military sniper", "classical pianist", "marine biologist", "diplomatic translator", 
+    "emergency room surgeon", "art forger", "competitive chess player", "museum curator", "wilderness guide",
+    "professional dancer", "forensic accountant", "undercover journalist", "pastry chef", "maritime engineer",
+    "opera singer", "archaeological field researcher", "crisis negotiator", "wildlife photographer", "master locksmith"
   ];
-  return backstories[Math.floor(Math.random() * backstories.length)];
+  
+  const currentProfessions = [
+    "private investigator specializing in insurance fraud cases", "freelance security consultant", "antique appraiser with a focus on stolen artifacts",
+    "corporate trainer teaching crisis management", "independent food critic", "boutique hotel owner in a historic district",
+    "vintage book dealer who finds rare manuscripts", "personal protection specialist for celebrities", 
+    "travel photographer documenting disappearing cultures", "underground poker tournament organizer",
+    "specialty coffee roaster supplying local cafes", "restoration artist working on renaissance paintings",
+    "wilderness therapy guide for troubled youth", "expert witness in art authentication cases",
+    "urban farming consultant for rooftop gardens", "freelance cryptographer for tech companies"
+  ];
+  
+  const lifeChangingEvents = [
+    "after a trapeze accident ended their performing career", "when a mission went wrong and they lost their hearing in one ear",
+    "following a hand injury that ended their concert career", "after discovering their research was being used for illegal purposes",
+    "when they uncovered corruption in their government department", "after a medical malpractice lawsuit destroyed their practice",
+    "following the revelation that their mentor was running an illegal operation", "when they were forced into witness protection",
+    "after their gallery was destroyed in a suspicious fire", "following a climbing accident that left them with chronic pain",
+    "when a performance injury ended their stage career", "after discovering their firm was laundering money for criminals",
+    "following exposure of their editor's unethical practices", "when their restaurant failed during the economic downturn",
+    "after a diving accident affected their balance permanently", "when they discovered family artifacts in a Nazi art cache",
+    "following a hostage situation that left them with PTSD", "after their partner was killed in a suspicious accident",
+    "when their photographs revealed a government cover-up", "following a workshop explosion that damaged their fine motor skills"
+  ];
+  
+  const specificSkills = [
+    "still practices on silk ribbons in their apartment and has an uncanny ability to scale buildings and squeeze through tight spaces",
+    "maintains their marksmanship skills at a private range and can read micro-expressions like a book",
+    "continues to compose music in their spare time and has perfect pitch that helps them detect lies in vocal patterns",
+    "keeps detailed field notes on human behavior and can identify species by their tracks or calls",
+    "speaks six languages fluently and can forge documents with museum-quality precision",
+    "performs complex surgical procedures on injured animals and has steady hands perfect for delicate work",
+    "creates intricate forgeries as art pieces and has an encyclopedic knowledge of artistic techniques",
+    "analyzes complex strategic scenarios for fun and can calculate probability outcomes in their head",
+    "maintains extensive archives of cultural artifacts and can authenticate historical items by touch",
+    "leads weekend survival workshops and can navigate by stars without any equipment"
+  ];
+  
+  const languageSkills = [
+    "speaks four languages and has a photographic memory for faces",
+    "is fluent in three languages and can read ancient scripts",
+    "knows sign language and Braille, with exceptional spatial awareness",
+    "speaks five languages and has an eidetic memory for numbers",
+    "communicates in four languages and remembers every conversation verbatim",
+    "masters three languages and musical notation, with perfect pitch"
+  ];
+  
+  const psychologicalTraits = [
+    "though they struggle with trust issues stemming from their circus family's abandonment after their accident",
+    "but suffers from insomnia due to recurring nightmares about the mission that changed everything",
+    "however they battle perfectionism that stems from their conservatory training and fear of public failure",
+    "though they're haunted by the knowledge that their research contributed to environmental destruction",
+    "but they have difficulty forming close relationships after their mentor's betrayal shattered their faith in authority",
+    "however they cope with chronic pain by maintaining strict daily routines and meditation practices",
+    "though they struggle with impostor syndrome despite their obvious expertise and past successes",
+    "but they have trouble sleeping in enclosed spaces after months in witness protection safe houses",
+    "however they're plagued by survivor's guilt from the fire that destroyed their life's work",
+    "though they battle social anxiety in large groups despite their natural leadership abilities"
+  ];
+  
+  const randomElement = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  
+  const profession = randomElement(formerProfessions);
+  const current = randomElement(currentProfessions);
+  const event = randomElement(lifeChangingEvents);
+  const skills = randomElement(specificSkills);
+  const languages = randomElement(languageSkills);
+  const psychology = randomElement(psychologicalTraits);
+  
+  const age = Math.floor(Math.random() * 20) + 25; // 25-44 years old
+  const ageRange = age < 30 ? "late twenties" : age < 35 ? "early thirties" : age < 40 ? "mid-thirties" : "early forties";
+  
+  return `A former ${profession} turned ${current} in their ${ageRange}. ${event.charAt(0).toUpperCase() + event.slice(1)}, they used their keen observational skills and specialized knowledge to transition into their current role. They ${skills}. ${languages.charAt(0).toUpperCase() + languages.slice(1)}, ${psychology}`;
 }
 
 function generateRandomMotivation(): string {
-  const motivations = [
-    "To prove their worth to those who doubted them",
-    "To find answers about their mysterious past",
-    "To protect the people they care about",
-    "To discover their true purpose in life",
-    "To right a terrible wrong from their past",
-    "To master their newfound abilities",
-    "To reunite with a lost loved one",
-    "To prevent a prophesied catastrophe"
+  const motivationTypes = [
+    {
+      goal: "To expose the truth behind",
+      targets: ["the conspiracy that destroyed their previous career", "the corrupt organization that ruined their mentor", 
+               "the cover-up that cost innocent lives", "the illegal operation that their former employer was running",
+               "the pharmaceutical company that suppressed their research", "the art forgery ring operating in major museums"],
+      methods: ["by infiltrating high-society events and gathering evidence", "through careful investigation and building a network of informants",
+               "by using their specialized skills to access restricted information", "while maintaining their cover identity and avoiding detection",
+               "by leveraging their unique background and insider knowledge", "through strategic alliances with unlikely partners"]
+    },
+    {
+      goal: "To find and rescue",
+      targets: ["their missing sibling who vanished during a humanitarian mission", "the child they placed for adoption twenty years ago",
+               "their former partner who disappeared after discovering sensitive information", "the mentor who was taken by the people they were investigating",
+               "their parent who went into hiding to protect the family", "the witness whose testimony could clear their name"],
+      methods: ["using their investigative skills and underground connections", "by following cryptic clues left behind in their personal effects",
+               "through careful reconstruction of the events leading to their disappearance", "while avoiding the dangerous people who want them to stop searching",
+               "by trading favors with contacts from their previous profession", "using their specialized knowledge to decode hidden messages"]
+    },
+    {
+      goal: "To prevent",
+      targets: ["the same accident that changed their life from happening to others", "their former organization from carrying out a devastating plan",
+               "the destruction of a cultural heritage site they once protected", "the collapse of a community that depends on their expertise",
+               "the loss of an endangered ecosystem they spent years studying", "the exploitation of vulnerable people by predatory institutions"],
+      methods: ["by secretly documenting evidence and building legal cases", "through public awareness campaigns and investigative journalism",
+               "by working within the system to change policies and procedures", "while maintaining their current life and protecting their loved ones",
+               "by training others and sharing their specialized knowledge", "through strategic partnerships with activists and reformers"]
+    },
+    {
+      goal: "To make amends for",
+      targets: ["a decision that cost lives during their previous career", "the people they couldn't save when disaster struck",
+               "the betrayal that destroyed their closest relationship", "the lies they told to protect themselves from prosecution",
+               "the evidence they destroyed to protect someone they loved", "the person they failed to help when they needed it most"],
+      methods: ["by dedicating their skills to helping similar victims", "through anonymous acts of service and financial support",
+               "by using their current position to advocate for justice", "while confronting the guilt that drives their every decision",
+               "by ensuring their expertise prevents similar tragedies", "through mentoring others who face similar moral dilemmas"]
+    }
   ];
-  return motivations[Math.floor(Math.random() * motivations.length)];
+  
+  const randomType = motivationTypes[Math.floor(Math.random() * motivationTypes.length)];
+  const goal = randomType.goal;
+  const target = randomType.targets[Math.floor(Math.random() * randomType.targets.length)];
+  const method = randomType.methods[Math.floor(Math.random() * randomType.methods.length)];
+  
+  return `${goal} ${target}, ${method}. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.`;
 }
 
 function generateRandomTrait(): string {
