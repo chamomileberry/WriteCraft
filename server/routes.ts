@@ -26,15 +26,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { genre, userId } = generateRequestSchema.parse(req.body);
       
+      const characterArchetype = generateCoherentCharacter();
       const character = {
         name: generateRandomName(),
-        age: Math.floor(Math.random() * 50) + 18,
-        occupation: generateRandomOccupation(),
+        age: characterArchetype.age,
+        occupation: characterArchetype.occupation,
         personality: generateRandomPersonalities(3),
-        backstory: generateRandomBackstory(),
-        motivation: generateRandomMotivation(),
-        flaw: generateRandomTrait(),
-        strength: generateRandomTrait(),
+        backstory: characterArchetype.backstory,
+        motivation: characterArchetype.motivation,
+        flaw: characterArchetype.flaw,
+        strength: characterArchetype.strength,
         genre: genre || null,
         userId: userId || null
       };
@@ -536,13 +537,6 @@ function generateRandomName(): string {
   return names[Math.floor(Math.random() * names.length)];
 }
 
-function generateRandomOccupation(): string {
-  const occupations = [
-    "Librarian", "Detective", "Chef", "Artist", "Engineer", "Teacher", "Doctor", "Writer", "Merchant", "Adventurer",
-    "Scientist", "Musician", "Farmer", "Blacksmith", "Scholar", "Pilot", "Archaeologist", "Journalist", "Photographer", "Explorer"
-  ];
-  return occupations[Math.floor(Math.random() * occupations.length)];
-}
 
 function generateRandomPersonalities(count: number): string[] {
   const traits = [
@@ -552,141 +546,127 @@ function generateRandomPersonalities(count: number): string[] {
   return traits.sort(() => Math.random() - 0.5).slice(0, count);
 }
 
-function generateRandomBackstory(): string {
-  const formerProfessions = [
-    "circus acrobat", "military sniper", "classical pianist", "marine biologist", "diplomatic translator", 
-    "emergency room surgeon", "art forger", "competitive chess player", "museum curator", "wilderness guide",
-    "professional dancer", "forensic accountant", "undercover journalist", "pastry chef", "maritime engineer",
-    "opera singer", "archaeological field researcher", "crisis negotiator", "wildlife photographer", "master locksmith"
-  ];
-  
-  const currentProfessions = [
-    "private investigator specializing in insurance fraud cases", "freelance security consultant", "antique appraiser with a focus on stolen artifacts",
-    "corporate trainer teaching crisis management", "independent food critic", "boutique hotel owner in a historic district",
-    "vintage book dealer who finds rare manuscripts", "personal protection specialist for celebrities", 
-    "travel photographer documenting disappearing cultures", "underground poker tournament organizer",
-    "specialty coffee roaster supplying local cafes", "restoration artist working on renaissance paintings",
-    "wilderness therapy guide for troubled youth", "expert witness in art authentication cases",
-    "urban farming consultant for rooftop gardens", "freelance cryptographer for tech companies"
-  ];
-  
-  const lifeChangingEvents = [
-    "after a trapeze accident ended their performing career", "when a mission went wrong and they lost their hearing in one ear",
-    "following a hand injury that ended their concert career", "after discovering their research was being used for illegal purposes",
-    "when they uncovered corruption in their government department", "after a medical malpractice lawsuit destroyed their practice",
-    "following the revelation that their mentor was running an illegal operation", "when they were forced into witness protection",
-    "after their gallery was destroyed in a suspicious fire", "following a climbing accident that left them with chronic pain",
-    "when a performance injury ended their stage career", "after discovering their firm was laundering money for criminals",
-    "following exposure of their editor's unethical practices", "when their restaurant failed during the economic downturn",
-    "after a diving accident affected their balance permanently", "when they discovered family artifacts in a Nazi art cache",
-    "following a hostage situation that left them with PTSD", "after their partner was killed in a suspicious accident",
-    "when their photographs revealed a government cover-up", "following a workshop explosion that damaged their fine motor skills"
-  ];
-  
-  const specificSkills = [
-    "still practices on silk ribbons in their apartment and has an uncanny ability to scale buildings and squeeze through tight spaces",
-    "maintains their marksmanship skills at a private range and can read micro-expressions like a book",
-    "continues to compose music in their spare time and has perfect pitch that helps them detect lies in vocal patterns",
-    "keeps detailed field notes on human behavior and can identify species by their tracks or calls",
-    "speaks six languages fluently and can forge documents with museum-quality precision",
-    "performs complex surgical procedures on injured animals and has steady hands perfect for delicate work",
-    "creates intricate forgeries as art pieces and has an encyclopedic knowledge of artistic techniques",
-    "analyzes complex strategic scenarios for fun and can calculate probability outcomes in their head",
-    "maintains extensive archives of cultural artifacts and can authenticate historical items by touch",
-    "leads weekend survival workshops and can navigate by stars without any equipment"
-  ];
-  
-  const languageSkills = [
-    "speaks four languages and has a photographic memory for faces",
-    "is fluent in three languages and can read ancient scripts",
-    "knows sign language and Braille, with exceptional spatial awareness",
-    "speaks five languages and has an eidetic memory for numbers",
-    "communicates in four languages and remembers every conversation verbatim",
-    "masters three languages and musical notation, with perfect pitch"
-  ];
-  
-  const psychologicalTraits = [
-    "though they struggle with trust issues stemming from their circus family's abandonment after their accident",
-    "but suffers from insomnia due to recurring nightmares about the mission that changed everything",
-    "however they battle perfectionism that stems from their conservatory training and fear of public failure",
-    "though they're haunted by the knowledge that their research contributed to environmental destruction",
-    "but they have difficulty forming close relationships after their mentor's betrayal shattered their faith in authority",
-    "however they cope with chronic pain by maintaining strict daily routines and meditation practices",
-    "though they struggle with impostor syndrome despite their obvious expertise and past successes",
-    "but they have trouble sleeping in enclosed spaces after months in witness protection safe houses",
-    "however they're plagued by survivor's guilt from the fire that destroyed their life's work",
-    "though they battle social anxiety in large groups despite their natural leadership abilities"
-  ];
-  
-  const randomElement = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-  
-  const profession = randomElement(formerProfessions);
-  const current = randomElement(currentProfessions);
-  const event = randomElement(lifeChangingEvents);
-  const skills = randomElement(specificSkills);
-  const languages = randomElement(languageSkills);
-  const psychology = randomElement(psychologicalTraits);
-  
-  const age = Math.floor(Math.random() * 20) + 25; // 25-44 years old
-  const ageRange = age < 30 ? "late twenties" : age < 35 ? "early thirties" : age < 40 ? "mid-thirties" : "early forties";
-  
-  return `A former ${profession} turned ${current} in their ${ageRange}. ${event.charAt(0).toUpperCase() + event.slice(1)}, they used their keen observational skills and specialized knowledge to transition into their current role. They ${skills}. ${languages.charAt(0).toUpperCase() + languages.slice(1)}, ${psychology}`;
-}
 
-function generateRandomMotivation(): string {
-  const motivationTypes = [
+function generateCoherentCharacter() {
+  const characterArchetypes = [
     {
-      goal: "To expose the truth behind",
-      targets: ["the conspiracy that destroyed their previous career", "the corrupt organization that ruined their mentor", 
-               "the cover-up that cost innocent lives", "the illegal operation that their former employer was running",
-               "the pharmaceutical company that suppressed their research", "the art forgery ring operating in major museums"],
-      methods: ["by infiltrating high-society events and gathering evidence", "through careful investigation and building a network of informants",
-               "by using their specialized skills to access restricted information", "while maintaining their cover identity and avoiding detection",
-               "by leveraging their unique background and insider knowledge", "through strategic alliances with unlikely partners"]
+      formerProfession: "circus acrobat",
+      currentProfession: "private investigator",
+      lifeEvent: "after a trapeze accident ended their performing career",
+      skills: "still practices on silk ribbons in their apartment and has an uncanny ability to scale buildings and squeeze through tight spaces",
+      languages: "speaks four languages and has a photographic memory for faces",
+      psychologicalTrait: "though they struggle with trust issues stemming from their circus family's abandonment after their accident",
+      motivationGoal: "To expose the truth behind the insurance fraud ring that denied their injury claim",
+      motivationMethod: "by using their acrobatic skills to access evidence in hard-to-reach places and their performer's intuition to read people's deceptions",
+      strength: "Determination",
+      flaw: "Distrust",
+      ageRange: [28, 35]
     },
     {
-      goal: "To find and rescue",
-      targets: ["their missing sibling who vanished during a humanitarian mission", "the child they placed for adoption twenty years ago",
-               "their former partner who disappeared after discovering sensitive information", "the mentor who was taken by the people they were investigating",
-               "their parent who went into hiding to protect the family", "the witness whose testimony could clear their name"],
-      methods: ["using their investigative skills and underground connections", "by following cryptic clues left behind in their personal effects",
-               "through careful reconstruction of the events leading to their disappearance", "while avoiding the dangerous people who want them to stop searching",
-               "by trading favors with contacts from their previous profession", "using their specialized knowledge to decode hidden messages"]
+      formerProfession: "military sniper",
+      currentProfession: "freelance security consultant",
+      lifeEvent: "when a mission went wrong and they lost their hearing in one ear",
+      skills: "maintains their marksmanship skills at a private range and can read micro-expressions and body language like a book",
+      languages: "speaks three languages and can communicate effectively in sign language",
+      psychologicalTrait: "but suffers from hypervigilance and difficulty sleeping in unfamiliar places",
+      motivationGoal: "To prevent civilian casualties by exposing the weapons manufacturer that provided faulty equipment",
+      motivationMethod: "by leveraging their military contacts and tactical expertise to gather intelligence on corporate corruption",
+      strength: "Courage",
+      flaw: "Paranoia",
+      ageRange: [32, 40]
     },
     {
-      goal: "To prevent",
-      targets: ["the same accident that changed their life from happening to others", "their former organization from carrying out a devastating plan",
-               "the destruction of a cultural heritage site they once protected", "the collapse of a community that depends on their expertise",
-               "the loss of an endangered ecosystem they spent years studying", "the exploitation of vulnerable people by predatory institutions"],
-      methods: ["by secretly documenting evidence and building legal cases", "through public awareness campaigns and investigative journalism",
-               "by working within the system to change policies and procedures", "while maintaining their current life and protecting their loved ones",
-               "by training others and sharing their specialized knowledge", "through strategic partnerships with activists and reformers"]
+      formerProfession: "classical pianist",
+      currentProfession: "music therapist",
+      lifeEvent: "following a hand injury that ended their concert career",
+      skills: "continues to compose music in their spare time and has perfect pitch that helps them detect emotional distress in voices",
+      languages: "speaks five languages and can read musical notation from any culture",
+      psychologicalTrait: "however they battle perfectionism that stems from their conservatory training and fear of public failure",
+      motivationGoal: "To help trauma survivors find healing through music, especially those who lost their passions to injury",
+      motivationMethod: "by developing innovative therapy techniques that combine their professional training with personal experience of loss",
+      strength: "Empathy",
+      flaw: "Perfectionism",
+      ageRange: [26, 33]
     },
     {
-      goal: "To make amends for",
-      targets: ["a decision that cost lives during their previous career", "the people they couldn't save when disaster struck",
-               "the betrayal that destroyed their closest relationship", "the lies they told to protect themselves from prosecution",
-               "the evidence they destroyed to protect someone they loved", "the person they failed to help when they needed it most"],
-      methods: ["by dedicating their skills to helping similar victims", "through anonymous acts of service and financial support",
-               "by using their current position to advocate for justice", "while confronting the guilt that drives their every decision",
-               "by ensuring their expertise prevents similar tragedies", "through mentoring others who face similar moral dilemmas"]
+      formerProfession: "marine biologist",
+      currentProfession: "environmental consultant",
+      lifeEvent: "after discovering their research was being used to justify harmful industrial practices",
+      skills: "keeps detailed field notes on ecosystem changes and can identify environmental damage patterns invisible to others",
+      languages: "is fluent in three languages and can read scientific papers in six different languages",
+      psychologicalTrait: "though they're haunted by the knowledge that their early research contributed to environmental destruction",
+      motivationGoal: "To prevent the ecological collapse of marine ecosystems by exposing corporate environmental crimes",
+      motivationMethod: "by using their scientific expertise to document evidence and their industry connections to access restricted data",
+      strength: "Intelligence",
+      flaw: "Guilt",
+      ageRange: [30, 38]
+    },
+    {
+      formerProfession: "emergency room surgeon",
+      currentProfession: "rural clinic doctor",
+      lifeEvent: "after a medical malpractice lawsuit destroyed their reputation despite being innocent",
+      skills: "performs complex procedures with steady hands and has an intuitive ability to diagnose rare conditions",
+      languages: "speaks four languages and has memorized medical terminology in seven languages",
+      psychologicalTrait: "but struggles with anxiety about making mistakes and second-guesses their medical decisions",
+      motivationGoal: "To prove their innocence by uncovering the real cause of the patient deaths that ruined their career",
+      motivationMethod: "by secretly investigating medical records and building relationships with former colleagues who might provide evidence",
+      strength: "Compassion",
+      flaw: "Self-doubt",
+      ageRange: [35, 45]
+    },
+    {
+      formerProfession: "art forger",
+      currentProfession: "art authentication expert",
+      lifeEvent: "following the revelation that their mentor was running an international art theft ring",
+      skills: "creates intricate analyses of artistic techniques and has an encyclopedic knowledge of art history and forgery methods",
+      languages: "speaks six languages fluently and can read historical documents in ancient scripts",
+      psychologicalTrait: "however they struggle with impostor syndrome despite their obvious expertise and reformed criminal past",
+      motivationGoal: "To return stolen artworks to their rightful owners and expose the criminal network that exploited their skills",
+      motivationMethod: "by using their insider knowledge of forgery techniques to identify stolen pieces in private collections",
+      strength: "Attention to detail",
+      flaw: "Shame",
+      ageRange: [29, 37]
+    },
+    {
+      formerProfession: "competitive chess player",
+      currentProfession: "strategic business consultant",
+      lifeEvent: "when they discovered match-fixing corruption in professional chess",
+      skills: "analyzes complex strategic scenarios and can calculate probability outcomes and long-term consequences",
+      languages: "communicates in four languages and has studied game theory across different cultures",
+      psychologicalTrait: "though they battle obsessive tendencies and difficulty accepting when situations can't be controlled",
+      motivationGoal: "To expose corruption in competitive industries by revealing the systematic cheating that destroyed fair play",
+      motivationMethod: "by applying strategic thinking to investigate fraud patterns and building cases through careful analysis",
+      strength: "Strategic thinking",
+      flaw: "Obsessiveness",
+      ageRange: [27, 34]
+    },
+    {
+      formerProfession: "undercover journalist",
+      currentProfession: "documentary filmmaker",
+      lifeEvent: "following exposure of their editor's unethical practices and corporate connections",
+      skills: "blends into different social environments seamlessly and has an intuitive ability to gain people's trust",
+      languages: "speaks five languages and can adopt different accents and dialects convincingly",
+      psychologicalTrait: "but has difficulty forming genuine relationships after years of maintaining false identities",
+      motivationGoal: "To expose media manipulation and restore public trust in investigative journalism",
+      motivationMethod: "by creating documentaries that reveal corporate influence on news media and the stories that were suppressed",
+      strength: "Charisma",
+      flaw: "Emotional detachment",
+      ageRange: [31, 39]
     }
   ];
-  
-  const randomType = motivationTypes[Math.floor(Math.random() * motivationTypes.length)];
-  const goal = randomType.goal;
-  const target = randomType.targets[Math.floor(Math.random() * randomType.targets.length)];
-  const method = randomType.methods[Math.floor(Math.random() * randomType.methods.length)];
-  
-  return `${goal} ${target}, ${method}. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.`;
-}
 
-function generateRandomTrait(): string {
-  const traits = [
-    "Determination", "Empathy", "Intelligence", "Courage", "Intuition", "Strength", "Charisma", "Wisdom",
-    "Pride", "Fear", "Anger", "Jealousy", "Greed", "Stubbornness", "Impatience", "Insecurity"
-  ];
-  return traits[Math.floor(Math.random() * traits.length)];
+  const archetype = characterArchetypes[Math.floor(Math.random() * characterArchetypes.length)];
+  const age = Math.floor(Math.random() * (archetype.ageRange[1] - archetype.ageRange[0] + 1)) + archetype.ageRange[0];
+  const ageRange = age < 30 ? "late twenties" : age < 35 ? "early thirties" : age < 40 ? "mid-thirties" : "early forties";
+
+  return {
+    age,
+    occupation: archetype.currentProfession,
+    backstory: `A former ${archetype.formerProfession} turned ${archetype.currentProfession} in their ${ageRange}. ${archetype.lifeEvent.charAt(0).toUpperCase() + archetype.lifeEvent.slice(1)}, they used their specialized knowledge and unique perspective to transition into their current role. They ${archetype.skills}. ${archetype.languages.charAt(0).toUpperCase() + archetype.languages.slice(1)}, ${archetype.psychologicalTrait}`,
+    motivation: `${archetype.motivationGoal}, ${archetype.motivationMethod}. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.`,
+    strength: archetype.strength,
+    flaw: archetype.flaw
+  };
 }
 
 function generateRandomSetup(): string {
