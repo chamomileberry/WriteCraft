@@ -1,151 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Clock, Star, Search, Filter } from "lucide-react";
+import { BookOpen, Clock, Star, Search, Filter, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import type { Guide } from "@shared/schema";
 
-interface Guide {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  readTime: number;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  rating: number;
-  author: string;
-  tags: string[];
-  excerpt: string;
-}
-
-// TODO: Replace with real guide data
-const mockGuides: Guide[] = [
-  {
-    id: '1',
-    title: 'Mastering Character Development',
-    description: 'Learn how to create compelling, three-dimensional characters that readers will love',
-    category: 'Character Writing',
-    readTime: 12,
-    difficulty: 'Intermediate',
-    rating: 4.8,
-    author: 'Sarah Mitchell',
-    tags: ['characters', 'development', 'psychology'],
-    excerpt: 'Great characters are the heart of any story. They drive the plot, engage readers emotionally, and make your narrative memorable...'
-  },
-  {
-    id: '2',
-    title: 'Dialogue That Sings',
-    description: 'Techniques for writing natural, engaging dialogue that advances your story',
-    category: 'Writing Craft',
-    readTime: 8,
-    difficulty: 'Beginner',
-    rating: 4.6,
-    author: 'Marcus Rodriguez',
-    tags: ['dialogue', 'conversation', 'voice'],
-    excerpt: 'Good dialogue serves multiple purposes: it reveals character, advances plot, and provides information naturally...'
-  },
-  {
-    id: '3',
-    title: 'World Building for Fantasy',
-    description: 'Create immersive fantasy worlds with consistent rules and rich history',
-    category: 'World Building',
-    readTime: 15,
-    difficulty: 'Advanced',
-    rating: 4.9,
-    author: 'Elena Blackwood',
-    tags: ['fantasy', 'world-building', 'magic systems'],
-    excerpt: 'A well-crafted fantasy world feels real to readers. It has its own geography, history, culture, and rules...'
-  },
-  {
-    id: '4',
-    title: 'Show Don\'t Tell Mastery',
-    description: 'Transform exposition into engaging scenes that immerse readers',
-    category: 'Writing Craft',
-    readTime: 10,
-    difficulty: 'Intermediate',
-    rating: 4.7,
-    author: 'David Chen',
-    tags: ['show don\'t tell', 'exposition', 'immersion'],
-    excerpt: 'Instead of telling readers what happened, show them through action, dialogue, and sensory details...'
-  },
-  {
-    id: '5',
-    title: 'Plot Pacing Fundamentals',
-    description: 'Control the rhythm of your story to keep readers engaged',
-    category: 'Story Structure',
-    readTime: 14,
-    difficulty: 'Intermediate',
-    rating: 4.5,
-    author: 'Rachel Green',
-    tags: ['pacing', 'plot', 'tension'],
-    excerpt: 'Pacing is the speed at which your story unfolds. Too fast and readers feel rushed; too slow and they lose interest...'
-  },
-  {
-    id: '6',
-    title: 'Writing Authentic Romance',
-    description: 'Craft believable romantic relationships with emotional depth',
-    category: 'Genre Writing',
-    readTime: 11,
-    difficulty: 'Beginner',
-    rating: 4.4,
-    author: 'Amy Foster',
-    tags: ['romance', 'relationships', 'emotion'],
-    excerpt: 'Romance isn\'t just about the destination—it\'s about the journey. Authentic relationships develop gradually...'
-  }
-];
 
 const categories = ['All', 'Character Writing', 'Writing Craft', 'World Building', 'Story Structure', 'Genre Writing'];
 const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
 export default function WritingGuides() {
-  const [guides] = useState<Guide[]>(mockGuides);
-  const [filteredGuides, setFilteredGuides] = useState<Guide[]>(mockGuides);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
+  const [, setLocation] = useLocation();
+
+  // Build query parameters for API call
+  const queryParams = new URLSearchParams();
+  if (searchQuery) queryParams.append('query', searchQuery);
+  if (selectedCategory !== 'All') queryParams.append('category', selectedCategory);
+  if (selectedDifficulty !== 'All') queryParams.append('difficulty', selectedDifficulty);
+
+  // Fetch guides from API
+  const { data: guides = [], isLoading, error } = useQuery<Guide[]>({
+    queryKey: ['/api/guides', searchQuery, selectedCategory, selectedDifficulty],
+    queryFn: () => fetch(`/api/guides?${queryParams.toString()}`).then(res => res.json()),
+  });
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    applyFilters(query, selectedCategory, selectedDifficulty);
   };
 
   const handleCategoryFilter = (category: string) => {
     setSelectedCategory(category);
-    applyFilters(searchQuery, category, selectedDifficulty);
   };
 
   const handleDifficultyFilter = (difficulty: string) => {
     setSelectedDifficulty(difficulty);
-    applyFilters(searchQuery, selectedCategory, difficulty);
-  };
-
-  const applyFilters = (query: string, category: string, difficulty: string) => {
-    let filtered = guides;
-
-    if (query) {
-      filtered = filtered.filter(guide => 
-        guide.title.toLowerCase().includes(query.toLowerCase()) ||
-        guide.description.toLowerCase().includes(query.toLowerCase()) ||
-        guide.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
-      );
-    }
-
-    if (category !== 'All') {
-      filtered = filtered.filter(guide => guide.category === category);
-    }
-
-    if (difficulty !== 'All') {
-      filtered = filtered.filter(guide => guide.difficulty === difficulty);
-    }
-
-    setFilteredGuides(filtered);
-    console.log('Filters applied:', { query, category, difficulty, resultCount: filtered.length });
   };
 
   const handleReadGuide = (guideId: string) => {
-    console.log('Reading guide:', guideId);
-    // TODO: Implement guide reading functionality
+    setLocation(`/guides/${guideId}`);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -213,12 +112,27 @@ export default function WritingGuides() {
 
       {/* Results count */}
       <div className="text-sm text-muted-foreground">
-        Showing {filteredGuides.length} of {guides.length} guides
+        Showing {guides.length} guides
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="text-center py-12">
+          <p className="text-destructive">Failed to load guides. Please try again.</p>
+        </div>
+      )}
+
       {/* Guides Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredGuides.map((guide) => (
+      {!isLoading && !error && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {guides.map((guide) => (
           <Card key={guide.id} className="group hover-elevate transition-all duration-200">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -277,9 +191,10 @@ export default function WritingGuides() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
 
-      {filteredGuides.length === 0 && (
+      {guides.length === 0 && !isLoading && !error && (
         <div className="text-center py-12">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No guides found</h3>

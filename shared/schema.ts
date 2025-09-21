@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -68,7 +68,7 @@ export const guides = pgTable("guides", {
   category: text("category").notNull(),
   readTime: integer("read_time").notNull(),
   difficulty: text("difficulty").notNull(),
-  rating: integer("rating").default(0),
+  rating: real("rating").default(0),
   author: text("author").notNull(),
   tags: text("tags").array().notNull(),
   published: boolean("published").default(true),
