@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Shuffle, Copy, Save } from "lucide-react";
+import { Shuffle, Copy, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Character {
+  id?: string;
   name: string;
   age: number;
   occupation: string;
@@ -16,56 +19,71 @@ interface Character {
   motivation: string;
   flaw: string;
   strength: string;
+  genre?: string | null;
+  userId?: string | null;
+  createdAt?: string;
 }
 
-const names = ["Elena", "Marcus", "Zara", "Kai", "Luna", "Dex", "Nova", "Orion", "Maya", "Finn"];
-const occupations = ["Librarian", "Detective", "Chef", "Artist", "Engineer", "Teacher", "Doctor", "Writer", "Merchant", "Adventurer"];
-const personalities = ["Ambitious", "Curious", "Loyal", "Witty", "Mysterious", "Compassionate", "Stubborn", "Creative", "Analytical", "Charismatic"];
-const backstories = [
-  "Grew up in a small village and dreams of seeing the world",
-  "Lost their family at a young age and was raised by mentors", 
-  "Discovered a hidden talent that changed their life",
-  "Carries a secret that could change everything",
-  "Was betrayed by someone they trusted completely"
-];
-const motivations = [
-  "To prove their worth to those who doubted them",
-  "To find answers about their mysterious past",
-  "To protect the people they care about",
-  "To discover their true purpose in life",
-  "To right a terrible wrong from their past"
-];
+// Removed local data arrays - now using backend API
 
 export default function CharacterGenerator() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [genre, setGenre] = useState<string>("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const generateCharacterMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/characters/generate', {
+        genre: genre || undefined,
+        userId: null // For now, no user authentication
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCharacter(data);
+      console.log('Generated character:', data);
+    },
+    onError: (error) => {
+      console.error('Error generating character:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate character. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const saveCharacterMutation = useMutation({
+    mutationFn: async () => {
+      if (!character?.id) return;
+      
+      const response = await apiRequest('POST', '/api/saved-items', {
+        userId: 'guest', // For now, using guest user
+        itemType: 'character',
+        itemId: character.id
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Character saved!",
+        description: "Character has been saved to your collection.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+    },
+    onError: (error) => {
+      console.error('Error saving character:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save character. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const generateCharacter = () => {
-    const randomName = names[Math.floor(Math.random() * names.length)];
-    const randomAge = Math.floor(Math.random() * 50) + 18;
-    const randomOccupation = occupations[Math.floor(Math.random() * occupations.length)];
-    const randomPersonalities = personalities
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
-    const randomBackstory = backstories[Math.floor(Math.random() * backstories.length)];
-    const randomMotivation = motivations[Math.floor(Math.random() * motivations.length)];
-    const randomFlaw = personalities[Math.floor(Math.random() * personalities.length)];
-    const randomStrength = personalities[Math.floor(Math.random() * personalities.length)];
-
-    const newCharacter: Character = {
-      name: randomName,
-      age: randomAge,
-      occupation: randomOccupation,
-      personality: randomPersonalities,
-      backstory: randomBackstory,
-      motivation: randomMotivation,
-      flaw: randomFlaw,
-      strength: randomStrength
-    };
-
-    setCharacter(newCharacter);
-    console.log('Generated character:', newCharacter);
+    generateCharacterMutation.mutate();
   };
 
   const copyCharacter = () => {
@@ -88,12 +106,7 @@ export default function CharacterGenerator() {
 
   const saveCharacter = () => {
     if (!character) return;
-    // TODO: Implement save functionality
-    console.log('Save character:', character);
-    toast({
-      title: "Character saved!",
-      description: "Character has been saved to your collection.",
-    });
+    saveCharacterMutation.mutate();
   };
 
   return (
@@ -126,11 +139,16 @@ export default function CharacterGenerator() {
             
             <Button 
               onClick={generateCharacter}
+              disabled={generateCharacterMutation.isPending}
               data-testid="button-generate-character"
               className="flex-1 sm:flex-none"
             >
-              <Shuffle className="mr-2 h-4 w-4" />
-              Generate Character
+              {generateCharacterMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Shuffle className="mr-2 h-4 w-4" />
+              )}
+              {generateCharacterMutation.isPending ? 'Generating...' : 'Generate Character'}
             </Button>
           </div>
         </CardContent>
@@ -148,8 +166,18 @@ export default function CharacterGenerator() {
                 <Button variant="outline" size="sm" onClick={copyCharacter} data-testid="button-copy-character">
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm" onClick={saveCharacter} data-testid="button-save-character">
-                  <Save className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={saveCharacter} 
+                  disabled={saveCharacterMutation.isPending || !character?.id}
+                  data-testid="button-save-character"
+                >
+                  {saveCharacterMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>

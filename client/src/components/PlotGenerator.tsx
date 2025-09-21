@@ -3,10 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Copy, Save, Zap } from "lucide-react";
+import { BookOpen, Copy, Save, Zap, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface PlotStructure {
+  id?: string;
   setup: string;
   incitingIncident: string;
   firstPlotPoint: string;
@@ -16,55 +19,71 @@ interface PlotStructure {
   resolution: string;
   theme: string;
   conflict: string;
+  genre?: string | null;
+  userId?: string | null;
+  createdAt?: string;
 }
 
-const setups = [
-  "A quiet town harbors a dark secret that threatens its very existence",
-  "An unlikely hero discovers they possess extraordinary abilities",
-  "Two rival families are forced to work together against a common enemy",
-  "A mysterious artifact resurfaces after centuries of being lost"
-];
-
-const conflicts = [
-  "Person vs. Self - internal struggle with identity and purpose",
-  "Person vs. Person - direct confrontation with an antagonist",
-  "Person vs. Society - fighting against corrupt systems",
-  "Person vs. Nature - survival against natural forces",
-  "Person vs. Technology - struggle with artificial intelligence"
-];
-
-const themes = [
-  "The power of forgiveness and redemption",
-  "Finding strength in vulnerability",
-  "The cost of ambition and power",
-  "Love conquers all obstacles",
-  "Truth will always surface"
-];
+// Removed local data arrays - now using backend API
 
 export default function PlotGenerator() {
   const [plot, setPlot] = useState<PlotStructure | null>(null);
   const [genre, setGenre] = useState<string>("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const generatePlotMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/plots/generate', {
+        genre: genre || undefined,
+        userId: null // For now, no user authentication
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setPlot(data);
+      console.log('Generated plot:', data);
+    },
+    onError: (error) => {
+      console.error('Error generating plot:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate plot. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const savePlotMutation = useMutation({
+    mutationFn: async () => {
+      if (!plot?.id) return;
+      
+      const response = await apiRequest('POST', '/api/saved-items', {
+        userId: 'guest', // For now, using guest user
+        itemType: 'plot',
+        itemId: plot.id
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Plot saved!",
+        description: "Plot structure has been saved to your collection.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+    },
+    onError: (error) => {
+      console.error('Error saving plot:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save plot. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const generatePlot = () => {
-    const setup = setups[Math.floor(Math.random() * setups.length)];
-    const conflict = conflicts[Math.floor(Math.random() * conflicts.length)];
-    const theme = themes[Math.floor(Math.random() * themes.length)];
-
-    const newPlot: PlotStructure = {
-      setup,
-      incitingIncident: "An unexpected event disrupts the protagonist's normal world and sets the story in motion",
-      firstPlotPoint: "The protagonist commits to their journey and crosses into a new world or situation",
-      midpoint: "A major revelation or setback occurs, raising the stakes and changing the protagonist's approach",
-      secondPlotPoint: "All seems lost as the protagonist faces their darkest moment",
-      climax: "The final confrontation where the protagonist must use everything they've learned",
-      resolution: "The aftermath where loose ends are tied up and the new normal is established",
-      theme,
-      conflict
-    };
-
-    setPlot(newPlot);
-    console.log('Generated plot:', newPlot);
+    generatePlotMutation.mutate();
   };
 
   const copyPlot = () => {
@@ -101,12 +120,7 @@ ${plot.setup}
 
   const savePlot = () => {
     if (!plot) return;
-    // TODO: Implement save functionality
-    console.log('Save plot:', plot);
-    toast({
-      title: "Plot saved!",
-      description: "Plot structure has been saved to your collection.",
-    });
+    savePlotMutation.mutate();
   };
 
   return (
@@ -139,11 +153,16 @@ ${plot.setup}
             
             <Button 
               onClick={generatePlot}
+              disabled={generatePlotMutation.isPending}
               data-testid="button-generate-plot"
               className="flex-1 sm:flex-none"
             >
-              <Zap className="mr-2 h-4 w-4" />
-              Generate Plot
+              {generatePlotMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Zap className="mr-2 h-4 w-4" />
+              )}
+              {generatePlotMutation.isPending ? 'Generating...' : 'Generate Plot'}
             </Button>
           </div>
         </CardContent>
@@ -161,8 +180,18 @@ ${plot.setup}
                 <Button variant="outline" size="sm" onClick={copyPlot} data-testid="button-copy-plot">
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm" onClick={savePlot} data-testid="button-save-plot">
-                  <Save className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={savePlot} 
+                  disabled={savePlotMutation.isPending || !plot?.id}
+                  data-testid="button-save-plot"
+                >
+                  {savePlotMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>

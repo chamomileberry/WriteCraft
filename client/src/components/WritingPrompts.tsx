@@ -4,56 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Zap, Copy, Save, RefreshCw, Heart } from "lucide-react";
+import { Zap, Copy, Save, RefreshCw, Heart, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface WritingPrompt {
-  id: string;
+  id?: string;
   text: string;
   genre: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   type: 'Story Starter' | 'Character Focus' | 'Dialogue' | 'Setting' | 'Conflict';
   wordCount: string;
   tags: string[];
+  userId?: string | null;
+  createdAt?: string;
 }
 
-// TODO: Replace with real prompt data
-const promptTemplates = {
-  fantasy: [
-    "A young apprentice discovers their magic teacher has been secretly...",
-    "In a world where dragons are extinct, someone finds a living egg...",
-    "The kingdom's most powerful wizard loses their magic on the day they need it most..."
-  ],
-  'sci-fi': [
-    "Earth receives a message from space, but it's from humans who left centuries ago...",
-    "A time traveler keeps trying to prevent a disaster, but each attempt makes it worse...",
-    "The last human on Earth discovers they're not alone after all..."
-  ],
-  romance: [
-    "Two rival coffee shop owners are forced to work together when their buildings merge...",
-    "A wedding planner falls in love with someone who's sworn off marriage...",
-    "Love letters meant for someone else keep appearing in your mailbox..."
-  ],
-  mystery: [
-    "A detective realizes the serial killer they're hunting is someone they know...",
-    "Everyone in town claims to have an alibi for the same exact time...",
-    "A murder victim keeps leaving clues from beyond the grave..."
-  ],
-  thriller: [
-    "You wake up in a room with no memory and a countdown timer showing 24 hours...",
-    "Your identical twin, who died years ago, appears at your door...",
-    "Every night at midnight, you receive a call from your own phone number..."
-  ],
-  contemporary: [
-    "A social media influencer discovers their entire online life has been fabricated...",
-    "Two strangers get stuck in an elevator and realize they've ruined each other's lives...",
-    "A person inherits a house and finds diary entries that predict their future..."
-  ]
-};
-
+// Removed local data arrays - now using backend API
 const promptTypes = ['Story Starter', 'Character Focus', 'Dialogue', 'Setting', 'Conflict'];
-const difficulties = ['Easy', 'Medium', 'Hard'];
-const wordCounts = ['500-1000 words', '1000-2500 words', '2500-5000 words', '5000+ words'];
 
 export default function WritingPrompts() {
   const [currentPrompt, setCurrentPrompt] = useState<WritingPrompt | null>(null);
@@ -61,24 +30,69 @@ export default function WritingPrompts() {
   const [promptType, setPromptType] = useState<string>("");
   const [savedPrompts, setSavedPrompts] = useState<WritingPrompt[]>([]);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const generatePromptMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/prompts/generate', {
+        genre: (genre && genre !== 'any') ? genre : undefined,
+        type: (promptType && promptType !== 'any') ? promptType : undefined,
+        userId: null // For now, no user authentication
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCurrentPrompt(data);
+      console.log('Generated prompt:', data);
+    },
+    onError: (error) => {
+      console.error('Error generating prompt:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate prompt. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const savePromptMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentPrompt?.id) return;
+      
+      const response = await apiRequest('POST', '/api/saved-items', {
+        userId: 'guest', // For now, using guest user
+        itemType: 'prompt',
+        itemId: currentPrompt.id
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      // Also add to local saved prompts
+      if (currentPrompt) {
+        setSavedPrompts(prev => {
+          const updated = [currentPrompt, ...prev].slice(0, 10); // Keep last 10
+          return updated;
+        });
+      }
+      
+      toast({
+        title: "Prompt saved!",
+        description: "Writing prompt has been saved to your collection.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+    },
+    onError: (error) => {
+      console.error('Error saving prompt:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save prompt. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const generatePrompt = () => {
-    const selectedGenre = (genre && genre !== 'any') ? genre : Object.keys(promptTemplates)[Math.floor(Math.random() * Object.keys(promptTemplates).length)];
-    const templates = promptTemplates[selectedGenre as keyof typeof promptTemplates];
-    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-    
-    const newPrompt: WritingPrompt = {
-      id: Date.now().toString(),
-      text: randomTemplate,
-      genre: selectedGenre,
-      difficulty: difficulties[Math.floor(Math.random() * difficulties.length)] as 'Easy' | 'Medium' | 'Hard',
-      type: ((promptType && promptType !== 'any') ? promptType : promptTypes[Math.floor(Math.random() * promptTypes.length)]) as WritingPrompt['type'],
-      wordCount: wordCounts[Math.floor(Math.random() * wordCounts.length)],
-      tags: [selectedGenre, 'creative writing', 'inspiration']
-    };
-
-    setCurrentPrompt(newPrompt);
-    console.log('Generated prompt:', newPrompt);
+    generatePromptMutation.mutate();
   };
 
   const copyPrompt = () => {
@@ -100,17 +114,7 @@ ${currentPrompt.text}
 
   const savePrompt = () => {
     if (!currentPrompt) return;
-    
-    setSavedPrompts(prev => {
-      const updated = [currentPrompt, ...prev].slice(0, 10); // Keep last 10
-      return updated;
-    });
-    
-    console.log('Save prompt:', currentPrompt);
-    toast({
-      title: "Prompt saved!",
-      description: "Writing prompt has been saved to your collection.",
-    });
+    savePromptMutation.mutate();
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -176,11 +180,16 @@ ${currentPrompt.text}
             
             <Button 
               onClick={generatePrompt}
+              disabled={generatePromptMutation.isPending}
               data-testid="button-generate-prompt"
               className="w-full"
             >
-              <Zap className="mr-2 h-4 w-4" />
-              Generate Prompt
+              {generatePromptMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Zap className="mr-2 h-4 w-4" />
+              )}
+              {generatePromptMutation.isPending ? 'Generating...' : 'Generate Prompt'}
             </Button>
           </div>
         </CardContent>
@@ -205,14 +214,34 @@ ${currentPrompt.text}
                 </Badge>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={generatePrompt} data-testid="button-refresh-prompt">
-                  <RefreshCw className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={generatePrompt}
+                  disabled={generatePromptMutation.isPending}
+                  data-testid="button-refresh-prompt"
+                >
+                  {generatePromptMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
                 </Button>
                 <Button variant="outline" size="sm" onClick={copyPrompt} data-testid="button-copy-prompt">
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm" onClick={savePrompt} data-testid="button-save-prompt">
-                  <Heart className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={savePrompt}
+                  disabled={savePromptMutation.isPending || !currentPrompt?.id}
+                  data-testid="button-save-prompt"
+                >
+                  {savePromptMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Heart className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
