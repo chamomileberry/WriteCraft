@@ -63,7 +63,7 @@ export default function WritingPrompts() {
   const { toast } = useToast();
 
   const generatePrompt = () => {
-    const selectedGenre = genre || Object.keys(promptTemplates)[Math.floor(Math.random() * Object.keys(promptTemplates).length)];
+    const selectedGenre = (genre && genre !== 'any') ? genre : Object.keys(promptTemplates)[Math.floor(Math.random() * Object.keys(promptTemplates).length)];
     const templates = promptTemplates[selectedGenre as keyof typeof promptTemplates];
     const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
     
@@ -72,7 +72,7 @@ export default function WritingPrompts() {
       text: randomTemplate,
       genre: selectedGenre,
       difficulty: difficulties[Math.floor(Math.random() * difficulties.length)] as 'Easy' | 'Medium' | 'Hard',
-      type: (promptType || promptTypes[Math.floor(Math.random() * promptTypes.length)]) as WritingPrompt['type'],
+      type: ((promptType && promptType !== 'any') ? promptType : promptTypes[Math.floor(Math.random() * promptTypes.length)]) as WritingPrompt['type'],
       wordCount: wordCounts[Math.floor(Math.random() * wordCounts.length)],
       tags: [selectedGenre, 'creative writing', 'inspiration']
     };
@@ -152,7 +152,7 @@ ${currentPrompt.text}
                 <SelectValue placeholder="Any genre" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Genre</SelectItem>
+                <SelectItem value="any">Any Genre</SelectItem>
                 <SelectItem value="fantasy">Fantasy</SelectItem>
                 <SelectItem value="sci-fi">Science Fiction</SelectItem>
                 <SelectItem value="romance">Romance</SelectItem>
@@ -167,7 +167,7 @@ ${currentPrompt.text}
                 <SelectValue placeholder="Any type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Type</SelectItem>
+                <SelectItem value="any">Any Type</SelectItem>
                 {promptTypes.map(type => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
