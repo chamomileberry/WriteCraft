@@ -34,7 +34,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId || null
       };
 
-      const savedCharacter = await storage.createCharacter(character);
+      // Validate the generated character data before saving
+      const validatedCharacter = insertCharacterSchema.parse(character);
+      const savedCharacter = await storage.createCharacter(validatedCharacter);
       res.json(savedCharacter);
     } catch (error) {
       console.error('Error generating character:', error);
@@ -93,7 +95,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId || null
       };
 
-      const savedPlot = await storage.createPlot(plot);
+      // Validate the generated plot data before saving
+      const validatedPlot = insertPlotSchema.parse(plot);
+      const savedPlot = await storage.createPlot(validatedPlot);
       res.json(savedPlot);
     } catch (error) {
       console.error('Error generating plot:', error);
@@ -112,6 +116,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching plots:', error);
       res.status(500).json({ error: 'Failed to fetch plots' });
+    }
+  });
+
+  app.get("/api/plots/:id", async (req, res) => {
+    try {
+      const plot = await storage.getPlot(req.params.id);
+      if (!plot) {
+        return res.status(404).json({ error: 'Plot not found' });
+      }
+      res.json(plot);
+    } catch (error) {
+      console.error('Error fetching plot:', error);
+      res.status(500).json({ error: 'Failed to fetch plot' });
     }
   });
 
@@ -136,7 +153,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId || null
       };
 
-      const savedPrompt = await storage.createPrompt(prompt);
+      // Validate the generated prompt data before saving
+      const validatedPrompt = insertPromptSchema.parse(prompt);
+      const savedPrompt = await storage.createPrompt(validatedPrompt);
       res.json(savedPrompt);
     } catch (error) {
       console.error('Error generating prompt:', error);
@@ -156,6 +175,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching random prompts:', error);
       res.status(500).json({ error: 'Failed to fetch prompts' });
+    }
+  });
+
+  app.get("/api/prompts/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const prompts = await storage.getUserPrompts(userId);
+      res.json(prompts);
+    } catch (error) {
+      console.error('Error fetching prompts:', error);
+      res.status(500).json({ error: 'Failed to fetch prompts' });
+    }
+  });
+
+  app.get("/api/prompts/:id", async (req, res) => {
+    try {
+      const prompt = await storage.getPrompt(req.params.id);
+      if (!prompt) {
+        return res.status(404).json({ error: 'Prompt not found' });
+      }
+      res.json(prompt);
+    } catch (error) {
+      console.error('Error fetching prompt:', error);
+      res.status(500).json({ error: 'Failed to fetch prompt' });
     }
   });
 
@@ -203,17 +246,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(savedItem);
     } catch (error) {
       console.error('Error saving item:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
       res.status(500).json({ error: 'Failed to save item' });
     }
   });
 
   app.delete("/api/saved-items", async (req, res) => {
     try {
-      const { userId, itemType, itemId } = req.body;
+      const deleteRequestSchema = z.object({
+        userId: z.string(),
+        itemType: z.string(),
+        itemId: z.string()
+      });
+      
+      const { userId, itemType, itemId } = deleteRequestSchema.parse(req.body);
       await storage.unsaveItem(userId, itemType, itemId);
       res.json({ success: true });
     } catch (error) {
       console.error('Error unsaving item:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
       res.status(500).json({ error: 'Failed to unsave item' });
     }
   });
