@@ -556,8 +556,8 @@ function generateCoherentCharacter() {
       skills: "still practices on silk ribbons in their apartment and has an uncanny ability to scale buildings and squeeze through tight spaces",
       languages: "speaks four languages and has a photographic memory for faces",
       psychologicalTrait: "though they struggle with trust issues stemming from their circus family's abandonment after their accident",
-      motivationGoal: "To expose the truth behind the insurance fraud ring that denied their injury claim",
-      motivationMethod: "by using their acrobatic skills to access evidence in hard-to-reach places and their performer's intuition to read people's deceptions",
+      motivationGoal: "Driven by a deep need to expose people's authentic selves when they think no one is watching or when the stakes get high. Their circus family's abandonment after their accident taught them that people's true nature emerges in moments of crisis - and they're compelled to seek out and document these moments of truth",
+      motivationMethod: "This manifests in their investigative work as an almost obsessive focus on catching people in the act of deception, particularly when they're betraying trust for personal gain (like insurance fraud). But it goes deeper than just solving cases - they're unconsciously recreating scenarios where they can witness and prove that people will abandon their principles when it suits them. The tragic irony is that their relentless pursuit of exposing others' character flaws keeps them isolated and prevents them from forming the genuine connections they actually crave. They're simultaneously trying to protect themselves from future abandonment by exposing people's capacity for betrayal, while also punishing themselves by repeatedly confirming their belief that people are fundamentally unreliable. Their acrobatic skills become metaphorical - they're always positioned to observe from above or outside, never truly landing among people where they might be vulnerable to being left behind again",
       strength: "Determination",
       flaw: "Distrust",
       ageRange: [28, 35]
@@ -663,7 +663,7 @@ function generateCoherentCharacter() {
     age,
     occupation: archetype.currentProfession,
     backstory: `A former ${archetype.formerProfession} turned ${archetype.currentProfession} in their ${ageRange}. ${archetype.lifeEvent.charAt(0).toUpperCase() + archetype.lifeEvent.slice(1)}, they used their specialized knowledge and unique perspective to transition into their current role. They ${archetype.skills}. ${archetype.languages.charAt(0).toUpperCase() + archetype.languages.slice(1)}, ${archetype.psychologicalTrait}`,
-    motivation: `${archetype.motivationGoal}, ${archetype.motivationMethod}. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.`,
+    motivation: `${archetype.motivationGoal}${archetype.motivationGoal.endsWith('.') || archetype.motivationGoal.endsWith('!') || archetype.motivationGoal.endsWith('?') ? ' ' : ', '}${archetype.motivationMethod}. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.`,
     strength: archetype.strength,
     flaw: archetype.flaw
   };
