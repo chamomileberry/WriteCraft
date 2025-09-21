@@ -652,12 +652,25 @@ function generateCoherentCharacter() {
       strength: "Charisma",
       flaw: "Emotional detachment",
       ageRange: [31, 39]
+    },
+    {
+      formerProfession: "archaeologist",
+      currentProfession: "antiquarian bookshop owner",
+      lifeEvent: "after malaria forced their early retirement and a jaguar encounter in Belize cost them their eye",
+      skills: "maintains correspondence with treasure hunters worldwide and has an encyclopedic knowledge of artifact authentication and provenance",
+      languages: "speaks ancient Mayan dialects fluently and can read historical documents in multiple indigenous languages",
+      psychologicalTrait: "though they carry profound guilt over spending thirty years in what they now recognize as sanctioned cultural theft",
+      motivationGoal: "Driven by a profound need to return cultural artifacts to where they truly belong. After decades of 'discovering' and removing treasures for Western museums, they understand that they were part of a system that stripped indigenous peoples of their heritage. The jaguar attack that cost them their eye was nature itself rejecting their presence in sacred spaces - earning them the right to become a guardian rather than an exploiter of ancient cultures",
+      motivationMethod: "This manifests as secretly using their archaeological contacts to track down stolen artifacts for repatriation. Their bookshop becomes both a front for this work and a place to educate people about the cost of cultural appropriation. Every stolen piece they recover and return is an act of justice and personal redemption. They're fighting modern-day tomb raiders while battling the legacy of their own profession's colonial mindset. Undoing decades of institutional harm drives them to work in secrecy, knowing they can never fully undo what they've taken, but can maybe prevent others from taking more. Their transition from archaeologist to artifact repatriation agent is their attempt to atone for thirty years of well-intentioned but harmful work",
+      strength: "Cultural sensitivity",
+      flaw: "Guilt",
+      ageRange: [62, 72]
     }
   ];
 
   const archetype = characterArchetypes[Math.floor(Math.random() * characterArchetypes.length)];
   const age = Math.floor(Math.random() * (archetype.ageRange[1] - archetype.ageRange[0] + 1)) + archetype.ageRange[0];
-  const ageRange = age < 30 ? "late twenties" : age < 35 ? "early thirties" : age < 40 ? "mid-thirties" : "early forties";
+  const ageRange = age < 30 ? "late twenties" : age < 35 ? "early thirties" : age < 40 ? "mid-thirties" : age < 45 ? "early forties" : age < 50 ? "late forties" : age < 55 ? "early fifties" : age < 60 ? "late fifties" : age < 65 ? "early sixties" : age < 70 ? "mid-sixties" : "early seventies";
 
   return {
     age,
