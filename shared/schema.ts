@@ -76,6 +76,79 @@ export const guides = pgTable("guides", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Generated settings
+export const settings = pgTable("settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  location: text("location").notNull(),
+  timePeriod: text("time_period").notNull(),
+  population: text("population").notNull(),
+  climate: text("climate").notNull(),
+  description: text("description").notNull(),
+  atmosphere: text("atmosphere").notNull(),
+  culturalElements: text("cultural_elements").array().notNull(),
+  notableFeatures: text("notable_features").array().notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Generated names
+export const names = pgTable("names", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  meaning: text("meaning"),
+  origin: text("origin"),
+  nameType: text("name_type").notNull(), // 'character', 'place', 'fantasy', etc.
+  culture: text("culture").notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Generated conflicts
+export const conflicts = pgTable("conflicts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  type: text("type").notNull(), // 'internal', 'external', 'interpersonal', etc.
+  description: text("description").notNull(),
+  stakes: text("stakes").notNull(),
+  obstacles: text("obstacles").array().notNull(),
+  potentialResolutions: text("potential_resolutions").array().notNull(),
+  emotionalImpact: text("emotional_impact").notNull(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Generated themes
+export const themes = pgTable("themes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  coreMessage: text("core_message").notNull(),
+  symbolicElements: text("symbolic_elements").array().notNull(),
+  questions: text("questions").array().notNull(),
+  conflicts: text("conflicts").array().notNull(),
+  examples: text("examples").array().notNull(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Generated moods
+export const moods = pgTable("moods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  emotionalTone: text("emotional_tone").notNull(),
+  sensoryDetails: text("sensory_details").array().notNull(),
+  colorAssociations: text("color_associations").array().notNull(),
+  weatherElements: text("weather_elements").array().notNull(),
+  lightingEffects: text("lighting_effects").array().notNull(),
+  soundscape: text("soundscape").array().notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -92,6 +165,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   characters: many(characters),
   plots: many(plots),
   prompts: many(prompts),
+  settings: many(settings),
+  names: many(names),
+  conflicts: many(conflicts),
+  themes: many(themes),
+  moods: many(moods),
   savedItems: many(savedItems),
 }));
 
@@ -112,6 +190,41 @@ export const plotsRelations = relations(plots, ({ one }) => ({
 export const promptsRelations = relations(prompts, ({ one }) => ({
   user: one(users, {
     fields: [prompts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const settingsRelations = relations(settings, ({ one }) => ({
+  user: one(users, {
+    fields: [settings.userId],
+    references: [users.id],
+  }),
+}));
+
+export const namesRelations = relations(names, ({ one }) => ({
+  user: one(users, {
+    fields: [names.userId],
+    references: [users.id],
+  }),
+}));
+
+export const conflictsRelations = relations(conflicts, ({ one }) => ({
+  user: one(users, {
+    fields: [conflicts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const themesRelations = relations(themes, ({ one }) => ({
+  user: one(users, {
+    fields: [themes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const moodsRelations = relations(moods, ({ one }) => ({
+  user: one(users, {
+    fields: [moods.userId],
     references: [users.id],
   }),
 }));
@@ -150,6 +263,31 @@ export const insertGuideSchema = createInsertSchema(guides).omit({
   updatedAt: true,
 });
 
+export const insertSettingSchema = createInsertSchema(settings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNameSchema = createInsertSchema(names).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertConflictSchema = createInsertSchema(conflicts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertThemeSchema = createInsertSchema(themes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMoodSchema = createInsertSchema(moods).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertSavedItemSchema = createInsertSchema(savedItems).omit({
   id: true,
   createdAt: true,
@@ -166,5 +304,15 @@ export type InsertPrompt = z.infer<typeof insertPromptSchema>;
 export type Prompt = typeof prompts.$inferSelect;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;
 export type Guide = typeof guides.$inferSelect;
+export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type Setting = typeof settings.$inferSelect;
+export type InsertName = z.infer<typeof insertNameSchema>;
+export type GeneratedName = typeof names.$inferSelect;
+export type InsertConflict = z.infer<typeof insertConflictSchema>;
+export type Conflict = typeof conflicts.$inferSelect;
+export type InsertTheme = z.infer<typeof insertThemeSchema>;
+export type Theme = typeof themes.$inferSelect;
+export type InsertMood = z.infer<typeof insertMoodSchema>;
+export type Mood = typeof moods.$inferSelect;
 export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;

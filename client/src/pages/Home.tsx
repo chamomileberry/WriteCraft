@@ -6,6 +6,11 @@ import WritingGuides from "@/components/WritingGuides";
 import CharacterGenerator from "@/components/CharacterGenerator";
 import PlotGenerator from "@/components/PlotGenerator";
 import WritingPrompts from "@/components/WritingPrompts";
+import SettingGenerator from "@/components/SettingGenerator";
+import NameGenerator from "@/components/NameGenerator";
+import ConflictGenerator from "@/components/ConflictGenerator";
+import ThemeExplorer from "@/components/ThemeExplorer";
+import MoodPalette from "@/components/MoodPalette";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -81,6 +86,96 @@ export default function Home() {
                 Back to Home
               </Button>
               <WritingPrompts />
+            </div>
+          </div>
+        );
+
+      case 'setting-generator':
+        return (
+          <div className="min-h-screen bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToHome}
+                className="mb-6"
+                data-testid="button-back-to-home"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+              <SettingGenerator />
+            </div>
+          </div>
+        );
+
+      case 'name-generator':
+        return (
+          <div className="min-h-screen bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToHome}
+                className="mb-6"
+                data-testid="button-back-to-home"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+              <NameGenerator />
+            </div>
+          </div>
+        );
+
+      case 'conflict-generator':
+        return (
+          <div className="min-h-screen bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToHome}
+                className="mb-6"
+                data-testid="button-back-to-home"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+              <ConflictGenerator />
+            </div>
+          </div>
+        );
+
+      case 'theme-explorer':
+        return (
+          <div className="min-h-screen bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToHome}
+                className="mb-6"
+                data-testid="button-back-to-home"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+              <ThemeExplorer />
+            </div>
+          </div>
+        );
+
+      case 'mood-palette':
+        return (
+          <div className="min-h-screen bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToHome}
+                className="mb-6"
+                data-testid="button-back-to-home"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+              <MoodPalette />
             </div>
           </div>
         );
