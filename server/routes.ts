@@ -31,7 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: generateRandomName(),
         age: characterArchetype.age,
         occupation: characterArchetype.occupation,
-        personality: generateRandomPersonalities(3),
+        personality: characterArchetype.personality,
         backstory: characterArchetype.backstory,
         motivation: characterArchetype.motivation,
         flaw: characterArchetype.flaw,
@@ -548,137 +548,110 @@ function generateRandomPersonalities(count: number): string[] {
 
 
 function generateCoherentCharacter() {
-  const characterArchetypes = [
+  const directCharacters = [
     {
-      formerProfession: "circus acrobat",
-      currentProfession: "private investigator",
-      lifeEvent: "after a trapeze accident ended their performing career",
-      skills: "still practices on silk ribbons in their apartment and has an uncanny ability to scale buildings and squeeze through tight spaces",
-      languages: "speaks four languages and has a photographic memory for faces",
-      psychologicalTrait: "though they struggle with trust issues stemming from their circus family's abandonment after their accident",
-      motivationGoal: "Driven by a deep need to expose people's authentic selves when they think no one is watching or when the stakes get high. Their circus family's abandonment after their accident taught them that people's true nature emerges in moments of crisis - and they're compelled to seek out and document these moments of truth",
-      motivationMethod: "This manifests in their investigative work as an almost obsessive focus on catching people in the act of deception, particularly when they're betraying trust for personal gain (like insurance fraud). But it goes deeper than just solving cases - they're unconsciously recreating scenarios where they can witness and prove that people will abandon their principles when it suits them. The tragic irony is that their relentless pursuit of exposing others' character flaws keeps them isolated and prevents them from forming the genuine connections they actually crave. They're simultaneously trying to protect themselves from future abandonment by exposing people's capacity for betrayal, while also punishing themselves by repeatedly confirming their belief that people are fundamentally unreliable. Their acrobatic skills become metaphorical - they're always positioned to observe from above or outside, never truly landing among people where they might be vulnerable to being left behind again",
-      strength: "Determination",
-      flaw: "Distrust",
-      ageRange: [28, 35]
+      ageMin: 28,
+      ageMax: 35,
+      profession: "Private Investigator",
+      personality: ["Determined", "Distrustful", "Observant"],
+      backstory: "A former circus acrobat turned private investigator in their early thirties. After a trapeze accident ended their performing career, they used their specialized knowledge and unique perspective to transition into their current role. They still practice on silk ribbons in their apartment and have an uncanny ability to scale buildings and squeeze through tight spaces. Speaks four languages and has a photographic memory for faces, though they struggle with trust issues stemming from their circus family's abandonment after their accident.",
+      coreMotivation: "Driven by a deep need to expose people's authentic selves when they think no one is watching or when the stakes get high. Their circus family's abandonment after their accident taught them that people's true nature emerges in moments of crisis - and they're compelled to seek out and document these moments of truth. This manifests in their investigative work as an almost obsessive focus on catching people in the act of deception, particularly when they're betraying trust for personal gain (like insurance fraud). But it goes deeper than just solving cases - they're unconsciously recreating scenarios where they can witness and prove that people will abandon their principles when it suits them. The tragic irony is that their relentless pursuit of exposing others' character flaws keeps them isolated and prevents them from forming the genuine connections they actually crave. They're simultaneously trying to protect themselves from future abandonment by exposing people's capacity for betrayal, while also punishing themselves by repeatedly confirming their belief that people are fundamentally unreliable. Their acrobatic skills become metaphorical - they're always positioned to observe from above or outside, never truly landing among people where they might be vulnerable to being left behind again.",
+      greatestStrength: "Determination",
+      fatalFlaw: "Distrust"
     },
     {
-      formerProfession: "military sniper",
-      currentProfession: "freelance security consultant",
-      lifeEvent: "when a mission went wrong and they lost their hearing in one ear",
-      skills: "maintains their marksmanship skills at a private range and can read micro-expressions and body language like a book",
-      languages: "speaks three languages and can communicate effectively in sign language",
-      psychologicalTrait: "but suffers from hypervigilance and difficulty sleeping in unfamiliar places",
-      motivationGoal: "To prevent civilian casualties by exposing the weapons manufacturer that provided faulty equipment",
-      motivationMethod: "by leveraging their military contacts and tactical expertise to gather intelligence on corporate corruption",
-      strength: "Courage",
-      flaw: "Paranoia",
-      ageRange: [32, 40]
+      ageMin: 32,
+      ageMax: 40,
+      profession: "Freelance Security Consultant",
+      personality: ["Courageous", "Paranoid", "Tactical"],
+      backstory: "A former military sniper turned freelance security consultant in their mid-thirties. When a mission went wrong and they lost their hearing in one ear, they used their specialized knowledge and unique perspective to transition into their current role. They maintain their marksmanship skills at a private range and can read micro-expressions and body language like a book. Speaks three languages and can communicate effectively in sign language, but suffers from hypervigilance and difficulty sleeping in unfamiliar places.",
+      coreMotivation: "To prevent civilian casualties by exposing the weapons manufacturer that provided faulty equipment, by leveraging their military contacts and tactical expertise to gather intelligence on corporate corruption. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
+      greatestStrength: "Courage",
+      fatalFlaw: "Paranoia"
     },
     {
-      formerProfession: "classical pianist",
-      currentProfession: "music therapist",
-      lifeEvent: "following a hand injury that ended their concert career",
-      skills: "continues to compose music in their spare time and has perfect pitch that helps them detect emotional distress in voices",
-      languages: "speaks five languages and can read musical notation from any culture",
-      psychologicalTrait: "however they battle perfectionism that stems from their conservatory training and fear of public failure",
-      motivationGoal: "To help trauma survivors find healing through music, especially those who lost their passions to injury",
-      motivationMethod: "by developing innovative therapy techniques that combine their professional training with personal experience of loss",
-      strength: "Empathy",
-      flaw: "Perfectionism",
-      ageRange: [26, 33]
+      ageMin: 26,
+      ageMax: 33,
+      profession: "Music Therapist",
+      personality: ["Empathetic", "Perfectionist", "Creative"],
+      backstory: "A former classical pianist turned music therapist in their late twenties. Following a hand injury that ended their concert career, they used their specialized knowledge and unique perspective to transition into their current role. They continue to compose music in their spare time and have perfect pitch that helps them detect emotional distress in voices. Speaks five languages and can read musical notation from any culture, however they battle perfectionism that stems from their conservatory training and fear of public failure.",
+      coreMotivation: "To help trauma survivors find healing through music, especially those who lost their passions to injury, by developing innovative therapy techniques that combine their professional training with personal experience of loss. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
+      greatestStrength: "Empathy",
+      fatalFlaw: "Perfectionism"
     },
     {
-      formerProfession: "marine biologist",
-      currentProfession: "environmental consultant",
-      lifeEvent: "after discovering their research was being used to justify harmful industrial practices",
-      skills: "keeps detailed field notes on ecosystem changes and can identify environmental damage patterns invisible to others",
-      languages: "is fluent in three languages and can read scientific papers in six different languages",
-      psychologicalTrait: "though they're haunted by the knowledge that their early research contributed to environmental destruction",
-      motivationGoal: "To prevent the ecological collapse of marine ecosystems by exposing corporate environmental crimes",
-      motivationMethod: "by using their scientific expertise to document evidence and their industry connections to access restricted data",
-      strength: "Intelligence",
-      flaw: "Guilt",
-      ageRange: [30, 38]
+      ageMin: 30,
+      ageMax: 38,
+      profession: "Environmental Consultant",
+      personality: ["Intelligent", "Guilt-ridden", "Methodical"],
+      backstory: "A former marine biologist turned environmental consultant in their early thirties. After discovering their research was being used to justify harmful industrial practices, they used their specialized knowledge and unique perspective to transition into their current role. They keep detailed field notes on ecosystem changes and can identify environmental damage patterns invisible to others. Is fluent in three languages and can read scientific papers in six different languages, though they're haunted by the knowledge that their early research contributed to environmental destruction.",
+      coreMotivation: "To prevent the ecological collapse of marine ecosystems by exposing corporate environmental crimes, by using their scientific expertise to document evidence and their industry connections to access restricted data. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
+      greatestStrength: "Intelligence",
+      fatalFlaw: "Guilt"
     },
     {
-      formerProfession: "emergency room surgeon",
-      currentProfession: "rural clinic doctor",
-      lifeEvent: "after a medical malpractice lawsuit destroyed their reputation despite being innocent",
-      skills: "performs complex procedures with steady hands and has an intuitive ability to diagnose rare conditions",
-      languages: "speaks four languages and has memorized medical terminology in seven languages",
-      psychologicalTrait: "but struggles with anxiety about making mistakes and second-guesses their medical decisions",
-      motivationGoal: "To prove their innocence by uncovering the real cause of the patient deaths that ruined their career",
-      motivationMethod: "by secretly investigating medical records and building relationships with former colleagues who might provide evidence",
-      strength: "Compassion",
-      flaw: "Self-doubt",
-      ageRange: [35, 45]
+      ageMin: 35,
+      ageMax: 45,
+      profession: "Rural Clinic Doctor",
+      personality: ["Compassionate", "Self-doubting", "Thorough"],
+      backstory: "A former emergency room surgeon turned rural clinic doctor in their early forties. After a medical malpractice lawsuit destroyed their reputation despite being innocent, they used their specialized knowledge and unique perspective to transition into their current role. They perform complex procedures with steady hands and have an intuitive ability to diagnose rare conditions. Speaks four languages and has memorized medical terminology in seven languages, but struggles with anxiety about making mistakes and second-guesses their medical decisions.",
+      coreMotivation: "To prove their innocence by uncovering the real cause of the patient deaths that ruined their career, by secretly investigating medical records and building relationships with former colleagues who might provide evidence. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
+      greatestStrength: "Compassion",
+      fatalFlaw: "Self-doubt"
     },
     {
-      formerProfession: "art forger",
-      currentProfession: "art authentication expert",
-      lifeEvent: "following the revelation that their mentor was running an international art theft ring",
-      skills: "creates intricate analyses of artistic techniques and has an encyclopedic knowledge of art history and forgery methods",
-      languages: "speaks six languages fluently and can read historical documents in ancient scripts",
-      psychologicalTrait: "however they struggle with impostor syndrome despite their obvious expertise and reformed criminal past",
-      motivationGoal: "To return stolen artworks to their rightful owners and expose the criminal network that exploited their skills",
-      motivationMethod: "by using their insider knowledge of forgery techniques to identify stolen pieces in private collections",
-      strength: "Attention to detail",
-      flaw: "Shame",
-      ageRange: [29, 37]
+      ageMin: 29,
+      ageMax: 37,
+      profession: "Art Authentication Expert",
+      personality: ["Detail-oriented", "Ashamed", "Knowledgeable"],
+      backstory: "A former art forger turned art authentication expert in their early thirties. Following the revelation that their mentor was running an international art theft ring, they used their specialized knowledge and unique perspective to transition into their current role. They create intricate analyses of artistic techniques and have an encyclopedic knowledge of art history and forgery methods. Speaks six languages fluently and can read historical documents in ancient scripts, however they struggle with impostor syndrome despite their obvious expertise and reformed criminal past.",
+      coreMotivation: "To return stolen artworks to their rightful owners and expose the criminal network that exploited their skills, by using their insider knowledge of forgery techniques to identify stolen pieces in private collections. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
+      greatestStrength: "Attention to detail",
+      fatalFlaw: "Shame"
     },
     {
-      formerProfession: "competitive chess player",
-      currentProfession: "strategic business consultant",
-      lifeEvent: "when they discovered match-fixing corruption in professional chess",
-      skills: "analyzes complex strategic scenarios and can calculate probability outcomes and long-term consequences",
-      languages: "communicates in four languages and has studied game theory across different cultures",
-      psychologicalTrait: "though they battle obsessive tendencies and difficulty accepting when situations can't be controlled",
-      motivationGoal: "To expose corruption in competitive industries by revealing the systematic cheating that destroyed fair play",
-      motivationMethod: "by applying strategic thinking to investigate fraud patterns and building cases through careful analysis",
-      strength: "Strategic thinking",
-      flaw: "Obsessiveness",
-      ageRange: [27, 34]
+      ageMin: 27,
+      ageMax: 34,
+      profession: "Strategic Business Consultant",
+      personality: ["Strategic", "Obsessive", "Analytical"],
+      backstory: "A former competitive chess player turned strategic business consultant in their late twenties. When they discovered match-fixing corruption in professional chess, they used their specialized knowledge and unique perspective to transition into their current role. They analyze complex strategic scenarios and can calculate probability outcomes and long-term consequences. Communicates in four languages and has studied game theory across different cultures, though they battle obsessive tendencies and difficulty accepting when situations can't be controlled.",
+      coreMotivation: "To expose corruption in competitive industries by revealing the systematic cheating that destroyed fair play, by applying strategic thinking to investigate fraud patterns and building cases through careful analysis. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
+      greatestStrength: "Strategic thinking",
+      fatalFlaw: "Obsessiveness"
     },
     {
-      formerProfession: "undercover journalist",
-      currentProfession: "documentary filmmaker",
-      lifeEvent: "following exposure of their editor's unethical practices and corporate connections",
-      skills: "blends into different social environments seamlessly and has an intuitive ability to gain people's trust",
-      languages: "speaks five languages and can adopt different accents and dialects convincingly",
-      psychologicalTrait: "but has difficulty forming genuine relationships after years of maintaining false identities",
-      motivationGoal: "To expose media manipulation and restore public trust in investigative journalism",
-      motivationMethod: "by creating documentaries that reveal corporate influence on news media and the stories that were suppressed",
-      strength: "Charisma",
-      flaw: "Emotional detachment",
-      ageRange: [31, 39]
+      ageMin: 31,
+      ageMax: 39,
+      profession: "Documentary Filmmaker",
+      personality: ["Charismatic", "Detached", "Investigative"],
+      backstory: "A former undercover journalist turned documentary filmmaker in their mid-thirties. Following exposure of their editor's unethical practices and corporate connections, they used their specialized knowledge and unique perspective to transition into their current role. They blend into different social environments seamlessly and have an intuitive ability to gain people's trust. Speaks five languages and can adopt different accents and dialects convincingly, but has difficulty forming genuine relationships after years of maintaining false identities.",
+      coreMotivation: "To expose media manipulation and restore public trust in investigative journalism, by creating documentaries that reveal corporate influence on news media and the stories that were suppressed. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
+      greatestStrength: "Charisma",
+      fatalFlaw: "Emotional detachment"
     },
     {
-      formerProfession: "archaeologist",
-      currentProfession: "antiquarian bookshop owner",
-      lifeEvent: "after malaria forced their early retirement and a jaguar encounter in Belize cost them their eye",
-      skills: "maintains correspondence with treasure hunters worldwide and has an encyclopedic knowledge of artifact authentication and provenance",
-      languages: "speaks ancient Mayan dialects fluently and can read historical documents in multiple indigenous languages",
-      psychologicalTrait: "though they carry profound guilt over spending thirty years in what they now recognize as sanctioned cultural theft",
-      motivationGoal: "Driven by a profound need to return cultural artifacts to where they truly belong. After decades of 'discovering' and removing treasures for Western museums, they understand that they were part of a system that stripped indigenous peoples of their heritage. The jaguar attack that cost them their eye was nature itself rejecting their presence in sacred spaces - earning them the right to become a guardian rather than an exploiter of ancient cultures",
-      motivationMethod: "This manifests as secretly using their archaeological contacts to track down stolen artifacts for repatriation. Their bookshop becomes both a front for this work and a place to educate people about the cost of cultural appropriation. Every stolen piece they recover and return is an act of justice and personal redemption. They're fighting modern-day tomb raiders while battling the legacy of their own profession's colonial mindset. Undoing decades of institutional harm drives them to work in secrecy, knowing they can never fully undo what they've taken, but can maybe prevent others from taking more. Their transition from archaeologist to artifact repatriation agent is their attempt to atone for thirty years of well-intentioned but harmful work",
-      strength: "Cultural sensitivity",
-      flaw: "Guilt",
-      ageRange: [62, 72]
+      ageMin: 62,
+      ageMax: 72,
+      profession: "Antiquarian Bookshop Owner",
+      personality: ["Culturally sensitive", "Guilt-ridden", "Scholarly"],
+      backstory: "A former archaeologist turned antiquarian bookshop owner in their mid-sixties. After malaria forced their early retirement and a jaguar encounter in Belize cost them their eye, they used their specialized knowledge and unique perspective to transition into their current role. They maintain correspondence with treasure hunters worldwide and have an encyclopedic knowledge of artifact authentication and provenance. Speaks ancient Mayan dialects fluently and can read historical documents in multiple indigenous languages, though they carry profound guilt over spending thirty years in what they now recognize as sanctioned cultural theft.",
+      coreMotivation: "Driven by a profound need to return cultural artifacts to where they truly belong. After decades of 'discovering' and removing treasures for Western museums, they understand that they were part of a system that stripped indigenous peoples of their heritage. The jaguar attack that cost them their eye was nature itself rejecting their presence in sacred spaces - earning them the right to become a guardian rather than an exploiter of ancient cultures. This manifests as secretly using their archaeological contacts to track down stolen artifacts for repatriation. Their bookshop becomes both a front for this work and a place to educate people about the cost of cultural appropriation. Every stolen piece they recover and return is an act of justice and personal redemption. They're fighting modern-day tomb raiders while battling the legacy of their own profession's colonial mindset. Undoing decades of institutional harm drives them to work in secrecy, knowing they can never fully undo what they've taken, but can maybe prevent others from taking more. Their transition from archaeologist to artifact repatriation agent is their attempt to atone for thirty years of well-intentioned but harmful work.",
+      greatestStrength: "Cultural sensitivity",
+      fatalFlaw: "Guilt"
     }
   ];
 
-  const archetype = characterArchetypes[Math.floor(Math.random() * characterArchetypes.length)];
-  const age = Math.floor(Math.random() * (archetype.ageRange[1] - archetype.ageRange[0] + 1)) + archetype.ageRange[0];
-  const ageRange = age < 30 ? "late twenties" : age < 35 ? "early thirties" : age < 40 ? "mid-thirties" : age < 45 ? "early forties" : age < 50 ? "late forties" : age < 55 ? "early fifties" : age < 60 ? "late fifties" : age < 65 ? "early sixties" : age < 70 ? "mid-sixties" : "early seventies";
+  const character = directCharacters[Math.floor(Math.random() * directCharacters.length)];
+  const age = Math.floor(Math.random() * (character.ageMax - character.ageMin + 1)) + character.ageMin;
 
   return {
     age,
-    occupation: archetype.currentProfession,
-    backstory: `A former ${archetype.formerProfession} turned ${archetype.currentProfession} in their ${ageRange}. ${archetype.lifeEvent.charAt(0).toUpperCase() + archetype.lifeEvent.slice(1)}, they used their specialized knowledge and unique perspective to transition into their current role. They ${archetype.skills}. ${archetype.languages.charAt(0).toUpperCase() + archetype.languages.slice(1)}, ${archetype.psychologicalTrait}`,
-    motivation: `${archetype.motivationGoal}${archetype.motivationGoal.endsWith('.') || archetype.motivationGoal.endsWith('!') || archetype.motivationGoal.endsWith('?') ? ' ' : ', '}${archetype.motivationMethod}. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.`,
-    strength: archetype.strength,
-    flaw: archetype.flaw
+    occupation: character.profession,
+    personality: character.personality,
+    backstory: character.backstory,
+    motivation: character.coreMotivation,
+    strength: character.greatestStrength,
+    flaw: character.fatalFlaw
   };
 }
 
