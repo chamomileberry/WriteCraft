@@ -86,6 +86,22 @@ export async function generateCharacterWithAI(options: CharacterGenerationOption
 4. Specific personality traits that manifest in their actions
 5. Clear strengths and weaknesses that create story potential
 
+CHARACTER NAMING GUIDELINES:
+- AVOID overused AI-generated names like: Marcus, Sarah, Chen, Rodriguez, Thorne, Martinez, Vance, Kessler, Voss, Blackwood, Winters, Mendez, Nakamura, Elena, Maya, Kai, Aria, Zara, Phoenix, Raven, Hunter, Skylar
+- Create ethnically appropriate names that match the character's cultural background
+- Consider mixed heritage - if a character has parents from different cultures, their name should reflect this realistically
+- Use less common but authentic names from various cultures
+- First and last names should make logical sense together culturally
+- Draw from diverse global naming traditions: European, African, Asian, Latin American, Middle Eastern, Indigenous, etc.
+- Consider how immigration, adoption, or marriage might affect naming patterns
+- Use authentic regional variations within cultures (not just the most common names)
+
+CULTURAL AUTHENTICITY:
+- Research-backed naming conventions from specific cultures
+- Consider generational differences in naming (older vs younger characters)
+- Account for cultural assimilation patterns in naming choices
+- Reflect realistic family naming traditions
+
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
   "name": "Full character name",
@@ -109,7 +125,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     userPrompt += ` The character should identify as ${gender}.`;
   }
   
-  userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential. Respond with ONLY the JSON object, no other text.";
+  userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential. IMPORTANT: Choose a culturally authentic, less common name that avoids overused AI patterns. Consider the character's ethnicity, family background, and cultural heritage when selecting their name. Respond with ONLY the JSON object, no other text.";
 
   try {
     console.log('Making request to Anthropic API...');
