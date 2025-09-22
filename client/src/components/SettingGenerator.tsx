@@ -167,8 +167,8 @@ export default function SettingGenerator() {
   const generateMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', '/api/settings/generate', {
-        genre: selectedGenre || undefined,
-        settingType: selectedSettingType || undefined
+        genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
+        settingType: selectedSettingType && selectedSettingType !== "any" ? selectedSettingType : undefined
       });
       return await res.json() as Setting;
     },
@@ -272,7 +272,7 @@ ${generatedSetting.notableFeatures.join(', ')}`;
                   <SelectValue placeholder="Select a genre..." />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
-                  <SelectItem value="">Any Genre</SelectItem>
+                  <SelectItem value="any">Any Genre</SelectItem>
                   {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
                     <div key={category}>
                       <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
@@ -297,7 +297,7 @@ ${generatedSetting.notableFeatures.join(', ')}`;
                   <SelectValue placeholder="Select a setting type..." />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
-                  <SelectItem value="">Any Setting Type</SelectItem>
+                  <SelectItem value="any">Any Setting Type</SelectItem>
                   {Object.entries(SETTING_TYPE_CATEGORIES).map(([category, types]) => (
                     <div key={category}>
                       <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
