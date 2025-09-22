@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Copy, Trash2, User, Map, Feather, Scroll, BookMarked, Loader2 } from "lucide-react";
+import { Heart, Copy, Trash2, User, Map, Feather, Scroll, BookMarked, Loader2, PenTool } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -58,15 +58,23 @@ interface Creature {
   genre?: string;
 }
 
+interface Description {
+  id: string;
+  title: string;
+  content: string;
+  descriptionType: string;
+  genre?: string;
+}
+
 export default function SavedItems() {
   const [activeTab, setActiveTab] = useState("all");
   const { toast } = useToast();
 
   // Fetch saved items
   const { data: savedItems = [], isLoading, error } = useQuery({
-    queryKey: ['/api/saved-items', 'guest'],
+    queryKey: ['/api/saved-items', 'null'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/saved-items/guest');
+      const response = await apiRequest('GET', '/api/saved-items/null');
       return response.json() as Promise<SavedItem[]>;
     },
   });
@@ -75,7 +83,7 @@ export default function SavedItems() {
   const unsaveMutation = useMutation({
     mutationFn: async ({ itemType, itemId }: { itemType: string; itemId: string }) => {
       const response = await apiRequest('DELETE', '/api/saved-items', {
-        userId: 'guest',
+        userId: 'null',
         itemType,
         itemId
       });
@@ -338,6 +346,63 @@ ${creature.culturalSignificance}`;
     );
   };
 
+  const renderDescriptionCard = (item: SavedItem) => {
+    const description = item.itemData as Description;
+    if (!description) return null;
+
+    const descriptionText = `${description.title}
+
+${description.content}`;
+
+    return (
+      <Card key={item.id} className="hover-elevate">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="flex items-center gap-2">
+                <PenTool className="h-5 w-5 text-primary" />
+                {description.title}
+              </CardTitle>
+              <CardDescription className="mt-1">
+                {description.descriptionType}
+              </CardDescription>
+              {description.genre && (
+                <Badge variant="outline" className="mt-2">{description.genre}</Badge>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleCopy(descriptionText)}
+                data-testid="button-copy-description"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleUnsave('description', description.id)}
+                disabled={unsaveMutation.isPending}
+                data-testid="button-unsave-description"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div>
+              <span className="font-semibold">Content:</span>
+              <p className="text-sm text-muted-foreground mt-1">{description.content}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   const renderContent = () => {
     const filteredItems = filterItemsByType(activeTab);
 
@@ -379,6 +444,8 @@ ${creature.culturalSignificance}`;
               return renderSettingCard(item);
             case 'creature':
               return renderCreatureCard(item);
+            case 'description':
+              return renderDescriptionCard(item);
             default:
               return null;
           }
@@ -401,7 +468,7 @@ ${creature.culturalSignificance}`;
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="all" data-testid="tab-all-items">
             All ({getItemCount('all')})
           </TabsTrigger>
@@ -413,6 +480,9 @@ ${creature.culturalSignificance}`;
           </TabsTrigger>
           <TabsTrigger value="creature" data-testid="tab-creatures">
             Creatures ({getItemCount('creature')})
+          </TabsTrigger>
+          <TabsTrigger value="description" data-testid="tab-descriptions">
+            Descriptions ({getItemCount('description')})
           </TabsTrigger>
         </TabsList>
 
@@ -426,6 +496,9 @@ ${creature.culturalSignificance}`;
           {renderContent()}
         </TabsContent>
         <TabsContent value="creature" className="mt-6">
+          {renderContent()}
+        </TabsContent>
+        <TabsContent value="description" className="mt-6">
           {renderContent()}
         </TabsContent>
       </Tabs>

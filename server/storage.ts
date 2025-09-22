@@ -19,7 +19,7 @@ import {
   type Description, type InsertDescription
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike } from "drizzle-orm";
+import { eq, desc, and, or, ilike, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -462,10 +462,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async unsaveItem(userId: string, itemType: string, itemId: string): Promise<void> {
+    const userCondition = userId === 'null' 
+      ? isNull(savedItems.userId)
+      : eq(savedItems.userId, userId);
+      
     await db.delete(savedItems)
       .where(
         and(
-          eq(savedItems.userId, userId),
+          userCondition,
           eq(savedItems.itemType, itemType),
           eq(savedItems.itemId, itemId)
         )
@@ -473,22 +477,65 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]> {
-    const conditions = [eq(savedItems.userId, userId)];
+    const conditions = [];
+    
+    // Handle null userId for guest users
+    if (userId === 'null') {
+      conditions.push(isNull(savedItems.userId));
+    } else {
+      conditions.push(eq(savedItems.userId, userId));
+    }
     
     if (itemType) {
       conditions.push(eq(savedItems.itemType, itemType));
     }
     
-    return await db.select().from(savedItems)
+    const savedItemsData = await db.select().from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
+    
+    // Populate itemData for each saved item
+    const populatedItems = await Promise.all(
+      savedItemsData.map(async (item) => {
+        let itemData = null;
+        
+        try {
+          switch (item.itemType) {
+            case 'character':
+              itemData = await this.getCharacter(item.itemId);
+              break;
+            case 'setting':
+              itemData = await this.getSetting(item.itemId);
+              break;
+            case 'creature':
+              itemData = await this.getCreature(item.itemId);
+              break;
+            case 'description':
+              itemData = await this.getDescription(item.itemId);
+              break;
+            default:
+              console.warn(`Unknown item type: ${item.itemType}`);
+          }
+        } catch (error) {
+          console.error(`Failed to load ${item.itemType} with id ${item.itemId}:`, error);
+        }
+        
+        return { ...item, itemData };
+      })
+    );
+    
+    return populatedItems;
   }
 
   async isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean> {
+    const userCondition = userId === 'null' 
+      ? isNull(savedItems.userId)
+      : eq(savedItems.userId, userId);
+      
     const [savedItem] = await db.select().from(savedItems)
       .where(
         and(
-          eq(savedItems.userId, userId),
+          userCondition,
           eq(savedItems.itemType, itemType),
           eq(savedItems.itemId, itemId)
         )

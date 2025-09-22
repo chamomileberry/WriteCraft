@@ -127,7 +127,11 @@ export default function DescriptionGenerator() {
 
   const saveMutation = useMutation({
     mutationFn: async (description: Description) => {
-      const res = await apiRequest('POST', '/api/descriptions', description);
+      const res = await apiRequest('POST', '/api/saved-items', {
+        userId: null,
+        itemType: 'description',
+        itemId: description.id
+      });
       return await res.json();
     },
     onSuccess: () => {
@@ -135,7 +139,7 @@ export default function DescriptionGenerator() {
         title: "Description Saved!",
         description: "Your description has been saved to your collection.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/descriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
     onError: () => {
       toast({
