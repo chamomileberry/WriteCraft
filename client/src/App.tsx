@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/Home";
 import GuideDetail from "@/pages/GuideDetail";
 import CharacterPage from "@/pages/CharacterPage";
+import CharacterEditPage from "@/pages/CharacterEditPage";
 import SettingPage from "@/pages/SettingPage";
 import CreaturePage from "@/pages/CreaturePage";
 import NotFound from "@/pages/not-found";
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/guides/:id" component={GuideDetail} />
       <Route path="/characters" component={CharacterPage} />
+      <Route path="/characters/:id/edit" component={CharacterEditPage} />
       <Route path="/settings" component={SettingPage} />
       <Route path="/creatures" component={CreaturePage} />
       {/* Fallback to 404 */}
