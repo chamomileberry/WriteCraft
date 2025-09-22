@@ -345,11 +345,697 @@ export const descriptions = pgTable("descriptions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Locations
+export const locations = pgTable("locations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  locationType: text("location_type").notNull(), // city, forest, dungeon, etc.
+  description: text("description").notNull(),
+  geography: text("geography"),
+  climate: text("climate"),
+  population: text("population"),
+  government: text("government"),
+  economy: text("economy"),
+  culture: text("culture"),
+  history: text("history"),
+  notableFeatures: text("notable_features").array(),
+  landmarks: text("landmarks").array(),
+  threats: text("threats").array(),
+  resources: text("resources").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Items
+export const items = pgTable("items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  itemType: text("item_type").notNull(), // weapon, armor, tool, magic, etc.
+  description: text("description").notNull(),
+  rarity: text("rarity"),
+  value: text("value"),
+  weight: text("weight"),
+  properties: text("properties").array(),
+  materials: text("materials").array(),
+  history: text("history"),
+  abilities: text("abilities").array(),
+  requirements: text("requirements"),
+  crafting: text("crafting"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Organizations
+export const organizations = pgTable("organizations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  organizationType: text("organization_type").notNull(), // guild, faction, government, etc.
+  purpose: text("purpose").notNull(),
+  description: text("description").notNull(),
+  structure: text("structure"),
+  leadership: text("leadership"),
+  members: text("members"),
+  headquarters: text("headquarters"),
+  influence: text("influence"),
+  resources: text("resources"),
+  goals: text("goals"),
+  history: text("history"),
+  allies: text("allies").array(),
+  enemies: text("enemies").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Species
+export const species = pgTable("species", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  classification: text("classification"),
+  physicalDescription: text("physical_description").notNull(),
+  habitat: text("habitat"),
+  behavior: text("behavior"),
+  diet: text("diet"),
+  lifespan: text("lifespan"),
+  intelligence: text("intelligence"),
+  socialStructure: text("social_structure"),
+  abilities: text("abilities").array(),
+  weaknesses: text("weaknesses").array(),
+  culturalTraits: text("cultural_traits"),
+  reproduction: text("reproduction"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Ethnicities
+export const ethnicities = pgTable("ethnicities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  origin: text("origin"),
+  physicalTraits: text("physical_traits"),
+  culturalTraits: text("cultural_traits"),
+  traditions: text("traditions").array(),
+  language: text("language"),
+  religion: text("religion"),
+  socialStructure: text("social_structure"),
+  history: text("history"),
+  geography: text("geography"),
+  values: text("values").array(),
+  customs: text("customs").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Cultures
+export const cultures = pgTable("cultures", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  values: text("values").array(),
+  beliefs: text("beliefs").array(),
+  traditions: text("traditions").array(),
+  socialNorms: text("social_norms").array(),
+  language: text("language"),
+  arts: text("arts"),
+  technology: text("technology"),
+  governance: text("governance"),
+  economy: text("economy"),
+  education: text("education"),
+  family: text("family"),
+  ceremonies: text("ceremonies").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Documents
+export const documents = pgTable("documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  documentType: text("document_type").notNull(), // book, scroll, letter, map, etc.
+  content: text("content").notNull(),
+  author: text("author"),
+  language: text("language"),
+  age: text("age"),
+  condition: text("condition"),
+  significance: text("significance"),
+  location: text("location"),
+  accessibility: text("accessibility"),
+  secrets: text("secrets"),
+  history: text("history"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Food
+export const foods = pgTable("foods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  foodType: text("food_type").notNull(), // meal, snack, dessert, etc.
+  description: text("description").notNull(),
+  ingredients: text("ingredients").array(),
+  preparation: text("preparation"),
+  origin: text("origin"),
+  culturalSignificance: text("cultural_significance"),
+  nutritionalValue: text("nutritional_value"),
+  taste: text("taste"),
+  texture: text("texture"),
+  cost: text("cost"),
+  rarity: text("rarity"),
+  preservation: text("preservation"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Drinks
+export const drinks = pgTable("drinks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  drinkType: text("drink_type").notNull(), // alcoholic, non-alcoholic, magical, etc.
+  description: text("description").notNull(),
+  ingredients: text("ingredients").array(),
+  preparation: text("preparation"),
+  alcoholContent: text("alcohol_content"),
+  effects: text("effects"),
+  origin: text("origin"),
+  culturalSignificance: text("cultural_significance"),
+  taste: text("taste"),
+  appearance: text("appearance"),
+  cost: text("cost"),
+  rarity: text("rarity"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Weapons
+export const weapons = pgTable("weapons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  weaponType: text("weapon_type").notNull(), // sword, bow, staff, etc.
+  description: text("description").notNull(),
+  damage: text("damage"),
+  range: text("range"),
+  weight: text("weight"),
+  materials: text("materials").array(),
+  craftsmanship: text("craftsmanship"),
+  enchantments: text("enchantments").array(),
+  history: text("history"),
+  rarity: text("rarity"),
+  value: text("value"),
+  requirements: text("requirements"),
+  maintenance: text("maintenance"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Armor
+export const armor = pgTable("armor", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  armorType: text("armor_type").notNull(), // light, medium, heavy, shield, etc.
+  description: text("description").notNull(),
+  protection: text("protection"),
+  weight: text("weight"),
+  materials: text("materials").array(),
+  coverage: text("coverage"),
+  mobility: text("mobility"),
+  enchantments: text("enchantments").array(),
+  craftsmanship: text("craftsmanship"),
+  history: text("history"),
+  rarity: text("rarity"),
+  value: text("value"),
+  maintenance: text("maintenance"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Religions
+export const religions = pgTable("religions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  beliefs: text("beliefs").array(),
+  practices: text("practices").array(),
+  deities: text("deities").array(),
+  hierarchy: text("hierarchy"),
+  followers: text("followers"),
+  history: text("history"),
+  scriptures: text("scriptures"),
+  ceremonies: text("ceremonies").array(),
+  symbols: text("symbols").array(),
+  morality: text("morality"),
+  afterlife: text("afterlife"),
+  influence: text("influence"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Languages
+export const languages = pgTable("languages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  family: text("family"),
+  speakers: text("speakers"),
+  regions: text("regions").array(),
+  phonology: text("phonology"),
+  grammar: text("grammar"),
+  vocabulary: text("vocabulary"),
+  writingSystem: text("writing_system"),
+  commonPhrases: text("common_phrases").array(),
+  culturalContext: text("cultural_context"),
+  history: text("history"),
+  variations: text("variations").array(),
+  difficulty: text("difficulty"),
+  status: text("status"), // living, dead, constructed, etc.
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Accessories
+export const accessories = pgTable("accessories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  accessoryType: text("accessory_type").notNull(), // jewelry, belt, cloak, etc.
+  description: text("description").notNull(),
+  materials: text("materials").array(),
+  value: text("value"),
+  rarity: text("rarity"),
+  enchantments: text("enchantments").array(),
+  culturalSignificance: text("cultural_significance"),
+  history: text("history"),
+  appearance: text("appearance"),
+  functionality: text("functionality"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Clothing
+export const clothing = pgTable("clothing", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  clothingType: text("clothing_type").notNull(), // shirt, pants, dress, robe, etc.
+  description: text("description").notNull(),
+  materials: text("materials").array(),
+  style: text("style"),
+  colors: text("colors").array(),
+  socialClass: text("social_class"),
+  culturalContext: text("cultural_context"),
+  climate: text("climate"),
+  occasion: text("occasion"),
+  cost: text("cost"),
+  durability: text("durability"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Materials
+export const materials = pgTable("materials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  materialType: text("material_type").notNull(), // metal, wood, fabric, stone, etc.
+  description: text("description").notNull(),
+  properties: text("properties").array(),
+  rarity: text("rarity"),
+  value: text("value"),
+  source: text("source"),
+  processing: text("processing"),
+  uses: text("uses").array(),
+  durability: text("durability"),
+  appearance: text("appearance"),
+  weight: text("weight"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Settlements
+export const settlements = pgTable("settlements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  settlementType: text("settlement_type").notNull(), // city, town, village, outpost, etc.
+  description: text("description").notNull(),
+  population: text("population"),
+  government: text("government"),
+  economy: text("economy"),
+  defenses: text("defenses"),
+  culture: text("culture"),
+  history: text("history"),
+  geography: text("geography"),
+  climate: text("climate"),
+  resources: text("resources").array(),
+  threats: text("threats").array(),
+  landmarks: text("landmarks").array(),
+  districts: text("districts").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Societies
+export const societies = pgTable("societies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  societyType: text("society_type").notNull(), // tribal, feudal, democratic, etc.
+  description: text("description").notNull(),
+  structure: text("structure"),
+  leadership: text("leadership"),
+  laws: text("laws"),
+  values: text("values").array(),
+  customs: text("customs").array(),
+  economy: text("economy"),
+  technology: text("technology"),
+  education: text("education"),
+  military: text("military"),
+  religion: text("religion"),
+  arts: text("arts"),
+  history: text("history"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Factions
+export const factions = pgTable("factions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  factionType: text("faction_type").notNull(), // political, military, religious, criminal, etc.
+  description: text("description").notNull(),
+  goals: text("goals"),
+  ideology: text("ideology"),
+  leadership: text("leadership"),
+  members: text("members"),
+  resources: text("resources"),
+  territory: text("territory"),
+  influence: text("influence"),
+  allies: text("allies").array(),
+  enemies: text("enemies").array(),
+  methods: text("methods"),
+  history: text("history"),
+  secrets: text("secrets"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Military Units
+export const militaryUnits = pgTable("military_units", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  unitType: text("unit_type").notNull(), // infantry, cavalry, navy, special forces, etc.
+  description: text("description").notNull(),
+  size: text("size"),
+  composition: text("composition"),
+  equipment: text("equipment").array(),
+  training: text("training"),
+  specializations: text("specializations").array(),
+  commander: text("commander"),
+  morale: text("morale"),
+  reputation: text("reputation"),
+  history: text("history"),
+  battleRecord: text("battle_record"),
+  currentStatus: text("current_status"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Myths
+export const myths = pgTable("myths", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  mythType: text("myth_type").notNull(), // creation, hero, origin, cautionary, etc.
+  summary: text("summary").notNull(),
+  fullStory: text("full_story").notNull(),
+  characters: text("characters").array(),
+  themes: text("themes").array(),
+  moralLesson: text("moral_lesson"),
+  culturalOrigin: text("cultural_origin"),
+  symbolism: text("symbolism"),
+  variations: text("variations").array(),
+  modernRelevance: text("modern_relevance"),
+  relatedMyths: text("related_myths").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Legends
+export const legends = pgTable("legends", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  legendType: text("legend_type").notNull(), // historical, supernatural, heroic, etc.
+  summary: text("summary").notNull(),
+  fullStory: text("full_story").notNull(),
+  historicalBasis: text("historical_basis"),
+  mainCharacters: text("main_characters").array(),
+  location: text("location"),
+  timeframe: text("timeframe"),
+  truthElements: text("truth_elements"),
+  exaggerations: text("exaggerations"),
+  culturalImpact: text("cultural_impact"),
+  modernAdaptations: text("modern_adaptations").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Events
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  eventType: text("event_type").notNull(), // battle, festival, disaster, discovery, etc.
+  description: text("description").notNull(),
+  date: text("date"),
+  location: text("location"),
+  participants: text("participants").array(),
+  causes: text("causes"),
+  consequences: text("consequences"),
+  significance: text("significance"),
+  duration: text("duration"),
+  scale: text("scale"),
+  documentation: text("documentation"),
+  conflictingAccounts: text("conflicting_accounts"),
+  legacy: text("legacy"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Technologies
+export const technologies = pgTable("technologies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  technologyType: text("technology_type").notNull(), // magical, mechanical, biological, etc.
+  description: text("description").notNull(),
+  function: text("function"),
+  principles: text("principles"),
+  requirements: text("requirements").array(),
+  limitations: text("limitations").array(),
+  applications: text("applications").array(),
+  development: text("development"),
+  inventors: text("inventors"),
+  rarity: text("rarity"),
+  risks: text("risks"),
+  evolution: text("evolution"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Spells
+export const spells = pgTable("spells", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  school: text("school"), // evocation, divination, etc.
+  level: text("level"),
+  description: text("description").notNull(),
+  components: text("components").array(),
+  castingTime: text("casting_time"),
+  range: text("range"),
+  duration: text("duration"),
+  effect: text("effect"),
+  limitations: text("limitations"),
+  rarity: text("rarity"),
+  origin: text("origin"),
+  variations: text("variations").array(),
+  risks: text("risks"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Additional content types to complete the 40+ types requested
+
+// Resources
+export const resources = pgTable("resources", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  resourceType: text("resource_type").notNull(), // natural, manufactured, magical, etc.
+  description: text("description").notNull(),
+  abundance: text("abundance"),
+  location: text("location"),
+  extractionMethod: text("extraction_method"),
+  uses: text("uses").array(),
+  value: text("value"),
+  rarity: text("rarity"),
+  renewability: text("renewability"),
+  tradeCommodity: text("trade_commodity"),
+  controlledBy: text("controlled_by"),
+  conflicts: text("conflicts"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Buildings
+export const buildings = pgTable("buildings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  buildingType: text("building_type").notNull(), // temple, castle, shop, house, etc.
+  description: text("description").notNull(),
+  architecture: text("architecture"),
+  materials: text("materials").array(),
+  purpose: text("purpose"),
+  capacity: text("capacity"),
+  defenses: text("defenses"),
+  history: text("history"),
+  currentCondition: text("current_condition"),
+  location: text("location"),
+  owner: text("owner"),
+  significance: text("significance"),
+  secrets: text("secrets"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Animals
+export const animals = pgTable("animals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  animalType: text("animal_type").notNull(), // mammal, bird, reptile, etc.
+  description: text("description").notNull(),
+  habitat: text("habitat"),
+  diet: text("diet"),
+  behavior: text("behavior"),
+  physicalTraits: text("physical_traits"),
+  size: text("size"),
+  domestication: text("domestication"),
+  intelligence: text("intelligence"),
+  abilities: text("abilities").array(),
+  lifecycle: text("lifecycle"),
+  culturalRole: text("cultural_role"),
+  threats: text("threats"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Transportation
+export const transportation = pgTable("transportation", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  transportType: text("transport_type").notNull(), // land, sea, air, magical, etc.
+  description: text("description").notNull(),
+  capacity: text("capacity"),
+  speed: text("speed"),
+  range: text("range"),
+  requirements: text("requirements"),
+  construction: text("construction"),
+  operation: text("operation"),
+  cost: text("cost"),
+  rarity: text("rarity"),
+  advantages: text("advantages").array(),
+  disadvantages: text("disadvantages").array(),
+  culturalSignificance: text("cultural_significance"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Natural Laws
+export const naturalLaws = pgTable("natural_laws", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  lawType: text("law_type").notNull(), // physical, magical, divine, etc.
+  description: text("description").notNull(),
+  scope: text("scope"),
+  principles: text("principles"),
+  exceptions: text("exceptions").array(),
+  discovery: text("discovery"),
+  applications: text("applications").array(),
+  implications: text("implications"),
+  relatedLaws: text("related_laws").array(),
+  understanding: text("understanding"),
+  controversies: text("controversies"),
+  evidence: text("evidence"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Traditions
+export const traditions = pgTable("traditions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  traditionType: text("tradition_type").notNull(), // ceremony, festival, custom, etc.
+  description: text("description").notNull(),
+  origin: text("origin"),
+  purpose: text("purpose"),
+  participants: text("participants"),
+  procedure: text("procedure"),
+  timing: text("timing"),
+  location: text("location"),
+  symbolism: text("symbolism"),
+  significance: text("significance"),
+  modernPractice: text("modern_practice"),
+  variations: text("variations").array(),
+  relatedTraditions: text("related_traditions").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Rituals
+export const rituals = pgTable("rituals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  ritualType: text("ritual_type").notNull(), // religious, magical, social, etc.
+  description: text("description").notNull(),
+  purpose: text("purpose"),
+  participants: text("participants"),
+  requirements: text("requirements").array(),
+  steps: text("steps").array(),
+  duration: text("duration"),
+  location: text("location"),
+  timing: text("timing"),
+  components: text("components").array(),
+  effects: text("effects"),
+  risks: text("risks"),
+  variations: text("variations").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
-  itemType: text("item_type").notNull(), // 'character', 'plot', 'prompt', 'guide', 'description'
+  itemType: text("item_type").notNull(), // 'character', 'location', 'item', 'organization', etc.
   itemId: varchar("item_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
@@ -369,6 +1055,38 @@ export const usersRelations = relations(users, ({ many }) => ({
   creatures: many(creatures),
   plants: many(plants),
   descriptions: many(descriptions),
+  locations: many(locations),
+  items: many(items),
+  organizations: many(organizations),
+  species: many(species),
+  ethnicities: many(ethnicities),
+  cultures: many(cultures),
+  documents: many(documents),
+  foods: many(foods),
+  drinks: many(drinks),
+  weapons: many(weapons),
+  armor: many(armor),
+  religions: many(religions),
+  languages: many(languages),
+  accessories: many(accessories),
+  clothing: many(clothing),
+  materials: many(materials),
+  settlements: many(settlements),
+  societies: many(societies),
+  factions: many(factions),
+  militaryUnits: many(militaryUnits),
+  myths: many(myths),
+  legends: many(legends),
+  events: many(events),
+  technologies: many(technologies),
+  spells: many(spells),
+  resources: many(resources),
+  buildings: many(buildings),
+  animals: many(animals),
+  transportation: many(transportation),
+  naturalLaws: many(naturalLaws),
+  traditions: many(traditions),
+  rituals: many(rituals),
   savedItems: many(savedItems),
 }));
 
@@ -456,6 +1174,231 @@ export const savedItemsRelations = relations(savedItems, ({ one }) => ({
   }),
 }));
 
+// Add relations for all new content types
+export const locationsRelations = relations(locations, ({ one }) => ({
+  user: one(users, {
+    fields: [locations.userId],
+    references: [users.id],
+  }),
+}));
+
+export const itemsRelations = relations(items, ({ one }) => ({
+  user: one(users, {
+    fields: [items.userId],
+    references: [users.id],
+  }),
+}));
+
+export const organizationsRelations = relations(organizations, ({ one }) => ({
+  user: one(users, {
+    fields: [organizations.userId],
+    references: [users.id],
+  }),
+}));
+
+export const speciesRelations = relations(species, ({ one }) => ({
+  user: one(users, {
+    fields: [species.userId],
+    references: [users.id],
+  }),
+}));
+
+export const ethnicitiesRelations = relations(ethnicities, ({ one }) => ({
+  user: one(users, {
+    fields: [ethnicities.userId],
+    references: [users.id],
+  }),
+}));
+
+export const culturesRelations = relations(cultures, ({ one }) => ({
+  user: one(users, {
+    fields: [cultures.userId],
+    references: [users.id],
+  }),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  user: one(users, {
+    fields: [documents.userId],
+    references: [users.id],
+  }),
+}));
+
+export const foodsRelations = relations(foods, ({ one }) => ({
+  user: one(users, {
+    fields: [foods.userId],
+    references: [users.id],
+  }),
+}));
+
+export const drinksRelations = relations(drinks, ({ one }) => ({
+  user: one(users, {
+    fields: [drinks.userId],
+    references: [users.id],
+  }),
+}));
+
+export const weaponsRelations = relations(weapons, ({ one }) => ({
+  user: one(users, {
+    fields: [weapons.userId],
+    references: [users.id],
+  }),
+}));
+
+export const armorRelations = relations(armor, ({ one }) => ({
+  user: one(users, {
+    fields: [armor.userId],
+    references: [users.id],
+  }),
+}));
+
+export const religionsRelations = relations(religions, ({ one }) => ({
+  user: one(users, {
+    fields: [religions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const languagesRelations = relations(languages, ({ one }) => ({
+  user: one(users, {
+    fields: [languages.userId],
+    references: [users.id],
+  }),
+}));
+
+export const accessoriesRelations = relations(accessories, ({ one }) => ({
+  user: one(users, {
+    fields: [accessories.userId],
+    references: [users.id],
+  }),
+}));
+
+export const clothingRelations = relations(clothing, ({ one }) => ({
+  user: one(users, {
+    fields: [clothing.userId],
+    references: [users.id],
+  }),
+}));
+
+export const materialsRelations = relations(materials, ({ one }) => ({
+  user: one(users, {
+    fields: [materials.userId],
+    references: [users.id],
+  }),
+}));
+
+export const settlementsRelations = relations(settlements, ({ one }) => ({
+  user: one(users, {
+    fields: [settlements.userId],
+    references: [users.id],
+  }),
+}));
+
+export const societiesRelations = relations(societies, ({ one }) => ({
+  user: one(users, {
+    fields: [societies.userId],
+    references: [users.id],
+  }),
+}));
+
+export const factionsRelations = relations(factions, ({ one }) => ({
+  user: one(users, {
+    fields: [factions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const militaryUnitsRelations = relations(militaryUnits, ({ one }) => ({
+  user: one(users, {
+    fields: [militaryUnits.userId],
+    references: [users.id],
+  }),
+}));
+
+export const mythsRelations = relations(myths, ({ one }) => ({
+  user: one(users, {
+    fields: [myths.userId],
+    references: [users.id],
+  }),
+}));
+
+export const legendsRelations = relations(legends, ({ one }) => ({
+  user: one(users, {
+    fields: [legends.userId],
+    references: [users.id],
+  }),
+}));
+
+export const eventsRelations = relations(events, ({ one }) => ({
+  user: one(users, {
+    fields: [events.userId],
+    references: [users.id],
+  }),
+}));
+
+export const technologiesRelations = relations(technologies, ({ one }) => ({
+  user: one(users, {
+    fields: [technologies.userId],
+    references: [users.id],
+  }),
+}));
+
+export const spellsRelations = relations(spells, ({ one }) => ({
+  user: one(users, {
+    fields: [spells.userId],
+    references: [users.id],
+  }),
+}));
+
+export const resourcesRelations = relations(resources, ({ one }) => ({
+  user: one(users, {
+    fields: [resources.userId],
+    references: [users.id],
+  }),
+}));
+
+export const buildingsRelations = relations(buildings, ({ one }) => ({
+  user: one(users, {
+    fields: [buildings.userId],
+    references: [users.id],
+  }),
+}));
+
+export const animalsRelations = relations(animals, ({ one }) => ({
+  user: one(users, {
+    fields: [animals.userId],
+    references: [users.id],
+  }),
+}));
+
+export const transportationRelations = relations(transportation, ({ one }) => ({
+  user: one(users, {
+    fields: [transportation.userId],
+    references: [users.id],
+  }),
+}));
+
+export const naturalLawsRelations = relations(naturalLaws, ({ one }) => ({
+  user: one(users, {
+    fields: [naturalLaws.userId],
+    references: [users.id],
+  }),
+}));
+
+export const traditionsRelations = relations(traditions, ({ one }) => ({
+  user: one(users, {
+    fields: [traditions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const ritualsRelations = relations(rituals, ({ one }) => ({
+  user: one(users, {
+    fields: [rituals.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -532,6 +1475,167 @@ export const insertSavedItemSchema = createInsertSchema(savedItems).omit({
   createdAt: true,
 });
 
+// Insert schemas for all new content types
+export const insertLocationSchema = createInsertSchema(locations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertItemSchema = createInsertSchema(items).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSpeciesSchema = createInsertSchema(species).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEthnicitySchema = createInsertSchema(ethnicities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCultureSchema = createInsertSchema(cultures).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFoodSchema = createInsertSchema(foods).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDrinkSchema = createInsertSchema(drinks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWeaponSchema = createInsertSchema(weapons).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertArmorSchema = createInsertSchema(armor).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertReligionSchema = createInsertSchema(religions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLanguageSchema = createInsertSchema(languages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAccessorySchema = createInsertSchema(accessories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertClothingSchema = createInsertSchema(clothing).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMaterialSchema = createInsertSchema(materials).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSettlementSchema = createInsertSchema(settlements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSocietySchema = createInsertSchema(societies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFactionSchema = createInsertSchema(factions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMilitaryUnitSchema = createInsertSchema(militaryUnits).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMythSchema = createInsertSchema(myths).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLegendSchema = createInsertSchema(legends).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTechnologySchema = createInsertSchema(technologies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSpellSchema = createInsertSchema(spells).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertResourceSchema = createInsertSchema(resources).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertBuildingSchema = createInsertSchema(buildings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAnimalSchema = createInsertSchema(animals).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTransportationSchema = createInsertSchema(transportation).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNaturalLawSchema = createInsertSchema(naturalLaws).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTraditionSchema = createInsertSchema(traditions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRitualSchema = createInsertSchema(rituals).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -562,3 +1666,69 @@ export type InsertDescription = z.infer<typeof insertDescriptionSchema>;
 export type Description = typeof descriptions.$inferSelect;
 export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;
+
+// Types for all new content types
+export type InsertLocation = z.infer<typeof insertLocationSchema>;
+export type Location = typeof locations.$inferSelect;
+export type InsertItem = z.infer<typeof insertItemSchema>;
+export type Item = typeof items.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type Organization = typeof organizations.$inferSelect;
+export type InsertSpecies = z.infer<typeof insertSpeciesSchema>;
+export type Species = typeof species.$inferSelect;
+export type InsertEthnicity = z.infer<typeof insertEthnicitySchema>;
+export type Ethnicity = typeof ethnicities.$inferSelect;
+export type InsertCulture = z.infer<typeof insertCultureSchema>;
+export type Culture = typeof cultures.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;
+export type InsertFood = z.infer<typeof insertFoodSchema>;
+export type Food = typeof foods.$inferSelect;
+export type InsertDrink = z.infer<typeof insertDrinkSchema>;
+export type Drink = typeof drinks.$inferSelect;
+export type InsertWeapon = z.infer<typeof insertWeaponSchema>;
+export type Weapon = typeof weapons.$inferSelect;
+export type InsertArmor = z.infer<typeof insertArmorSchema>;
+export type Armor = typeof armor.$inferSelect;
+export type InsertReligion = z.infer<typeof insertReligionSchema>;
+export type Religion = typeof religions.$inferSelect;
+export type InsertLanguage = z.infer<typeof insertLanguageSchema>;
+export type Language = typeof languages.$inferSelect;
+export type InsertAccessory = z.infer<typeof insertAccessorySchema>;
+export type Accessory = typeof accessories.$inferSelect;
+export type InsertClothing = z.infer<typeof insertClothingSchema>;
+export type Clothing = typeof clothing.$inferSelect;
+export type InsertMaterial = z.infer<typeof insertMaterialSchema>;
+export type Material = typeof materials.$inferSelect;
+export type InsertSettlement = z.infer<typeof insertSettlementSchema>;
+export type Settlement = typeof settlements.$inferSelect;
+export type InsertSociety = z.infer<typeof insertSocietySchema>;
+export type Society = typeof societies.$inferSelect;
+export type InsertFaction = z.infer<typeof insertFactionSchema>;
+export type Faction = typeof factions.$inferSelect;
+export type InsertMilitaryUnit = z.infer<typeof insertMilitaryUnitSchema>;
+export type MilitaryUnit = typeof militaryUnits.$inferSelect;
+export type InsertMyth = z.infer<typeof insertMythSchema>;
+export type Myth = typeof myths.$inferSelect;
+export type InsertLegend = z.infer<typeof insertLegendSchema>;
+export type Legend = typeof legends.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type Event = typeof events.$inferSelect;
+export type InsertTechnology = z.infer<typeof insertTechnologySchema>;
+export type Technology = typeof technologies.$inferSelect;
+export type InsertSpell = z.infer<typeof insertSpellSchema>;
+export type Spell = typeof spells.$inferSelect;
+export type InsertResource = z.infer<typeof insertResourceSchema>;
+export type Resource = typeof resources.$inferSelect;
+export type InsertBuilding = z.infer<typeof insertBuildingSchema>;
+export type Building = typeof buildings.$inferSelect;
+export type InsertAnimal = z.infer<typeof insertAnimalSchema>;
+export type Animal = typeof animals.$inferSelect;
+export type InsertTransportation = z.infer<typeof insertTransportationSchema>;
+export type Transportation = typeof transportation.$inferSelect;
+export type InsertNaturalLaw = z.infer<typeof insertNaturalLawSchema>;
+export type NaturalLaw = typeof naturalLaws.$inferSelect;
+export type InsertTradition = z.infer<typeof insertTraditionSchema>;
+export type Tradition = typeof traditions.$inferSelect;
+export type InsertRitual = z.infer<typeof insertRitualSchema>;
+export type Ritual = typeof rituals.$inferSelect;
