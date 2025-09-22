@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
-import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles } from "lucide-react";
+import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -76,7 +77,7 @@ const GENRE_CATEGORIES = {
   ]
 };
 
-// Setting type categories
+// Updated setting type categories with all new additions
 const SETTING_TYPE_CATEGORIES = {
   "Geographic Regions": [
     "world", "country", "state/province", "county", "city", "town", "village", 
@@ -88,7 +89,8 @@ const SETTING_TYPE_CATEGORIES = {
     "beach", "island", "archipelagos", "cave", "lagoon", "national park", "reservoir", 
     "dunes", "valley", "rainforest", "savannah", "grassland", "bog", "swamp", "tar pit", 
     "marshland", "glacier", "hot springs", "geyser", "Everglades", "estuary", "cove", 
-    "grove", "glen", "animal pasture", "trail", "causeway"
+    "grove", "glen", "animal pasture", "trail", "causeway", "pond", "salt flats", 
+    "tundra", "wasteland", "badlands", "wildlife reserve", "cavern", "lair"
   ],
   "Residential Buildings": [
     "house", "apartment", "condo", "cabin", "townhouse", "mansion", "cottage", "villa", 
@@ -106,52 +108,85 @@ const SETTING_TYPE_CATEGORIES = {
     "mechanic shop", "car dealership", "car wash", "hobby store", "jewelry store", 
     "music store", "camera store", "candy shop", "emporium", "general store", "feed store", 
     "pet store", "outlet store", "drive-thru", "Internet cafe", "real estate agency", 
-    "retailer", "sausage stand"
+    "retailer", "sausage stand", "grocery store", "supermarket", "tailor", "tanning salon", 
+    "tax advisor", "tea house", "tea room", "thrift store", "travel agency", "wig store", 
+    "upholstery shop"
+  ],
+  "Public & Government Buildings": [
+    "library", "community centre", "civic centre", "city hall", "government building", 
+    "parliament building", "courthouse", "court room", "police station", "fire hall", 
+    "fire department", "fire station", "post office", "embassy", "immigration centre", 
+    "information centre", "convention centre", "print shop", "town square", "trade centre", 
+    "forbidden city", "government agency", "intelligence agency", "news station"
   ],
   "Entertainment Venues": [
     "movie theatre", "cinema", "theatre", "drive-in theatre", "opera house", "arena", 
     "stadium", "aquarium", "arcade", "amusement park", "water park", "playground", 
-    "carnival", "festival", "fair", "circus", "colosseum", "boardwalk", "roller rink", 
-    "jazz club", "speak easy", "concert hall", "amphitheatre", "concert", "music festival", 
-    "concession stand"
+    "carnival", "festival", "fair", "circus", "colosseum", "boardwalk", "casino", 
+    "roller rink", "jazz club", "speak easy", "concert hall", "amphitheatre", "concert", 
+    "music festival", "concession stand", "jousting arena", "gala", "rodeo"
   ],
   "Transportation & Infrastructure": [
     "airport", "terminal", "bus stop", "highway", "road", "street", "crescent", "bridge", 
-    "pier", "harbour", "wharf", "marina", "garage", "parking garage", "speedway", "arch", 
-    "gateway", "dam", "lighthouse", "tower", "clock tower", "quay"
+    "pier", "harbour", "wharf", "marina", "garage", "parking garage", "railway", "subway", 
+    "speedway", "arch", "gateway", "dam", "lighthouse", "tower", "clock tower", "quay", 
+    "seaport", "walkway", "train station", "tram station", "truck stop", "union station"
   ],
-  "Religious & Spiritual": [
-    "church", "chapel", "cathedral", "mosque", "shrine", "pyramid", "monastery"
+  "Religious & Spiritual Buildings": [
+    "church", "chapel", "cathedral", "mosque", "shrine", "pyramid", "monastery", "abbey"
   ],
-  "Educational": [
+  "Educational Institutions": [
     "school", "college", "university", "high school", "elementary school", "middle school", 
-    "boarding school", "campus", "classroom"
+    "boarding school", "campus", "classroom", "academy"
   ],
-  "Healthcare": [
+  "Healthcare Facilities": [
     "hospital", "clinic", "medical centre", "infirmary", "emergency room", "hospital room", 
     "operating room", "doctor's office", "dentist", "optometrist", "chiropractor", 
     "orthodontist", "physiotherapist", "massage therapist", "wellness centre"
   ],
   "Sports & Recreation": [
     "gym", "pool", "racetrack", "sports field", "aquatic centre", "recreation centre", 
-    "martial arts studio", "dance studio", "baseball diamond", "ice rink"
+    "martial arts studio", "dance studio", "baseball diamond", "ice rink", "tennis court", 
+    "basketball court", "ski hill", "lodge", "resort", "campground", "trailer park"
   ],
   "Industrial & Agricultural": [
     "factory", "warehouse", "farm", "farmhouse", "vineyard", "barn", "granary", "silo", 
     "mine", "quarry", "oil rig", "mill", "lumberyard", "dump", "recycling depot", 
-    "junkyard", "abattoir", "sand pit", "gravel pit"
+    "junkyard", "abattoir", "sand pit", "gravel pit", "slaughter house", "ranch", 
+    "corral", "bunkhouse"
   ],
-  "Vehicles & Mobile": [
-    "space station", "rocket ship", "pirate ship", "caravan", "trailer", "camper van", "food truck"
+  "Vehicles & Mobile Settings": [
+    "space station", "rocket ship", "pirate ship", "caravan", "trailer", "camper van", 
+    "food truck", "submarine", "naval ship", "house boat", "zeppelin"
   ],
   "Interior Spaces": [
     "room", "kitchen", "bedroom", "living room", "bathroom", "boardroom", "office", 
     "basement", "cellar", "balcony", "hall", "dining hall", "cafeteria", "dorm room", 
-    "vault", "dungeon", "prison"
+    "vault", "dungeon", "prison", "courtyard"
+  ],
+  "Personal Care & Services": [
+    "salon", "barber's shop", "spa", "nail salon", "hair salon", "saloon", "bathhouse", "laundromat"
+  ],
+  "Cultural & Arts": [
+    "museum", "art gallery", "gallery", "auditorium", "studio", "production studio", 
+    "television set", "movie set", "recording studio", "radio station", "orchestra pit"
   ],
   "Military & Historical": [
     "castle", "barracks", "army base", "battlefield", "camp", "monument", "memorial", 
-    "cemetery", "wall", "barrier"
+    "cemetery", "wall", "barrier", "tomb", "gravesite", "graveyard", "crypt", 
+    "underground bunker", "nuclear bunker", "barricade", "military park"
+  ],
+  "Specialized Buildings": [
+    "apothecary", "blacksmith forge", "crematorium", "morgue", "funeral home", "aviary", 
+    "zoological park", "nursery", "space centre", "lawyer's chambers", "landmark", "hotel", 
+    "hostel", "motel", "bed and breakfast", "inn", "bistro", "brewery", "palace", "sky deck", 
+    "hangar", "storage facility", "rocket centre", "launchpad", "fishing hut", "watch tower", 
+    "water tower", "research centre", "research lab", "nuclear power plant", "nuclear launch site", 
+    "wax museum", "boathouse", "botanical gardens", "pavilion", "pergola", "pagoda", 
+    "research station", "observatory", "treehouse"
+  ],
+  "Celestial & Fantastical": [
+    "planet", "realm", "satellite", "star"
   ]
 };
 
@@ -162,6 +197,8 @@ export default function SettingGenerator() {
   const [generatedSetting, setGeneratedSetting] = useState<Setting | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedSettingType, setSelectedSettingType] = useState<string>("");
+  const [genreSearchOpen, setGenreSearchOpen] = useState(false);
+  const [settingTypeSearchOpen, setSettingTypeSearchOpen] = useState(false);
   const { toast } = useToast();
 
   const generateMutation = useMutation({
@@ -267,51 +304,109 @@ ${generatedSetting.notableFeatures.join(', ')}`;
             {/* Genre Selection */}
             <div className="space-y-2">
               <Label htmlFor="genre-select">Genre (Optional)</Label>
-              <Select value={selectedGenre} onValueChange={setSelectedGenre} data-testid="select-genre">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a genre..." />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  <SelectItem value="any">Any Genre</SelectItem>
-                  {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                    <div key={category}>
-                      <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                        {category}
-                      </div>
-                      {genres.map((genre) => (
-                        <SelectItem key={genre} value={genre}>
-                          {genre}
-                        </SelectItem>
+              <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={genreSearchOpen}
+                    className="w-full justify-between"
+                    data-testid="select-genre"
+                  >
+                    {selectedGenre && selectedGenre !== "any" ? selectedGenre : selectedGenre === "any" ? "Any Genre" : "Select a genre..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search genres..." />
+                    <CommandList className="max-h-60">
+                      <CommandEmpty>No genre found.</CommandEmpty>
+                      <CommandItem
+                        value="any"
+                        onSelect={() => {
+                          setSelectedGenre("any");
+                          setGenreSearchOpen(false);
+                        }}
+                      >
+                        <Check className={`mr-2 h-4 w-4 ${selectedGenre === "any" ? "opacity-100" : "opacity-0"}`} />
+                        Any Genre
+                      </CommandItem>
+                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
+                        <CommandGroup key={category} heading={category}>
+                          {genres.map((genre) => (
+                            <CommandItem
+                              key={genre}
+                              value={genre}
+                              onSelect={() => {
+                                setSelectedGenre(genre);
+                                setGenreSearchOpen(false);
+                              }}
+                            >
+                              <Check className={`mr-2 h-4 w-4 ${selectedGenre === genre ? "opacity-100" : "opacity-0"}`} />
+                              {genre}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
                       ))}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Setting Type Selection */}
             <div className="space-y-2">
               <Label htmlFor="setting-type-select">Setting Type (Optional)</Label>
-              <Select value={selectedSettingType} onValueChange={setSelectedSettingType} data-testid="select-setting-type">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a setting type..." />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  <SelectItem value="any">Any Setting Type</SelectItem>
-                  {Object.entries(SETTING_TYPE_CATEGORIES).map(([category, types]) => (
-                    <div key={category}>
-                      <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                        {category}
-                      </div>
-                      {types.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
+              <Popover open={settingTypeSearchOpen} onOpenChange={setSettingTypeSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={settingTypeSearchOpen}
+                    className="w-full justify-between"
+                    data-testid="select-setting-type"
+                  >
+                    {selectedSettingType && selectedSettingType !== "any" ? selectedSettingType : selectedSettingType === "any" ? "Any Setting Type" : "Select a setting type..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search setting types..." />
+                    <CommandList className="max-h-60">
+                      <CommandEmpty>No setting type found.</CommandEmpty>
+                      <CommandItem
+                        value="any"
+                        onSelect={() => {
+                          setSelectedSettingType("any");
+                          setSettingTypeSearchOpen(false);
+                        }}
+                      >
+                        <Check className={`mr-2 h-4 w-4 ${selectedSettingType === "any" ? "opacity-100" : "opacity-0"}`} />
+                        Any Setting Type
+                      </CommandItem>
+                      {Object.entries(SETTING_TYPE_CATEGORIES).map(([category, types]) => (
+                        <CommandGroup key={category} heading={category}>
+                          {types.map((type) => (
+                            <CommandItem
+                              key={type}
+                              value={type}
+                              onSelect={() => {
+                                setSelectedSettingType(type);
+                                setSettingTypeSearchOpen(false);
+                              }}
+                            >
+                              <Check className={`mr-2 h-4 w-4 ${selectedSettingType === type ? "opacity-100" : "opacity-0"}`} />
+                              {type}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
                       ))}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </CardContent>
