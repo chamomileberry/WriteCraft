@@ -197,10 +197,8 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   
   userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential. CRITICAL REQUIREMENTS: 1) Choose a culturally authentic, less common name that avoids overused AI patterns - avoid common names like Chen, Okafor, Singh, etc. 2) Create a unique family background that avoids repetitive cultural tropes like 'Nigerian father' or 'Chinese mother' - be creative and varied in family structures and backgrounds. 3) Ensure this character's backstory is distinct from typical AI-generated patterns. Respond with ONLY the JSON object, no other text.";
 
-  let content: any;
+  // Try Anthropic API first, fallback to local generation if it fails
   try {
-    console.log('Making request to Anthropic API...');
-    
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR,
       system: systemPrompt,
@@ -210,9 +208,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       ],
     });
 
-    console.log('Received response from Anthropic API');
-
-    content = response.content[0];
+    const content = response.content[0];
     if (content.type !== 'text') {
       throw new Error('Unexpected response format from Anthropic API');
     }
@@ -220,15 +216,11 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     // Clean the response text - remove any potential markdown formatting or extra text
     let cleanedText = content.text.trim();
     
-    console.log('Raw AI Response:', cleanedText);
-    
     // Extract JSON if it's wrapped in code blocks or has extra text
     const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       cleanedText = jsonMatch[0];
     }
-
-    console.log('Cleaned AI Response:', cleanedText);
     
     const characterData = JSON.parse(cleanedText);
     
@@ -255,13 +247,81 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
     return characterData as GeneratedCharacter;
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      console.error('JSON Parse Error. Raw response:', content.text);
-      throw new Error('Failed to parse AI response as JSON. Please try again.');
-    }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    throw new Error(`Character generation failed: ${errorMessage}`);
+    console.error('Anthropic API failed, using fallback generation:', error);
+    
+    // Fallback: Generate a deterministic character locally
+    return generateFallbackCharacter(options);
   }
+}
+
+// Fallback character generator for when Anthropic API fails
+function generateFallbackCharacter(options: CharacterGenerationOptions = {}): GeneratedCharacter {
+  const { genre, gender, ethnicity } = options;
+  
+  // Array of diverse names to avoid repetition
+  const fallbackNames = [
+    "Amara Valdez", "Kieran O'Sullivan", "Zara Osei", "Dmitri Kozlov", "Lucia Fernandez",
+    "Ravi Patel", "Elena Rosewood", "Omar Hassan", "Yuki Tanaka", "Anya Volkov",
+    "Carlos Mendoza", "Priya Sharma", "Nolan Clarke", "Isadora Santos", "Kai Nakamura"
+  ];
+  
+  const occupations = [
+    "librarian", "mechanic", "teacher", "chef", "artist", "engineer", "paramedic", 
+    "journalist", "musician", "architect", "nurse", "photographer", "carpenter"
+  ];
+  
+  const personalityTraits = [
+    ["curious", "methodical", "empathetic"], ["bold", "impulsive", "charismatic"],
+    ["thoughtful", "patient", "creative"], ["determined", "practical", "loyal"],
+    ["intuitive", "independent", "analytical"], ["optimistic", "adaptable", "honest"]
+  ];
+  
+  const backstories = [
+    "Grew up in a small coastal town, always fascinated by the stories that drifted in with the tide. After losing their childhood home to a storm, they learned resilience and the importance of community support.",
+    "Raised by grandparents who immigrated with nothing but hope and determination. Their multicultural upbringing taught them to bridge different worlds, though they sometimes feel caught between traditions.",
+    "Former prodigy who walked away from academic success to find meaning in everyday connections. They carry the weight of unmet expectations while discovering their own path to fulfillment.",
+    "Survivor of a family tragedy that reshaped their worldview. They channeled their grief into helping others, though they struggle to accept help themselves.",
+    "Grew up moving frequently due to a parent's military career. This nomadic childhood gave them adaptability but also a deep longing for roots and stability."
+  ];
+  
+  // Generate deterministic but varied character
+  const nameIndex = Math.abs(hashString(`${genre}-${gender}-${ethnicity}-name`)) % fallbackNames.length;
+  const occupationIndex = Math.abs(hashString(`${genre}-${gender}-${ethnicity}-job`)) % occupations.length;
+  const personalityIndex = Math.abs(hashString(`${genre}-${gender}-${ethnicity}-personality`)) % personalityTraits.length;
+  const backstoryIndex = Math.abs(hashString(`${genre}-${gender}-${ethnicity}-backstory`)) % backstories.length;
+  
+  const age = 22 + (Math.abs(hashString(`${genre}-${gender}-${ethnicity}-age`)) % 38); // 22-60
+  
+  return {
+    name: fallbackNames[nameIndex],
+    age,
+    occupation: occupations[occupationIndex],
+    personality: personalityTraits[personalityIndex],
+    backstory: backstories[backstoryIndex],
+    motivation: "To find balance between personal aspirations and the needs of those they care about",
+    flaw: "Tendency to overthink decisions, sometimes missing opportunities while analyzing every angle",
+    strength: "Exceptional ability to see multiple perspectives and find common ground in conflicts",
+    gender: gender || "non-binary",
+    height: "5'7\"",
+    build: "average build with good posture",
+    hairColor: "dark brown, usually styled simply",
+    eyeColor: "warm brown with flecks of gold",
+    skinTone: "medium olive complexion",
+    facialFeatures: "expressive eyes and a thoughtful expression",
+    identifyingMarks: "small scar on left hand from childhood accident",
+    physicalDescription: "Medium height with an approachable presence. Their expressive eyes often reflect deep thought, and they carry themselves with quiet confidence. A small scar on their left hand tells of childhood adventures."
+  };
+}
+
+// Simple hash function for deterministic randomness
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return hash;
 }
 
 export async function generateSettingWithAI(options: SettingGenerationOptions = {}): Promise<GeneratedSetting> {

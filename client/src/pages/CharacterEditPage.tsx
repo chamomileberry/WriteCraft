@@ -41,9 +41,13 @@ export default function CharacterEditPage() {
     enabled: !!id,
   });
 
+  // Create form-specific partial schema to handle tab-based fields
+  const characterFormSchema = updateCharacterSchema.partial();
+  
   // Form setup with all fields, converting null values to empty strings
   const form = useForm<UpdateCharacter>({
-    resolver: zodResolver(updateCharacterSchema),
+    resolver: zodResolver(characterFormSchema),
+    shouldUnregister: false, // Preserve values across tabs
     defaultValues: {},
   });
 
@@ -53,18 +57,22 @@ export default function CharacterEditPage() {
       const formData = Object.fromEntries(
         Object.entries(character).map(([key, value]) => {
           if (value === null || value === undefined) {
-            // Handle arrays
-            if (key === 'personality' || key === 'languages' || key === 'hobbies' || 
-                key === 'skills' || key === 'culturalElements' || key === 'notableFeatures' ||
-                key === 'interests' || key === 'activities') {
+            // Handle arrays - these should be empty arrays when null
+            if (key === 'personality' || key === 'languages' || key === 'skills' || 
+                key === 'culturalElements' || key === 'notableFeatures') {
               return [key, []];
             }
-            // Handle numbers
+            // Handle numbers - these should be undefined when null
             if (key === 'age' || key === 'weight') {
               return [key, undefined];
             }
-            // Handle strings - convert null to empty string
+            // Handle all other fields (strings/text) - convert null to empty string
+            // This includes all the new prompt fields and other text fields
             return [key, ""];
+          }
+          // If value is an array but currently null, convert to empty array
+          if (Array.isArray(value) && value === null) {
+            return [key, []];
           }
           return [key, value];
         })
@@ -106,8 +114,23 @@ export default function CharacterEditPage() {
     },
   });
 
+
   const onSubmit = (data: UpdateCharacter) => {
-    updateMutation.mutate(data);
+    // Clean payload: remove empty/unchanged fields to avoid overwriting stored data
+    const cleanedData = Object.fromEntries(
+      Object.entries(data).filter(([_, value]) => {
+        // Remove empty strings and undefined values
+        if (value === "" || value === undefined) return false;
+        
+        // Remove empty arrays to prevent overwriting stored arrays
+        if (Array.isArray(value) && value.length === 0) return false;
+        
+        // Keep all other valid values
+        return true;
+      })
+    ) as UpdateCharacter;
+    
+    updateMutation.mutate(cleanedData);
   };
 
   if (isLoading) {
