@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
-import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown } from "lucide-react";
+import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown, Cloud } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -476,31 +476,40 @@ ${generatedSetting.notableFeatures.join(', ')}`;
           
           <CardContent className="space-y-6">
             {/* Basic Details */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-semibold">Location:</span>
-                  <span data-testid="text-setting-location">{generatedSetting.location}</span>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Location</span>
+                    <p className="text-sm mt-1" data-testid="text-setting-location">{generatedSetting.location}</p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-semibold">Time Period:</span>
-                  <span data-testid="text-setting-time-period">{generatedSetting.timePeriod}</span>
+                <div className="flex items-start gap-3">
+                  <Users className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Population</span>
+                    <p className="text-sm mt-1" data-testid="text-setting-population">{generatedSetting.population}</p>
+                  </div>
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-semibold">Population:</span>
-                  <span data-testid="text-setting-population">{generatedSetting.population}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Time Period</span>
+                    <p className="text-sm mt-1" data-testid="text-setting-time-period">{generatedSetting.timePeriod}</p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Climate:</span>
-                  <span data-testid="text-setting-climate">{generatedSetting.climate}</span>
+                <div className="flex items-start gap-3">
+                  <Cloud className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Climate</span>
+                    <p className="text-sm mt-1" data-testid="text-setting-climate">{generatedSetting.climate}</p>
+                  </div>
                 </div>
               </div>
             </div>
