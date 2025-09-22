@@ -324,6 +324,152 @@ function hashString(str: string): number {
   return hash;
 }
 
+// Character field generation function
+export async function generateCharacterFieldWithAI(fieldName: string, existingCharacter: any): Promise<string> {
+  // Field-specific prompting strategies
+  const fieldPrompts: Record<string, string> = {
+    backstory: "Generate a detailed, compelling backstory that explains how this character became who they are today",
+    motivation: "Generate a deep, specific motivation that drives this character forward",
+    flaw: "Generate a meaningful character flaw that creates internal conflict and story potential",
+    strength: "Generate a significant character strength that defines their best qualities",
+    physicalDescription: "Generate a vivid, detailed physical description",
+    personality: "Generate additional personality traits that complement the existing ones",
+    occupation: "Generate a fitting occupation that matches their background and skills",
+    habits: "Generate specific daily habits and routines that reveal character",
+    fears: "Generate realistic fears and anxieties that create vulnerability",
+    goals: "Generate both short-term and long-term goals that drive their actions",
+    relationships: "Generate important relationships that shape their worldview",
+    speech: "Generate distinctive speech patterns and communication style",
+    secrets: "Generate compelling secrets that could create dramatic tension",
+    beliefs: "Generate core beliefs and values that guide their decisions",
+    hobbies: "Generate meaningful hobbies and interests that reveal their personality",
+    characterFlaws: "Generate character flaws that create realistic imperfections",
+    quirks: "Generate memorable quirks and idiosyncrasies",
+    mannerisms: "Generate specific physical mannerisms and gestures"
+  };
+
+  const promptText = fieldPrompts[fieldName] || `Generate appropriate content for the ${fieldName} field`;
+  
+  // Create context from existing character data
+  const characterContext = createCharacterContext(existingCharacter);
+  
+  const systemPrompt = `You are a creative writing assistant specializing in character development. You will generate content for a specific character field while maintaining perfect consistency with the existing character information.
+
+CRITICAL REQUIREMENTS:
+1. Maintain absolute consistency with all existing character details
+2. Generate content that feels authentic to this specific character
+3. Consider how this field relates to and reinforces other character elements
+4. Create content that adds depth without contradicting established facts
+5. Respond with ONLY the generated content - no explanations or formatting
+
+CHARACTER CONTEXT:
+${characterContext}
+
+TASK: ${promptText} that fits perfectly with this character's established identity, background, and personality.`;
+
+  const userPrompt = `Generate content for the "${fieldName}" field that is completely consistent with this character's existing traits, background, and personality. The content should feel like a natural extension of who they are.`;
+
+  // Try Anthropic API first, fallback if it fails
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 500,
+      messages: [
+        { role: 'user', content: userPrompt }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    return content.text.trim();
+  } catch (error) {
+    console.error('Anthropic API failed for field generation, using fallback:', error);
+    
+    // Fallback: Generate field-specific content locally
+    return generateFallbackFieldContent(fieldName, existingCharacter);
+  }
+}
+
+// Helper function to create character context for AI prompting
+function createCharacterContext(character: any): string {
+  const contextParts = [];
+  
+  if (character.name) contextParts.push(`Name: ${character.name}`);
+  if (character.age) contextParts.push(`Age: ${character.age}`);
+  if (character.gender) contextParts.push(`Gender: ${character.gender}`);
+  if (character.occupation) contextParts.push(`Occupation: ${character.occupation}`);
+  if (character.personality && character.personality.length > 0) {
+    contextParts.push(`Personality: ${Array.isArray(character.personality) ? character.personality.join(', ') : character.personality}`);
+  }
+  if (character.backstory) contextParts.push(`Backstory: ${character.backstory}`);
+  if (character.motivation) contextParts.push(`Motivation: ${character.motivation}`);
+  if (character.flaw) contextParts.push(`Flaw: ${character.flaw}`);
+  if (character.strength) contextParts.push(`Strength: ${character.strength}`);
+  if (character.physicalDescription) contextParts.push(`Physical Description: ${character.physicalDescription}`);
+  if (character.height) contextParts.push(`Height: ${character.height}`);
+  if (character.build) contextParts.push(`Build: ${character.build}`);
+  if (character.genre) contextParts.push(`Genre: ${character.genre}`);
+  
+  return contextParts.join('\n');
+}
+
+// Fallback field content generator
+function generateFallbackFieldContent(fieldName: string, character: any): string {
+  const fallbackContent: Record<string, string[]> = {
+    backstory: [
+      "Growing up in a tight-knit community, this character learned the value of loyalty and hard work from an early age.",
+      "After experiencing a significant life change, they developed a new perspective on what truly matters in life.",
+      "Their formative years were shaped by both challenges and unexpected opportunities that molded their worldview."
+    ],
+    motivation: [
+      "To prove that their unique perspective can make a meaningful difference in the world",
+      "To find a sense of belonging while staying true to their authentic self",
+      "To overcome past mistakes and build something lasting and positive"
+    ],
+    flaw: [
+      "Tends to be overly critical of themselves, often missing their own successes",
+      "Sometimes struggles with trusting others due to past disappointments",
+      "Has difficulty asking for help, preferring to handle everything independently"
+    ],
+    strength: [
+      "Exceptional ability to see potential in difficult situations",
+      "Natural talent for bringing out the best in other people",
+      "Unwavering determination when pursuing something they believe in"
+    ],
+    physicalDescription: [
+      "Has an expressive face that easily conveys their emotions and thoughts",
+      "Carries themselves with quiet confidence, moving with purposeful energy",
+      "Notable for their warm, engaging presence that puts others at ease"
+    ],
+    habits: [
+      "Always checks in with friends and family regularly, valuing those connections",
+      "Has a morning routine that includes quiet reflection or journaling",
+      "Tends to organize their space when feeling stressed or overwhelmed"
+    ],
+    fears: [
+      "Worries about not living up to their own potential or disappointing those they care about",
+      "Has an underlying fear of being truly understood and then rejected",
+      "Concerns about losing the people and things that matter most to them"
+    ]
+  };
+
+  const options = fallbackContent[fieldName] || [
+    "This character trait adds depth and complexity to their overall personality",
+    "An important aspect that influences how they interact with the world around them",
+    "A defining characteristic that shapes their decisions and relationships"
+  ];
+
+  // Use character name as seed for deterministic selection
+  const seed = character.name || fieldName;
+  const index = Math.abs(hashString(seed + fieldName)) % options.length;
+  
+  return options[index];
+}
+
 export async function generateSettingWithAI(options: SettingGenerationOptions = {}): Promise<GeneratedSetting> {
   const { genre, settingType } = options;
   
@@ -422,7 +568,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     return settingData as GeneratedSetting;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      console.error('JSON Parse Error. Raw response:', content.text);
+      console.error('JSON Parse Error in setting generation');
       throw new Error('Failed to parse AI response as JSON. Please try again.');
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -523,7 +669,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     return creatureData as GeneratedCreature;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      console.error('JSON Parse Error. Raw response:', content.text);
+      console.error('JSON Parse Error in creature generation');
       throw new Error('Failed to parse AI response as JSON. Please try again.');
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -625,7 +771,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     return plantData;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      console.error('JSON Parse Error. Raw response:', content.text);
+      console.error('JSON Parse Error in plant generation');
       throw new Error('Failed to parse AI response as JSON. Please try again.');
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

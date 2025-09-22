@@ -18,7 +18,7 @@ import {
   insertDescriptionSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI } from "./ai-generation";
+import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI, generateCharacterFieldWithAI } from "./ai-generation";
 import { ALL_DESCRIPTION_TYPES } from "./genres";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -66,6 +66,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(savedCharacter);
     } catch (error) {
       console.error('Error generating character:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Character field generation route
+  app.post("/api/characters/:id/generate-field", async (req, res) => {
+    try {
+      // Valid field names for character generation
+      const validFieldNames = [
+        'backstory', 'motivation', 'flaw', 'strength', 'personality', 'occupation',
+        'physicalDescription', 'habits', 'fears', 'goals', 'relationships', 'speech',
+        'secrets', 'beliefs', 'hobbies', 'quirks', 'mannerisms', 'upbringing',
+        'negativeEvents', 'mentalHealth', 'intellectualTraits', 'physicalCondition',
+        'supernaturalPowers', 'mainSkills', 'lackingSkills', 'typicalAttire',
+        'keyEquipment', 'characterFlaws', 'likes', 'dislikes', 'behavioralTraits',
+        'charisma', 'habitualGestures', 'keyRelationships', 'allies', 'enemies',
+        'overseeingDomain', 'legacy', 'wealthClass', 'hygieneValue', 'famousQuotes',
+        'speechParticularities', 'religiousViews', 'spiritualPractices'
+      ];
+
+      const generateFieldSchema = z.object({
+        fieldName: z.string().refine(name => validFieldNames.includes(name), {
+          message: `Field name must be one of: ${validFieldNames.join(', ')}`
+        }),
+        currentFormData: z.record(z.any()).optional(),
+        userId: z.string().nullable().optional()
+      });
+      
+      const { fieldName, currentFormData, userId } = generateFieldSchema.parse(req.body);
+      
+      // Get the existing character data for context
+      const existingCharacter = await storage.getCharacter(req.params.id);
+      if (!existingCharacter) {
+        return res.status(404).json({ error: 'Character not found' });
+      }
+      
+      // Merge current form data with stored character for fresh context
+      const contextCharacter = currentFormData ? 
+        { ...existingCharacter, ...currentFormData } : 
+        existingCharacter;
+      
+      // Generate field content using AI with merged character context
+      const generatedContent = await generateCharacterFieldWithAI(fieldName, contextCharacter);
+      
+      res.json({ content: generatedContent });
+    } catch (error) {
+      console.error('Error generating character field:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }

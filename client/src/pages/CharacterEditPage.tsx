@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   ArrowLeft, 
   Save, 
@@ -26,7 +27,8 @@ import {
   Users,
   Home,
   MessageCircle,
-  Star
+  Star,
+  Sparkles
 } from "lucide-react";
 
 export default function CharacterEditPage() {
@@ -50,6 +52,59 @@ export default function CharacterEditPage() {
     shouldUnregister: false, // Preserve values across tabs
     defaultValues: {},
   });
+
+  // Field generation state and mutation
+  const [generatingField, setGeneratingField] = useState<string | null>(null);
+  
+  const generateFieldMutation = useMutation({
+    mutationFn: async ({ fieldName }: { fieldName: string }) => {
+      // Get current form values to provide fresh context to AI
+      const currentFormValues = form.getValues();
+      const response = await apiRequest(`/api/characters/${id}/generate-field`, "POST", { 
+        fieldName,
+        currentFormData: currentFormValues 
+      });
+      return response.content;
+    },
+    onSuccess: (content, { fieldName }) => {
+      form.setValue(fieldName as keyof UpdateCharacter, content);
+      toast({
+        title: "Field Generated",
+        description: `AI has generated content for ${fieldName}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate field content. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setGeneratingField(null);
+    },
+  });
+
+  const handleGenerateField = (fieldName: string) => {
+    setGeneratingField(fieldName);
+    generateFieldMutation.mutate({ fieldName });
+  };
+
+  // Generate button component
+  const GenerateButton = ({ fieldName, className = "" }: { fieldName: string; className?: string }) => (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className={`ml-2 ${className}`}
+      onClick={() => handleGenerateField(fieldName)}
+      disabled={generatingField === fieldName || !character}
+      data-testid={`button-generate-${fieldName}`}
+    >
+      <Sparkles className="h-3 w-3 mr-1" />
+      {generatingField === fieldName ? "Generating..." : "Generate with AI"}
+    </Button>
+  );
 
   // Update form values when character loads
   useEffect(() => {
@@ -178,7 +233,7 @@ export default function CharacterEditPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Edit Character</h1>
-            <p className="text-muted-foreground">Enhance and develop your character{character?.name ? `: ${character.name}` : ''}</p>
+            <p className="text-muted-foreground">Enhance and develop your character{(character as any)?.name ? `: ${(character as any).name}` : ''}</p>
           </div>
         </div>
 
@@ -339,7 +394,10 @@ export default function CharacterEditPage() {
                       name="backstory"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Backstory</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Backstory
+                            <GenerateButton fieldName="backstory" />
+                          </FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder="Character's background and history..."
@@ -360,7 +418,10 @@ export default function CharacterEditPage() {
                         name="motivation"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Motivation</FormLabel>
+                            <FormLabel className="flex items-center justify-between">
+                              Motivation
+                              <GenerateButton fieldName="motivation" />
+                            </FormLabel>
                             <FormControl>
                               <Textarea 
                                 placeholder="What drives this character?"
@@ -379,7 +440,10 @@ export default function CharacterEditPage() {
                         name="flaw"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Character Flaw</FormLabel>
+                            <FormLabel className="flex items-center justify-between">
+                              Character Flaw
+                              <GenerateButton fieldName="flaw" />
+                            </FormLabel>
                             <FormControl>
                               <Textarea 
                                 placeholder="Character's main weakness or flaw"
