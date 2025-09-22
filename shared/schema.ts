@@ -188,12 +188,12 @@ export const plants = pgTable("plants", {
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   itemType: text("item_type").notNull(), // 'character', 'plot', 'prompt', 'guide'
   itemId: varchar("item_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
-  uniqueUserItem: sql`UNIQUE(${table.userId}, ${table.itemType}, ${table.itemId})`
+  uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
 }));
 
 // Relations

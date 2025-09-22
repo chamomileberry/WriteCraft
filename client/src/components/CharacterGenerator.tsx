@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
-import { Shuffle, Copy, Save, Loader2, Check, ChevronsUpDown } from "lucide-react";
+import { Shuffle, Copy, Heart, Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -154,7 +154,7 @@ export default function CharacterGenerator() {
       if (!character?.id) return;
       
       const response = await apiRequest('POST', '/api/saved-items', {
-        userId: 'guest', // For now, using guest user
+        userId: null, // Allow saving without user authentication
         itemType: 'character',
         itemId: character.id
       });
@@ -357,7 +357,7 @@ export default function CharacterGenerator() {
                   {saveCharacterMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Save className="h-4 w-4" />
+                    <Heart className="h-4 w-4" />
                   )}
                 </Button>
               </div>
