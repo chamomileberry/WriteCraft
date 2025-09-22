@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ToolCard from "./ToolCard";
-import { Users, BookOpen, Zap, Map, FileText, Target, Lightbulb, Palette, Rabbit, LucideIcon } from "lucide-react";
+import { Users, BookOpen, Zap, Map, FileText, Target, Lightbulb, Palette, Rabbit, Leaf, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -135,6 +135,19 @@ const allTools: Tool[] = [
       'Sensory details',
       'Color associations',
       'Weather elements'
+    ]
+  },
+  {
+    id: 'plant-generator',
+    title: 'Plant Generator',
+    description: 'Generate detailed plant descriptions with botanical accuracy for your stories.',
+    icon: Leaf,
+    category: 'World Building',
+    features: [
+      'Scientific names',
+      'Care instructions',
+      'Habitat details',
+      'Seasonal information'
     ]
   }
 ];

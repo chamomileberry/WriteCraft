@@ -2,7 +2,7 @@
 // Reference: javascript_database integration
 import { 
   users, characters, plots, prompts, guides, savedItems,
-  settings, names, conflicts, themes, moods, creatures,
+  settings, names, conflicts, themes, moods, creatures, plants,
   type User, type InsertUser,
   type Character, type InsertCharacter,
   type Plot, type InsertPlot,
@@ -14,7 +14,8 @@ import {
   type Conflict, type InsertConflict,
   type Theme, type InsertTheme,
   type Mood, type InsertMood,
-  type Creature, type InsertCreature
+  type Creature, type InsertCreature,
+  type Plant, type InsertPlant
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -76,6 +77,11 @@ export interface IStorage {
   createCreature(creature: InsertCreature): Promise<Creature>;
   getCreature(id: string): Promise<Creature | undefined>;
   getUserCreatures(userId: string | null): Promise<Creature[]>;
+  
+  // Plant methods
+  createPlant(plant: InsertPlant): Promise<Plant>;
+  getPlant(id: string): Promise<Plant | undefined>;
+  getUserPlants(userId: string | null): Promise<Plant[]>;
   
   // Saved items methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -387,6 +393,31 @@ export class DatabaseStorage implements IStorage {
     }
     return await db.select().from(creatures)
       .orderBy(desc(creatures.createdAt))
+      .limit(10);
+  }
+  
+  // Plant methods
+  async createPlant(plant: InsertPlant): Promise<Plant> {
+    const [newPlant] = await db
+      .insert(plants)
+      .values(plant)
+      .returning();
+    return newPlant;
+  }
+
+  async getPlant(id: string): Promise<Plant | undefined> {
+    const [plant] = await db.select().from(plants).where(eq(plants.id, id));
+    return plant || undefined;
+  }
+
+  async getUserPlants(userId: string | null): Promise<Plant[]> {
+    if (userId) {
+      return await db.select().from(plants)
+        .where(eq(plants.userId, userId))
+        .orderBy(desc(plants.createdAt));
+    }
+    return await db.select().from(plants)
+      .orderBy(desc(plants.createdAt))
       .limit(10);
   }
   

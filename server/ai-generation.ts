@@ -409,3 +409,105 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     throw new Error(`Creature generation failed: ${errorMessage}`);
   }
 }
+
+export async function generatePlantWithAI(options: { genre?: string; type?: string } = {}): Promise<any> {
+  const { genre, type } = options;
+  
+  // Validate inputs (basic validation since PLANT_TYPES not imported in server)
+  if (genre && !ALL_GENRES.includes(genre)) {
+    throw new Error(`Invalid genre: ${genre}. Must be one of: ${ALL_GENRES.join(', ')}`);
+  }
+
+  const systemPrompt = `You are a creative writing assistant specialized in generating detailed plants for fiction. Your plants should have:
+
+1. Botanical accuracy with realistic scientific details
+2. Rich sensory descriptions that bring them to life
+3. Unique characteristics that make them memorable
+4. Practical care information that feels authentic
+5. Natural habitat details that ground them in reality
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "name": "Common plant name",
+  "scientificName": "Proper binomial nomenclature",
+  "type": "Plant classification (annual, perennial, tree, shrub, herb, etc.)",
+  "description": "Rich description of appearance and unique features",
+  "characteristics": ["trait1", "trait2", "trait3", "trait4"],
+  "habitat": "Natural growing environment and conditions",
+  "careInstructions": "How to cultivate or maintain this plant",
+  "bloomingSeason": "When the plant flowers or is most active",
+  "hardinessZone": "Climate zones where it thrives"
+}`;
+
+  let userPrompt = "Generate a detailed, botanically-inspired plant for creative writing.";
+  
+  if (genre) {
+    userPrompt += ` The plant should fit well in the ${genre} genre.`;
+  }
+  
+  if (type) {
+    userPrompt += ` The plant should be a ${type}.`;
+  }
+  
+  userPrompt += " Focus on creating something that feels scientifically grounded while being unique and story-worthy. Include realistic botanical details. Respond with ONLY the JSON object, no other text.";
+
+  try {
+    console.log('Making request to Anthropic API for plant generation...');
+    
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: userPrompt }
+      ],
+    });
+
+    console.log('Received response from Anthropic API for plant');
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    // Clean the response text
+    let cleanedText = content.text.trim();
+    
+    console.log('Raw AI Response:', cleanedText);
+    
+    // Extract JSON if it's wrapped in code blocks or has extra text
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    console.log('Cleaned AI Response:', cleanedText);
+    
+    const plantData = JSON.parse(cleanedText);
+    
+    // Validate the response structure
+    const requiredFields = ['name', 'scientificName', 'type', 'description', 'characteristics', 'habitat', 'careInstructions', 'bloomingSeason', 'hardinessZone'];
+    for (const field of requiredFields) {
+      if (!(field in plantData)) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+    
+    // Ensure characteristics is an array
+    if (!Array.isArray(plantData.characteristics)) {
+      throw new Error('Characteristics must be an array of traits');
+    }
+    
+    // Set genre from parameter
+    plantData.genre = genre || null;
+    
+    return plantData;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error('JSON Parse Error. Raw response:', content.text);
+      throw new Error('Failed to parse AI response as JSON. Please try again.');
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Plant generation failed: ${errorMessage}`);
+  }
+}

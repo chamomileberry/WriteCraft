@@ -167,6 +167,23 @@ export const creatures = pgTable("creatures", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Generated plants
+export const plants = pgTable("plants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  scientificName: text("scientific_name").notNull(),
+  type: text("type").notNull(),
+  description: text("description").notNull(),
+  characteristics: text("characteristics").array().notNull(),
+  habitat: text("habitat").notNull(),
+  careInstructions: text("care_instructions").notNull(),
+  bloomingSeason: text("blooming_season").notNull(),
+  hardinessZone: text("hardiness_zone").notNull(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -189,6 +206,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   themes: many(themes),
   moods: many(moods),
   creatures: many(creatures),
+  plants: many(plants),
   savedItems: many(savedItems),
 }));
 
@@ -251,6 +269,13 @@ export const moodsRelations = relations(moods, ({ one }) => ({
 export const creaturesRelations = relations(creatures, ({ one }) => ({
   user: one(users, {
     fields: [creatures.userId],
+    references: [users.id],
+  }),
+}));
+
+export const plantsRelations = relations(plants, ({ one }) => ({
+  user: one(users, {
+    fields: [plants.userId],
     references: [users.id],
   }),
 }));
@@ -319,6 +344,11 @@ export const insertCreatureSchema = createInsertSchema(creatures).omit({
   createdAt: true,
 });
 
+export const insertPlantSchema = createInsertSchema(plants).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertSavedItemSchema = createInsertSchema(savedItems).omit({
   id: true,
   createdAt: true,
@@ -347,5 +377,7 @@ export type InsertMood = z.infer<typeof insertMoodSchema>;
 export type Mood = typeof moods.$inferSelect;
 export type InsertCreature = z.infer<typeof insertCreatureSchema>;
 export type Creature = typeof creatures.$inferSelect;
+export type InsertPlant = z.infer<typeof insertPlantSchema>;
+export type Plant = typeof plants.$inferSelect;
 export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;

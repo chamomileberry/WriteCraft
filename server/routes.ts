@@ -12,10 +12,11 @@ import {
   insertConflictSchema,
   insertThemeSchema,
   insertMoodSchema,
-  insertCreatureSchema
+  insertCreatureSchema,
+  insertPlantSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI } from "./ai-generation";
+import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -370,6 +371,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching creature:', error);
       res.status(500).json({ error: 'Failed to fetch creature' });
+    }
+  });
+
+  // Plant generator routes
+  app.post("/api/plants/generate", async (req, res) => {
+    try {
+      const generateRequestSchema = z.object({
+        genre: z.string().optional(),
+        type: z.string().optional(),
+        userId: z.string().nullable().optional()
+      });
+      
+      const { genre, type, userId } = generateRequestSchema.parse(req.body);
+      
+      // Use AI generation
+      const aiPlant = await generatePlantWithAI({ genre, type });
+      
+      const plant = {
+        name: aiPlant.name,
+        scientificName: aiPlant.scientificName,
+        type: aiPlant.type,
+        description: aiPlant.description,
+        characteristics: aiPlant.characteristics,
+        habitat: aiPlant.habitat,
+        careInstructions: aiPlant.careInstructions,
+        bloomingSeason: aiPlant.bloomingSeason,
+        hardinessZone: aiPlant.hardinessZone,
+        genre: genre || null,
+        userId: userId || null
+      };
+
+      // Validate the generated plant data before saving
+      const validatedPlant = insertPlantSchema.parse(plant);
+      const savedPlant = await storage.createPlant(validatedPlant);
+      res.json(savedPlant);
+    } catch (error) {
+      console.error('Error generating plant:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.get("/api/plants/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const plants = await storage.getUserPlants(userId);
+      res.json(plants);
+    } catch (error) {
+      console.error('Error fetching plants:', error);
+      res.status(500).json({ error: 'Failed to fetch plants' });
+    }
+  });
+
+  app.get("/api/plants/:id", async (req, res) => {
+    try {
+      const plant = await storage.getPlant(req.params.id);
+      if (!plant) {
+        return res.status(404).json({ error: 'Plant not found' });
+      }
+      res.json(plant);
+    } catch (error) {
+      console.error('Error fetching plant:', error);
+      res.status(500).json({ error: 'Failed to fetch plant' });
     }
   });
 

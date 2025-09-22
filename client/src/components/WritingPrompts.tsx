@@ -3,8 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
-import { Zap, Copy, Save, RefreshCw, Heart, Loader2 } from "lucide-react";
+import { Zap, Copy, Save, RefreshCw, Heart, Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,11 +26,33 @@ interface WritingPrompt {
 // Removed local data arrays - now using backend API
 const promptTypes = ['Story Starter', 'Character Focus', 'Dialogue', 'Setting', 'Conflict'];
 
+// Genre categories with comprehensive list
+const GENRE_CATEGORIES = {
+  "General Fiction": ["fiction", "drama", "literary fiction", "political fiction", "musical fiction", "sports fiction", "suspense fiction"],
+  "Science Fiction": ["science fiction", "cyberpunk", "dystopian", "post-apocalyptic", "steampunk", "dieselpunk", "nanopunk", "solarpunk", "atompunk", "clockpunk", "postcyberpunk", "utopian", "comedy sci-fi", "feminist sci-fi", "gothic sci-fi", "climate fiction", "parallel world sci-fi", "libertarian sci-fi", "mecha sci-fi", "military sci-fi", "social sci-fi", "anthropological sci-fi", "space opera", "space western", "subterranean sci-fi", "tech noir", "alien invasion", "scientific romance", "dying earth", "quantum fiction"],
+  "Fantasy": ["fantasy", "contemporary fantasy", "cozy fantasy", "dark fantasy", "high fantasy", "fantasy comedy", "gothic fantasy", "historical fantasy", "low fantasy", "mythpunk", "mythic fantasy", "mythopoeia", "magic realism", "romantic fantasy", "science fantasy", "supernatural fantasy", "heroic fantasy", "portal fantasy", "medieval fantasy", "prehistoric fantasy"],
+  "Horror": ["horror", "comedy horror", "gothic horror", "zombie horror", "dark romanticism", "cosmic horror", "werewolf fiction", "vampire literature", "psychological horror", "techno-horror", "apocalyptic", "zombie apocalypse", "monster literature", "weird fiction"],
+  "Mystery & Crime": ["mystery", "crime fiction", "detective", "historical mystery", "noir", "cozy mystery", "legal thriller", "caper", "spy fiction"],
+  "Thriller": ["thriller", "psychological thriller", "techno-thriller", "political thriller"],
+  "Romance": ["romance", "paranormal romance", "contemporary romance", "medical romance", "thriller romance", "historical romance", "inspirational romance", "romantic suspense", "western romance", "young adult romance", "chivalric romance"],
+  "Western": ["western", "horror western", "science fiction western", "weird western", "fantasy western"],
+  "Young Adult & New Adult": ["young adult", "new adult"],
+  "Historical": ["historical fiction", "prehistoric fiction", "medieval fiction"],
+  "Comedy": ["comedy", "tragic comedy", "burlesque"],
+  "Drama": ["tragedy", "melodrama"],
+  "Superhero": ["superhero fantasy", "cape punk", "heroic noir"],
+  "Speculative & Experimental": ["xenofiction", "alternative history", "slipstream", "postmodern", "conte", "pulp fiction"],
+  "Action & Adventure": ["action-adventure", "nautical"]
+};
+
+const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
+
 export default function WritingPrompts() {
   const [currentPrompt, setCurrentPrompt] = useState<WritingPrompt | null>(null);
   const [genre, setGenre] = useState<string>("");
   const [promptType, setPromptType] = useState<string>("");
   const [savedPrompts, setSavedPrompts] = useState<WritingPrompt[]>([]);
+  const [genreOpen, setGenreOpen] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -151,20 +175,66 @@ ${currentPrompt.text}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-4">
-            <Select value={genre} onValueChange={setGenre}>
-              <SelectTrigger data-testid="select-prompt-genre">
-                <SelectValue placeholder="Any genre" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any Genre</SelectItem>
-                <SelectItem value="fantasy">Fantasy</SelectItem>
-                <SelectItem value="sci-fi">Science Fiction</SelectItem>
-                <SelectItem value="romance">Romance</SelectItem>
-                <SelectItem value="mystery">Mystery</SelectItem>
-                <SelectItem value="thriller">Thriller</SelectItem>
-                <SelectItem value="contemporary">Contemporary</SelectItem>
-              </SelectContent>
-            </Select>
+            <Popover open={genreOpen} onOpenChange={setGenreOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={genreOpen}
+                  className="w-full justify-between"
+                  data-testid="select-prompt-genre"
+                >
+                  {genre
+                    ? ALL_GENRES.find((g) => g === genre) || genre
+                    : "Any genre"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search genres..." />
+                  <CommandList>
+                    <CommandEmpty>No genre found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value=""
+                        onSelect={() => {
+                          setGenre("");
+                          setGenreOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${genre === "" ? "opacity-100" : "opacity-0"}`}
+                        />
+                        Any Genre
+                      </CommandItem>
+                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
+                        <div key={category}>
+                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                            {category}
+                          </div>
+                          {genres.map((genreOption) => (
+                            <CommandItem
+                              key={genreOption}
+                              value={genreOption}
+                              onSelect={(currentValue) => {
+                                setGenre(currentValue === genre ? "" : currentValue);
+                                setGenreOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${genre === genreOption ? "opacity-100" : "opacity-0"}`}
+                              />
+                              {genreOption}
+                            </CommandItem>
+                          ))}
+                        </div>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             
             <Select value={promptType} onValueChange={setPromptType}>
               <SelectTrigger data-testid="select-prompt-type">
