@@ -1072,7 +1072,10 @@ export default function CharacterEditPage() {
                       name="upbringing"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Upbringing & Background</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Upbringing & Background
+                            <GenerateButton fieldName="upbringing" />
+                          </FormLabel>
                           <FormDescription>
                             What was their upbringing like? How did their childhood shape them?
                           </FormDescription>
@@ -1095,7 +1098,10 @@ export default function CharacterEditPage() {
                       name="negativeEvents"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Negative Events & Trauma</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Negative Events & Trauma
+                            <GenerateButton fieldName="negativeEvents" />
+                          </FormLabel>
                           <FormDescription>
                             What negative events, failures, embarrassments, or traumas have impacted this character?
                           </FormDescription>
@@ -1118,7 +1124,10 @@ export default function CharacterEditPage() {
                       name="mentalHealth"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Mental Health</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Mental Health
+                            <GenerateButton fieldName="mentalHealth" />
+                          </FormLabel>
                           <FormDescription>
                             How would you describe the character's mental health and emotional wellbeing?
                           </FormDescription>
@@ -1141,7 +1150,10 @@ export default function CharacterEditPage() {
                       name="intellectualTraits"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Intellectual Traits</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Intellectual Traits
+                            <GenerateButton fieldName="intellectualTraits" />
+                          </FormLabel>
                           <FormDescription>
                             What are the character's intellectual traits and thinking patterns?
                           </FormDescription>
@@ -1164,7 +1176,10 @@ export default function CharacterEditPage() {
                       name="physicalCondition"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Physical Condition</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Physical Condition
+                            <GenerateButton fieldName="physicalCondition" />
+                          </FormLabel>
                           <FormDescription>
                             How would you describe their physical condition in terms of fitness, health, and any conditions?
                           </FormDescription>
@@ -1203,7 +1218,10 @@ export default function CharacterEditPage() {
                       name="supernaturalPowers"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Supernatural or Extraordinary Powers</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Supernatural or Extraordinary Powers
+                            <GenerateButton fieldName="supernaturalPowers" />
+                          </FormLabel>
                           <FormDescription>
                             Does the character have any supernatural or extraordinary powers, mutations, or special abilities?
                           </FormDescription>
@@ -1226,7 +1244,10 @@ export default function CharacterEditPage() {
                       name="mainSkills"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Main Skills & Strengths</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Main Skills & Strengths
+                            <GenerateButton fieldName="mainSkills" />
+                          </FormLabel>
                           <FormDescription>
                             What are the character's main skills, strengths, positive character aspects, and proficiencies?
                           </FormDescription>
@@ -1249,7 +1270,10 @@ export default function CharacterEditPage() {
                       name="lackingSkills"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Lacking Skills & Knowledge</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Lacking Skills & Knowledge
+                            <GenerateButton fieldName="lackingSkills" />
+                          </FormLabel>
                           <FormDescription>
                             What skills or knowledge are they lacking? What areas do they struggle with?
                           </FormDescription>
@@ -1272,7 +1296,10 @@ export default function CharacterEditPage() {
                       name="typicalAttire"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Typical Attire & Accessories</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Typical Attire & Accessories
+                            <GenerateButton fieldName="typicalAttire" />
+                          </FormLabel>
                           <FormDescription>
                             What is the character's typical attire and accessories?
                           </FormDescription>
@@ -1295,7 +1322,10 @@ export default function CharacterEditPage() {
                       name="keyEquipment"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Key Equipment & Specialized Items</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Key Equipment & Specialized Items
+                            <GenerateButton fieldName="keyEquipment" />
+                          </FormLabel>
                           <FormDescription>
                             Is there key equipment or specialized items used by the character?
                           </FormDescription>
@@ -1334,7 +1364,10 @@ export default function CharacterEditPage() {
                       name="characterFlaws"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Character Flaws & Vices</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Character Flaws & Vices
+                            <GenerateButton fieldName="characterFlaws" />
+                          </FormLabel>
                           <FormDescription>
                             What flaws do they have? Do they have any addictions, vices, defects, or secret beliefs?
                           </FormDescription>
@@ -1357,7 +1390,10 @@ export default function CharacterEditPage() {
                       name="likes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Likes & Preferences</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Likes & Preferences
+                            <GenerateButton fieldName="likes" />
+                          </FormLabel>
                           <FormDescription>
                             What are the character's likes and preferences?
                           </FormDescription>
@@ -1380,7 +1416,10 @@ export default function CharacterEditPage() {
                       name="dislikes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Dislikes & Pet Peeves</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Dislikes & Pet Peeves
+                            <GenerateButton fieldName="dislikes" />
+                          </FormLabel>
                           <FormDescription>
                             What are the character's dislikes and things that annoy them?
                           </FormDescription>
@@ -1403,7 +1442,10 @@ export default function CharacterEditPage() {
                       name="behavioralTraits"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Behavioral Traits & Particularities</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Behavioral Traits & Particularities
+                            <GenerateButton fieldName="behavioralTraits" />
+                          </FormLabel>
                           <FormDescription>
                             Do they have any unique behavioral traits or particularities?
                           </FormDescription>
@@ -1426,7 +1468,10 @@ export default function CharacterEditPage() {
                       name="charisma"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Charisma & Social Characteristics</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Charisma & Social Characteristics
+                            <GenerateButton fieldName="charisma" />
+                          </FormLabel>
                           <FormDescription>
                             How would you describe their charisma, confidence, ego, extroversion, etiquette and mannerisms?
                           </FormDescription>
@@ -1449,7 +1494,10 @@ export default function CharacterEditPage() {
                       name="habitualGestures"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Habitual Gestures & Mannerisms</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Habitual Gestures & Mannerisms
+                            <GenerateButton fieldName="habitualGestures" />
+                          </FormLabel>
                           <FormDescription>
                             What are the habitual gestures, mannerisms, ways of speaking or behaving of the character?
                           </FormDescription>
@@ -1488,7 +1536,10 @@ export default function CharacterEditPage() {
                       name="keyRelationships"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Key Relationships</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Key Relationships
+                            <GenerateButton fieldName="keyRelationships" />
+                          </FormLabel>
                           <FormDescription>
                             What are the character's key relationships, including allies, enemies, and familial ties?
                           </FormDescription>
@@ -1511,7 +1562,10 @@ export default function CharacterEditPage() {
                       name="allies"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Allies & Friends</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Allies & Friends
+                            <GenerateButton fieldName="allies" />
+                          </FormLabel>
                           <FormDescription>
                             Who are their allies, friends, and trusted companions?
                           </FormDescription>
@@ -1534,7 +1588,10 @@ export default function CharacterEditPage() {
                       name="enemies"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Enemies & Rivals</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Enemies & Rivals
+                            <GenerateButton fieldName="enemies" />
+                          </FormLabel>
                           <FormDescription>
                             Who are their enemies, rivals, or antagonists?
                           </FormDescription>
@@ -1557,7 +1614,10 @@ export default function CharacterEditPage() {
                       name="overseeingDomain"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Leadership & Domain</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Leadership & Domain
+                            <GenerateButton fieldName="overseeingDomain" />
+                          </FormLabel>
                           <FormDescription>
                             Is this character overseeing or ruling over a domain or group of people? How long have they been in this position?
                           </FormDescription>
@@ -1596,7 +1656,10 @@ export default function CharacterEditPage() {
                       name="legacy"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Legacy & Influence</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Legacy & Influence
+                            <GenerateButton fieldName="legacy" />
+                          </FormLabel>
                           <FormDescription>
                             If the character is deceased, what influence have they had on the world and what is their legacy—how are they remembered by others?
                           </FormDescription>
@@ -1619,7 +1682,10 @@ export default function CharacterEditPage() {
                       name="wealthClass"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Wealth & Economic Status</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Wealth & Economic Status
+                            <GenerateButton fieldName="wealthClass" />
+                          </FormLabel>
                           <FormDescription>
                             How would you describe the wealth of this character in terms of class, dependencies, debts, funds, disposable income, assets and investments?
                           </FormDescription>
