@@ -346,7 +346,10 @@ export default function CharacterEditPage() {
                         name="occupation"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Occupation</FormLabel>
+                            <FormLabel className="flex items-center justify-between">
+                              Occupation
+                              <GenerateButton fieldName="occupation" />
+                            </FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Character's job or role" 
@@ -463,7 +466,10 @@ export default function CharacterEditPage() {
                       name="strength"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Character Strength</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Character Strength
+                            <GenerateButton fieldName="strength" />
+                          </FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder="Character's main strength or positive trait"
@@ -754,7 +760,10 @@ export default function CharacterEditPage() {
                       name="strikingFeatures"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Most Striking Features</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Most Striking Features
+                            <GenerateButton fieldName="strikingFeatures" />
+                          </FormLabel>
                           <FormDescription>
                             What are their most characteristic or striking features?
                           </FormDescription>
@@ -777,7 +786,10 @@ export default function CharacterEditPage() {
                       name="marksPiercingsTattoos"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Distinguishing Marks</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Distinguishing Marks
+                            <GenerateButton fieldName="marksPiercingsTattoos" />
+                          </FormLabel>
                           <FormDescription>
                             Birthmarks, piercings, tattoos, or other identifying features
                           </FormDescription>
