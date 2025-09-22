@@ -15,7 +15,39 @@ import {
   insertMoodSchema,
   insertCreatureSchema,
   insertPlantSchema,
-  insertDescriptionSchema
+  insertDescriptionSchema,
+  insertLocationSchema,
+  insertItemSchema,
+  insertOrganizationSchema,
+  insertSpeciesSchema,
+  insertEthnicitySchema,
+  insertCultureSchema,
+  insertDocumentSchema,
+  insertFoodSchema,
+  insertDrinkSchema,
+  insertWeaponSchema,
+  insertArmorSchema,
+  insertReligionSchema,
+  insertLanguageSchema,
+  insertAccessorySchema,
+  insertClothingSchema,
+  insertMaterialSchema,
+  insertSettlementSchema,
+  insertSocietySchema,
+  insertFactionSchema,
+  insertMilitaryUnitSchema,
+  insertMythSchema,
+  insertLegendSchema,
+  insertEventSchema,
+  insertTechnologySchema,
+  insertSpellSchema,
+  insertResourceSchema,
+  insertBuildingSchema,
+  insertAnimalSchema,
+  insertTransportationSchema,
+  insertNaturalLawSchema,
+  insertTraditionSchema,
+  insertRitualSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI, generateCharacterFieldWithAI } from "./ai-generation";
@@ -843,6 +875,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching saved items:', error);
       res.status(500).json({ error: 'Failed to fetch saved items' });
+    }
+  });
+
+  // Location routes
+  app.post("/api/locations", async (req, res) => {
+    try {
+      const validatedLocation = insertLocationSchema.parse(req.body);
+      const savedLocation = await storage.createLocation(validatedLocation);
+      res.json(savedLocation);
+    } catch (error) {
+      console.error('Error saving location:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save location' });
+    }
+  });
+
+  app.get("/api/locations/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const locations = await storage.getUserLocations(userId);
+      res.json(locations);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+      res.status(500).json({ error: 'Failed to fetch locations' });
+    }
+  });
+
+  app.get("/api/locations/:id", async (req, res) => {
+    try {
+      const location = await storage.getLocation(req.params.id);
+      if (!location) {
+        return res.status(404).json({ error: 'Location not found' });
+      }
+      res.json(location);
+    } catch (error) {
+      console.error('Error fetching location:', error);
+      res.status(500).json({ error: 'Failed to fetch location' });
+    }
+  });
+
+  // Species routes
+  app.post("/api/species", async (req, res) => {
+    try {
+      const validatedSpecies = insertSpeciesSchema.parse(req.body);
+      const savedSpecies = await storage.createSpecies(validatedSpecies);
+      res.json(savedSpecies);
+    } catch (error) {
+      console.error('Error saving species:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save species' });
+    }
+  });
+
+  app.get("/api/species/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const species = await storage.getUserSpecies(userId);
+      res.json(species);
+    } catch (error) {
+      console.error('Error fetching species:', error);
+      res.status(500).json({ error: 'Failed to fetch species' });
+    }
+  });
+
+  app.get("/api/species/:id", async (req, res) => {
+    try {
+      const species = await storage.getSpecies(req.params.id);
+      if (!species) {
+        return res.status(404).json({ error: 'Species not found' });
+      }
+      res.json(species);
+    } catch (error) {
+      console.error('Error fetching species:', error);
+      res.status(500).json({ error: 'Failed to fetch species' });
+    }
+  });
+
+  // Organizations routes  
+  app.post("/api/organizations", async (req, res) => {
+    try {
+      const validatedOrganization = insertOrganizationSchema.parse(req.body);
+      const savedOrganization = await storage.createOrganization(validatedOrganization);
+      res.json(savedOrganization);
+    } catch (error) {
+      console.error('Error saving organization:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save organization' });
+    }
+  });
+
+  app.get("/api/organizations/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const organizations = await storage.getUserOrganizations(userId);
+      res.json(organizations);
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+      res.status(500).json({ error: 'Failed to fetch organizations' });
+    }
+  });
+
+  app.get("/api/organizations/:id", async (req, res) => {
+    try {
+      const organization = await storage.getOrganization(req.params.id);
+      if (!organization) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+      res.json(organization);
+    } catch (error) {
+      console.error('Error fetching organization:', error);
+      res.status(500).json({ error: 'Failed to fetch organization' });
     }
   });
 
