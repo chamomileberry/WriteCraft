@@ -1724,7 +1724,10 @@ export default function CharacterEditPage() {
                       name="hobbies"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Hobbies & Interests</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Hobbies & Interests
+                            <GenerateButton fieldName="hobbies" />
+                          </FormLabel>
                           <FormDescription>
                             What hobbies, interests, and activities does the character enjoy?
                           </FormDescription>
@@ -1769,7 +1772,10 @@ export default function CharacterEditPage() {
                       name="hygieneValue"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Hygiene & Self-Care</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Hygiene & Self-Care
+                            <GenerateButton fieldName="hygieneValue" />
+                          </FormLabel>
                           <FormDescription>
                             How much does the character value hygiene and self-care?
                           </FormDescription>
@@ -1808,7 +1814,10 @@ export default function CharacterEditPage() {
                       name="famousQuotes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Famous Quotes & Catchphrases</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Famous Quotes & Catchphrases
+                            <GenerateButton fieldName="famousQuotes" />
+                          </FormLabel>
                           <FormDescription>
                             Does the character have any famous quotes or catchphrases?
                           </FormDescription>
@@ -1831,7 +1840,10 @@ export default function CharacterEditPage() {
                       name="speechParticularities"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Speech Characteristics</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Speech Characteristics
+                            <GenerateButton fieldName="speechParticularities" />
+                          </FormLabel>
                           <FormDescription>
                             Are there any particularities in terms of the character's speech, tone of voice, pitch, accent, dialect, impediments, catch phrases, common phrases, compliments, insults, greetings, farewell, swearing or metaphors?
                           </FormDescription>
@@ -1870,7 +1882,10 @@ export default function CharacterEditPage() {
                       name="religiousViews"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Religious Views & Beliefs</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Religious Views & Beliefs
+                            <GenerateButton fieldName="religiousViews" />
+                          </FormLabel>
                           <FormDescription>
                             What are the character's religious views and spiritual practices?
                           </FormDescription>
@@ -1893,7 +1908,10 @@ export default function CharacterEditPage() {
                       name="spiritualPractices"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Spiritual Practices & Rituals</FormLabel>
+                          <FormLabel className="flex items-center justify-between">
+                            Spiritual Practices & Rituals
+                            <GenerateButton fieldName="spiritualPractices" />
+                          </FormLabel>
                           <FormDescription>
                             What spiritual practices, rituals, or ceremonies do they participate in?
                           </FormDescription>
