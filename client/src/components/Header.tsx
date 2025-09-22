@@ -1,4 +1,4 @@
-import { Search, BookOpen, Menu, Moon, Sun } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -7,9 +7,10 @@ interface HeaderProps {
   onSearch?: (query: string) => void;
   searchQuery?: string;
   onNavigate?: (view: string) => void;
+  onCreateNew?: () => void;
 }
 
-export default function Header({ onSearch, searchQuery = "", onNavigate }: HeaderProps) {
+export default function Header({ onSearch, searchQuery = "", onNavigate, onCreateNew }: HeaderProps) {
   const [searchValue, setSearchValue] = useState(searchQuery);
   const [isDark, setIsDark] = useState(false);
 
@@ -84,6 +85,18 @@ export default function Header({ onSearch, searchQuery = "", onNavigate }: Heade
                 />
               </div>
             </form>
+            
+            {/* Create New Button */}
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => onCreateNew?.()}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              data-testid="button-create-new"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create
+            </Button>
             
             <Button
               variant="ghost"

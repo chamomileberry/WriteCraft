@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Header from "@/components/Header";
+import ContentTypeModal from "@/components/ContentTypeModal";
 import Hero from "@/components/Hero";
 import ToolsShowcase from "@/components/ToolsShowcase";
 import WritingGuides from "@/components/WritingGuides";
@@ -22,6 +23,7 @@ import { ArrowLeft } from "lucide-react";
 export default function Home() {
   const [activeView, setActiveView] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isContentModalOpen, setIsContentModalOpen] = useState<boolean>(false);
 
   const handleToolSelect = (toolId: string) => {
     setActiveView(toolId);
@@ -36,6 +38,34 @@ export default function Home() {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     console.log('Search query:', query);
+  };
+
+  const handleCreateNew = () => {
+    setIsContentModalOpen(true);
+    console.log('Opening content type modal');
+  };
+
+  const handleSelectContentType = (contentType: string) => {
+    // Navigate to the appropriate editor based on content type
+    console.log('Selected content type:', contentType);
+    
+    // Map content types to their corresponding views/pages
+    const contentTypeRoutes: { [key: string]: string } = {
+      'character': 'character-generator',
+      'location': 'location-editor',
+      'organization': 'organization-editor',
+      'species': 'species-editor',
+      // Add more mappings as editors are created
+    };
+
+    const route = contentTypeRoutes[contentType];
+    if (route) {
+      setActiveView(route);
+    } else {
+      // For now, show a placeholder or redirect to notebook
+      console.log(`Editor for ${contentType} not yet implemented`);
+      setActiveView('notebook');
+    }
   };
 
   const renderContent = () => {
@@ -274,11 +304,22 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSearch={handleSearch} searchQuery={searchQuery} onNavigate={handleToolSelect} />
+      <Header 
+        onSearch={handleSearch} 
+        searchQuery={searchQuery} 
+        onNavigate={handleToolSelect}
+        onCreateNew={handleCreateNew}
+      />
       <main>
         {renderContent()}
       </main>
       <Footer />
+      
+      <ContentTypeModal
+        isOpen={isContentModalOpen}
+        onClose={() => setIsContentModalOpen(false)}
+        onSelectType={handleSelectContentType}
+      />
     </div>
   );
 }
