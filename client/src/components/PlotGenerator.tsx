@@ -2,12 +2,15 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Copy, Save, Zap, Loader2, HelpCircle } from "lucide-react";
+import { BookOpen, Copy, Save, Zap, Loader2, HelpCircle, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import StoryStructureQuiz from "./StoryStructureQuiz";
+import { GENRE_CATEGORIES } from "../../../server/genres";
 
 interface PlotStructure {
   id?: string;
@@ -42,6 +45,7 @@ const STORY_STRUCTURES = [
 export default function PlotGenerator() {
   const [plot, setPlot] = useState<PlotStructure | null>(null);
   const [genre, setGenre] = useState<string>("");
+  const [genreSearchOpen, setGenreSearchOpen] = useState(false);
   const [storyStructure, setStoryStructure] = useState<string>("");
   const [showQuiz, setShowQuiz] = useState<boolean>(false);
   const { toast } = useToast();
@@ -175,19 +179,45 @@ ${plot.setup}
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-4">
-              <Select value={genre} onValueChange={setGenre}>
-                <SelectTrigger className="sm:w-48" data-testid="select-plot-genre">
-                  <SelectValue placeholder="Select genre" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fantasy">Fantasy</SelectItem>
-                  <SelectItem value="sci-fi">Science Fiction</SelectItem>
-                  <SelectItem value="romance">Romance</SelectItem>
-                  <SelectItem value="mystery">Mystery</SelectItem>
-                  <SelectItem value="thriller">Thriller</SelectItem>
-                  <SelectItem value="drama">Drama</SelectItem>
-                </SelectContent>
-              </Select>
+              <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={genreSearchOpen}
+                    className="sm:w-48 justify-between"
+                    data-testid="select-plot-genre"
+                  >
+                    {genre ? genre.charAt(0).toUpperCase() + genre.slice(1) : "Select genre..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search genres..." />
+                    <CommandList className="max-h-60">
+                      <CommandEmpty>No genre found.</CommandEmpty>
+                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
+                        <CommandGroup key={category} heading={category}>
+                          {genres.map((genreOption) => (
+                            <CommandItem
+                              key={genreOption}
+                              value={genreOption}
+                              onSelect={() => {
+                                setGenre(genreOption);
+                                setGenreSearchOpen(false);
+                              }}
+                            >
+                              <Check className={`mr-2 h-4 w-4 ${genre === genreOption ? "opacity-100" : "opacity-0"}`} />
+                              {genreOption.charAt(0).toUpperCase() + genreOption.slice(1)}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               
               <Select value={storyStructure} onValueChange={setStoryStructure}>
                 <SelectTrigger className="sm:w-56" data-testid="select-story-structure">

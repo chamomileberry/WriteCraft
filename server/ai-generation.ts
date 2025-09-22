@@ -67,6 +67,15 @@ export interface GeneratedCreature {
   culturalSignificance: string;
 }
 
+export interface PromptGenerationOptions {
+  genre?: string;
+  type?: string;
+}
+
+export interface GeneratedPrompt {
+  text: string;
+}
+
 export async function generateCharacterWithAI(options: CharacterGenerationOptions = {}): Promise<GeneratedCharacter> {
   const { genre, gender, ethnicity } = options;
   
@@ -509,5 +518,77 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Plant generation failed: ${errorMessage}`);
+  }
+}
+
+export async function generatePromptWithAI(options: PromptGenerationOptions = {}): Promise<GeneratedPrompt> {
+  const { genre, type } = options;
+  
+  // Validate inputs
+  if (genre && !ALL_GENRES.includes(genre)) {
+    throw new Error(`Invalid genre: ${genre}. Must be one of: ${ALL_GENRES.join(', ')}`);
+  }
+
+  const systemPrompt = `You are a creative writing assistant specialized in generating compelling, original writing prompts. Your prompts should be:
+
+1. Creative and thought-provoking
+2. Specific enough to provide direction but open enough for interpretation
+3. Genre-appropriate and engaging
+4. Free from clichés and overused concepts
+5. Designed to spark imagination and creativity
+
+PROMPT GUIDELINES:
+- Create original scenarios, not common tropes
+- Focus on unique twists or unexpected elements
+- Include specific details that make the scenario vivid
+- Avoid overused concepts like "chosen one," "love triangles," "amnesia," etc.
+- Make prompts that could inspire a full story, not just a scene
+- Consider character motivations, conflicts, and stakes
+- Include elements that create natural tension or mystery
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "text": "Your original, compelling writing prompt here"
+}`;
+
+  let userPrompt = "Generate a creative, original writing prompt that will inspire engaging fiction.";
+  
+  if (genre) {
+    userPrompt += ` The prompt should be suitable for the ${genre} genre.`;
+  }
+  
+  if (type) {
+    userPrompt += ` Focus on creating a ${type.toLowerCase()} type prompt.`;
+  }
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      max_tokens: 300,
+      system: systemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: userPrompt
+        }
+      ]
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response type from AI');
+    }
+
+    const generatedPrompt = JSON.parse(content.text);
+    
+    // Validate the response structure
+    if (!generatedPrompt.text || typeof generatedPrompt.text !== 'string') {
+      throw new Error('Invalid prompt structure returned from AI');
+    }
+
+    return generatedPrompt;
+  } catch (error) {
+    console.error('Error generating prompt with AI:', error);
+    throw new Error('Failed to generate prompt with AI');
   }
 }

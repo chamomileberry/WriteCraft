@@ -16,7 +16,7 @@ import {
   insertPlantSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI } from "./ai-generation";
+import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -160,8 +160,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { genre, type, userId } = generateRequestSchema.parse(req.body);
       
+      // Generate prompt using AI instead of hardcoded templates
+      const aiGeneratedPrompt = await generatePromptWithAI({ genre, type });
+      
       const prompt = {
-        text: generateRandomPrompt(genre),
+        text: aiGeneratedPrompt.text,
         genre: genre || getRandomGenre(),
         difficulty: getRandomDifficulty(),
         type: type || getRandomPromptType(),

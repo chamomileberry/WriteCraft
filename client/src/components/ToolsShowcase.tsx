@@ -39,7 +39,7 @@ const allTools: Tool[] = [
     icon: BookOpen,
     category: 'Story Structure',
     features: [
-      'Three-act structure',
+      'Customizable plot structure',
       'Conflict scenarios',
       'Plot twist ideas',
       'Character arcs'

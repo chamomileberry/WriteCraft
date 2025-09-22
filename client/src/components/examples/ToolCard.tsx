@@ -25,7 +25,7 @@ export default function ToolCardExample() {
         icon={BookOpen}
         category="Story Structure"
         features={[
-          "Three-act structure",
+          "Customizable plot structure",
           "Conflict scenarios",
           "Plot twist ideas",
           "Character arcs"
