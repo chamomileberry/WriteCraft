@@ -7,6 +7,7 @@ import { BookOpen, Copy, Save, Zap, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import StoryStructureQuiz from "./StoryStructureQuiz";
 
 interface PlotStructure {
   id?: string;
@@ -20,15 +21,29 @@ interface PlotStructure {
   theme: string;
   conflict: string;
   genre?: string | null;
+  storyStructure?: string | null;
   userId?: string | null;
   createdAt?: string;
 }
+
+const STORY_STRUCTURES = [
+  { value: "three-act", label: "Three-Act Structure" },
+  { value: "freytag", label: "Freytag's Pyramid" },
+  { value: "hero-journey", label: "The Hero's Journey" },
+  { value: "story-circle", label: "The Story Circle" },
+  { value: "snowflake", label: "The Snowflake Method" },
+  { value: "fichtean", label: "Fichtean Curve" },
+  { value: "save-cat", label: "Save the Cat Beat Sheet" },
+  { value: "seven-point", label: "Seven-Point Story Structure" }
+];
 
 // Removed local data arrays - now using backend API
 
 export default function PlotGenerator() {
   const [plot, setPlot] = useState<PlotStructure | null>(null);
   const [genre, setGenre] = useState<string>("");
+  const [storyStructure, setStoryStructure] = useState<string>("");
+  const [showQuiz, setShowQuiz] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -36,6 +51,7 @@ export default function PlotGenerator() {
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/plots/generate', {
         genre: genre || undefined,
+        storyStructure: storyStructure || undefined,
         userId: null // For now, no user authentication
       });
       return response.json();
@@ -123,6 +139,14 @@ ${plot.setup}
     savePlotMutation.mutate();
   };
 
+  const handleQuizStructureSelect = (structure: string) => {
+    setStoryStructure(structure);
+    toast({
+      title: "Structure selected!",
+      description: `${STORY_STRUCTURES.find(s => s.value === structure)?.label} has been selected for your plot.`,
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -136,34 +160,60 @@ ${plot.setup}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Select value={genre} onValueChange={setGenre}>
-              <SelectTrigger className="sm:w-48" data-testid="select-plot-genre">
-                <SelectValue placeholder="Select genre" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fantasy">Fantasy</SelectItem>
-                <SelectItem value="sci-fi">Science Fiction</SelectItem>
-                <SelectItem value="romance">Romance</SelectItem>
-                <SelectItem value="mystery">Mystery</SelectItem>
-                <SelectItem value="thriller">Thriller</SelectItem>
-                <SelectItem value="drama">Drama</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={genre} onValueChange={setGenre}>
+                <SelectTrigger className="sm:w-48" data-testid="select-plot-genre">
+                  <SelectValue placeholder="Select genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fantasy">Fantasy</SelectItem>
+                  <SelectItem value="sci-fi">Science Fiction</SelectItem>
+                  <SelectItem value="romance">Romance</SelectItem>
+                  <SelectItem value="mystery">Mystery</SelectItem>
+                  <SelectItem value="thriller">Thriller</SelectItem>
+                  <SelectItem value="drama">Drama</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={storyStructure} onValueChange={setStoryStructure}>
+                <SelectTrigger className="sm:w-56" data-testid="select-story-structure">
+                  <SelectValue placeholder="Select story structure" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STORY_STRUCTURES.map((structure) => (
+                    <SelectItem key={structure.value} value={structure.value}>
+                      {structure.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
-            <Button 
-              onClick={generatePlot}
-              disabled={generatePlotMutation.isPending}
-              data-testid="button-generate-plot"
-              className="flex-1 sm:flex-none"
-            >
-              {generatePlotMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Zap className="mr-2 h-4 w-4" />
-              )}
-              {generatePlotMutation.isPending ? 'Generating...' : 'Generate Plot'}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                onClick={generatePlot}
+                disabled={generatePlotMutation.isPending}
+                data-testid="button-generate-plot"
+                className="flex-1 sm:flex-none"
+              >
+                {generatePlotMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Zap className="mr-2 h-4 w-4" />
+                )}
+                {generatePlotMutation.isPending ? 'Generating...' : 'Generate Plot'}
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => setShowQuiz(true)}
+                data-testid="button-structure-quiz"
+                className="flex-1 sm:flex-none"
+              >
+                📝 Find My Structure
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -260,6 +310,12 @@ ${plot.setup}
           </CardContent>
         </Card>
       )}
+
+      <StoryStructureQuiz
+        open={showQuiz}
+        onClose={() => setShowQuiz(false)}
+        onSelectStructure={handleQuizStructureSelect}
+      />
     </div>
   );
 }
