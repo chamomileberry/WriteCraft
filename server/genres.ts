@@ -1017,3 +1017,30 @@ export const ETHNICITY_CATEGORIES = {
 };
 
 export const ALL_ETHNICITIES = Object.values(ETHNICITY_CATEGORIES).flat();
+
+// Description types for the description generator
+export const ALL_DESCRIPTION_TYPES = [
+  // Objects & Items
+  "armour", "weapon", "clothing", "uniform", "item", "wand", "book", "material", "potion",
+  
+  // Health & Conditions
+  "disease", "illness", "condition", "ailment", "poison", "mental_health", "pain", "dying",
+  
+  // Environmental & Atmospheric
+  "atmospheric", "climate", "weather", "storm",
+  
+  // Cultural & Social
+  "holiday", "tradition", "ritual", "religion", "society", "law",
+  
+  // Skills & Abilities
+  "martial_art", "spell",
+  
+  // Emotional & Psychological
+  "tragedy", "trauma", "hysteria",
+  
+  // Mystical & Supernatural
+  "prophecy",
+  
+  // Food & Drink
+  "food", "drink"
+];

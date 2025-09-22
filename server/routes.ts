@@ -18,6 +18,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI } from "./ai-generation";
+import { ALL_DESCRIPTION_TYPES } from "./genres";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -450,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/descriptions/generate", async (req, res) => {
     try {
       const generateRequestSchema = z.object({
-        descriptionType: z.string(),
+        descriptionType: z.enum(ALL_DESCRIPTION_TYPES as [string, ...string[]]),
         genre: z.string().optional(),
         userId: z.string().nullable().optional()
       });

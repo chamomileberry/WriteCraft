@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, ALL_ETHNICITIES } from './genres.js';
+import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, ALL_ETHNICITIES, ALL_DESCRIPTION_TYPES } from './genres.js';
 
 /*
 <important_code_snippet_instructions>
@@ -608,6 +608,10 @@ export async function generateDescriptionWithAI(options: DescriptionGenerationOp
   const { descriptionType, genre } = options;
   
   // Validate inputs
+  if (!ALL_DESCRIPTION_TYPES.includes(descriptionType)) {
+    throw new Error(`Invalid description type: ${descriptionType}. Must be one of: ${ALL_DESCRIPTION_TYPES.join(', ')}`);
+  }
+  
   if (genre && !ALL_GENRES.includes(genre)) {
     throw new Error(`Invalid genre: ${genre}. Must be one of: ${ALL_GENRES.join(', ')}`);
   }
