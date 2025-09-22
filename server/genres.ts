@@ -236,7 +236,15 @@ export const SETTING_TYPE_CATEGORIES = {
     "glen",
     "animal pasture",
     "trail",
-    "causeway"
+    "causeway",
+    "pond",
+    "salt flats",
+    "tundra",
+    "wasteland",
+    "badlands",
+    "wildlife reserve",
+    "cavern",
+    "lair"
   ],
   "Residential Buildings": [
     "house",
@@ -319,7 +327,18 @@ export const SETTING_TYPE_CATEGORIES = {
     "Internet cafe",
     "real estate agency",
     "retailer",
-    "sausage stand"
+    "sausage stand",
+    "grocery store",
+    "supermarket",
+    "tailor",
+    "tanning salon",
+    "tax advisor",
+    "tea house",
+    "tea room",
+    "thrift store",
+    "travel agency",
+    "wig store",
+    "upholstery shop"
   ],
   "Public & Government Buildings": [
     "library",
@@ -341,7 +360,11 @@ export const SETTING_TYPE_CATEGORIES = {
     "convention centre",
     "print shop",
     "town square",
-    "trade centre"
+    "trade centre",
+    "forbidden city",
+    "government agency",
+    "intelligence agency",
+    "news station"
   ],
   "Entertainment Venues": [
     "movie theatre",
@@ -370,7 +393,10 @@ export const SETTING_TYPE_CATEGORIES = {
     "amphitheatre",
     "concert",
     "music festival",
-    "concession stand"
+    "concession stand",
+    "jousting arena",
+    "gala",
+    "rodeo"
   ],
   "Transportation & Infrastructure": [
     "airport",
@@ -396,7 +422,13 @@ export const SETTING_TYPE_CATEGORIES = {
     "lighthouse",
     "tower",
     "clock tower",
-    "quay"
+    "quay",
+    "seaport",
+    "walkway",
+    "train station",
+    "tram station",
+    "truck stop",
+    "union station"
   ],
   "Religious & Spiritual Buildings": [
     "church",
@@ -405,7 +437,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "mosque",
     "shrine",
     "pyramid",
-    "monastery"
+    "monastery",
+    "abbey"
   ],
   "Educational Institutions": [
     "school",
@@ -416,7 +449,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "middle school",
     "boarding school",
     "campus",
-    "classroom"
+    "classroom",
+    "academy"
   ],
   "Healthcare Facilities": [
     "hospital",
@@ -447,7 +481,12 @@ export const SETTING_TYPE_CATEGORIES = {
     "baseball diamond",
     "ice rink",
     "tennis court",
-    "basketball court"
+    "basketball court",
+    "ski hill",
+    "lodge",
+    "resort",
+    "campground",
+    "trailer park"
   ],
   "Industrial & Agricultural": [
     "factory",
@@ -468,7 +507,11 @@ export const SETTING_TYPE_CATEGORIES = {
     "junkyard",
     "abattoir",
     "sand pit",
-    "gravel pit"
+    "gravel pit",
+    "slaughter house",
+    "ranch",
+    "corral",
+    "bunkhouse"
   ],
   "Vehicles & Mobile Settings": [
     "space station",
@@ -477,7 +520,11 @@ export const SETTING_TYPE_CATEGORIES = {
     "caravan",
     "trailer",
     "camper van",
-    "food truck"
+    "food truck",
+    "submarine",
+    "naval ship",
+    "house boat",
+    "zeppelin"
   ],
   "Interior Spaces": [
     "room",
@@ -496,7 +543,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "dorm room",
     "vault",
     "dungeon",
-    "prison"
+    "prison",
+    "courtyard"
   ],
   "Personal Care & Services": [
     "salon",
@@ -531,7 +579,15 @@ export const SETTING_TYPE_CATEGORIES = {
     "memorial",
     "cemetery",
     "wall",
-    "barrier"
+    "barrier",
+    "tomb",
+    "gravesite",
+    "graveyard",
+    "crypt",
+    "underground bunker",
+    "nuclear bunker",
+    "barricade",
+    "military park"
   ],
   "Specialized Buildings": [
     "apothecary",
@@ -553,11 +609,33 @@ export const SETTING_TYPE_CATEGORIES = {
     "bistro",
     "brewery",
     "palace",
-    "sky deck"
+    "sky deck",
+    "hangar",
+    "storage facility",
+    "rocket centre",
+    "launchpad",
+    "fishing hut",
+    "watch tower",
+    "water tower",
+    "research centre",
+    "research lab",
+    "nuclear power plant",
+    "nuclear launch site",
+    "wax museum",
+    "boathouse",
+    "botanical gardens",
+    "pavilion",
+    "pergola",
+    "pagoda",
+    "research station",
+    "observatory",
+    "treehouse"
   ],
   "Celestial & Fantastical": [
     "planet",
-    "realm"
+    "realm",
+    "satellite",
+    "star"
   ]
 };
 
