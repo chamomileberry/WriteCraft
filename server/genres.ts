@@ -1021,26 +1021,56 @@ export const ALL_ETHNICITIES = Object.values(ETHNICITY_CATEGORIES).flat();
 // Description types for the description generator
 export const ALL_DESCRIPTION_TYPES = [
   // Objects & Items
-  "armour", "weapon", "clothing", "uniform", "item", "wand", "book", "material", "potion",
+  "armour", "weapon", "clothing", "uniform", "item", "wand", "book", "material", "potion", "furniture", "toy",
   
   // Health & Conditions
-  "disease", "illness", "condition", "ailment", "poison", "mental_health", "pain", "dying",
+  "disease", "illness", "condition", "ailment", "poison", "mental_health", "pain", "dying", "medicine",
   
   // Environmental & Atmospheric
-  "atmospheric", "climate", "weather", "storm",
+  "atmospheric", "climate", "weather", "storm", "sky", "environment", "natural_disaster", "apocalypse",
   
   // Cultural & Social
-  "holiday", "tradition", "ritual", "religion", "society", "law",
+  "holiday", "tradition", "ritual", "religion", "society", "law", "culture", "ethnicity", "government", "organization", "military",
   
   // Skills & Abilities
-  "martial_art", "spell",
+  "martial_art", "spell", "cooking", "activity", "service", "trade",
   
   // Emotional & Psychological
-  "tragedy", "trauma", "hysteria",
+  "tragedy", "trauma", "hysteria", "emotion", "aura",
   
   // Mystical & Supernatural
-  "prophecy",
+  "prophecy", "legend", "myth", "folklore", "deity",
   
   // Food & Drink
-  "food", "drink"
+  "food", "drink", "taste", "cuisine",
+  
+  // Physical & Sensory Descriptions
+  "smell", "hair", "eye", "nose", "facial_expression", "posture", "gait", "mouth", "general_physical", "smile", "facial_feature",
+  
+  // Character & Personality
+  "personality", "character", "role", "title", "job",
+  
+  // Transportation & Vehicles
+  "transportation", "vehicle", "flight",
+  
+  // Architecture & Buildings
+  "architecture", "building",
+  
+  // Natural Elements & Sciences
+  "element", "natural_law", "ecological", "anatomy", "morphology", "species", "crop", "resource",
+  
+  // Arts & Entertainment
+  "music", "song", "poem", "dance", "game",
+  
+  // Communication & Language
+  "language", "dialect", "accent", "document", "data",
+  
+  // Events & Conflicts
+  "event", "conflict",
+  
+  // Technology
+  "technology",
+  
+  // All Location Types (from setting generator) - using exact format from SETTING_TYPE_CATEGORIES
+  ...ALL_SETTING_TYPES
 ];

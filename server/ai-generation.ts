@@ -675,70 +675,190 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   
   // Add specific guidance based on description type
   switch (descriptionType) {
+    // Objects & Items
     case 'armour':
     case 'weapon':
     case 'clothing':
     case 'uniform':
     case 'item':
     case 'wand':
-      userPrompt += ' Focus on materials, craftsmanship, visual details, and the impression it makes. Include how it might feel to wear or wield it.';
+    case 'book':
+    case 'material':
+    case 'potion':
+    case 'furniture':
+    case 'toy':
+      userPrompt += ' Focus on materials, craftsmanship, visual details, and the impression it makes. Include texture, weight, and how it might feel to interact with.';
       break;
+    
+    // Health & Conditions
     case 'disease':
     case 'illness':
     case 'condition':
     case 'ailment':
     case 'poison':
     case 'mental_health':
-      userPrompt += ' Focus on symptoms, progression, effects on the sufferer, and how it manifests. Be sensitive but realistic.';
+    case 'pain':
+    case 'dying':
+    case 'medicine':
+      userPrompt += ' Focus on symptoms, progression, effects on the sufferer, and how it manifests. Be sensitive but realistic in portraying the human experience.';
       break;
+    
+    // Environmental & Atmospheric
     case 'atmospheric':
     case 'climate':
     case 'weather':
     case 'storm':
-      userPrompt += ' Focus on environmental conditions, sensory experiences, and the emotional impact of the atmosphere.';
+    case 'sky':
+    case 'environment':
+    case 'natural_disaster':
+    case 'apocalypse':
+      userPrompt += ' Focus on environmental conditions, sensory experiences, and the emotional impact of the atmosphere. Include weather effects and natural phenomena.';
       break;
+    
+    // Cultural & Social
     case 'holiday':
     case 'tradition':
     case 'ritual':
     case 'religion':
     case 'society':
-      userPrompt += ' Focus on cultural practices, meaningful elements, and the social significance.';
+    case 'law':
+    case 'culture':
+    case 'ethnicity':
+    case 'government':
+    case 'organization':
+    case 'military':
+      userPrompt += ' Focus on cultural practices, meaningful elements, social significance, and the human connections these create.';
       break;
+    
+    // Skills & Abilities
     case 'martial_art':
     case 'spell':
-      userPrompt += ' Focus on techniques, movements, energy, and the skill required to perform it.';
+    case 'cooking':
+    case 'activity':
+    case 'service':
+    case 'trade':
+      userPrompt += ' Focus on techniques, movements, energy, skill required, and the artistry or craft involved in the practice.';
       break;
-    case 'dying':
-    case 'pain':
+    
+    // Emotional & Psychological
     case 'tragedy':
     case 'trauma':
     case 'hysteria':
-      userPrompt += ' Focus on the emotional and physical experience while being respectful and meaningful.';
+    case 'emotion':
+    case 'aura':
+      userPrompt += ' Focus on the emotional and psychological experience while being respectful and meaningful. Explore the depth of human feeling.';
       break;
+    
+    // Mystical & Supernatural
     case 'prophecy':
-      userPrompt += ' Focus on mystical language, symbolic meaning, and the weight of destiny.';
+    case 'legend':
+    case 'myth':
+    case 'folklore':
+    case 'deity':
+      userPrompt += ' Focus on mystical language, symbolic meaning, ancient wisdom, and the weight of destiny or divine power.';
       break;
+    
+    // Food & Drink
     case 'food':
     case 'drink':
-      userPrompt += ' Focus on taste, aroma, texture, presentation, and the experience of consuming it.';
+    case 'taste':
+    case 'cuisine':
+      userPrompt += ' Focus on taste, aroma, texture, presentation, preparation methods, and the complete sensory experience of consumption.';
       break;
-    case 'book':
-      userPrompt += ' Focus on physical appearance, content hints, and the impression it makes on readers.';
+    
+    // Physical & Sensory Descriptions
+    case 'smell':
+    case 'hair':
+    case 'eye':
+    case 'nose':
+    case 'facial_expression':
+    case 'posture':
+    case 'gait':
+    case 'mouth':
+    case 'general_physical':
+    case 'smile':
+    case 'facial_feature':
+      userPrompt += ' Focus on vivid sensory details, physical characteristics, and how they reflect personality or emotion. Be specific and evocative.';
       break;
-    case 'material':
-      userPrompt += ' Focus on texture, appearance, properties, and how it can be used or worked with.';
+    
+    // Character & Personality
+    case 'personality':
+    case 'character':
+    case 'role':
+    case 'title':
+    case 'job':
+      userPrompt += ' Focus on character traits, behavioral patterns, motivations, and how these manifest in actions and relationships.';
       break;
-    case 'law':
-      userPrompt += ' Focus on the legal framework, enforcement, and societal impact.';
+    
+    // Transportation & Vehicles
+    case 'transportation':
+    case 'vehicle':
+    case 'flight':
+      userPrompt += ' Focus on design, functionality, speed, comfort, and the experience of travel or movement.';
       break;
-    case 'potion':
-      userPrompt += ' Focus on appearance, effects, ingredients, and the brewing process.';
+    
+    // Architecture & Buildings
+    case 'architecture':
+    case 'building':
+      userPrompt += ' Focus on structural design, materials, aesthetic appeal, and how the space makes people feel when they experience it.';
       break;
+    
+    // Natural Elements & Sciences
+    case 'element':
+    case 'natural_law':
+    case 'ecological':
+    case 'anatomy':
+    case 'morphology':
+    case 'species':
+    case 'crop':
+    case 'resource':
+      userPrompt += ' Focus on scientific accuracy, natural processes, biological or physical properties, and the role in larger systems.';
+      break;
+    
+    // Arts & Entertainment
+    case 'music':
+    case 'song':
+    case 'poem':
+    case 'dance':
+    case 'game':
+      userPrompt += ' Focus on artistic expression, rhythm, movement, emotional impact, and the creative process behind the art form.';
+      break;
+    
+    // Communication & Language
+    case 'language':
+    case 'dialect':
+    case 'accent':
+    case 'document':
+    case 'data':
+      userPrompt += ' Focus on communication patterns, linguistic features, information structure, and how meaning is conveyed or preserved.';
+      break;
+    
+    // Events & Conflicts
+    case 'event':
+    case 'conflict':
+      userPrompt += ' Focus on the sequence of actions, stakes involved, human drama, and the lasting impact on those involved.';
+      break;
+    
+    // Technology
+    case 'technology':
+      userPrompt += ' Focus on functionality, innovation, user experience, and how it changes or enhances human capabilities.';
+      break;
+    
     default:
-      userPrompt += ' Create a rich, detailed description that brings this element to life.';
+      // Check if this is a location type from the setting generator
+      if (ALL_SETTING_TYPES.includes(descriptionType as any)) {
+        userPrompt += ' Focus on the physical space, atmosphere, architectural details, and how people interact with or experience this location. Include sensory details and the mood it creates.';
+      } else {
+        userPrompt += ' Create a rich, detailed description that brings this element to life with vivid sensory details and emotional resonance.';
+      }
+      break;
   }
   
   userPrompt += ' Respond with ONLY the JSON object, no other text.';
+
+  // Declare content variable outside try block for error handling
+  let content: any;
+  let cleanedText = '';
 
   try {
     console.log('Making request to Anthropic API for description generation...');
@@ -754,13 +874,13 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
     console.log('Received response from Anthropic API for description');
 
-    const content = response.content[0];
+    content = response.content[0];
     if (content.type !== 'text') {
       throw new Error('Unexpected response format from Anthropic API');
     }
 
     // Clean the response text
-    let cleanedText = content.text.trim();
+    cleanedText = content.text.trim();
     
     console.log('Raw AI Response:', cleanedText);
     
@@ -790,7 +910,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     return descriptionData as GeneratedDescription;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      console.error('JSON Parse Error. Raw response:', content.text);
+      console.error('JSON Parse Error. Raw response:', cleanedText || (content?.text) || 'No response text available');
       throw new Error('Failed to parse AI response as JSON. Please try again.');
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
