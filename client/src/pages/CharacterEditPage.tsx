@@ -60,11 +60,12 @@ export default function CharacterEditPage() {
     mutationFn: async ({ fieldName }: { fieldName: string }) => {
       // Get current form values to provide fresh context to AI
       const currentFormValues = form.getValues();
-      const response = await apiRequest(`/api/characters/${id}/generate-field`, "POST", { 
+      const response = await apiRequest("POST", `/api/characters/${id}/generate-field`, { 
         fieldName,
         currentFormData: currentFormValues 
       });
-      return response.content;
+      const data = await response.json();
+      return data.content;
     },
     onSuccess: (content, { fieldName }) => {
       form.setValue(fieldName as keyof UpdateCharacter, content);

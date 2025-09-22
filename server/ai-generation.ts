@@ -345,7 +345,44 @@ export async function generateCharacterFieldWithAI(fieldName: string, existingCh
     hobbies: "Generate meaningful hobbies and interests that reveal their personality",
     characterFlaws: "Generate character flaws that create realistic imperfections",
     quirks: "Generate memorable quirks and idiosyncrasies",
-    mannerisms: "Generate specific physical mannerisms and gestures"
+    mannerisms: "Generate specific physical mannerisms and gestures",
+    // Physical attributes
+    strikingFeatures: "Generate the most striking or memorable physical features that make this character stand out",
+    marksPiercingsTattoos: "Generate any distinctive marks, piercings, tattoos, or body modifications that tell a story",
+    // Personality & behavior
+    likes: "Generate specific things this character enjoys, finds appealing, or is drawn to",
+    dislikes: "Generate specific things this character avoids, finds unpleasant, or strongly opposes",
+    behavioralTraits: "Generate distinctive behavioral patterns and tendencies that define how they act",
+    charisma: "Generate details about their personal magnetism, social presence, and ability to influence others",
+    habitualGestures: "Generate specific physical gestures, mannerisms, or habits they unconsciously display",
+    // Relationships & social
+    keyRelationships: "Generate important people in their life and how these relationships shape them",
+    allies: "Generate trusted friends, supporters, or allies who help them achieve their goals",
+    enemies: "Generate adversaries, rivals, or people who oppose them and create conflict",
+    overseeingDomain: "Generate any area of responsibility, territory, or domain they oversee or control",
+    // Background & development
+    upbringing: "Generate details about their childhood, family environment, and formative experiences",
+    negativeEvents: "Generate significant hardships, traumas, or setbacks that shaped their character",
+    legacy: "Generate the impact they want to leave behind or how they want to be remembered",
+    wealthClass: "Generate their economic status, financial situation, and relationship with money",
+    // Health & condition
+    mentalHealth: "Generate their psychological state, emotional wellbeing, and mental resilience",
+    intellectualTraits: "Generate their thinking patterns, learning style, and intellectual capabilities",
+    physicalCondition: "Generate their overall health, fitness level, and any physical limitations or advantages",
+    // Skills & abilities
+    supernaturalPowers: "Generate any magical, supernatural, or extraordinary abilities they possess",
+    mainSkills: "Generate their primary talents, expertise, and areas of competence",
+    lackingSkills: "Generate areas where they struggle, lack knowledge, or need improvement",
+    typicalAttire: "Generate their usual clothing style, fashion preferences, and how they choose to present themselves",
+    keyEquipment: "Generate important tools, weapons, or specialized items they regularly carry or use",
+    // Lifestyle & daily life
+    hygieneValue: "Generate their approach to personal care, cleanliness, and self-maintenance routines",
+    // Communication & expression
+    famousQuotes: "Generate memorable things they've said or are known for saying",
+    speechParticularities: "Generate unique aspects of how they speak, including accent, pace, vocabulary, or verbal tics",
+    // Spiritual & philosophical
+    religiousViews: "Generate their beliefs about spirituality, religion, or higher powers",
+    spiritualPractices: "Generate any rituals, meditative practices, or spiritual disciplines they follow"
   };
 
   const promptText = fieldPrompts[fieldName] || `Generate appropriate content for the ${fieldName} field`;
