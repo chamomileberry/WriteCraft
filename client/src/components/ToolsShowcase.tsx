@@ -33,33 +33,6 @@ const allTools: Tool[] = [
     isPopular: true
   },
   {
-    id: 'plot-generator',
-    title: 'Plot Generator',
-    description: 'Generate compelling plot structures and story arcs for any genre.',
-    icon: BookOpen,
-    category: 'Story Structure',
-    features: [
-      'Customizable plot structure',
-      'Conflict scenarios',
-      'Plot twist ideas',
-      'Character arcs'
-    ]
-  },
-  {
-    id: 'writing-prompts',
-    title: 'Writing Prompts',
-    description: 'Spark creativity with genre-specific prompts and story starters.',
-    icon: Zap,
-    category: 'Inspiration',
-    features: [
-      'Genre-specific prompts',
-      'Difficulty levels',
-      'Daily challenges',
-      'Custom themes'
-    ],
-    isPopular: true
-  },
-  {
     id: 'setting-generator',
     title: 'Setting Generator',
     description: 'Build immersive worlds and locations for your stories.',
@@ -86,6 +59,46 @@ const allTools: Tool[] = [
     ]
   },
   {
+    id: 'plant-generator',
+    title: 'Plant Generator',
+    description: 'Generate detailed plant descriptions with botanical accuracy for your stories.',
+    icon: Leaf,
+    category: 'World Building',
+    features: [
+      'Scientific names',
+      'Care instructions',
+      'Habitat details',
+      'Seasonal information'
+    ]
+  },
+  {
+    id: 'writing-prompts',
+    title: 'Writing Prompts',
+    description: 'Spark creativity with genre-specific prompts and story starters.',
+    icon: Zap,
+    category: 'Inspiration',
+    features: [
+      'Genre-specific prompts',
+      'Difficulty levels',
+      'Daily challenges',
+      'Custom themes'
+    ],
+    isPopular: true
+  },
+  {
+    id: 'description-generator',
+    title: 'Description Generator',
+    description: 'Create detailed, immersive descriptions for any element of your story.',
+    icon: PenTool,
+    category: 'Writing Craft',
+    features: [
+      'Equipment descriptions',
+      'Atmospheric conditions',
+      'Cultural elements',
+      'Medical conditions'
+    ]
+  },
+  {
     id: 'name-generator',
     title: 'Name Generator',
     description: 'Find perfect names for characters, places, and fantasy elements.',
@@ -96,6 +109,19 @@ const allTools: Tool[] = [
       'Place names',
       'Fantasy races',
       'Cultural variations'
+    ]
+  },
+  {
+    id: 'plot-generator',
+    title: 'Plot Generator',
+    description: 'Generate compelling plot structures and story arcs for any genre.',
+    icon: BookOpen,
+    category: 'Story Structure',
+    features: [
+      'Customizable plot structure',
+      'Conflict scenarios',
+      'Plot twist ideas',
+      'Character arcs'
     ]
   },
   {
@@ -135,32 +161,6 @@ const allTools: Tool[] = [
       'Sensory details',
       'Color associations',
       'Weather elements'
-    ]
-  },
-  {
-    id: 'plant-generator',
-    title: 'Plant Generator',
-    description: 'Generate detailed plant descriptions with botanical accuracy for your stories.',
-    icon: Leaf,
-    category: 'World Building',
-    features: [
-      'Scientific names',
-      'Care instructions',
-      'Habitat details',
-      'Seasonal information'
-    ]
-  },
-  {
-    id: 'description-generator',
-    title: 'Description Generator',
-    description: 'Create detailed, immersive descriptions for any element of your story.',
-    icon: PenTool,
-    category: 'Writing Craft',
-    features: [
-      'Equipment descriptions',
-      'Atmospheric conditions',
-      'Cultural elements',
-      'Medical conditions'
     ]
   }
 ];
