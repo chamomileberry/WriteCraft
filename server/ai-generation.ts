@@ -33,6 +33,15 @@ export interface GeneratedCharacter {
   flaw: string;
   strength: string;
   gender: string;
+  // Physical description fields
+  height: string;
+  build: string;
+  hairColor: string;
+  eyeColor: string;
+  skinTone: string;
+  facialFeatures: string;
+  identifyingMarks: string;
+  physicalDescription: string;
 }
 
 export interface SettingGenerationOptions {
@@ -127,6 +136,16 @@ CULTURAL AUTHENTICITY:
 - Account for cultural assimilation patterns in naming choices
 - Reflect realistic family naming traditions
 
+PHYSICAL DESCRIPTION GUIDELINES:
+- Make physical descriptions culturally authentic and respectful to the character's ethnicity/heritage
+- Use specific, realistic measurements for height (e.g., "5'7\"", "173 cm")
+- Include age-appropriate physical characteristics
+- Consider how occupation, background, and lifestyle affect physical appearance
+- Create distinctive, memorable physical features without relying on stereotypes
+- Include identifying marks that reflect the character's history and experiences
+- Ensure skin tone, hair, and eye colors are appropriate to the character's heritage
+- Write comprehensive physical descriptions that paint a vivid picture
+
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
   "name": "Full character name",
@@ -137,7 +156,15 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   "motivation": "Core driving force - what they want most",
   "flaw": "Fatal weakness or character defect that creates conflict",
   "strength": "Greatest personal strength or virtue",
-  "gender": "specified_gender_identity"
+  "gender": "specified_gender_identity",
+  "height": "Specific height with appropriate units",
+  "build": "Body type and build description",
+  "hairColor": "Hair color and style",
+  "eyeColor": "Eye color and notable features",
+  "skinTone": "Skin tone appropriate to ethnicity/heritage",
+  "facialFeatures": "Notable facial characteristics",
+  "identifyingMarks": "Scars, tattoos, birthmarks, etc.",
+  "physicalDescription": "Overall comprehensive physical description"
 }`;
 
   let userPrompt = "Generate a compelling, psychologically complex character for creative writing.";
@@ -192,7 +219,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     const characterData = JSON.parse(cleanedText);
     
     // Validate the response structure
-    const requiredFields = ['name', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength'];
+    const requiredFields = ['name', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength', 'height', 'build', 'hairColor', 'eyeColor', 'skinTone', 'facialFeatures', 'identifyingMarks', 'physicalDescription'];
     for (const field of requiredFields) {
       if (!(field in characterData)) {
         throw new Error(`Missing required field: ${field}`);

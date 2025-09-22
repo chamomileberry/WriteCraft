@@ -47,6 +47,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         strength: aiCharacter.strength,
         gender: aiCharacter.gender,
         genre: genre || null,
+        // Physical description fields
+        height: aiCharacter.height,
+        build: aiCharacter.build,
+        hairColor: aiCharacter.hairColor,
+        eyeColor: aiCharacter.eyeColor,
+        skinTone: aiCharacter.skinTone,
+        facialFeatures: aiCharacter.facialFeatures,
+        identifyingMarks: aiCharacter.identifyingMarks,
+        physicalDescription: aiCharacter.physicalDescription,
         userId: userId || null
       };
 
