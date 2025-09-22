@@ -108,7 +108,7 @@ const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ className?: str
 };
 
 // Content type categories for filtering
-const CONTENT_CATEGORIES = {
+const CONTENT_CATEGORIES: { [key: string]: string[] } = {
   "People": ["character", "ethnicity", "culture", "profession", "role", "title"],
   "Places": ["location", "settlement", "building", "geography", "territory", "district", "city", "country"],
   "Groups": ["organization", "society", "faction", "militaryunit"],
@@ -184,16 +184,30 @@ export default function SavedItems() {
     }
   };
 
+  // Get category for a content type
+  const getCategoryForType = (itemType: string): string | null => {
+    for (const [category, types] of Object.entries(CONTENT_CATEGORIES)) {
+      if (types.includes(itemType)) {
+        return category;
+      }
+    }
+    return null;
+  };
+
   // Filter saved items
   const filteredItems = savedItems.filter(item => {
     const matchesSearch = !searchQuery || 
       (item.itemData?.name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.itemType.toLowerCase().includes(searchQuery.toLowerCase()));
+      (item.itemType.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (getCategoryForType(item.itemType)?.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesTab = activeTab === "all" || 
       (activeTab === "recent" && new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
     
-    return matchesSearch && matchesTab;
+    const matchesCategory = !selectedCategory || 
+      (CONTENT_CATEGORIES[selectedCategory]?.includes(item.itemType));
+    
+    return matchesSearch && matchesTab && matchesCategory;
   });
 
   // Group items by type for better organization
@@ -237,37 +251,88 @@ export default function SavedItems() {
     );
   }
 
+  // Calculate statistics
+  const totalItems = savedItems.length;
+  const recentItems = savedItems.filter(item => 
+    new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  ).length;
+  const categoryStats = Object.keys(CONTENT_CATEGORIES).reduce((acc, category) => {
+    acc[category] = savedItems.filter(item => 
+      CONTENT_CATEGORIES[category].includes(item.itemType)
+    ).length;
+    return acc;
+  }, {} as Record<string, number>);
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Notebook</h1>
-          <p className="text-muted-foreground">
-            Manage your saved worldbuilding content and notes.
+          <h1 className="text-3xl font-bold">Writing Notebook</h1>
+          <p className="text-muted-foreground mt-2">
+            Your saved characters, locations, plots, and creative content
           </p>
+          <div className="flex gap-4 mt-3">
+            <Badge variant="secondary" data-testid="stat-total-items">
+              {totalItems} Total Items
+            </Badge>
+            <Badge variant="outline" data-testid="stat-recent-items">
+              {recentItems} This Week
+            </Badge>
+          </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="Search your saved content..."
+            placeholder="Search your content by name, type, or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
             data-testid="input-search-content"
           />
         </div>
+        
+        {/* Category Filter Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={selectedCategory === null ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategory(null)}
+            data-testid="filter-all-categories"
+          >
+            All Categories ({totalItems})
+          </Button>
+          {Object.entries(CONTENT_CATEGORIES).map(([category, types]) => {
+            const count = categoryStats[category] || 0;
+            return (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                disabled={count === 0}
+                data-testid={`filter-category-${category.toLowerCase()}`}
+              >
+                {category} ({count})
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="all" data-testid="tab-all">All Items ({savedItems.length})</TabsTrigger>
-          <TabsTrigger value="recent" data-testid="tab-recent">Recent</TabsTrigger>
+          <TabsTrigger value="all" data-testid="tab-all-items">
+            All Items ({filteredItems.length})
+          </TabsTrigger>
+          <TabsTrigger value="recent" data-testid="tab-recent-items">
+            Recent ({filteredItems.filter(item => new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">

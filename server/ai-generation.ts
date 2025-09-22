@@ -121,7 +121,8 @@ export async function generateCharacterWithAI(options: CharacterGenerationOption
 5. Clear strengths and weaknesses that create story potential
 
 CHARACTER NAMING GUIDELINES:
-- AVOID overused AI-generated names like: Marcus, Sarah, Chen, Rodriguez, Thorne, Martinez, Vance, Kessler, Voss, Blackwood, Winters, Mendez, Nakamura, Elena, Maya, Kai, Aria, Zara, Phoenix, Raven, Hunter, Skylar, Okafor, Singh, Patel, Kim, Wang, Liu, Garcia, Smith, Johnson, Williams, Brown, Jones, Miller, Davis, Wilson, Moore
+- STRICTLY AVOID overused AI-generated names including: Marcus, Sarah, Chen, Rodriguez, Thorne, Martinez, Vance, Kessler, Voss, Blackwood, Winters, Mendez, Nakamura, Elena, Maya, Kai, Aria, Zara, Phoenix, Raven, Hunter, Skylar, Okafor, Singh, Patel, Kim, Wang, Liu, Garcia, Smith, Johnson, Williams, Brown, Jones, Miller, Davis, Wilson, Moore, Imogen, Fairweather, Ashworth, Sterling, Montgomery, Harrington, Wellington, Pemberton, Whitmore, Caldwell, Fitzgerald, Rosalind, Evangeline, Cordelia, Anastasia, Persephone, Ophelia, Maximilian, Sebastian, Bartholomew, Theodore
+- COMPLETELY AVOID repetitive surname patterns like: -worth (Ashworth, Whitworth), -ton (Wellington, Pemberton), -field (Sheffield, Bloomfield), -ford (Crawford, Stanford), -bury (Canterbury, Salisbury), -mont (Montgomery, Belmont)
 - Create ethnically appropriate names that match the character's cultural background
 - Consider mixed heritage - if a character has parents from different cultures, their name should reflect this realistically
 - Use less common but authentic names from various cultures - dig deeper than the most obvious choices
@@ -130,7 +131,7 @@ CHARACTER NAMING GUIDELINES:
 - Consider how immigration, adoption, or marriage might affect naming patterns
 - Use authentic regional variations within cultures (not just the most common names)
 - Research lesser-known but authentic names from various cultural backgrounds
-- Avoid falling into repetitive naming patterns - vary your choices significantly
+- MAXIMUM DIVERSITY REQUIREMENT: Each character name must be completely unique and avoid any patterns seen in previous generations
 
 CULTURAL AUTHENTICITY:
 - Research-backed naming conventions from specific cultures
@@ -149,6 +150,13 @@ BACKSTORY DIVERSITY GUIDELINES:
 - Create unique personal histories that don't rely on familiar cultural narrative patterns
 - Include characters who've moved between cultures, lived abroad, or have unconventional cultural experiences
 - Avoid repetitive profession/culture associations - vary the careers and life paths within ethnic groups
+
+PROFESSION DIVERSITY REQUIREMENTS:
+- AVOID overused "creative" professions like: artist, writer, journalist, photographer, musician, dancer, actor, chef, bartender, bookstore owner, librarian, teacher, counselor, detective, lawyer, doctor
+- STRONGLY DIVERSIFY into: technical trades, specialized sciences, business operations, government roles, service industries, manufacturing, agriculture, transportation, communications, finance, healthcare specialties, research fields, engineering disciplines, skilled crafts, emerging technology roles
+- Consider realistic career paths based on character's background, education, and circumstances
+- Include characters in transitional career phases, career changes, or unconventional professional journeys
+- Vary income levels and professional status across all ethnic and cultural backgrounds
 
 PHYSICAL DESCRIPTION GUIDELINES:
 - Make physical descriptions culturally authentic and respectful to the character's ethnicity/heritage
