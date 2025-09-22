@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import ContentTypeModal from "@/components/ContentTypeModal";
 import Hero from "@/components/Hero";
@@ -16,21 +17,28 @@ import MoodPalette from "@/components/MoodPalette";
 import PlantGenerator from "@/components/PlantGenerator";
 import DescriptionGenerator from "@/components/DescriptionGenerator";
 import SavedItems from "@/components/SavedItems";
+import ContentEditor from "@/components/ContentEditor";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 export default function Home() {
+  const [location, setLocation] = useLocation();
   const [activeView, setActiveView] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isContentModalOpen, setIsContentModalOpen] = useState<boolean>(false);
 
   const handleToolSelect = (toolId: string) => {
-    setActiveView(toolId);
+    if (toolId === 'notebook') {
+      setLocation('/notebook');
+    } else {
+      setActiveView(toolId);
+    }
     console.log('Navigating to tool:', toolId);
   };
 
   const handleBackToHome = () => {
+    setLocation('/');
     setActiveView('home');
     console.log('Navigating back to home');
   };
@@ -48,6 +56,9 @@ export default function Home() {
   const handleSelectContentType = (contentType: string) => {
     // Navigate to the appropriate editor based on content type
     console.log('Selected content type:', contentType);
+    
+    // Close the modal first
+    setIsContentModalOpen(false);
     
     // Map content types to their corresponding views/pages
     const contentTypeRoutes: { [key: string]: string } = {
@@ -69,6 +80,43 @@ export default function Home() {
   };
 
   const renderContent = () => {
+    // Handle content editing routes (e.g., "/characters/123/edit", "/locations/456/edit")
+    const editRouteMatch = location.match(/^\/([^\/]+)\/([^\/]+)\/edit$/);
+    if (editRouteMatch) {
+      const [, contentType, contentId] = editRouteMatch;
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <ContentEditor 
+              contentType={contentType}
+              contentId={contentId}
+              onBack={() => setLocation('/notebook')}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Handle notebook URL route
+    if (location === '/notebook') {
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToHome}
+              className="mb-6"
+              data-testid="button-back-to-home"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+            <SavedItems />
+          </div>
+        </div>
+      );
+    }
+
     switch (activeView) {
       case 'character-generator':
         return (
