@@ -25,7 +25,7 @@ export const characters = pgTable("characters", {
   strength: text("strength").notNull(),
   gender: text("gender"),
   genre: text("genre"),
-  // Physical description fields
+  // Basic physical description fields (existing)
   height: text("height"),
   build: text("build"),
   hairColor: text("hair_color"),
@@ -34,6 +34,59 @@ export const characters = pgTable("characters", {
   facialFeatures: text("facial_features"),
   identifyingMarks: text("identifying_marks"),
   physicalDescription: text("physical_description"),
+  // Extended identity and physical attributes
+  sex: text("sex"),
+  genderIdentity: text("gender_identity"),
+  physicalPresentation: text("physical_presentation"),
+  hairTexture: text("hair_texture"),
+  hairStyle: text("hair_style"),
+  heightDetail: text("height_detail"),
+  weight: text("weight"),
+  species: text("species"),
+  ethnicity: text("ethnicity"),
+  pronouns: text("pronouns"),
+  // Personal information
+  currentLocation: text("current_location"),
+  conditions: text("conditions"),
+  family: text("family"),
+  currentResidence: text("current_residence"),
+  religiousBelief: text("religious_belief"),
+  affiliatedOrganizations: text("affiliated_organizations"),
+  // Names and titles
+  givenName: text("given_name"),
+  familyName: text("family_name"),
+  middleName: text("middle_name"),
+  maidenName: text("maiden_name"),
+  nickname: text("nickname"),
+  honorificTitle: text("honorific_title"),
+  suffix: text("suffix"),
+  prefix: text("prefix"),
+  // Vital statistics
+  dateOfBirth: text("date_of_birth"),
+  placeOfBirth: text("place_of_birth"),
+  dateOfDeath: text("date_of_death"),
+  placeOfDeath: text("place_of_death"),
+  // Character development prompt responses
+  upbringing: text("upbringing"),
+  genderUnderstanding: text("gender_understanding"),
+  sexualOrientation: text("sexual_orientation"),
+  education: text("education"),
+  profession: text("profession"),
+  workHistory: text("work_history"),
+  accomplishments: text("accomplishments"),
+  negativeEvents: text("negative_events"),
+  mentalHealth: text("mental_health"),
+  intellectualTraits: text("intellectual_traits"),
+  valuesEthicsMorals: text("values_ethics_morals"),
+  frownedUponViews: text("frowned_upon_views"),
+  languages: text("languages").array(),
+  languageFluencyAccent: text("language_fluency_accent"),
+  physicalCondition: text("physical_condition"),
+  distinctiveBodyFeatures: text("distinctive_body_features"),
+  facialDetails: text("facial_details"),
+  strikingFeatures: text("striking_features"),
+  marksPiercingsTattoos: text("marks_piercings_tattoos"),
+  distinctPhysicalFeatures: text("distinct_physical_features"),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -328,6 +381,10 @@ export const insertCharacterSchema = createInsertSchema(characters).omit({
   createdAt: true,
 });
 
+export const updateCharacterSchema = insertCharacterSchema.partial().omit({
+  userId: true,
+});
+
 export const insertPlotSchema = createInsertSchema(plots).omit({
   id: true,
   createdAt: true,
@@ -393,6 +450,7 @@ export const insertSavedItemSchema = createInsertSchema(savedItems).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertCharacter = z.infer<typeof insertCharacterSchema>;
+export type UpdateCharacter = z.infer<typeof updateCharacterSchema>;
 export type Character = typeof characters.$inferSelect;
 export type InsertPlot = z.infer<typeof insertPlotSchema>;
 export type Plot = typeof plots.$inferSelect;
