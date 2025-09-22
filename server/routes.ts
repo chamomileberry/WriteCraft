@@ -14,7 +14,7 @@ import {
   insertMoodSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI } from "./ai-generation";
+import { generateCharacterWithAI, generateSettingWithAI } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -254,24 +254,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/settings/generate", async (req, res) => {
     try {
       const generateRequestSchema = z.object({
+        genre: z.string().optional(),
+        settingType: z.string().optional(),
         userId: z.string().nullable().optional()
       });
       
-      const { userId } = generateRequestSchema.parse(req.body);
+      const { genre, settingType, userId } = generateRequestSchema.parse(req.body);
+      
+      // Use AI generation instead of random generation
+      const aiSetting = await generateSettingWithAI({ genre, settingType });
       
       const setting = {
-        name: generateRandomSettingName(),
-        location: generateRandomLocation(),
-        timePeriod: generateRandomTimePeriod(),
-        population: generateRandomPopulation(),
-        climate: generateRandomClimate(),
-        description: generateRandomSettingDescription(),
-        atmosphere: generateRandomAtmosphere(),
-        culturalElements: generateRandomCulturalElements(),
-        notableFeatures: generateRandomNotableFeatures(),
+        name: aiSetting.name,
+        location: aiSetting.location,
+        timePeriod: aiSetting.timePeriod,
+        population: aiSetting.population,
+        climate: aiSetting.climate,
+        description: aiSetting.description,
+        atmosphere: aiSetting.atmosphere,
+        culturalElements: aiSetting.culturalElements,
+        notableFeatures: aiSetting.notableFeatures,
+        genre: genre || null,
+        settingType: settingType || null,
         userId: userId || null
       };
 
+      // Validate the generated setting data before saving
       const validatedSetting = insertSettingSchema.parse(setting);
       const savedSetting = await storage.createSetting(validatedSetting);
       res.json(savedSetting);
@@ -280,7 +288,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
-      res.status(500).json({ error: 'Failed to generate setting' });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
     }
   });
 
