@@ -90,7 +90,8 @@ const SETTING_TYPE_CATEGORIES = {
     "dunes", "valley", "rainforest", "savannah", "grassland", "bog", "swamp", "tar pit", 
     "marshland", "glacier", "hot springs", "geyser", "Everglades", "estuary", "cove", 
     "grove", "glen", "animal pasture", "trail", "causeway", "pond", "salt flats", 
-    "tundra", "wasteland", "badlands", "wildlife reserve", "cavern", "lair"
+    "tundra", "wasteland", "badlands", "wildlife reserve", "cavern", "lair", "orchard", 
+    "grotto", "haunted woods"
   ],
   "Residential Buildings": [
     "house", "apartment", "condo", "cabin", "townhouse", "mansion", "cottage", "villa", 
@@ -110,62 +111,72 @@ const SETTING_TYPE_CATEGORIES = {
     "pet store", "outlet store", "drive-thru", "Internet cafe", "real estate agency", 
     "retailer", "sausage stand", "grocery store", "supermarket", "tailor", "tanning salon", 
     "tax advisor", "tea house", "tea room", "thrift store", "travel agency", "wig store", 
-    "upholstery shop"
+    "upholstery shop", "technology company", "catering company", "commercial kitchen", "strip club"
   ],
   "Public & Government Buildings": [
     "library", "community centre", "civic centre", "city hall", "government building", 
     "parliament building", "courthouse", "court room", "police station", "fire hall", 
     "fire department", "fire station", "post office", "embassy", "immigration centre", 
     "information centre", "convention centre", "print shop", "town square", "trade centre", 
-    "forbidden city", "government agency", "intelligence agency", "news station"
+    "forbidden city", "government agency", "intelligence agency", "news station", "refugee centre"
   ],
   "Entertainment Venues": [
     "movie theatre", "cinema", "theatre", "drive-in theatre", "opera house", "arena", 
     "stadium", "aquarium", "arcade", "amusement park", "water park", "playground", 
     "carnival", "festival", "fair", "circus", "colosseum", "boardwalk", "casino", 
     "roller rink", "jazz club", "speak easy", "concert hall", "amphitheatre", "concert", 
-    "music festival", "concession stand", "jousting arena", "gala", "rodeo"
+    "music festival", "concession stand", "jousting arena", "gala", "rodeo", 
+    "bowling alley", "indoor playground"
   ],
   "Transportation & Infrastructure": [
     "airport", "terminal", "bus stop", "highway", "road", "street", "crescent", "bridge", 
     "pier", "harbour", "wharf", "marina", "garage", "parking garage", "railway", "subway", 
     "speedway", "arch", "gateway", "dam", "lighthouse", "tower", "clock tower", "quay", 
-    "seaport", "walkway", "train station", "tram station", "truck stop", "union station"
+    "seaport", "walkway", "train station", "tram station", "truck stop", "union station", 
+    "raceway", "breezeway", "turnpike", "intersection", "shipping yard"
   ],
   "Religious & Spiritual Buildings": [
     "church", "chapel", "cathedral", "mosque", "shrine", "pyramid", "monastery", "abbey"
   ],
   "Educational Institutions": [
     "school", "college", "university", "high school", "elementary school", "middle school", 
-    "boarding school", "campus", "classroom", "academy"
+    "boarding school", "campus", "classroom", "academy", "daycare", "computer lab"
   ],
   "Healthcare Facilities": [
     "hospital", "clinic", "medical centre", "infirmary", "emergency room", "hospital room", 
     "operating room", "doctor's office", "dentist", "optometrist", "chiropractor", 
-    "orthodontist", "physiotherapist", "massage therapist", "wellness centre"
+    "orthodontist", "physiotherapist", "massage therapist", "wellness centre", 
+    "trauma centre", "acupuncturist", "naturopath"
   ],
   "Sports & Recreation": [
     "gym", "pool", "racetrack", "sports field", "aquatic centre", "recreation centre", 
     "martial arts studio", "dance studio", "baseball diamond", "ice rink", "tennis court", 
-    "basketball court", "ski hill", "lodge", "resort", "campground", "trailer park"
+    "basketball court", "ski hill", "lodge", "resort", "campground", "trailer park", 
+    "dojo", "fighting ring", "boxing ring", "wrestling ring", "curling club", 
+    "lawn bowling club", "gymnastics club", "hockey arena"
   ],
   "Industrial & Agricultural": [
     "factory", "warehouse", "farm", "farmhouse", "vineyard", "barn", "granary", "silo", 
     "mine", "quarry", "oil rig", "mill", "lumberyard", "dump", "recycling depot", 
     "junkyard", "abattoir", "sand pit", "gravel pit", "slaughter house", "ranch", 
-    "corral", "bunkhouse"
+    "corral", "bunkhouse", "lumber mill", "sawmill", "forge", "refinery"
   ],
   "Vehicles & Mobile Settings": [
     "space station", "rocket ship", "pirate ship", "caravan", "trailer", "camper van", 
-    "food truck", "submarine", "naval ship", "house boat", "zeppelin"
+    "food truck", "submarine", "naval ship", "house boat", "zeppelin", "sunken ship", 
+    "cruise ship", "barge", "vessel", "sailboat", "yacht", "train car", "spaceship", 
+    "merchant ship", "shipping container", "helicopter"
   ],
   "Interior Spaces": [
     "room", "kitchen", "bedroom", "living room", "bathroom", "boardroom", "office", 
     "basement", "cellar", "balcony", "hall", "dining hall", "cafeteria", "dorm room", 
-    "vault", "dungeon", "prison", "courtyard"
+    "vault", "dungeon", "prison", "courtyard", "sunroom", "prison cell", "jail cell", 
+    "detainment unit", "cubicle", "chamber", "quarters", "workshop", "dormitory", 
+    "dining room", "attic"
   ],
   "Personal Care & Services": [
-    "salon", "barber's shop", "spa", "nail salon", "hair salon", "saloon", "bathhouse", "laundromat"
+    "salon", "barber's shop", "spa", "nail salon", "hair salon", "saloon", "bathhouse", "laundromat",
+    "pottery studio"
   ],
   "Cultural & Arts": [
     "museum", "art gallery", "gallery", "auditorium", "studio", "production studio", 
@@ -174,7 +185,8 @@ const SETTING_TYPE_CATEGORIES = {
   "Military & Historical": [
     "castle", "barracks", "army base", "battlefield", "camp", "monument", "memorial", 
     "cemetery", "wall", "barrier", "tomb", "gravesite", "graveyard", "crypt", 
-    "underground bunker", "nuclear bunker", "barricade", "military park"
+    "underground bunker", "nuclear bunker", "barricade", "military park", "crash site", 
+    "ancient ruins", "gallows", "plantation"
   ],
   "Specialized Buildings": [
     "apothecary", "blacksmith forge", "crematorium", "morgue", "funeral home", "aviary", 
@@ -183,10 +195,10 @@ const SETTING_TYPE_CATEGORIES = {
     "hangar", "storage facility", "rocket centre", "launchpad", "fishing hut", "watch tower", 
     "water tower", "research centre", "research lab", "nuclear power plant", "nuclear launch site", 
     "wax museum", "boathouse", "botanical gardens", "pavilion", "pergola", "pagoda", 
-    "research station", "observatory", "treehouse"
+    "research station", "observatory", "treehouse", "bell tower", "stable", "haunted house"
   ],
   "Celestial & Fantastical": [
-    "planet", "realm", "satellite", "star"
+    "planet", "realm", "satellite", "star", "galaxy", "portal"
   ]
 };
 
