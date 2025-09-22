@@ -13,6 +13,7 @@ import ConflictGenerator from "@/components/ConflictGenerator";
 import ThemeExplorer from "@/components/ThemeExplorer";
 import MoodPalette from "@/components/MoodPalette";
 import PlantGenerator from "@/components/PlantGenerator";
+import DescriptionGenerator from "@/components/DescriptionGenerator";
 import SavedItems from "@/components/SavedItems";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -233,6 +234,24 @@ export default function Home() {
                 Back to Home
               </Button>
               <PlantGenerator />
+            </div>
+          </div>
+        );
+
+      case 'description-generator':
+        return (
+          <div className="min-h-screen bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToHome}
+                className="mb-6"
+                data-testid="button-back-to-home"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+              <DescriptionGenerator />
             </div>
           </div>
         );

@@ -13,10 +13,11 @@ import {
   insertThemeSchema,
   insertMoodSchema,
   insertCreatureSchema,
-  insertPlantSchema
+  insertPlantSchema,
+  insertDescriptionSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI } from "./ai-generation";
+import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -442,6 +443,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching plant:', error);
       res.status(500).json({ error: 'Failed to fetch plant' });
+    }
+  });
+
+  // Description generator routes
+  app.post("/api/descriptions/generate", async (req, res) => {
+    try {
+      const generateRequestSchema = z.object({
+        descriptionType: z.string(),
+        genre: z.string().optional(),
+        userId: z.string().nullable().optional()
+      });
+      
+      const { descriptionType, genre, userId } = generateRequestSchema.parse(req.body);
+      
+      // Use AI generation
+      const aiDescription = await generateDescriptionWithAI({ descriptionType, genre });
+      
+      const description = {
+        title: aiDescription.title,
+        content: aiDescription.content,
+        descriptionType,
+        genre: genre || null,
+        tags: aiDescription.tags || [],
+        userId: userId || null
+      };
+
+      // Validate the generated description data before saving
+      const validatedDescription = insertDescriptionSchema.parse(description);
+      const savedDescription = await storage.createDescription(validatedDescription);
+      res.json(savedDescription);
+    } catch (error) {
+      console.error('Error generating description:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/descriptions", async (req, res) => {
+    try {
+      const validatedDescription = insertDescriptionSchema.parse(req.body);
+      const savedDescription = await storage.createDescription(validatedDescription);
+      res.json(savedDescription);
+    } catch (error) {
+      console.error('Error saving description:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save description' });
+    }
+  });
+
+  app.get("/api/descriptions/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const descriptions = await storage.getUserDescriptions(userId);
+      res.json(descriptions);
+    } catch (error) {
+      console.error('Error fetching descriptions:', error);
+      res.status(500).json({ error: 'Failed to fetch descriptions' });
+    }
+  });
+
+  app.get("/api/descriptions/:id", async (req, res) => {
+    try {
+      const description = await storage.getDescription(req.params.id);
+      if (!description) {
+        return res.status(404).json({ error: 'Description not found' });
+      }
+      res.json(description);
+    } catch (error) {
+      console.error('Error fetching description:', error);
+      res.status(500).json({ error: 'Failed to fetch description' });
     }
   });
 

@@ -76,6 +76,17 @@ export interface GeneratedPrompt {
   text: string;
 }
 
+export interface DescriptionGenerationOptions {
+  descriptionType: string;
+  genre?: string;
+}
+
+export interface GeneratedDescription {
+  title: string;
+  content: string;
+  tags: string[];
+}
+
 export async function generateCharacterWithAI(options: CharacterGenerationOptions = {}): Promise<GeneratedCharacter> {
   const { genre, gender, ethnicity } = options;
   
@@ -592,3 +603,167 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     throw new Error('Failed to generate prompt with AI');
   }
 }
+
+export async function generateDescriptionWithAI(options: DescriptionGenerationOptions): Promise<GeneratedDescription> {
+  const { descriptionType, genre } = options;
+  
+  // Validate inputs
+  if (genre && !ALL_GENRES.includes(genre)) {
+    throw new Error(`Invalid genre: ${genre}. Must be one of: ${ALL_GENRES.join(', ')}`);
+  }
+
+  const systemPrompt = `You are a creative writing assistant specialized in generating detailed, immersive descriptions for fiction. Your descriptions should be:
+
+1. Vivid and sensory - engage multiple senses to bring the subject to life
+2. Specific and detailed - avoid generic descriptions
+3. Atmosphere-rich - create mood and tone through descriptive language
+4. Genre-appropriate - match the style and feel of the intended genre
+5. Story-worthy - include details that could drive plot or character development
+
+DESCRIPTION GUIDELINES:
+- Use active, dynamic language that creates movement and life
+- Include specific sensory details (sight, sound, smell, touch, taste)
+- Vary sentence structure for engaging rhythm
+- Create atmosphere through word choice and imagery
+- Include unique or memorable details that make the description distinctive
+- Consider how the description fits into a larger narrative context
+- Avoid clichéd or overused descriptive phrases
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "title": "Brief, descriptive title for what's being described",
+  "content": "Rich, detailed description (2-4 paragraphs)",
+  "tags": ["relevant_tag1", "relevant_tag2", "relevant_tag3"]
+}`;
+
+  let userPrompt = `Generate a detailed, immersive description for a ${descriptionType.replace('_', ' ')}.`;
+  
+  if (genre) {
+    userPrompt += ` The description should fit well in the ${genre} genre.`;
+  }
+  
+  // Add specific guidance based on description type
+  switch (descriptionType) {
+    case 'armour':
+    case 'weapon':
+    case 'clothing':
+    case 'uniform':
+    case 'item':
+    case 'wand':
+      userPrompt += ' Focus on materials, craftsmanship, visual details, and the impression it makes. Include how it might feel to wear or wield it.';
+      break;
+    case 'disease':
+    case 'illness':
+    case 'condition':
+    case 'ailment':
+    case 'poison':
+    case 'mental_health':
+      userPrompt += ' Focus on symptoms, progression, effects on the sufferer, and how it manifests. Be sensitive but realistic.';
+      break;
+    case 'atmospheric':
+    case 'climate':
+    case 'weather':
+    case 'storm':
+      userPrompt += ' Focus on environmental conditions, sensory experiences, and the emotional impact of the atmosphere.';
+      break;
+    case 'holiday':
+    case 'tradition':
+    case 'ritual':
+    case 'religion':
+    case 'society':
+      userPrompt += ' Focus on cultural practices, meaningful elements, and the social significance.';
+      break;
+    case 'martial_art':
+    case 'spell':
+      userPrompt += ' Focus on techniques, movements, energy, and the skill required to perform it.';
+      break;
+    case 'dying':
+    case 'pain':
+    case 'tragedy':
+    case 'trauma':
+    case 'hysteria':
+      userPrompt += ' Focus on the emotional and physical experience while being respectful and meaningful.';
+      break;
+    case 'prophecy':
+      userPrompt += ' Focus on mystical language, symbolic meaning, and the weight of destiny.';
+      break;
+    case 'food':
+    case 'drink':
+      userPrompt += ' Focus on taste, aroma, texture, presentation, and the experience of consuming it.';
+      break;
+    case 'book':
+      userPrompt += ' Focus on physical appearance, content hints, and the impression it makes on readers.';
+      break;
+    case 'material':
+      userPrompt += ' Focus on texture, appearance, properties, and how it can be used or worked with.';
+      break;
+    case 'law':
+      userPrompt += ' Focus on the legal framework, enforcement, and societal impact.';
+      break;
+    case 'potion':
+      userPrompt += ' Focus on appearance, effects, ingredients, and the brewing process.';
+      break;
+    default:
+      userPrompt += ' Create a rich, detailed description that brings this element to life.';
+  }
+  
+  userPrompt += ' Respond with ONLY the JSON object, no other text.';
+
+  try {
+    console.log('Making request to Anthropic API for description generation...');
+    
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: userPrompt }
+      ],
+    });
+
+    console.log('Received response from Anthropic API for description');
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    // Clean the response text
+    let cleanedText = content.text.trim();
+    
+    console.log('Raw AI Response:', cleanedText);
+    
+    // Extract JSON if it's wrapped in code blocks or has extra text
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    console.log('Cleaned AI Response:', cleanedText);
+    
+    const descriptionData = JSON.parse(cleanedText);
+    
+    // Validate the response structure
+    const requiredFields = ['title', 'content', 'tags'];
+    for (const field of requiredFields) {
+      if (!(field in descriptionData)) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+    
+    // Ensure tags is an array
+    if (!Array.isArray(descriptionData.tags)) {
+      descriptionData.tags = [];
+    }
+    
+    return descriptionData as GeneratedDescription;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error('JSON Parse Error. Raw response:', content.text);
+      throw new Error('Failed to parse AI response as JSON. Please try again.');
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Description generation failed: ${errorMessage}`);
+  }
+}
+

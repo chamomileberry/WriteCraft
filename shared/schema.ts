@@ -25,6 +25,15 @@ export const characters = pgTable("characters", {
   strength: text("strength").notNull(),
   gender: text("gender"),
   genre: text("genre"),
+  // Physical description fields
+  height: text("height"),
+  build: text("build"),
+  hairColor: text("hair_color"),
+  eyeColor: text("eye_color"),
+  skinTone: text("skin_tone"),
+  facialFeatures: text("facial_features"),
+  identifyingMarks: text("identifying_marks"),
+  physicalDescription: text("physical_description"),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -185,11 +194,23 @@ export const plants = pgTable("plants", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Generated descriptions
+export const descriptions = pgTable("descriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  descriptionType: text("description_type").notNull(), // 'armour', 'weapon', 'clothing', etc.
+  genre: text("genre"),
+  tags: text("tags").array().notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
-  itemType: text("item_type").notNull(), // 'character', 'plot', 'prompt', 'guide'
+  itemType: text("item_type").notNull(), // 'character', 'plot', 'prompt', 'guide', 'description'
   itemId: varchar("item_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
@@ -208,6 +229,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   moods: many(moods),
   creatures: many(creatures),
   plants: many(plants),
+  descriptions: many(descriptions),
   savedItems: many(savedItems),
 }));
 
@@ -281,6 +303,13 @@ export const plantsRelations = relations(plants, ({ one }) => ({
   }),
 }));
 
+export const descriptionsRelations = relations(descriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [descriptions.userId],
+    references: [users.id],
+  }),
+}));
+
 export const savedItemsRelations = relations(savedItems, ({ one }) => ({
   user: one(users, {
     fields: [savedItems.userId],
@@ -350,6 +379,11 @@ export const insertPlantSchema = createInsertSchema(plants).omit({
   createdAt: true,
 });
 
+export const insertDescriptionSchema = createInsertSchema(descriptions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertSavedItemSchema = createInsertSchema(savedItems).omit({
   id: true,
   createdAt: true,
@@ -380,5 +414,7 @@ export type InsertCreature = z.infer<typeof insertCreatureSchema>;
 export type Creature = typeof creatures.$inferSelect;
 export type InsertPlant = z.infer<typeof insertPlantSchema>;
 export type Plant = typeof plants.$inferSelect;
+export type InsertDescription = z.infer<typeof insertDescriptionSchema>;
+export type Description = typeof descriptions.$inferSelect;
 export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;

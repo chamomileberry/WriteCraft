@@ -2,7 +2,7 @@
 // Reference: javascript_database integration
 import { 
   users, characters, plots, prompts, guides, savedItems,
-  settings, names, conflicts, themes, moods, creatures, plants,
+  settings, names, conflicts, themes, moods, creatures, plants, descriptions,
   type User, type InsertUser,
   type Character, type InsertCharacter,
   type Plot, type InsertPlot,
@@ -15,7 +15,8 @@ import {
   type Theme, type InsertTheme,
   type Mood, type InsertMood,
   type Creature, type InsertCreature,
-  type Plant, type InsertPlant
+  type Plant, type InsertPlant,
+  type Description, type InsertDescription
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -82,6 +83,11 @@ export interface IStorage {
   createPlant(plant: InsertPlant): Promise<Plant>;
   getPlant(id: string): Promise<Plant | undefined>;
   getUserPlants(userId: string | null): Promise<Plant[]>;
+  
+  // Description methods
+  createDescription(description: InsertDescription): Promise<Description>;
+  getDescription(id: string): Promise<Description | undefined>;
+  getUserDescriptions(userId: string | null): Promise<Description[]>;
   
   // Saved items methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -418,6 +424,31 @@ export class DatabaseStorage implements IStorage {
     }
     return await db.select().from(plants)
       .orderBy(desc(plants.createdAt))
+      .limit(10);
+  }
+  
+  // Description methods
+  async createDescription(description: InsertDescription): Promise<Description> {
+    const [newDescription] = await db
+      .insert(descriptions)
+      .values(description)
+      .returning();
+    return newDescription;
+  }
+
+  async getDescription(id: string): Promise<Description | undefined> {
+    const [description] = await db.select().from(descriptions).where(eq(descriptions.id, id));
+    return description || undefined;
+  }
+
+  async getUserDescriptions(userId: string | null): Promise<Description[]> {
+    if (userId) {
+      return await db.select().from(descriptions)
+        .where(eq(descriptions.userId, userId))
+        .orderBy(desc(descriptions.createdAt));
+    }
+    return await db.select().from(descriptions)
+      .orderBy(desc(descriptions.createdAt))
       .limit(10);
   }
   

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ToolCard from "./ToolCard";
-import { Users, BookOpen, Zap, Map, FileText, Target, Lightbulb, Palette, Rabbit, Leaf, LucideIcon } from "lucide-react";
+import { Users, BookOpen, Zap, Map, FileText, Target, Lightbulb, Palette, Rabbit, Leaf, PenTool, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -148,6 +148,19 @@ const allTools: Tool[] = [
       'Care instructions',
       'Habitat details',
       'Seasonal information'
+    ]
+  },
+  {
+    id: 'description-generator',
+    title: 'Description Generator',
+    description: 'Create detailed, immersive descriptions for any element of your story.',
+    icon: PenTool,
+    category: 'Writing Craft',
+    features: [
+      'Equipment descriptions',
+      'Atmospheric conditions',
+      'Cultural elements',
+      'Medical conditions'
     ]
   }
 ];
