@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES } from './genres.js';
+import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES } from './genres.js';
 
 /*
 <important_code_snippet_instructions>
@@ -49,6 +49,21 @@ export interface GeneratedSetting {
   atmosphere: string;
   culturalElements: string[];
   notableFeatures: string[];
+}
+
+export interface CreatureGenerationOptions {
+  genre?: string;
+  creatureType?: string;
+}
+
+export interface GeneratedCreature {
+  name: string;
+  creatureType: string;
+  habitat: string;
+  physicalDescription: string;
+  abilities: string[];
+  behavior: string;
+  culturalSignificance: string;
 }
 
 export async function generateCharacterWithAI(options: CharacterGenerationOptions = {}): Promise<GeneratedCharacter> {
@@ -265,5 +280,106 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Setting generation failed: ${errorMessage}`);
+  }
+}
+
+export async function generateCreatureWithAI(options: CreatureGenerationOptions = {}): Promise<GeneratedCreature> {
+  const { genre, creatureType } = options;
+  
+  // Validate inputs
+  if (genre && !ALL_GENRES.includes(genre)) {
+    throw new Error(`Invalid genre: ${genre}. Must be one of: ${ALL_GENRES.join(', ')}`);
+  }
+  
+  if (creatureType && !ALL_CREATURE_TYPES.includes(creatureType)) {
+    throw new Error(`Invalid creature type: ${creatureType}. Must be one of: ${ALL_CREATURE_TYPES.join(', ')}`);
+  }
+
+  const systemPrompt = `You are a creative writing assistant specialized in generating fascinating creatures for fiction. Your creatures should have:
+
+1. Vivid physical descriptions that bring them to life
+2. Unique abilities or traits that make them memorable
+3. Realistic behavioral patterns based on their nature
+4. Cultural significance or role in their world
+5. Rich detail that sparks imagination and story ideas
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "name": "Creature name",
+  "creatureType": "specified_creature_type",
+  "habitat": "Where this creature lives and thrives",
+  "physicalDescription": "Detailed description of appearance, size, features",
+  "abilities": ["ability1", "ability2", "ability3"],
+  "behavior": "How this creature acts, feeds, socializes, or hunts",
+  "culturalSignificance": "Role in folklore, legends, or how people interact with it"
+}`;
+
+  let userPrompt = "Generate a compelling, imaginative creature for creative writing.";
+  
+  if (genre) {
+    userPrompt += ` The creature should fit well in the ${genre} genre.`;
+  }
+  
+  if (creatureType) {
+    userPrompt += ` The creature should be a ${creatureType}.`;
+  }
+  
+  userPrompt += " Focus on creating something that feels authentic to its type while being unique and story-worthy. Respond with ONLY the JSON object, no other text.";
+
+  try {
+    console.log('Making request to Anthropic API for creature generation...');
+    
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: userPrompt }
+      ],
+    });
+
+    console.log('Received response from Anthropic API for creature');
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    // Clean the response text - remove any potential markdown formatting or extra text
+    let cleanedText = content.text.trim();
+    
+    console.log('Raw AI Response:', cleanedText);
+    
+    // Extract JSON if it's wrapped in code blocks or has extra text
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    console.log('Cleaned AI Response:', cleanedText);
+    
+    const creatureData = JSON.parse(cleanedText);
+    
+    // Validate the response structure
+    const requiredFields = ['name', 'creatureType', 'habitat', 'physicalDescription', 'abilities', 'behavior', 'culturalSignificance'];
+    for (const field of requiredFields) {
+      if (!(field in creatureData)) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+    
+    // Ensure abilities is an array
+    if (!Array.isArray(creatureData.abilities)) {
+      creatureData.abilities = [];
+    }
+
+    return creatureData as GeneratedCreature;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error('JSON Parse Error. Raw response:', content.text);
+      throw new Error('Failed to parse AI response as JSON. Please try again.');
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Creature generation failed: ${errorMessage}`);
   }
 }

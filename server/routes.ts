@@ -11,10 +11,11 @@ import {
   insertNameSchema,
   insertConflictSchema,
   insertThemeSchema,
-  insertMoodSchema
+  insertMoodSchema,
+  insertCreatureSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI, generateSettingWithAI } from "./ai-generation";
+import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -304,6 +305,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save setting' });
+    }
+  });
+
+  // Creature generator routes
+  app.post("/api/creatures/generate", async (req, res) => {
+    try {
+      const generateRequestSchema = z.object({
+        genre: z.string().optional(),
+        creatureType: z.string().optional(),
+        userId: z.string().nullable().optional()
+      });
+      
+      const { genre, creatureType, userId } = generateRequestSchema.parse(req.body);
+      
+      // Use AI generation
+      const aiCreature = await generateCreatureWithAI({ genre, creatureType });
+      
+      const creature = {
+        name: aiCreature.name,
+        creatureType: aiCreature.creatureType,
+        habitat: aiCreature.habitat,
+        physicalDescription: aiCreature.physicalDescription,
+        abilities: aiCreature.abilities,
+        behavior: aiCreature.behavior,
+        culturalSignificance: aiCreature.culturalSignificance,
+        genre: genre || null,
+        userId: userId || null
+      };
+
+      // Validate the generated creature data before saving
+      const validatedCreature = insertCreatureSchema.parse(creature);
+      const savedCreature = await storage.createCreature(validatedCreature);
+      res.json(savedCreature);
+    } catch (error) {
+      console.error('Error generating creature:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.get("/api/creatures/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const creatures = await storage.getUserCreatures(userId);
+      res.json(creatures);
+    } catch (error) {
+      console.error('Error fetching creatures:', error);
+      res.status(500).json({ error: 'Failed to fetch creatures' });
+    }
+  });
+
+  app.get("/api/creatures/:id", async (req, res) => {
+    try {
+      const creature = await storage.getCreature(req.params.id);
+      if (!creature) {
+        return res.status(404).json({ error: 'Creature not found' });
+      }
+      res.json(creature);
+    } catch (error) {
+      console.error('Error fetching creature:', error);
+      res.status(500).json({ error: 'Failed to fetch creature' });
     }
   });
 
@@ -915,7 +980,7 @@ function generateRandomNames(nameType: string, culture: string, userId: string |
   const typeData = nameData[selectedType];
   const names = (typeData as any)[selectedCulture] || (typeData as any)[Object.keys(typeData)[0]];
   
-  return names.slice(0, 5).map(name => ({
+  return names.slice(0, 5).map((name: { name: string; meaning: string; origin: string }) => ({
     ...name,
     nameType,
     culture: selectedCulture

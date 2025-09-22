@@ -2,7 +2,7 @@
 // Reference: javascript_database integration
 import { 
   users, characters, plots, prompts, guides, savedItems,
-  settings, names, conflicts, themes, moods,
+  settings, names, conflicts, themes, moods, creatures,
   type User, type InsertUser,
   type Character, type InsertCharacter,
   type Plot, type InsertPlot,
@@ -13,7 +13,8 @@ import {
   type GeneratedName, type InsertName,
   type Conflict, type InsertConflict,
   type Theme, type InsertTheme,
-  type Mood, type InsertMood
+  type Mood, type InsertMood,
+  type Creature, type InsertCreature
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -70,6 +71,11 @@ export interface IStorage {
   createMood(mood: InsertMood): Promise<Mood>;
   getMood(id: string): Promise<Mood | undefined>;
   getUserMoods(userId: string | null): Promise<Mood[]>;
+  
+  // Creature methods
+  createCreature(creature: InsertCreature): Promise<Creature>;
+  getCreature(id: string): Promise<Creature | undefined>;
+  getUserCreatures(userId: string | null): Promise<Creature[]>;
   
   // Saved items methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -356,6 +362,31 @@ export class DatabaseStorage implements IStorage {
     }
     return await db.select().from(moods)
       .orderBy(desc(moods.createdAt))
+      .limit(10);
+  }
+  
+  // Creature methods
+  async createCreature(creature: InsertCreature): Promise<Creature> {
+    const [newCreature] = await db
+      .insert(creatures)
+      .values(creature)
+      .returning();
+    return newCreature;
+  }
+
+  async getCreature(id: string): Promise<Creature | undefined> {
+    const [creature] = await db.select().from(creatures).where(eq(creatures.id, id));
+    return creature || undefined;
+  }
+
+  async getUserCreatures(userId: string | null): Promise<Creature[]> {
+    if (userId) {
+      return await db.select().from(creatures)
+        .where(eq(creatures.userId, userId))
+        .orderBy(desc(creatures.createdAt));
+    }
+    return await db.select().from(creatures)
+      .orderBy(desc(creatures.createdAt))
       .limit(10);
   }
   
