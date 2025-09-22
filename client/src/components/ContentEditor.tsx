@@ -13,6 +13,7 @@ import { getMappingById } from "@shared/contentTypes";
 import { useLocation } from "wouter";
 import LocationForm from "@/components/forms/LocationForm";
 import CreatureForm from "@/components/forms/CreatureForm";
+import OrganizationForm from "@/components/forms/OrganizationForm";
 
 interface ContentEditorProps {
   contentType: string;
