@@ -87,7 +87,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'keyEquipment', 'characterFlaws', 'likes', 'dislikes', 'behavioralTraits',
         'charisma', 'habitualGestures', 'keyRelationships', 'allies', 'enemies',
         'overseeingDomain', 'legacy', 'wealthClass', 'hygieneValue', 'famousQuotes',
-        'speechParticularities', 'religiousViews', 'spiritualPractices'
+        'speechParticularities', 'religiousViews', 'spiritualPractices',
+        'strikingFeatures', 'marksPiercingsTattoos'
       ];
 
       const generateFieldSchema = z.object({
