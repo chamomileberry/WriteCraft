@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ToolCard from "./ToolCard";
-import { Users, BookOpen, Zap, Map, FileText, Target, Lightbulb, Palette, LucideIcon } from "lucide-react";
+import { Users, BookOpen, Zap, Map, FileText, Target, Lightbulb, Palette, Rabbit, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -70,6 +70,19 @@ const allTools: Tool[] = [
       'Atmosphere builder',
       'Cultural elements',
       'Historical context'
+    ]
+  },
+  {
+    id: 'creature-generator',
+    title: 'Creature Generator',
+    description: 'Create fascinating creatures and beings for your fantasy worlds.',
+    icon: Rabbit,
+    category: 'World Building',
+    features: [
+      'Real and fantasy creatures',
+      'Unique abilities',
+      'Behavioral patterns',
+      'Cultural significance'
     ]
   },
   {
