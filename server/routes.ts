@@ -995,6 +995,1910 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PATCH and DELETE routes for existing content types
+  
+  // Location PATCH and DELETE
+  app.patch("/api/locations/:id", async (req, res) => {
+    try {
+      const updates = insertLocationSchema.partial().parse(req.body);
+      const updatedLocation = await storage.updateLocation(req.params.id, updates);
+      res.json(updatedLocation);
+    } catch (error) {
+      console.error('Error updating location:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update location' });
+    }
+  });
+
+  app.delete("/api/locations/:id", async (req, res) => {
+    try {
+      await storage.deleteLocation(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      res.status(500).json({ error: 'Failed to delete location' });
+    }
+  });
+
+  // Species PATCH and DELETE
+  app.patch("/api/species/:id", async (req, res) => {
+    try {
+      const updates = insertSpeciesSchema.partial().parse(req.body);
+      const updatedSpecies = await storage.updateSpecies(req.params.id, updates);
+      res.json(updatedSpecies);
+    } catch (error) {
+      console.error('Error updating species:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update species' });
+    }
+  });
+
+  app.delete("/api/species/:id", async (req, res) => {
+    try {
+      await storage.deleteSpecies(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting species:', error);
+      res.status(500).json({ error: 'Failed to delete species' });
+    }
+  });
+
+  // Organization PATCH and DELETE
+  app.patch("/api/organizations/:id", async (req, res) => {
+    try {
+      const updates = insertOrganizationSchema.partial().parse(req.body);
+      const updatedOrganization = await storage.updateOrganization(req.params.id, updates);
+      res.json(updatedOrganization);
+    } catch (error) {
+      console.error('Error updating organization:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update organization' });
+    }
+  });
+
+  app.delete("/api/organizations/:id", async (req, res) => {
+    try {
+      await storage.deleteOrganization(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting organization:', error);
+      res.status(500).json({ error: 'Failed to delete organization' });
+    }
+  });
+
+  // Items routes
+  app.post("/api/items", async (req, res) => {
+    try {
+      const validatedItem = insertItemSchema.parse(req.body);
+      const savedItem = await storage.createItem(validatedItem);
+      res.json(savedItem);
+    } catch (error) {
+      console.error('Error saving item:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save item' });
+    }
+  });
+
+  app.get("/api/items/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const items = await storage.getUserItems(userId);
+      res.json(items);
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      res.status(500).json({ error: 'Failed to fetch items' });
+    }
+  });
+
+  app.get("/api/items/:id", async (req, res) => {
+    try {
+      const item = await storage.getItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ error: 'Item not found' });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error('Error fetching item:', error);
+      res.status(500).json({ error: 'Failed to fetch item' });
+    }
+  });
+
+  app.patch("/api/items/:id", async (req, res) => {
+    try {
+      const updates = insertItemSchema.partial().parse(req.body);
+      const updatedItem = await storage.updateItem(req.params.id, updates);
+      res.json(updatedItem);
+    } catch (error) {
+      console.error('Error updating item:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update item' });
+    }
+  });
+
+  app.delete("/api/items/:id", async (req, res) => {
+    try {
+      await storage.deleteItem(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      res.status(500).json({ error: 'Failed to delete item' });
+    }
+  });
+
+  // Ethnicities routes
+  app.post("/api/ethnicities", async (req, res) => {
+    try {
+      const validatedEthnicity = insertEthnicitySchema.parse(req.body);
+      const savedEthnicity = await storage.createEthnicity(validatedEthnicity);
+      res.json(savedEthnicity);
+    } catch (error) {
+      console.error('Error saving ethnicity:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save ethnicity' });
+    }
+  });
+
+  app.get("/api/ethnicities/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const ethnicities = await storage.getUserEthnicities(userId);
+      res.json(ethnicities);
+    } catch (error) {
+      console.error('Error fetching ethnicities:', error);
+      res.status(500).json({ error: 'Failed to fetch ethnicities' });
+    }
+  });
+
+  app.get("/api/ethnicities/:id", async (req, res) => {
+    try {
+      const ethnicity = await storage.getEthnicity(req.params.id);
+      if (!ethnicity) {
+        return res.status(404).json({ error: 'Ethnicity not found' });
+      }
+      res.json(ethnicity);
+    } catch (error) {
+      console.error('Error fetching ethnicity:', error);
+      res.status(500).json({ error: 'Failed to fetch ethnicity' });
+    }
+  });
+
+  app.patch("/api/ethnicities/:id", async (req, res) => {
+    try {
+      const updates = insertEthnicitySchema.partial().parse(req.body);
+      const updatedEthnicity = await storage.updateEthnicity(req.params.id, updates);
+      res.json(updatedEthnicity);
+    } catch (error) {
+      console.error('Error updating ethnicity:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update ethnicity' });
+    }
+  });
+
+  app.delete("/api/ethnicities/:id", async (req, res) => {
+    try {
+      await storage.deleteEthnicity(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting ethnicity:', error);
+      res.status(500).json({ error: 'Failed to delete ethnicity' });
+    }
+  });
+
+  // Cultures routes
+  app.post("/api/cultures", async (req, res) => {
+    try {
+      const validatedCulture = insertCultureSchema.parse(req.body);
+      const savedCulture = await storage.createCulture(validatedCulture);
+      res.json(savedCulture);
+    } catch (error) {
+      console.error('Error saving culture:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save culture' });
+    }
+  });
+
+  app.get("/api/cultures/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const cultures = await storage.getUserCultures(userId);
+      res.json(cultures);
+    } catch (error) {
+      console.error('Error fetching cultures:', error);
+      res.status(500).json({ error: 'Failed to fetch cultures' });
+    }
+  });
+
+  app.get("/api/cultures/:id", async (req, res) => {
+    try {
+      const culture = await storage.getCulture(req.params.id);
+      if (!culture) {
+        return res.status(404).json({ error: 'Culture not found' });
+      }
+      res.json(culture);
+    } catch (error) {
+      console.error('Error fetching culture:', error);
+      res.status(500).json({ error: 'Failed to fetch culture' });
+    }
+  });
+
+  app.patch("/api/cultures/:id", async (req, res) => {
+    try {
+      const updates = insertCultureSchema.partial().parse(req.body);
+      const updatedCulture = await storage.updateCulture(req.params.id, updates);
+      res.json(updatedCulture);
+    } catch (error) {
+      console.error('Error updating culture:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update culture' });
+    }
+  });
+
+  app.delete("/api/cultures/:id", async (req, res) => {
+    try {
+      await storage.deleteCulture(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting culture:', error);
+      res.status(500).json({ error: 'Failed to delete culture' });
+    }
+  });
+
+  // Documents routes
+  app.post("/api/documents", async (req, res) => {
+    try {
+      const validatedDocument = insertDocumentSchema.parse(req.body);
+      const savedDocument = await storage.createDocument(validatedDocument);
+      res.json(savedDocument);
+    } catch (error) {
+      console.error('Error saving document:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save document' });
+    }
+  });
+
+  app.get("/api/documents/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const documents = await storage.getUserDocuments(userId);
+      res.json(documents);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      res.status(500).json({ error: 'Failed to fetch documents' });
+    }
+  });
+
+  app.get("/api/documents/:id", async (req, res) => {
+    try {
+      const document = await storage.getDocument(req.params.id);
+      if (!document) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+      res.json(document);
+    } catch (error) {
+      console.error('Error fetching document:', error);
+      res.status(500).json({ error: 'Failed to fetch document' });
+    }
+  });
+
+  app.patch("/api/documents/:id", async (req, res) => {
+    try {
+      const updates = insertDocumentSchema.partial().parse(req.body);
+      const updatedDocument = await storage.updateDocument(req.params.id, updates);
+      res.json(updatedDocument);
+    } catch (error) {
+      console.error('Error updating document:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update document' });
+    }
+  });
+
+  app.delete("/api/documents/:id", async (req, res) => {
+    try {
+      await storage.deleteDocument(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      res.status(500).json({ error: 'Failed to delete document' });
+    }
+  });
+
+  // Foods routes
+  app.post("/api/foods", async (req, res) => {
+    try {
+      const validatedFood = insertFoodSchema.parse(req.body);
+      const savedFood = await storage.createFood(validatedFood);
+      res.json(savedFood);
+    } catch (error) {
+      console.error('Error saving food:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save food' });
+    }
+  });
+
+  app.get("/api/foods/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const foods = await storage.getUserFoods(userId);
+      res.json(foods);
+    } catch (error) {
+      console.error('Error fetching foods:', error);
+      res.status(500).json({ error: 'Failed to fetch foods' });
+    }
+  });
+
+  app.get("/api/foods/:id", async (req, res) => {
+    try {
+      const food = await storage.getFood(req.params.id);
+      if (!food) {
+        return res.status(404).json({ error: 'Food not found' });
+      }
+      res.json(food);
+    } catch (error) {
+      console.error('Error fetching food:', error);
+      res.status(500).json({ error: 'Failed to fetch food' });
+    }
+  });
+
+  app.patch("/api/foods/:id", async (req, res) => {
+    try {
+      const updates = insertFoodSchema.partial().parse(req.body);
+      const updatedFood = await storage.updateFood(req.params.id, updates);
+      res.json(updatedFood);
+    } catch (error) {
+      console.error('Error updating food:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update food' });
+    }
+  });
+
+  app.delete("/api/foods/:id", async (req, res) => {
+    try {
+      await storage.deleteFood(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting food:', error);
+      res.status(500).json({ error: 'Failed to delete food' });
+    }
+  });
+
+  // Drinks routes
+  app.post("/api/drinks", async (req, res) => {
+    try {
+      const validatedDrink = insertDrinkSchema.parse(req.body);
+      const savedDrink = await storage.createDrink(validatedDrink);
+      res.json(savedDrink);
+    } catch (error) {
+      console.error('Error saving drink:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save drink' });
+    }
+  });
+
+  app.get("/api/drinks/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const drinks = await storage.getUserDrinks(userId);
+      res.json(drinks);
+    } catch (error) {
+      console.error('Error fetching drinks:', error);
+      res.status(500).json({ error: 'Failed to fetch drinks' });
+    }
+  });
+
+  app.get("/api/drinks/:id", async (req, res) => {
+    try {
+      const drink = await storage.getDrink(req.params.id);
+      if (!drink) {
+        return res.status(404).json({ error: 'Drink not found' });
+      }
+      res.json(drink);
+    } catch (error) {
+      console.error('Error fetching drink:', error);
+      res.status(500).json({ error: 'Failed to fetch drink' });
+    }
+  });
+
+  app.patch("/api/drinks/:id", async (req, res) => {
+    try {
+      const updates = insertDrinkSchema.partial().parse(req.body);
+      const updatedDrink = await storage.updateDrink(req.params.id, updates);
+      res.json(updatedDrink);
+    } catch (error) {
+      console.error('Error updating drink:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update drink' });
+    }
+  });
+
+  app.delete("/api/drinks/:id", async (req, res) => {
+    try {
+      await storage.deleteDrink(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting drink:', error);
+      res.status(500).json({ error: 'Failed to delete drink' });
+    }
+  });
+
+  // Weapons routes
+  app.post("/api/weapons", async (req, res) => {
+    try {
+      const validatedWeapon = insertWeaponSchema.parse(req.body);
+      const savedWeapon = await storage.createWeapon(validatedWeapon);
+      res.json(savedWeapon);
+    } catch (error) {
+      console.error('Error saving weapon:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save weapon' });
+    }
+  });
+
+  app.get("/api/weapons/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const weapons = await storage.getUserWeapons(userId);
+      res.json(weapons);
+    } catch (error) {
+      console.error('Error fetching weapons:', error);
+      res.status(500).json({ error: 'Failed to fetch weapons' });
+    }
+  });
+
+  app.get("/api/weapons/:id", async (req, res) => {
+    try {
+      const weapon = await storage.getWeapon(req.params.id);
+      if (!weapon) {
+        return res.status(404).json({ error: 'Weapon not found' });
+      }
+      res.json(weapon);
+    } catch (error) {
+      console.error('Error fetching weapon:', error);
+      res.status(500).json({ error: 'Failed to fetch weapon' });
+    }
+  });
+
+  app.patch("/api/weapons/:id", async (req, res) => {
+    try {
+      const updates = insertWeaponSchema.partial().parse(req.body);
+      const updatedWeapon = await storage.updateWeapon(req.params.id, updates);
+      res.json(updatedWeapon);
+    } catch (error) {
+      console.error('Error updating weapon:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update weapon' });
+    }
+  });
+
+  app.delete("/api/weapons/:id", async (req, res) => {
+    try {
+      await storage.deleteWeapon(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting weapon:', error);
+      res.status(500).json({ error: 'Failed to delete weapon' });
+    }
+  });
+
+  // Armor routes
+  app.post("/api/armor", async (req, res) => {
+    try {
+      const validatedArmor = insertArmorSchema.parse(req.body);
+      const savedArmor = await storage.createArmor(validatedArmor);
+      res.json(savedArmor);
+    } catch (error) {
+      console.error('Error saving armor:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save armor' });
+    }
+  });
+
+  app.get("/api/armor/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const armor = await storage.getUserArmor(userId);
+      res.json(armor);
+    } catch (error) {
+      console.error('Error fetching armor:', error);
+      res.status(500).json({ error: 'Failed to fetch armor' });
+    }
+  });
+
+  app.get("/api/armor/:id", async (req, res) => {
+    try {
+      const armor = await storage.getArmor(req.params.id);
+      if (!armor) {
+        return res.status(404).json({ error: 'Armor not found' });
+      }
+      res.json(armor);
+    } catch (error) {
+      console.error('Error fetching armor:', error);
+      res.status(500).json({ error: 'Failed to fetch armor' });
+    }
+  });
+
+  app.patch("/api/armor/:id", async (req, res) => {
+    try {
+      const updates = insertArmorSchema.partial().parse(req.body);
+      const updatedArmor = await storage.updateArmor(req.params.id, updates);
+      res.json(updatedArmor);
+    } catch (error) {
+      console.error('Error updating armor:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update armor' });
+    }
+  });
+
+  app.delete("/api/armor/:id", async (req, res) => {
+    try {
+      await storage.deleteArmor(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting armor:', error);
+      res.status(500).json({ error: 'Failed to delete armor' });
+    }
+  });
+
+  // Accessories routes
+  app.post("/api/accessories", async (req, res) => {
+    try {
+      const validatedAccessory = insertAccessorySchema.parse(req.body);
+      const savedAccessory = await storage.createAccessory(validatedAccessory);
+      res.json(savedAccessory);
+    } catch (error) {
+      console.error('Error saving accessory:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save accessory' });
+    }
+  });
+
+  app.get("/api/accessories/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const accessories = await storage.getUserAccessories(userId);
+      res.json(accessories);
+    } catch (error) {
+      console.error('Error fetching accessories:', error);
+      res.status(500).json({ error: 'Failed to fetch accessories' });
+    }
+  });
+
+  app.get("/api/accessories/:id", async (req, res) => {
+    try {
+      const accessory = await storage.getAccessory(req.params.id);
+      if (!accessory) {
+        return res.status(404).json({ error: 'Accessory not found' });
+      }
+      res.json(accessory);
+    } catch (error) {
+      console.error('Error fetching accessory:', error);
+      res.status(500).json({ error: 'Failed to fetch accessory' });
+    }
+  });
+
+  app.patch("/api/accessories/:id", async (req, res) => {
+    try {
+      const updates = insertAccessorySchema.partial().parse(req.body);
+      const updatedAccessory = await storage.updateAccessory(req.params.id, updates);
+      res.json(updatedAccessory);
+    } catch (error) {
+      console.error('Error updating accessory:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update accessory' });
+    }
+  });
+
+  app.delete("/api/accessories/:id", async (req, res) => {
+    try {
+      await storage.deleteAccessory(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting accessory:', error);
+      res.status(500).json({ error: 'Failed to delete accessory' });
+    }
+  });
+
+  // Clothing routes
+  app.post("/api/clothing", async (req, res) => {
+    try {
+      const validatedClothing = insertClothingSchema.parse(req.body);
+      const savedClothing = await storage.createClothing(validatedClothing);
+      res.json(savedClothing);
+    } catch (error) {
+      console.error('Error saving clothing:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save clothing' });
+    }
+  });
+
+  app.get("/api/clothing/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const clothing = await storage.getUserClothing(userId);
+      res.json(clothing);
+    } catch (error) {
+      console.error('Error fetching clothing:', error);
+      res.status(500).json({ error: 'Failed to fetch clothing' });
+    }
+  });
+
+  app.get("/api/clothing/:id", async (req, res) => {
+    try {
+      const clothing = await storage.getClothing(req.params.id);
+      if (!clothing) {
+        return res.status(404).json({ error: 'Clothing not found' });
+      }
+      res.json(clothing);
+    } catch (error) {
+      console.error('Error fetching clothing:', error);
+      res.status(500).json({ error: 'Failed to fetch clothing' });
+    }
+  });
+
+  app.patch("/api/clothing/:id", async (req, res) => {
+    try {
+      const updates = insertClothingSchema.partial().parse(req.body);
+      const updatedClothing = await storage.updateClothing(req.params.id, updates);
+      res.json(updatedClothing);
+    } catch (error) {
+      console.error('Error updating clothing:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update clothing' });
+    }
+  });
+
+  app.delete("/api/clothing/:id", async (req, res) => {
+    try {
+      await storage.deleteClothing(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting clothing:', error);
+      res.status(500).json({ error: 'Failed to delete clothing' });
+    }
+  });
+
+  // Materials routes
+  app.post("/api/materials", async (req, res) => {
+    try {
+      const validatedMaterial = insertMaterialSchema.parse(req.body);
+      const savedMaterial = await storage.createMaterial(validatedMaterial);
+      res.json(savedMaterial);
+    } catch (error) {
+      console.error('Error saving material:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save material' });
+    }
+  });
+
+  app.get("/api/materials/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const materials = await storage.getUserMaterials(userId);
+      res.json(materials);
+    } catch (error) {
+      console.error('Error fetching materials:', error);
+      res.status(500).json({ error: 'Failed to fetch materials' });
+    }
+  });
+
+  app.get("/api/materials/:id", async (req, res) => {
+    try {
+      const material = await storage.getMaterial(req.params.id);
+      if (!material) {
+        return res.status(404).json({ error: 'Material not found' });
+      }
+      res.json(material);
+    } catch (error) {
+      console.error('Error fetching material:', error);
+      res.status(500).json({ error: 'Failed to fetch material' });
+    }
+  });
+
+  app.patch("/api/materials/:id", async (req, res) => {
+    try {
+      const updates = insertMaterialSchema.partial().parse(req.body);
+      const updatedMaterial = await storage.updateMaterial(req.params.id, updates);
+      res.json(updatedMaterial);
+    } catch (error) {
+      console.error('Error updating material:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update material' });
+    }
+  });
+
+  app.delete("/api/materials/:id", async (req, res) => {
+    try {
+      await storage.deleteMaterial(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting material:', error);
+      res.status(500).json({ error: 'Failed to delete material' });
+    }
+  });
+
+  // Settlements routes
+  app.post("/api/settlements", async (req, res) => {
+    try {
+      const validatedSettlement = insertSettlementSchema.parse(req.body);
+      const savedSettlement = await storage.createSettlement(validatedSettlement);
+      res.json(savedSettlement);
+    } catch (error) {
+      console.error('Error saving settlement:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save settlement' });
+    }
+  });
+
+  app.get("/api/settlements/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const settlements = await storage.getUserSettlements(userId);
+      res.json(settlements);
+    } catch (error) {
+      console.error('Error fetching settlements:', error);
+      res.status(500).json({ error: 'Failed to fetch settlements' });
+    }
+  });
+
+  app.get("/api/settlements/:id", async (req, res) => {
+    try {
+      const settlement = await storage.getSettlement(req.params.id);
+      if (!settlement) {
+        return res.status(404).json({ error: 'Settlement not found' });
+      }
+      res.json(settlement);
+    } catch (error) {
+      console.error('Error fetching settlement:', error);
+      res.status(500).json({ error: 'Failed to fetch settlement' });
+    }
+  });
+
+  app.patch("/api/settlements/:id", async (req, res) => {
+    try {
+      const updates = insertSettlementSchema.partial().parse(req.body);
+      const updatedSettlement = await storage.updateSettlement(req.params.id, updates);
+      res.json(updatedSettlement);
+    } catch (error) {
+      console.error('Error updating settlement:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update settlement' });
+    }
+  });
+
+  app.delete("/api/settlements/:id", async (req, res) => {
+    try {
+      await storage.deleteSettlement(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting settlement:', error);
+      res.status(500).json({ error: 'Failed to delete settlement' });
+    }
+  });
+
+  // Societies routes
+  app.post("/api/societies", async (req, res) => {
+    try {
+      const validatedSociety = insertSocietySchema.parse(req.body);
+      const savedSociety = await storage.createSociety(validatedSociety);
+      res.json(savedSociety);
+    } catch (error) {
+      console.error('Error saving society:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save society' });
+    }
+  });
+
+  app.get("/api/societies/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const societies = await storage.getUserSocieties(userId);
+      res.json(societies);
+    } catch (error) {
+      console.error('Error fetching societies:', error);
+      res.status(500).json({ error: 'Failed to fetch societies' });
+    }
+  });
+
+  app.get("/api/societies/:id", async (req, res) => {
+    try {
+      const society = await storage.getSociety(req.params.id);
+      if (!society) {
+        return res.status(404).json({ error: 'Society not found' });
+      }
+      res.json(society);
+    } catch (error) {
+      console.error('Error fetching society:', error);
+      res.status(500).json({ error: 'Failed to fetch society' });
+    }
+  });
+
+  app.patch("/api/societies/:id", async (req, res) => {
+    try {
+      const updates = insertSocietySchema.partial().parse(req.body);
+      const updatedSociety = await storage.updateSociety(req.params.id, updates);
+      res.json(updatedSociety);
+    } catch (error) {
+      console.error('Error updating society:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update society' });
+    }
+  });
+
+  app.delete("/api/societies/:id", async (req, res) => {
+    try {
+      await storage.deleteSociety(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting society:', error);
+      res.status(500).json({ error: 'Failed to delete society' });
+    }
+  });
+
+  // Factions routes
+  app.post("/api/factions", async (req, res) => {
+    try {
+      const validatedFaction = insertFactionSchema.parse(req.body);
+      const savedFaction = await storage.createFaction(validatedFaction);
+      res.json(savedFaction);
+    } catch (error) {
+      console.error('Error saving faction:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save faction' });
+    }
+  });
+
+  app.get("/api/factions/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const factions = await storage.getUserFactions(userId);
+      res.json(factions);
+    } catch (error) {
+      console.error('Error fetching factions:', error);
+      res.status(500).json({ error: 'Failed to fetch factions' });
+    }
+  });
+
+  app.get("/api/factions/:id", async (req, res) => {
+    try {
+      const faction = await storage.getFaction(req.params.id);
+      if (!faction) {
+        return res.status(404).json({ error: 'Faction not found' });
+      }
+      res.json(faction);
+    } catch (error) {
+      console.error('Error fetching faction:', error);
+      res.status(500).json({ error: 'Failed to fetch faction' });
+    }
+  });
+
+  app.patch("/api/factions/:id", async (req, res) => {
+    try {
+      const updates = insertFactionSchema.partial().parse(req.body);
+      const updatedFaction = await storage.updateFaction(req.params.id, updates);
+      res.json(updatedFaction);
+    } catch (error) {
+      console.error('Error updating faction:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update faction' });
+    }
+  });
+
+  app.delete("/api/factions/:id", async (req, res) => {
+    try {
+      await storage.deleteFaction(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting faction:', error);
+      res.status(500).json({ error: 'Failed to delete faction' });
+    }
+  });
+
+  // Military Units routes
+  app.post("/api/militaryunits", async (req, res) => {
+    try {
+      const validatedMilitaryUnit = insertMilitaryUnitSchema.parse(req.body);
+      const savedMilitaryUnit = await storage.createMilitaryUnit(validatedMilitaryUnit);
+      res.json(savedMilitaryUnit);
+    } catch (error) {
+      console.error('Error saving military unit:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save military unit' });
+    }
+  });
+
+  app.get("/api/militaryunits/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const militaryUnits = await storage.getUserMilitaryUnits(userId);
+      res.json(militaryUnits);
+    } catch (error) {
+      console.error('Error fetching military units:', error);
+      res.status(500).json({ error: 'Failed to fetch military units' });
+    }
+  });
+
+  app.get("/api/militaryunits/:id", async (req, res) => {
+    try {
+      const militaryUnit = await storage.getMilitaryUnit(req.params.id);
+      if (!militaryUnit) {
+        return res.status(404).json({ error: 'Military unit not found' });
+      }
+      res.json(militaryUnit);
+    } catch (error) {
+      console.error('Error fetching military unit:', error);
+      res.status(500).json({ error: 'Failed to fetch military unit' });
+    }
+  });
+
+  app.patch("/api/militaryunits/:id", async (req, res) => {
+    try {
+      const updates = insertMilitaryUnitSchema.partial().parse(req.body);
+      const updatedMilitaryUnit = await storage.updateMilitaryUnit(req.params.id, updates);
+      res.json(updatedMilitaryUnit);
+    } catch (error) {
+      console.error('Error updating military unit:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update military unit' });
+    }
+  });
+
+  app.delete("/api/militaryunits/:id", async (req, res) => {
+    try {
+      await storage.deleteMilitaryUnit(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting military unit:', error);
+      res.status(500).json({ error: 'Failed to delete military unit' });
+    }
+  });
+
+  // Religions routes
+  app.post("/api/religions", async (req, res) => {
+    try {
+      const validatedReligion = insertReligionSchema.parse(req.body);
+      const savedReligion = await storage.createReligion(validatedReligion);
+      res.json(savedReligion);
+    } catch (error) {
+      console.error('Error saving religion:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save religion' });
+    }
+  });
+
+  app.get("/api/religions/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const religions = await storage.getUserReligions(userId);
+      res.json(religions);
+    } catch (error) {
+      console.error('Error fetching religions:', error);
+      res.status(500).json({ error: 'Failed to fetch religions' });
+    }
+  });
+
+  app.get("/api/religions/:id", async (req, res) => {
+    try {
+      const religion = await storage.getReligion(req.params.id);
+      if (!religion) {
+        return res.status(404).json({ error: 'Religion not found' });
+      }
+      res.json(religion);
+    } catch (error) {
+      console.error('Error fetching religion:', error);
+      res.status(500).json({ error: 'Failed to fetch religion' });
+    }
+  });
+
+  app.patch("/api/religions/:id", async (req, res) => {
+    try {
+      const updates = insertReligionSchema.partial().parse(req.body);
+      const updatedReligion = await storage.updateReligion(req.params.id, updates);
+      res.json(updatedReligion);
+    } catch (error) {
+      console.error('Error updating religion:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update religion' });
+    }
+  });
+
+  app.delete("/api/religions/:id", async (req, res) => {
+    try {
+      await storage.deleteReligion(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting religion:', error);
+      res.status(500).json({ error: 'Failed to delete religion' });
+    }
+  });
+
+  // Languages routes
+  app.post("/api/languages", async (req, res) => {
+    try {
+      const validatedLanguage = insertLanguageSchema.parse(req.body);
+      const savedLanguage = await storage.createLanguage(validatedLanguage);
+      res.json(savedLanguage);
+    } catch (error) {
+      console.error('Error saving language:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save language' });
+    }
+  });
+
+  app.get("/api/languages/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const languages = await storage.getUserLanguages(userId);
+      res.json(languages);
+    } catch (error) {
+      console.error('Error fetching languages:', error);
+      res.status(500).json({ error: 'Failed to fetch languages' });
+    }
+  });
+
+  app.get("/api/languages/:id", async (req, res) => {
+    try {
+      const language = await storage.getLanguage(req.params.id);
+      if (!language) {
+        return res.status(404).json({ error: 'Language not found' });
+      }
+      res.json(language);
+    } catch (error) {
+      console.error('Error fetching language:', error);
+      res.status(500).json({ error: 'Failed to fetch language' });
+    }
+  });
+
+  app.patch("/api/languages/:id", async (req, res) => {
+    try {
+      const updates = insertLanguageSchema.partial().parse(req.body);
+      const updatedLanguage = await storage.updateLanguage(req.params.id, updates);
+      res.json(updatedLanguage);
+    } catch (error) {
+      console.error('Error updating language:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update language' });
+    }
+  });
+
+  app.delete("/api/languages/:id", async (req, res) => {
+    try {
+      await storage.deleteLanguage(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting language:', error);
+      res.status(500).json({ error: 'Failed to delete language' });
+    }
+  });
+
+  // Myths routes
+  app.post("/api/myths", async (req, res) => {
+    try {
+      const validatedMyth = insertMythSchema.parse(req.body);
+      const savedMyth = await storage.createMyth(validatedMyth);
+      res.json(savedMyth);
+    } catch (error) {
+      console.error('Error saving myth:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save myth' });
+    }
+  });
+
+  app.get("/api/myths/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const myths = await storage.getUserMyths(userId);
+      res.json(myths);
+    } catch (error) {
+      console.error('Error fetching myths:', error);
+      res.status(500).json({ error: 'Failed to fetch myths' });
+    }
+  });
+
+  app.get("/api/myths/:id", async (req, res) => {
+    try {
+      const myth = await storage.getMyth(req.params.id);
+      if (!myth) {
+        return res.status(404).json({ error: 'Myth not found' });
+      }
+      res.json(myth);
+    } catch (error) {
+      console.error('Error fetching myth:', error);
+      res.status(500).json({ error: 'Failed to fetch myth' });
+    }
+  });
+
+  app.patch("/api/myths/:id", async (req, res) => {
+    try {
+      const updates = insertMythSchema.partial().parse(req.body);
+      const updatedMyth = await storage.updateMyth(req.params.id, updates);
+      res.json(updatedMyth);
+    } catch (error) {
+      console.error('Error updating myth:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update myth' });
+    }
+  });
+
+  app.delete("/api/myths/:id", async (req, res) => {
+    try {
+      await storage.deleteMyth(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting myth:', error);
+      res.status(500).json({ error: 'Failed to delete myth' });
+    }
+  });
+
+  // Legends routes
+  app.post("/api/legends", async (req, res) => {
+    try {
+      const validatedLegend = insertLegendSchema.parse(req.body);
+      const savedLegend = await storage.createLegend(validatedLegend);
+      res.json(savedLegend);
+    } catch (error) {
+      console.error('Error saving legend:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save legend' });
+    }
+  });
+
+  app.get("/api/legends/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const legends = await storage.getUserLegends(userId);
+      res.json(legends);
+    } catch (error) {
+      console.error('Error fetching legends:', error);
+      res.status(500).json({ error: 'Failed to fetch legends' });
+    }
+  });
+
+  app.get("/api/legends/:id", async (req, res) => {
+    try {
+      const legend = await storage.getLegend(req.params.id);
+      if (!legend) {
+        return res.status(404).json({ error: 'Legend not found' });
+      }
+      res.json(legend);
+    } catch (error) {
+      console.error('Error fetching legend:', error);
+      res.status(500).json({ error: 'Failed to fetch legend' });
+    }
+  });
+
+  app.patch("/api/legends/:id", async (req, res) => {
+    try {
+      const updates = insertLegendSchema.partial().parse(req.body);
+      const updatedLegend = await storage.updateLegend(req.params.id, updates);
+      res.json(updatedLegend);
+    } catch (error) {
+      console.error('Error updating legend:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update legend' });
+    }
+  });
+
+  app.delete("/api/legends/:id", async (req, res) => {
+    try {
+      await storage.deleteLegend(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting legend:', error);
+      res.status(500).json({ error: 'Failed to delete legend' });
+    }
+  });
+
+  // Events routes
+  app.post("/api/events", async (req, res) => {
+    try {
+      const validatedEvent = insertEventSchema.parse(req.body);
+      const savedEvent = await storage.createEvent(validatedEvent);
+      res.json(savedEvent);
+    } catch (error) {
+      console.error('Error saving event:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save event' });
+    }
+  });
+
+  app.get("/api/events/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const events = await storage.getUserEvents(userId);
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      res.status(500).json({ error: 'Failed to fetch events' });
+    }
+  });
+
+  app.get("/api/events/:id", async (req, res) => {
+    try {
+      const event = await storage.getEvent(req.params.id);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      res.status(500).json({ error: 'Failed to fetch event' });
+    }
+  });
+
+  app.patch("/api/events/:id", async (req, res) => {
+    try {
+      const updates = insertEventSchema.partial().parse(req.body);
+      const updatedEvent = await storage.updateEvent(req.params.id, updates);
+      res.json(updatedEvent);
+    } catch (error) {
+      console.error('Error updating event:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update event' });
+    }
+  });
+
+  app.delete("/api/events/:id", async (req, res) => {
+    try {
+      await storage.deleteEvent(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      res.status(500).json({ error: 'Failed to delete event' });
+    }
+  });
+
+  // Technologies routes
+  app.post("/api/technologies", async (req, res) => {
+    try {
+      const validatedTechnology = insertTechnologySchema.parse(req.body);
+      const savedTechnology = await storage.createTechnology(validatedTechnology);
+      res.json(savedTechnology);
+    } catch (error) {
+      console.error('Error saving technology:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save technology' });
+    }
+  });
+
+  app.get("/api/technologies/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const technologies = await storage.getUserTechnologies(userId);
+      res.json(technologies);
+    } catch (error) {
+      console.error('Error fetching technologies:', error);
+      res.status(500).json({ error: 'Failed to fetch technologies' });
+    }
+  });
+
+  app.get("/api/technologies/:id", async (req, res) => {
+    try {
+      const technology = await storage.getTechnology(req.params.id);
+      if (!technology) {
+        return res.status(404).json({ error: 'Technology not found' });
+      }
+      res.json(technology);
+    } catch (error) {
+      console.error('Error fetching technology:', error);
+      res.status(500).json({ error: 'Failed to fetch technology' });
+    }
+  });
+
+  app.patch("/api/technologies/:id", async (req, res) => {
+    try {
+      const updates = insertTechnologySchema.partial().parse(req.body);
+      const updatedTechnology = await storage.updateTechnology(req.params.id, updates);
+      res.json(updatedTechnology);
+    } catch (error) {
+      console.error('Error updating technology:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update technology' });
+    }
+  });
+
+  app.delete("/api/technologies/:id", async (req, res) => {
+    try {
+      await storage.deleteTechnology(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting technology:', error);
+      res.status(500).json({ error: 'Failed to delete technology' });
+    }
+  });
+
+  // Spells routes
+  app.post("/api/spells", async (req, res) => {
+    try {
+      const validatedSpell = insertSpellSchema.parse(req.body);
+      const savedSpell = await storage.createSpell(validatedSpell);
+      res.json(savedSpell);
+    } catch (error) {
+      console.error('Error saving spell:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save spell' });
+    }
+  });
+
+  app.get("/api/spells/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const spells = await storage.getUserSpells(userId);
+      res.json(spells);
+    } catch (error) {
+      console.error('Error fetching spells:', error);
+      res.status(500).json({ error: 'Failed to fetch spells' });
+    }
+  });
+
+  app.get("/api/spells/:id", async (req, res) => {
+    try {
+      const spell = await storage.getSpell(req.params.id);
+      if (!spell) {
+        return res.status(404).json({ error: 'Spell not found' });
+      }
+      res.json(spell);
+    } catch (error) {
+      console.error('Error fetching spell:', error);
+      res.status(500).json({ error: 'Failed to fetch spell' });
+    }
+  });
+
+  app.patch("/api/spells/:id", async (req, res) => {
+    try {
+      const updates = insertSpellSchema.partial().parse(req.body);
+      const updatedSpell = await storage.updateSpell(req.params.id, updates);
+      res.json(updatedSpell);
+    } catch (error) {
+      console.error('Error updating spell:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update spell' });
+    }
+  });
+
+  app.delete("/api/spells/:id", async (req, res) => {
+    try {
+      await storage.deleteSpell(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting spell:', error);
+      res.status(500).json({ error: 'Failed to delete spell' });
+    }
+  });
+
+  // Resources routes
+  app.post("/api/resources", async (req, res) => {
+    try {
+      const validatedResource = insertResourceSchema.parse(req.body);
+      const savedResource = await storage.createResource(validatedResource);
+      res.json(savedResource);
+    } catch (error) {
+      console.error('Error saving resource:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save resource' });
+    }
+  });
+
+  app.get("/api/resources/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const resources = await storage.getUserResources(userId);
+      res.json(resources);
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      res.status(500).json({ error: 'Failed to fetch resources' });
+    }
+  });
+
+  app.get("/api/resources/:id", async (req, res) => {
+    try {
+      const resource = await storage.getResource(req.params.id);
+      if (!resource) {
+        return res.status(404).json({ error: 'Resource not found' });
+      }
+      res.json(resource);
+    } catch (error) {
+      console.error('Error fetching resource:', error);
+      res.status(500).json({ error: 'Failed to fetch resource' });
+    }
+  });
+
+  app.patch("/api/resources/:id", async (req, res) => {
+    try {
+      const updates = insertResourceSchema.partial().parse(req.body);
+      const updatedResource = await storage.updateResource(req.params.id, updates);
+      res.json(updatedResource);
+    } catch (error) {
+      console.error('Error updating resource:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update resource' });
+    }
+  });
+
+  app.delete("/api/resources/:id", async (req, res) => {
+    try {
+      await storage.deleteResource(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting resource:', error);
+      res.status(500).json({ error: 'Failed to delete resource' });
+    }
+  });
+
+  // Buildings routes
+  app.post("/api/buildings", async (req, res) => {
+    try {
+      const validatedBuilding = insertBuildingSchema.parse(req.body);
+      const savedBuilding = await storage.createBuilding(validatedBuilding);
+      res.json(savedBuilding);
+    } catch (error) {
+      console.error('Error saving building:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save building' });
+    }
+  });
+
+  app.get("/api/buildings/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const buildings = await storage.getUserBuildings(userId);
+      res.json(buildings);
+    } catch (error) {
+      console.error('Error fetching buildings:', error);
+      res.status(500).json({ error: 'Failed to fetch buildings' });
+    }
+  });
+
+  app.get("/api/buildings/:id", async (req, res) => {
+    try {
+      const building = await storage.getBuilding(req.params.id);
+      if (!building) {
+        return res.status(404).json({ error: 'Building not found' });
+      }
+      res.json(building);
+    } catch (error) {
+      console.error('Error fetching building:', error);
+      res.status(500).json({ error: 'Failed to fetch building' });
+    }
+  });
+
+  app.patch("/api/buildings/:id", async (req, res) => {
+    try {
+      const updates = insertBuildingSchema.partial().parse(req.body);
+      const updatedBuilding = await storage.updateBuilding(req.params.id, updates);
+      res.json(updatedBuilding);
+    } catch (error) {
+      console.error('Error updating building:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update building' });
+    }
+  });
+
+  app.delete("/api/buildings/:id", async (req, res) => {
+    try {
+      await storage.deleteBuilding(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting building:', error);
+      res.status(500).json({ error: 'Failed to delete building' });
+    }
+  });
+
+  // Animals routes
+  app.post("/api/animals", async (req, res) => {
+    try {
+      const validatedAnimal = insertAnimalSchema.parse(req.body);
+      const savedAnimal = await storage.createAnimal(validatedAnimal);
+      res.json(savedAnimal);
+    } catch (error) {
+      console.error('Error saving animal:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save animal' });
+    }
+  });
+
+  app.get("/api/animals/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const animals = await storage.getUserAnimals(userId);
+      res.json(animals);
+    } catch (error) {
+      console.error('Error fetching animals:', error);
+      res.status(500).json({ error: 'Failed to fetch animals' });
+    }
+  });
+
+  app.get("/api/animals/:id", async (req, res) => {
+    try {
+      const animal = await storage.getAnimal(req.params.id);
+      if (!animal) {
+        return res.status(404).json({ error: 'Animal not found' });
+      }
+      res.json(animal);
+    } catch (error) {
+      console.error('Error fetching animal:', error);
+      res.status(500).json({ error: 'Failed to fetch animal' });
+    }
+  });
+
+  app.patch("/api/animals/:id", async (req, res) => {
+    try {
+      const updates = insertAnimalSchema.partial().parse(req.body);
+      const updatedAnimal = await storage.updateAnimal(req.params.id, updates);
+      res.json(updatedAnimal);
+    } catch (error) {
+      console.error('Error updating animal:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update animal' });
+    }
+  });
+
+  app.delete("/api/animals/:id", async (req, res) => {
+    try {
+      await storage.deleteAnimal(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting animal:', error);
+      res.status(500).json({ error: 'Failed to delete animal' });
+    }
+  });
+
+  // Transportation routes
+  app.post("/api/transportation", async (req, res) => {
+    try {
+      const validatedTransportation = insertTransportationSchema.parse(req.body);
+      const savedTransportation = await storage.createTransportation(validatedTransportation);
+      res.json(savedTransportation);
+    } catch (error) {
+      console.error('Error saving transportation:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save transportation' });
+    }
+  });
+
+  app.get("/api/transportation/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const transportation = await storage.getUserTransportation(userId);
+      res.json(transportation);
+    } catch (error) {
+      console.error('Error fetching transportation:', error);
+      res.status(500).json({ error: 'Failed to fetch transportation' });
+    }
+  });
+
+  app.get("/api/transportation/:id", async (req, res) => {
+    try {
+      const transportation = await storage.getTransportation(req.params.id);
+      if (!transportation) {
+        return res.status(404).json({ error: 'Transportation not found' });
+      }
+      res.json(transportation);
+    } catch (error) {
+      console.error('Error fetching transportation:', error);
+      res.status(500).json({ error: 'Failed to fetch transportation' });
+    }
+  });
+
+  app.patch("/api/transportation/:id", async (req, res) => {
+    try {
+      const updates = insertTransportationSchema.partial().parse(req.body);
+      const updatedTransportation = await storage.updateTransportation(req.params.id, updates);
+      res.json(updatedTransportation);
+    } catch (error) {
+      console.error('Error updating transportation:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update transportation' });
+    }
+  });
+
+  app.delete("/api/transportation/:id", async (req, res) => {
+    try {
+      await storage.deleteTransportation(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting transportation:', error);
+      res.status(500).json({ error: 'Failed to delete transportation' });
+    }
+  });
+
+  // Natural Laws routes
+  app.post("/api/naturallaws", async (req, res) => {
+    try {
+      const validatedNaturalLaw = insertNaturalLawSchema.parse(req.body);
+      const savedNaturalLaw = await storage.createNaturalLaw(validatedNaturalLaw);
+      res.json(savedNaturalLaw);
+    } catch (error) {
+      console.error('Error saving natural law:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save natural law' });
+    }
+  });
+
+  app.get("/api/naturallaws/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const naturalLaws = await storage.getUserNaturalLaws(userId);
+      res.json(naturalLaws);
+    } catch (error) {
+      console.error('Error fetching natural laws:', error);
+      res.status(500).json({ error: 'Failed to fetch natural laws' });
+    }
+  });
+
+  app.get("/api/naturallaws/:id", async (req, res) => {
+    try {
+      const naturalLaw = await storage.getNaturalLaw(req.params.id);
+      if (!naturalLaw) {
+        return res.status(404).json({ error: 'Natural law not found' });
+      }
+      res.json(naturalLaw);
+    } catch (error) {
+      console.error('Error fetching natural law:', error);
+      res.status(500).json({ error: 'Failed to fetch natural law' });
+    }
+  });
+
+  app.patch("/api/naturallaws/:id", async (req, res) => {
+    try {
+      const updates = insertNaturalLawSchema.partial().parse(req.body);
+      const updatedNaturalLaw = await storage.updateNaturalLaw(req.params.id, updates);
+      res.json(updatedNaturalLaw);
+    } catch (error) {
+      console.error('Error updating natural law:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update natural law' });
+    }
+  });
+
+  app.delete("/api/naturallaws/:id", async (req, res) => {
+    try {
+      await storage.deleteNaturalLaw(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting natural law:', error);
+      res.status(500).json({ error: 'Failed to delete natural law' });
+    }
+  });
+
+  // Traditions routes
+  app.post("/api/traditions", async (req, res) => {
+    try {
+      const validatedTradition = insertTraditionSchema.parse(req.body);
+      const savedTradition = await storage.createTradition(validatedTradition);
+      res.json(savedTradition);
+    } catch (error) {
+      console.error('Error saving tradition:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save tradition' });
+    }
+  });
+
+  app.get("/api/traditions/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const traditions = await storage.getUserTraditions(userId);
+      res.json(traditions);
+    } catch (error) {
+      console.error('Error fetching traditions:', error);
+      res.status(500).json({ error: 'Failed to fetch traditions' });
+    }
+  });
+
+  app.get("/api/traditions/:id", async (req, res) => {
+    try {
+      const tradition = await storage.getTradition(req.params.id);
+      if (!tradition) {
+        return res.status(404).json({ error: 'Tradition not found' });
+      }
+      res.json(tradition);
+    } catch (error) {
+      console.error('Error fetching tradition:', error);
+      res.status(500).json({ error: 'Failed to fetch tradition' });
+    }
+  });
+
+  app.patch("/api/traditions/:id", async (req, res) => {
+    try {
+      const updates = insertTraditionSchema.partial().parse(req.body);
+      const updatedTradition = await storage.updateTradition(req.params.id, updates);
+      res.json(updatedTradition);
+    } catch (error) {
+      console.error('Error updating tradition:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update tradition' });
+    }
+  });
+
+  app.delete("/api/traditions/:id", async (req, res) => {
+    try {
+      await storage.deleteTradition(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting tradition:', error);
+      res.status(500).json({ error: 'Failed to delete tradition' });
+    }
+  });
+
+  // Rituals routes
+  app.post("/api/rituals", async (req, res) => {
+    try {
+      const validatedRitual = insertRitualSchema.parse(req.body);
+      const savedRitual = await storage.createRitual(validatedRitual);
+      res.json(savedRitual);
+    } catch (error) {
+      console.error('Error saving ritual:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save ritual' });
+    }
+  });
+
+  app.get("/api/rituals/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const rituals = await storage.getUserRituals(userId);
+      res.json(rituals);
+    } catch (error) {
+      console.error('Error fetching rituals:', error);
+      res.status(500).json({ error: 'Failed to fetch rituals' });
+    }
+  });
+
+  app.get("/api/rituals/:id", async (req, res) => {
+    try {
+      const ritual = await storage.getRitual(req.params.id);
+      if (!ritual) {
+        return res.status(404).json({ error: 'Ritual not found' });
+      }
+      res.json(ritual);
+    } catch (error) {
+      console.error('Error fetching ritual:', error);
+      res.status(500).json({ error: 'Failed to fetch ritual' });
+    }
+  });
+
+  app.patch("/api/rituals/:id", async (req, res) => {
+    try {
+      const updates = insertRitualSchema.partial().parse(req.body);
+      const updatedRitual = await storage.updateRitual(req.params.id, updates);
+      res.json(updatedRitual);
+    } catch (error) {
+      console.error('Error updating ritual:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update ritual' });
+    }
+  });
+
+  app.delete("/api/rituals/:id", async (req, res) => {
+    try {
+      await storage.deleteRitual(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting ritual:', error);
+      res.status(500).json({ error: 'Failed to delete ritual' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -208,106 +208,148 @@ export interface IStorage {
   createReligion(religion: InsertReligion): Promise<Religion>;
   getReligion(id: string): Promise<Religion | undefined>;
   getUserReligions(userId: string | null): Promise<Religion[]>;
+  updateReligion(id: string, updates: Partial<InsertReligion>): Promise<Religion>;
+  deleteReligion(id: string): Promise<void>;
   
   // Language methods
   createLanguage(language: InsertLanguage): Promise<Language>;
   getLanguage(id: string): Promise<Language | undefined>;
   getUserLanguages(userId: string | null): Promise<Language[]>;
+  updateLanguage(id: string, updates: Partial<InsertLanguage>): Promise<Language>;
+  deleteLanguage(id: string): Promise<void>;
   
   // Accessory methods
   createAccessory(accessory: InsertAccessory): Promise<Accessory>;
   getAccessory(id: string): Promise<Accessory | undefined>;
   getUserAccessories(userId: string | null): Promise<Accessory[]>;
+  updateAccessory(id: string, updates: Partial<InsertAccessory>): Promise<Accessory>;
+  deleteAccessory(id: string): Promise<void>;
   
   // Clothing methods
   createClothing(clothing: InsertClothing): Promise<Clothing>;
   getClothing(id: string): Promise<Clothing | undefined>;
   getUserClothing(userId: string | null): Promise<Clothing[]>;
+  updateClothing(id: string, updates: Partial<InsertClothing>): Promise<Clothing>;
+  deleteClothing(id: string): Promise<void>;
   
   // Material methods
   createMaterial(material: InsertMaterial): Promise<Material>;
   getMaterial(id: string): Promise<Material | undefined>;
   getUserMaterials(userId: string | null): Promise<Material[]>;
+  updateMaterial(id: string, updates: Partial<InsertMaterial>): Promise<Material>;
+  deleteMaterial(id: string): Promise<void>;
   
   // Settlement methods
   createSettlement(settlement: InsertSettlement): Promise<Settlement>;
   getSettlement(id: string): Promise<Settlement | undefined>;
   getUserSettlements(userId: string | null): Promise<Settlement[]>;
+  updateSettlement(id: string, updates: Partial<InsertSettlement>): Promise<Settlement>;
+  deleteSettlement(id: string): Promise<void>;
   
   // Society methods
   createSociety(society: InsertSociety): Promise<Society>;
   getSociety(id: string): Promise<Society | undefined>;
   getUserSocieties(userId: string | null): Promise<Society[]>;
+  updateSociety(id: string, updates: Partial<InsertSociety>): Promise<Society>;
+  deleteSociety(id: string): Promise<void>;
   
   // Faction methods
   createFaction(faction: InsertFaction): Promise<Faction>;
   getFaction(id: string): Promise<Faction | undefined>;
   getUserFactions(userId: string | null): Promise<Faction[]>;
+  updateFaction(id: string, updates: Partial<InsertFaction>): Promise<Faction>;
+  deleteFaction(id: string): Promise<void>;
   
   // Military Unit methods
   createMilitaryUnit(militaryUnit: InsertMilitaryUnit): Promise<MilitaryUnit>;
   getMilitaryUnit(id: string): Promise<MilitaryUnit | undefined>;
   getUserMilitaryUnits(userId: string | null): Promise<MilitaryUnit[]>;
+  updateMilitaryUnit(id: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit>;
+  deleteMilitaryUnit(id: string): Promise<void>;
   
   // Myth methods
   createMyth(myth: InsertMyth): Promise<Myth>;
   getMyth(id: string): Promise<Myth | undefined>;
   getUserMyths(userId: string | null): Promise<Myth[]>;
+  updateMyth(id: string, updates: Partial<InsertMyth>): Promise<Myth>;
+  deleteMyth(id: string): Promise<void>;
   
   // Legend methods
   createLegend(legend: InsertLegend): Promise<Legend>;
   getLegend(id: string): Promise<Legend | undefined>;
   getUserLegends(userId: string | null): Promise<Legend[]>;
+  updateLegend(id: string, updates: Partial<InsertLegend>): Promise<Legend>;
+  deleteLegend(id: string): Promise<void>;
   
   // Event methods
   createEvent(event: InsertEvent): Promise<Event>;
   getEvent(id: string): Promise<Event | undefined>;
   getUserEvents(userId: string | null): Promise<Event[]>;
+  updateEvent(id: string, updates: Partial<InsertEvent>): Promise<Event>;
+  deleteEvent(id: string): Promise<void>;
   
   // Technology methods
   createTechnology(technology: InsertTechnology): Promise<Technology>;
   getTechnology(id: string): Promise<Technology | undefined>;
   getUserTechnologies(userId: string | null): Promise<Technology[]>;
+  updateTechnology(id: string, updates: Partial<InsertTechnology>): Promise<Technology>;
+  deleteTechnology(id: string): Promise<void>;
   
   // Spell methods
   createSpell(spell: InsertSpell): Promise<Spell>;
   getSpell(id: string): Promise<Spell | undefined>;
   getUserSpells(userId: string | null): Promise<Spell[]>;
+  updateSpell(id: string, updates: Partial<InsertSpell>): Promise<Spell>;
+  deleteSpell(id: string): Promise<void>;
   
   // Resource methods
   createResource(resource: InsertResource): Promise<Resource>;
   getResource(id: string): Promise<Resource | undefined>;
   getUserResources(userId: string | null): Promise<Resource[]>;
+  updateResource(id: string, updates: Partial<InsertResource>): Promise<Resource>;
+  deleteResource(id: string): Promise<void>;
   
   // Building methods
   createBuilding(building: InsertBuilding): Promise<Building>;
   getBuilding(id: string): Promise<Building | undefined>;
   getUserBuildings(userId: string | null): Promise<Building[]>;
+  updateBuilding(id: string, updates: Partial<InsertBuilding>): Promise<Building>;
+  deleteBuilding(id: string): Promise<void>;
   
   // Animal methods
   createAnimal(animal: InsertAnimal): Promise<Animal>;
   getAnimal(id: string): Promise<Animal | undefined>;
   getUserAnimals(userId: string | null): Promise<Animal[]>;
+  updateAnimal(id: string, updates: Partial<InsertAnimal>): Promise<Animal>;
+  deleteAnimal(id: string): Promise<void>;
   
   // Transportation methods
   createTransportation(transportation: InsertTransportation): Promise<Transportation>;
   getTransportation(id: string): Promise<Transportation | undefined>;
   getUserTransportations(userId: string | null): Promise<Transportation[]>;
+  updateTransportation(id: string, updates: Partial<InsertTransportation>): Promise<Transportation>;
+  deleteTransportation(id: string): Promise<void>;
   
   // Natural Law methods
   createNaturalLaw(naturalLaw: InsertNaturalLaw): Promise<NaturalLaw>;
   getNaturalLaw(id: string): Promise<NaturalLaw | undefined>;
   getUserNaturalLaws(userId: string | null): Promise<NaturalLaw[]>;
+  updateNaturalLaw(id: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw>;
+  deleteNaturalLaw(id: string): Promise<void>;
   
   // Tradition methods
   createTradition(tradition: InsertTradition): Promise<Tradition>;
   getTradition(id: string): Promise<Tradition | undefined>;
   getUserTraditions(userId: string | null): Promise<Tradition[]>;
+  updateTradition(id: string, updates: Partial<InsertTradition>): Promise<Tradition>;
+  deleteTradition(id: string): Promise<void>;
   
   // Ritual methods
   createRitual(ritual: InsertRitual): Promise<Ritual>;
   getRitual(id: string): Promise<Ritual | undefined>;
   getUserRituals(userId: string | null): Promise<Ritual[]>;
+  updateRitual(id: string, updates: Partial<InsertRitual>): Promise<Ritual>;
+  deleteRitual(id: string): Promise<void>;
 
   // Saved items methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
