@@ -89,6 +89,8 @@ export const settings = pgTable("settings", {
   atmosphere: text("atmosphere").notNull(),
   culturalElements: text("cultural_elements").array().notNull(),
   notableFeatures: text("notable_features").array().notNull(),
+  genre: text("genre"),
+  settingType: text("setting_type"),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
