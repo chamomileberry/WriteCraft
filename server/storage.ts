@@ -4,7 +4,7 @@ import {
   users, characters, plots, prompts, guides, savedItems,
   settings, names, conflicts, themes, moods, creatures, plants, descriptions,
   type User, type InsertUser,
-  type Character, type InsertCharacter,
+  type Character, type InsertCharacter, type UpdateCharacter,
   type Plot, type InsertPlot,
   type Prompt, type InsertPrompt,
   type Guide, type InsertGuide,
@@ -31,6 +31,7 @@ export interface IStorage {
   createCharacter(character: InsertCharacter): Promise<Character>;
   getCharacter(id: string): Promise<Character | undefined>;
   getUserCharacters(userId: string | null): Promise<Character[]>;
+  updateCharacter(id: string, updates: UpdateCharacter): Promise<Character>;
   
   // Plot methods
   createPlot(plot: InsertPlot): Promise<Plot>;
@@ -139,6 +140,15 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(characters)
       .orderBy(desc(characters.createdAt))
       .limit(10);
+  }
+
+  async updateCharacter(id: string, updates: UpdateCharacter): Promise<Character> {
+    const [updatedCharacter] = await db
+      .update(characters)
+      .set(updates)
+      .where(eq(characters.id, id))
+      .returning();
+    return updatedCharacter;
   }
   
   // Plot methods
