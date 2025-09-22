@@ -23,6 +23,7 @@ export const characters = pgTable("characters", {
   motivation: text("motivation").notNull(),
   flaw: text("flaw").notNull(),
   strength: text("strength").notNull(),
+  gender: text("gender"),
   genre: text("genre"),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
