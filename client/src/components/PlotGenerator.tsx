@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Copy, Save, Zap, Loader2 } from "lucide-react";
+import { BookOpen, Copy, Save, Zap, Loader2, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -151,13 +151,26 @@ ${plot.setup}
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            Plot Generator
-          </CardTitle>
-          <CardDescription>
-            Generate compelling three-act plot structures with conflict and themes
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Plot Generator
+              </CardTitle>
+              <CardDescription>
+                Generate compelling three-act plot structures with conflict and themes
+              </CardDescription>
+            </div>
+            <Button 
+              variant="outline"
+              onClick={() => setShowQuiz(true)}
+              data-testid="button-structure-quiz"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <HelpCircle className="mr-2 h-4 w-4" />
+              Find My Structure
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-4">
@@ -190,30 +203,19 @@ ${plot.setup}
               </Select>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                onClick={generatePlot}
-                disabled={generatePlotMutation.isPending}
-                data-testid="button-generate-plot"
-                className="flex-1 sm:flex-none"
-              >
-                {generatePlotMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Zap className="mr-2 h-4 w-4" />
-                )}
-                {generatePlotMutation.isPending ? 'Generating...' : 'Generate Plot'}
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => setShowQuiz(true)}
-                data-testid="button-structure-quiz"
-                className="flex-1 sm:flex-none"
-              >
-                📝 Find My Structure
-              </Button>
-            </div>
+            <Button 
+              onClick={generatePlot}
+              disabled={generatePlotMutation.isPending}
+              data-testid="button-generate-plot"
+              className="w-full sm:w-auto"
+            >
+              {generatePlotMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Zap className="mr-2 h-4 w-4" />
+              )}
+              {generatePlotMutation.isPending ? 'Generating...' : 'Generate Plot'}
+            </Button>
           </div>
         </CardContent>
       </Card>
