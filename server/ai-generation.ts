@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { GENDER_IDENTITIES, ALL_GENRES } from './genres.js';
+import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES } from './genres.js';
 
 /*
 <important_code_snippet_instructions>
@@ -32,6 +32,23 @@ export interface GeneratedCharacter {
   flaw: string;
   strength: string;
   gender: string;
+}
+
+export interface SettingGenerationOptions {
+  genre?: string;
+  settingType?: string;
+}
+
+export interface GeneratedSetting {
+  name: string;
+  location: string;
+  timePeriod: string;
+  population: string;
+  climate: string;
+  description: string;
+  atmosphere: string;
+  culturalElements: string[];
+  notableFeatures: string[];
 }
 
 export async function generateCharacterWithAI(options: CharacterGenerationOptions = {}): Promise<GeneratedCharacter> {
@@ -142,5 +159,111 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Character generation failed: ${errorMessage}`);
+  }
+}
+
+export async function generateSettingWithAI(options: SettingGenerationOptions = {}): Promise<GeneratedSetting> {
+  const { genre, settingType } = options;
+  
+  // Validate inputs
+  if (genre && !ALL_GENRES.includes(genre)) {
+    throw new Error(`Invalid genre: ${genre}. Must be one of: ${ALL_GENRES.join(', ')}`);
+  }
+  
+  if (settingType && !ALL_SETTING_TYPES.includes(settingType)) {
+    throw new Error(`Invalid setting type: ${settingType}. Must be one of: ${ALL_SETTING_TYPES.join(', ')}`);
+  }
+
+  const systemPrompt = `You are a creative writing assistant specialized in generating immersive, detailed settings for fiction. Your settings should have:
+
+1. Vivid sensory details that bring the location to life
+2. Rich cultural elements that reflect the world's inhabitants
+3. Atmospheric descriptions that evoke mood and tone
+4. Notable features that create story potential and conflict
+5. Realistic details that make the world feel lived-in and authentic
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "name": "Specific setting name",
+  "location": "Geographic context or position",
+  "timePeriod": "When this setting exists (era, year, etc.)",
+  "population": "Who lives here and how many",
+  "climate": "Weather patterns and environmental conditions",
+  "description": "Detailed physical description of the setting",
+  "atmosphere": "Emotional tone and feeling of the place",
+  "culturalElements": ["element1", "element2", "element3"],
+  "notableFeatures": ["feature1", "feature2", "feature3"]
+}`;
+
+  let userPrompt = "Generate a compelling, immersive setting for creative writing.";
+  
+  if (settingType) {
+    userPrompt += ` The setting should be a ${settingType}.`;
+  }
+  
+  if (genre) {
+    userPrompt += ` The setting should fit well in the ${genre} genre.`;
+  }
+  
+  userPrompt += " Focus on creating a place with rich sensory details, cultural depth, and story potential. Include specific notable features that could drive plot events. Respond with ONLY the JSON object, no other text.";
+
+  try {
+    console.log('Making request to Anthropic API for setting generation...');
+    
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: userPrompt }
+      ],
+    });
+
+    console.log('Received response from Anthropic API');
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    // Clean the response text - remove any potential markdown formatting or extra text
+    let cleanedText = content.text.trim();
+    
+    console.log('Raw AI Response:', cleanedText);
+    
+    // Extract JSON if it's wrapped in code blocks or has extra text
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    console.log('Cleaned AI Response:', cleanedText);
+    
+    const settingData = JSON.parse(cleanedText);
+    
+    // Validate the response structure
+    const requiredFields = ['name', 'location', 'timePeriod', 'population', 'climate', 'description', 'atmosphere', 'culturalElements', 'notableFeatures'];
+    for (const field of requiredFields) {
+      if (!(field in settingData)) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+    
+    // Ensure arrays are arrays
+    if (!Array.isArray(settingData.culturalElements)) {
+      settingData.culturalElements = [];
+    }
+    if (!Array.isArray(settingData.notableFeatures)) {
+      settingData.notableFeatures = [];
+    }
+
+    return settingData as GeneratedSetting;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error('JSON Parse Error. Raw response:', content.text);
+      throw new Error('Failed to parse AI response as JSON. Please try again.');
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Setting generation failed: ${errorMessage}`);
   }
 }
