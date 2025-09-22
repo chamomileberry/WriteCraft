@@ -19,6 +19,7 @@ interface Character {
   motivation: string;
   flaw: string;
   strength: string;
+  gender?: string | null;
   genre?: string | null;
   userId?: string | null;
   createdAt?: string;
@@ -26,9 +27,35 @@ interface Character {
 
 // Removed local data arrays - now using backend API
 
+// Genre categories with comprehensive list
+const GENRE_CATEGORIES = {
+  "General Fiction": ["fiction", "drama", "literary fiction", "political fiction", "musical fiction", "sports fiction", "suspense fiction"],
+  "Science Fiction": ["science fiction", "cyberpunk", "dystopian", "post-apocalyptic", "steampunk", "dieselpunk", "nanopunk", "solarpunk", "atompunk", "clockpunk", "postcyberpunk", "utopian", "comedy sci-fi", "feminist sci-fi", "gothic sci-fi", "climate fiction", "parallel world sci-fi", "libertarian sci-fi", "mecha sci-fi", "military sci-fi", "social sci-fi", "anthropological sci-fi", "space opera", "space western", "subterranean sci-fi", "tech noir", "alien invasion", "scientific romance", "dying earth", "quantum fiction"],
+  "Fantasy": ["fantasy", "contemporary fantasy", "cozy fantasy", "dark fantasy", "high fantasy", "fantasy comedy", "gothic fantasy", "historical fantasy", "low fantasy", "mythpunk", "mythic fantasy", "mythopoeia", "magic realism", "romantic fantasy", "science fantasy", "supernatural fantasy", "heroic fantasy", "portal fantasy", "medieval fantasy", "prehistoric fantasy"],
+  "Horror": ["horror", "comedy horror", "gothic horror", "zombie horror", "dark romanticism", "cosmic horror", "werewolf fiction", "vampire literature", "psychological horror", "techno-horror", "apocalyptic", "zombie apocalypse", "monster literature", "weird fiction"],
+  "Mystery & Crime": ["mystery", "crime fiction", "detective", "historical mystery", "noir", "cozy mystery", "legal thriller", "caper", "spy fiction"],
+  "Thriller": ["thriller", "psychological thriller", "techno-thriller", "political thriller"],
+  "Romance": ["romance", "paranormal romance", "contemporary romance", "medical romance", "thriller romance", "historical romance", "inspirational romance", "romantic suspense", "western romance", "young adult romance", "chivalric romance"],
+  "Western": ["western", "horror western", "science fiction western", "weird western", "fantasy western"],
+  "Young Adult & New Adult": ["young adult", "new adult"],
+  "Historical": ["historical fiction", "prehistoric fiction", "medieval fiction"],
+  "Comedy": ["comedy", "tragic comedy", "burlesque"],
+  "Drama": ["tragedy", "melodrama"],
+  "Superhero": ["superhero fantasy", "cape punk", "heroic noir"],
+  "Speculative & Experimental": ["xenofiction", "alternative history", "slipstream", "postmodern", "conte", "pulp fiction"],
+  "Action & Adventure": ["action-adventure", "nautical"]
+};
+
+const GENDER_IDENTITIES = [
+  "male", "female", "non-binary", "agender", "bigender", "genderfluid", 
+  "genderqueer", "transgender", "intersex", "pangender", "demigender", 
+  "androgynous", "omnigender", "polygender"
+];
+
 export default function CharacterGenerator() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [genre, setGenre] = useState<string>("");
+  const [gender, setGender] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -36,6 +63,7 @@ export default function CharacterGenerator() {
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/characters/generate', {
         genre: genre || undefined,
+        gender: gender || undefined,
         userId: null // For now, no user authentication
       });
       return response.json();
@@ -127,13 +155,30 @@ export default function CharacterGenerator() {
               <SelectTrigger className="sm:w-48" data-testid="select-genre">
                 <SelectValue placeholder="Select genre" />
               </SelectTrigger>
+              <SelectContent className="h-60">
+                {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
+                  <div key={category}>
+                    <div className="px-2 py-1 text-sm font-semibold text-muted-foreground">{category}</div>
+                    {genres.map((genreOption) => (
+                      <SelectItem key={genreOption} value={genreOption}>
+                        {genreOption.charAt(0).toUpperCase() + genreOption.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={gender} onValueChange={setGender}>
+              <SelectTrigger className="sm:w-48" data-testid="select-gender">
+                <SelectValue placeholder="Select gender identity" />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fantasy">Fantasy</SelectItem>
-                <SelectItem value="sci-fi">Science Fiction</SelectItem>
-                <SelectItem value="romance">Romance</SelectItem>
-                <SelectItem value="mystery">Mystery</SelectItem>
-                <SelectItem value="thriller">Thriller</SelectItem>
-                <SelectItem value="contemporary">Contemporary</SelectItem>
+                {GENDER_IDENTITIES.map((genderOption) => (
+                  <SelectItem key={genderOption} value={genderOption}>
+                    {genderOption.charAt(0).toUpperCase() + genderOption.slice(1)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             
@@ -160,7 +205,14 @@ export default function CharacterGenerator() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl">{character.name}</CardTitle>
-                <CardDescription>Age {character.age} • {character.occupation}</CardDescription>
+                <CardDescription>
+                  Age {character.age} • {character.occupation}
+                  {character.gender && (
+                    <span className="ml-2 text-xs px-2 py-1 bg-secondary rounded-full">
+                      {character.gender.charAt(0).toUpperCase() + character.gender.slice(1)}
+                    </span>
+                  )}
+                </CardDescription>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={copyCharacter} data-testid="button-copy-character">

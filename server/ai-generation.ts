@@ -54,10 +54,10 @@ export async function generateCharacterWithAI(options: CharacterGenerationOption
 4. Specific personality traits that manifest in their actions
 5. Clear strengths and weaknesses that create story potential
 
-Always respond with valid JSON in exactly this format:
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
   "name": "Full character name",
-  "age": number_between_18_and_80,
+  "age": 25,
   "occupation": "Specific profession or role",
   "personality": ["trait1", "trait2", "trait3"],
   "backstory": "Rich background explaining who they are and how they got here",
@@ -77,9 +77,11 @@ Always respond with valid JSON in exactly this format:
     userPrompt += ` The character should identify as ${gender}.`;
   }
   
-  userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential.";
+  userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential. Respond with ONLY the JSON object, no other text.";
 
   try {
+    console.log('Making request to Anthropic API...');
+    
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR,
       system: systemPrompt,
@@ -89,12 +91,27 @@ Always respond with valid JSON in exactly this format:
       ],
     });
 
+    console.log('Received response from Anthropic API');
+
     const content = response.content[0];
     if (content.type !== 'text') {
       throw new Error('Unexpected response format from Anthropic API');
     }
 
-    const characterData = JSON.parse(content.text);
+    // Clean the response text - remove any potential markdown formatting or extra text
+    let cleanedText = content.text.trim();
+    
+    console.log('Raw AI Response:', cleanedText);
+    
+    // Extract JSON if it's wrapped in code blocks or has extra text
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    console.log('Cleaned AI Response:', cleanedText);
+    
+    const characterData = JSON.parse(cleanedText);
     
     // Validate the response structure
     const requiredFields = ['name', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength'];
@@ -120,6 +137,7 @@ Always respond with valid JSON in exactly this format:
     return characterData as GeneratedCharacter;
   } catch (error) {
     if (error instanceof SyntaxError) {
+      console.error('JSON Parse Error. Raw response:', content.text);
       throw new Error('Failed to parse AI response as JSON. Please try again.');
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

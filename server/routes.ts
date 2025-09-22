@@ -14,6 +14,7 @@ import {
   insertMoodSchema
 } from "@shared/schema";
 import { z } from "zod";
+import { generateCharacterWithAI } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -21,21 +22,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const generateRequestSchema = z.object({
         genre: z.string().optional(),
+        gender: z.string().optional(),
         userId: z.string().nullable().optional()
       });
       
-      const { genre, userId } = generateRequestSchema.parse(req.body);
+      const { genre, gender, userId } = generateRequestSchema.parse(req.body);
       
-      const characterArchetype = generateCoherentCharacter();
+      // Use AI generation instead of archetype system
+      const aiCharacter = await generateCharacterWithAI({ genre, gender });
+      
       const character = {
-        name: generateRandomName(),
-        age: characterArchetype.age,
-        occupation: characterArchetype.occupation,
-        personality: characterArchetype.personality,
-        backstory: characterArchetype.backstory,
-        motivation: characterArchetype.motivation,
-        flaw: characterArchetype.flaw,
-        strength: characterArchetype.strength,
+        name: aiCharacter.name,
+        age: aiCharacter.age,
+        occupation: aiCharacter.occupation,
+        personality: aiCharacter.personality,
+        backstory: aiCharacter.backstory,
+        motivation: aiCharacter.motivation,
+        flaw: aiCharacter.flaw,
+        strength: aiCharacter.strength,
+        gender: aiCharacter.gender,
         genre: genre || null,
         userId: userId || null
       };
@@ -49,7 +54,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
-      res.status(500).json({ error: 'Failed to generate character' });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
     }
   });
 
