@@ -190,7 +190,9 @@ export const SETTING_TYPE_CATEGORIES = {
     "realm",
     "ghost town",
     "abandoned city",
-    "lost city"
+    "lost city",
+    "district",
+    "faction"
   ],
   "Natural Environments": [
     "forest",
@@ -244,7 +246,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "badlands",
     "wildlife reserve",
     "cavern",
-    "lair"
+    "lair",
+    "orchard"
   ],
   "Residential Buildings": [
     "house",
@@ -338,7 +341,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "thrift store",
     "travel agency",
     "wig store",
-    "upholstery shop"
+    "upholstery shop",
+    "technology company"
   ],
   "Public & Government Buildings": [
     "library",
@@ -364,7 +368,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "forbidden city",
     "government agency",
     "intelligence agency",
-    "news station"
+    "news station",
+    "refugee centre"
   ],
   "Entertainment Venues": [
     "movie theatre",
@@ -396,7 +401,9 @@ export const SETTING_TYPE_CATEGORIES = {
     "concession stand",
     "jousting arena",
     "gala",
-    "rodeo"
+    "rodeo",
+    "bowling alley",
+    "indoor playground"
   ],
   "Transportation & Infrastructure": [
     "airport",
@@ -428,7 +435,9 @@ export const SETTING_TYPE_CATEGORIES = {
     "train station",
     "tram station",
     "truck stop",
-    "union station"
+    "union station",
+    "raceway",
+    "breezeway"
   ],
   "Religious & Spiritual Buildings": [
     "church",
@@ -450,7 +459,9 @@ export const SETTING_TYPE_CATEGORIES = {
     "boarding school",
     "campus",
     "classroom",
-    "academy"
+    "academy",
+    "daycare",
+    "computer lab"
   ],
   "Healthcare Facilities": [
     "hospital",
@@ -467,7 +478,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "orthodontist",
     "physiotherapist",
     "massage therapist",
-    "wellness centre"
+    "wellness centre",
+    "trauma centre"
   ],
   "Sports & Recreation": [
     "gym",
@@ -486,7 +498,9 @@ export const SETTING_TYPE_CATEGORIES = {
     "lodge",
     "resort",
     "campground",
-    "trailer park"
+    "trailer park",
+    "dojo",
+    "fighting ring"
   ],
   "Industrial & Agricultural": [
     "factory",
@@ -511,7 +525,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "slaughter house",
     "ranch",
     "corral",
-    "bunkhouse"
+    "bunkhouse",
+    "lumber mill"
   ],
   "Vehicles & Mobile Settings": [
     "space station",
@@ -524,7 +539,15 @@ export const SETTING_TYPE_CATEGORIES = {
     "submarine",
     "naval ship",
     "house boat",
-    "zeppelin"
+    "zeppelin",
+    "sunken ship",
+    "cruise ship",
+    "barge",
+    "vessel",
+    "sailboat",
+    "yacht",
+    "train car",
+    "spaceship"
   ],
   "Interior Spaces": [
     "room",
@@ -544,7 +567,12 @@ export const SETTING_TYPE_CATEGORIES = {
     "vault",
     "dungeon",
     "prison",
-    "courtyard"
+    "courtyard",
+    "sunroom",
+    "prison cell",
+    "jail cell",
+    "detainment unit",
+    "cubicle"
   ],
   "Personal Care & Services": [
     "salon",
@@ -587,7 +615,9 @@ export const SETTING_TYPE_CATEGORIES = {
     "underground bunker",
     "nuclear bunker",
     "barricade",
-    "military park"
+    "military park",
+    "crash site",
+    "ancient ruins"
   ],
   "Specialized Buildings": [
     "apothecary",
@@ -629,7 +659,8 @@ export const SETTING_TYPE_CATEGORIES = {
     "pagoda",
     "research station",
     "observatory",
-    "treehouse"
+    "treehouse",
+    "bell tower"
   ],
   "Celestial & Fantastical": [
     "planet",
