@@ -121,20 +121,34 @@ export async function generateCharacterWithAI(options: CharacterGenerationOption
 5. Clear strengths and weaknesses that create story potential
 
 CHARACTER NAMING GUIDELINES:
-- AVOID overused AI-generated names like: Marcus, Sarah, Chen, Rodriguez, Thorne, Martinez, Vance, Kessler, Voss, Blackwood, Winters, Mendez, Nakamura, Elena, Maya, Kai, Aria, Zara, Phoenix, Raven, Hunter, Skylar
+- AVOID overused AI-generated names like: Marcus, Sarah, Chen, Rodriguez, Thorne, Martinez, Vance, Kessler, Voss, Blackwood, Winters, Mendez, Nakamura, Elena, Maya, Kai, Aria, Zara, Phoenix, Raven, Hunter, Skylar, Okafor, Singh, Patel, Kim, Wang, Liu, Garcia, Smith, Johnson, Williams, Brown, Jones, Miller, Davis, Wilson, Moore
 - Create ethnically appropriate names that match the character's cultural background
 - Consider mixed heritage - if a character has parents from different cultures, their name should reflect this realistically
-- Use less common but authentic names from various cultures
+- Use less common but authentic names from various cultures - dig deeper than the most obvious choices
 - First and last names should make logical sense together culturally
 - Draw from diverse global naming traditions: European, African, Asian, Latin American, Middle Eastern, Indigenous, etc.
 - Consider how immigration, adoption, or marriage might affect naming patterns
 - Use authentic regional variations within cultures (not just the most common names)
+- Research lesser-known but authentic names from various cultural backgrounds
+- Avoid falling into repetitive naming patterns - vary your choices significantly
 
 CULTURAL AUTHENTICITY:
 - Research-backed naming conventions from specific cultures
 - Consider generational differences in naming (older vs younger characters)
 - Account for cultural assimilation patterns in naming choices
 - Reflect realistic family naming traditions
+
+BACKSTORY DIVERSITY GUIDELINES:
+- AVOID repetitive family patterns like "Nigerian father", "Chinese mother", "Italian grandmother" - vary family backgrounds significantly
+- Don't default to predictable ethnic backstory tropes or stereotypical family structures
+- Create diverse family compositions: single parents, adoptive families, multi-cultural heritage, non-traditional guardians
+- Vary socioeconomic backgrounds across cultures - not all families fit stereotypical economic patterns
+- Include characters from mixed heritage with complex cultural identities
+- Consider immigration stories from different time periods and circumstances
+- Vary the character's relationship with their cultural heritage (some embrace it, others reject it, many have complex relationships)
+- Create unique personal histories that don't rely on familiar cultural narrative patterns
+- Include characters who've moved between cultures, lived abroad, or have unconventional cultural experiences
+- Avoid repetitive profession/culture associations - vary the careers and life paths within ethnic groups
 
 PHYSICAL DESCRIPTION GUIDELINES:
 - Make physical descriptions culturally authentic and respectful to the character's ethnicity/heritage
@@ -181,7 +195,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     userPrompt += ` The character should be of ${ethnicity} ethnicity/heritage. Incorporate authentic cultural elements into their background, values, traditions, family dynamics, and life experiences that reflect this heritage. Their name should be culturally appropriate and authentic to this background. Consider how their cultural identity shapes their worldview, relationships, and personal challenges.`;
   }
   
-  userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential. IMPORTANT: Choose a culturally authentic, less common name that avoids overused AI patterns. Consider the character's ethnicity, family background, and cultural heritage when selecting their name. Respond with ONLY the JSON object, no other text.";
+  userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential. CRITICAL REQUIREMENTS: 1) Choose a culturally authentic, less common name that avoids overused AI patterns - avoid common names like Chen, Okafor, Singh, etc. 2) Create a unique family background that avoids repetitive cultural tropes like 'Nigerian father' or 'Chinese mother' - be creative and varied in family structures and backgrounds. 3) Ensure this character's backstory is distinct from typical AI-generated patterns. Respond with ONLY the JSON object, no other text.";
 
   let content: any;
   try {
