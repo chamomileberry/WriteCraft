@@ -11,133 +11,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Creature } from "@shared/schema";
+import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "../../../server/genres";
 
-// Genre categories - same as other generators
-const GENRE_CATEGORIES = {
-  "General Fiction": [
-    "fiction", "drama", "literary fiction", "political fiction", "musical fiction", 
-    "sports fiction", "suspense fiction"
-  ],
-  "Science Fiction": [
-    "science fiction", "cyberpunk", "dystopian", "post-apocalyptic", "steampunk", 
-    "dieselpunk", "nanopunk", "solarpunk", "atompunk", "clockpunk", "postcyberpunk", 
-    "utopian", "comedy sci-fi", "feminist sci-fi", "gothic sci-fi", "climate fiction", 
-    "parallel world sci-fi", "libertarian sci-fi", "mecha sci-fi", "military sci-fi", 
-    "social sci-fi", "anthropological sci-fi", "space opera", "space western", 
-    "subterranean sci-fi", "tech noir", "alien invasion", "scientific romance", 
-    "dying earth", "quantum fiction"
-  ],
-  "Fantasy": [
-    "fantasy", "contemporary fantasy", "cozy fantasy", "dark fantasy", "high fantasy", 
-    "fantasy comedy", "gothic fantasy", "historical fantasy", "low fantasy", "mythpunk", 
-    "mythic fantasy", "mythopoeia", "magic realism", "romantic fantasy", "science fantasy", 
-    "supernatural fantasy", "heroic fantasy", "portal fantasy", "medieval fantasy", 
-    "prehistoric fantasy"
-  ],
-  "Horror": [
-    "horror", "comedy horror", "gothic horror", "zombie horror", "dark romanticism", 
-    "cosmic horror", "werewolf fiction", "vampire literature", "psychological horror", 
-    "techno-horror", "apocalyptic", "zombie apocalypse", "monster literature", "weird fiction"
-  ],
-  "Mystery & Crime": [
-    "mystery", "crime fiction", "detective", "historical mystery", "noir", "cozy mystery", 
-    "legal thriller", "caper", "spy fiction"
-  ],
-  "Thriller": [
-    "thriller", "psychological thriller", "techno-thriller", "political thriller"
-  ],
-  "Romance": [
-    "romance", "paranormal romance", "contemporary romance", "medical romance", 
-    "thriller romance", "historical romance", "inspirational romance", "romantic suspense", 
-    "western romance", "young adult romance", "chivalric romance"
-  ],
-  "Western": [
-    "western", "horror western", "science fiction western", "weird western", "fantasy western"
-  ],
-  "Young Adult & New Adult": [
-    "young adult", "new adult"
-  ],
-  "Historical": [
-    "historical fiction", "prehistoric fiction", "medieval fiction"
-  ],
-  "Comedy": [
-    "comedy", "tragic comedy", "burlesque"
-  ],
-  "Drama": [
-    "tragedy", "melodrama"
-  ],
-  "Superhero": [
-    "superhero fantasy", "cape punk", "heroic noir"
-  ],
-  "Speculative & Experimental": [
-    "xenofiction", "alternative history", "slipstream", "postmodern", "conte", "pulp fiction"
-  ],
-  "Action & Adventure": [
-    "action-adventure", "nautical"
-  ]
-};
-
-// Creature type categories
-const CREATURE_TYPE_CATEGORIES = {
-  "Real Animals - Vertebrates": [
-    "fish", "mammal", "bird", "amphibian", "reptile", "canine", "feline", 
-    "aquatic mammal", "avian", "primate", "rodent", "ungulate", "bovine", 
-    "camelid", "caprid", "equine", "pachyderm", "swine", "marsupial"
-  ],
-  "Real Animals - Invertebrates": [
-    "arthropod", "crustacean", "arachnid", "mollusc", "xenarthran"
-  ],
-  "Specialized Animal Types": [
-    "musteloid", "herpestoid", "procyonid", "jackalope"
-  ],
-  "Fantasy Creatures": [
-    "dragon", "unicorn", "griffin", "hypogriff", "pegasus", "phoenix"
-  ],
-  "Mythological Beings": [
-    "fairy", "pixie", "nymph", "siren", "sprite", "dryad", "druid", 
-    "valkyrie", "banshee"
-  ],
-  "Shapeshifters & Lycanthropes": [
-    "werewolf", "werehyena", "wendigo", "selkie", "kelpie"
-  ],
-  "Undead & Supernatural": [
-    "vampire", "wraith", "ghoul", "skeleton", "draugr"
-  ],
-  "Humanoid Races": [
-    "elf", "dwarf", "gnome", "goblin", "humanoid"
-  ],
-  "Giants & Large Beings": [
-    "troll", "ogre", "giant", "cyclops", "minotaur"
-  ],
-  "Hybrid Creatures": [
-    "centaur", "mermaid", "faun", "sphinx"
-  ],
-  "Constructed Beings": [
-    "golem", "gargoyle", "elemental"
-  ],
-  "Cryptids & Legendary": [
-    "chupacabra", "yeti", "sasquatch", "kraken", "leviathan"
-  ],
-  "Serpentine & Reptilian": [
-    "serpent", "basilisk", "gorgon", "hydra", "echidna", "sea serpent"
-  ],
-  "Spirits & Ethereal": [
-    "will-o'-wisp", "genie", "gremlin", "demon", "incubus", "succubus", 
-    "leprechaun", "boggart", "spriggan"
-  ],
-  "Prehistoric & Ancient": [
-    "dinosaur"
-  ],
-  "Extraterrestrial": [
-    "alien"
-  ],
-  "Botanical & Nature": [
-    "mandrake"
-  ],
-  "Zodiacal": [
-    "capricorn"
-  ]
-};
+// Now using backend data - imported from server/genres.ts
 
 const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
 const ALL_CREATURE_TYPES = Object.values(CREATURE_TYPE_CATEGORIES).flat();
@@ -174,17 +50,22 @@ export default function CreatureGenerator() {
 
   const saveMutation = useMutation({
     mutationFn: async (creature: Creature) => {
-      const res = await apiRequest('POST', '/api/creatures', creature);
+      const res = await apiRequest('POST', '/api/saved-items', {
+        userId: null,
+        itemType: 'creature',
+        itemId: creature.id
+      });
       return await res.json();
     },
     onSuccess: () => {
       toast({
         title: "Creature Saved!",
-        description: "Your creature has been saved to your collection.",
+        description: "Creature has been saved to your collection.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/creatures'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Failed to save creature:', error);
       toast({
         title: "Save Failed",
         description: "Unable to save creature. Please try again.",
@@ -205,22 +86,24 @@ export default function CreatureGenerator() {
 
   const handleCopy = () => {
     if (generatedCreature) {
-      const creatureText = `Creature: ${generatedCreature.name}
+      const creatureText = `**${generatedCreature.name}**
+      
+**Type:** ${generatedCreature.creatureType}
+**Size:** ${generatedCreature.size}
+**Habitat:** ${generatedCreature.habitat}
+**Temperament:** ${generatedCreature.temperament}
 
-Type: ${generatedCreature.creatureType}
-Habitat: ${generatedCreature.habitat}
-
-Physical Description:
+**Physical Description:**
 ${generatedCreature.physicalDescription}
 
-Abilities:
-${generatedCreature.abilities.join(', ')}
-
-Behavior:
+**Behavior:**
 ${generatedCreature.behavior}
 
-Cultural Significance:
-${generatedCreature.culturalSignificance}`;
+**Abilities:**
+${generatedCreature.abilities.join(', ')}
+
+**Weaknesses:**
+${generatedCreature.weaknesses.join(', ')}`;
 
       navigator.clipboard.writeText(creatureText);
       toast({
@@ -233,264 +116,287 @@ ${generatedCreature.culturalSignificance}`;
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">Creature Generator</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Create fascinating creatures for your stories. Generate detailed beings with unique abilities, behaviors, and cultural significance using AI.
+        <h1 className="text-4xl font-serif font-bold mb-4">Creature Generator</h1>
+        <p className="text-muted-foreground text-lg">
+          Create fantastical beasts and creatures for your stories
         </p>
       </div>
 
+      {/* Generation Controls */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Customize Your Creature</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Rabbit className="h-5 w-5 text-primary" />
+            Generate Creature
+          </CardTitle>
           <CardDescription>
-            Select a genre and creature type to generate a more targeted creature for your story.
+            Customize your creature by selecting preferences below
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Genre Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="genre-select">Genre (Optional)</Label>
-              <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={genreSearchOpen}
-                    className="w-full justify-between"
-                    data-testid="select-genre"
-                  >
-                    {selectedGenre && selectedGenre !== "any" ? selectedGenre : selectedGenre === "any" ? "Any Genre" : "Select a genre..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search genres..." />
-                    <CommandList className="max-h-60">
-                      <CommandEmpty>No genre found.</CommandEmpty>
-                      <CommandItem
-                        value="any"
-                        onSelect={() => {
-                          setSelectedGenre("any");
-                          setGenreSearchOpen(false);
-                        }}
-                      >
-                        <Check className={`mr-2 h-4 w-4 ${selectedGenre === "any" ? "opacity-100" : "opacity-0"}`} />
-                        Any Genre
-                      </CommandItem>
-                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {genres.map((genre) => (
-                            <CommandItem
-                              key={genre}
-                              value={genre}
-                              onSelect={() => {
-                                setSelectedGenre(genre);
-                                setGenreSearchOpen(false);
-                              }}
-                            >
-                              <Check className={`mr-2 h-4 w-4 ${selectedGenre === genre ? "opacity-100" : "opacity-0"}`} />
-                              {genre}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Creature Type Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="creature-type-select">Creature Type (Optional)</Label>
-              <Popover open={creatureTypeSearchOpen} onOpenChange={setCreatureTypeSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={creatureTypeSearchOpen}
-                    className="w-full justify-between"
-                    data-testid="select-creature-type"
-                  >
-                    {selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : selectedCreatureType === "any" ? "Any Creature Type" : "Select a creature type..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search creature types..." />
-                    <CommandList className="max-h-60">
-                      <CommandEmpty>No creature type found.</CommandEmpty>
-                      <CommandItem
-                        value="any"
-                        onSelect={() => {
-                          setSelectedCreatureType("any");
-                          setCreatureTypeSearchOpen(false);
-                        }}
-                      >
-                        <Check className={`mr-2 h-4 w-4 ${selectedCreatureType === "any" ? "opacity-100" : "opacity-0"}`} />
-                        Any Creature Type
-                      </CommandItem>
-                      {Object.entries(CREATURE_TYPE_CATEGORIES).map(([category, types]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {types.map((type) => (
-                            <CommandItem
-                              key={type}
-                              value={type}
-                              onSelect={() => {
-                                setSelectedCreatureType(type);
-                                setCreatureTypeSearchOpen(false);
-                              }}
-                            >
-                              <Check className={`mr-2 h-4 w-4 ${selectedCreatureType === type ? "opacity-100" : "opacity-0"}`} />
-                              {type}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+          {/* Genre Selection */}
+          <div className="space-y-2">
+            <Label>Genre (Optional)</Label>
+            <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={genreSearchOpen}
+                  className="w-full justify-between"
+                  data-testid="button-genre-select"
+                >
+                  {selectedGenre ? selectedGenre : "Any Genre"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search genres..." data-testid="input-genre-search" />
+                  <CommandList>
+                    <CommandEmpty>No genre found.</CommandEmpty>
+                    <CommandItem
+                      value=""
+                      onSelect={() => {
+                        setSelectedGenre("");
+                        setGenreSearchOpen(false);
+                      }}
+                      data-testid="option-any-genre"
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 ${selectedGenre === "" ? "opacity-100" : "opacity-0"}`}
+                      />
+                      Any Genre
+                    </CommandItem>
+                    {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
+                      <CommandGroup key={category} heading={category}>
+                        {genres.map((genre) => (
+                          <CommandItem
+                            key={genre}
+                            value={genre}
+                            onSelect={(currentValue) => {
+                              setSelectedGenre(currentValue === selectedGenre ? "" : currentValue);
+                              setGenreSearchOpen(false);
+                            }}
+                            data-testid={`option-genre-${genre}`}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${selectedGenre === genre ? "opacity-100" : "opacity-0"}`}
+                            />
+                            {genre}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
+
+          {/* Creature Type Selection */}
+          <div className="space-y-2">
+            <Label>Creature Type (Optional)</Label>
+            <Popover open={creatureTypeSearchOpen} onOpenChange={setCreatureTypeSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={creatureTypeSearchOpen}
+                  className="w-full justify-between"
+                  data-testid="button-creature-type-select"
+                >
+                  {selectedCreatureType ? selectedCreatureType : "Any Creature Type"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search creature types..." data-testid="input-creature-type-search" />
+                  <CommandList>
+                    <CommandEmpty>No creature type found.</CommandEmpty>
+                    <CommandItem
+                      value=""
+                      onSelect={() => {
+                        setSelectedCreatureType("");
+                        setCreatureTypeSearchOpen(false);
+                      }}
+                      data-testid="option-any-creature-type"
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 ${selectedCreatureType === "" ? "opacity-100" : "opacity-0"}`}
+                      />
+                      Any Creature Type
+                    </CommandItem>
+                    {Object.entries(CREATURE_TYPE_CATEGORIES).map(([category, types]) => (
+                      <CommandGroup key={category} heading={category}>
+                        {types.map((type) => (
+                          <CommandItem
+                            key={type}
+                            value={type}
+                            onSelect={(currentValue) => {
+                              setSelectedCreatureType(currentValue === selectedCreatureType ? "" : currentValue);
+                              setCreatureTypeSearchOpen(false);
+                            }}
+                            data-testid={`option-creature-type-${type}`}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${selectedCreatureType === type ? "opacity-100" : "opacity-0"}`}
+                            />
+                            {type}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <Button 
+            onClick={handleGenerate} 
+            disabled={generateMutation.isPending} 
+            className="w-full" 
+            size="lg"
+            data-testid="button-generate-creature"
+          >
+            {generateMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Creature
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
-      <div className="flex justify-center mb-8">
-        <Button 
-          onClick={handleGenerate}
-          disabled={generateMutation.isPending}
-          size="lg"
-          className="px-8 py-6 text-lg"
-          data-testid="button-generate-creature"
-        >
-          {generateMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Creating Creature...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-5 w-5" />
-              Generate Creature
-            </>
-          )}
-        </Button>
-      </div>
-
+      {/* Generated Creature Display */}
       {generatedCreature && (
-        <Card className="mb-6">
+        <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className="text-2xl flex items-center gap-2" data-testid="text-creature-name">
-                  <Rabbit className="h-6 w-6 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <Eye className="h-6 w-6 text-primary" />
                   {generatedCreature.name}
                 </CardTitle>
                 <CardDescription className="mt-2 text-base">
-                  {generatedCreature.physicalDescription}
+                  {generatedCreature.creatureType} • {generatedCreature.habitat}
                 </CardDescription>
                 <div className="flex gap-2 mt-3">
                   {generatedCreature.genre && (
-                    <Badge variant="outline" data-testid="badge-genre">
-                      {generatedCreature.genre}
-                    </Badge>
+                    <Badge variant="outline" data-testid="badge-genre">{generatedCreature.genre}</Badge>
                   )}
-                  {generatedCreature.creatureType && (
-                    <Badge variant="outline" data-testid="badge-creature-type">
-                      {generatedCreature.creatureType}
-                    </Badge>
-                  )}
+                  <Badge variant="secondary" data-testid="badge-size">{generatedCreature.size}</Badge>
+                  <Badge variant="secondary" data-testid="badge-temperament">{generatedCreature.temperament}</Badge>
                 </div>
               </div>
-              <div className="flex gap-2 ml-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleCopy}
                   data-testid="button-copy-creature"
                 >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
+                  <Copy className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleSave}
                   disabled={saveMutation.isPending}
                   data-testid="button-save-creature"
                 >
-                  <Heart className="h-4 w-4 mr-2" />
-                  Save
+                  <Heart className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </CardHeader>
-          
           <CardContent className="space-y-6">
-            {/* Basic Details */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-semibold">Habitat:</span>
-                  <span data-testid="text-creature-habitat">{generatedCreature.habitat}</span>
+            {/* Quick Stats */}
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  Habitat
                 </div>
+                <p className="text-sm text-muted-foreground" data-testid="text-habitat">
+                  {generatedCreature.habitat}
+                </p>
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-semibold">Type:</span>
-                  <span data-testid="text-creature-type">{generatedCreature.creatureType}</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Brain className="h-4 w-4 text-muted-foreground" />
+                  Temperament
                 </div>
+                <p className="text-sm text-muted-foreground" data-testid="text-temperament">
+                  {generatedCreature.temperament}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  Size
+                </div>
+                <p className="text-sm text-muted-foreground" data-testid="text-size">
+                  {generatedCreature.size}
+                </p>
               </div>
             </div>
 
             <Separator />
 
-            {/* Abilities */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                Abilities
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {generatedCreature.abilities.map((ability, index) => (
-                  <Badge key={index} variant="secondary" data-testid={`badge-ability-${index}`}>
-                    {ability}
-                  </Badge>
-                ))}
-              </div>
+            {/* Physical Description */}
+            <div className="space-y-3">
+              <h3 className="font-semibold">Physical Description</h3>
+              <p className="text-muted-foreground leading-relaxed" data-testid="text-physical-description">
+                {generatedCreature.physicalDescription}
+              </p>
             </div>
 
             <Separator />
 
             {/* Behavior */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" />
-                Behavior
-              </h3>
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-creature-behavior">
+            <div className="space-y-3">
+              <h3 className="font-semibold">Behavior</h3>
+              <p className="text-muted-foreground leading-relaxed" data-testid="text-behavior">
                 {generatedCreature.behavior}
               </p>
             </div>
 
             <Separator />
 
-            {/* Cultural Significance */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Globe className="h-5 w-5 text-primary" />
-                Cultural Significance
-              </h3>
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-creature-cultural-significance">
-                {generatedCreature.culturalSignificance}
-              </p>
+            {/* Abilities and Weaknesses */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  Abilities
+                </h3>
+                <div className="flex flex-wrap gap-2" data-testid="list-abilities">
+                  {generatedCreature.abilities.map((ability, index) => (
+                    <Badge key={index} variant="secondary">
+                      {ability}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3">
+                <h3 className="font-semibold">Weaknesses</h3>
+                <div className="flex flex-wrap gap-2" data-testid="list-weaknesses">
+                  {generatedCreature.weaknesses.map((weakness, index) => (
+                    <Badge key={index} variant="outline">
+                      {weakness}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
