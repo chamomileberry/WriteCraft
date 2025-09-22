@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Edit, Trash2, Copy, User, MapPin, Building, Star, Package } from "lucide-react";
+import { Search, Edit, Trash2, Copy, User, MapPin, Building, Star, Package, Users, Globe, Flag, Crown, Circle, Home, UtensilsCrossed, Wine, Sword, Shield, TreePine, Car, Calculator, Feather, Sparkles, Mountain, PaintBucket } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -20,52 +20,108 @@ interface SavedItem {
   createdAt: string;
 }
 
-// Icon mapping for content types
+// Icon mapping for all 40+ content types
 const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
+  // People & Characters
   character: User,
+  ethnicity: Users,
+  culture: Globe,
+  
+  // Places & Locations
   location: MapPin,
+  settlement: Building,
+  building: Home,
+  geography: Mountain,
+  territory: MapPin,
+  district: Building,
+  city: Building,
+  country: Flag,
+  
+  // Organizations & Groups
   organization: Building,
+  society: Users,
+  faction: Flag,
+  militaryunit: Crown,
+  
+  // Creatures & Life
   species: Star,
   creature: Star,
-  setting: MapPin,
+  animal: Circle,
+  
+  // Items & Objects
   item: Package,
-  weapon: Package,
-  armor: Package,
-  food: Package,
-  drink: Package,
-  religion: Star,
-  language: Package,
-  plot: Package,
-  prompt: Package,
-  theme: Package,
-  mood: Package,
-  plant: Package,
-  animal: Star,
-  ethnicity: User,
-  culture: Star,
-  document: Package,
-  settlement: Building,
-  society: User,
-  faction: Star,
-  militaryunit: Star,
+  weapon: Sword,
+  armor: Shield,
   accessory: Package,
   clothing: Package,
+  food: UtensilsCrossed,
+  drink: Wine,
   material: Package,
   resource: Package,
+  
+  // Knowledge & Culture
+  document: Package,
+  language: Feather,
+  religion: Star,
   myth: Package,
   legend: Package,
   tradition: Package,
-  ritual: Package,
+  ritual: Star,
+  
+  // Events & Time
   event: Package,
-  building: Building,
-  transportation: Package,
+  timeline: Package,
+  familytree: Users,
+  
+  // Nature & Environment
+  plant: TreePine,
+  condition: Package,
   naturallaw: Package,
-  technology: Package,
-  spell: Star
+  
+  // Technology & Magic
+  technology: Calculator,
+  spell: Sparkles,
+  
+  // Transportation & Infrastructure
+  transportation: Car,
+  
+  // Story Elements
+  plot: Package,
+  conflict: Package,
+  theme: Package,
+  mood: PaintBucket,
+  prompt: Package,
+  
+  // Professions & Roles
+  profession: User,
+  role: User,
+  title: Crown,
+  
+  // Culinary
+  cuisine: UtensilsCrossed,
+  
+  // Deities & Religion
+  deity: Star,
+  
+  // Fallback
+  setting: MapPin
+};
+
+// Content type categories for filtering
+const CONTENT_CATEGORIES = {
+  "People": ["character", "ethnicity", "culture", "profession", "role", "title"],
+  "Places": ["location", "settlement", "building", "geography", "territory", "district", "city", "country"],
+  "Groups": ["organization", "society", "faction", "militaryunit"],
+  "Life": ["species", "creature", "animal", "plant"],
+  "Items": ["item", "weapon", "armor", "accessory", "clothing", "food", "drink", "material", "resource"],
+  "Knowledge": ["document", "language", "religion", "myth", "legend", "tradition", "ritual", "deity"],
+  "Story": ["plot", "conflict", "theme", "mood", "prompt", "event", "timeline"],
+  "World": ["condition", "naturallaw", "technology", "spell", "transportation", "cuisine", "familytree"]
 };
 
 export default function SavedItems() {
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const [, setLocation] = useLocation();
