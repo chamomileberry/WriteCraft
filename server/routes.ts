@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertCharacterSchema, 
+  updateCharacterSchema,
   insertPlotSchema, 
   insertPromptSchema, 
   insertGuideSchema,
@@ -94,6 +95,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching character:', error);
       res.status(500).json({ error: 'Failed to fetch character' });
+    }
+  });
+
+  app.patch("/api/characters/:id", async (req, res) => {
+    try {
+      // Validate the request body against the update schema
+      const validatedUpdates = updateCharacterSchema.parse(req.body);
+      const updatedCharacter = await storage.updateCharacter(req.params.id, validatedUpdates);
+      res.json(updatedCharacter);
+    } catch (error) {
+      console.error('Error updating character:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
     }
   });
 
