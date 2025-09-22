@@ -52,11 +52,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate }: Heade
               Generators
             </a>
             <button 
-              onClick={() => onNavigate?.('saved-items')}
+              onClick={() => onNavigate?.('notebook')}
               className="text-foreground hover:text-primary transition-colors" 
-              data-testid="link-collection"
+              data-testid="link-notebook"
             >
-              Collection
+              Notebook
             </button>
             <a href="#guides" className="text-foreground hover:text-primary transition-colors" data-testid="link-guides">
               Guides

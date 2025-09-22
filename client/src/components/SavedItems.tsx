@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Copy, Trash2, User, Map, Feather, Scroll, BookMarked, Loader2, PenTool } from "lucide-react";
+import { Heart, Copy, Trash2, User, Map, Feather, Scroll, BookMarked, Loader2, PenTool, Edit } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface SavedItem {
   id: string;
@@ -69,6 +70,7 @@ interface Description {
 export default function SavedItems() {
   const [activeTab, setActiveTab] = useState("all");
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Fetch saved items
   const { data: savedItems = [], isLoading, error } = useQuery({
@@ -92,7 +94,7 @@ export default function SavedItems() {
     onSuccess: () => {
       toast({
         title: "Item removed",
-        description: "Item has been removed from your collection.",
+        description: "Item has been removed from your notebook.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
@@ -157,6 +159,14 @@ export default function SavedItems() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation(`/characters/${character.id}/edit`)}
+                data-testid="button-edit-character"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -461,7 +471,7 @@ ${description.content}`;
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">My Collection</h1>
+        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">My Notebook</h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
           Your saved characters, settings, creatures, and other creative content all in one place.
         </p>
