@@ -6,9 +6,10 @@ import { useState, useEffect } from "react";
 interface HeaderProps {
   onSearch?: (query: string) => void;
   searchQuery?: string;
+  onNavigate?: (view: string) => void;
 }
 
-export default function Header({ onSearch, searchQuery = "" }: HeaderProps) {
+export default function Header({ onSearch, searchQuery = "", onNavigate }: HeaderProps) {
   const [searchValue, setSearchValue] = useState(searchQuery);
   const [isDark, setIsDark] = useState(false);
 
@@ -50,6 +51,13 @@ export default function Header({ onSearch, searchQuery = "" }: HeaderProps) {
             <a href="#generators" className="text-foreground hover:text-primary transition-colors" data-testid="link-generators">
               Generators
             </a>
+            <button 
+              onClick={() => onNavigate?.('saved-items')}
+              className="text-foreground hover:text-primary transition-colors" 
+              data-testid="link-collection"
+            >
+              Collection
+            </button>
             <a href="#guides" className="text-foreground hover:text-primary transition-colors" data-testid="link-guides">
               Guides
             </a>
