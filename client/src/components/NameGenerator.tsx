@@ -29,7 +29,7 @@ const NAME_TYPE_CATEGORIES = {
     { value: 'barbarian', label: 'Barbarian Names' },
     { value: 'caveman', label: 'Cavemen Names' },
     { value: 'medieval', label: 'Medieval Names' },
-    { value: 'royal', label: 'Royal/Noble Names' },
+    { value: 'royal_noble', label: 'Royal/Noble Names' },
     { value: 'servant', label: 'Servant Names' },
     { value: 'prophet', label: 'Prophet Names' },
     { value: 'killer', label: 'Killer Names' },
@@ -143,10 +143,29 @@ const NAME_TYPE_CATEGORIES = {
     { value: 'group', label: 'Group Names' },
     { value: 'sorority', label: 'Sorority Names' },
     { value: 'culture', label: 'Culture Names' },
-    { value: 'species', label: 'Species Names' },
     { value: 'company', label: 'Company Names' },
     { value: 'brand', label: 'Brand Names' },
-    { value: 'airline', label: 'Airline Names' }
+    { value: 'airline', label: 'Airline Names' },
+    { value: 'faction', label: 'Faction Names' },
+    { value: 'council', label: 'Council Names' },
+    { value: 'cult', label: 'Cult Names' },
+    { value: 'organization', label: 'Organization Names' },
+    { value: 'fraternity', label: 'Fraternity Names' },
+    { value: 'gang', label: 'Gang Names' },
+    { value: 'government', label: 'Government Names' },
+    { value: 'guild', label: 'Guild Names' },
+    { value: 'law_enforcement', label: 'Law Enforcement Agency Names' },
+    { value: 'military_division', label: 'Military Division Names' },
+    { value: 'mob', label: 'Mob Names' },
+    { value: 'political_party', label: 'Political Party Names' },
+    { value: 'society', label: 'Society Names' },
+    { value: 'secret_order', label: 'Secret Order Names' },
+    { value: 'sports_team', label: 'Sports Team Names' },
+    { value: 'space_fleet', label: 'Space Fleet Names' },
+    { value: 'tribe', label: 'Tribe Names' },
+    { value: 'tribal', label: 'Tribal Names' },
+    { value: 'crew', label: 'Crew Names' },
+    { value: 'rebellion', label: 'Rebellion Names' }
   ],
   "Magic & Fantasy": [
     { value: 'wizard', label: 'Wizard Names' },
@@ -155,11 +174,126 @@ const NAME_TYPE_CATEGORIES = {
     { value: 'alchemy_ingredient', label: 'Alchemy Ingredient Names' },
     { value: 'fantasy_surname', label: 'Fantasy Surnames' }
   ],
-  "Entertainment & Misc": [
+  "Medical & Health": [
+    { value: 'virus', label: 'Virus Names' },
+    { value: 'pandemic', label: 'Pandemic Names' },
+    { value: 'disease', label: 'Disease Names' },
+    { value: 'illness', label: 'Illness Names' },
+    { value: 'condition', label: 'Condition Names' },
+    { value: 'medicine', label: 'Medicine Names' },
+    { value: 'ailment', label: 'Ailment Names' },
+    { value: 'cure', label: 'Cure Names' },
+    { value: 'poison', label: 'Poison Names' },
+    { value: 'potion', label: 'Potion Names' }
+  ],
+  "Science & Nature": [
+    { value: 'constellation', label: 'Constellation Names' },
+    { value: 'crop', label: 'Crop Names' },
+    { value: 'plant_species', label: 'Plant Species Names' },
+    { value: 'dinosaur', label: 'Dinosaur Names' },
+    { value: 'mineral', label: 'Mineral Names' },
+    { value: 'gemstone', label: 'Gemstone Names' },
+    { value: 'herb', label: 'Herb Names' },
+    { value: 'spice', label: 'Spice Names' },
+    { value: 'fruit', label: 'Fruit Names' },
+    { value: 'vegetable', label: 'Vegetable Names' },
+    { value: 'fungus', label: 'Fungus Names' },
+    { value: 'element', label: 'Element Names' },
+    { value: 'molecule', label: 'Molecule Names' },
+    { value: 'mutant_plant', label: 'Mutant Plant Names' },
+    { value: 'natural_disaster', label: 'Natural Disaster Names' },
+    { value: 'fantasy_plant', label: 'Fantasy Plant Names' },
+    { value: 'fantasy_species', label: 'Fantasy Species Names' },
+    { value: 'scientific', label: 'Scientific Names' }
+  ],
+  "Entertainment & Media": [
     { value: 'game', label: 'Game Names' },
-    { value: 'artwork', label: 'Artwork Names' },
-    { value: 'battle', label: 'Battle Names' },
+    { value: 'video_game', label: 'Video Game Names' },
+    { value: 'dj', label: 'DJ Names' },
+    { value: 'band', label: 'Band Names' },
+    { value: 'album', label: 'Album Names' },
+    { value: 'magazine', label: 'Magazine Names' },
+    { value: 'newspaper', label: 'Newspaper Names' },
+    { value: 'musician', label: 'Musician Names' },
+    { value: 'celebrity', label: 'Celebrity Names' },
+    { value: 'record_label', label: 'Record Label Names' },
+    { value: 'book', label: 'Book Names' },
+    { value: 'wrestler', label: 'Wrestler Names' },
+    { value: 'wrestling_move', label: 'Wrestling Move Names' }
+  ],
+  "Food & Drink": [
+    { value: 'drink', label: 'Drink Names' },
+    { value: 'food', label: 'Food Names' },
     { value: 'candy', label: 'Candy Names' }
+  ],
+  "Arts & Culture": [
+    { value: 'colour', label: 'Colour Names' },
+    { value: 'dance', label: 'Dance Names' },
+    { value: 'instrument', label: 'Instrument Names' },
+    { value: 'jewelry', label: 'Jewelry Names' },
+    { value: 'music', label: 'Music Names' },
+    { value: 'martial_arts', label: 'Martial Arts Names' },
+    { value: 'artwork', label: 'Artwork Names' }
+  ],
+  "Military & Combat": [
+    { value: 'military_rank', label: 'Military Rank Names' },
+    { value: 'mercenary', label: 'Mercenary Names' },
+    { value: 'military_operation', label: 'Military Operation Names' },
+    { value: 'weapon', label: 'Weapon Names' },
+    { value: 'battle', label: 'Battle Names' }
+  ],
+  "Culture & Society": [
+    { value: 'language', label: 'Language Names' },
+    { value: 'holiday', label: 'Holiday Names' },
+    { value: 'tradition', label: 'Tradition Names' },
+    { value: 'ritual', label: 'Ritual Names' },
+    { value: 'religion', label: 'Religion Names' },
+    { value: 'time_period', label: 'Time Period Names' },
+    { value: 'season', label: 'Season Names' }
+  ],
+  "Transportation & Technology": [
+    { value: 'railway', label: 'Railway Names' },
+    { value: 'rocketship', label: 'Rocketship Names' },
+    { value: 'space_station', label: 'Space Station Names' },
+    { value: 'satellite', label: 'Satellite Names' },
+    { value: 'vehicle', label: 'Vehicle Names' }
+  ],
+  "Professional & Trades": [
+    { value: 'fantasy_profession', label: 'Fantasy Profession Names' },
+    { value: 'profession', label: 'Profession Names' },
+    { value: 'noble', label: 'Noble Names' },
+    { value: 'royal_title', label: 'Royal Title Names' }
+  ],
+  "Performance & Entertainment": [
+    { value: 'clown', label: 'Clown Names' },
+    { value: 'drag_king', label: 'Drag King Names' },
+    { value: 'drag_queen', label: 'Drag Queen Names' },
+    { value: 'roller_derby', label: 'Roller Derby Names' },
+    { value: 'mascot', label: 'Mascot Names' }
+  ],
+  "Fantasy & Magic Extended": [
+    { value: 'enchantment', label: 'Enchantment Names' },
+    { value: 'magic_school', label: 'Magic School Names' },
+    { value: 'spell', label: 'Spell Names' },
+    { value: 'rune', label: 'Rune Names' },
+    { value: 'superpower', label: 'Superpower Names' }
+  ],
+  "Miscellaneous": [
+    { value: 'currency', label: 'Currency Names' },
+    { value: 'curse', label: 'Curse Names' },
+    { value: 'date', label: 'Date Names' },
+    { value: 'drug', label: 'Drug Names' },
+    { value: 'blackmarket', label: 'Blackmarket Names' },
+    { value: 'hacker', label: 'Hacker Names' },
+    { value: 'heist', label: 'Heist Names' },
+    { value: 'material', label: 'Material Names' },
+    { value: 'measurement', label: 'Measurement Names' },
+    { value: 'ride', label: 'Ride Names' },
+    { value: 'tool', label: 'Tool Names' },
+    { value: 'treaty', label: 'Treaty Names' },
+    { value: 'document', label: 'Document Names' },
+    { value: 'username', label: 'Usernames' },
+    { value: 'mobster', label: 'Mobster Names' }
   ]
 };
 
@@ -323,9 +457,17 @@ export default function NameGenerator() {
 
   const getNameTypeIcon = () => {
     switch (nameType) {
-      case 'character': return User;
-      case 'place': return MapPin;
-      case 'royal': return Crown;
+      case 'character':
+      case 'human': return User;
+      case 'location':
+      case 'city':
+      case 'town':
+      case 'village':
+      case 'kingdom':
+      case 'empire': return MapPin;
+      case 'royal_noble':
+      case 'royal_title':
+      case 'noble': return Crown;
       default: return FileText;
     }
   };
