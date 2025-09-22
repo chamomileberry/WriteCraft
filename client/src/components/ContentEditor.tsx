@@ -9,6 +9,10 @@ import { Save, Loader2, Edit, ArrowLeft } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { getMappingById } from "@shared/contentTypes";
+import { useLocation } from "wouter";
+import LocationForm from "@/components/forms/LocationForm";
+import CreatureForm from "@/components/forms/CreatureForm";
 
 interface ContentEditorProps {
   contentType: string;
@@ -20,12 +24,17 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const [editingData, setEditingData] = useState<any>({});
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  // Get the content type mapping
+  const mapping = getMappingById(contentType);
+  const apiBase = mapping?.apiBase || `/api/${contentType}`;
 
   // Fetch the content data
   const { data: contentData, isLoading, error } = useQuery({
-    queryKey: [`/api/${contentType}`, contentId],
+    queryKey: [apiBase, contentId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/${contentType}/${contentId}`);
+      const response = await apiRequest('GET', `${apiBase}/${contentId}`);
       return response.json();
     },
   });
@@ -33,7 +42,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('PUT', `/api/${contentType}/${contentId}`, data);
+      const response = await apiRequest('PUT', `${apiBase}/${contentId}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -42,7 +51,8 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         description: "Your changes have been saved successfully.",
       });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: [`/api/${contentType}`] });
+      queryClient.invalidateQueries({ queryKey: [apiBase] });
+      queryClient.invalidateQueries({ queryKey: [apiBase, contentId] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
     onError: () => {
@@ -63,6 +73,11 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
 
   const handleSave = () => {
     updateMutation.mutate(editingData);
+  };
+
+  // Handle type-specific form submission
+  const handleFormSubmit = (data: any) => {
+    updateMutation.mutate(data);
   };
 
   const handleCancel = () => {
