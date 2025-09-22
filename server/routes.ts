@@ -74,6 +74,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/characters", async (req, res) => {
+    try {
+      // For now, return all characters. In a real app with auth, this would be user-scoped
+      const characters = await storage.getUserCharacters(null);
+      res.json(characters);
+    } catch (error) {
+      console.error('Error fetching characters:', error);
+      res.status(500).json({ error: 'Failed to fetch characters' });
+    }
+  });
+
   app.get("/api/characters/user/:userId?", async (req, res) => {
     try {
       const userId = req.params.userId || null;

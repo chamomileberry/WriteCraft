@@ -45,10 +45,22 @@ export default function CharacterEditPage() {
   useEffect(() => {
     if (character) {
       const formData = Object.fromEntries(
-        Object.entries(character).map(([key, value]) => [
-          key,
-          value === null ? "" : value
-        ])
+        Object.entries(character).map(([key, value]) => {
+          if (value === null || value === undefined) {
+            // Handle arrays
+            if (key === 'personality' || key === 'languages' || key === 'hobbies' || 
+                key === 'skills' || key === 'culturalElements' || key === 'notableFeatures') {
+              return [key, []];
+            }
+            // Handle numbers
+            if (key === 'age' || key === 'weight') {
+              return [key, undefined];
+            }
+            // Handle strings - convert null to empty string
+            return [key, ""];
+          }
+          return [key, value];
+        })
       );
       form.reset(formData);
     }
