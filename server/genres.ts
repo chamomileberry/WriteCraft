@@ -705,4 +705,66 @@ export const SETTING_TYPE_CATEGORIES = {
   ]
 };
 
+export const CREATURE_TYPE_CATEGORIES = {
+  "Real Animals - Vertebrates": [
+    "fish", "mammal", "bird", "amphibian", "reptile", "canine", "feline", 
+    "aquatic mammal", "avian", "primate", "rodent", "ungulate", "bovine", 
+    "camelid", "caprid", "equine", "pachyderm", "swine", "marsupial"
+  ],
+  "Real Animals - Invertebrates": [
+    "arthropod", "crustacean", "arachnid", "mollusc", "xenarthran"
+  ],
+  "Specialized Animal Types": [
+    "musteloid", "herpestoid", "procyonid", "jackalope"
+  ],
+  "Fantasy Creatures": [
+    "dragon", "unicorn", "griffin", "hypogriff", "pegasus", "phoenix"
+  ],
+  "Mythological Beings": [
+    "fairy", "pixie", "nymph", "siren", "sprite", "dryad", "druid", 
+    "valkyrie", "banshee"
+  ],
+  "Shapeshifters & Lycanthropes": [
+    "werewolf", "werehyena", "wendigo", "selkie", "kelpie"
+  ],
+  "Undead & Supernatural": [
+    "vampire", "wraith", "ghoul", "skeleton", "draugr"
+  ],
+  "Humanoid Races": [
+    "elf", "dwarf", "gnome", "goblin", "humanoid"
+  ],
+  "Giants & Large Beings": [
+    "troll", "ogre", "giant", "cyclops", "minotaur"
+  ],
+  "Hybrid Creatures": [
+    "centaur", "mermaid", "faun", "sphinx"
+  ],
+  "Constructed Beings": [
+    "golem", "gargoyle", "elemental"
+  ],
+  "Cryptids & Legendary": [
+    "chupacabra", "yeti", "sasquatch", "kraken", "leviathan"
+  ],
+  "Serpentine & Reptilian": [
+    "serpent", "basilisk", "gorgon", "hydra", "echidna", "sea serpent"
+  ],
+  "Spirits & Ethereal": [
+    "will-o'-wisp", "genie", "gremlin", "demon", "incubus", "succubus", 
+    "leprechaun", "boggart", "spriggan"
+  ],
+  "Prehistoric & Ancient": [
+    "dinosaur"
+  ],
+  "Extraterrestrial": [
+    "alien"
+  ],
+  "Botanical & Nature": [
+    "mandrake"
+  ],
+  "Zodiacal": [
+    "capricorn"
+  ]
+};
+
 export const ALL_SETTING_TYPES = Object.values(SETTING_TYPE_CATEGORIES).flat();
+export const ALL_CREATURE_TYPES = Object.values(CREATURE_TYPE_CATEGORIES).flat();
