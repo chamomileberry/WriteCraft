@@ -42,6 +42,7 @@ export const plots = pgTable("plots", {
   theme: text("theme").notNull(),
   conflict: text("conflict").notNull(),
   genre: text("genre"),
+  storyStructure: text("story_structure"),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });

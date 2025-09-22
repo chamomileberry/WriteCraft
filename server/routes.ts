@@ -91,10 +91,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const generateRequestSchema = z.object({
         genre: z.string().optional(),
+        storyStructure: z.string().optional(),
         userId: z.string().nullable().optional()
       });
       
-      const { genre, userId } = generateRequestSchema.parse(req.body);
+      const { genre, storyStructure, userId } = generateRequestSchema.parse(req.body);
       
       const plot = {
         setup: generateRandomSetup(),
@@ -107,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         theme: generateRandomTheme(),
         conflict: generateRandomConflict(),
         genre: genre || null,
+        storyStructure: storyStructure || null,
         userId: userId || null
       };
 
