@@ -87,6 +87,92 @@ export const characters = pgTable("characters", {
   strikingFeatures: text("striking_features"),
   marksPiercingsTattoos: text("marks_piercings_tattoos"),
   distinctPhysicalFeatures: text("distinct_physical_features"),
+  // Supernatural and special abilities
+  supernaturalPowers: text("supernatural_powers"),
+  specialAbilities: text("special_abilities"),
+  mutations: text("mutations"),
+  // Attire, equipment and possessions
+  typicalAttire: text("typical_attire"),
+  accessories: text("accessories"),
+  keyEquipment: text("key_equipment"),
+  specializedItems: text("specialized_items"),
+  // Skills and abilities
+  mainSkills: text("main_skills"),
+  strengths: text("strengths"),
+  positiveAspects: text("positive_aspects"),
+  proficiencies: text("proficiencies"),
+  lackingSkills: text("lacking_skills"),
+  lackingKnowledge: text("lacking_knowledge"),
+  // Character flaws and vices
+  characterFlaws: text("character_flaws"),
+  addictions: text("addictions"),
+  vices: text("vices"),
+  defects: text("defects"),
+  secretBeliefs: text("secret_beliefs"),
+  // Preferences and personality
+  likes: text("likes"),
+  dislikes: text("dislikes"),
+  // Legacy and influence (if deceased)
+  worldInfluence: text("world_influence"),
+  legacy: text("legacy"),
+  rememberedBy: text("remembered_by"),
+  // Behavioral traits
+  behavioralTraits: text("behavioral_traits"),
+  particularities: text("particularities"),
+  hygieneValue: text("hygiene_value"),
+  // Quotes and catchphrases
+  famousQuotes: text("famous_quotes"),
+  catchphrases: text("catchphrases"),
+  // Leadership and domain
+  overseeingDomain: text("overseeing_domain"),
+  leadershipGroup: text("leadership_group"),
+  positionDuration: text("position_duration"),
+  // Relationships
+  keyRelationships: text("key_relationships"),
+  allies: text("allies"),
+  enemies: text("enemies"),
+  familialTies: text("familial_ties"),
+  // Religious and spiritual
+  religiousViews: text("religious_views"),
+  spiritualPractices: text("spiritual_practices"),
+  // Personality characteristics
+  charisma: text("charisma"),
+  confidence: text("confidence"),
+  ego: text("ego"),
+  extroversion: text("extroversion"),
+  etiquette: text("etiquette"),
+  mannerisms: text("mannerisms"),
+  // Behavioral patterns
+  habitualGestures: text("habitual_gestures"),
+  speakingStyle: text("speaking_style"),
+  behavingStyle: text("behaving_style"),
+  // Hobbies and interests
+  hobbies: text("hobbies"),
+  interests: text("interests"),
+  activities: text("activities"),
+  pets: text("pets"),
+  // Speech characteristics
+  speechParticularities: text("speech_particularities"),
+  toneOfVoice: text("tone_of_voice"),
+  voicePitch: text("voice_pitch"),
+  accent: text("accent"),
+  dialect: text("dialect"),
+  speechImpediments: text("speech_impediments"),
+  commonPhrases: text("common_phrases"),
+  compliments: text("compliments"),
+  insults: text("insults"),
+  greetings: text("greetings"),
+  farewells: text("farewells"),
+  swearing: text("swearing"),
+  metaphors: text("metaphors"),
+  // Wealth and class
+  wealthClass: text("wealth_class"),
+  dependencies: text("dependencies"),
+  debts: text("debts"),
+  funds: text("funds"),
+  disposableIncome: text("disposable_income"),
+  assets: text("assets"),
+  investments: text("investments"),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });

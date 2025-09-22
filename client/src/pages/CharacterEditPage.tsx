@@ -20,7 +20,13 @@ import {
   Heart, 
   MapPin, 
   Eye,
-  Brain
+  Brain,
+  Zap,
+  Smile,
+  Users,
+  Home,
+  MessageCircle,
+  Star
 } from "lucide-react";
 
 export default function CharacterEditPage() {
@@ -49,7 +55,8 @@ export default function CharacterEditPage() {
           if (value === null || value === undefined) {
             // Handle arrays
             if (key === 'personality' || key === 'languages' || key === 'hobbies' || 
-                key === 'skills' || key === 'culturalElements' || key === 'notableFeatures') {
+                key === 'skills' || key === 'culturalElements' || key === 'notableFeatures' ||
+                key === 'interests' || key === 'activities') {
               return [key, []];
             }
             // Handle numbers
@@ -155,29 +162,49 @@ export default function CharacterEditPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="basic" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
+              <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 gap-1">
+                <TabsTrigger value="basic" className="flex items-center gap-1 px-2 text-xs">
+                  <User className="h-3 w-3" />
                   Basic
                 </TabsTrigger>
-                <TabsTrigger value="identity" className="flex items-center gap-2">
-                  <Heart className="h-4 w-4" />
+                <TabsTrigger value="identity" className="flex items-center gap-1 px-2 text-xs">
+                  <Heart className="h-3 w-3" />
                   Identity
                 </TabsTrigger>
-                <TabsTrigger value="physical" className="flex items-center gap-2">
-                  <Eye className="h-4 w-4" />
+                <TabsTrigger value="physical" className="flex items-center gap-1 px-2 text-xs">
+                  <Eye className="h-3 w-3" />
                   Physical
                 </TabsTrigger>
-                <TabsTrigger value="personal" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Personal
+                <TabsTrigger value="abilities" className="flex items-center gap-1 px-2 text-xs">
+                  <Zap className="h-3 w-3" />
+                  Abilities
                 </TabsTrigger>
-                <TabsTrigger value="development" className="flex items-center gap-2">
-                  <Brain className="h-4 w-4" />
-                  Development
+                <TabsTrigger value="personality" className="flex items-center gap-1 px-2 text-xs">
+                  <Smile className="h-3 w-3" />
+                  Personality
                 </TabsTrigger>
-                <TabsTrigger value="prompts" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
+                <TabsTrigger value="relationships" className="flex items-center gap-1 px-2 text-xs">
+                  <Users className="h-3 w-3" />
+                  Relations
+                </TabsTrigger>
+                <TabsTrigger value="background" className="flex items-center gap-1 px-2 text-xs">
+                  <FileText className="h-3 w-3" />
+                  Background
+                </TabsTrigger>
+                <TabsTrigger value="lifestyle" className="flex items-center gap-1 px-2 text-xs">
+                  <Home className="h-3 w-3" />
+                  Lifestyle
+                </TabsTrigger>
+                <TabsTrigger value="speech" className="flex items-center gap-1 px-2 text-xs">
+                  <MessageCircle className="h-3 w-3" />
+                  Speech
+                </TabsTrigger>
+                <TabsTrigger value="spiritual" className="flex items-center gap-1 px-2 text-xs">
+                  <Star className="h-3 w-3" />
+                  Spiritual
+                </TabsTrigger>
+                <TabsTrigger value="prompts" className="flex items-center gap-1 px-2 text-xs">
+                  <Brain className="h-3 w-3" />
                   Prompts
                 </TabsTrigger>
               </TabsList>
@@ -1058,6 +1085,670 @@ export default function CharacterEditPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
+
+              {/* Abilities & Skills Tab */}
+              <TabsContent value="abilities" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="h-5 w-5" />
+                      Supernatural Abilities & Powers
+                    </CardTitle>
+                    <CardDescription>
+                      Special abilities, powers, and extraordinary capabilities
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="supernaturalPowers"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Supernatural or Extraordinary Powers</FormLabel>
+                          <FormDescription>
+                            Does the character have any supernatural or extraordinary powers, mutations, or special abilities?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Describe any supernatural powers, magical abilities, mutations, or extraordinary capabilities..."
+                              className="min-h-[100px]"
+                              data-testid="textarea-supernatural-powers"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="mainSkills"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Main Skills & Strengths</FormLabel>
+                          <FormDescription>
+                            What are the character's main skills, strengths, positive character aspects, and proficiencies?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="List key skills, talents, competencies, and areas of expertise..."
+                              className="min-h-[100px]"
+                              data-testid="textarea-main-skills"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="lackingSkills"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Lacking Skills & Knowledge</FormLabel>
+                          <FormDescription>
+                            What skills or knowledge are they lacking? What areas do they struggle with?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Areas where they lack expertise, knowledge gaps, weak points..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-lacking-skills"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="typicalAttire"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Typical Attire & Accessories</FormLabel>
+                          <FormDescription>
+                            What is the character's typical attire and accessories?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Describe their usual clothing style, favorite outfits, accessories..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-typical-attire"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="keyEquipment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Key Equipment & Specialized Items</FormLabel>
+                          <FormDescription>
+                            Is there key equipment or specialized items used by the character?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Tools, weapons, specialized gear, important possessions..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-key-equipment"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Personality & Traits Tab */}
+              <TabsContent value="personality" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Smile className="h-5 w-5" />
+                      Personality & Character Traits
+                    </CardTitle>
+                    <CardDescription>
+                      Deep personality characteristics, flaws, and behavioral patterns
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="characterFlaws"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Character Flaws & Vices</FormLabel>
+                          <FormDescription>
+                            What flaws do they have? Do they have any addictions, vices, defects, or secret beliefs?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Character flaws, addictions, bad habits, secret beliefs, moral weaknesses..."
+                              className="min-h-[100px]"
+                              data-testid="textarea-character-flaws"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="likes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Likes & Preferences</FormLabel>
+                          <FormDescription>
+                            What are the character's likes and preferences?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Things they enjoy, preferences, favorite activities, foods, music..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-likes"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="dislikes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dislikes & Pet Peeves</FormLabel>
+                          <FormDescription>
+                            What are the character's dislikes and things that annoy them?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Things they dislike, pet peeves, triggers, aversions..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-dislikes"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="behavioralTraits"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Behavioral Traits & Particularities</FormLabel>
+                          <FormDescription>
+                            Do they have any unique behavioral traits or particularities?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Unique habits, quirks, behavioral patterns, strange behaviors..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-behavioral-traits"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="charisma"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Charisma & Social Characteristics</FormLabel>
+                          <FormDescription>
+                            How would you describe their charisma, confidence, ego, extroversion, etiquette and mannerisms?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Social skills, confidence level, charisma, ego, social mannerisms..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-charisma"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="habitualGestures"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Habitual Gestures & Mannerisms</FormLabel>
+                          <FormDescription>
+                            What are the habitual gestures, mannerisms, ways of speaking or behaving of the character?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Recurring gestures, nervous habits, speaking patterns, behavioral tics..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-habitual-gestures"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Relationships & Social Tab */}
+              <TabsContent value="relationships" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Relationships & Social Connections
+                    </CardTitle>
+                    <CardDescription>
+                      Key relationships, leadership roles, and social connections
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="keyRelationships"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Key Relationships</FormLabel>
+                          <FormDescription>
+                            What are the character's key relationships, including allies, enemies, and familial ties?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Important relationships, family connections, close friends, romantic partners..."
+                              className="min-h-[100px]"
+                              data-testid="textarea-key-relationships"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="allies"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Allies & Friends</FormLabel>
+                          <FormDescription>
+                            Who are their allies, friends, and trusted companions?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Close allies, trusted friends, mentors, supporters..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-allies"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="enemies"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Enemies & Rivals</FormLabel>
+                          <FormDescription>
+                            Who are their enemies, rivals, or antagonists?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Enemies, rivals, people who oppose them, ongoing conflicts..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-enemies"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="overseeingDomain"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Leadership & Domain</FormLabel>
+                          <FormDescription>
+                            Is this character overseeing or ruling over a domain or group of people? How long have they been in this position?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Leadership roles, domains ruled, groups managed, duration in position..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-overseeing-domain"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Background & History Tab */}
+              <TabsContent value="background" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Background & Legacy
+                    </CardTitle>
+                    <CardDescription>
+                      Historical background, legacy, and economic status
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="legacy"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Legacy & Influence</FormLabel>
+                          <FormDescription>
+                            If the character is deceased, what influence have they had on the world and what is their legacy—how are they remembered by others?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Lasting impact, how they're remembered, influence on others or events..."
+                              className="min-h-[100px]"
+                              data-testid="textarea-legacy"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="wealthClass"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Wealth & Economic Status</FormLabel>
+                          <FormDescription>
+                            How would you describe the wealth of this character in terms of class, dependencies, debts, funds, disposable income, assets and investments?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Economic class, income level, debts, assets, investments, financial situation..."
+                              className="min-h-[100px]"
+                              data-testid="textarea-wealth-class"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Lifestyle & Preferences Tab */}
+              <TabsContent value="lifestyle" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Home className="h-5 w-5" />
+                      Lifestyle & Daily Life
+                    </CardTitle>
+                    <CardDescription>
+                      Hobbies, interests, and daily life preferences
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="hobbies"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Hobbies & Interests</FormLabel>
+                          <FormDescription>
+                            What hobbies, interests, and activities does the character enjoy?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Hobbies, pastimes, recreational activities, interests, passions..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-hobbies"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="pets"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pets & Animal Companions</FormLabel>
+                          <FormDescription>
+                            Does the character have any pets or animal companions?
+                          </FormDescription>
+                          <FormControl>
+                            <Input 
+                              placeholder="Pet names and types, animal companions..."
+                              data-testid="input-pets"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="hygieneValue"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Hygiene & Self-Care</FormLabel>
+                          <FormDescription>
+                            How much does the character value hygiene and self-care?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Approach to personal hygiene, grooming habits, self-care routines..."
+                              className="min-h-[60px]"
+                              data-testid="textarea-hygiene-value"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Speech & Communication Tab */}
+              <TabsContent value="speech" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5" />
+                      Speech & Communication
+                    </CardTitle>
+                    <CardDescription>
+                      Speech patterns, communication style, and verbal characteristics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="famousQuotes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Famous Quotes & Catchphrases</FormLabel>
+                          <FormDescription>
+                            Does the character have any famous quotes or catchphrases?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Memorable quotes, catchphrases, signature sayings..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-famous-quotes"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="speechParticularities"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Speech Characteristics</FormLabel>
+                          <FormDescription>
+                            Are there any particularities in terms of the character's speech, tone of voice, pitch, accent, dialect, impediments, catch phrases, common phrases, compliments, insults, greetings, farewell, swearing or metaphors?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Speech patterns, accent, dialect, voice characteristics, verbal habits..."
+                              className="min-h-[120px]"
+                              data-testid="textarea-speech-particularities"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Spiritual & Beliefs Tab */}
+              <TabsContent value="spiritual" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Star className="h-5 w-5" />
+                      Spiritual & Religious Views
+                    </CardTitle>
+                    <CardDescription>
+                      Religious beliefs, spiritual practices, and philosophical views
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="religiousViews"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Religious Views & Beliefs</FormLabel>
+                          <FormDescription>
+                            What are the character's religious views and spiritual practices?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Religious beliefs, faith, spiritual philosophy, relationship with divinity..."
+                              className="min-h-[100px]"
+                              data-testid="textarea-religious-views"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="spiritualPractices"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Spiritual Practices & Rituals</FormLabel>
+                          <FormDescription>
+                            What spiritual practices, rituals, or ceremonies do they participate in?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Prayer habits, meditation, rituals, spiritual disciplines, religious observances..."
+                              className="min-h-[80px]"
+                              data-testid="textarea-spiritual-practices"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
             </Tabs>
 
             {/* Submit Button */}
