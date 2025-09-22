@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
-import { Shuffle, Copy, Heart, Loader2, Check, ChevronsUpDown } from "lucide-react";
+import { Shuffle, Copy, Heart, Loader2, Check, ChevronsUpDown, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -275,6 +276,13 @@ export default function CharacterGenerator() {
                     <Heart className="h-4 w-4" />
                   )}
                 </Button>
+                {character?.id && (
+                  <Button variant="outline" size="sm" asChild data-testid="button-edit-character">
+                    <Link href={`/characters/${character.id}/edit`}>
+                      <Edit className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
