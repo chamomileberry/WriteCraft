@@ -54,11 +54,74 @@ const GENDER_IDENTITIES = [
   "androgynous", "omnigender", "polygender"
 ];
 
+// Comprehensive ethnicity and cultural background options
+const ETHNICITY_CATEGORIES = {
+  "European": [
+    "British/English", "Irish", "Scottish", "Welsh", "French", "German", "Italian", "Spanish", "Portuguese", 
+    "Dutch", "Belgian", "Swiss", "Austrian", "Polish", "Czech", "Slovak", "Hungarian", "Romanian", 
+    "Bulgarian", "Croatian", "Serbian", "Bosnian", "Albanian", "Greek", "Maltese", "Nordic/Scandinavian", 
+    "Norwegian", "Swedish", "Danish", "Finnish", "Icelandic", "Russian", "Ukrainian", "Belarusian", 
+    "Estonian", "Latvian", "Lithuanian"
+  ],
+  "East Asian": [
+    "Chinese (Han)", "Japanese", "Korean", "Taiwanese", "Hong Kong Chinese", "Tibetan", "Mongolian", 
+    "Vietnamese", "Thai", "Cambodian/Khmer", "Laotian", "Burmese/Myanmar", "Filipino", "Indonesian", 
+    "Malaysian", "Singaporean", "Brunei"
+  ],
+  "South Asian": [
+    "Indian (Northern)", "Indian (Southern)", "Pakistani", "Bangladeshi", "Sri Lankan", "Nepali", 
+    "Bhutanese", "Maldivian", "Afghan", "Punjabi", "Bengali", "Tamil", "Telugu", "Marathi", 
+    "Gujarati", "Kashmiri"
+  ],
+  "Middle Eastern": [
+    "Arab", "Palestinian", "Lebanese", "Syrian", "Jordanian", "Iraqi", "Saudi Arabian", "Emirati", 
+    "Qatari", "Kuwaiti", "Bahraini", "Omani", "Yemeni", "Egyptian", "Moroccan", "Tunisian", 
+    "Algerian", "Libyan", "Persian/Iranian", "Turkish", "Kurdish", "Armenian", "Georgian", "Azerbaijani"
+  ],
+  "African": [
+    "Nigerian", "Ghanaian", "Senegalese", "Malian", "Ivorian", "Burkinabe", "Kenyan", "Ethiopian", 
+    "Tanzanian", "Ugandan", "Rwandan", "South African", "Zimbabwean", "Botswanan", "Namibian", 
+    "Congolese", "Cameroonian", "Sudanese", "Eritrean", "Somali", "Liberian", "Sierra Leonean", 
+    "Gambian", "Guinean", "Malawian", "Zambian", "Mozambican", "Angolan", "Gabonese", 
+    "Equatorial Guinean", "Central African", "Chadian", "Mauritanian", "Djiboutian", "Swahili", 
+    "Yoruba", "Igbo", "Hausa", "Zulu", "Xhosa", "Amhara", "Oromo"
+  ],
+  "Latin American": [
+    "Mexican", "Brazilian", "Colombian", "Argentinian", "Venezuelan", "Peruvian", "Ecuadorian", 
+    "Bolivian", "Chilean", "Paraguayan", "Uruguayan", "Guatemalan", "Honduran", "Salvadoran", 
+    "Nicaraguan", "Costa Rican", "Panamanian", "Cuban", "Dominican", "Puerto Rican", "Jamaican", 
+    "Trinidadian", "Barbadian", "Guyanese", "Surinamese", "Belizean", "Haitian"
+  ],
+  "Indigenous & Native": [
+    "Native American (Cherokee)", "Native American (Navajo)", "Native American (Sioux)", 
+    "Native American (Apache)", "Native American (Iroquois)", "Native American (Pueblo)", 
+    "Native American (Chippewa)", "Native American (Choctaw)", "Native American (Creek)", 
+    "Native American (Seminole)", "Inuit", "First Nations (Cree)", "First Nations (Ojibwe)", 
+    "First Nations (Mi'kmaq)", "Métis", "Aboriginal Australian", "Torres Strait Islander", "Maori", 
+    "Pacific Islander (Samoan)", "Pacific Islander (Tongan)", "Pacific Islander (Fijian)", 
+    "Pacific Islander (Hawaiian)", "Maya", "Aztec/Nahuatl", "Inca/Quechua", "Guarani", "Mapuche"
+  ],
+  "Mixed Heritage": [
+    "Afro-Caribbean", "Anglo-Indian", "Eurasian", "Blasian (Black + Asian)", 
+    "Mestizo (Indigenous + European)", "Mulatto (African + European)", "Hapa (Half Asian Pacific)", 
+    "Creole", "Cape Coloured", "Pardo (Brazilian mixed)", "Multiracial", "Biracial"
+  ],
+  "Jewish Diaspora": [
+    "Ashkenazi Jewish", "Sephardic Jewish", "Mizrahi Jewish", "Ethiopian Jewish", "Indian Jewish", "Bukharian Jewish"
+  ],
+  "Other Groups": [
+    "Roma/Romani", "Sinti", "Bedouin", "Tuareg", "Berber/Amazigh", "Kurmanji Kurdish", "Sorani Kurdish",
+    "Kazakh", "Uzbek", "Turkmen", "Kyrgyz", "Tajik", "Uyghur"
+  ]
+};
+
 export default function CharacterGenerator() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [genre, setGenre] = useState<string>("");
   const [gender, setGender] = useState<string>("");
+  const [ethnicity, setEthnicity] = useState<string>("");
   const [genreSearchOpen, setGenreSearchOpen] = useState(false);
+  const [ethnicitySearchOpen, setEthnicitySearchOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -67,6 +130,7 @@ export default function CharacterGenerator() {
       const response = await apiRequest('POST', '/api/characters/generate', {
         genre: genre || undefined,
         gender: gender || undefined,
+        ethnicity: ethnicity || undefined,
         userId: null // For now, no user authentication
       });
       return response.json();
@@ -206,6 +270,46 @@ export default function CharacterGenerator() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Popover open={ethnicitySearchOpen} onOpenChange={setEthnicitySearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={ethnicitySearchOpen}
+                  className="sm:w-48 justify-between"
+                  data-testid="select-ethnicity"
+                >
+                  {ethnicity ? ethnicity : "Select ethnicity..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[400px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search ethnicities..." />
+                  <CommandList className="max-h-60">
+                    <CommandEmpty>No ethnicity found.</CommandEmpty>
+                    {Object.entries(ETHNICITY_CATEGORIES).map(([category, ethnicities]) => (
+                      <CommandGroup key={category} heading={category}>
+                        {ethnicities.map((ethnicityOption) => (
+                          <CommandItem
+                            key={ethnicityOption}
+                            value={ethnicityOption}
+                            onSelect={() => {
+                              setEthnicity(ethnicityOption);
+                              setEthnicitySearchOpen(false);
+                            }}
+                          >
+                            <Check className={`mr-2 h-4 w-4 ${ethnicity === ethnicityOption ? "opacity-100" : "opacity-0"}`} />
+                            {ethnicityOption}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             
             <Button 
               onClick={generateCharacter}

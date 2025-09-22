@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES } from './genres.js';
+import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, ALL_ETHNICITIES } from './genres.js';
 
 /*
 <important_code_snippet_instructions>
@@ -20,6 +20,7 @@ const anthropic = new Anthropic({
 export interface CharacterGenerationOptions {
   genre?: string;
   gender?: string;
+  ethnicity?: string;
 }
 
 export interface GeneratedCharacter {
@@ -67,7 +68,7 @@ export interface GeneratedCreature {
 }
 
 export async function generateCharacterWithAI(options: CharacterGenerationOptions = {}): Promise<GeneratedCharacter> {
-  const { genre, gender } = options;
+  const { genre, gender, ethnicity } = options;
   
   // Validate inputs
   if (genre && !ALL_GENRES.includes(genre)) {
@@ -76,6 +77,10 @@ export async function generateCharacterWithAI(options: CharacterGenerationOption
   
   if (gender && !GENDER_IDENTITIES.includes(gender)) {
     throw new Error(`Invalid gender identity: ${gender}. Must be one of: ${GENDER_IDENTITIES.join(', ')}`);
+  }
+  
+  if (ethnicity && !ALL_ETHNICITIES.includes(ethnicity)) {
+    throw new Error(`Invalid ethnicity: ${ethnicity}. Must be one of: ${ALL_ETHNICITIES.join(', ')}`);
   }
 
   const systemPrompt = `You are a creative writing assistant specialized in generating psychologically complex, three-dimensional characters for fiction. Your characters should have:
@@ -125,8 +130,13 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     userPrompt += ` The character should identify as ${gender}.`;
   }
   
+  if (ethnicity) {
+    userPrompt += ` The character should be of ${ethnicity} ethnicity/heritage. Incorporate authentic cultural elements into their background, values, traditions, family dynamics, and life experiences that reflect this heritage. Their name should be culturally appropriate and authentic to this background. Consider how their cultural identity shapes their worldview, relationships, and personal challenges.`;
+  }
+  
   userPrompt += " Focus on creating someone with deep internal conflicts, realistic motivations, and a rich backstory that creates story potential. IMPORTANT: Choose a culturally authentic, less common name that avoids overused AI patterns. Consider the character's ethnicity, family background, and cultural heritage when selecting their name. Respond with ONLY the JSON object, no other text.";
 
+  let content: any;
   try {
     console.log('Making request to Anthropic API...');
     
@@ -141,7 +151,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
     console.log('Received response from Anthropic API');
 
-    const content = response.content[0];
+    content = response.content[0];
     if (content.type !== 'text') {
       throw new Error('Unexpected response format from Anthropic API');
     }

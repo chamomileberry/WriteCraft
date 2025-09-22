@@ -24,13 +24,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const generateRequestSchema = z.object({
         genre: z.string().optional(),
         gender: z.string().optional(),
+        ethnicity: z.string().optional(),
         userId: z.string().nullable().optional()
       });
       
-      const { genre, gender, userId } = generateRequestSchema.parse(req.body);
+      const { genre, gender, ethnicity, userId } = generateRequestSchema.parse(req.body);
       
       // Use AI generation instead of archetype system
-      const aiCharacter = await generateCharacterWithAI({ genre, gender });
+      const aiCharacter = await generateCharacterWithAI({ genre, gender, ethnicity });
       
       const character = {
         name: aiCharacter.name,
