@@ -57,7 +57,7 @@ const generateSchema = (config: ContentTypeFormConfig) => {
         case "checkbox":
           fieldSchema = z.boolean().nullable();
           break;
-        // Existing autocomplete types
+        // All autocomplete types - schema depends on multiple property
         case "autocomplete-location":
         case "autocomplete-character":
         case "autocomplete-tradition":
@@ -75,7 +75,6 @@ const generateSchema = (config: ContentTypeFormConfig) => {
         case "autocomplete-society":
         case "autocomplete-faction":
         case "autocomplete-military-unit":
-        // New autocomplete types
         case "autocomplete-family-tree":
         case "autocomplete-timeline":
         case "autocomplete-ceremony":
@@ -85,11 +84,12 @@ const generateSchema = (config: ContentTypeFormConfig) => {
         case "autocomplete-law":
         case "autocomplete-policy":
         case "autocomplete-potion":
-          fieldSchema = z.array(z.string()).nullable();
-          break;
         case "autocomplete-language":
         case "autocomplete-religion":
-          fieldSchema = z.string().nullable();
+          // Schema depends on multiple property: true = array, false/undefined = string
+          fieldSchema = field.multiple === true 
+            ? z.array(z.string()).nullable()
+            : z.string().nullable();
           break;
         default:
           fieldSchema = z.string().nullable();
@@ -97,15 +97,7 @@ const generateSchema = (config: ContentTypeFormConfig) => {
       
       if (field.required) {
         if (field.type === "tags" || 
-            field.type === "autocomplete-location" || field.type === "autocomplete-character" || field.type === "autocomplete-tradition" ||
-            field.type === "autocomplete-organization" || field.type === "autocomplete-species" || field.type === "autocomplete-culture" ||
-            field.type === "autocomplete-weapon" || field.type === "autocomplete-building" || field.type === "autocomplete-plot" ||
-            field.type === "autocomplete-document" || field.type === "autocomplete-accessory" || field.type === "autocomplete-clothing" ||
-            field.type === "autocomplete-material" || field.type === "autocomplete-settlement" || field.type === "autocomplete-society" ||
-            field.type === "autocomplete-faction" || field.type === "autocomplete-military-unit" ||
-            field.type === "autocomplete-family-tree" || field.type === "autocomplete-timeline" || field.type === "autocomplete-ceremony" ||
-            field.type === "autocomplete-map" || field.type === "autocomplete-music" || field.type === "autocomplete-dance" ||
-            field.type === "autocomplete-law" || field.type === "autocomplete-policy" || field.type === "autocomplete-potion") {
+            (field.type.startsWith("autocomplete-") && field.multiple === true)) {
           fieldSchema = z.array(z.string()).min(1, `${field.label} is required`);
         } else if (field.type === "number") {
           fieldSchema = z.number({ required_error: `${field.label} is required` });
@@ -146,50 +138,26 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
         case "checkbox":
           defaults[field.name] = initialValue ?? false;
           break;
-        // Array-based autocomplete types (most content types use multiple selection)
-        case "autocomplete-location":
-        case "autocomplete-character":
-        case "autocomplete-tradition":
-        case "autocomplete-organization":
-        case "autocomplete-species":
-        case "autocomplete-culture":
-        case "autocomplete-weapon":
-        case "autocomplete-building":
-        case "autocomplete-plot":
-        case "autocomplete-document":
-        case "autocomplete-accessory":
-        case "autocomplete-clothing":
-        case "autocomplete-material":
-        case "autocomplete-settlement":
-        case "autocomplete-society":
-        case "autocomplete-faction":
-        case "autocomplete-military-unit":
-        case "autocomplete-family-tree":
-        case "autocomplete-timeline":
-        case "autocomplete-ceremony":
-        case "autocomplete-map":
-        case "autocomplete-music":
-        case "autocomplete-dance":
-        case "autocomplete-law":
-        case "autocomplete-policy":
-        case "autocomplete-potion":
-          // Convert comma-separated string to array or use array directly
-          if (typeof initialValue === "string") {
-            defaults[field.name] = initialValue ? initialValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-          } else if (Array.isArray(initialValue)) {
-            defaults[field.name] = initialValue;
-          } else {
-            defaults[field.name] = [];
-          }
-          break;
-        case "autocomplete-language":
-          defaults[field.name] = initialValue ?? "";
-          break;
-        case "autocomplete-religion":
-          defaults[field.name] = initialValue ?? "";
-          break;
         default:
-          defaults[field.name] = initialValue ?? "";
+          // Handle autocomplete types based on their multiple property
+          if (field.type.startsWith("autocomplete-")) {
+            if (field.multiple === true) {
+              // Multi-value autocomplete fields should be arrays
+              if (typeof initialValue === "string") {
+                defaults[field.name] = initialValue ? initialValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+              } else if (Array.isArray(initialValue)) {
+                defaults[field.name] = initialValue;
+              } else {
+                defaults[field.name] = [];
+              }
+            } else {
+              // Single-value autocomplete fields (multiple === false or undefined) should be strings
+              defaults[field.name] = initialValue ?? "";
+            }
+          } else {
+            // Regular text fields
+            defaults[field.name] = initialValue ?? "";
+          }
       }
     });
   });
@@ -853,11 +821,11 @@ export default function DynamicContentForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className={`grid w-full grid-cols-${config.tabs.length}`}>
+            <TabsList className="w-full overflow-x-auto scrollbar-hide flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {config.tabs.map((tab) => {
                 const TabIcon = getIcon(tab.icon);
                 return (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">
                     <TabIcon className="w-4 h-4" />
                     {tab.label}
                   </TabsTrigger>
