@@ -40,7 +40,6 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "build", label: "Build", type: "text", placeholder: "Muscular, slim, stocky, etc.", description: "Their overall body build and physique" },
           { name: "physicalCondition", label: "Physical Condition", type: "text", placeholder: "Fitness level, health status", description: "Their overall physical fitness and health" },
           { name: "sex", label: "Biological Sex", type: "text", placeholder: "Assigned sex at birth", description: "Their biological sex assigned at birth" },
-          { name: "genderIdentity", label: "Gender Identity", type: "select", options: ["Male", "Female", "Non-Binary", "Agender", "Bigender", "Genderfluid", "Genderqueer", "Transgender", "Intersex", "Pangender", "Demigender", "Androgynous", "Omnigender", "Polygender"], placeholder: "Select gender identity", description: "Their personal gender identity" },
           { name: "physicalPresentation", label: "Physical Presentation", type: "text", placeholder: "How they present physically", description: "How they present their gender physically" }
         ]
       },
@@ -152,7 +151,6 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "upbringing", label: "Upbringing", type: "textarea", placeholder: "How they were raised", description: "Details about their childhood and upbringing" },
           { name: "family", label: "Family Members", type: "autocomplete-character", placeholder: "Search or create family members...", description: "Family members and relationships", multiple: true },
           { name: "education", label: "Education", type: "textarea", placeholder: "Formal education, training, apprenticeships...", description: "Their educational background and training" },
-          { name: "profession", label: "Current Profession", type: "text", placeholder: "Their current job or role", description: "What they do for work currently" },
           { name: "workHistory", label: "Work History", type: "textarea", placeholder: "Previous jobs, career progression...", description: "Their employment and career history" },
           { name: "accomplishments", label: "Accomplishments", type: "textarea", placeholder: "Notable achievements, awards, victories...", description: "Their major achievements and successes" },
           { name: "religiousBelief", label: "Religious Beliefs", type: "autocomplete-religion", placeholder: "Search or create religion...", description: "Their religious or spiritual beliefs", multiple: false },
