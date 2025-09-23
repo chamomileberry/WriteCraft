@@ -2272,7 +2272,36 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         ]
       }
     ]
+  },
+
+  // Writing Prompts
+  prompt: {
+    title: "Writing Prompt Creator",
+    description: "Create writing prompts and exercises",
+    icon: "PenTool",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "PenTool",
+        fields: [
+          { name: "text", label: "Prompt Text", type: "textarea", placeholder: "Write your prompt here...", description: "The main writing prompt or exercise" },
+          { name: "type", label: "Prompt Type", type: "select", options: ["Character Development", "Plot Hook", "Setting Description", "Dialogue", "Opening Line", "Story Structure", "World Building", "Conflict", "Other"], description: "What type of writing prompt is this?" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Romance", "Mystery", "Horror", "Thriller", "Drama", "Comedy", "Historical", "Contemporary", "Any"], description: "What genre is this prompt for?" },
+          { name: "difficulty", label: "Difficulty Level", type: "select", options: ["Beginner", "Intermediate", "Advanced", "Expert"], description: "Skill level required for this prompt" }
+        ]
+      },
+      {
+        id: "details",
+        label: "Details & Tags",
+        icon: "Tag",
+        fields: [
+          { name: "wordCount", label: "Suggested Word Count", type: "text", placeholder: "e.g., 500-1000 words, 1 page, short story", description: "Recommended length for responses" },
+          { name: "tags", label: "Tags", type: "tags", placeholder: "character, romance, mystery...", description: "Keywords and categories (comma-separated)" }
+        ]
+      }
+    ]
   }
 
-  // 🎉 ALL 51 CONTENT TYPES NOW HAVE COMPREHENSIVE FORM CONFIGURATIONS! 🎉
+  // 🎉 ALL 52 CONTENT TYPES NOW HAVE COMPREHENSIVE FORM CONFIGURATIONS! 🎉
 };
