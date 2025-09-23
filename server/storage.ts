@@ -1073,6 +1073,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateAccessory(id: string, updates: Partial<InsertAccessory>): Promise<Accessory> {
+    const [updatedAccessory] = await db
+      .update(accessories)
+      .set(updates)
+      .where(eq(accessories.id, id))
+      .returning();
+    return updatedAccessory;
+  }
+
+  async deleteAccessory(id: string): Promise<void> {
+    await db.delete(accessories).where(eq(accessories.id, id));
+  }
+
   // Clothing methods
   async createClothing(clothingData: InsertClothing): Promise<Clothing> {
     const [newClothing] = await db
@@ -1096,6 +1109,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(clothing)
       .orderBy(desc(clothing.createdAt))
       .limit(10);
+  }
+
+  async updateClothing(id: string, updates: Partial<InsertClothing>): Promise<Clothing> {
+    const [updatedClothing] = await db
+      .update(clothing)
+      .set(updates)
+      .where(eq(clothing.id, id))
+      .returning();
+    return updatedClothing;
+  }
+
+  async deleteClothing(id: string): Promise<void> {
+    await db.delete(clothing).where(eq(clothing.id, id));
   }
 
   // Material methods
@@ -1123,6 +1149,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateMaterial(id: string, updates: Partial<InsertMaterial>): Promise<Material> {
+    const [updatedMaterial] = await db
+      .update(materials)
+      .set(updates)
+      .where(eq(materials.id, id))
+      .returning();
+    return updatedMaterial;
+  }
+
+  async deleteMaterial(id: string): Promise<void> {
+    await db.delete(materials).where(eq(materials.id, id));
+  }
+
   // Settlement methods
   async createSettlement(settlement: InsertSettlement): Promise<Settlement> {
     const [newSettlement] = await db
@@ -1146,6 +1185,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(settlements)
       .orderBy(desc(settlements.createdAt))
       .limit(10);
+  }
+
+  async updateSettlement(id: string, updates: Partial<InsertSettlement>): Promise<Settlement> {
+    const [updatedSettlement] = await db
+      .update(settlements)
+      .set(updates)
+      .where(eq(settlements.id, id))
+      .returning();
+    return updatedSettlement;
+  }
+
+  async deleteSettlement(id: string): Promise<void> {
+    await db.delete(settlements).where(eq(settlements.id, id));
   }
 
   // Society methods
@@ -1173,6 +1225,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateSociety(id: string, updates: Partial<InsertSociety>): Promise<Society> {
+    const [updatedSociety] = await db
+      .update(societies)
+      .set(updates)
+      .where(eq(societies.id, id))
+      .returning();
+    return updatedSociety;
+  }
+
+  async deleteSociety(id: string): Promise<void> {
+    await db.delete(societies).where(eq(societies.id, id));
+  }
+
   // Faction methods
   async createFaction(faction: InsertFaction): Promise<Faction> {
     const [newFaction] = await db
@@ -1196,6 +1261,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(factions)
       .orderBy(desc(factions.createdAt))
       .limit(10);
+  }
+
+  async updateFaction(id: string, updates: Partial<InsertFaction>): Promise<Faction> {
+    const [updatedFaction] = await db
+      .update(factions)
+      .set(updates)
+      .where(eq(factions.id, id))
+      .returning();
+    return updatedFaction;
+  }
+
+  async deleteFaction(id: string): Promise<void> {
+    await db.delete(factions).where(eq(factions.id, id));
   }
 
   // Military Unit methods
@@ -1223,6 +1301,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateMilitaryUnit(id: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit> {
+    const [updatedMilitaryUnit] = await db
+      .update(militaryUnits)
+      .set(updates)
+      .where(eq(militaryUnits.id, id))
+      .returning();
+    return updatedMilitaryUnit;
+  }
+
+  async deleteMilitaryUnit(id: string): Promise<void> {
+    await db.delete(militaryUnits).where(eq(militaryUnits.id, id));
+  }
+
   // Myth methods
   async createMyth(myth: InsertMyth): Promise<Myth> {
     const [newMyth] = await db
@@ -1246,6 +1337,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(myths)
       .orderBy(desc(myths.createdAt))
       .limit(10);
+  }
+
+  async updateMyth(id: string, updates: Partial<InsertMyth>): Promise<Myth> {
+    const [updatedMyth] = await db
+      .update(myths)
+      .set(updates)
+      .where(eq(myths.id, id))
+      .returning();
+    return updatedMyth;
+  }
+
+  async deleteMyth(id: string): Promise<void> {
+    await db.delete(myths).where(eq(myths.id, id));
   }
 
   // Legend methods
@@ -1273,6 +1377,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateLegend(id: string, updates: Partial<InsertLegend>): Promise<Legend> {
+    const [updatedLegend] = await db
+      .update(legends)
+      .set(updates)
+      .where(eq(legends.id, id))
+      .returning();
+    return updatedLegend;
+  }
+
+  async deleteLegend(id: string): Promise<void> {
+    await db.delete(legends).where(eq(legends.id, id));
+  }
+
   // Event methods
   async createEvent(event: InsertEvent): Promise<Event> {
     const [newEvent] = await db
@@ -1298,6 +1415,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateEvent(id: string, updates: Partial<InsertEvent>): Promise<Event> {
+    const [updatedEvent] = await db
+      .update(events)
+      .set(updates)
+      .where(eq(events.id, id))
+      .returning();
+    return updatedEvent;
+  }
+
+  async deleteEvent(id: string): Promise<void> {
+    await db.delete(events).where(eq(events.id, id));
+  }
+
   // Technology methods
   async createTechnology(technology: InsertTechnology): Promise<Technology> {
     const [newTechnology] = await db
@@ -1321,6 +1451,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(technologies)
       .orderBy(desc(technologies.createdAt))
       .limit(10);
+  }
+
+  async updateTechnology(id: string, updates: Partial<InsertTechnology>): Promise<Technology> {
+    const [updatedTechnology] = await db
+      .update(technologies)
+      .set(updates)
+      .where(eq(technologies.id, id))
+      .returning();
+    return updatedTechnology;
+  }
+
+  async deleteTechnology(id: string): Promise<void> {
+    await db.delete(technologies).where(eq(technologies.id, id));
   }
 
   // Spell methods
