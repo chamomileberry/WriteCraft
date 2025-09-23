@@ -40,6 +40,7 @@ Preferred communication style: Simple, everyday language.
 - **Generator System**: Modular content generation for characters, plots, settings, names, conflicts, themes, and moods
 - **Writing Guides**: Structured educational content with categories, difficulty levels, and comprehensive search
 - **User Collections**: System for saving and organizing generated content and favorite guides
+- **Enhanced Character Editor**: Responsive sidebar navigation system with 6 logical sections (Identity, Appearance, Mind & Personality, Skills & Powers, Life & Background, Prompts) that replaces cramped multi-row tab layouts with clean, organized navigation for both desktop and mobile users
 
 ## External Dependencies
 
