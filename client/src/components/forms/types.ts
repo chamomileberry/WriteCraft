@@ -6,11 +6,36 @@ export type FormFieldType =
   | "tags"
   | "date"
   | "checkbox"
+  // Existing content types with autocomplete
   | "autocomplete-location"
   | "autocomplete-character"
   | "autocomplete-tradition"
   | "autocomplete-language"
-  | "autocomplete-religion";
+  | "autocomplete-religion"
+  | "autocomplete-organization"
+  | "autocomplete-species"
+  | "autocomplete-culture"
+  | "autocomplete-weapon"
+  | "autocomplete-building"
+  | "autocomplete-plot"
+  | "autocomplete-document"
+  | "autocomplete-accessory"
+  | "autocomplete-clothing"
+  | "autocomplete-material"
+  | "autocomplete-settlement"
+  | "autocomplete-society"
+  | "autocomplete-faction"
+  | "autocomplete-military-unit"
+  // New content types with autocomplete
+  | "autocomplete-family-tree"
+  | "autocomplete-timeline"
+  | "autocomplete-ceremony"
+  | "autocomplete-map"
+  | "autocomplete-music"
+  | "autocomplete-dance"
+  | "autocomplete-law"
+  | "autocomplete-policy"
+  | "autocomplete-potion";
 
 export interface FormField {
   name: string;
