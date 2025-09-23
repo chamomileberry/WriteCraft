@@ -304,14 +304,147 @@ export default function CharacterEditPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
-                        name="name"
+                        name="givenName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Name</FormLabel>
+                            <FormLabel>Given Name</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="Character name" 
-                                data-testid="input-character-name"
+                                placeholder="First name"
+                                data-testid="input-character-given-name"
+                                {...field} 
+                                value={field.value || ""} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="familyName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Family Name</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Last name"
+                                data-testid="input-character-family-name"
+                                {...field} 
+                                value={field.value || ""} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="middleName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Middle Name</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Middle name(s)"
+                                data-testid="input-character-middle-name"
+                                {...field} 
+                                value={field.value || ""} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="nickname"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nickname</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="What friends call them"
+                                data-testid="input-character-nickname"
+                                {...field} 
+                                value={field.value || ""} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="honorificTitle"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Honorific Title</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Sir, Lady, Dr., etc."
+                                data-testid="input-character-honorific-title"
+                                {...field} 
+                                value={field.value || ""} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="prefix"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Prefix</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Mr., Ms., Lord, etc."
+                                data-testid="input-character-prefix"
+                                {...field} 
+                                value={field.value || ""} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="suffix"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Suffix</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Jr., Sr., III, etc."
+                                data-testid="input-character-suffix"
+                                {...field} 
+                                value={field.value || ""} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="maidenName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Maiden Name</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Name before marriage"
+                                data-testid="input-character-maiden-name"
                                 {...field} 
                                 value={field.value || ""} 
                               />
@@ -825,63 +958,6 @@ export default function CharacterEditPage() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="givenName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Given Name</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="First name"
-                                data-testid="input-character-given-name"
-                                {...field} 
-                                value={field.value || ""} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="familyName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Family Name</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Last name"
-                                data-testid="input-character-family-name"
-                                {...field} 
-                                value={field.value || ""} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="nickname"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nickname/Alias</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="What they're commonly called"
-                                data-testid="input-character-nickname"
-                                {...field} 
-                                value={field.value || ""} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
                       <FormField
                         control={form.control}
                         name="currentLocation"

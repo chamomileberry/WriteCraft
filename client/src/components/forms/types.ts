@@ -48,6 +48,12 @@ export interface FormField {
   options?: string[];
   rows?: number;
   multiple?: boolean; // For autocomplete fields: true = array, false = single value
+  // Properties for autocomplete fields
+  endpoint?: string;
+  labelField?: string;
+  valueField?: string;
+  // Properties for select fields
+  customizable?: boolean;
 }
 
 export interface FormTabConfig {

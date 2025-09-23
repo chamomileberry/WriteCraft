@@ -15,7 +15,6 @@ export const users = pgTable("users", {
 // Generated characters
 export const characters = pgTable("characters", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name"),
   age: integer("age"),
   occupation: text("occupation"),
   personality: text("personality").array(),

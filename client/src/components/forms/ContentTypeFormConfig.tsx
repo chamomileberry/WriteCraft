@@ -13,28 +13,20 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Basic Info", 
         icon: "User",
         fields: [
-          { name: "name", label: "Character Name", type: "text", placeholder: "Enter character name...", description: "The character's primary name" },
+          { name: "givenName", label: "Given Name", type: "text", placeholder: "Their first name at birth", description: "The name they were given at birth" },
+          { name: "familyName", label: "Family Name", type: "text", placeholder: "Last name or surname", description: "Their family name or surname" },
+          { name: "middleName", label: "Middle Name", type: "text", placeholder: "Middle name(s)", description: "Any middle names they have" },
+          { name: "nickname", label: "Nickname", type: "text", placeholder: "What friends call them", description: "Common nickname or what friends call them" },
+          { name: "honorificTitle", label: "Honorific Title", type: "text", placeholder: "Sir, Lady, Dr., etc.", description: "Formal titles or honors they hold" },
+          { name: "prefix", label: "Prefix", type: "text", placeholder: "Mr., Ms., Lord, etc.", description: "Name prefixes used in formal address" },
+          { name: "suffix", label: "Suffix", type: "text", placeholder: "Jr., Sr., III, etc.", description: "Name suffixes like Jr., Sr., III" },
+          { name: "maidenName", label: "Maiden Name", type: "text", placeholder: "Name before marriage", description: "Their family name before marriage (if applicable)" },
           { name: "age", label: "Age", type: "number", placeholder: "Character's age...", description: "How old is this character?" },
           { name: "occupation", label: "Occupation", type: "autocomplete-profession", endpoint: "/api/professions", labelField: "name", valueField: "name", multiple: false, placeholder: "Search or select a profession...", description: "Their primary profession or role in society" },
           { name: "species", label: "Species", type: "text", placeholder: "Human, Elf, Dwarf, etc.", description: "What species or race is this character?" },
           { name: "gender", label: "Gender", type: "select", options: ["Male", "Female", "Non-Binary", "Agender", "Bigender", "Genderfluid", "Genderqueer", "Transgender", "Intersex", "Pangender", "Demigender", "Androgynous", "Omnigender", "Polygender"], placeholder: "Select gender identity", description: "Their gender identity and expression" },
           { name: "pronouns", label: "Pronouns", type: "select", options: ["they/them", "she/her", "he/him", "xe/xem", "ze/zir", "ey/em", "ve/ver", "fae/faer", "it/its", "she/they", "he/they", "any pronouns", "ask for pronouns"], placeholder: "Select pronouns", description: "Preferred pronouns for this character", customizable: true },
           { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Horror", "Modern", "Historical", "Other"], description: "What genre does this character fit?" }
-        ]
-      },
-      {
-        id: "names",
-        label: "Names & Titles",
-        icon: "Crown",
-        fields: [
-          { name: "givenName", label: "Given Name", type: "text", placeholder: "Their first name at birth", description: "The name they were given at birth" },
-          { name: "familyName", label: "Family Name", type: "text", placeholder: "Last name or surname", description: "Their family name or surname" },
-          { name: "middleName", label: "Middle Name", type: "text", placeholder: "Middle name(s)", description: "Any middle names they have" },
-          { name: "maidenName", label: "Maiden Name", type: "text", placeholder: "Name before marriage", description: "Their family name before marriage (if applicable)" },
-          { name: "nickname", label: "Nickname", type: "text", placeholder: "What friends call them", description: "Common nickname or what friends call them" },
-          { name: "honorificTitle", label: "Honorific Title", type: "text", placeholder: "Sir, Lady, Dr., etc.", description: "Formal titles or honors they hold" },
-          { name: "suffix", label: "Suffix", type: "text", placeholder: "Jr., Sr., III, etc.", description: "Name suffixes like Jr., Sr., III" },
-          { name: "prefix", label: "Prefix", type: "text", placeholder: "Mr., Ms., Lord, etc.", description: "Name prefixes used in formal address" }
         ]
       },
       {
