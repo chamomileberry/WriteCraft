@@ -26,6 +26,7 @@ function getApiEndpoint(contentType: string): string {
     case 'family-tree': return 'family-trees';
     case 'ceremony': return 'ceremonies';
     case 'policy': return 'policies';
+    case 'species': return 'species'; // species is already plural
     default: return `${contentType}s`;
   }
 }
@@ -131,7 +132,7 @@ export function AutocompleteField({
           payload = { ...payload, organizationType: "guild", influence: "local", description: `Auto-created organization: ${name}` };
           break;
         case "species":
-          payload = { ...payload, speciesType: "humanoid", habitat: "Various", intelligence: "Sentient", description: `Auto-created species: ${name}` };
+          payload = { ...payload, classification: "humanoid", habitat: "Various", intelligence: "Sentient", physicalDescription: `Auto-created species: ${name}`, behavior: "Neutral", diet: "Varied" };
           break;
         case "culture":
           payload = { ...payload, cultureType: "regional", influence: "moderate", description: `Auto-created culture: ${name}` };

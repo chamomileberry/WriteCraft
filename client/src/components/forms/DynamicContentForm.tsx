@@ -539,11 +539,11 @@ export default function DynamicContentForm({
                 <FormLabel>{field.label} {field.required && "*"}</FormLabel>
                 <FormControl>
                   <AutocompleteField
-                    value={formField.value || []}
+                    value={formField.value || (field.multiple ?? true ? [] : "")}
                     onChange={(value) => formField.onChange(value)}
                     placeholder={field.placeholder}
                     contentType="species"
-                    multiple={true}
+                    multiple={field.multiple ?? true}
                   />
                 </FormControl>
                 {field.description && (
