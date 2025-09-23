@@ -58,17 +58,26 @@ const generateSchema = (config: ContentTypeFormConfig) => {
           fieldSchema = z.boolean().nullable();
           break;
         case "autocomplete-location":
-          fieldSchema = z.string().nullable();
+          fieldSchema = z.array(z.string()).nullable();
           break;
         case "autocomplete-character":
           fieldSchema = z.array(z.string()).nullable();
+          break;
+        case "autocomplete-tradition":
+          fieldSchema = z.array(z.string()).nullable();
+          break;
+        case "autocomplete-language":
+          fieldSchema = z.string().nullable();
+          break;
+        case "autocomplete-religion":
+          fieldSchema = z.string().nullable();
           break;
         default:
           fieldSchema = z.string().nullable();
       }
       
       if (field.required) {
-        if (field.type === "tags") {
+        if (field.type === "tags" || field.type === "autocomplete-location" || field.type === "autocomplete-character" || field.type === "autocomplete-tradition") {
           fieldSchema = z.array(z.string()).min(1, `${field.label} is required`);
         } else if (field.type === "number") {
           fieldSchema = z.number({ required_error: `${field.label} is required` });
@@ -110,7 +119,14 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
           defaults[field.name] = initialValue ?? false;
           break;
         case "autocomplete-location":
-          defaults[field.name] = initialValue ?? "";
+          // Convert comma-separated string to array or use array directly
+          if (typeof initialValue === "string") {
+            defaults[field.name] = initialValue ? initialValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+          } else if (Array.isArray(initialValue)) {
+            defaults[field.name] = initialValue;
+          } else {
+            defaults[field.name] = [];
+          }
           break;
         case "autocomplete-character":
           // Convert comma-separated string to array or use array directly
@@ -121,6 +137,22 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
           } else {
             defaults[field.name] = [];
           }
+          break;
+        case "autocomplete-tradition":
+          // Convert comma-separated string to array or use array directly
+          if (typeof initialValue === "string") {
+            defaults[field.name] = initialValue ? initialValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+          } else if (Array.isArray(initialValue)) {
+            defaults[field.name] = initialValue;
+          } else {
+            defaults[field.name] = [];
+          }
+          break;
+        case "autocomplete-language":
+          defaults[field.name] = initialValue ?? "";
+          break;
+        case "autocomplete-religion":
+          defaults[field.name] = initialValue ?? "";
           break;
         default:
           defaults[field.name] = initialValue ?? "";
@@ -329,14 +361,14 @@ export default function DynamicContentForm({
                 <FormLabel>{field.label} {field.required && "*"}</FormLabel>
                 <FormControl>
                   <AutocompleteField
-                    value={formField.value || ""}
+                    value={formField.value || []}
                     onChange={(value) => {
                       console.log('AutocompleteField location onChange called with:', value);
                       formField.onChange(value);
                     }}
                     placeholder={field.placeholder}
                     contentType="location"
-                    multiple={false}
+                    multiple={true}
                   />
                 </FormControl>
                 {field.description && (
@@ -367,6 +399,93 @@ export default function DynamicContentForm({
                     placeholder={field.placeholder}
                     contentType="character"
                     multiple={true}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "autocomplete-tradition":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormControl>
+                  <AutocompleteField
+                    value={formField.value || []}
+                    onChange={(value) => {
+                      formField.onChange(value);
+                    }}
+                    placeholder={field.placeholder}
+                    contentType="tradition"
+                    multiple={true}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "autocomplete-language":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormControl>
+                  <AutocompleteField
+                    value={formField.value || ""}
+                    onChange={(value) => {
+                      formField.onChange(value);
+                    }}
+                    placeholder={field.placeholder}
+                    contentType="language"
+                    multiple={false}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "autocomplete-religion":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormControl>
+                  <AutocompleteField
+                    value={formField.value || ""}
+                    onChange={(value) => {
+                      formField.onChange(value);
+                    }}
+                    placeholder={field.placeholder}
+                    contentType="religion"
+                    multiple={false}
                   />
                 </FormControl>
                 {field.description && (

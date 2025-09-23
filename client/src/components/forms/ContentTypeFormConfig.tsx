@@ -940,7 +940,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "name", label: "Ethnicity Name", type: "text", placeholder: "Enter ethnicity name...", description: "The name of this ethnicity" },
           { name: "origin", label: "Origin", type: "text", placeholder: "Where did they originate?", description: "Geographic or historical origin" },
           { name: "physicalTraits", label: "Physical Traits", type: "text", placeholder: "Common physical characteristics", description: "Typical physical appearance and traits" },
-          { name: "geography", label: "Geography", type: "text", placeholder: "Where do they live?", description: "Geographic regions they inhabit" },
+          { name: "geography", label: "Geography", type: "autocomplete-location", placeholder: "Search locations...", description: "Geographic regions they inhabit" },
           { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
         ]
       },
@@ -950,9 +950,9 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         icon: "Heart",
         fields: [
           { name: "culturalTraits", label: "Cultural Traits", type: "text", placeholder: "Cultural characteristics", description: "Distinctive cultural features and behaviors" },
-          { name: "traditions", label: "Traditions", type: "tags", placeholder: "Add traditions", description: "Important traditions and customs" },
-          { name: "language", label: "Language", type: "text", placeholder: "What language do they speak?", description: "Primary language or linguistic family" },
-          { name: "religion", label: "Religion", type: "text", placeholder: "Religious beliefs", description: "Primary religious or spiritual beliefs" },
+          { name: "traditions", label: "Traditions", type: "autocomplete-tradition", placeholder: "Search traditions...", description: "Important traditions and customs" },
+          { name: "language", label: "Language", type: "autocomplete-language", placeholder: "Search languages...", description: "Primary language or linguistic family" },
+          { name: "religion", label: "Religion", type: "autocomplete-religion", placeholder: "Search religions...", description: "Primary religious or spiritual beliefs" },
           { name: "socialStructure", label: "Social Structure", type: "text", placeholder: "How is society organized?", description: "Social organization and hierarchy" }
         ]
       },

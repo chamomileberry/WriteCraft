@@ -30,10 +30,11 @@ interface AutocompleteFieldProps {
   value?: string | string[];
   onChange: (value: string | string[]) => void;
   placeholder?: string;
-  contentType: "location" | "character";
+  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type";
   multiple?: boolean;
   disabled?: boolean;
   className?: string;
+  options?: Array<{ value: string; label: string; icon?: any }>; // For static options like location types
 }
 
 export function AutocompleteField({
@@ -44,6 +45,7 @@ export function AutocompleteField({
   multiple = false,
   disabled = false,
   className,
+  options,
 }: AutocompleteFieldProps) {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -54,18 +56,34 @@ export function AutocompleteField({
     ? Array.isArray(value) ? value : (value ? [value] : [])
     : (value ? [value as string] : []);
 
-  // Search existing items
+  // Search existing items (skip for static options like location-type)
   const { data: items = [], isLoading } = useQuery({
     queryKey: [`/api/${contentType}s`, searchValue],
     queryFn: async () => {
       if (!searchValue.trim()) return [];
-      const response = await fetch(`/api/${contentType}s?search=${encodeURIComponent(searchValue)}`);
+      
+      // Handle static options like location-type
+      if (contentType === "location-type" && options) {
+        return options
+          .filter(option => option.label.toLowerCase().includes(searchValue.toLowerCase()))
+          .map(option => ({
+            id: option.value,
+            name: option.label,
+            type: "location type",
+          }));
+      }
+      
+      const response = await fetch(`/api/${contentType}s?search=${encodeURIComponent(searchValue)}`, {
+        headers: {
+          'X-User-Id': 'demo-user' // TODO: Replace with actual user authentication
+        }
+      });
       if (!response.ok) return [];
       const data = await response.json();
-      return data.map((item: { id: string; name: string; locationType?: string; occupation?: string }) => ({
+      return data.map((item: any) => ({
         id: item.id,
         name: item.name,
-        type: item.locationType || item.occupation || contentType,
+        type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || contentType,
       }));
     },
     enabled: searchValue.length > 0,
@@ -74,11 +92,51 @@ export function AutocompleteField({
   // Create new item mutation
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
-      const payload = contentType === "location" 
-        ? { name, locationType: "other", description: `Auto-created location: ${name}` }
-        : { name, age: 25, occupation: "Unknown", genre: "Fantasy" };
+      // Handle static options like location-type - no creation needed
+      if (contentType === "location-type") {
+        return { id: name, name, type: "location type" };
+      }
       
-      const response = await apiRequest("POST", `/api/${contentType}s`, payload);
+      let payload: any = { name, genre: "Fantasy" };
+      
+      switch (contentType) {
+        case "location":
+          payload = { ...payload, locationType: "other", description: `Auto-created location: ${name}` };
+          break;
+        case "character":
+          payload = { ...payload, age: 25, occupation: "Unknown" };
+          break;
+        case "religion":
+          payload = { ...payload, religionType: "other", domain: "Unknown", description: `Auto-created religion: ${name}` };
+          break;
+        case "tradition":
+          payload = { ...payload, traditionType: "cultural", significance: "Unknown", description: `Auto-created tradition: ${name}` };
+          break;
+        case "language":
+          payload = { ...payload, languageFamily: "Unknown", speakers: "Unknown", complexity: "Medium", description: `Auto-created language: ${name}` };
+          break;
+        case "organization":
+          payload = { ...payload, organizationType: "guild", influence: "local", description: `Auto-created organization: ${name}` };
+          break;
+        case "species":
+          payload = { ...payload, speciesType: "humanoid", habitat: "Various", intelligence: "Sentient", description: `Auto-created species: ${name}` };
+          break;
+        case "culture":
+          payload = { ...payload, cultureType: "regional", influence: "moderate", description: `Auto-created culture: ${name}` };
+          break;
+        default:
+          payload = { ...payload, description: `Auto-created ${contentType}: ${name}` };
+      }
+      
+      // Add user context header for proper scoping
+      const response = await fetch(`/api/${contentType}s`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': 'demo-user' // TODO: Replace with actual user authentication
+        },
+        body: JSON.stringify(payload)
+      });
       return await response.json();
     },
     onSuccess: (newItem) => {
@@ -105,7 +163,13 @@ export function AutocompleteField({
         onChange([...currentValues, itemName]);
       }
     } else {
-      onChange(itemName);
+      // For location-type, use the value instead of label if available
+      if (contentType === "location-type" && options) {
+        const selectedOption = options.find(opt => opt.label === itemName);
+        onChange(selectedOption ? selectedOption.value : itemName);
+      } else {
+        onChange(itemName);
+      }
       setOpen(false);
     }
     setSearchValue("");
@@ -135,7 +199,8 @@ export function AutocompleteField({
     item.name.toLowerCase() === searchValue.toLowerCase()
   );
 
-  const showCreateOption = searchValue.trim() && !exactMatch;
+  // Don't show create option for static content types like location-type
+  const showCreateOption = searchValue.trim() && !exactMatch && contentType !== "location-type";
 
   return (
     <div className={cn("space-y-2", className)}>

@@ -161,8 +161,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create character manually (from comprehensive form)
   app.post("/api/characters", async (req, res) => {
     try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const characterData = { ...req.body, userId };
+      
       // Validate the request body using the insert schema
-      const validatedCharacter = insertCharacterSchema.parse(req.body);
+      const validatedCharacter = insertCharacterSchema.parse(characterData);
       const savedCharacter = await storage.createCharacter(validatedCharacter);
       res.json(savedCharacter);
     } catch (error) {
@@ -178,7 +182,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/characters", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const characters = await storage.getUserCharacters(null);
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const characters = await storage.getUserCharacters(userId);
       
       if (search) {
         // Filter characters by name (case-insensitive)
@@ -907,7 +912,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Location routes
   app.post("/api/locations", async (req, res) => {
     try {
-      const validatedLocation = insertLocationSchema.parse(req.body);
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const locationData = { ...req.body, userId };
+      
+      const validatedLocation = insertLocationSchema.parse(locationData);
       const savedLocation = await storage.createLocation(validatedLocation);
       res.json(savedLocation);
     } catch (error) {
@@ -923,7 +932,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/locations", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const locations = await storage.getUserLocations(null);
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const locations = await storage.getUserLocations(userId);
       
       if (search) {
         // Filter locations by name (case-insensitive)
@@ -967,7 +977,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Species routes
   app.post("/api/species", async (req, res) => {
     try {
-      const validatedSpecies = insertSpeciesSchema.parse(req.body);
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const speciesData = { ...req.body, userId };
+      
+      const validatedSpecies = insertSpeciesSchema.parse(speciesData);
       const savedSpecies = await storage.createSpecies(validatedSpecies);
       res.json(savedSpecies);
     } catch (error) {
@@ -976,6 +990,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save species' });
+    }
+  });
+
+  // Add general species endpoint with search support
+  app.get("/api/species", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const species = await storage.getUserSpecies(userId);
+      
+      if (search) {
+        // Filter species by name (case-insensitive)
+        const filtered = species.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(species);
+      }
+    } catch (error) {
+      console.error('Error fetching species:', error);
+      res.status(500).json({ error: 'Failed to fetch species' });
     }
   });
 
@@ -1006,7 +1042,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Organizations routes  
   app.post("/api/organizations", async (req, res) => {
     try {
-      const validatedOrganization = insertOrganizationSchema.parse(req.body);
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const organizationData = { ...req.body, userId };
+      
+      const validatedOrganization = insertOrganizationSchema.parse(organizationData);
       const savedOrganization = await storage.createOrganization(validatedOrganization);
       res.json(savedOrganization);
     } catch (error) {
@@ -1015,6 +1055,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save organization' });
+    }
+  });
+
+  // Add general organizations endpoint with search support
+  app.get("/api/organizations", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const organizations = await storage.getUserOrganizations(userId);
+      
+      if (search) {
+        // Filter organizations by name (case-insensitive)
+        const filtered = organizations.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(organizations);
+      }
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+      res.status(500).json({ error: 'Failed to fetch organizations' });
     }
   });
 
@@ -1248,7 +1310,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cultures routes
   app.post("/api/cultures", async (req, res) => {
     try {
-      const validatedCulture = insertCultureSchema.parse(req.body);
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const cultureData = { ...req.body, userId };
+      
+      const validatedCulture = insertCultureSchema.parse(cultureData);
       const savedCulture = await storage.createCulture(validatedCulture);
       res.json(savedCulture);
     } catch (error) {
@@ -1257,6 +1323,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save culture' });
+    }
+  });
+
+  // Add general cultures endpoint with search support
+  app.get("/api/cultures", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const cultures = await storage.getUserCultures(userId);
+      
+      if (search) {
+        // Filter cultures by name (case-insensitive)
+        const filtered = cultures.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(cultures);
+      }
+    } catch (error) {
+      console.error('Error fetching cultures:', error);
+      res.status(500).json({ error: 'Failed to fetch cultures' });
     }
   });
 
@@ -2067,7 +2155,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Religions routes
   app.post("/api/religions", async (req, res) => {
     try {
-      const validatedReligion = insertReligionSchema.parse(req.body);
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const religionData = { ...req.body, userId };
+      
+      const validatedReligion = insertReligionSchema.parse(religionData);
       const savedReligion = await storage.createReligion(validatedReligion);
       res.json(savedReligion);
     } catch (error) {
@@ -2076,6 +2168,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save religion' });
+    }
+  });
+
+  // Add general religions endpoint with search support
+  app.get("/api/religions", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const religions = await storage.getUserReligions(userId);
+      
+      if (search) {
+        // Filter religions by name (case-insensitive)
+        const filtered = religions.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(religions);
+      }
+    } catch (error) {
+      console.error('Error fetching religions:', error);
+      res.status(500).json({ error: 'Failed to fetch religions' });
     }
   });
 
@@ -2130,7 +2244,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Languages routes
   app.post("/api/languages", async (req, res) => {
     try {
-      const validatedLanguage = insertLanguageSchema.parse(req.body);
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const languageData = { ...req.body, userId };
+      
+      const validatedLanguage = insertLanguageSchema.parse(languageData);
       const savedLanguage = await storage.createLanguage(validatedLanguage);
       res.json(savedLanguage);
     } catch (error) {
@@ -2139,6 +2257,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save language' });
+    }
+  });
+
+  // Add general languages endpoint with search support
+  app.get("/api/languages", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const languages = await storage.getUserLanguages(userId);
+      
+      if (search) {
+        // Filter languages by name (case-insensitive)
+        const filtered = languages.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(languages);
+      }
+    } catch (error) {
+      console.error('Error fetching languages:', error);
+      res.status(500).json({ error: 'Failed to fetch languages' });
     }
   });
 
@@ -2712,7 +2852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/transportation/user/:userId?", async (req, res) => {
     try {
       const userId = req.params.userId || null;
-      const transportation = await storage.getUserTransportation(userId);
+      const transportation = await storage.getUserTransportations(userId);
       res.json(transportation);
     } catch (error) {
       console.error('Error fetching transportation:', error);
@@ -2823,7 +2963,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Traditions routes
   app.post("/api/traditions", async (req, res) => {
     try {
-      const validatedTradition = insertTraditionSchema.parse(req.body);
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const traditionData = { ...req.body, userId };
+      
+      const validatedTradition = insertTraditionSchema.parse(traditionData);
       const savedTradition = await storage.createTradition(validatedTradition);
       res.json(savedTradition);
     } catch (error) {
@@ -2832,6 +2976,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save tradition' });
+    }
+  });
+
+  // Add general traditions endpoint with search support
+  app.get("/api/traditions", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const traditions = await storage.getUserTraditions(userId);
+      
+      if (search) {
+        // Filter traditions by name (case-insensitive)
+        const filtered = traditions.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(traditions);
+      }
+    } catch (error) {
+      console.error('Error fetching traditions:', error);
+      res.status(500).json({ error: 'Failed to fetch traditions' });
     }
   });
 

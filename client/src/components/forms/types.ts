@@ -7,7 +7,10 @@ export type FormFieldType =
   | "date"
   | "checkbox"
   | "autocomplete-location"
-  | "autocomplete-character";
+  | "autocomplete-character"
+  | "autocomplete-tradition"
+  | "autocomplete-language"
+  | "autocomplete-religion";
 
 export interface FormField {
   name: string;
