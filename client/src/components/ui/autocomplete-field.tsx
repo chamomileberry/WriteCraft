@@ -20,6 +20,16 @@ import {
 } from "@/components/ui/popover";
 import { apiRequest } from "@/lib/queryClient";
 
+// Helper function to get correct API endpoint for content type
+function getApiEndpoint(contentType: string): string {
+  switch (contentType) {
+    case 'family-tree': return 'family-trees';
+    case 'ceremony': return 'ceremonies';
+    case 'policy': return 'policies';
+    default: return `${contentType}s`;
+  }
+}
+
 export interface AutocompleteOption {
   id: string;
   name: string;
@@ -30,7 +40,7 @@ interface AutocompleteFieldProps {
   value?: string | string[];
   onChange: (value: string | string[]) => void;
   placeholder?: string;
-  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type";
+  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type" | "family-tree" | "timeline" | "ceremony" | "map" | "music" | "dance" | "law" | "policy" | "potion";
   multiple?: boolean;
   disabled?: boolean;
   className?: string;
@@ -57,8 +67,9 @@ export function AutocompleteField({
     : (value ? [value as string] : []);
 
   // Search existing items (skip for static options like location-type)
+  const apiEndpoint = getApiEndpoint(contentType);
   const { data: items = [], isLoading } = useQuery({
-    queryKey: [`/api/${contentType}s`, searchValue],
+    queryKey: [`/api/${apiEndpoint}`, searchValue],
     queryFn: async () => {
       if (!searchValue.trim()) return [];
       
@@ -73,7 +84,7 @@ export function AutocompleteField({
           }));
       }
       
-      const response = await fetch(`/api/${contentType}s?search=${encodeURIComponent(searchValue)}`, {
+      const response = await fetch(`/api/${apiEndpoint}?search=${encodeURIComponent(searchValue)}`, {
         headers: {
           'X-User-Id': 'demo-user' // TODO: Replace with actual user authentication
         }
@@ -83,7 +94,7 @@ export function AutocompleteField({
       return data.map((item: any) => ({
         id: item.id,
         name: item.name,
-        type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || contentType,
+        type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || item.treeType || item.timelineType || item.significance || item.mapType || item.musicalStyle || item.danceStyle || item.lawType || item.policyType || item.potionType || contentType,
       }));
     },
     enabled: searchValue.length > 0,
@@ -124,12 +135,39 @@ export function AutocompleteField({
         case "culture":
           payload = { ...payload, cultureType: "regional", influence: "moderate", description: `Auto-created culture: ${name}` };
           break;
+        case "family-tree":
+          payload = { ...payload, treeType: "lineage", rootPerson: "Unknown", currentStatus: "active", description: `Auto-created family tree: ${name}` };
+          break;
+        case "timeline":
+          payload = { ...payload, timelineType: "historical", timeScale: "years", scope: "general", description: `Auto-created timeline: ${name}` };
+          break;
+        case "ceremony":
+          payload = { ...payload, significance: "cultural", participants: "community", frequency: "annual", description: `Auto-created ceremony: ${name}` };
+          break;
+        case "map":
+          payload = { ...payload, mapType: "regional", scale: "medium", style: "realistic", description: `Auto-created map: ${name}` };
+          break;
+        case "music":
+          payload = { ...payload, difficulty: "intermediate", length: "3-5 minutes", musicalStyle: "traditional", description: `Auto-created music: ${name}` };
+          break;
+        case "dance":
+          payload = { ...payload, difficulty: "beginner", duration: "5-10 minutes", danceStyle: "folk", description: `Auto-created dance: ${name}` };
+          break;
+        case "law":
+          payload = { ...payload, lawType: "civil", jurisdiction: "local", enforcement: "moderate", description: `Auto-created law: ${name}` };
+          break;
+        case "policy":
+          payload = { ...payload, policyType: "administrative", scope: "local", authority: "government", description: `Auto-created policy: ${name}` };
+          break;
+        case "potion":
+          payload = { ...payload, potionType: "healing", rarity: "common", effects: ["healing"], description: `Auto-created potion: ${name}` };
+          break;
         default:
           payload = { ...payload, description: `Auto-created ${contentType}: ${name}` };
       }
       
       // Add user context header for proper scoping
-      const response = await fetch(`/api/${contentType}s`, {
+      const response = await fetch(`/api/${apiEndpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +179,7 @@ export function AutocompleteField({
     },
     onSuccess: (newItem) => {
       // Invalidate queries to refresh the search results
-      queryClient.invalidateQueries({ queryKey: [`/api/${contentType}s`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${apiEndpoint}`] });
       
       // Add the new item to current selection
       const newValue = multiple 
