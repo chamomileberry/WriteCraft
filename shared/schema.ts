@@ -114,7 +114,7 @@ export const characters = pgTable("characters", {
   // Legacy and influence (if deceased)
   worldInfluence: text("world_influence"),
   legacy: text("legacy"),
-  rememberedBy: text("remembered_by"),
+  rememberedBy: text("remembered_by").array(),
   // Behavioral traits
   behavioralTraits: text("behavioral_traits"),
   particularities: text("particularities"),

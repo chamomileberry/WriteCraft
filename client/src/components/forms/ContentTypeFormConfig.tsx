@@ -168,7 +168,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         fields: [
           { name: "worldInfluence", label: "World Influence", type: "textarea", placeholder: "How they've impacted the world", description: "Their influence on the world around them" },
           { name: "legacy", label: "Legacy", type: "textarea", placeholder: "What they'll be remembered for", description: "The legacy they leave behind" },
-          { name: "rememberedBy", label: "Remembered By", type: "text", placeholder: "Who remembers them and how", description: "How and by whom they are remembered" }
+          { name: "rememberedBy", label: "Remembered By", type: "autocomplete-character", placeholder: "Search or create characters who remember them...", description: "Characters who remember this person", multiple: true }
         ]
       }
     ]
