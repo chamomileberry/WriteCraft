@@ -14,6 +14,8 @@ import { useLocation } from "wouter";
 import LocationForm from "@/components/forms/LocationForm";
 import CreatureForm from "@/components/forms/CreatureForm";
 import OrganizationForm from "@/components/forms/OrganizationForm";
+import DynamicContentForm from "@/components/forms/DynamicContentForm";
+import { contentTypeFormConfigs } from "@/components/forms/ContentTypeFormConfig";
 
 interface ContentEditorProps {
   contentType: string;
@@ -56,14 +58,34 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   // Create/Update mutation
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Save mutation starting:', { isCreating, apiBase, data });
+      
       if (isCreating) {
         // Create new content
+        console.log('Making POST request to:', apiBase, 'with data:', data);
         const response = await apiRequest('POST', apiBase, data);
-        return response.json();
+        console.log('POST response status:', response.status, 'ok:', response.ok);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('POST response parsed:', result);
+        return result;
       } else {
         // Update existing content
+        console.log('Making PUT request to:', `${apiBase}/${contentId}`, 'with data:', data);
         const response = await apiRequest('PUT', `${apiBase}/${contentId}`, data);
-        return response.json();
+        console.log('PUT response status:', response.status, 'ok:', response.ok);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('PUT response parsed:', result);
+        return result;
       }
     },
     onSuccess: (result) => {
@@ -245,40 +267,66 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             </Button>
           ) : (
             <>
-              <Button variant="outline" onClick={handleCancel} data-testid="button-cancel-editing">
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSave} 
-                disabled={saveMutation.isPending}
-                data-testid="button-save-changes"
-              >
-                {saveMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                {isCreating ? 'Create' : 'Save Changes'}
-              </Button>
+              {/* Only show header save buttons for generic forms, not dynamic forms */}
+              {!contentTypeFormConfigs[contentType] && (
+                <>
+                  <Button variant="outline" onClick={handleCancel} data-testid="button-cancel-editing">
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={saveMutation.isPending}
+                    data-testid="button-save-changes"
+                  >
+                    {saveMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-4 w-4" />
+                    )}
+                    {isCreating ? 'Create' : 'Save Changes'}
+                  </Button>
+                </>
+              )}
             </>
           )}
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Edit className="h-5 w-5 text-primary" />
-            Content Details
-          </CardTitle>
-          <CardDescription>
-            {isEditing ? 'Edit the fields below to update this content.' : 'View the details of this content item.'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {Object.entries(contentData || {}).map(([key, value]) => renderField(key, value))}
-        </CardContent>
-      </Card>
+      {/* Dynamic Form System or Generic Fallback */}
+      {(() => {
+        const formConfig = contentTypeFormConfigs[contentType];
+        
+        if (formConfig && isEditing) {
+          // Use dynamic comprehensive form (hides header save button)
+          return (
+            <DynamicContentForm
+              config={formConfig}
+              initialData={contentData}
+              onSubmit={handleFormSubmit}
+              isLoading={saveMutation.isPending}
+              isCreating={isCreating}
+            />
+          );
+        } else {
+          // Fallback to generic form (for non-configured types or view mode)
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit className="h-5 w-5 text-primary" />
+                  Content Details
+                </CardTitle>
+                <CardDescription>
+                  {isEditing ? 'Edit the fields below to update this content.' : 'View the details of this content item.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {Object.entries(contentData || {}).map(([key, value]) => renderField(key, value))}
+              </CardContent>
+            </Card>
+          );
+        }
+      })()}
     </div>
   );
 }

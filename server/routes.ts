@@ -158,6 +158,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create character manually (from comprehensive form)
+  app.post("/api/characters", async (req, res) => {
+    try {
+      // Validate the request body using the insert schema
+      const validatedCharacter = insertCharacterSchema.parse(req.body);
+      const savedCharacter = await storage.createCharacter(validatedCharacter);
+      res.json(savedCharacter);
+    } catch (error) {
+      console.error('Error creating character:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid character data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
   app.get("/api/characters", async (req, res) => {
     try {
       // For now, return all characters. In a real app with auth, this would be user-scoped
