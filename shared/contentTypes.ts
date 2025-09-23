@@ -505,6 +505,116 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       description: "content",
       badges: ["genre"]
     }
+  },
+  
+  // New Content Types
+  familyTree: {
+    id: "familyTree",
+    name: "Family Tree",
+    urlSegment: "family-trees",
+    apiBase: "/api/family-trees",
+    displayFields: {
+      title: "name",
+      subtitle: "treeType",
+      description: "description",
+      badges: ["generations", "genre"]
+    }
+  },
+  timeline: {
+    id: "timeline",
+    name: "Timeline",
+    urlSegment: "timelines",
+    apiBase: "/api/timelines",
+    displayFields: {
+      title: "name",
+      subtitle: "timelineType",
+      description: "description",
+      badges: ["timeScale", "scope"]
+    }
+  },
+  map: {
+    id: "map",
+    name: "Map",
+    urlSegment: "maps",
+    apiBase: "/api/maps",
+    displayFields: {
+      title: "name",
+      subtitle: "mapType",
+      description: "description",
+      badges: ["scale", "genre"]
+    }
+  },
+  ceremony: {
+    id: "ceremony",
+    name: "Ceremony",
+    urlSegment: "ceremonies",
+    apiBase: "/api/ceremonies",
+    displayFields: {
+      title: "name",
+      subtitle: "ceremonyType",
+      description: "description",
+      badges: ["purpose", "duration"]
+    }
+  },
+  music: {
+    id: "music",
+    name: "Music",
+    urlSegment: "music",
+    apiBase: "/api/music",
+    displayFields: {
+      title: "name",
+      subtitle: "musicType",
+      description: "description",
+      badges: ["tempo", "genre"]
+    }
+  },
+  dance: {
+    id: "dance",
+    name: "Dance",
+    urlSegment: "dances",
+    apiBase: "/api/dances",
+    displayFields: {
+      title: "name",
+      subtitle: "danceType",
+      description: "description",
+      badges: ["formation", "difficulty"]
+    }
+  },
+  law: {
+    id: "law",
+    name: "Law",
+    urlSegment: "laws",
+    apiBase: "/api/laws",
+    displayFields: {
+      title: "name",
+      subtitle: "lawType",
+      description: "description",
+      badges: ["jurisdiction", "enforcement"]
+    }
+  },
+  policy: {
+    id: "policy",
+    name: "Policy",
+    urlSegment: "policies",
+    apiBase: "/api/policies",
+    displayFields: {
+      title: "name",
+      subtitle: "policyType",
+      description: "description",
+      badges: ["scope", "authority"]
+    }
+  },
+  potion: {
+    id: "potion",
+    name: "Potion",
+    urlSegment: "potions",
+    apiBase: "/api/potions",
+    displayFields: {
+      title: "name",
+      subtitle: "potionType",
+      description: "description",
+      badges: ["rarity", "effect"]
+    }
   }
 };
 
