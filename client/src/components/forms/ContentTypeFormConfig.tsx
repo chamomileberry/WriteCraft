@@ -25,8 +25,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "occupation", label: "Occupation", type: "autocomplete-profession", endpoint: "/api/professions", labelField: "name", valueField: "name", multiple: false, placeholder: "Search or select a profession...", description: "Their primary profession or role in society" },
           { name: "species", label: "Species", type: "autocomplete-species", multiple: false, placeholder: "Search or select a species...", description: "What species or race is this character?" },
           { name: "gender", label: "Gender", type: "select", options: ["Male", "Female", "Non-Binary", "Agender", "Bigender", "Genderfluid", "Genderqueer", "Transgender", "Intersex", "Pangender", "Demigender", "Androgynous", "Omnigender", "Polygender"], placeholder: "Select gender identity", description: "Their gender identity and expression" },
-          { name: "pronouns", label: "Pronouns", type: "select", options: ["they/them", "she/her", "he/him", "xe/xem", "ze/zir", "ey/em", "ve/ver", "fae/faer", "it/its", "she/they", "he/they", "any pronouns", "ask for pronouns"], placeholder: "Select pronouns", description: "Preferred pronouns for this character", customizable: true },
-          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Horror", "Modern", "Historical", "Other"], description: "What genre does this character fit?" }
+          { name: "pronouns", label: "Pronouns", type: "select", options: ["they/them", "she/her", "he/him", "xe/xem", "ze/zir", "ey/em", "ve/ver", "fae/faer", "it/its", "she/they", "he/they", "any pronouns", "ask for pronouns"], placeholder: "Select pronouns", description: "Preferred pronouns for this character", customizable: true }
         ]
       },
       {
@@ -160,7 +159,8 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "affiliatedOrganizations", label: "Organizations", type: "autocomplete-organization", placeholder: "Search or create organizations...", description: "Organizations they're affiliated with" },
           { name: "genderUnderstanding", label: "Gender Understanding", type: "textarea", placeholder: "How they understand and express gender", description: "Their understanding and relationship with gender" },
           { name: "sexualOrientation", label: "Sexual Orientation", type: "text", placeholder: "Their romantic and sexual preferences", description: "Their sexual and romantic orientation" },
-          { name: "ethnicity", label: "Ethnicity", type: "text", placeholder: "Cultural and ethnic background", description: "Their ethnic and cultural heritage" }
+          { name: "ethnicity", label: "Ethnicity", type: "text", placeholder: "Cultural and ethnic background", description: "Their ethnic and cultural heritage" },
+          { name: "genre", label: "Genre/Setting", type: "select", options: ["Fantasy", "Science Fiction", "Literary Fiction", "Mystery", "Romance", "Thriller", "Horror", "Historical Fiction", "Contemporary Fiction", "Crime", "Adventure", "Western", "Dystopian", "Post-Apocalyptic", "Steampunk", "Cyberpunk", "Space Opera", "Urban Fantasy", "Paranormal Romance", "Cozy Mystery", "Hard Boiled", "Young Adult", "Children's", "Comedy", "Satire", "Drama", "Political Fiction", "Magical Realism", "Gothic", "Noir", "Superhero", "Military", "Espionage", "Techno-Thriller", "Medical Thriller", "Legal Thriller", "Psychological Thriller", "Biographical Fiction", "Alternate History", "Time Travel", "Fairy Tale Retelling", "Mythology", "Folklore", "Other"], placeholder: "Select genre (optional)", description: "The genre or setting type this character fits into - helps with AI generation and thematic consistency" }
         ]
       },
       {
