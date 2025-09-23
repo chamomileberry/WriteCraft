@@ -310,7 +310,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
       {(() => {
         const formConfig = contentTypeFormConfigs[contentType];
         
-        if (formConfig && isEditing) {
+        if (formConfig && (isEditing || isCreating)) {
           // Use character sidebar editor for characters specifically
           if (contentType === 'character') {
             return (

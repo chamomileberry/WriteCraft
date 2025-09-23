@@ -129,7 +129,7 @@ export function AutocompleteField({
           payload = { ...payload, languageFamily: "Unknown", speakers: "Unknown", complexity: "Medium", description: `Auto-created language: ${name}` };
           break;
         case "organization":
-          payload = { ...payload, organizationType: "guild", influence: "local", description: `Auto-created organization: ${name}` };
+          payload = { ...payload, organizationType: "guild", purpose: "General organization", influence: "local", description: `Auto-created organization: ${name}` };
           break;
         case "species":
           payload = { ...payload, classification: "humanoid", habitat: "Various", intelligence: "Sentient", physicalDescription: `Auto-created species: ${name}`, behavior: "Neutral", diet: "Varied" };

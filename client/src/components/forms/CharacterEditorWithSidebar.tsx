@@ -29,7 +29,7 @@ const characterNavigation = [
     label: "Identity",
     icon: User,
     description: "Basic information and identity",
-    tabIds: ["basic", "identity"],
+    tabIds: ["basic"],
     color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
@@ -37,7 +37,7 @@ const characterNavigation = [
     label: "Appearance",
     icon: Eye,
     description: "Physical appearance and traits",
-    tabIds: ["physical"],
+    tabIds: ["physical", "facial", "marks"],
     color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
@@ -45,7 +45,7 @@ const characterNavigation = [
     label: "Mind & Personality",
     icon: Brain,
     description: "Personality, relationships, and mental traits",
-    tabIds: ["personality", "relations"],
+    tabIds: ["personality", "flaws"],
     color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
@@ -53,7 +53,7 @@ const characterNavigation = [
     label: "Skills & Powers",
     icon: Zap,
     description: "Abilities, skills, and special powers",
-    tabIds: ["abilities"],
+    tabIds: ["skills", "supernatural", "equipment"],
     color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
@@ -61,15 +61,7 @@ const characterNavigation = [
     label: "Life & Background",
     icon: BookOpen,
     description: "History, lifestyle, and cultural background",
-    tabIds: ["background", "lifestyle", "speech", "spiritual", "legacy"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
-  },
-  {
-    id: "prompts",
-    label: "Prompts",
-    icon: MessageCircle,
-    description: "Writing prompts and inspiration",
-    tabIds: ["prompts"],
+    tabIds: ["background", "legacy"],
     color: "bg-card dark:bg-card border-border dark:border-border"
   }
 ];
