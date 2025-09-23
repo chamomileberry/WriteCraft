@@ -47,7 +47,7 @@ export const characters = pgTable("characters", {
   // Personal information
   currentLocation: text("current_location"),
   conditions: text("conditions"),
-  family: text("family"),
+  family: text("family").array(),
   currentResidence: text("current_residence"),
   religiousBelief: text("religious_belief"),
   affiliatedOrganizations: text("affiliated_organizations"),

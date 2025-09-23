@@ -196,10 +196,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const characters = await storage.getUserCharacters(userId);
       
       if (search) {
-        // Filter characters by name (case-insensitive)
-        const filtered = characters.filter(character =>
-          character.name?.toLowerCase().includes(search.toLowerCase())
-        );
+        // Filter characters by name fields (case-insensitive)
+        const filtered = characters.filter(character => {
+          const searchTerm = search.toLowerCase();
+          return (
+            character.givenName?.toLowerCase().includes(searchTerm) ||
+            character.familyName?.toLowerCase().includes(searchTerm) ||
+            character.nickname?.toLowerCase().includes(searchTerm) ||
+            character.honorificTitle?.toLowerCase().includes(searchTerm)
+          );
+        });
         res.json(filtered);
       } else {
         res.json(characters);

@@ -95,7 +95,9 @@ export function AutocompleteField({
       const data = await response.json();
       return data.map((item: any) => ({
         id: item.id,
-        name: item.name,
+        name: contentType === 'character' 
+          ? `${item.givenName || ''}${item.familyName ? ' ' + item.familyName : ''}`.trim() || item.nickname || 'Unnamed Character'
+          : item.name,
         type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || item.treeType || item.timelineType || item.significance || item.mapType || item.musicalStyle || item.danceStyle || item.lawType || item.policyType || item.potionType || contentType,
       }));
     },

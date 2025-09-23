@@ -150,7 +150,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "dateOfDeath", label: "Date of Death", type: "text", placeholder: "When they died (if applicable)", description: "Date of death (for deceased characters)" },
           { name: "placeOfDeath", label: "Place of Death", type: "autocomplete-location", placeholder: "Search or create location...", description: "Place of death (for deceased characters)" },
           { name: "upbringing", label: "Upbringing", type: "textarea", placeholder: "How they were raised", description: "Details about their childhood and upbringing" },
-          { name: "family", label: "Family Members", type: "autocomplete-character", placeholder: "Search or create family members...", description: "Family members and relationships" },
+          { name: "family", label: "Family Members", type: "autocomplete-character", placeholder: "Search or create family members...", description: "Family members and relationships", multiple: true },
           { name: "education", label: "Education", type: "textarea", placeholder: "Formal education, training, apprenticeships...", description: "Their educational background and training" },
           { name: "profession", label: "Current Profession", type: "text", placeholder: "Their current job or role", description: "What they do for work currently" },
           { name: "workHistory", label: "Work History", type: "textarea", placeholder: "Previous jobs, career progression...", description: "Their employment and career history" },
