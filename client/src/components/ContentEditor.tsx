@@ -23,43 +23,70 @@ interface ContentEditorProps {
 
 export default function ContentEditor({ contentType, contentId, onBack }: ContentEditorProps) {
   const [editingData, setEditingData] = useState<any>({});
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
   // Get the content type mapping
   const mapping = getMappingById(contentType);
   const apiBase = mapping?.apiBase || `/api/${contentType}`;
+  const isCreating = contentId === 'new';
 
-  // Fetch the content data
+  // Fetch the content data (only if not creating new content)
   const { data: contentData, isLoading, error } = useQuery({
     queryKey: [apiBase, contentId],
     queryFn: async () => {
+      if (isCreating) return null; // Don't fetch for new content
       const response = await apiRequest('GET', `${apiBase}/${contentId}`);
       return response.json();
     },
+    enabled: !isCreating, // Only run query if not creating new content
   });
 
-  // Update mutation
-  const updateMutation = useMutation({
+  // Debug logging (after contentData is declared)
+  console.log('ContentEditor Debug:', {
+    contentType,
+    contentId,
+    isCreating,
+    hasContentData: !!contentData,
+    isLoading,
+    error: !!error
+  });
+
+  // Create/Update mutation
+  const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('PUT', `${apiBase}/${contentId}`, data);
-      return response.json();
+      if (isCreating) {
+        // Create new content
+        const response = await apiRequest('POST', apiBase, data);
+        return response.json();
+      } else {
+        // Update existing content
+        const response = await apiRequest('PUT', `${apiBase}/${contentId}`, data);
+        return response.json();
+      }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast({
-        title: "Content updated",
-        description: "Your changes have been saved successfully.",
+        title: isCreating ? "Content created" : "Content updated",
+        description: isCreating ? "Your new content has been created successfully." : "Your changes have been saved successfully.",
       });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: [apiBase] });
-      queryClient.invalidateQueries({ queryKey: [apiBase, contentId] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      
+      if (isCreating && result?.id) {
+        // Navigate to the edit page of the newly created content
+        const urlSegment = mapping?.urlSegment || contentType;
+        setLocation(`/${urlSegment}/${result.id}/edit`);
+      } else if (!isCreating) {
+        queryClient.invalidateQueries({ queryKey: [apiBase, contentId] });
+      }
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to save changes. Please try again.",
+        description: isCreating ? "Failed to create content. Please try again." : "Failed to save changes. Please try again.",
         variant: "destructive",
       });
     }
@@ -73,12 +100,12 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   }, [contentData]);
 
   const handleSave = () => {
-    updateMutation.mutate(editingData);
+    saveMutation.mutate(editingData);
   };
 
   // Handle type-specific form submission
   const handleFormSubmit = (data: any) => {
-    updateMutation.mutate(data);
+    saveMutation.mutate(data);
   };
 
   const handleCancel = () => {
@@ -179,7 +206,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
     );
   }
 
-  if (error || !contentData) {
+  if (error || (!contentData && !isCreating)) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
@@ -193,7 +220,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
     );
   }
 
-  const contentName = contentData.name || contentData.title || `${contentType} ${contentId}`;
+  const contentName = isCreating ? `New ${contentType}` : (contentData?.name || contentData?.title || `${contentType} ${contentId}`);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -223,15 +250,15 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
               </Button>
               <Button 
                 onClick={handleSave} 
-                disabled={updateMutation.isPending}
+                disabled={saveMutation.isPending}
                 data-testid="button-save-changes"
               >
-                {updateMutation.isPending ? (
+                {saveMutation.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <Save className="mr-2 h-4 w-4" />
                 )}
-                Save Changes
+                {isCreating ? 'Create' : 'Save Changes'}
               </Button>
             </>
           )}
@@ -249,7 +276,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {Object.entries(contentData).map(([key, value]) => renderField(key, value))}
+          {Object.entries(contentData || {}).map(([key, value]) => renderField(key, value))}
         </CardContent>
       </Card>
     </div>

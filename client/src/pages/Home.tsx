@@ -21,6 +21,7 @@ import ContentEditor from "@/components/ContentEditor";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { getMappingById } from "@shared/contentTypes";
 
 export default function Home() {
   const [location, setLocation] = useLocation();
@@ -60,22 +61,15 @@ export default function Home() {
     // Close the modal first
     setIsContentModalOpen(false);
     
-    // Map content types to their corresponding views/pages
-    const contentTypeRoutes: { [key: string]: string } = {
-      'character': 'character-generator',
-      'location': 'location-editor',
-      'organization': 'organization-editor',
-      'species': 'species-editor',
-      // Add more mappings as editors are created
-    };
-
-    const route = contentTypeRoutes[contentType];
-    if (route) {
-      setActiveView(route);
+    // Get the mapping for this content type
+    const mapping = getMappingById(contentType);
+    if (mapping) {
+      // Navigate to the editor page using URL routing
+      setLocation(`/editor/${mapping.urlSegment}/new`);
     } else {
-      // For now, show a placeholder or redirect to notebook
-      console.log(`Editor for ${contentType} not yet implemented`);
-      setActiveView('notebook');
+      // Fallback to notebook if content type not found
+      console.log(`No mapping found for content type: ${contentType}`);
+      setLocation('/notebook');
     }
   };
 

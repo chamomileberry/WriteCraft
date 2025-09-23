@@ -66,6 +66,7 @@ function Router() {
       <Route path="/characters/:id/edit" component={CharacterEditPage} />
       <Route path="/settings" component={SettingPage} />
       <Route path="/creatures" component={CreaturePage} />
+      <Route path="/editor/:type/:id" component={EditorPage} />
       <Route path="/:type/:id/edit" component={EditorPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
