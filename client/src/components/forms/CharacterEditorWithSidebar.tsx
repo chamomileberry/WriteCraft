@@ -30,7 +30,7 @@ const characterNavigation = [
     icon: User,
     description: "Basic information and identity",
     tabIds: ["basic", "identity"],
-    color: "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
+    color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
     id: "appearance",
@@ -38,7 +38,7 @@ const characterNavigation = [
     icon: Eye,
     description: "Physical appearance and traits",
     tabIds: ["physical"],
-    color: "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
+    color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
     id: "mind",
@@ -46,7 +46,7 @@ const characterNavigation = [
     icon: Brain,
     description: "Personality, relationships, and mental traits",
     tabIds: ["personality", "relations"],
-    color: "bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800"
+    color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
     id: "powers",
@@ -54,7 +54,7 @@ const characterNavigation = [
     icon: Zap,
     description: "Abilities, skills, and special powers",
     tabIds: ["abilities"],
-    color: "bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800"
+    color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
     id: "background",
@@ -62,7 +62,7 @@ const characterNavigation = [
     icon: BookOpen,
     description: "History, lifestyle, and cultural background",
     tabIds: ["background", "lifestyle", "speech", "spiritual", "legacy"],
-    color: "bg-teal-50 dark:bg-teal-950 border-teal-200 dark:border-teal-800"
+    color: "bg-card dark:bg-card border-border dark:border-border"
   },
   {
     id: "prompts",
@@ -70,7 +70,7 @@ const characterNavigation = [
     icon: MessageCircle,
     description: "Writing prompts and inspiration",
     tabIds: ["prompts"],
-    color: "bg-pink-50 dark:bg-pink-950 border-pink-200 dark:border-pink-800"
+    color: "bg-card dark:bg-card border-border dark:border-border"
   }
 ];
 
