@@ -63,9 +63,17 @@ export interface FormTabConfig {
   fields: FormField[];
 }
 
+export interface FormGroupConfig {
+  id: string;
+  label: string;
+  icon: string;
+  sections: FormTabConfig[];
+}
+
 export interface ContentTypeFormConfig {
   title: string;
   description: string;
   icon: string;
-  tabs: FormTabConfig[];
+  tabs?: FormTabConfig[]; // Keep for backward compatibility
+  groups?: FormGroupConfig[]; // New grouped structure
 }

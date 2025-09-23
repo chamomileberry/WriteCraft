@@ -43,7 +43,7 @@ const getIcon = (iconName: string) => {
 const generateSchema = (config: ContentTypeFormConfig) => {
   const schemaObject: Record<string, z.ZodTypeAny> = {};
   
-  config.tabs.forEach(tab => {
+  (config.tabs || []).forEach(tab => {
     tab.fields.forEach(field => {
       let fieldSchema: z.ZodTypeAny;
       
@@ -118,7 +118,7 @@ const generateSchema = (config: ContentTypeFormConfig) => {
 const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<string, any>) => {
   const defaults: Record<string, any> = {};
   
-  config.tabs.forEach(tab => {
+  (config.tabs || []).forEach(tab => {
     tab.fields.forEach(field => {
       const initialValue = initialData?.[field.name];
       
@@ -174,7 +174,7 @@ export default function DynamicContentForm({
   isLoading,
   isCreating 
 }: DynamicContentFormProps) {
-  const [activeTab, setActiveTab] = useState(config.tabs[0]?.id || "basic");
+  const [activeTab, setActiveTab] = useState((config.tabs || [])[0]?.id || "basic");
   const [tagValues, setTagValues] = useState<Record<string, string>>({});
   
   const schema = generateSchema(config);
@@ -183,7 +183,7 @@ export default function DynamicContentForm({
   // Initialize tag values for display
   useEffect(() => {
     const tagFields: Record<string, string> = {};
-    config.tabs.forEach(tab => {
+    (config.tabs || []).forEach(tab => {
       tab.fields.forEach(field => {
         if (field.type === "tags") {
           const value = initialData?.[field.name];
@@ -208,7 +208,7 @@ export default function DynamicContentForm({
   const handleSubmit = (data: any) => {
     // Convert tag strings back to arrays
     const processedData = { ...data };
-    config.tabs.forEach(tab => {
+    (config.tabs || []).forEach(tab => {
       tab.fields.forEach(field => {
         if (field.type === "tags") {
           const tagValue = tagValues[field.name];
@@ -824,7 +824,7 @@ export default function DynamicContentForm({
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full overflow-x-auto scrollbar-hide flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-              {config.tabs.map((tab) => {
+              {(config.tabs || []).map((tab) => {
                 const TabIcon = getIcon(tab.icon);
                 return (
                   <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">
@@ -835,7 +835,7 @@ export default function DynamicContentForm({
               })}
             </TabsList>
 
-            {config.tabs.map((tab) => {
+            {(config.tabs || []).map((tab) => {
               const TabIcon = getIcon(tab.icon);
               return (
                 <TabsContent key={tab.id} value={tab.id} className="space-y-6">
