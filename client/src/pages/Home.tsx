@@ -338,7 +338,7 @@ export default function Home() {
       default:
         return (
           <>
-            <Hero />
+            <Hero onGetStarted={handleCreateNew} />
             <ToolsShowcase onToolSelect={handleToolSelect} />
             <section id="guides" className="py-16">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

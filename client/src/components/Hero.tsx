@@ -1,10 +1,18 @@
 import { Sparkles, Pen, BookOpen, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function Hero() {
+interface HeroProps {
+  onGetStarted?: () => void;
+}
+
+export default function Hero({ onGetStarted }: HeroProps) {
   const handleGetStarted = () => {
     console.log('Get started clicked');
-    document.getElementById('generators')?.scrollIntoView({ behavior: 'smooth' });
+    if (onGetStarted) {
+      onGetStarted();
+    } else {
+      document.getElementById('generators')?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleExploreGuides = () => {
