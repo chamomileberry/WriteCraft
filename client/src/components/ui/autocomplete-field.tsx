@@ -230,19 +230,19 @@ export function AutocompleteField({
   };
 
   // Filter out already selected items
-  const availableItems = items.filter((item: AutocompleteOption) => 
-    !currentValues.includes(item.name)
+  const availableItems = (items || []).filter((item: AutocompleteOption) => 
+    item && item.name && !currentValues.includes(item.name)
   );
 
   // Check if search value exactly matches existing item
-  const exactMatch = items.find((item: AutocompleteOption) => 
-    item.name.toLowerCase() === searchValue.toLowerCase()
+  const exactMatch = (items || []).find((item: AutocompleteOption) => 
+    item && item.name && item.name.toLowerCase() === searchValue.toLowerCase()
   );
 
   // Don't show create option for static content types like location-type
   const showCreateOption = contentType !== "location-type" && (
     (searchValue.trim() && !exactMatch) || // Show when typing and no exact match
-    (!searchValue.trim() && items.length === 0) // Show when empty and no items exist
+    (!searchValue.trim() && (items || []).length === 0) // Show when empty and no items exist
   );
 
   return (
