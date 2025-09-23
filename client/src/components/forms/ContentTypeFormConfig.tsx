@@ -1891,7 +1891,396 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         ]
       }
     ]
+  },
+
+  // New Content Types
+  familyTree: {
+    title: "Family Tree Creator",
+    description: "Map family lineages and relationships",
+    icon: "Users",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Users",
+        fields: [
+          { name: "name", label: "Family Tree Name", type: "text", placeholder: "Enter family tree name...", description: "The name of this family lineage" },
+          { name: "treeType", label: "Tree Type", type: "select", options: ["Lineage", "Ancestral", "Descendant", "Genealogical", "Royal", "Noble", "Other"], description: "What type of family tree is this?" },
+          { name: "rootPerson", label: "Root Person", type: "autocomplete-character", placeholder: "Search or create root family member...", description: "The central person of this family tree", multiple: false },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this family tree...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "members",
+        label: "Family Members",
+        icon: "User",
+        fields: [
+          { name: "keyMembers", label: "Key Family Members", type: "autocomplete-character", placeholder: "Search or create family members...", description: "Important members of this family" },
+          { name: "generations", label: "Generations", type: "number", placeholder: "Number of generations", description: "How many generations does this tree span?" },
+          { name: "livingMembers", label: "Living Members", type: "text", placeholder: "Number of living members", description: "How many family members are still alive?" },
+          { name: "notableAncestors", label: "Notable Ancestors", type: "textarea", placeholder: "Describe notable ancestors...", description: "Important historical family members" }
+        ]
+      },
+      {
+        id: "heritage",
+        label: "Heritage & Legacy",
+        icon: "Crown",
+        fields: [
+          { name: "ancestralHome", label: "Ancestral Home", type: "autocomplete-location", placeholder: "Search or create ancestral location...", description: "The family's place of origin", multiple: false },
+          { name: "familyTraditions", label: "Family Traditions", type: "autocomplete-tradition", placeholder: "Search or create family traditions...", description: "Important family customs and practices" },
+          { name: "inheritance", label: "Inheritance", type: "textarea", placeholder: "Family inheritance and heirlooms...", description: "What passes down through generations" },
+          { name: "familySecrets", label: "Family Secrets", type: "textarea", placeholder: "Hidden family secrets...", description: "Dark secrets or hidden information" }
+        ]
+      }
+    ]
+  },
+
+  timeline: {
+    title: "Timeline Creator",
+    description: "Create chronological sequences of events",
+    icon: "Clock",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Clock",
+        fields: [
+          { name: "name", label: "Timeline Name", type: "text", placeholder: "Enter timeline name...", description: "The name of this timeline" },
+          { name: "timelineType", label: "Timeline Type", type: "select", options: ["Historical", "Personal", "Fictional", "Political", "Cultural", "Military", "Scientific", "Other"], description: "What type of timeline is this?" },
+          { name: "scope", label: "Scope", type: "text", placeholder: "Geographic or thematic scope", description: "What area or theme does this timeline cover?" },
+          { name: "timeScale", label: "Time Scale", type: "select", options: ["Years", "Decades", "Centuries", "Millennia", "Days", "Months", "Ages", "Other"], description: "What time scale does this timeline use?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this timeline...", description: "General description and overview" }
+        ]
+      },
+      {
+        id: "events",
+        label: "Key Events",
+        icon: "Target",
+        fields: [
+          { name: "majorEvents", label: "Major Events", type: "tags", placeholder: "Add major events", description: "Key events in this timeline" },
+          { name: "startDate", label: "Start Date", type: "text", placeholder: "When does this timeline begin?", description: "The beginning point of this timeline" },
+          { name: "endDate", label: "End Date", type: "text", placeholder: "When does this timeline end?", description: "The ending point of this timeline (if applicable)" },
+          { name: "turningPoints", label: "Turning Points", type: "textarea", placeholder: "Describe major turning points...", description: "Critical moments that changed everything" }
+        ]
+      },
+      {
+        id: "context",
+        label: "Historical Context",
+        icon: "Book",
+        fields: [
+          { name: "keyFigures", label: "Key Figures", type: "autocomplete-character", placeholder: "Search or create important people...", description: "Important people in this timeline" },
+          { name: "locations", label: "Important Locations", type: "autocomplete-location", placeholder: "Search or create key locations...", description: "Significant places in this timeline" },
+          { name: "culturalImpact", label: "Cultural Impact", type: "textarea", placeholder: "Cultural significance and impact...", description: "How this timeline affected culture and society" },
+          { name: "technologicalAdvances", label: "Technological Advances", type: "tags", placeholder: "Add technological developments", description: "Technology that emerged during this period" }
+        ]
+      }
+    ]
+  },
+
+  map: {
+    title: "Map Creator",
+    description: "Create detailed geographical maps",
+    icon: "Map",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Map",
+        fields: [
+          { name: "name", label: "Map Name", type: "text", placeholder: "Enter map name...", description: "The name of this map" },
+          { name: "mapType", label: "Map Type", type: "select", options: ["Political", "Topographical", "City", "Regional", "World", "Dungeon", "Battle", "Trade Routes", "Other"], description: "What type of map is this?" },
+          { name: "scale", label: "Scale", type: "text", placeholder: "Map scale (e.g., 1:100,000)", description: "The scale or zoom level of this map" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this map...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "geography",
+        label: "Geography",
+        icon: "Mountain",
+        fields: [
+          { name: "terrain", label: "Major Terrain", type: "tags", placeholder: "Add terrain types", description: "Mountains, forests, deserts, etc." },
+          { name: "climate", label: "Climate", type: "text", placeholder: "Overall climate", description: "Weather patterns and climate zones" },
+          { name: "naturalFeatures", label: "Natural Features", type: "textarea", placeholder: "Rivers, lakes, mountains...", description: "Important natural landmarks" },
+          { name: "resources", label: "Natural Resources", type: "autocomplete-material", placeholder: "Search or create resources...", description: "Valuable resources found in this area" }
+        ]
+      },
+      {
+        id: "locations",
+        label: "Key Locations",
+        icon: "MapPin",
+        fields: [
+          { name: "settlements", label: "Settlements", type: "autocomplete-settlement", placeholder: "Search or create settlements...", description: "Cities, towns, and villages on this map" },
+          { name: "landmarks", label: "Landmarks", type: "autocomplete-location", placeholder: "Search or create landmarks...", description: "Important places and points of interest" },
+          { name: "borders", label: "Political Borders", type: "textarea", placeholder: "Describe political boundaries...", description: "Kingdoms, territories, and political divisions" },
+          { name: "travelRoutes", label: "Travel Routes", type: "textarea", placeholder: "Roads, paths, shipping lanes...", description: "Major routes for travel and trade" }
+        ]
+      }
+    ]
+  },
+
+  ceremony: {
+    title: "Ceremony Creator",
+    description: "Design important cultural ceremonies",
+    icon: "Crown",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Crown",
+        fields: [
+          { name: "name", label: "Ceremony Name", type: "text", placeholder: "Enter ceremony name...", description: "The name of this ceremony" },
+          { name: "ceremonyType", label: "Ceremony Type", type: "select", options: ["Religious", "Royal", "Cultural", "Coming of Age", "Wedding", "Funeral", "Seasonal", "Military", "Other"], description: "What type of ceremony is this?" },
+          { name: "purpose", label: "Purpose", type: "text", placeholder: "Why is this ceremony performed?", description: "The main purpose or reason for this ceremony" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this ceremony...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "ritual",
+        label: "Ritual & Process",
+        icon: "Sparkles",
+        fields: [
+          { name: "steps", label: "Ceremony Steps", type: "textarea", placeholder: "Describe the ceremonial process...", description: "The sequence of events and actions" },
+          { name: "duration", label: "Duration", type: "text", placeholder: "How long does it last?", description: "Length of time the ceremony takes" },
+          { name: "participants", label: "Participants", type: "autocomplete-character", placeholder: "Search or create participants...", description: "Who participates in this ceremony?" },
+          { name: "officiant", label: "Officiant", type: "text", placeholder: "Who leads the ceremony?", description: "The person who conducts or oversees the ceremony" }
+        ]
+      },
+      {
+        id: "cultural",
+        label: "Cultural Context",
+        icon: "Globe",
+        fields: [
+          { name: "culture", label: "Associated Culture", type: "autocomplete-culture", placeholder: "Search or create culture...", description: "The culture that practices this ceremony", multiple: false },
+          { name: "location", label: "Ceremony Location", type: "autocomplete-location", placeholder: "Search or create location...", description: "Where is this ceremony typically held?", multiple: false },
+          { name: "requiredItems", label: "Required Items", type: "tags", placeholder: "Add ceremonial items", description: "Special objects needed for the ceremony" },
+          { name: "symbolism", label: "Symbolism", type: "textarea", placeholder: "What does this ceremony symbolize?", description: "Deeper meaning and symbolic significance" },
+          { name: "traditions", label: "Related Traditions", type: "autocomplete-tradition", placeholder: "Search or create traditions...", description: "Connected cultural traditions" }
+        ]
+      }
+    ]
+  },
+
+  music: {
+    title: "Music Creator",
+    description: "Create songs and musical compositions",
+    icon: "Music",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Music",
+        fields: [
+          { name: "name", label: "Song/Composition Name", type: "text", placeholder: "Enter music name...", description: "The title of this musical piece" },
+          { name: "musicType", label: "Music Type", type: "select", options: ["Song", "Instrumental", "Hymn", "Anthem", "Folk Song", "Battle Song", "Lullaby", "Opera", "Other"], description: "What type of music is this?" },
+          { name: "composer", label: "Composer", type: "autocomplete-character", placeholder: "Search or create composer...", description: "Who composed this music?", multiple: false },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this music...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "composition",
+        label: "Composition",
+        icon: "FileText",
+        fields: [
+          { name: "lyrics", label: "Lyrics", type: "textarea", placeholder: "Enter song lyrics...", description: "The words of the song (if applicable)" },
+          { name: "melody", label: "Melody Description", type: "text", placeholder: "Describe the melody...", description: "How the music sounds" },
+          { name: "instruments", label: "Instruments", type: "tags", placeholder: "Add instruments", description: "Musical instruments used" },
+          { name: "key", label: "Musical Key", type: "text", placeholder: "E.g., C Major, A Minor", description: "The musical key or mode" },
+          { name: "tempo", label: "Tempo", type: "text", placeholder: "Fast, slow, moderate...", description: "The speed and rhythm of the music" }
+        ]
+      },
+      {
+        id: "cultural",
+        label: "Cultural Context",
+        icon: "Globe",
+        fields: [
+          { name: "culture", label: "Associated Culture", type: "autocomplete-culture", placeholder: "Search or create culture...", description: "The culture this music comes from", multiple: false },
+          { name: "purpose", label: "Purpose", type: "text", placeholder: "Why is this music performed?", description: "Ceremonial, entertainment, religious, etc." },
+          { name: "occasions", label: "Occasions", type: "textarea", placeholder: "When is this music played?", description: "Specific events or occasions" },
+          { name: "meaning", label: "Meaning", type: "textarea", placeholder: "What does this music mean?", description: "Cultural or personal significance" },
+          { name: "variations", label: "Regional Variations", type: "textarea", placeholder: "Different versions...", description: "How the music varies by region or performer" }
+        ]
+      }
+    ]
+  },
+
+  dance: {
+    title: "Dance Creator",
+    description: "Design choreographed performances",
+    icon: "PersonStanding",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "PersonStanding",
+        fields: [
+          { name: "name", label: "Dance Name", type: "text", placeholder: "Enter dance name...", description: "The name of this dance" },
+          { name: "danceType", label: "Dance Type", type: "select", options: ["Ceremonial", "Social", "Courtly", "Folk", "Martial", "Religious", "Performance", "Ritual", "Other"], description: "What type of dance is this?" },
+          { name: "choreographer", label: "Choreographer", type: "autocomplete-character", placeholder: "Search or create choreographer...", description: "Who created this dance?", multiple: false },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this dance...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "choreography",
+        label: "Choreography",
+        icon: "Target",
+        fields: [
+          { name: "movements", label: "Key Movements", type: "textarea", placeholder: "Describe the main dance movements...", description: "Primary steps and gestures" },
+          { name: "formation", label: "Formation", type: "text", placeholder: "Solo, pair, group, circle...", description: "How many dancers and their arrangement" },
+          { name: "duration", label: "Duration", type: "text", placeholder: "How long does it last?", description: "Length of the dance performance" },
+          { name: "difficulty", label: "Difficulty", type: "select", options: ["Beginner", "Intermediate", "Advanced", "Master"], description: "How difficult is this dance to learn?" },
+          { name: "accompaniment", label: "Musical Accompaniment", type: "autocomplete-music", placeholder: "Search or create music...", description: "Music that accompanies this dance", multiple: false }
+        ]
+      },
+      {
+        id: "cultural",
+        label: "Cultural Context",
+        icon: "Globe",
+        fields: [
+          { name: "culture", label: "Associated Culture", type: "autocomplete-culture", placeholder: "Search or create culture...", description: "The culture that practices this dance", multiple: false },
+          { name: "occasions", label: "Occasions", type: "textarea", placeholder: "When is this dance performed?", description: "Specific events, festivals, or ceremonies" },
+          { name: "costume", label: "Traditional Costume", type: "autocomplete-clothing", placeholder: "Search or create dance costume...", description: "Special clothing worn for this dance" },
+          { name: "symbolism", label: "Symbolism", type: "textarea", placeholder: "What does this dance represent?", description: "Cultural meaning and symbolism" },
+          { name: "restrictions", label: "Social Restrictions", type: "text", placeholder: "Who can perform this dance?", description: "Any social or cultural restrictions" }
+        ]
+      }
+    ]
+  },
+
+  law: {
+    title: "Law Creator", 
+    description: "Create legal codes and regulations",
+    icon: "Scale",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Scale",
+        fields: [
+          { name: "name", label: "Law Name", type: "text", placeholder: "Enter law name...", description: "The official title of this law" },
+          { name: "lawType", label: "Law Type", type: "select", options: ["Criminal", "Civil", "Commercial", "Constitutional", "Religious", "Military", "Property", "Family", "Tax", "Other"], description: "What type of law is this?" },
+          { name: "jurisdiction", label: "Jurisdiction", type: "autocomplete-location", placeholder: "Search or create location...", description: "Where does this law apply?", multiple: false },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this law...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "details",
+        label: "Legal Details",
+        icon: "FileText",
+        fields: [
+          { name: "text", label: "Law Text", type: "textarea", placeholder: "The actual text of the law...", description: "The formal wording of the law" },
+          { name: "penalties", label: "Penalties", type: "textarea", placeholder: "Punishments for breaking this law...", description: "Consequences for violations" },
+          { name: "enforcement", label: "Enforcement", type: "text", placeholder: "Who enforces this law?", description: "The authority responsible for enforcement" },
+          { name: "exceptions", label: "Exceptions", type: "textarea", placeholder: "Any exceptions to this law...", description: "Special circumstances where the law doesn't apply" }
+        ]
+      },
+      {
+        id: "context",
+        label: "Historical Context",
+        icon: "Book",
+        fields: [
+          { name: "creator", label: "Creator/Author", type: "autocomplete-character", placeholder: "Search or create lawmaker...", description: "Who created or sponsored this law?", multiple: false },
+          { name: "dateEnacted", label: "Date Enacted", type: "text", placeholder: "When was this law created?", description: "When this law was officially established" },
+          { name: "precedent", label: "Legal Precedent", type: "textarea", placeholder: "What legal precedent does this set?", description: "How this law affects future legal decisions" },
+          { name: "relatedLaws", label: "Related Laws", type: "tags", placeholder: "Add related laws", description: "Other laws that interact with this one" },
+          { name: "controversy", label: "Controversy", type: "textarea", placeholder: "Any controversy around this law?", description: "Public opinion and debates" }
+        ]
+      }
+    ]
+  },
+
+  policy: {
+    title: "Policy Creator",
+    description: "Design governance and administrative policies",
+    icon: "FileText",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "FileText",
+        fields: [
+          { name: "name", label: "Policy Name", type: "text", placeholder: "Enter policy name...", description: "The official title of this policy" },
+          { name: "policyType", label: "Policy Type", type: "select", options: ["Economic", "Social", "Foreign", "Military", "Environmental", "Educational", "Healthcare", "Administrative", "Other"], description: "What type of policy is this?" },
+          { name: "organization", label: "Governing Organization", type: "autocomplete-organization", placeholder: "Search or create organization...", description: "The organization that implements this policy", multiple: false },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this policy...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "implementation",
+        label: "Implementation",
+        icon: "Target",
+        fields: [
+          { name: "objectives", label: "Objectives", type: "textarea", placeholder: "What does this policy aim to achieve?", description: "The main goals and objectives" },
+          { name: "guidelines", label: "Guidelines", type: "textarea", placeholder: "How should this policy be implemented?", description: "Specific implementation guidelines" },
+          { name: "scope", label: "Scope", type: "text", placeholder: "Who does this policy affect?", description: "The range of people or areas affected" },
+          { name: "budget", label: "Budget", type: "text", placeholder: "Cost and funding", description: "Financial resources allocated" }
+        ]
+      },
+      {
+        id: "governance",
+        label: "Governance & Impact",
+        icon: "Crown",
+        fields: [
+          { name: "authority", label: "Authority", type: "autocomplete-character", placeholder: "Search or create responsible official...", description: "Who has authority over this policy?", multiple: false },
+          { name: "dateImplemented", label: "Date Implemented", type: "text", placeholder: "When was this policy implemented?", description: "When this policy went into effect" },
+          { name: "review", label: "Review Process", type: "text", placeholder: "How is this policy reviewed?", description: "Regular review and update procedures" },
+          { name: "publicOpinion", label: "Public Opinion", type: "textarea", placeholder: "How do people view this policy?", description: "Public reception and criticism" },
+          { name: "effectiveness", label: "Effectiveness", type: "text", placeholder: "How effective is this policy?", description: "Measured success and outcomes" }
+        ]
+      }
+    ]
+  },
+
+  potion: {
+    title: "Potion Creator",
+    description: "Create magical brews and elixirs",
+    icon: "FlaskConical",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "FlaskConical",
+        fields: [
+          { name: "name", label: "Potion Name", type: "text", placeholder: "Enter potion name...", description: "The name of this magical brew" },
+          { name: "potionType", label: "Potion Type", type: "select", options: ["Healing", "Enhancement", "Transformation", "Poison", "Utility", "Combat", "Magical", "Alchemical", "Other"], description: "What type of potion is this?" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"], description: "How rare is this potion?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this potion...", description: "General description and overview" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "properties",
+        label: "Properties & Effects",
+        icon: "Zap",
+        fields: [
+          { name: "effect", label: "Primary Effect", type: "textarea", placeholder: "What does this potion do?", description: "The main magical or chemical effect" },
+          { name: "duration", label: "Duration", type: "text", placeholder: "How long do effects last?", description: "Duration of the potion's effects" },
+          { name: "onset", label: "Onset Time", type: "text", placeholder: "How quickly does it work?", description: "Time before effects begin" },
+          { name: "sideEffects", label: "Side Effects", type: "textarea", placeholder: "Any negative side effects?", description: "Unwanted or dangerous effects" },
+          { name: "appearance", label: "Appearance", type: "text", placeholder: "Color, texture, smell...", description: "What does the potion look like?" }
+        ]
+      },
+      {
+        id: "creation",
+        label: "Creation & Usage",
+        icon: "Sparkles",
+        fields: [
+          { name: "ingredients", label: "Ingredients", type: "autocomplete-material", placeholder: "Search or create ingredients...", description: "Materials needed to create this potion" },
+          { name: "recipe", label: "Recipe", type: "textarea", placeholder: "How is this potion made?", description: "Step-by-step brewing instructions" },
+          { name: "difficulty", label: "Brewing Difficulty", type: "select", options: ["Trivial", "Easy", "Moderate", "Hard", "Extreme", "Legendary"], description: "How difficult is this to brew?" },
+          { name: "creator", label: "Original Creator", type: "autocomplete-character", placeholder: "Search or create alchemist...", description: "Who first created this potion?", multiple: false },
+          { name: "cost", label: "Market Value", type: "text", placeholder: "How much does it cost?", description: "Typical price or trade value" },
+          { name: "dosage", label: "Dosage", type: "text", placeholder: "How much to consume?", description: "Recommended amount for desired effect" }
+        ]
+      }
+    ]
   }
 
-  // 🎉 ALL 42 CONTENT TYPES NOW HAVE COMPREHENSIVE FORM CONFIGURATIONS! 🎉
+  // 🎉 ALL 51 CONTENT TYPES NOW HAVE COMPREHENSIVE FORM CONFIGURATIONS! 🎉
 };
