@@ -424,11 +424,7 @@ export default function CharacterEditorWithSidebar({
       case "autocomplete-organization":
       case "autocomplete-species":
       case "autocomplete-profession":
-      case "autocomplete-item":
       case "autocomplete-weapon":
-      case "autocomplete-creature":
-      case "autocomplete-food":
-      case "autocomplete-drink":
         return (
           <div key={field.name} className="space-y-2">
             <Label htmlFor={field.name}>{field.label} {field.required && "*"}</Label>

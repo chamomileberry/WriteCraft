@@ -128,9 +128,9 @@ export default function SavedItems() {
 
   // Fetch saved items
   const { data: savedItems = [], isLoading, error } = useQuery({
-    queryKey: ['/api/saved-items', 'null'],
+    queryKey: ['/api/saved-items', 'guest'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/saved-items/null');
+      const response = await apiRequest('GET', '/api/saved-items/guest');
       return response.json() as Promise<SavedItem[]>;
     },
   });
@@ -139,7 +139,7 @@ export default function SavedItems() {
   const unsaveMutation = useMutation({
     mutationFn: async ({ itemType, itemId }: { itemType: string; itemId: string }) => {
       const response = await apiRequest('DELETE', '/api/saved-items', {
-        userId: 'null',
+        userId: 'guest',
         itemType,
         itemId
       });

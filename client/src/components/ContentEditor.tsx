@@ -15,6 +15,7 @@ import LocationForm from "@/components/forms/LocationForm";
 import CreatureForm from "@/components/forms/CreatureForm";
 import OrganizationForm from "@/components/forms/OrganizationForm";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
+import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
 import { contentTypeFormConfigs } from "@/components/forms/ContentTypeFormConfig";
 
 interface ContentEditorProps {
@@ -88,7 +89,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         return result;
       }
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       toast({
         title: isCreating ? "Content created" : "Content updated",
         description: isCreating ? "Your new content has been created successfully." : "Your changes have been saved successfully.",
@@ -98,6 +99,19 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
       
       if (isCreating && result?.id) {
+        // Automatically save the newly created item to saved-items
+        try {
+          await apiRequest('POST', '/api/saved-items', {
+            userId: 'guest', // Use guest user for unauthenticated users
+            itemType: contentType,
+            itemId: result.id
+          });
+          console.log('Successfully saved item to saved-items:', { contentType, itemId: result.id });
+        } catch (error) {
+          console.error('Failed to save item to saved-items:', error);
+          // Don't show error to user as the main content was created successfully
+        }
+        
         // Navigate to the edit page of the newly created content
         const urlSegment = mapping?.urlSegment || contentType;
         setLocation(`/${urlSegment}/${result.id}/edit`);
@@ -297,7 +311,20 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         const formConfig = contentTypeFormConfigs[contentType];
         
         if (formConfig && isEditing) {
-          // Use dynamic comprehensive form (hides header save button)
+          // Use character sidebar editor for characters specifically
+          if (contentType === 'character') {
+            return (
+              <CharacterEditorWithSidebar
+                config={formConfig}
+                initialData={contentData}
+                onSubmit={handleFormSubmit}
+                isLoading={saveMutation.isPending}
+                isCreating={isCreating}
+              />
+            );
+          }
+          
+          // Use dynamic comprehensive form for other content types (hides header save button)
           return (
             <DynamicContentForm
               config={formConfig}

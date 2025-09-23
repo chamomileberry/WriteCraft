@@ -64,7 +64,7 @@ function Router() {
       <Route path="/notebook" component={NotebookPage} />
       <Route path="/guides/:id" component={GuideDetail} />
       <Route path="/characters" component={CharacterPage} />
-      <Route path="/characters/:id/edit" component={CharacterEditPage} />
+      <Route path="/characters/:id/edit" component={CharacterEditPageWithSidebar} />
       <Route path="/characters/:id/edit-sidebar" component={CharacterEditPageWithSidebar} />
       <Route path="/settings" component={SettingPage} />
       <Route path="/creatures" component={CreaturePage} />
