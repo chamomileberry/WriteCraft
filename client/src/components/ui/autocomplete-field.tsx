@@ -239,7 +239,10 @@ export function AutocompleteField({
   );
 
   // Don't show create option for static content types like location-type
-  const showCreateOption = searchValue.trim() && !exactMatch && contentType !== "location-type";
+  const showCreateOption = contentType !== "location-type" && (
+    (searchValue.trim() && !exactMatch) || // Show when typing and no exact match
+    (!searchValue.trim() && items.length === 0) // Show when empty and no items exist
+  );
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -298,7 +301,11 @@ export function AutocompleteField({
             />
             <CommandList>
               <CommandEmpty>
-                {isLoading ? "Searching..." : `No ${contentType}s found.`}
+                {isLoading ? "Searching..." : 
+                  searchValue.trim() 
+                    ? `No ${contentType}s match "${searchValue}".`
+                    : `No ${contentType}s found. Type to create a new one.`
+                }
               </CommandEmpty>
               
               {availableItems.length > 0 && (
@@ -336,13 +343,15 @@ export function AutocompleteField({
                   <CommandItem
                     onSelect={handleCreateNew}
                     className="text-primary"
-                    disabled={createMutation.isPending}
+                    disabled={createMutation.isPending || !searchValue.trim()}
                     data-testid={`option-create-${contentType}`}
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     {createMutation.isPending 
                       ? `Creating ${searchValue}...`
-                      : `Create "${searchValue}"`
+                      : searchValue.trim()
+                        ? `Create "${searchValue}"`
+                        : `Type a name to create new ${contentType}`
                     }
                   </CommandItem>
                 </CommandGroup>

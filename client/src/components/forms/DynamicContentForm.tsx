@@ -734,6 +734,7 @@ export default function DynamicContentForm({
       case "autocomplete-dance":
       case "autocomplete-policy":
       case "autocomplete-potion":
+      case "autocomplete-profession":
         return (
           <FormField
             key={field.name}
