@@ -7,7 +7,7 @@ import {
   foods, drinks, weapons, armor, religions, languages, accessories, clothing,
   materials, settlements, societies, factions, militaryUnits, myths, legends,
   events, technologies, spells, resources, buildings, animals, transportation,
-  naturalLaws, traditions, rituals,
+  naturalLaws, traditions, rituals, familyTrees, timelines, ceremonies, maps, music, dances, laws, policies, potions,
   type User, type InsertUser,
   type Character, type InsertCharacter, type UpdateCharacter,
   type Plot, type InsertPlot,
@@ -53,7 +53,16 @@ import {
   type Transportation, type InsertTransportation,
   type NaturalLaw, type InsertNaturalLaw,
   type Tradition, type InsertTradition,
-  type Ritual, type InsertRitual
+  type Ritual, type InsertRitual,
+  type FamilyTree, type InsertFamilyTree,
+  type Timeline, type InsertTimeline,
+  type Ceremony, type InsertCeremony,
+  type Map, type InsertMap,
+  type Music, type InsertMusic,
+  type Dance, type InsertDance,
+  type Law, type InsertLaw,
+  type Policy, type InsertPolicy,
+  type Potion, type InsertPotion
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, isNull } from "drizzle-orm";
@@ -350,6 +359,69 @@ export interface IStorage {
   getUserRituals(userId: string | null): Promise<Ritual[]>;
   updateRitual(id: string, updates: Partial<InsertRitual>): Promise<Ritual>;
   deleteRitual(id: string): Promise<void>;
+  
+  // Family Tree methods
+  createFamilyTree(familyTree: InsertFamilyTree): Promise<FamilyTree>;
+  getFamilyTree(id: string): Promise<FamilyTree | undefined>;
+  getUserFamilyTrees(userId: string | null): Promise<FamilyTree[]>;
+  updateFamilyTree(id: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree>;
+  deleteFamilyTree(id: string): Promise<void>;
+  
+  // Timeline methods
+  createTimeline(timeline: InsertTimeline): Promise<Timeline>;
+  getTimeline(id: string): Promise<Timeline | undefined>;
+  getUserTimelines(userId: string | null): Promise<Timeline[]>;
+  updateTimeline(id: string, updates: Partial<InsertTimeline>): Promise<Timeline>;
+  deleteTimeline(id: string): Promise<void>;
+  
+  // Ceremony methods
+  createCeremony(ceremony: InsertCeremony): Promise<Ceremony>;
+  getCeremony(id: string): Promise<Ceremony | undefined>;
+  getUserCeremonies(userId: string | null): Promise<Ceremony[]>;
+  updateCeremony(id: string, updates: Partial<InsertCeremony>): Promise<Ceremony>;
+  deleteCeremony(id: string): Promise<void>;
+  
+  // Map methods
+  createMap(map: InsertMap): Promise<Map>;
+  getMap(id: string): Promise<Map | undefined>;
+  getUserMaps(userId: string | null): Promise<Map[]>;
+  updateMap(id: string, updates: Partial<InsertMap>): Promise<Map>;
+  deleteMap(id: string): Promise<void>;
+  
+  // Music methods
+  createMusic(music: InsertMusic): Promise<Music>;
+  getMusic(id: string): Promise<Music | undefined>;
+  getUserMusic(userId: string | null): Promise<Music[]>;
+  updateMusic(id: string, updates: Partial<InsertMusic>): Promise<Music>;
+  deleteMusic(id: string): Promise<void>;
+  
+  // Dance methods
+  createDance(dance: InsertDance): Promise<Dance>;
+  getDance(id: string): Promise<Dance | undefined>;
+  getUserDances(userId: string | null): Promise<Dance[]>;
+  updateDance(id: string, updates: Partial<InsertDance>): Promise<Dance>;
+  deleteDance(id: string): Promise<void>;
+  
+  // Law methods
+  createLaw(law: InsertLaw): Promise<Law>;
+  getLaw(id: string): Promise<Law | undefined>;
+  getUserLaws(userId: string | null): Promise<Law[]>;
+  updateLaw(id: string, updates: Partial<InsertLaw>): Promise<Law>;
+  deleteLaw(id: string): Promise<void>;
+  
+  // Policy methods
+  createPolicy(policy: InsertPolicy): Promise<Policy>;
+  getPolicy(id: string): Promise<Policy | undefined>;
+  getUserPolicies(userId: string | null): Promise<Policy[]>;
+  updatePolicy(id: string, updates: Partial<InsertPolicy>): Promise<Policy>;
+  deletePolicy(id: string): Promise<void>;
+  
+  // Potion methods
+  createPotion(potion: InsertPotion): Promise<Potion>;
+  getPotion(id: string): Promise<Potion | undefined>;
+  getUserPotions(userId: string | null): Promise<Potion[]>;
+  updatePotion(id: string, updates: Partial<InsertPotion>): Promise<Potion>;
+  deletePotion(id: string): Promise<void>;
 
   // Saved items methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -1794,6 +1866,348 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRitual(id: string): Promise<void> {
     await db.delete(rituals).where(eq(rituals.id, id));
+  }
+
+  // Family Tree methods
+  async createFamilyTree(familyTree: InsertFamilyTree): Promise<FamilyTree> {
+    const [newFamilyTree] = await db
+      .insert(familyTrees)
+      .values(familyTree)
+      .returning();
+    return newFamilyTree;
+  }
+
+  async getFamilyTree(id: string): Promise<FamilyTree | undefined> {
+    const [familyTree] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
+    return familyTree || undefined;
+  }
+
+  async getUserFamilyTrees(userId: string | null): Promise<FamilyTree[]> {
+    if (userId) {
+      return await db.select().from(familyTrees)
+        .where(eq(familyTrees.userId, userId))
+        .orderBy(desc(familyTrees.createdAt));
+    }
+    return await db.select().from(familyTrees)
+      .orderBy(desc(familyTrees.createdAt))
+      .limit(10);
+  }
+
+  async updateFamilyTree(id: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree> {
+    const [updatedFamilyTree] = await db
+      .update(familyTrees)
+      .set(updates)
+      .where(eq(familyTrees.id, id))
+      .returning();
+    return updatedFamilyTree;
+  }
+
+  async deleteFamilyTree(id: string): Promise<void> {
+    await db.delete(familyTrees).where(eq(familyTrees.id, id));
+  }
+
+  // Timeline methods
+  async createTimeline(timeline: InsertTimeline): Promise<Timeline> {
+    const [newTimeline] = await db
+      .insert(timelines)
+      .values(timeline)
+      .returning();
+    return newTimeline;
+  }
+
+  async getTimeline(id: string): Promise<Timeline | undefined> {
+    const [timeline] = await db.select().from(timelines).where(eq(timelines.id, id));
+    return timeline || undefined;
+  }
+
+  async getUserTimelines(userId: string | null): Promise<Timeline[]> {
+    if (userId) {
+      return await db.select().from(timelines)
+        .where(eq(timelines.userId, userId))
+        .orderBy(desc(timelines.createdAt));
+    }
+    return await db.select().from(timelines)
+      .orderBy(desc(timelines.createdAt))
+      .limit(10);
+  }
+
+  async updateTimeline(id: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
+    const [updatedTimeline] = await db
+      .update(timelines)
+      .set(updates)
+      .where(eq(timelines.id, id))
+      .returning();
+    return updatedTimeline;
+  }
+
+  async deleteTimeline(id: string): Promise<void> {
+    await db.delete(timelines).where(eq(timelines.id, id));
+  }
+
+  // Ceremony methods
+  async createCeremony(ceremony: InsertCeremony): Promise<Ceremony> {
+    const [newCeremony] = await db
+      .insert(ceremonies)
+      .values(ceremony)
+      .returning();
+    return newCeremony;
+  }
+
+  async getCeremony(id: string): Promise<Ceremony | undefined> {
+    const [ceremony] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
+    return ceremony || undefined;
+  }
+
+  async getUserCeremonies(userId: string | null): Promise<Ceremony[]> {
+    if (userId) {
+      return await db.select().from(ceremonies)
+        .where(eq(ceremonies.userId, userId))
+        .orderBy(desc(ceremonies.createdAt));
+    }
+    return await db.select().from(ceremonies)
+      .orderBy(desc(ceremonies.createdAt))
+      .limit(10);
+  }
+
+  async updateCeremony(id: string, updates: Partial<InsertCeremony>): Promise<Ceremony> {
+    const [updatedCeremony] = await db
+      .update(ceremonies)
+      .set(updates)
+      .where(eq(ceremonies.id, id))
+      .returning();
+    return updatedCeremony;
+  }
+
+  async deleteCeremony(id: string): Promise<void> {
+    await db.delete(ceremonies).where(eq(ceremonies.id, id));
+  }
+
+  // Map methods
+  async createMap(map: InsertMap): Promise<Map> {
+    const [newMap] = await db
+      .insert(maps)
+      .values(map)
+      .returning();
+    return newMap;
+  }
+
+  async getMap(id: string): Promise<Map | undefined> {
+    const [map] = await db.select().from(maps).where(eq(maps.id, id));
+    return map || undefined;
+  }
+
+  async getUserMaps(userId: string | null): Promise<Map[]> {
+    if (userId) {
+      return await db.select().from(maps)
+        .where(eq(maps.userId, userId))
+        .orderBy(desc(maps.createdAt));
+    }
+    return await db.select().from(maps)
+      .orderBy(desc(maps.createdAt))
+      .limit(10);
+  }
+
+  async updateMap(id: string, updates: Partial<InsertMap>): Promise<Map> {
+    const [updatedMap] = await db
+      .update(maps)
+      .set(updates)
+      .where(eq(maps.id, id))
+      .returning();
+    return updatedMap;
+  }
+
+  async deleteMap(id: string): Promise<void> {
+    await db.delete(maps).where(eq(maps.id, id));
+  }
+
+  // Music methods
+  async createMusic(musicItem: InsertMusic): Promise<Music> {
+    const [newMusic] = await db
+      .insert(music)
+      .values(musicItem)
+      .returning();
+    return newMusic;
+  }
+
+  async getMusic(id: string): Promise<Music | undefined> {
+    const [musicItem] = await db.select().from(music).where(eq(music.id, id));
+    return musicItem || undefined;
+  }
+
+  async getUserMusic(userId: string | null): Promise<Music[]> {
+    if (userId) {
+      return await db.select().from(music)
+        .where(eq(music.userId, userId))
+        .orderBy(desc(music.createdAt));
+    }
+    return await db.select().from(music)
+      .orderBy(desc(music.createdAt))
+      .limit(10);
+  }
+
+  async updateMusic(id: string, updates: Partial<InsertMusic>): Promise<Music> {
+    const [updatedMusic] = await db
+      .update(music)
+      .set(updates)
+      .where(eq(music.id, id))
+      .returning();
+    return updatedMusic;
+  }
+
+  async deleteMusic(id: string): Promise<void> {
+    await db.delete(music).where(eq(music.id, id));
+  }
+
+  // Dance methods
+  async createDance(dance: InsertDance): Promise<Dance> {
+    const [newDance] = await db
+      .insert(dances)
+      .values(dance)
+      .returning();
+    return newDance;
+  }
+
+  async getDance(id: string): Promise<Dance | undefined> {
+    const [dance] = await db.select().from(dances).where(eq(dances.id, id));
+    return dance || undefined;
+  }
+
+  async getUserDances(userId: string | null): Promise<Dance[]> {
+    if (userId) {
+      return await db.select().from(dances)
+        .where(eq(dances.userId, userId))
+        .orderBy(desc(dances.createdAt));
+    }
+    return await db.select().from(dances)
+      .orderBy(desc(dances.createdAt))
+      .limit(10);
+  }
+
+  async updateDance(id: string, updates: Partial<InsertDance>): Promise<Dance> {
+    const [updatedDance] = await db
+      .update(dances)
+      .set(updates)
+      .where(eq(dances.id, id))
+      .returning();
+    return updatedDance;
+  }
+
+  async deleteDance(id: string): Promise<void> {
+    await db.delete(dances).where(eq(dances.id, id));
+  }
+
+  // Law methods
+  async createLaw(law: InsertLaw): Promise<Law> {
+    const [newLaw] = await db
+      .insert(laws)
+      .values(law)
+      .returning();
+    return newLaw;
+  }
+
+  async getLaw(id: string): Promise<Law | undefined> {
+    const [law] = await db.select().from(laws).where(eq(laws.id, id));
+    return law || undefined;
+  }
+
+  async getUserLaws(userId: string | null): Promise<Law[]> {
+    if (userId) {
+      return await db.select().from(laws)
+        .where(eq(laws.userId, userId))
+        .orderBy(desc(laws.createdAt));
+    }
+    return await db.select().from(laws)
+      .orderBy(desc(laws.createdAt))
+      .limit(10);
+  }
+
+  async updateLaw(id: string, updates: Partial<InsertLaw>): Promise<Law> {
+    const [updatedLaw] = await db
+      .update(laws)
+      .set(updates)
+      .where(eq(laws.id, id))
+      .returning();
+    return updatedLaw;
+  }
+
+  async deleteLaw(id: string): Promise<void> {
+    await db.delete(laws).where(eq(laws.id, id));
+  }
+
+  // Policy methods
+  async createPolicy(policy: InsertPolicy): Promise<Policy> {
+    const [newPolicy] = await db
+      .insert(policies)
+      .values(policy)
+      .returning();
+    return newPolicy;
+  }
+
+  async getPolicy(id: string): Promise<Policy | undefined> {
+    const [policy] = await db.select().from(policies).where(eq(policies.id, id));
+    return policy || undefined;
+  }
+
+  async getUserPolicies(userId: string | null): Promise<Policy[]> {
+    if (userId) {
+      return await db.select().from(policies)
+        .where(eq(policies.userId, userId))
+        .orderBy(desc(policies.createdAt));
+    }
+    return await db.select().from(policies)
+      .orderBy(desc(policies.createdAt))
+      .limit(10);
+  }
+
+  async updatePolicy(id: string, updates: Partial<InsertPolicy>): Promise<Policy> {
+    const [updatedPolicy] = await db
+      .update(policies)
+      .set(updates)
+      .where(eq(policies.id, id))
+      .returning();
+    return updatedPolicy;
+  }
+
+  async deletePolicy(id: string): Promise<void> {
+    await db.delete(policies).where(eq(policies.id, id));
+  }
+
+  // Potion methods
+  async createPotion(potion: InsertPotion): Promise<Potion> {
+    const [newPotion] = await db
+      .insert(potions)
+      .values(potion)
+      .returning();
+    return newPotion;
+  }
+
+  async getPotion(id: string): Promise<Potion | undefined> {
+    const [potion] = await db.select().from(potions).where(eq(potions.id, id));
+    return potion || undefined;
+  }
+
+  async getUserPotions(userId: string | null): Promise<Potion[]> {
+    if (userId) {
+      return await db.select().from(potions)
+        .where(eq(potions.userId, userId))
+        .orderBy(desc(potions.createdAt));
+    }
+    return await db.select().from(potions)
+      .orderBy(desc(potions.createdAt))
+      .limit(10);
+  }
+
+  async updatePotion(id: string, updates: Partial<InsertPotion>): Promise<Potion> {
+    const [updatedPotion] = await db
+      .update(potions)
+      .set(updates)
+      .where(eq(potions.id, id))
+      .returning();
+    return updatedPotion;
+  }
+
+  async deletePotion(id: string): Promise<void> {
+    await db.delete(potions).where(eq(potions.id, id));
   }
 
   // Update/Delete methods for new content types
