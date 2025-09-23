@@ -195,9 +195,9 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Basic Info",
         icon: "Sword",
         fields: [
-          { name: "name", label: "Weapon Name", type: "text", required: true, placeholder: "Enter weapon name..." },
-          { name: "weaponType", label: "Weapon Type", type: "select", required: true, options: ["Sword", "Bow", "Staff", "Dagger", "Axe", "Mace", "Spear", "Crossbow", "Wand", "Other"] },
-          { name: "description", label: "Description", type: "textarea", required: true, placeholder: "Detailed description of the weapon...", description: "What does this weapon look like and how does it function?" },
+          { name: "name", label: "Weapon Name", type: "text", placeholder: "Enter weapon name..." },
+          { name: "weaponType", label: "Weapon Type", type: "select", options: ["Sword", "Bow", "Staff", "Dagger", "Axe", "Mace", "Spear", "Crossbow", "Wand", "Other"] },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Detailed description of the weapon...", description: "What does this weapon look like and how does it function?" },
           { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Steampunk", "Other"] }
         ]
       },
@@ -240,9 +240,9 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Basic Info",
         icon: "Building",
         fields: [
-          { name: "name", label: "Building Name", type: "text", required: true, placeholder: "Enter building name..." },
-          { name: "buildingType", label: "Building Type", type: "select", required: true, options: ["House", "Castle", "Temple", "Shop", "Tavern", "Library", "Prison", "Tower", "Mansion", "Barracks", "Other"] },
-          { name: "description", label: "Description", type: "textarea", required: true, placeholder: "Detailed description of the building...", description: "What does this building look like from the outside?" },
+          { name: "name", label: "Building Name", type: "text", placeholder: "Enter building name..." },
+          { name: "buildingType", label: "Building Type", type: "select", options: ["House", "Castle", "Temple", "Shop", "Tavern", "Library", "Prison", "Tower", "Mansion", "Barracks", "Other"] },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Detailed description of the building...", description: "What does this building look like from the outside?" },
           { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Steampunk", "Other"] }
         ]
       },
@@ -285,10 +285,10 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Story Structure",
         icon: "BookOpen",
         fields: [
-          { name: "setup", label: "Setup", type: "textarea", required: true, placeholder: "Introduce characters, world, and status quo...", description: "Set the stage for your story" },
-          { name: "incitingIncident", label: "Inciting Incident", type: "textarea", required: true, placeholder: "The event that kicks off the main story...", description: "What disrupts the normal world?" },
-          { name: "firstPlotPoint", label: "First Plot Point", type: "textarea", required: true, placeholder: "The protagonist commits to the journey...", description: "The point of no return" },
-          { name: "midpoint", label: "Midpoint", type: "textarea", required: true, placeholder: "Major revelation or turning point...", description: "Everything changes here" }
+          { name: "setup", label: "Setup", type: "textarea", placeholder: "Introduce characters, world, and status quo...", description: "Set the stage for your story" },
+          { name: "incitingIncident", label: "Inciting Incident", type: "textarea", placeholder: "The event that kicks off the main story...", description: "What disrupts the normal world?" },
+          { name: "firstPlotPoint", label: "First Plot Point", type: "textarea", placeholder: "The protagonist commits to the journey...", description: "The point of no return" },
+          { name: "midpoint", label: "Midpoint", type: "textarea", placeholder: "Major revelation or turning point...", description: "Everything changes here" }
         ]
       },
       {
@@ -296,9 +296,9 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Climax & Resolution", 
         icon: "Zap",
         fields: [
-          { name: "secondPlotPoint", label: "Second Plot Point", type: "textarea", required: true, placeholder: "All hope seems lost...", description: "The darkest moment" },
-          { name: "climax", label: "Climax", type: "textarea", required: true, placeholder: "The final confrontation...", description: "The ultimate showdown" },
-          { name: "resolution", label: "Resolution", type: "textarea", required: true, placeholder: "How everything wraps up...", description: "The new normal" }
+          { name: "secondPlotPoint", label: "Second Plot Point", type: "textarea", placeholder: "All hope seems lost...", description: "The darkest moment" },
+          { name: "climax", label: "Climax", type: "textarea", placeholder: "The final confrontation...", description: "The ultimate showdown" },
+          { name: "resolution", label: "Resolution", type: "textarea", placeholder: "How everything wraps up...", description: "The new normal" }
         ]
       },
       {
@@ -306,8 +306,8 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Themes & Conflict",
         icon: "Heart",
         fields: [
-          { name: "theme", label: "Theme", type: "textarea", required: true, placeholder: "The deeper meaning or message...", description: "What is your story really about?" },
-          { name: "conflict", label: "Central Conflict", type: "textarea", required: true, placeholder: "The main struggle or tension...", description: "What opposition drives the story?" },
+          { name: "theme", label: "Theme", type: "textarea", placeholder: "The deeper meaning or message...", description: "What is your story really about?" },
+          { name: "conflict", label: "Central Conflict", type: "textarea", placeholder: "The main struggle or tension...", description: "What opposition drives the story?" },
           { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Romance", "Mystery", "Horror", "Thriller", "Drama", "Comedy", "Other"] },
           { name: "storyStructure", label: "Story Structure", type: "select", options: ["Three-Act", "Hero's Journey", "Save the Cat", "Freytag's Pyramid", "Other"] }
         ]

@@ -15,14 +15,14 @@ export const users = pgTable("users", {
 // Generated characters
 export const characters = pgTable("characters", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  age: integer("age").notNull(),
-  occupation: text("occupation").notNull(),
-  personality: text("personality").array().notNull(),
-  backstory: text("backstory").notNull(),
-  motivation: text("motivation").notNull(),
-  flaw: text("flaw").notNull(),
-  strength: text("strength").notNull(),
+  name: text("name"),
+  age: integer("age"),
+  occupation: text("occupation"),
+  personality: text("personality").array(),
+  backstory: text("backstory"),
+  motivation: text("motivation"),
+  flaw: text("flaw"),
+  strength: text("strength"),
   gender: text("gender"),
   genre: text("genre"),
   // Basic physical description fields (existing)
