@@ -1669,6 +1669,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateTransportation(id: string, updates: Partial<InsertTransportation>): Promise<Transportation> {
+    const [updatedTransportation] = await db
+      .update(transportation)
+      .set(updates)
+      .where(eq(transportation.id, id))
+      .returning();
+    return updatedTransportation;
+  }
+
+  async deleteTransportation(id: string): Promise<void> {
+    await db.delete(transportation).where(eq(transportation.id, id));
+  }
+
   // Natural Law methods
   async createNaturalLaw(naturalLaw: InsertNaturalLaw): Promise<NaturalLaw> {
     const [newNaturalLaw] = await db
@@ -1692,6 +1705,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(naturalLaws)
       .orderBy(desc(naturalLaws.createdAt))
       .limit(10);
+  }
+
+  async updateNaturalLaw(id: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw> {
+    const [updatedNaturalLaw] = await db
+      .update(naturalLaws)
+      .set(updates)
+      .where(eq(naturalLaws.id, id))
+      .returning();
+    return updatedNaturalLaw;
+  }
+
+  async deleteNaturalLaw(id: string): Promise<void> {
+    await db.delete(naturalLaws).where(eq(naturalLaws.id, id));
   }
 
   // Tradition methods
@@ -1719,6 +1745,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateTradition(id: string, updates: Partial<InsertTradition>): Promise<Tradition> {
+    const [updatedTradition] = await db
+      .update(traditions)
+      .set(updates)
+      .where(eq(traditions.id, id))
+      .returning();
+    return updatedTradition;
+  }
+
+  async deleteTradition(id: string): Promise<void> {
+    await db.delete(traditions).where(eq(traditions.id, id));
+  }
+
   // Ritual methods
   async createRitual(ritual: InsertRitual): Promise<Ritual> {
     const [newRitual] = await db
@@ -1742,6 +1781,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(rituals)
       .orderBy(desc(rituals.createdAt))
       .limit(10);
+  }
+
+  async updateRitual(id: string, updates: Partial<InsertRitual>): Promise<Ritual> {
+    const [updatedRitual] = await db
+      .update(rituals)
+      .set(updates)
+      .where(eq(rituals.id, id))
+      .returning();
+    return updatedRitual;
+  }
+
+  async deleteRitual(id: string): Promise<void> {
+    await db.delete(rituals).where(eq(rituals.id, id));
   }
 
   // Update/Delete methods for new content types

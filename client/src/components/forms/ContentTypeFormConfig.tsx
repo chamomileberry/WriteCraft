@@ -1871,8 +1871,8 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Details & Participants",
         icon: "Users",
         fields: [
-          { name: "location", label: "Location", type: "text", placeholder: "Where did it happen?", description: "Geographic location where the event took place" },
-          { name: "participants", label: "Participants", type: "tags", placeholder: "Add participants", description: "Key individuals, groups, or organizations involved" },
+          { name: "location", label: "Location", type: "autocomplete-location", placeholder: "Where did it happen?", description: "Geographic location where the event took place" },
+          { name: "participants", label: "Participants", type: "autocomplete-character", placeholder: "Add participants", description: "Key individuals, groups, or organizations involved" },
           { name: "duration", label: "Duration", type: "text", placeholder: "How long did it last?", description: "Length of time the event lasted" },
           { name: "scale", label: "Scale", type: "text", placeholder: "How big was the impact?", description: "Scale and scope of the event's impact" }
         ]

@@ -5,7 +5,9 @@ export type FormFieldType =
   | "select" 
   | "tags"
   | "date"
-  | "checkbox";
+  | "checkbox"
+  | "autocomplete-location"
+  | "autocomplete-character";
 
 export interface FormField {
   name: string;

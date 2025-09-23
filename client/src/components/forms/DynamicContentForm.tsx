@@ -18,6 +18,7 @@ import {
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { FormField as FormFieldConfig, ContentTypeFormConfig } from './types';
+import { AutocompleteField } from "@/components/ui/autocomplete-field";
 
 interface DynamicContentFormProps {
   config: ContentTypeFormConfig;
@@ -55,6 +56,12 @@ const generateSchema = (config: ContentTypeFormConfig) => {
           break;
         case "checkbox":
           fieldSchema = z.boolean().nullable();
+          break;
+        case "autocomplete-location":
+          fieldSchema = z.string().nullable();
+          break;
+        case "autocomplete-character":
+          fieldSchema = z.array(z.string()).nullable();
           break;
         default:
           fieldSchema = z.string().nullable();
@@ -101,6 +108,19 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
           break;
         case "checkbox":
           defaults[field.name] = initialValue ?? false;
+          break;
+        case "autocomplete-location":
+          defaults[field.name] = initialValue ?? "";
+          break;
+        case "autocomplete-character":
+          // Convert comma-separated string to array or use array directly
+          if (typeof initialValue === "string") {
+            defaults[field.name] = initialValue ? initialValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+          } else if (Array.isArray(initialValue)) {
+            defaults[field.name] = initialValue;
+          } else {
+            defaults[field.name] = [];
+          }
           break;
         default:
           defaults[field.name] = initialValue ?? "";
@@ -293,6 +313,66 @@ export default function DynamicContentForm({
                     <FormDescription>{field.description}</FormDescription>
                   )}
                 </div>
+              </FormItem>
+            )}
+          />
+        );
+
+      case "autocomplete-location":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormControl>
+                  <AutocompleteField
+                    value={formField.value || ""}
+                    onChange={(value) => {
+                      console.log('AutocompleteField location onChange called with:', value);
+                      formField.onChange(value);
+                    }}
+                    placeholder={field.placeholder}
+                    contentType="location"
+                    multiple={false}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "autocomplete-character":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormControl>
+                  <AutocompleteField
+                    value={formField.value || []}
+                    onChange={(value) => {
+                      console.log('AutocompleteField onChange called with:', value);
+                      formField.onChange(value);
+                    }}
+                    placeholder={field.placeholder}
+                    contentType="character"
+                    multiple={true}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
               </FormItem>
             )}
           />

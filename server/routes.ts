@@ -177,9 +177,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/characters", async (req, res) => {
     try {
-      // For now, return all characters. In a real app with auth, this would be user-scoped
+      const search = req.query.search as string;
       const characters = await storage.getUserCharacters(null);
-      res.json(characters);
+      
+      if (search) {
+        // Filter characters by name (case-insensitive)
+        const filtered = characters.filter(character =>
+          character.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(characters);
+      }
     } catch (error) {
       console.error('Error fetching characters:', error);
       res.status(500).json({ error: 'Failed to fetch characters' });
@@ -907,6 +916,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save location' });
+    }
+  });
+
+  // Add general locations endpoint with search support
+  app.get("/api/locations", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const locations = await storage.getUserLocations(null);
+      
+      if (search) {
+        // Filter locations by name (case-insensitive)
+        const filtered = locations.filter(location =>
+          location.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(locations);
+      }
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+      res.status(500).json({ error: 'Failed to fetch locations' });
     }
   });
 
