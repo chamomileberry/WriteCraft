@@ -1031,6 +1031,238 @@ export const rituals = pgTable("rituals", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Family trees for genealogical relationships
+export const familyTrees = pgTable("family_trees", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  rootPerson: text("root_person").notNull(), // main person the tree starts from
+  treeType: text("tree_type").notNull(), // ancestral, descendant, full, etc.
+  generations: integer("generations"), // number of generations covered
+  familyLineage: text("family_lineage"), // noble, common, etc.
+  notableMembers: text("notable_members").array(),
+  familyTraditions: text("family_traditions").array(),
+  inheritancePatterns: text("inheritance_patterns"),
+  familySecrets: text("family_secrets").array(),
+  coatOfArms: text("coat_of_arms"),
+  familyMotto: text("family_motto"),
+  ancestralHome: text("ancestral_home"),
+  currentStatus: text("current_status"), // thriving, declining, extinct, etc.
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Timelines for chronological events
+export const timelines = pgTable("timelines", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  timelineType: text("timeline_type").notNull(), // historical, character, world, campaign, etc.
+  timeScale: text("time_scale").notNull(), // years, decades, centuries, millennia, etc.
+  startDate: text("start_date"),
+  endDate: text("end_date"),
+  majorEvents: text("major_events").array(),
+  keyFigures: text("key_figures").array(),
+  culturalPeriods: text("cultural_periods").array(),
+  wars: text("wars").array(),
+  discoveries: text("discoveries").array(),
+  naturalDisasters: text("natural_disasters").array(),
+  politicalChanges: text("political_changes").array(),
+  technologicalAdvances: text("technological_advances").array(),
+  scope: text("scope"), // global, regional, local, personal, etc.
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Ceremonies for formal events and rituals
+export const ceremonies = pgTable("ceremonies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  ceremonyType: text("ceremony_type").notNull(), // wedding, funeral, coronation, graduation, etc.
+  description: text("description").notNull(),
+  purpose: text("purpose").notNull(),
+  participants: text("participants").array(),
+  officiant: text("officiant"),
+  location: text("location"),
+  duration: text("duration"),
+  season: text("season"),
+  frequency: text("frequency"),
+  traditions: text("traditions").array(),
+  symbolism: text("symbolism").array(),
+  requiredItems: text("required_items").array(),
+  dress: text("dress"),
+  music: text("music"),
+  food: text("food"),
+  gifts: text("gifts"),
+  significance: text("significance"),
+  restrictions: text("restrictions").array(),
+  variations: text("variations"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Maps for geographical visualization
+export const maps = pgTable("maps", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  mapType: text("map_type").notNull(), // world, regional, city, dungeon, political, etc.
+  description: text("description").notNull(),
+  scale: text("scale"), // global, continental, regional, local, etc.
+  dimensions: text("dimensions"),
+  keyLocations: text("key_locations").array(),
+  terrain: text("terrain").array(),
+  climate: text("climate"),
+  politicalBoundaries: text("political_boundaries").array(),
+  traderoutes: text("traderoutes").array(),
+  dangerZones: text("danger_zones").array(),
+  resources: text("resources").array(),
+  landmarks: text("landmarks").array(),
+  hiddenFeatures: text("hidden_features").array(),
+  mapMaker: text("map_maker"),
+  accuracy: text("accuracy"), // precise, rough, outdated, etc.
+  legends: text("legends").array(),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Music for cultural and artistic elements
+export const music = pgTable("music", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  musicType: text("music_type").notNull(), // song, symphony, folk tune, chant, etc.
+  description: text("description").notNull(),
+  genre: text("genre"),
+  composer: text("composer"),
+  performers: text("performers").array(),
+  instruments: text("instruments").array(),
+  vocals: text("vocals"), // solo, chorus, none, etc.
+  lyrics: text("lyrics"),
+  tempo: text("tempo"),
+  mood: text("mood"),
+  culturalOrigin: text("cultural_origin"),
+  occasion: text("occasion"), // ceremony, celebration, mourning, etc.
+  significance: text("significance"),
+  popularity: text("popularity"),
+  musicalStyle: text("musical_style"),
+  length: text("length"),
+  difficulty: text("difficulty"),
+  variations: text("variations").array(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Dance for cultural and artistic elements
+export const dances = pgTable("dances", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  danceType: text("dance_type").notNull(), // ritual, social, performance, combat, etc.
+  description: text("description").notNull(),
+  origin: text("origin"),
+  movements: text("movements").array(),
+  formations: text("formations").array(),
+  participants: text("participants"), // solo, pair, group, etc.
+  music: text("music"),
+  costumes: text("costumes"),
+  props: text("props").array(),
+  occasion: text("occasion"),
+  difficulty: text("difficulty"),
+  duration: text("duration"),
+  symbolism: text("symbolism"),
+  culturalSignificance: text("cultural_significance"),
+  restrictions: text("restrictions"),
+  variations: text("variations").array(),
+  teachingMethods: text("teaching_methods"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Laws for legal and governance systems
+export const laws = pgTable("laws", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  lawType: text("law_type").notNull(), // criminal, civil, religious, military, etc.
+  description: text("description").notNull(),
+  jurisdiction: text("jurisdiction"), // local, regional, national, international
+  authority: text("authority"), // who enforces it
+  penalties: text("penalties").array(),
+  exceptions: text("exceptions").array(),
+  precedents: text("precedents").array(),
+  enforcement: text("enforcement"),
+  courts: text("courts").array(),
+  appeals: text("appeals"),
+  amendments: text("amendments").array(),
+  relatedLaws: text("related_laws").array(),
+  controversy: text("controversy"),
+  publicOpinion: text("public_opinion"),
+  historicalContext: text("historical_context"),
+  effectiveness: text("effectiveness"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Policies for organizational and governmental directives
+export const policies = pgTable("policies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  policyType: text("policy_type").notNull(), // governmental, organizational, diplomatic, etc.
+  description: text("description").notNull(),
+  scope: text("scope"), // local, regional, national, international, organizational
+  authority: text("authority"), // who created/enforces it
+  objectives: text("objectives").array(),
+  implementation: text("implementation"),
+  timeline: text("timeline"),
+  resources: text("resources"),
+  stakeholders: text("stakeholders").array(),
+  benefits: text("benefits").array(),
+  drawbacks: text("drawbacks").array(),
+  publicReaction: text("public_reaction"),
+  compliance: text("compliance"),
+  monitoring: text("monitoring"),
+  amendments: text("amendments").array(),
+  relatedPolicies: text("related_policies").array(),
+  effectiveness: text("effectiveness"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Potions separate from drinks - magical/alchemical concoctions
+export const potions = pgTable("potions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  potionType: text("potion_type").notNull(), // healing, poison, enhancement, transformation, etc.
+  description: text("description").notNull(),
+  effects: text("effects").array(),
+  duration: text("duration"),
+  potency: text("potency"), // weak, moderate, strong, legendary, etc.
+  ingredients: text("ingredients").array(),
+  preparation: text("preparation"),
+  brewingTime: text("brewing_time"),
+  brewingDifficulty: text("brewing_difficulty"),
+  rarity: text("rarity"),
+  cost: text("cost"),
+  sideEffects: text("side_effects").array(),
+  contraindications: text("contraindications").array(),
+  antidotes: text("antidotes").array(),
+  weaknesses: text("weaknesses").array(),
+  storage: text("storage"),
+  shelfLife: text("shelf_life"),
+  appearance: text("appearance"),
+  taste: text("taste"),
+  smell: text("smell"),
+  creator: text("creator"),
+  legality: text("legality"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1087,6 +1319,15 @@ export const usersRelations = relations(users, ({ many }) => ({
   naturalLaws: many(naturalLaws),
   traditions: many(traditions),
   rituals: many(rituals),
+  familyTrees: many(familyTrees),
+  timelines: many(timelines),
+  ceremonies: many(ceremonies),
+  maps: many(maps),
+  music: many(music),
+  dances: many(dances),
+  laws: many(laws),
+  policies: many(policies),
+  potions: many(potions),
   savedItems: many(savedItems),
 }));
 
@@ -1399,6 +1640,69 @@ export const ritualsRelations = relations(rituals, ({ one }) => ({
   }),
 }));
 
+export const familyTreesRelations = relations(familyTrees, ({ one }) => ({
+  user: one(users, {
+    fields: [familyTrees.userId],
+    references: [users.id],
+  }),
+}));
+
+export const timelinesRelations = relations(timelines, ({ one }) => ({
+  user: one(users, {
+    fields: [timelines.userId],
+    references: [users.id],
+  }),
+}));
+
+export const ceremoniesRelations = relations(ceremonies, ({ one }) => ({
+  user: one(users, {
+    fields: [ceremonies.userId],
+    references: [users.id],
+  }),
+}));
+
+export const mapsRelations = relations(maps, ({ one }) => ({
+  user: one(users, {
+    fields: [maps.userId],
+    references: [users.id],
+  }),
+}));
+
+export const musicRelations = relations(music, ({ one }) => ({
+  user: one(users, {
+    fields: [music.userId],
+    references: [users.id],
+  }),
+}));
+
+export const dancesRelations = relations(dances, ({ one }) => ({
+  user: one(users, {
+    fields: [dances.userId],
+    references: [users.id],
+  }),
+}));
+
+export const lawsRelations = relations(laws, ({ one }) => ({
+  user: one(users, {
+    fields: [laws.userId],
+    references: [users.id],
+  }),
+}));
+
+export const policiesRelations = relations(policies, ({ one }) => ({
+  user: one(users, {
+    fields: [policies.userId],
+    references: [users.id],
+  }),
+}));
+
+export const potionsRelations = relations(potions, ({ one }) => ({
+  user: one(users, {
+    fields: [potions.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -1636,6 +1940,51 @@ export const insertRitualSchema = createInsertSchema(rituals).omit({
   createdAt: true,
 });
 
+export const insertFamilyTreeSchema = createInsertSchema(familyTrees).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTimelineSchema = createInsertSchema(timelines).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCeremonySchema = createInsertSchema(ceremonies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMapSchema = createInsertSchema(maps).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMusicSchema = createInsertSchema(music).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDanceSchema = createInsertSchema(dances).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLawSchema = createInsertSchema(laws).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPolicySchema = createInsertSchema(policies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPotionSchema = createInsertSchema(potions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -1732,3 +2081,21 @@ export type InsertTradition = z.infer<typeof insertTraditionSchema>;
 export type Tradition = typeof traditions.$inferSelect;
 export type InsertRitual = z.infer<typeof insertRitualSchema>;
 export type Ritual = typeof rituals.$inferSelect;
+export type InsertFamilyTree = z.infer<typeof insertFamilyTreeSchema>;
+export type FamilyTree = typeof familyTrees.$inferSelect;
+export type InsertTimeline = z.infer<typeof insertTimelineSchema>;
+export type Timeline = typeof timelines.$inferSelect;
+export type InsertCeremony = z.infer<typeof insertCeremonySchema>;
+export type Ceremony = typeof ceremonies.$inferSelect;
+export type InsertMap = z.infer<typeof insertMapSchema>;
+export type Map = typeof maps.$inferSelect;
+export type InsertMusic = z.infer<typeof insertMusicSchema>;
+export type Music = typeof music.$inferSelect;
+export type InsertDance = z.infer<typeof insertDanceSchema>;
+export type Dance = typeof dances.$inferSelect;
+export type InsertLaw = z.infer<typeof insertLawSchema>;
+export type Law = typeof laws.$inferSelect;
+export type InsertPolicy = z.infer<typeof insertPolicySchema>;
+export type Policy = typeof policies.$inferSelect;
+export type InsertPotion = z.infer<typeof insertPotionSchema>;
+export type Potion = typeof potions.$inferSelect;
