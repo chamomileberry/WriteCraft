@@ -1023,6 +1023,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateReligion(id: string, updates: Partial<InsertReligion>): Promise<Religion> {
+    const [updatedReligion] = await db
+      .update(religions)
+      .set(updates)
+      .where(eq(religions.id, id))
+      .returning();
+    return updatedReligion;
+  }
+
+  async deleteReligion(id: string): Promise<void> {
+    await db.delete(religions).where(eq(religions.id, id));
+  }
+
   // Language methods
   async createLanguage(language: InsertLanguage): Promise<Language> {
     const [newLanguage] = await db
@@ -1046,6 +1059,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(languages)
       .orderBy(desc(languages.createdAt))
       .limit(10);
+  }
+
+  async updateLanguage(id: string, updates: Partial<InsertLanguage>): Promise<Language> {
+    const [updatedLanguage] = await db
+      .update(languages)
+      .set(updates)
+      .where(eq(languages.id, id))
+      .returning();
+    return updatedLanguage;
+  }
+
+  async deleteLanguage(id: string): Promise<void> {
+    await db.delete(languages).where(eq(languages.id, id));
   }
 
   // Accessory methods
@@ -1491,6 +1517,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateSpell(id: string, updates: Partial<InsertSpell>): Promise<Spell> {
+    const [updatedSpell] = await db
+      .update(spells)
+      .set(updates)
+      .where(eq(spells.id, id))
+      .returning();
+    return updatedSpell;
+  }
+
+  async deleteSpell(id: string): Promise<void> {
+    await db.delete(spells).where(eq(spells.id, id));
+  }
+
   // Resource methods
   async createResource(resource: InsertResource): Promise<Resource> {
     const [newResource] = await db
@@ -1514,6 +1553,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(resources)
       .orderBy(desc(resources.createdAt))
       .limit(10);
+  }
+
+  async updateResource(id: string, updates: Partial<InsertResource>): Promise<Resource> {
+    const [updatedResource] = await db
+      .update(resources)
+      .set(updates)
+      .where(eq(resources.id, id))
+      .returning();
+    return updatedResource;
+  }
+
+  async deleteResource(id: string): Promise<void> {
+    await db.delete(resources).where(eq(resources.id, id));
   }
 
   // Building methods
@@ -1541,6 +1593,19 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateBuilding(id: string, updates: Partial<InsertBuilding>): Promise<Building> {
+    const [updatedBuilding] = await db
+      .update(buildings)
+      .set(updates)
+      .where(eq(buildings.id, id))
+      .returning();
+    return updatedBuilding;
+  }
+
+  async deleteBuilding(id: string): Promise<void> {
+    await db.delete(buildings).where(eq(buildings.id, id));
+  }
+
   // Animal methods
   async createAnimal(animal: InsertAnimal): Promise<Animal> {
     const [newAnimal] = await db
@@ -1564,6 +1629,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(animals)
       .orderBy(desc(animals.createdAt))
       .limit(10);
+  }
+
+  async updateAnimal(id: string, updates: Partial<InsertAnimal>): Promise<Animal> {
+    const [updatedAnimal] = await db
+      .update(animals)
+      .set(updates)
+      .where(eq(animals.id, id))
+      .returning();
+    return updatedAnimal;
+  }
+
+  async deleteAnimal(id: string): Promise<void> {
+    await db.delete(animals).where(eq(animals.id, id));
   }
 
   // Transportation methods

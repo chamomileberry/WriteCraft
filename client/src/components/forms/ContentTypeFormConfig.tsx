@@ -924,7 +924,974 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         ]
       }
     ]
+  },
+
+  // Ethnicity
+  ethnicity: {
+    title: "Ethnicity Creator",
+    description: "Create detailed ethnicities for your world",
+    icon: "Users",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Users",
+        fields: [
+          { name: "name", label: "Ethnicity Name", type: "text", placeholder: "Enter ethnicity name...", description: "The name of this ethnicity" },
+          { name: "origin", label: "Origin", type: "text", placeholder: "Where did they originate?", description: "Geographic or historical origin" },
+          { name: "physicalTraits", label: "Physical Traits", type: "text", placeholder: "Common physical characteristics", description: "Typical physical appearance and traits" },
+          { name: "geography", label: "Geography", type: "text", placeholder: "Where do they live?", description: "Geographic regions they inhabit" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "culture",
+        label: "Culture & Society",
+        icon: "Heart",
+        fields: [
+          { name: "culturalTraits", label: "Cultural Traits", type: "text", placeholder: "Cultural characteristics", description: "Distinctive cultural features and behaviors" },
+          { name: "traditions", label: "Traditions", type: "tags", placeholder: "Add traditions", description: "Important traditions and customs" },
+          { name: "language", label: "Language", type: "text", placeholder: "What language do they speak?", description: "Primary language or linguistic family" },
+          { name: "religion", label: "Religion", type: "text", placeholder: "Religious beliefs", description: "Primary religious or spiritual beliefs" },
+          { name: "socialStructure", label: "Social Structure", type: "text", placeholder: "How is society organized?", description: "Social organization and hierarchy" }
+        ]
+      },
+      {
+        id: "values",
+        label: "Values & History",
+        icon: "BookOpen",
+        fields: [
+          { name: "values", label: "Core Values", type: "tags", placeholder: "Add core values", description: "Fundamental values and principles" },
+          { name: "customs", label: "Customs", type: "tags", placeholder: "Add customs", description: "Daily customs and social practices" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Historical background...", description: "Historical development and major events" }
+        ]
+      }
+    ]
+  },
+
+  // Culture
+  culture: {
+    title: "Culture Creator",
+    description: "Create detailed cultures for your world",
+    icon: "Globe",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Globe",
+        fields: [
+          { name: "name", label: "Culture Name", type: "text", placeholder: "Enter culture name...", description: "The name of this culture" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this culture...", description: "General description and overview" },
+          { name: "language", label: "Language", type: "text", placeholder: "Primary language", description: "Main language spoken by this culture" },
+          { name: "governance", label: "Governance", type: "text", placeholder: "How are they governed?", description: "Political system and governance structure" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "society",
+        label: "Society & Values",
+        icon: "Heart",
+        fields: [
+          { name: "values", label: "Core Values", type: "tags", placeholder: "Add core values", description: "Fundamental cultural values" },
+          { name: "beliefs", label: "Beliefs", type: "tags", placeholder: "Add beliefs", description: "Important beliefs and worldviews" },
+          { name: "socialNorms", label: "Social Norms", type: "tags", placeholder: "Add social norms", description: "Expected behaviors and social rules" },
+          { name: "family", label: "Family Structure", type: "text", placeholder: "Family organization", description: "How families are structured and function" },
+          { name: "education", label: "Education", type: "text", placeholder: "Educational practices", description: "How knowledge is transmitted and learning occurs" }
+        ]
+      },
+      {
+        id: "practices",
+        label: "Practices & Arts",
+        icon: "Palette",
+        fields: [
+          { name: "traditions", label: "Traditions", type: "tags", placeholder: "Add traditions", description: "Important cultural traditions" },
+          { name: "ceremonies", label: "Ceremonies", type: "tags", placeholder: "Add ceremonies", description: "Important ceremonies and rituals" },
+          { name: "arts", label: "Arts", type: "text", placeholder: "Artistic traditions", description: "Art forms and creative expressions" },
+          { name: "technology", label: "Technology", type: "text", placeholder: "Technological level", description: "Technological development and innovations" },
+          { name: "economy", label: "Economy", type: "text", placeholder: "Economic system", description: "Economic structure and trade practices" }
+        ]
+      }
+    ]
+  },
+
+  // Document
+  document: {
+    title: "Document Creator",
+    description: "Create detailed documents for your world",
+    icon: "FileText",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "FileText",
+        fields: [
+          { name: "title", label: "Document Title", type: "text", placeholder: "Enter document title...", description: "The title of this document" },
+          { name: "documentType", label: "Document Type", type: "select", options: ["Book", "Scroll", "Letter", "Map", "Charter", "Diary", "Report", "Contract", "Prophecy", "Manual", "Other"], description: "What type of document is this?" },
+          { name: "author", label: "Author", type: "text", placeholder: "Who created this?", description: "The original author or creator" },
+          { name: "language", label: "Language", type: "text", placeholder: "What language is it in?", description: "The language the document is written in" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "content",
+        label: "Content & Condition",
+        icon: "Edit",
+        fields: [
+          { name: "content", label: "Content", type: "textarea", placeholder: "Document contents...", description: "The main text or content of the document" },
+          { name: "age", label: "Age", type: "text", placeholder: "How old is it?", description: "Age of the document" },
+          { name: "condition", label: "Condition", type: "select", options: ["Pristine", "Good", "Fair", "Poor", "Damaged", "Fragmentary"], description: "Physical condition of the document" },
+          { name: "accessibility", label: "Accessibility", type: "text", placeholder: "Who can access it?", description: "Who has access to this document" }
+        ]
+      },
+      {
+        id: "significance",
+        label: "Significance & Secrets",
+        icon: "Lock",
+        fields: [
+          { name: "significance", label: "Significance", type: "text", placeholder: "Why is it important?", description: "Historical or cultural significance" },
+          { name: "location", label: "Location", type: "text", placeholder: "Where is it kept?", description: "Current location or repository" },
+          { name: "secrets", label: "Secrets", type: "text", placeholder: "Hidden information", description: "Secret or hidden information within the document" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Document's history...", description: "History of the document's creation and travels" }
+        ]
+      }
+    ]
+  },
+
+  // Accessory
+  accessory: {
+    title: "Accessory Creator",
+    description: "Create detailed accessories for your world",
+    icon: "Watch",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Watch",
+        fields: [
+          { name: "name", label: "Accessory Name", type: "text", placeholder: "Enter accessory name...", description: "The name of this accessory" },
+          { name: "accessoryType", label: "Accessory Type", type: "select", options: ["Jewelry", "Belt", "Cloak", "Hat", "Gloves", "Bag", "Amulet", "Ring", "Necklace", "Bracelet", "Other"], description: "What type of accessory is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this accessory...", description: "Detailed description of the accessory" },
+          { name: "appearance", label: "Appearance", type: "text", placeholder: "What does it look like?", description: "Visual appearance and design" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "properties",
+        label: "Properties & Materials",
+        icon: "Gem",
+        fields: [
+          { name: "materials", label: "Materials", type: "tags", placeholder: "Add materials used", description: "Materials used in construction" },
+          { name: "functionality", label: "Functionality", type: "text", placeholder: "What does it do?", description: "Practical functions or purposes" },
+          { name: "value", label: "Value", type: "text", placeholder: "What is it worth?", description: "Economic or cultural value" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"], description: "How rare is this accessory?" }
+        ]
+      },
+      {
+        id: "lore",
+        label: "Lore & Magic",
+        icon: "Sparkles",
+        fields: [
+          { name: "enchantments", label: "Enchantments", type: "tags", placeholder: "Add magical properties", description: "Magical enchantments or properties" },
+          { name: "culturalSignificance", label: "Cultural Significance", type: "text", placeholder: "Cultural importance", description: "Role in culture and society" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Accessory's history...", description: "Historical background and previous owners" }
+        ]
+      }
+    ]
+  },
+
+  // Clothing
+  clothing: {
+    title: "Clothing Creator",
+    description: "Create detailed clothing for your world",
+    icon: "Shirt",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Shirt",
+        fields: [
+          { name: "name", label: "Clothing Name", type: "text", placeholder: "Enter clothing name...", description: "The name of this clothing" },
+          { name: "clothingType", label: "Clothing Type", type: "select", options: ["Shirt", "Pants", "Dress", "Robe", "Cloak", "Hat", "Shoes", "Armor", "Uniform", "Ceremonial", "Other"], description: "What type of clothing is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this clothing...", description: "Detailed description of the clothing" },
+          { name: "style", label: "Style", type: "text", placeholder: "Fashion style", description: "Fashion style and aesthetic" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "materials",
+        label: "Materials & Colors",
+        icon: "Palette",
+        fields: [
+          { name: "materials", label: "Materials", type: "tags", placeholder: "Add materials used", description: "Fabrics and materials used" },
+          { name: "colors", label: "Colors", type: "tags", placeholder: "Add colors", description: "Primary colors and patterns" },
+          { name: "durability", label: "Durability", type: "text", placeholder: "How durable is it?", description: "Durability and wear resistance" },
+          { name: "climate", label: "Climate", type: "text", placeholder: "Suitable climate", description: "Climate conditions it's designed for" }
+        ]
+      },
+      {
+        id: "social",
+        label: "Social & Cultural",
+        icon: "Users",
+        fields: [
+          { name: "socialClass", label: "Social Class", type: "text", placeholder: "Associated social class", description: "Which social classes typically wear this" },
+          { name: "culturalContext", label: "Cultural Context", type: "text", placeholder: "Cultural significance", description: "Cultural meaning and context" },
+          { name: "occasion", label: "Occasion", type: "text", placeholder: "When is it worn?", description: "Appropriate occasions and events" },
+          { name: "cost", label: "Cost", type: "text", placeholder: "How expensive is it?", description: "Economic cost and affordability" }
+        ]
+      }
+    ]
+  },
+
+  // Material
+  material: {
+    title: "Material Creator",
+    description: "Create detailed materials for your world",
+    icon: "Package",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Package",
+        fields: [
+          { name: "name", label: "Material Name", type: "text", placeholder: "Enter material name...", description: "The name of this material" },
+          { name: "materialType", label: "Material Type", type: "select", options: ["Metal", "Wood", "Fabric", "Stone", "Crystal", "Organic", "Synthetic", "Magical", "Composite", "Other"], description: "What type of material is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this material...", description: "Detailed description of the material" },
+          { name: "appearance", label: "Appearance", type: "text", placeholder: "What does it look like?", description: "Visual appearance and characteristics" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "properties",
+        label: "Properties & Processing",
+        icon: "Settings",
+        fields: [
+          { name: "properties", label: "Properties", type: "tags", placeholder: "Add material properties", description: "Physical and chemical properties" },
+          { name: "durability", label: "Durability", type: "text", placeholder: "How durable is it?", description: "Strength and resistance to wear" },
+          { name: "weight", label: "Weight", type: "text", placeholder: "How heavy is it?", description: "Density and weight characteristics" },
+          { name: "processing", label: "Processing", type: "text", placeholder: "How is it processed?", description: "Methods to refine or work with the material" },
+          { name: "source", label: "Source", type: "text", placeholder: "Where does it come from?", description: "Natural or manufactured source" }
+        ]
+      },
+      {
+        id: "economics",
+        label: "Economics & Uses",
+        icon: "Coins",
+        fields: [
+          { name: "uses", label: "Uses", type: "tags", placeholder: "Add material uses", description: "Common applications and purposes" },
+          { name: "value", label: "Value", type: "text", placeholder: "Economic value", description: "Market value and cost" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Unique"], description: "How rare is this material?" }
+        ]
+      }
+    ]
+  },
+
+  // Settlement
+  settlement: {
+    title: "Settlement Creator",
+    description: "Create detailed settlements for your world",
+    icon: "Home",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Home",
+        fields: [
+          { name: "name", label: "Settlement Name", type: "text", placeholder: "Enter settlement name...", description: "The name of this settlement" },
+          { name: "settlementType", label: "Settlement Type", type: "select", options: ["City", "Town", "Village", "Outpost", "Fortress", "Trading Post", "Port", "Capital", "Ruins", "Other"], description: "What type of settlement is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this settlement...", description: "General description and overview" },
+          { name: "population", label: "Population", type: "text", placeholder: "How many people live here?", description: "Number of inhabitants" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "governance",
+        label: "Governance & Society",
+        icon: "Crown",
+        fields: [
+          { name: "government", label: "Government", type: "text", placeholder: "How is it governed?", description: "Political system and leadership" },
+          { name: "economy", label: "Economy", type: "text", placeholder: "Economic base", description: "Primary economic activities and trade" },
+          { name: "culture", label: "Culture", type: "text", placeholder: "Cultural characteristics", description: "Cultural identity and social norms" },
+          { name: "defenses", label: "Defenses", type: "text", placeholder: "How is it defended?", description: "Military defenses and fortifications" }
+        ]
+      },
+      {
+        id: "geography",
+        label: "Geography & Features",
+        icon: "MapPin",
+        fields: [
+          { name: "geography", label: "Geography", type: "text", placeholder: "Geographic features", description: "Terrain and geographic setting" },
+          { name: "climate", label: "Climate", type: "text", placeholder: "Climate conditions", description: "Weather patterns and climate" },
+          { name: "resources", label: "Resources", type: "tags", placeholder: "Add natural resources", description: "Available natural resources" },
+          { name: "landmarks", label: "Landmarks", type: "tags", placeholder: "Add landmarks", description: "Notable buildings and locations" },
+          { name: "districts", label: "Districts", type: "tags", placeholder: "Add districts", description: "Different areas or neighborhoods" },
+          { name: "threats", label: "Threats", type: "tags", placeholder: "Add threats", description: "Dangers and challenges facing the settlement" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Settlement's history...", description: "Historical background and founding" }
+        ]
+      }
+    ]
+  },
+
+  // Society
+  society: {
+    title: "Society Creator",
+    description: "Create detailed societies for your world",
+    icon: "Users",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Users",
+        fields: [
+          { name: "name", label: "Society Name", type: "text", placeholder: "Enter society name...", description: "The name of this society" },
+          { name: "societyType", label: "Society Type", type: "select", options: ["Tribal", "Feudal", "Democratic", "Autocratic", "Theocratic", "Merchant", "Nomadic", "Military", "Academic", "Other"], description: "What type of society is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this society...", description: "General description and overview" },
+          { name: "structure", label: "Structure", type: "text", placeholder: "Social structure", description: "How society is organized and structured" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "governance",
+        label: "Governance & Law",
+        icon: "Scale",
+        fields: [
+          { name: "leadership", label: "Leadership", type: "text", placeholder: "How is it led?", description: "Leadership structure and authority" },
+          { name: "laws", label: "Laws", type: "text", placeholder: "Legal system", description: "Legal system and justice" },
+          { name: "values", label: "Core Values", type: "tags", placeholder: "Add core values", description: "Fundamental societal values" },
+          { name: "customs", label: "Customs", type: "tags", placeholder: "Add customs", description: "Important customs and traditions" }
+        ]
+      },
+      {
+        id: "systems",
+        label: "Systems & Culture",
+        icon: "Cog",
+        fields: [
+          { name: "economy", label: "Economy", type: "text", placeholder: "Economic system", description: "Economic structure and trade" },
+          { name: "technology", label: "Technology", type: "text", placeholder: "Technological level", description: "Technological advancement and tools" },
+          { name: "education", label: "Education", type: "text", placeholder: "Educational system", description: "How knowledge is shared and preserved" },
+          { name: "military", label: "Military", type: "text", placeholder: "Military organization", description: "Military structure and defense" },
+          { name: "religion", label: "Religion", type: "text", placeholder: "Religious practices", description: "Spiritual beliefs and practices" },
+          { name: "arts", label: "Arts", type: "text", placeholder: "Artistic traditions", description: "Art, music, and cultural expressions" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Society's history...", description: "Historical development and major events" }
+        ]
+      }
+    ]
+  },
+
+  // Faction
+  faction: {
+    title: "Faction Creator",
+    description: "Create detailed factions for your world",
+    icon: "Flag",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Flag",
+        fields: [
+          { name: "name", label: "Faction Name", type: "text", placeholder: "Enter faction name...", description: "The name of this faction" },
+          { name: "factionType", label: "Faction Type", type: "select", options: ["Political", "Military", "Religious", "Criminal", "Mercantile", "Academic", "Secret", "Revolutionary", "Noble", "Other"], description: "What type of faction is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this faction...", description: "General description and overview" },
+          { name: "goals", label: "Goals", type: "text", placeholder: "What are their goals?", description: "Primary objectives and ambitions" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "organization",
+        label: "Organization & Power",
+        icon: "Crown",
+        fields: [
+          { name: "ideology", label: "Ideology", type: "text", placeholder: "Core beliefs and ideology", description: "Fundamental beliefs and principles" },
+          { name: "leadership", label: "Leadership", type: "text", placeholder: "Who leads the faction?", description: "Leadership structure and key figures" },
+          { name: "members", label: "Members", type: "text", placeholder: "Who belongs to this faction?", description: "Types of members and recruitment" },
+          { name: "resources", label: "Resources", type: "text", placeholder: "What resources do they have?", description: "Financial, material, and human resources" },
+          { name: "territory", label: "Territory", type: "text", placeholder: "Areas of control", description: "Geographic areas under their influence" },
+          { name: "influence", label: "Influence", type: "text", placeholder: "How influential are they?", description: "Level of power and influence" }
+        ]
+      },
+      {
+        id: "relations",
+        label: "Relations & Operations",
+        icon: "Users",
+        fields: [
+          { name: "allies", label: "Allies", type: "tags", placeholder: "Add allies", description: "Allied factions and supporters" },
+          { name: "enemies", label: "Enemies", type: "tags", placeholder: "Add enemies", description: "Opposing factions and rivals" },
+          { name: "methods", label: "Methods", type: "text", placeholder: "How do they operate?", description: "Tactics and methods of operation" },
+          { name: "secrets", label: "Secrets", type: "text", placeholder: "Hidden secrets", description: "Secret information or hidden agendas" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Faction's history...", description: "Historical background and formation" }
+        ]
+      }
+    ]
+  },
+
+  // Military Unit
+  militaryUnit: {
+    title: "Military Unit Creator",
+    description: "Create detailed military units for your world",
+    icon: "Shield",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Shield",
+        fields: [
+          { name: "name", label: "Unit Name", type: "text", placeholder: "Enter unit name...", description: "The name of this military unit" },
+          { name: "unitType", label: "Unit Type", type: "select", options: ["Infantry", "Cavalry", "Navy", "Air Force", "Special Forces", "Artillery", "Engineers", "Guards", "Scouts", "Other"], description: "What type of military unit is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this unit...", description: "General description and overview" },
+          { name: "size", label: "Size", type: "text", placeholder: "How many members?", description: "Number of soldiers or personnel" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "organization",
+        label: "Organization & Equipment",
+        icon: "Sword",
+        fields: [
+          { name: "composition", label: "Composition", type: "text", placeholder: "Unit structure", description: "How the unit is organized and structured" },
+          { name: "equipment", label: "Equipment", type: "tags", placeholder: "Add equipment", description: "Weapons, armor, and equipment used" },
+          { name: "training", label: "Training", type: "text", placeholder: "Training regimen", description: "Training methods and standards" },
+          { name: "specializations", label: "Specializations", type: "tags", placeholder: "Add specializations", description: "Special skills and capabilities" },
+          { name: "commander", label: "Commander", type: "text", placeholder: "Who commands this unit?", description: "Leadership and command structure" }
+        ]
+      },
+      {
+        id: "status",
+        label: "Status & History",
+        icon: "Award",
+        fields: [
+          { name: "morale", label: "Morale", type: "text", placeholder: "Current morale", description: "Fighting spirit and motivation" },
+          { name: "reputation", label: "Reputation", type: "text", placeholder: "Unit's reputation", description: "How they are viewed by others" },
+          { name: "battleRecord", label: "Battle Record", type: "text", placeholder: "Combat history", description: "Notable battles and achievements" },
+          { name: "currentStatus", label: "Current Status", type: "text", placeholder: "Current deployment", description: "Current assignment and location" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Unit's history...", description: "Formation and historical background" }
+        ]
+      }
+    ]
+  },
+
+  // Transportation
+  transportation: {
+    title: "Transportation Creator",
+    description: "Create detailed transportation for your world",
+    icon: "Car",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Car",
+        fields: [
+          { name: "name", label: "Transportation Name", type: "text", placeholder: "Enter transportation name...", description: "The name of this transportation method" },
+          { name: "transportType", label: "Transport Type", type: "select", options: ["Land", "Sea", "Air", "Magical", "Underground", "Dimensional", "Hybrid", "Other"], description: "What type of transportation is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this transportation...", description: "Detailed description of the transportation" },
+          { name: "capacity", label: "Capacity", type: "text", placeholder: "How many can it carry?", description: "Passenger or cargo capacity" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "performance",
+        label: "Performance & Operation",
+        icon: "Zap",
+        fields: [
+          { name: "speed", label: "Speed", type: "text", placeholder: "How fast is it?", description: "Maximum speed and typical travel speed" },
+          { name: "range", label: "Range", type: "text", placeholder: "How far can it travel?", description: "Maximum distance or range" },
+          { name: "requirements", label: "Requirements", type: "text", placeholder: "What does it need to operate?", description: "Fuel, energy, or other operational requirements" },
+          { name: "operation", label: "Operation", type: "text", placeholder: "How is it operated?", description: "Operation methods and controls" }
+        ]
+      },
+      {
+        id: "economics",
+        label: "Economics & Culture",
+        icon: "Coins",
+        fields: [
+          { name: "construction", label: "Construction", type: "text", placeholder: "How is it built?", description: "Construction materials and methods" },
+          { name: "cost", label: "Cost", type: "text", placeholder: "How expensive is it?", description: "Purchase, maintenance, and operation costs" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Unique"], description: "How rare is this transportation?" },
+          { name: "advantages", label: "Advantages", type: "tags", placeholder: "Add advantages", description: "Benefits and advantages" },
+          { name: "disadvantages", label: "Disadvantages", type: "tags", placeholder: "Add disadvantages", description: "Limitations and drawbacks" },
+          { name: "culturalSignificance", label: "Cultural Significance", type: "text", placeholder: "Cultural importance", description: "Role in culture and society" }
+        ]
+      }
+    ]
+  },
+
+  // Natural Law
+  naturalLaw: {
+    title: "Natural Law Creator",
+    description: "Create detailed natural laws for your world",
+    icon: "Atom",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Atom",
+        fields: [
+          { name: "name", label: "Law Name", type: "text", placeholder: "Enter natural law name...", description: "The name of this natural law" },
+          { name: "lawType", label: "Law Type", type: "select", options: ["Physical", "Magical", "Divine", "Quantum", "Biological", "Chemical", "Mathematical", "Metaphysical", "Other"], description: "What type of natural law is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this law...", description: "Detailed description of the law" },
+          { name: "scope", label: "Scope", type: "text", placeholder: "What does it affect?", description: "Range and scope of the law's influence" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "mechanics",
+        label: "Mechanics & Principles",
+        icon: "Cog",
+        fields: [
+          { name: "principles", label: "Principles", type: "textarea", placeholder: "Underlying principles...", description: "Core principles and mechanics" },
+          { name: "exceptions", label: "Exceptions", type: "tags", placeholder: "Add exceptions", description: "Known exceptions to the law" },
+          { name: "applications", label: "Applications", type: "tags", placeholder: "Add applications", description: "Practical applications and uses" },
+          { name: "relatedLaws", label: "Related Laws", type: "tags", placeholder: "Add related laws", description: "Other laws that interact with this one" }
+        ]
+      },
+      {
+        id: "discovery",
+        label: "Discovery & Understanding",
+        icon: "Search",
+        fields: [
+          { name: "discovery", label: "Discovery", type: "text", placeholder: "How was it discovered?", description: "History of discovery or understanding" },
+          { name: "understanding", label: "Understanding", type: "text", placeholder: "Current understanding level", description: "How well is it understood?" },
+          { name: "evidence", label: "Evidence", type: "text", placeholder: "Supporting evidence", description: "Evidence that supports this law" },
+          { name: "controversies", label: "Controversies", type: "text", placeholder: "Debates and controversies", description: "Scientific or philosophical controversies" },
+          { name: "implications", label: "Implications", type: "text", placeholder: "What are the implications?", description: "Broader implications and consequences" }
+        ]
+      }
+    ]
+  },
+
+  // Tradition
+  tradition: {
+    title: "Tradition Creator",
+    description: "Create detailed traditions for your world",
+    icon: "Calendar",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Calendar",
+        fields: [
+          { name: "name", label: "Tradition Name", type: "text", placeholder: "Enter tradition name...", description: "The name of this tradition" },
+          { name: "traditionType", label: "Tradition Type", type: "select", options: ["Ceremony", "Festival", "Custom", "Ritual", "Holiday", "Practice", "Celebration", "Mourning", "Coming of Age", "Other"], description: "What type of tradition is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this tradition...", description: "Detailed description of the tradition" },
+          { name: "origin", label: "Origin", type: "text", placeholder: "Where did it come from?", description: "Historical origin and founding" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "practice",
+        label: "Practice & Participation",
+        icon: "Users",
+        fields: [
+          { name: "purpose", label: "Purpose", type: "text", placeholder: "What is its purpose?", description: "Main purpose and meaning" },
+          { name: "participants", label: "Participants", type: "text", placeholder: "Who participates?", description: "Who takes part in this tradition" },
+          { name: "procedure", label: "Procedure", type: "textarea", placeholder: "How is it performed?", description: "Step-by-step procedure and activities" },
+          { name: "timing", label: "Timing", type: "text", placeholder: "When does it occur?", description: "Timing and frequency of the tradition" },
+          { name: "location", label: "Location", type: "text", placeholder: "Where does it take place?", description: "Typical locations for the tradition" }
+        ]
+      },
+      {
+        id: "meaning",
+        label: "Meaning & Evolution",
+        icon: "Heart",
+        fields: [
+          { name: "symbolism", label: "Symbolism", type: "text", placeholder: "Symbolic meanings", description: "Symbolic elements and their meanings" },
+          { name: "significance", label: "Significance", type: "text", placeholder: "Cultural significance", description: "Importance to the community or culture" },
+          { name: "modernPractice", label: "Modern Practice", type: "text", placeholder: "How is it practiced today?", description: "Current state and modern adaptations" },
+          { name: "variations", label: "Variations", type: "tags", placeholder: "Add variations", description: "Regional or cultural variations" },
+          { name: "relatedTraditions", label: "Related Traditions", type: "tags", placeholder: "Add related traditions", description: "Connected or similar traditions" }
+        ]
+      }
+    ]
+  },
+
+  // Ritual
+  ritual: {
+    title: "Ritual Creator",
+    description: "Create detailed rituals for your world",
+    icon: "Flame",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Flame",
+        fields: [
+          { name: "name", label: "Ritual Name", type: "text", placeholder: "Enter ritual name...", description: "The name of this ritual" },
+          { name: "ritualType", label: "Ritual Type", type: "select", options: ["Religious", "Magical", "Social", "Healing", "Protective", "Summoning", "Binding", "Cleansing", "Divination", "Other"], description: "What type of ritual is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this ritual...", description: "Detailed description of the ritual" },
+          { name: "purpose", label: "Purpose", type: "text", placeholder: "What is its purpose?", description: "Main purpose and intended outcome" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "execution",
+        label: "Execution & Requirements",
+        icon: "Settings",
+        fields: [
+          { name: "participants", label: "Participants", type: "text", placeholder: "Who performs this ritual?", description: "Required participants and their roles" },
+          { name: "requirements", label: "Requirements", type: "tags", placeholder: "Add requirements", description: "Materials, conditions, or preparations needed" },
+          { name: "components", label: "Components", type: "tags", placeholder: "Add components", description: "Physical components and materials used" },
+          { name: "steps", label: "Steps", type: "tags", placeholder: "Add ritual steps", description: "Sequential steps to perform the ritual" },
+          { name: "duration", label: "Duration", type: "text", placeholder: "How long does it take?", description: "Time required to complete the ritual" }
+        ]
+      },
+      {
+        id: "effects",
+        label: "Effects & Variations",
+        icon: "Sparkles",
+        fields: [
+          { name: "location", label: "Location", type: "text", placeholder: "Where is it performed?", description: "Required or preferred locations" },
+          { name: "timing", label: "Timing", type: "text", placeholder: "When should it be performed?", description: "Optimal timing or required conditions" },
+          { name: "effects", label: "Effects", type: "text", placeholder: "What are the effects?", description: "Expected outcomes and effects" },
+          { name: "risks", label: "Risks", type: "text", placeholder: "What are the dangers?", description: "Potential risks and negative consequences" },
+          { name: "variations", label: "Variations", type: "tags", placeholder: "Add variations", description: "Different versions or adaptations" }
+        ]
+      }
+    ]
+  },
+
+  // Setting
+  setting: {
+    title: "Setting Creator",
+    description: "Create detailed settings for your world",
+    icon: "Mountain",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Mountain",
+        fields: [
+          { name: "name", label: "Setting Name", type: "text", placeholder: "Enter setting name...", description: "The name of this setting" },
+          { name: "location", label: "Location", type: "text", placeholder: "Where is it located?", description: "Geographic location and positioning" },
+          { name: "timePeriod", label: "Time Period", type: "text", placeholder: "When does it exist?", description: "Historical time period or era" },
+          { name: "settingType", label: "Setting Type", type: "select", options: ["Urban", "Rural", "Wilderness", "Underground", "Aerial", "Aquatic", "Dimensional", "Magical", "Technological", "Other"], description: "What type of setting is this?" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Horror", "Other"], description: "What genre is this setting for?" }
+        ]
+      },
+      {
+        id: "environment",
+        label: "Environment & Atmosphere",
+        icon: "Cloud",
+        fields: [
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this setting...", description: "Detailed description of the setting" },
+          { name: "atmosphere", label: "Atmosphere", type: "text", placeholder: "What's the atmosphere like?", description: "Mood and atmospheric qualities" },
+          { name: "climate", label: "Climate", type: "text", placeholder: "Climate conditions", description: "Weather patterns and climate" },
+          { name: "population", label: "Population", type: "text", placeholder: "Who lives here?", description: "Population size and demographics" }
+        ]
+      },
+      {
+        id: "features",
+        label: "Features & Culture",
+        icon: "Star",
+        fields: [
+          { name: "culturalElements", label: "Cultural Elements", type: "tags", placeholder: "Add cultural elements", description: "Cultural aspects and influences" },
+          { name: "notableFeatures", label: "Notable Features", type: "tags", placeholder: "Add notable features", description: "Distinctive landmarks and features" }
+        ]
+      }
+    ]
+  },
+
+  // Name
+  name: {
+    title: "Name Creator",
+    description: "Create detailed names for your world",
+    icon: "Type",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Type",
+        fields: [
+          { name: "name", label: "Name", type: "text", placeholder: "Enter the name...", description: "The actual name" },
+          { name: "nameType", label: "Name Type", type: "select", options: ["Character", "Place", "Fantasy", "Historical", "Family", "Title", "Organization", "Item", "Other"], description: "What type of name is this?" },
+          { name: "culture", label: "Culture", type: "text", placeholder: "Cultural origin", description: "Cultural or ethnic origin" },
+          { name: "meaning", label: "Meaning", type: "text", placeholder: "What does it mean?", description: "Meaning and significance of the name" },
+          { name: "origin", label: "Origin", type: "text", placeholder: "Etymology and origin", description: "Linguistic and historical origin" }
+        ]
+      }
+    ]
+  },
+
+  // Conflict
+  conflict: {
+    title: "Conflict Creator",
+    description: "Create detailed conflicts for your world",
+    icon: "Swords",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Swords",
+        fields: [
+          { name: "title", label: "Conflict Title", type: "text", placeholder: "Enter conflict title...", description: "The name of this conflict" },
+          { name: "type", label: "Conflict Type", type: "select", options: ["Internal", "External", "Interpersonal", "Social", "Political", "Moral", "Physical", "Emotional", "Spiritual", "Other"], description: "What type of conflict is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this conflict...", description: "Detailed description of the conflict" },
+          { name: "stakes", label: "Stakes", type: "text", placeholder: "What's at stake?", description: "What will be won or lost" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Drama", "Action", "Romance", "Other"], description: "What genre is this conflict for?" }
+        ]
+      },
+      {
+        id: "resolution",
+        label: "Resolution & Impact",
+        icon: "Target",
+        fields: [
+          { name: "obstacles", label: "Obstacles", type: "tags", placeholder: "Add obstacles", description: "Challenges and barriers to resolution" },
+          { name: "potentialResolutions", label: "Potential Resolutions", type: "tags", placeholder: "Add potential resolutions", description: "Possible ways to resolve the conflict" },
+          { name: "emotionalImpact", label: "Emotional Impact", type: "text", placeholder: "Emotional consequences", description: "Emotional weight and impact on characters" }
+        ]
+      }
+    ]
+  },
+
+  // Theme
+  theme: {
+    title: "Theme Creator",
+    description: "Create detailed themes for your world",
+    icon: "Lightbulb",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Lightbulb",
+        fields: [
+          { name: "title", label: "Theme Title", type: "text", placeholder: "Enter theme title...", description: "The name of this theme" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this theme...", description: "Detailed description of the theme" },
+          { name: "coreMessage", label: "Core Message", type: "text", placeholder: "What's the main message?", description: "Central message or idea" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Drama", "Romance", "Mystery", "Other"], description: "What genre is this theme for?" }
+        ]
+      },
+      {
+        id: "elements",
+        label: "Elements & Examples",
+        icon: "Star",
+        fields: [
+          { name: "symbolicElements", label: "Symbolic Elements", type: "tags", placeholder: "Add symbols", description: "Symbols and metaphors that represent the theme" },
+          { name: "questions", label: "Key Questions", type: "tags", placeholder: "Add questions", description: "Questions the theme explores" },
+          { name: "conflicts", label: "Related Conflicts", type: "tags", placeholder: "Add conflicts", description: "Conflicts that explore this theme" },
+          { name: "examples", label: "Examples", type: "tags", placeholder: "Add examples", description: "Examples of how the theme manifests" }
+        ]
+      }
+    ]
+  },
+
+  // Mood
+  mood: {
+    title: "Mood Creator",
+    description: "Create detailed moods for your world",
+    icon: "Palette",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Palette",
+        fields: [
+          { name: "name", label: "Mood Name", type: "text", placeholder: "Enter mood name...", description: "The name of this mood" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this mood...", description: "Detailed description of the mood" },
+          { name: "emotionalTone", label: "Emotional Tone", type: "text", placeholder: "Overall emotional feeling", description: "The primary emotional atmosphere" }
+        ]
+      },
+      {
+        id: "sensory",
+        label: "Sensory Details",
+        icon: "Eye",
+        fields: [
+          { name: "sensoryDetails", label: "Sensory Details", type: "tags", placeholder: "Add sensory details", description: "Details that engage the five senses" },
+          { name: "colorAssociations", label: "Color Associations", type: "tags", placeholder: "Add colors", description: "Colors that evoke this mood" },
+          { name: "lightingEffects", label: "Lighting Effects", type: "tags", placeholder: "Add lighting effects", description: "Lighting that creates this mood" },
+          { name: "weatherElements", label: "Weather Elements", type: "tags", placeholder: "Add weather elements", description: "Weather conditions that enhance the mood" },
+          { name: "soundscape", label: "Soundscape", type: "tags", placeholder: "Add sounds", description: "Sounds and audio that create this atmosphere" }
+        ]
+      }
+    ]
+  },
+
+  // Plant
+  plant: {
+    title: "Plant Creator",
+    description: "Create detailed plants for your world",
+    icon: "Flower",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Flower",
+        fields: [
+          { name: "name", label: "Plant Name", type: "text", placeholder: "Enter plant name...", description: "The common name of this plant" },
+          { name: "scientificName", label: "Scientific Name", type: "text", placeholder: "Scientific classification", description: "Scientific or botanical name" },
+          { name: "type", label: "Plant Type", type: "select", options: ["Tree", "Shrub", "Herb", "Flower", "Grass", "Vine", "Moss", "Fern", "Mushroom", "Algae", "Other"], description: "What type of plant is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this plant...", description: "Detailed description of the plant" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Realistic", "Historical", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "growing",
+        label: "Growing & Habitat",
+        icon: "MapPin",
+        fields: [
+          { name: "habitat", label: "Habitat", type: "text", placeholder: "Where does it grow?", description: "Natural habitat and growing conditions" },
+          { name: "careInstructions", label: "Care Instructions", type: "text", placeholder: "How to care for it", description: "Growing and care requirements" },
+          { name: "bloomingSeason", label: "Blooming Season", type: "text", placeholder: "When does it bloom?", description: "Flowering or fruiting season" },
+          { name: "hardinessZone", label: "Hardiness Zone", type: "text", placeholder: "Climate requirements", description: "Climate tolerance and hardiness" }
+        ]
+      },
+      {
+        id: "characteristics",
+        label: "Characteristics",
+        icon: "Leaf",
+        fields: [
+          { name: "characteristics", label: "Characteristics", type: "tags", placeholder: "Add characteristics", description: "Notable physical and biological traits" }
+        ]
+      }
+    ]
+  },
+
+  // Description
+  description: {
+    title: "Description Creator",
+    description: "Create detailed descriptions for your world",
+    icon: "FileText",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "FileText",
+        fields: [
+          { name: "title", label: "Description Title", type: "text", placeholder: "Enter description title...", description: "Title for this description" },
+          { name: "descriptionType", label: "Description Type", type: "select", options: ["Armour", "Weapon", "Clothing", "Location", "Character", "Item", "Creature", "Building", "Event", "Other"], description: "What is this description for?" },
+          { name: "content", label: "Content", type: "textarea", placeholder: "Write the description...", description: "The detailed descriptive content" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Horror", "Other"], description: "What genre is this description for?" }
+        ]
+      }
+    ]
+  },
+
+  // Myth
+  myth: {
+    title: "Myth Creator",
+    description: "Create detailed myths for your world",
+    icon: "Crown",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Crown",
+        fields: [
+          { name: "title", label: "Myth Title", type: "text", placeholder: "Enter myth title...", description: "The title of this myth" },
+          { name: "mythType", label: "Myth Type", type: "select", options: ["Creation", "Hero", "Origin", "Cautionary", "Transformation", "Destruction", "Divine", "Ancestral", "Natural", "Other"], description: "What type of myth is this?" },
+          { name: "summary", label: "Summary", type: "textarea", placeholder: "Brief summary of the myth...", description: "Short summary of the myth's main story" },
+          { name: "culturalOrigin", label: "Cultural Origin", type: "text", placeholder: "Which culture does this come from?", description: "The culture or people this myth originates from" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Mythology", "Historical", "Sci-Fi", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "story",
+        label: "Story & Characters",
+        icon: "BookOpen",
+        fields: [
+          { name: "fullStory", label: "Full Story", type: "textarea", placeholder: "Tell the complete myth...", description: "The complete narrative of the myth" },
+          { name: "characters", label: "Characters", type: "tags", placeholder: "Add mythical characters", description: "Key figures and characters in the myth" },
+          { name: "themes", label: "Themes", type: "tags", placeholder: "Add themes", description: "Major themes and motifs" },
+          { name: "symbolism", label: "Symbolism", type: "text", placeholder: "Symbolic meanings", description: "Symbolic elements and their meanings" }
+        ]
+      },
+      {
+        id: "impact",
+        label: "Impact & Variations",
+        icon: "Star",
+        fields: [
+          { name: "moralLesson", label: "Moral Lesson", type: "text", placeholder: "What lesson does it teach?", description: "The moral or lesson conveyed by the myth" },
+          { name: "modernRelevance", label: "Modern Relevance", type: "text", placeholder: "Contemporary significance", description: "How this myth relates to modern times" },
+          { name: "variations", label: "Variations", type: "tags", placeholder: "Add variations", description: "Different versions or regional variations" },
+          { name: "relatedMyths", label: "Related Myths", type: "tags", placeholder: "Add related myths", description: "Connected or similar myths" }
+        ]
+      }
+    ]
+  },
+
+  // Legend
+  legend: {
+    title: "Legend Creator",
+    description: "Create detailed legends for your world",
+    icon: "Shield",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Shield",
+        fields: [
+          { name: "title", label: "Legend Title", type: "text", placeholder: "Enter legend title...", description: "The title of this legend" },
+          { name: "legendType", label: "Legend Type", type: "select", options: ["Historical", "Supernatural", "Heroic", "Tragic", "Romantic", "Adventure", "Mystery", "Folk", "Urban", "Other"], description: "What type of legend is this?" },
+          { name: "summary", label: "Summary", type: "textarea", placeholder: "Brief summary of the legend...", description: "Short summary of the legend's main story" },
+          { name: "location", label: "Location", type: "text", placeholder: "Where did this take place?", description: "Geographic setting of the legend" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Historical", "Supernatural", "Adventure", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "story",
+        label: "Story & Characters",
+        icon: "Users",
+        fields: [
+          { name: "fullStory", label: "Full Story", type: "textarea", placeholder: "Tell the complete legend...", description: "The complete narrative of the legend" },
+          { name: "mainCharacters", label: "Main Characters", type: "tags", placeholder: "Add main characters", description: "Key figures in the legend" },
+          { name: "timeframe", label: "Timeframe", type: "text", placeholder: "When did this occur?", description: "Historical period or time when events occurred" },
+          { name: "historicalBasis", label: "Historical Basis", type: "text", placeholder: "What historical truth exists?", description: "Real historical events or figures that inspired the legend" }
+        ]
+      },
+      {
+        id: "truth",
+        label: "Truth & Impact",
+        icon: "Search",
+        fields: [
+          { name: "truthElements", label: "Truth Elements", type: "text", placeholder: "What parts are likely true?", description: "Elements that may be historically accurate" },
+          { name: "exaggerations", label: "Exaggerations", type: "text", placeholder: "What parts are embellished?", description: "Aspects that have been embellished over time" },
+          { name: "culturalImpact", label: "Cultural Impact", type: "text", placeholder: "How has it influenced culture?", description: "Impact on culture and society" },
+          { name: "modernAdaptations", label: "Modern Adaptations", type: "tags", placeholder: "Add modern adaptations", description: "Contemporary retellings and adaptations" }
+        ]
+      }
+    ]
+  },
+
+  // Event
+  event: {
+    title: "Event Creator",
+    description: "Create detailed events for your world",
+    icon: "Calendar",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Calendar",
+        fields: [
+          { name: "name", label: "Event Name", type: "text", placeholder: "Enter event name...", description: "The name of this event" },
+          { name: "eventType", label: "Event Type", type: "select", options: ["Battle", "Festival", "Disaster", "Discovery", "Political", "Religious", "Cultural", "Economic", "Scientific", "Other"], description: "What type of event is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this event...", description: "Detailed description of what happened" },
+          { name: "date", label: "Date", type: "text", placeholder: "When did it occur?", description: "Date or time period when the event occurred" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "details",
+        label: "Details & Participants",
+        icon: "Users",
+        fields: [
+          { name: "location", label: "Location", type: "text", placeholder: "Where did it happen?", description: "Geographic location where the event took place" },
+          { name: "participants", label: "Participants", type: "tags", placeholder: "Add participants", description: "Key individuals, groups, or organizations involved" },
+          { name: "duration", label: "Duration", type: "text", placeholder: "How long did it last?", description: "Length of time the event lasted" },
+          { name: "scale", label: "Scale", type: "text", placeholder: "How big was the impact?", description: "Scale and scope of the event's impact" }
+        ]
+      },
+      {
+        id: "impact",
+        label: "Causes & Consequences",
+        icon: "Target",
+        fields: [
+          { name: "causes", label: "Causes", type: "text", placeholder: "What caused this event?", description: "Underlying causes and triggers" },
+          { name: "consequences", label: "Consequences", type: "text", placeholder: "What were the results?", description: "Immediate and long-term consequences" },
+          { name: "significance", label: "Significance", type: "text", placeholder: "Why is it important?", description: "Historical or cultural significance" },
+          { name: "legacy", label: "Legacy", type: "text", placeholder: "What legacy did it leave?", description: "Lasting impact and legacy" },
+          { name: "documentation", label: "Documentation", type: "text", placeholder: "How was it recorded?", description: "How the event was documented or remembered" },
+          { name: "conflictingAccounts", label: "Conflicting Accounts", type: "text", placeholder: "Are there different versions?", description: "Different perspectives or conflicting historical accounts" }
+        ]
+      }
+    ]
   }
 
-  // TODO: Add more content types as needed
+  // 🎉 ALL 42 CONTENT TYPES NOW HAVE COMPREHENSIVE FORM CONFIGURATIONS! 🎉
 };
