@@ -47,7 +47,16 @@ import {
   insertTransportationSchema,
   insertNaturalLawSchema,
   insertTraditionSchema,
-  insertRitualSchema
+  insertRitualSchema,
+  insertFamilyTreeSchema,
+  insertTimelineSchema,
+  insertCeremonySchema,
+  insertMapSchema,
+  insertMusicSchema,
+  insertDanceSchema,
+  insertLawSchema,
+  insertPolicySchema,
+  insertPotionSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI, generateCharacterFieldWithAI } from "./ai-generation";
@@ -182,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/characters", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const characters = await storage.getUserCharacters(userId);
       
       if (search) {
@@ -932,7 +941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/locations", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const locations = await storage.getUserLocations(userId);
       
       if (search) {
@@ -997,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/species", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const species = await storage.getUserSpecies(userId);
       
       if (search) {
@@ -1062,7 +1071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/organizations", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const organizations = await storage.getUserOrganizations(userId);
       
       if (search) {
@@ -1330,7 +1339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cultures", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const cultures = await storage.getUserCultures(userId);
       
       if (search) {
@@ -2175,7 +2184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/religions", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const religions = await storage.getUserReligions(userId);
       
       if (search) {
@@ -2264,7 +2273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/languages", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const languages = await storage.getUserLanguages(userId);
       
       if (search) {
@@ -2983,7 +2992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/traditions", async (req, res) => {
     try {
       const search = req.query.search as string;
-      const userId = req.query.userId as string || req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
       const traditions = await storage.getUserTraditions(userId);
       
       if (search) {
@@ -3109,6 +3118,357 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting ritual:', error);
       res.status(500).json({ error: 'Failed to delete ritual' });
+    }
+  });
+
+  // Family Tree routes
+  app.post("/api/family-trees", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const familyTreeData = { ...req.body, userId };
+      
+      const validatedFamilyTree = insertFamilyTreeSchema.parse(familyTreeData);
+      const savedFamilyTree = await storage.createFamilyTree(validatedFamilyTree);
+      res.json(savedFamilyTree);
+    } catch (error) {
+      console.error('Error saving family tree:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save family tree' });
+    }
+  });
+
+  app.get("/api/family-trees", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const familyTrees = await storage.getUserFamilyTrees(userId);
+      
+      if (search) {
+        const filtered = familyTrees.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(familyTrees);
+      }
+    } catch (error) {
+      console.error('Error fetching family trees:', error);
+      res.status(500).json({ error: 'Failed to fetch family trees' });
+    }
+  });
+
+  // Timeline routes
+  app.post("/api/timelines", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const timelineData = { ...req.body, userId };
+      
+      const validatedTimeline = insertTimelineSchema.parse(timelineData);
+      const savedTimeline = await storage.createTimeline(validatedTimeline);
+      res.json(savedTimeline);
+    } catch (error) {
+      console.error('Error saving timeline:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save timeline' });
+    }
+  });
+
+  app.get("/api/timelines", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const timelines = await storage.getUserTimelines(userId);
+      
+      if (search) {
+        const filtered = timelines.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(timelines);
+      }
+    } catch (error) {
+      console.error('Error fetching timelines:', error);
+      res.status(500).json({ error: 'Failed to fetch timelines' });
+    }
+  });
+
+  // Ceremony routes
+  app.post("/api/ceremonies", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const ceremonyData = { ...req.body, userId };
+      
+      const validatedCeremony = insertCeremonySchema.parse(ceremonyData);
+      const savedCeremony = await storage.createCeremony(validatedCeremony);
+      res.json(savedCeremony);
+    } catch (error) {
+      console.error('Error saving ceremony:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save ceremony' });
+    }
+  });
+
+  app.get("/api/ceremonies", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const ceremonies = await storage.getUserCeremonies(userId);
+      
+      if (search) {
+        const filtered = ceremonies.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(ceremonies);
+      }
+    } catch (error) {
+      console.error('Error fetching ceremonies:', error);
+      res.status(500).json({ error: 'Failed to fetch ceremonies' });
+    }
+  });
+
+  // Map routes
+  app.post("/api/maps", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const mapData = { ...req.body, userId };
+      
+      const validatedMap = insertMapSchema.parse(mapData);
+      const savedMap = await storage.createMap(validatedMap);
+      res.json(savedMap);
+    } catch (error) {
+      console.error('Error saving map:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save map' });
+    }
+  });
+
+  app.get("/api/maps", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const maps = await storage.getUserMaps(userId);
+      
+      if (search) {
+        const filtered = maps.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(maps);
+      }
+    } catch (error) {
+      console.error('Error fetching maps:', error);
+      res.status(500).json({ error: 'Failed to fetch maps' });
+    }
+  });
+
+  // Music routes
+  app.post("/api/music", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const musicData = { ...req.body, userId };
+      
+      const validatedMusic = insertMusicSchema.parse(musicData);
+      const savedMusic = await storage.createMusic(validatedMusic);
+      res.json(savedMusic);
+    } catch (error) {
+      console.error('Error saving music:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save music' });
+    }
+  });
+
+  app.get("/api/music", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const music = await storage.getUserMusic(userId);
+      
+      if (search) {
+        const filtered = music.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(music);
+      }
+    } catch (error) {
+      console.error('Error fetching music:', error);
+      res.status(500).json({ error: 'Failed to fetch music' });
+    }
+  });
+
+  // Dance routes
+  app.post("/api/dances", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const danceData = { ...req.body, userId };
+      
+      const validatedDance = insertDanceSchema.parse(danceData);
+      const savedDance = await storage.createDance(validatedDance);
+      res.json(savedDance);
+    } catch (error) {
+      console.error('Error saving dance:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save dance' });
+    }
+  });
+
+  app.get("/api/dances", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const dances = await storage.getUserDances(userId);
+      
+      if (search) {
+        const filtered = dances.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(dances);
+      }
+    } catch (error) {
+      console.error('Error fetching dances:', error);
+      res.status(500).json({ error: 'Failed to fetch dances' });
+    }
+  });
+
+  // Law routes
+  app.post("/api/laws", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const lawData = { ...req.body, userId };
+      
+      const validatedLaw = insertLawSchema.parse(lawData);
+      const savedLaw = await storage.createLaw(validatedLaw);
+      res.json(savedLaw);
+    } catch (error) {
+      console.error('Error saving law:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save law' });
+    }
+  });
+
+  app.get("/api/laws", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const laws = await storage.getUserLaws(userId);
+      
+      if (search) {
+        const filtered = laws.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(laws);
+      }
+    } catch (error) {
+      console.error('Error fetching laws:', error);
+      res.status(500).json({ error: 'Failed to fetch laws' });
+    }
+  });
+
+  // Policy routes
+  app.post("/api/policies", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const policyData = { ...req.body, userId };
+      
+      const validatedPolicy = insertPolicySchema.parse(policyData);
+      const savedPolicy = await storage.createPolicy(validatedPolicy);
+      res.json(savedPolicy);
+    } catch (error) {
+      console.error('Error saving policy:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save policy' });
+    }
+  });
+
+  app.get("/api/policies", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const policies = await storage.getUserPolicies(userId);
+      
+      if (search) {
+        const filtered = policies.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(policies);
+      }
+    } catch (error) {
+      console.error('Error fetching policies:', error);
+      res.status(500).json({ error: 'Failed to fetch policies' });
+    }
+  });
+
+  // Potion routes
+  app.post("/api/potions", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const potionData = { ...req.body, userId };
+      
+      const validatedPotion = insertPotionSchema.parse(potionData);
+      const savedPotion = await storage.createPotion(validatedPotion);
+      res.json(savedPotion);
+    } catch (error) {
+      console.error('Error saving potion:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save potion' });
+    }
+  });
+
+  app.get("/api/potions", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const potions = await storage.getUserPotions(userId);
+      
+      if (search) {
+        const filtered = potions.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(potions);
+      }
+    } catch (error) {
+      console.error('Error fetching potions:', error);
+      res.status(500).json({ error: 'Failed to fetch potions' });
     }
   });
 
