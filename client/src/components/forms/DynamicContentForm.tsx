@@ -395,14 +395,14 @@ export default function DynamicContentForm({
                 <FormLabel>{field.label} {field.required && "*"}</FormLabel>
                 <FormControl>
                   <AutocompleteField
-                    value={formField.value || []}
+                    value={formField.value || (field.multiple ?? true ? [] : "")}
                     onChange={(value) => {
                       console.log('AutocompleteField location onChange called with:', value);
                       formField.onChange(value);
                     }}
                     placeholder={field.placeholder}
                     contentType="location"
-                    multiple={true}
+                    multiple={field.multiple ?? true}
                   />
                 </FormControl>
                 {field.description && (
@@ -425,14 +425,14 @@ export default function DynamicContentForm({
                 <FormLabel>{field.label} {field.required && "*"}</FormLabel>
                 <FormControl>
                   <AutocompleteField
-                    value={formField.value || []}
+                    value={formField.value || (field.multiple ?? true ? [] : "")}
                     onChange={(value) => {
                       console.log('AutocompleteField onChange called with:', value);
                       formField.onChange(value);
                     }}
                     placeholder={field.placeholder}
                     contentType="character"
-                    multiple={true}
+                    multiple={field.multiple ?? true}
                   />
                 </FormControl>
                 {field.description && (
@@ -543,11 +543,11 @@ export default function DynamicContentForm({
                 <FormLabel>{field.label} {field.required && "*"}</FormLabel>
                 <FormControl>
                   <AutocompleteField
-                    value={formField.value || []}
+                    value={formField.value || (field.multiple ?? true ? [] : "")}
                     onChange={(value) => formField.onChange(value)}
                     placeholder={field.placeholder}
                     contentType="organization"
-                    multiple={true}
+                    multiple={field.multiple ?? true}
                   />
                 </FormControl>
                 {field.description && (
@@ -775,11 +775,11 @@ export default function DynamicContentForm({
                 <FormLabel>{field.label} {field.required && "*"}</FormLabel>
                 <FormControl>
                   <AutocompleteField
-                    value={formField.value || []}
+                    value={formField.value || (field.multiple ?? true ? [] : "")}
                     onChange={(value) => formField.onChange(value)}
                     placeholder={field.placeholder}
                     contentType={field.type.replace('autocomplete-', '') as any}
-                    multiple={true}
+                    multiple={field.multiple ?? true}
                   />
                 </FormControl>
                 {field.description && (

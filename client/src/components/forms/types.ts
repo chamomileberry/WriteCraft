@@ -46,6 +46,7 @@ export interface FormField {
   description?: string;
   options?: string[];
   rows?: number;
+  multiple?: boolean; // For autocomplete fields: true = array, false = single value
 }
 
 export interface FormTabConfig {

@@ -152,20 +152,20 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Life & Background",
         icon: "MapPin",
         fields: [
-          { name: "currentLocation", label: "Current Location", type: "text", placeholder: "Where they currently live/stay", description: "Their current place of residence" },
+          { name: "currentLocation", label: "Current Location", type: "autocomplete-location", placeholder: "Search or create location...", description: "Their current place of residence", multiple: false },
           { name: "currentResidence", label: "Current Residence", type: "text", placeholder: "Details about their home", description: "Specifics about where they live" },
           { name: "dateOfBirth", label: "Date of Birth", type: "text", placeholder: "When they were born", description: "Their birth date" },
-          { name: "placeOfBirth", label: "Place of Birth", type: "text", placeholder: "Where they were born", description: "Their birthplace" },
+          { name: "placeOfBirth", label: "Place of Birth", type: "autocomplete-location", placeholder: "Search or create birthplace...", description: "Their birthplace", multiple: false },
           { name: "dateOfDeath", label: "Date of Death", type: "text", placeholder: "When they died (if applicable)", description: "Date of death (for deceased characters)" },
-          { name: "placeOfDeath", label: "Place of Death", type: "text", placeholder: "Where they died (if applicable)", description: "Place of death (for deceased characters)" },
+          { name: "placeOfDeath", label: "Place of Death", type: "autocomplete-location", placeholder: "Search or create location...", description: "Place of death (for deceased characters)" },
           { name: "upbringing", label: "Upbringing", type: "textarea", placeholder: "How they were raised", description: "Details about their childhood and upbringing" },
-          { name: "family", label: "Family", type: "textarea", placeholder: "Information about family members, relationships...", description: "Family members and relationships" },
+          { name: "family", label: "Family Members", type: "autocomplete-character", placeholder: "Search or create family members...", description: "Family members and relationships" },
           { name: "education", label: "Education", type: "textarea", placeholder: "Formal education, training, apprenticeships...", description: "Their educational background and training" },
           { name: "profession", label: "Current Profession", type: "text", placeholder: "Their current job or role", description: "What they do for work currently" },
           { name: "workHistory", label: "Work History", type: "textarea", placeholder: "Previous jobs, career progression...", description: "Their employment and career history" },
           { name: "accomplishments", label: "Accomplishments", type: "textarea", placeholder: "Notable achievements, awards, victories...", description: "Their major achievements and successes" },
-          { name: "religiousBelief", label: "Religious Beliefs", type: "text", placeholder: "Spiritual beliefs, religion, philosophy", description: "Their religious or spiritual beliefs" },
-          { name: "affiliatedOrganizations", label: "Organizations", type: "text", placeholder: "Guilds, groups, factions they belong to", description: "Organizations they're affiliated with" },
+          { name: "religiousBelief", label: "Religious Beliefs", type: "autocomplete-religion", placeholder: "Search or create religion...", description: "Their religious or spiritual beliefs", multiple: false },
+          { name: "affiliatedOrganizations", label: "Organizations", type: "autocomplete-organization", placeholder: "Search or create organizations...", description: "Organizations they're affiliated with" },
           { name: "genderUnderstanding", label: "Gender Understanding", type: "textarea", placeholder: "How they understand and express gender", description: "Their understanding and relationship with gender" },
           { name: "sexualOrientation", label: "Sexual Orientation", type: "text", placeholder: "Their romantic and sexual preferences", description: "Their sexual and romantic orientation" },
           { name: "ethnicity", label: "Ethnicity", type: "text", placeholder: "Cultural and ethnic background", description: "Their ethnic and cultural heritage" }
@@ -1301,10 +1301,10 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         icon: "Crown",
         fields: [
           { name: "ideology", label: "Ideology", type: "text", placeholder: "Core beliefs and ideology", description: "Fundamental beliefs and principles" },
-          { name: "leadership", label: "Leadership", type: "text", placeholder: "Who leads the faction?", description: "Leadership structure and key figures" },
-          { name: "members", label: "Members", type: "text", placeholder: "Who belongs to this faction?", description: "Types of members and recruitment" },
+          { name: "leadership", label: "Leadership", type: "autocomplete-character", placeholder: "Search or create faction leaders...", description: "Leadership structure and key figures" },
+          { name: "members", label: "Members", type: "autocomplete-character", placeholder: "Search or create faction members...", description: "Types of members and recruitment" },
           { name: "resources", label: "Resources", type: "text", placeholder: "What resources do they have?", description: "Financial, material, and human resources" },
-          { name: "territory", label: "Territory", type: "text", placeholder: "Areas of control", description: "Geographic areas under their influence" },
+          { name: "territory", label: "Territory", type: "autocomplete-location", placeholder: "Search or create territories...", description: "Geographic areas under their influence" },
           { name: "influence", label: "Influence", type: "text", placeholder: "How influential are they?", description: "Level of power and influence" }
         ]
       },
@@ -1313,8 +1313,8 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Relations & Operations",
         icon: "Users",
         fields: [
-          { name: "allies", label: "Allies", type: "tags", placeholder: "Add allies", description: "Allied factions and supporters" },
-          { name: "enemies", label: "Enemies", type: "tags", placeholder: "Add enemies", description: "Opposing factions and rivals" },
+          { name: "allies", label: "Allies", type: "autocomplete-faction", placeholder: "Search or create allied factions...", description: "Allied factions and supporters" },
+          { name: "enemies", label: "Enemies", type: "autocomplete-faction", placeholder: "Search or create enemy factions...", description: "Opposing factions and rivals" },
           { name: "methods", label: "Methods", type: "text", placeholder: "How do they operate?", description: "Tactics and methods of operation" },
           { name: "secrets", label: "Secrets", type: "text", placeholder: "Hidden secrets", description: "Secret information or hidden agendas" },
           { name: "history", label: "History", type: "textarea", placeholder: "Faction's history...", description: "Historical background and formation" }
@@ -1350,7 +1350,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "equipment", label: "Equipment", type: "tags", placeholder: "Add equipment", description: "Weapons, armor, and equipment used" },
           { name: "training", label: "Training", type: "text", placeholder: "Training regimen", description: "Training methods and standards" },
           { name: "specializations", label: "Specializations", type: "tags", placeholder: "Add specializations", description: "Special skills and capabilities" },
-          { name: "commander", label: "Commander", type: "text", placeholder: "Who commands this unit?", description: "Leadership and command structure" }
+          { name: "commander", label: "Commander", type: "autocomplete-character", placeholder: "Search or create commander...", description: "Leadership and command structure", multiple: false }
         ]
       },
       {
