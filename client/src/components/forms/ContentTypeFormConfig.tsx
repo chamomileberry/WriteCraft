@@ -358,6 +358,572 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         ]
       }
     ]
+  },
+
+  // Creatures
+  creature: {
+    title: "Creature Creator",
+    description: "Create detailed creatures for your world",
+    icon: "Zap",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Zap",
+        fields: [
+          { name: "name", label: "Creature Name", type: "text", placeholder: "Enter creature name...", description: "The name of this creature" },
+          { name: "creatureType", label: "Creature Type", type: "select", options: ["Beast", "Dragon", "Humanoid", "Fey", "Fiend", "Celestial", "Construct", "Undead", "Elemental", "Aberration", "Other"], description: "What type of creature is this?" },
+          { name: "habitat", label: "Habitat", type: "text", placeholder: "Where does it live?", description: "Natural environment and preferred living conditions" },
+          { name: "behavior", label: "Behavior", type: "textarea", placeholder: "How does it behave?", description: "Typical behavior patterns and temperament" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Horror", "Modern", "Historical", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "physical",
+        label: "Physical Description",
+        icon: "Eye",
+        fields: [
+          { name: "physicalDescription", label: "Physical Description", type: "textarea", placeholder: "Describe their appearance...", description: "Detailed description of the creature's physical appearance" },
+          { name: "abilities", label: "Abilities", type: "tags", placeholder: "Add creature abilities", description: "Special abilities, powers, or skills this creature possesses" }
+        ]
+      },
+      {
+        id: "cultural",
+        label: "Cultural Significance",
+        icon: "Users",
+        fields: [
+          { name: "culturalSignificance", label: "Cultural Significance", type: "textarea", placeholder: "What role does this creature play in cultures?", description: "How different cultures view and interact with this creature" }
+        ]
+      }
+    ]
+  },
+
+  // Locations
+  location: {
+    title: "Location Creator", 
+    description: "Create detailed locations for your world",
+    icon: "MapPin",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "MapPin",
+        fields: [
+          { name: "name", label: "Location Name", type: "text", placeholder: "Enter location name...", description: "The name of this place" },
+          { name: "locationType", label: "Location Type", type: "select", options: ["City", "Town", "Village", "Forest", "Mountain", "Desert", "Ocean", "River", "Cave", "Dungeon", "Castle", "Temple", "Ruins", "Other"], description: "What type of location is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this location...", description: "General description of the location" },
+          { name: "geography", label: "Geography", type: "text", placeholder: "Geographic features...", description: "Physical geographic characteristics" },
+          { name: "climate", label: "Climate", type: "text", placeholder: "Weather and climate...", description: "Climate and weather patterns" }
+        ]
+      },
+      {
+        id: "society",
+        label: "Society & Culture",
+        icon: "Users",
+        fields: [
+          { name: "population", label: "Population", type: "text", placeholder: "Who lives here?", description: "Population size and demographics" },
+          { name: "government", label: "Government", type: "text", placeholder: "How is it governed?", description: "Political structure and leadership" },
+          { name: "economy", label: "Economy", type: "text", placeholder: "Economic activities...", description: "Economic system and primary industries" },
+          { name: "culture", label: "Culture", type: "text", placeholder: "Cultural characteristics...", description: "Cultural practices and traditions" }
+        ]
+      },
+      {
+        id: "features",
+        label: "Features & History",
+        icon: "BookOpen",
+        fields: [
+          { name: "history", label: "History", type: "textarea", placeholder: "Historical background...", description: "Historical events and background" },
+          { name: "notableFeatures", label: "Notable Features", type: "tags", placeholder: "Add notable features", description: "Distinctive landmarks or characteristics" },
+          { name: "landmarks", label: "Landmarks", type: "tags", placeholder: "Add landmarks", description: "Important landmarks and points of interest" },
+          { name: "threats", label: "Threats", type: "tags", placeholder: "Add potential dangers", description: "Dangers or threats that exist here" },
+          { name: "resources", label: "Resources", type: "tags", placeholder: "Add available resources", description: "Natural resources and materials available" }
+        ]
+      }
+    ]
+  },
+
+  // Organizations  
+  organization: {
+    title: "Organization Creator",
+    description: "Create detailed organizations for your world",
+    icon: "Users",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Users",
+        fields: [
+          { name: "name", label: "Organization Name", type: "text", placeholder: "Enter organization name...", description: "The name of this organization" },
+          { name: "organizationType", label: "Organization Type", type: "select", options: ["Guild", "Corporation", "Government", "Military", "Religious", "Academic", "Criminal", "Secret Society", "Tribe", "Clan", "Other"], description: "What type of organization is this?" },
+          { name: "purpose", label: "Purpose", type: "text", placeholder: "What is their main purpose?", description: "Primary purpose or mission of the organization" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this organization...", description: "General description of the organization" }
+        ]
+      },
+      {
+        id: "structure",
+        label: "Structure & Leadership",
+        icon: "Crown",
+        fields: [
+          { name: "structure", label: "Structure", type: "textarea", placeholder: "How is it organized?", description: "Organizational structure and hierarchy" },
+          { name: "leadership", label: "Leadership", type: "text", placeholder: "Who leads this organization?", description: "Leadership structure and key figures" },
+          { name: "members", label: "Members", type: "text", placeholder: "Who are the members?", description: "Membership composition and requirements" },
+          { name: "headquarters", label: "Headquarters", type: "text", placeholder: "Where are they based?", description: "Main headquarters or base of operations" }
+        ]
+      },
+      {
+        id: "influence",
+        label: "Influence & Relations",
+        icon: "Globe",
+        fields: [
+          { name: "influence", label: "Influence", type: "text", placeholder: "How much influence do they have?", description: "Scope and level of influence" },
+          { name: "resources", label: "Resources", type: "text", placeholder: "What resources do they control?", description: "Financial, material, and other resources" },
+          { name: "goals", label: "Goals", type: "text", placeholder: "What are their goals?", description: "Short-term and long-term objectives" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Historical background...", description: "Formation and historical development" },
+          { name: "allies", label: "Allies", type: "tags", placeholder: "Add allied organizations", description: "Allied organizations and positive relationships" },
+          { name: "enemies", label: "Enemies", type: "tags", placeholder: "Add enemy organizations", description: "Enemy organizations and conflicts" }
+        ]
+      }
+    ]
+  },
+
+  // Species
+  species: {
+    title: "Species Creator",
+    description: "Create detailed species for your world",
+    icon: "Zap",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Zap",
+        fields: [
+          { name: "name", label: "Species Name", type: "text", placeholder: "Enter species name...", description: "The name of this species" },
+          { name: "classification", label: "Classification", type: "text", placeholder: "Scientific or fantasy classification", description: "Taxonomic or fantasy classification" },
+          { name: "physicalDescription", label: "Physical Description", type: "textarea", placeholder: "Describe their appearance...", description: "Detailed physical characteristics" },
+          { name: "habitat", label: "Habitat", type: "text", placeholder: "Where do they live?", description: "Natural habitat and environment" }
+        ]
+      },
+      {
+        id: "biology",
+        label: "Biology & Behavior",
+        icon: "Heart",
+        fields: [
+          { name: "behavior", label: "Behavior", type: "textarea", placeholder: "How do they behave?", description: "Behavioral patterns and traits" },
+          { name: "diet", label: "Diet", type: "text", placeholder: "What do they eat?", description: "Dietary habits and food sources" },
+          { name: "lifespan", label: "Lifespan", type: "text", placeholder: "How long do they live?", description: "Average lifespan and lifecycle" },
+          { name: "intelligence", label: "Intelligence", type: "text", placeholder: "How intelligent are they?", description: "Intelligence level and cognitive abilities" },
+          { name: "reproduction", label: "Reproduction", type: "text", placeholder: "How do they reproduce?", description: "Reproductive methods and mating behaviors" }
+        ]
+      },
+      {
+        id: "society",
+        label: "Society & Traits",
+        icon: "Users",
+        fields: [
+          { name: "socialStructure", label: "Social Structure", type: "text", placeholder: "How do they organize socially?", description: "Social organization and group dynamics" },
+          { name: "abilities", label: "Abilities", type: "tags", placeholder: "Add special abilities", description: "Special abilities, powers, or talents" },
+          { name: "weaknesses", label: "Weaknesses", type: "tags", placeholder: "Add weaknesses", description: "Vulnerabilities or limitations" },
+          { name: "culturalTraits", label: "Cultural Traits", type: "text", placeholder: "Cultural characteristics...", description: "Cultural behaviors and traditions" }
+        ]
+      }
+    ]
+  },
+
+  // Items
+  item: {
+    title: "Item Creator",
+    description: "Create detailed items for your world",
+    icon: "Package",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Package",
+        fields: [
+          { name: "name", label: "Item Name", type: "text", placeholder: "Enter item name...", description: "The name of this item" },
+          { name: "itemType", label: "Item Type", type: "select", options: ["Weapon", "Armor", "Tool", "Magic Item", "Artifact", "Consumable", "Trade Good", "Art Object", "Document", "Other"], description: "What type of item is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this item...", description: "Detailed description of the item" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"], description: "How rare is this item?" }
+        ]
+      },
+      {
+        id: "properties",
+        label: "Properties & Value",
+        icon: "Gem",
+        fields: [
+          { name: "value", label: "Value", type: "text", placeholder: "Item's worth...", description: "Economic value or cost" },
+          { name: "weight", label: "Weight", type: "text", placeholder: "How heavy is it?", description: "Physical weight and portability" },
+          { name: "properties", label: "Properties", type: "tags", placeholder: "Add item properties", description: "Special properties and characteristics" },
+          { name: "materials", label: "Materials", type: "tags", placeholder: "Add materials used", description: "Materials used in construction" },
+          { name: "requirements", label: "Requirements", type: "text", placeholder: "Usage requirements...", description: "Requirements to use this item effectively" }
+        ]
+      },
+      {
+        id: "lore",
+        label: "Lore & Abilities",
+        icon: "BookOpen",
+        fields: [
+          { name: "history", label: "History", type: "textarea", placeholder: "Item's history...", description: "Historical background and origin" },
+          { name: "abilities", label: "Abilities", type: "tags", placeholder: "Add special abilities", description: "Magical or special abilities the item grants" },
+          { name: "crafting", label: "Crafting", type: "text", placeholder: "How is it made?", description: "Crafting process and requirements" }
+        ]
+      }
+    ]
+  },
+
+  // Food
+  food: {
+    title: "Food Creator",
+    description: "Create detailed foods for your world",
+    icon: "Apple",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Apple",
+        fields: [
+          { name: "name", label: "Food Name", type: "text", placeholder: "Enter food name...", description: "The name of this food" },
+          { name: "foodType", label: "Food Type", type: "select", options: ["Meat", "Vegetable", "Fruit", "Grain", "Dairy", "Dessert", "Beverage", "Spice", "Bread", "Soup", "Other"], description: "What type of food is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this food...", description: "Detailed description of the food" },
+          { name: "origin", label: "Origin", type: "text", placeholder: "Where does it come from?", description: "Geographic or cultural origin" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "details",
+        label: "Details & Properties",
+        icon: "Leaf",
+        fields: [
+          { name: "taste", label: "Taste", type: "text", placeholder: "How does it taste?", description: "Flavor profile and taste characteristics" },
+          { name: "texture", label: "Texture", type: "text", placeholder: "What's the texture like?", description: "Physical texture and mouthfeel" },
+          { name: "ingredients", label: "Ingredients", type: "tags", placeholder: "Add ingredients", description: "Main ingredients or components" },
+          { name: "preparation", label: "Preparation", type: "textarea", placeholder: "How is it prepared?", description: "Cooking or preparation methods" },
+          { name: "nutritionalValue", label: "Nutritional Value", type: "text", placeholder: "Health benefits or effects", description: "Nutritional content and health effects" }
+        ]
+      },
+      {
+        id: "cultural",
+        label: "Cultural & Economic",
+        icon: "Users",
+        fields: [
+          { name: "culturalSignificance", label: "Cultural Significance", type: "textarea", placeholder: "Cultural importance...", description: "Role in culture and society" },
+          { name: "cost", label: "Cost", type: "text", placeholder: "How expensive is it?", description: "Economic value and affordability" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary"], description: "How rare or common is this food?" },
+          { name: "seasonality", label: "Seasonality", type: "text", placeholder: "When is it available?", description: "Seasonal availability" }
+        ]
+      }
+    ]
+  },
+
+  // Drinks
+  drink: {
+    title: "Drink Creator",
+    description: "Create detailed drinks for your world",
+    icon: "Cup",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Cup",
+        fields: [
+          { name: "name", label: "Drink Name", type: "text", placeholder: "Enter drink name...", description: "The name of this drink" },
+          { name: "drinkType", label: "Drink Type", type: "select", options: ["Alcoholic", "Non-alcoholic", "Magical", "Potion", "Tea", "Coffee", "Juice", "Water", "Other"], description: "What type of drink is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this drink...", description: "Detailed description of the drink" },
+          { name: "alcoholContent", label: "Alcohol Content", type: "text", placeholder: "Alcohol percentage or strength", description: "Alcoholic strength if applicable" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "properties",
+        label: "Properties & Effects",
+        icon: "Zap",
+        fields: [
+          { name: "taste", label: "Taste", type: "text", placeholder: "How does it taste?", description: "Flavor profile and taste characteristics" },
+          { name: "appearance", label: "Appearance", type: "text", placeholder: "What does it look like?", description: "Visual appearance and color" },
+          { name: "ingredients", label: "Ingredients", type: "tags", placeholder: "Add ingredients", description: "Main ingredients or components" },
+          { name: "preparation", label: "Preparation", type: "textarea", placeholder: "How is it made?", description: "Brewing or preparation methods" },
+          { name: "effects", label: "Effects", type: "text", placeholder: "What effects does it have?", description: "Physical or magical effects when consumed" }
+        ]
+      },
+      {
+        id: "cultural",
+        label: "Cultural & Economic",
+        icon: "Users",
+        fields: [
+          { name: "origin", label: "Origin", type: "text", placeholder: "Where does it come from?", description: "Geographic or cultural origin" },
+          { name: "culturalSignificance", label: "Cultural Significance", type: "textarea", placeholder: "Cultural importance...", description: "Role in culture and ceremonies" },
+          { name: "cost", label: "Cost", type: "text", placeholder: "How expensive is it?", description: "Economic value and affordability" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary"], description: "How rare or common is this drink?" }
+        ]
+      }
+    ]
+  },
+
+  // Armor
+  armor: {
+    title: "Armor Creator",
+    description: "Create detailed armor for your world",
+    icon: "Shield",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Shield",
+        fields: [
+          { name: "name", label: "Armor Name", type: "text", placeholder: "Enter armor name...", description: "The name of this armor" },
+          { name: "armorType", label: "Armor Type", type: "select", options: ["Light", "Medium", "Heavy", "Shield", "Helmet", "Gauntlets", "Boots", "Cloak", "Magical", "Other"], description: "What type of armor is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this armor...", description: "Detailed description of the armor" },
+          { name: "protection", label: "Protection", type: "text", placeholder: "How much protection does it offer?", description: "Level and type of protection provided" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "properties",
+        label: "Properties & Materials",
+        icon: "Hammer",
+        fields: [
+          { name: "weight", label: "Weight", type: "text", placeholder: "How heavy is it?", description: "Physical weight and burden" },
+          { name: "materials", label: "Materials", type: "tags", placeholder: "Add materials used", description: "Materials used in construction" },
+          { name: "coverage", label: "Coverage", type: "text", placeholder: "What body parts does it cover?", description: "Areas of the body protected" },
+          { name: "mobility", label: "Mobility", type: "text", placeholder: "How does it affect movement?", description: "Impact on wearer's mobility and dexterity" },
+          { name: "craftsmanship", label: "Craftsmanship", type: "text", placeholder: "Quality of construction", description: "Level of skill and quality in creation" }
+        ]
+      },
+      {
+        id: "lore",
+        label: "Lore & Value",
+        icon: "BookOpen",
+        fields: [
+          { name: "enchantments", label: "Enchantments", type: "tags", placeholder: "Add magical enhancements", description: "Magical properties and enchantments" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Armor's history...", description: "Historical background and previous owners" },
+          { name: "value", label: "Value", type: "text", placeholder: "What is it worth?", description: "Economic value and rarity" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"], description: "How rare is this armor?" },
+          { name: "maintenance", label: "Maintenance", type: "text", placeholder: "Care requirements", description: "How to maintain and care for the armor" }
+        ]
+      }
+    ]
+  },
+
+  // Religions
+  religion: {
+    title: "Religion Creator",
+    description: "Create detailed religions for your world",
+    icon: "Church",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Church",
+        fields: [
+          { name: "name", label: "Religion Name", type: "text", placeholder: "Enter religion name...", description: "The name of this religion" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this religion...", description: "General description and overview" },
+          { name: "followers", label: "Followers", type: "text", placeholder: "Who follows this religion?", description: "Description of the faithful and adherents" },
+          { name: "influence", label: "Influence", type: "text", placeholder: "How influential is it?", description: "Social and political influence" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "beliefs",
+        label: "Beliefs & Practices",
+        icon: "Heart",
+        fields: [
+          { name: "beliefs", label: "Core Beliefs", type: "tags", placeholder: "Add core beliefs", description: "Fundamental beliefs and doctrines" },
+          { name: "practices", label: "Practices", type: "tags", placeholder: "Add religious practices", description: "Regular practices and rituals" },
+          { name: "deities", label: "Deities", type: "tags", placeholder: "Add deities or divine figures", description: "Gods, goddesses, or divine entities" },
+          { name: "morality", label: "Morality", type: "text", placeholder: "Moral and ethical code", description: "Moral teachings and ethical guidelines" },
+          { name: "afterlife", label: "Afterlife", type: "text", placeholder: "Beliefs about death and afterlife", description: "Teachings about death and what comes after" }
+        ]
+      },
+      {
+        id: "organization",
+        label: "Organization & Culture",
+        icon: "Users",
+        fields: [
+          { name: "hierarchy", label: "Hierarchy", type: "text", placeholder: "Religious organization structure", description: "Organizational structure and leadership" },
+          { name: "ceremonies", label: "Ceremonies", type: "tags", placeholder: "Add ceremonies and rituals", description: "Important ceremonies and ritual practices" },
+          { name: "symbols", label: "Symbols", type: "tags", placeholder: "Add religious symbols", description: "Sacred symbols and iconography" },
+          { name: "scriptures", label: "Scriptures", type: "text", placeholder: "Holy texts and writings", description: "Sacred texts and religious writings" },
+          { name: "history", label: "History", type: "textarea", placeholder: "Religious history...", description: "Historical development and founding" }
+        ]
+      }
+    ]
+  },
+
+  // Technology
+  technology: {
+    title: "Technology Creator",
+    description: "Create detailed technologies for your world",
+    icon: "Cog",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Cog",
+        fields: [
+          { name: "name", label: "Technology Name", type: "text", placeholder: "Enter technology name...", description: "The name of this technology" },
+          { name: "technologyType", label: "Technology Type", type: "select", options: ["Magical", "Mechanical", "Biological", "Chemical", "Quantum", "Digital", "Energy", "Medical", "Transportation", "Other"], description: "What type of technology is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this technology...", description: "Detailed description of the technology" },
+          { name: "function", label: "Function", type: "text", placeholder: "What does it do?", description: "Primary function and purpose" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Steampunk", "Cyberpunk", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "mechanics",
+        label: "Mechanics & Requirements",
+        icon: "Settings",
+        fields: [
+          { name: "principles", label: "Principles", type: "textarea", placeholder: "How does it work?", description: "Underlying principles and mechanics" },
+          { name: "requirements", label: "Requirements", type: "tags", placeholder: "Add requirements", description: "Materials, energy, or conditions needed to operate" },
+          { name: "limitations", label: "Limitations", type: "tags", placeholder: "Add limitations", description: "Constraints and limitations on usage" },
+          { name: "applications", label: "Applications", type: "tags", placeholder: "Add applications", description: "Practical applications and uses" },
+          { name: "risks", label: "Risks", type: "text", placeholder: "What are the dangers?", description: "Potential risks and hazards" }
+        ]
+      },
+      {
+        id: "development",
+        label: "Development & Availability",
+        icon: "Lightbulb",
+        fields: [
+          { name: "development", label: "Development", type: "text", placeholder: "Development status", description: "Current state of development" },
+          { name: "inventors", label: "Inventors", type: "text", placeholder: "Who created it?", description: "Inventors or developers" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Unique"], description: "How rare or common is this technology?" },
+          { name: "evolution", label: "Evolution", type: "text", placeholder: "How has it evolved?", description: "Historical development and future potential" }
+        ]
+      }
+    ]
+  },
+
+  // Spells
+  spell: {
+    title: "Spell Creator",
+    description: "Create detailed spells for your world",
+    icon: "Sparkles",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Sparkles",
+        fields: [
+          { name: "name", label: "Spell Name", type: "text", placeholder: "Enter spell name...", description: "The name of this spell" },
+          { name: "school", label: "School of Magic", type: "select", options: ["Evocation", "Divination", "Enchantment", "Illusion", "Necromancy", "Transmutation", "Conjuration", "Abjuration", "Elemental", "Other"], description: "Which school of magic does this belong to?" },
+          { name: "level", label: "Spell Level", type: "select", options: ["Cantrip", "1st Level", "2nd Level", "3rd Level", "4th Level", "5th Level", "6th Level", "7th Level", "8th Level", "9th Level", "Epic"], description: "Power level of the spell" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this spell...", description: "Detailed description of the spell's effects" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Urban Fantasy", "Sci-Fi", "Horror", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "mechanics",
+        label: "Mechanics & Casting",
+        icon: "Wand",
+        fields: [
+          { name: "components", label: "Components", type: "tags", placeholder: "Add spell components", description: "Verbal, somatic, or material components needed" },
+          { name: "castingTime", label: "Casting Time", type: "text", placeholder: "How long to cast?", description: "Time required to cast the spell" },
+          { name: "range", label: "Range", type: "text", placeholder: "Spell's range", description: "Distance the spell can reach" },
+          { name: "duration", label: "Duration", type: "text", placeholder: "How long does it last?", description: "How long the spell's effects last" },
+          { name: "effect", label: "Effect", type: "textarea", placeholder: "What does it do?", description: "Detailed magical effects and mechanics" }
+        ]
+      },
+      {
+        id: "lore",
+        label: "Lore & Variations",
+        icon: "BookOpen",
+        fields: [
+          { name: "origin", label: "Origin", type: "text", placeholder: "Where did this spell come from?", description: "Historical origin and creator" },
+          { name: "variations", label: "Variations", type: "tags", placeholder: "Add spell variations", description: "Different versions or modifications of the spell" },
+          { name: "limitations", label: "Limitations", type: "text", placeholder: "What are the limits?", description: "Constraints and limitations on the spell" },
+          { name: "risks", label: "Risks", type: "text", placeholder: "Dangers of casting", description: "Potential risks or backlash from casting" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Lost", "Forbidden"], description: "How rare or restricted is this spell?" }
+        ]
+      }
+    ]
+  },
+
+  // Animal
+  animal: {
+    title: "Animal Creator",
+    description: "Create detailed animals for your world",
+    icon: "Cat",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Cat",
+        fields: [
+          { name: "name", label: "Animal Name", type: "text", placeholder: "Enter animal name...", description: "The name of this animal" },
+          { name: "animalType", label: "Animal Type", type: "select", options: ["Mammal", "Bird", "Reptile", "Fish", "Amphibian", "Insect", "Arachnid", "Mythical", "Hybrid", "Other"], description: "What type of animal is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this animal...", description: "Detailed description of the animal" },
+          { name: "habitat", label: "Habitat", type: "text", placeholder: "Where does it live?", description: "Natural habitat and environment" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Realistic", "Prehistoric", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "biology",
+        label: "Biology & Behavior",
+        icon: "Heart",
+        fields: [
+          { name: "diet", label: "Diet", type: "text", placeholder: "What does it eat?", description: "Dietary habits and food sources" },
+          { name: "behavior", label: "Behavior", type: "textarea", placeholder: "How does it behave?", description: "Behavioral patterns and temperament" },
+          { name: "lifespan", label: "Lifespan", type: "text", placeholder: "How long does it live?", description: "Average lifespan and lifecycle" },
+          { name: "reproduction", label: "Reproduction", type: "text", placeholder: "How does it reproduce?", description: "Mating and reproductive behaviors" },
+          { name: "socialStructure", label: "Social Structure", type: "text", placeholder: "How do they organize socially?", description: "Pack behavior and social organization" }
+        ]
+      },
+      {
+        id: "traits",
+        label: "Traits & Abilities",
+        icon: "Zap",
+        fields: [
+          { name: "physicalTraits", label: "Physical Traits", type: "tags", placeholder: "Add physical characteristics", description: "Notable physical features and traits" },
+          { name: "abilities", label: "Special Abilities", type: "tags", placeholder: "Add special abilities", description: "Unique abilities or powers" },
+          { name: "intelligence", label: "Intelligence", type: "text", placeholder: "How intelligent is it?", description: "Intelligence level and cognitive abilities" },
+          { name: "domestication", label: "Domestication", type: "text", placeholder: "Can it be domesticated?", description: "Relationship with civilized species" }
+        ]
+      }
+    ]
+  },
+
+  // Resource  
+  resource: {
+    title: "Resource Creator",
+    description: "Create detailed resources for your world",
+    icon: "Gem",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "Gem",
+        fields: [
+          { name: "name", label: "Resource Name", type: "text", placeholder: "Enter resource name...", description: "The name of this resource" },
+          { name: "resourceType", label: "Resource Type", type: "select", options: ["Natural", "Manufactured", "Magical", "Energy", "Mineral", "Organic", "Rare Earth", "Fuel", "Precious", "Other"], description: "What type of resource is this?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this resource...", description: "Detailed description of the resource" },
+          { name: "abundance", label: "Abundance", type: "select", options: ["Abundant", "Common", "Uncommon", "Rare", "Very Rare", "Extinct"], description: "How abundant is this resource?" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "extraction",
+        label: "Extraction & Location",
+        icon: "Pickaxe",
+        fields: [
+          { name: "location", label: "Location", type: "text", placeholder: "Where is it found?", description: "Geographic locations where it can be found" },
+          { name: "extractionMethod", label: "Extraction Method", type: "text", placeholder: "How is it extracted?", description: "Methods used to harvest or extract the resource" },
+          { name: "renewability", label: "Renewability", type: "select", options: ["Renewable", "Sustainable", "Limited", "Non-renewable", "Finite"], description: "Can this resource be replenished?" },
+          { name: "controlledBy", label: "Controlled By", type: "text", placeholder: "Who controls access?", description: "Organizations or entities that control this resource" }
+        ]
+      },
+      {
+        id: "economics",
+        label: "Economics & Politics",
+        icon: "Coins",
+        fields: [
+          { name: "uses", label: "Uses", type: "tags", placeholder: "Add resource uses", description: "Primary uses and applications" },
+          { name: "value", label: "Value", type: "text", placeholder: "Economic value", description: "Economic worth and market value" },
+          { name: "tradeCommodity", label: "Trade Commodity", type: "text", placeholder: "Trade importance", description: "Importance in trade and commerce" },
+          { name: "conflicts", label: "Conflicts", type: "text", placeholder: "Resource-related conflicts", description: "Wars or conflicts over this resource" },
+          { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Unique"], description: "Overall rarity assessment" }
+        ]
+      }
+    ]
   }
 
   // TODO: Add more content types as needed
