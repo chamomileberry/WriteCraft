@@ -71,20 +71,21 @@ export function AutocompleteField({
   const { data: items = [], isLoading } = useQuery({
     queryKey: [`/api/${apiEndpoint}`, searchValue],
     queryFn: async () => {
-      if (!searchValue.trim()) return [];
-      
       // Handle static options like location-type
       if (contentType === "location-type" && options) {
-        return options
-          .filter(option => option.label.toLowerCase().includes(searchValue.toLowerCase()))
-          .map(option => ({
-            id: option.value,
-            name: option.label,
-            type: "location type",
-          }));
+        const filteredOptions = searchValue.trim() 
+          ? options.filter(option => option.label.toLowerCase().includes(searchValue.toLowerCase()))
+          : options;
+        return filteredOptions.map(option => ({
+          id: option.value,
+          name: option.label,
+          type: "location type",
+        }));
       }
       
-      const response = await fetch(`/api/${apiEndpoint}?search=${encodeURIComponent(searchValue)}`, {
+      // Build URL with search parameter only if search value exists
+      const searchParam = searchValue.trim() ? `?search=${encodeURIComponent(searchValue)}` : '';
+      const response = await fetch(`/api/${apiEndpoint}${searchParam}`, {
         headers: {
           'X-User-Id': 'demo-user' // TODO: Replace with actual user authentication
         }
@@ -97,7 +98,7 @@ export function AutocompleteField({
         type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || item.treeType || item.timelineType || item.significance || item.mapType || item.musicalStyle || item.danceStyle || item.lawType || item.policyType || item.potionType || contentType,
       }));
     },
-    enabled: searchValue.length > 0,
+    enabled: true,
   });
 
   // Create new item mutation

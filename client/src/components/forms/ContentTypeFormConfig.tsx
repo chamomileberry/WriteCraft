@@ -1916,10 +1916,10 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         label: "Family Members",
         icon: "User",
         fields: [
-          { name: "keyMembers", label: "Key Family Members", type: "autocomplete-character", placeholder: "Search or create family members...", description: "Important members of this family" },
+          { name: "keyMembers", label: "Key Family Members", type: "autocomplete-character", placeholder: "Search or create family members...", description: "Important members of this family", multiple: true },
           { name: "generations", label: "Generations", type: "number", placeholder: "Number of generations", description: "How many generations does this tree span?" },
           { name: "livingMembers", label: "Living Members", type: "text", placeholder: "Number of living members", description: "How many family members are still alive?" },
-          { name: "notableAncestors", label: "Notable Ancestors", type: "textarea", placeholder: "Describe notable ancestors...", description: "Important historical family members" }
+          { name: "notableAncestors", label: "Notable Ancestors", type: "autocomplete-character", placeholder: "Search or create notable ancestors...", description: "Important historical family members", multiple: true }
         ]
       },
       {

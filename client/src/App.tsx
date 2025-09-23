@@ -23,7 +23,7 @@ function NotebookPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button 
           variant="ghost" 
-          onClick={() => window.history.back()}
+          onClick={() => window.location.href = '/'}
           className="mb-6"
           data-testid="button-back-to-home"
         >
