@@ -84,6 +84,7 @@ const generateSchema = (config: ContentTypeFormConfig) => {
         case "autocomplete-law":
         case "autocomplete-policy":
         case "autocomplete-potion":
+        case "autocomplete-profession":
         case "autocomplete-language":
         case "autocomplete-religion":
           // Schema depends on multiple property: true = array, false/undefined = string

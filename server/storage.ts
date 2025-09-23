@@ -7,7 +7,7 @@ import {
   foods, drinks, weapons, armor, religions, languages, accessories, clothing,
   materials, settlements, societies, factions, militaryUnits, myths, legends,
   events, technologies, spells, resources, buildings, animals, transportation,
-  naturalLaws, traditions, rituals, familyTrees, timelines, ceremonies, maps, music, dances, laws, policies, potions,
+  naturalLaws, traditions, rituals, familyTrees, timelines, ceremonies, maps, music, dances, laws, policies, potions, professions,
   type User, type InsertUser,
   type Character, type InsertCharacter, type UpdateCharacter,
   type Plot, type InsertPlot,
@@ -62,7 +62,8 @@ import {
   type Dance, type InsertDance,
   type Law, type InsertLaw,
   type Policy, type InsertPolicy,
-  type Potion, type InsertPotion
+  type Potion, type InsertPotion,
+  type Profession, type InsertProfession
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, isNull } from "drizzle-orm";
@@ -422,6 +423,13 @@ export interface IStorage {
   getUserPotions(userId: string | null): Promise<Potion[]>;
   updatePotion(id: string, updates: Partial<InsertPotion>): Promise<Potion>;
   deletePotion(id: string): Promise<void>;
+
+  // Profession methods
+  createProfession(profession: InsertProfession): Promise<Profession>;
+  getProfession(id: string): Promise<Profession | undefined>;
+  getUserProfessions(userId: string | null): Promise<Profession[]>;
+  updateProfession(id: string, updates: Partial<InsertProfession>): Promise<Profession>;
+  deleteProfession(id: string): Promise<void>;
 
   // Saved items methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -2208,6 +2216,48 @@ export class DatabaseStorage implements IStorage {
 
   async deletePotion(id: string): Promise<void> {
     await db.delete(potions).where(eq(potions.id, id));
+  }
+
+  // Profession methods implementation
+  async createProfession(profession: InsertProfession): Promise<Profession> {
+    const [newProfession] = await db
+      .insert(professions)
+      .values(profession)
+      .returning();
+    return newProfession;
+  }
+
+  async getProfession(id: string): Promise<Profession | undefined> {
+    const [profession] = await db
+      .select()
+      .from(professions)
+      .where(eq(professions.id, id));
+    return profession;
+  }
+
+  async getUserProfessions(userId: string | null): Promise<Profession[]> {
+    if (!userId) {
+      return [];
+    }
+    
+    return await db
+      .select()
+      .from(professions)
+      .where(eq(professions.userId, userId))
+      .orderBy(desc(professions.createdAt));
+  }
+
+  async updateProfession(id: string, updates: Partial<InsertProfession>): Promise<Profession> {
+    const [updated] = await db
+      .update(professions)
+      .set(updates)
+      .where(eq(professions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProfession(id: string): Promise<void> {
+    await db.delete(professions).where(eq(professions.id, id));
   }
 
   // Update/Delete methods for new content types

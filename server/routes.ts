@@ -56,7 +56,8 @@ import {
   insertDanceSchema,
   insertLawSchema,
   insertPolicySchema,
-  insertPotionSchema
+  insertPotionSchema,
+  insertProfessionSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI, generateCharacterFieldWithAI } from "./ai-generation";
@@ -3469,6 +3470,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching potions:', error);
       res.status(500).json({ error: 'Failed to fetch potions' });
+    }
+  });
+
+  // Profession routes
+  app.post("/api/professions", async (req, res) => {
+    try {
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const professionData = { ...req.body, userId };
+      
+      const validatedProfession = insertProfessionSchema.parse(professionData);
+      const savedProfession = await storage.createProfession(validatedProfession);
+      res.json(savedProfession);
+    } catch (error) {
+      console.error('Error saving profession:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to save profession' });
+    }
+  });
+
+  app.get("/api/professions", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const professions = await storage.getUserProfessions(userId);
+      
+      if (search) {
+        const filtered = professions.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(professions);
+      }
+    } catch (error) {
+      console.error('Error fetching professions:', error);
+      res.status(500).json({ error: 'Failed to fetch professions' });
     }
   });
 

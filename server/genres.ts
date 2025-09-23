@@ -174,6 +174,22 @@ export const GENDER_IDENTITIES = [
   "Polygender"
 ];
 
+export const PRONOUN_OPTIONS = [
+  "they/them",
+  "she/her", 
+  "he/him",
+  "xe/xem",
+  "ze/zir",
+  "ey/em",
+  "ve/ver",
+  "fae/faer",
+  "it/its",
+  "she/they",
+  "he/they",
+  "any pronouns",
+  "ask for pronouns"
+];
+
 // Comprehensive list of setting types organized by categories
 export const SETTING_TYPE_CATEGORIES = {
   "Geographic Regions": [

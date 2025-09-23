@@ -615,6 +615,18 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       description: "description",
       badges: ["rarity", "effect"]
     }
+  },
+  profession: {
+    id: "profession",
+    name: "Profession",
+    urlSegment: "professions",
+    apiBase: "/api/professions",
+    displayFields: {
+      title: "name",
+      subtitle: "professionType",
+      description: "description",
+      badges: ["socialStatus", "riskLevel"]
+    }
   }
 };
 

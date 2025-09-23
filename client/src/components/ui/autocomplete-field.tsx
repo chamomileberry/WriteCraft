@@ -40,7 +40,7 @@ interface AutocompleteFieldProps {
   value?: string | string[];
   onChange: (value: string | string[]) => void;
   placeholder?: string;
-  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type" | "family-tree" | "timeline" | "ceremony" | "map" | "music" | "dance" | "law" | "policy" | "potion";
+  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type" | "family-tree" | "timeline" | "ceremony" | "map" | "music" | "dance" | "law" | "policy" | "potion" | "profession";
   multiple?: boolean;
   disabled?: boolean;
   className?: string;

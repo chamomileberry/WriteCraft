@@ -15,10 +15,10 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         fields: [
           { name: "name", label: "Character Name", type: "text", placeholder: "Enter character name...", description: "The character's primary name" },
           { name: "age", label: "Age", type: "number", placeholder: "Character's age...", description: "How old is this character?" },
-          { name: "occupation", label: "Occupation", type: "text", placeholder: "What is their job or role?", description: "Their primary profession or role in society" },
+          { name: "occupation", label: "Occupation", type: "autocomplete-profession", endpoint: "/api/professions", labelField: "name", valueField: "name", multiple: false, placeholder: "Search or select a profession...", description: "Their primary profession or role in society" },
           { name: "species", label: "Species", type: "text", placeholder: "Human, Elf, Dwarf, etc.", description: "What species or race is this character?" },
-          { name: "gender", label: "Gender", type: "text", placeholder: "Character's gender identity", description: "Their gender identity and expression" },
-          { name: "pronouns", label: "Pronouns", type: "text", placeholder: "they/them, she/her, he/him, etc.", description: "Preferred pronouns for this character" },
+          { name: "gender", label: "Gender", type: "select", options: ["Male", "Female", "Non-Binary", "Agender", "Bigender", "Genderfluid", "Genderqueer", "Transgender", "Intersex", "Pangender", "Demigender", "Androgynous", "Omnigender", "Polygender"], placeholder: "Select gender identity", description: "Their gender identity and expression" },
+          { name: "pronouns", label: "Pronouns", type: "select", options: ["they/them", "she/her", "he/him", "xe/xem", "ze/zir", "ey/em", "ve/ver", "fae/faer", "it/its", "she/they", "he/they", "any pronouns", "ask for pronouns"], placeholder: "Select pronouns", description: "Preferred pronouns for this character", customizable: true },
           { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Horror", "Modern", "Historical", "Other"], description: "What genre does this character fit?" }
         ]
       },
@@ -49,7 +49,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "build", label: "Build", type: "text", placeholder: "Muscular, slim, stocky, etc.", description: "Their overall body build and physique" },
           { name: "physicalCondition", label: "Physical Condition", type: "text", placeholder: "Fitness level, health status", description: "Their overall physical fitness and health" },
           { name: "sex", label: "Biological Sex", type: "text", placeholder: "Assigned sex at birth", description: "Their biological sex assigned at birth" },
-          { name: "genderIdentity", label: "Gender Identity", type: "text", placeholder: "How they identify", description: "Their personal gender identity" },
+          { name: "genderIdentity", label: "Gender Identity", type: "select", options: ["Male", "Female", "Non-Binary", "Agender", "Bigender", "Genderfluid", "Genderqueer", "Transgender", "Intersex", "Pangender", "Demigender", "Androgynous", "Omnigender", "Polygender"], placeholder: "Select gender identity", description: "Their personal gender identity" },
           { name: "physicalPresentation", label: "Physical Presentation", type: "text", placeholder: "How they present physically", description: "How they present their gender physically" }
         ]
       },

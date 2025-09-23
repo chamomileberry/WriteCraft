@@ -1263,6 +1263,34 @@ export const potions = pgTable("potions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Professions for character occupations and career paths
+export const professions = pgTable("professions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  professionType: text("profession_type"), // warrior, mage, merchant, craftsman, noble, etc.
+  description: text("description").notNull(),
+  skillsRequired: text("skills_required").array(),
+  responsibilities: text("responsibilities"),
+  workEnvironment: text("work_environment"),
+  trainingRequired: text("training_required"),
+  socialStatus: text("social_status"), // low, middle, high, nobility, etc.
+  averageIncome: text("average_income"),
+  riskLevel: text("risk_level"), // low, moderate, high, extreme
+  physicalDemands: text("physical_demands"),
+  mentalDemands: text("mental_demands"),
+  commonTools: text("common_tools").array(),
+  relatedProfessions: text("related_professions").array(),
+  careerProgression: text("career_progression"),
+  seasonalWork: boolean("seasonal_work").default(false),
+  apprenticeship: text("apprenticeship"),
+  guildsOrganizations: text("guilds_organizations").array(),
+  historicalContext: text("historical_context"),
+  culturalSignificance: text("cultural_significance"),
+  genre: text("genre"),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1328,6 +1356,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   laws: many(laws),
   policies: many(policies),
   potions: many(potions),
+  professions: many(professions),
   savedItems: many(savedItems),
 }));
 
@@ -1703,6 +1732,13 @@ export const potionsRelations = relations(potions, ({ one }) => ({
   }),
 }));
 
+export const professionsRelations = relations(professions, ({ one }) => ({
+  user: one(users, {
+    fields: [professions.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -1985,6 +2021,11 @@ export const insertPotionSchema = createInsertSchema(potions).omit({
   createdAt: true,
 });
 
+export const insertProfessionSchema = createInsertSchema(professions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -2099,3 +2140,5 @@ export type InsertPolicy = z.infer<typeof insertPolicySchema>;
 export type Policy = typeof policies.$inferSelect;
 export type InsertPotion = z.infer<typeof insertPotionSchema>;
 export type Potion = typeof potions.$inferSelect;
+export type InsertProfession = z.infer<typeof insertProfessionSchema>;
+export type Profession = typeof professions.$inferSelect;
