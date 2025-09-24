@@ -102,6 +102,11 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       
       addPanel: (panel: PanelDescriptor) => {
         set((state) => {
+          // Ensure regions structure exists (handle old persisted states)
+          const safeRegions = state.currentLayout.regions || { main: [], split: [] };
+          const safeMainRegion = safeRegions.main || [];
+          const safeSplitRegion = safeRegions.split || [];
+          
           // Check if panel already exists for this entity
           const existingPanel = state.currentLayout.panels.find(
             p => p.type === panel.type && p.entityId === panel.entityId
@@ -118,14 +123,14 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             ...panel,
             mode: 'tabbed',
             regionId: 'main',
-            tabIndex: state.currentLayout.regions.main.length,
+            tabIndex: safeMainRegion.length,
             position: panel.position || { x: 400, y: 100 },
             size: panel.size || { width: 350, height: 500 }
           };
           
           const updatedRegions = {
-            ...state.currentLayout.regions,
-            main: [...state.currentLayout.regions.main, newPanel.id]
+            ...safeRegions,
+            main: [...safeMainRegion, newPanel.id]
           };
           
           return {
