@@ -2616,21 +2616,28 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
-      // Search characters
+      // Search characters - using simpler approach to avoid SQL syntax issues
       const characterResults = await db.select().from(characters)
-        .where(and(
-          eq(characters.userId, userId),
-          sql`${characters.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
+        .where(
+          and(
+            eq(characters.userId, userId),
+            or(
+              ilike(characters.givenName, `%${trimmedQuery}%`),
+              ilike(characters.familyName, `%${trimmedQuery}%`),
+              ilike(characters.occupation, `%${trimmedQuery}%`)
+            )
+          )
+        )
         .limit(5);
       
       characterResults.forEach(item => {
+        const fullName = [item.givenName, item.familyName].filter(Boolean).join(' ').trim() || 'Untitled Character';
         results.push({
           id: item.id,
-          title: item.name,
+          title: fullName,
           type: 'character',
-          subtitle: item.occupation,
-          description: item.backstory?.substring(0, 100) + '...'
+          subtitle: item.occupation || 'Character',
+          description: item.backstory?.substring(0, 100) + '...' || 'No description available'
         });
       });
 
