@@ -70,7 +70,7 @@ import {
   type PinnedContent, type InsertPinnedContent
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, isNull } from "drizzle-orm";
+import { eq, desc, and, or, ilike, isNull, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -2556,20 +2556,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchManuscripts(userId: string, query: string): Promise<Manuscript[]> {
-    // Basic text search across title and content for now
-    // In Phase 3, this will be replaced with proper full-text search using tsvector
-    return await db.select().from(manuscripts)
-      .where(
-        and(
-          eq(manuscripts.userId, userId),
-          or(
-            ilike(manuscripts.title, `%${query}%`),
-            ilike(manuscripts.content, `%${query}%`),
-            ilike(manuscripts.excerpt, `%${query}%`)
-          )
-        )
+    // Handle empty or whitespace-only queries
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      // Return recent manuscripts for empty search
+      return await db.select().from(manuscripts)
+        .where(eq(manuscripts.userId, userId))
+        .orderBy(desc(manuscripts.updatedAt))
+        .limit(20);
+    }
+
+    // Enhanced full-text search using PostgreSQL tsvector with ranking
+    const searchQuery = sql`plainto_tsquery('english', ${trimmedQuery})`;
+    return await db.select({
+      id: manuscripts.id,
+      title: manuscripts.title,
+      content: manuscripts.content,
+      excerpt: manuscripts.excerpt,
+      wordCount: manuscripts.wordCount,
+      tags: manuscripts.tags,
+      status: manuscripts.status,
+      searchVector: manuscripts.searchVector,
+      userId: manuscripts.userId,
+      createdAt: manuscripts.createdAt,
+      updatedAt: manuscripts.updatedAt,
+      rank: sql<number>`ts_rank(${manuscripts.searchVector}, ${searchQuery})`.as('rank')
+    })
+    .from(manuscripts)
+    .where(
+      and(
+        eq(manuscripts.userId, userId),
+        sql`${manuscripts.searchVector} @@ ${searchQuery}`
       )
-      .orderBy(desc(manuscripts.updatedAt));
+    )
+    .orderBy(desc(sql`ts_rank(${manuscripts.searchVector}, ${searchQuery})`));
   }
 
   // Manuscript links methods

@@ -1,8 +1,15 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real, index, customType } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Custom tsvector type for PostgreSQL full-text search
+export const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  },
+});
 
 // Users table for authentication and user data
 export const users = pgTable("users", {
@@ -1310,11 +1317,18 @@ export const manuscripts = pgTable("manuscripts", {
   wordCount: integer("word_count").default(0),
   tags: text("tags").array(), // User-defined tags
   status: text("status").notNull().default('draft'), // 'draft', 'published', 'archived'
-  searchVector: text("search_vector"), // For full-text search - will be converted to tsvector in later phases
+  searchVector: tsvector("search_vector").generatedAlwaysAs(
+    sql`setweight(to_tsvector('english', COALESCE(title, '')), 'A') || 
+        setweight(to_tsvector('english', COALESCE(content, '')), 'B') || 
+        setweight(to_tsvector('english', COALESCE(excerpt, '')), 'C')`,
+    { mode: 'stored' }
+  ),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  searchIdx: index("manuscript_search_idx").using("gin", table.searchVector),
+}));
 
 // Manuscript Links - Bidirectional links between manuscripts and content
 export const manuscriptLinks = pgTable("manuscript_links", {
