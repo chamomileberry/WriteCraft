@@ -1317,12 +1317,7 @@ export const manuscripts = pgTable("manuscripts", {
   wordCount: integer("word_count").default(0),
   tags: text("tags").array(), // User-defined tags
   status: text("status").notNull().default('draft'), // 'draft', 'published', 'archived'
-  searchVector: tsvector("search_vector").generatedAlwaysAs(
-    sql`setweight(to_tsvector('english', COALESCE(title, '')), 'A') || 
-        setweight(to_tsvector('english', COALESCE(content, '')), 'B') || 
-        setweight(to_tsvector('english', COALESCE(excerpt, '')), 'C')`,
-    { mode: 'stored' }
-  ),
+  searchVector: tsvector("search_vector"),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
