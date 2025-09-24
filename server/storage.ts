@@ -8,6 +8,7 @@ import {
   materials, settlements, societies, factions, militaryUnits, myths, legends,
   events, technologies, spells, resources, buildings, animals, transportation,
   naturalLaws, traditions, rituals, familyTrees, timelines, ceremonies, maps, music, dances, laws, policies, potions, professions,
+  manuscripts, manuscriptLinks, pinnedContent,
   type User, type InsertUser,
   type Character, type InsertCharacter, type UpdateCharacter,
   type Plot, type InsertPlot,
@@ -63,7 +64,10 @@ import {
   type Law, type InsertLaw,
   type Policy, type InsertPolicy,
   type Potion, type InsertPotion,
-  type Profession, type InsertProfession
+  type Profession, type InsertProfession,
+  type Manuscript, type InsertManuscript,
+  type ManuscriptLink, type InsertManuscriptLink,
+  type PinnedContent, type InsertPinnedContent
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, isNull } from "drizzle-orm";
@@ -436,6 +440,28 @@ export interface IStorage {
   unsaveItem(userId: string, itemType: string, itemId: string): Promise<void>;
   getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]>;
   isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
+
+  // Manuscript methods
+  createManuscript(manuscript: InsertManuscript): Promise<Manuscript>;
+  getManuscript(id: string, userId: string): Promise<Manuscript | undefined>;
+  getUserManuscripts(userId: string): Promise<Manuscript[]>;
+  updateManuscript(id: string, userId: string, updates: Partial<InsertManuscript>): Promise<Manuscript>;
+  deleteManuscript(id: string, userId: string): Promise<void>;
+  searchManuscripts(userId: string, query: string): Promise<Manuscript[]>;
+
+  // Manuscript links methods
+  createManuscriptLink(link: InsertManuscriptLink): Promise<ManuscriptLink>;
+  getManuscriptLinks(manuscriptId: string, userId: string): Promise<ManuscriptLink[]>;
+  getManuscriptLinksForUser(userId: string): Promise<ManuscriptLink[]>;
+  deleteManuscriptLink(id: string, userId: string): Promise<void>;
+  findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ManuscriptLink[]>;
+
+  // Pinned content methods
+  pinContent(pin: InsertPinnedContent): Promise<PinnedContent>;
+  unpinContent(userId: string, itemType: string, itemId: string): Promise<void>;
+  getUserPinnedContent(userId: string, category?: string): Promise<PinnedContent[]>;
+  reorderPinnedContent(userId: string, itemId: string, newOrder: number): Promise<void>;
+  isContentPinned(userId: string, itemType: string, itemId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2493,6 +2519,149 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return !!savedItem;
+  }
+
+  // Manuscript methods
+  async createManuscript(manuscript: InsertManuscript): Promise<Manuscript> {
+    const [newManuscript] = await db
+      .insert(manuscripts)
+      .values(manuscript)
+      .returning();
+    return newManuscript;
+  }
+
+  async getManuscript(id: string, userId: string): Promise<Manuscript | undefined> {
+    const [manuscript] = await db.select().from(manuscripts)
+      .where(and(eq(manuscripts.id, id), eq(manuscripts.userId, userId)));
+    return manuscript || undefined;
+  }
+
+  async getUserManuscripts(userId: string): Promise<Manuscript[]> {
+    return await db.select().from(manuscripts)
+      .where(eq(manuscripts.userId, userId))
+      .orderBy(desc(manuscripts.updatedAt));
+  }
+
+  async updateManuscript(id: string, userId: string, updates: Partial<InsertManuscript>): Promise<Manuscript> {
+    const [updatedManuscript] = await db
+      .update(manuscripts)
+      .set(updates)
+      .where(and(eq(manuscripts.id, id), eq(manuscripts.userId, userId)))
+      .returning();
+    return updatedManuscript;
+  }
+
+  async deleteManuscript(id: string, userId: string): Promise<void> {
+    await db.delete(manuscripts).where(and(eq(manuscripts.id, id), eq(manuscripts.userId, userId)));
+  }
+
+  async searchManuscripts(userId: string, query: string): Promise<Manuscript[]> {
+    // Basic text search across title and content for now
+    // In Phase 3, this will be replaced with proper full-text search using tsvector
+    return await db.select().from(manuscripts)
+      .where(
+        and(
+          eq(manuscripts.userId, userId),
+          or(
+            ilike(manuscripts.title, `%${query}%`),
+            ilike(manuscripts.content, `%${query}%`),
+            ilike(manuscripts.excerpt, `%${query}%`)
+          )
+        )
+      )
+      .orderBy(desc(manuscripts.updatedAt));
+  }
+
+  // Manuscript links methods
+  async createManuscriptLink(link: InsertManuscriptLink): Promise<ManuscriptLink> {
+    const [newLink] = await db
+      .insert(manuscriptLinks)
+      .values(link)
+      .returning();
+    return newLink;
+  }
+
+  async getManuscriptLinks(manuscriptId: string, userId: string): Promise<ManuscriptLink[]> {
+    return await db.select().from(manuscriptLinks)
+      .where(and(eq(manuscriptLinks.sourceId, manuscriptId), eq(manuscriptLinks.userId, userId)))
+      .orderBy(desc(manuscriptLinks.createdAt));
+  }
+
+  async getManuscriptLinksForUser(userId: string): Promise<ManuscriptLink[]> {
+    return await db.select().from(manuscriptLinks)
+      .where(eq(manuscriptLinks.userId, userId))
+      .orderBy(desc(manuscriptLinks.createdAt));
+  }
+
+  async deleteManuscriptLink(id: string, userId: string): Promise<void> {
+    await db.delete(manuscriptLinks).where(and(eq(manuscriptLinks.id, id), eq(manuscriptLinks.userId, userId)));
+  }
+
+  async findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ManuscriptLink[]> {
+    return await db.select().from(manuscriptLinks)
+      .where(
+        and(
+          eq(manuscriptLinks.targetType, targetType),
+          eq(manuscriptLinks.targetId, targetId),
+          eq(manuscriptLinks.userId, userId)
+        )
+      )
+      .orderBy(desc(manuscriptLinks.createdAt));
+  }
+
+  // Pinned content methods
+  async pinContent(pin: InsertPinnedContent): Promise<PinnedContent> {
+    const [newPin] = await db
+      .insert(pinnedContent)
+      .values(pin)
+      .returning();
+    return newPin;
+  }
+
+  async unpinContent(userId: string, itemType: string, itemId: string): Promise<void> {
+    await db.delete(pinnedContent)
+      .where(
+        and(
+          eq(pinnedContent.userId, userId),
+          eq(pinnedContent.targetType, itemType),
+          eq(pinnedContent.targetId, itemId)
+        )
+      );
+  }
+
+  async getUserPinnedContent(userId: string, category?: string): Promise<PinnedContent[]> {
+    const conditions = [eq(pinnedContent.userId, userId)];
+    
+    if (category) {
+      conditions.push(eq(pinnedContent.category, category));
+    }
+    
+    return await db.select().from(pinnedContent)
+      .where(and(...conditions))
+      .orderBy(desc(pinnedContent.pinOrder));
+  }
+
+  async reorderPinnedContent(userId: string, itemId: string, newOrder: number): Promise<void> {
+    await db.update(pinnedContent)
+      .set({ pinOrder: newOrder })
+      .where(
+        and(
+          eq(pinnedContent.userId, userId),
+          eq(pinnedContent.targetId, itemId)
+        )
+      );
+  }
+
+  async isContentPinned(userId: string, itemType: string, itemId: string): Promise<boolean> {
+    const [pinnedItem] = await db.select().from(pinnedContent)
+      .where(
+        and(
+          eq(pinnedContent.userId, userId),
+          eq(pinnedContent.targetType, itemType),
+          eq(pinnedContent.targetId, itemId)
+        )
+      );
+    return !!pinnedItem;
   }
 }
 
