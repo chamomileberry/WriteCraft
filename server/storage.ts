@@ -2620,7 +2620,7 @@ export class DatabaseStorage implements IStorage {
       const characterResults = await db.select().from(characters)
         .where(and(
           eq(characters.userId, userId),
-          sql`LOWER(${characters.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+          sql`${characters.name} ILIKE ${`%${trimmedQuery}%`}`
         ))
         .limit(5);
       
@@ -2638,7 +2638,7 @@ export class DatabaseStorage implements IStorage {
       const locationResults = await db.select().from(locations)
         .where(and(
           eq(locations.userId, userId),
-          sql`LOWER(${locations.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+          sql`${locations.name} ILIKE ${`%${trimmedQuery}%`}`
         ))
         .limit(5);
       
@@ -2656,7 +2656,7 @@ export class DatabaseStorage implements IStorage {
       const organizationResults = await db.select().from(organizations)
         .where(and(
           eq(organizations.userId, userId),
-          sql`LOWER(${organizations.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+          sql`${organizations.name} ILIKE ${`%${trimmedQuery}%`}`
         ))
         .limit(5);
       
@@ -2674,7 +2674,7 @@ export class DatabaseStorage implements IStorage {
       const speciesResults = await db.select().from(species)
         .where(and(
           eq(species.userId, userId),
-          sql`LOWER(${species.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+          sql`${species.name} ILIKE ${`%${trimmedQuery}%`}`
         ))
         .limit(5);
       
@@ -2692,7 +2692,7 @@ export class DatabaseStorage implements IStorage {
       const cultureResults = await db.select().from(cultures)
         .where(and(
           eq(cultures.userId, userId),
-          sql`LOWER(${cultures.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+          sql`${cultures.name} ILIKE ${`%${trimmedQuery}%`}`
         ))
         .limit(5);
       
@@ -2710,7 +2710,7 @@ export class DatabaseStorage implements IStorage {
       const itemResults = await db.select().from(items)
         .where(and(
           eq(items.userId, userId),
-          sql`LOWER(${items.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+          sql`${items.name} ILIKE ${`%${trimmedQuery}%`}`
         ))
         .limit(5);
       
