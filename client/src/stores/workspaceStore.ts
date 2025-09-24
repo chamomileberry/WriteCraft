@@ -318,7 +318,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         set((state) => ({
           currentLayout: {
             ...state.currentLayout,
-            activeTabId: panelId
+            activeTabId: panelId === 'manuscript' ? undefined : panelId
           }
         }));
       },

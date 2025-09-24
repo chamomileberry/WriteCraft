@@ -8,9 +8,11 @@ import { cn } from '@/lib/utils';
 interface TabStripProps {
   regionId: 'main' | 'split';
   className?: string;
+  onDrop?: (e: DragEvent<HTMLDivElement>) => void;
+  onDragOver?: (e: DragEvent<HTMLDivElement>) => void;
 }
 
-export function TabStrip({ regionId, className }: TabStripProps) {
+export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripProps) {
   const { 
     getTabsInRegion, 
     getActiveTab, 
@@ -154,20 +156,59 @@ export function TabStrip({ regionId, className }: TabStripProps) {
           "h-10 border-b bg-muted/20 flex items-center px-4 text-sm text-muted-foreground",
           className
         )}
-        onDrop={handleTabDrop}
-        onDragOver={handleTabBarDragOver}
+        onDrop={(e) => {
+          handleTabDrop(e);
+          onDrop?.(e);
+        }}
+        onDragOver={(e) => {
+          handleTabBarDragOver(e);
+          onDragOver?.(e);
+        }}
       >
         Drop tabs here or open a reference to get started
       </div>
     );
   }
 
+  // Show manuscript tab when there are reference tabs
+  const showManuscriptTab = regionId === 'main' && tabs.length > 0;
+  const manuscriptTabActive = !activeTab || activeTab.id === 'manuscript';
+
   return (
     <div 
       className={cn("h-10 border-b bg-muted/20 flex items-center overflow-x-auto", className)}
-      onDrop={handleTabDrop}
-      onDragOver={handleTabBarDragOver}
+      onDrop={(e) => {
+        handleTabDrop(e);
+        onDrop?.(e);
+      }}
+      onDragOver={(e) => {
+        handleTabBarDragOver(e);
+        onDragOver?.(e);
+      }}
     >
+      {/* Special Manuscript tab - always first when reference tabs exist */}
+      {showManuscriptTab && (
+        <div
+          className={cn(
+            "flex items-center gap-1 px-3 py-2 border-r cursor-pointer select-none hover-elevate",
+            "min-w-0 max-w-48 group relative",
+            manuscriptTabActive
+              ? "bg-background text-foreground border-b-2 border-b-primary" 
+              : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
+          )}
+          onClick={() => handleTabClick('manuscript')}
+          data-testid="tab-manuscript"
+        >
+          <Badge variant="outline" className="text-xs px-1 bg-primary/10">
+            doc
+          </Badge>
+          
+          <span className="truncate text-sm font-medium">
+            Manuscript
+          </span>
+        </div>
+      )}
+      
       {tabs.map((tab, index) => (
         <div
           key={tab.id}

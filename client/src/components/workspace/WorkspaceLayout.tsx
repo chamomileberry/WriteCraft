@@ -132,11 +132,12 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
           {/* Main Region */}
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div
-                onDrop={(e) => handleTabBarDrop(e, 'main')}
-                onDragOver={handleTabBarDragOver}
-              >
-                <TabStrip regionId="main" />
+              <div>
+                <TabStrip 
+                  regionId="main" 
+                  onDrop={(e) => handleTabBarDrop(e, 'main')}
+                  onDragOver={handleTabBarDragOver}
+                />
               </div>
               
               <div className="flex-1 overflow-hidden">
@@ -156,11 +157,12 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
           {/* Split Region */}
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div
-                onDrop={(e) => handleTabBarDrop(e, 'split')}
-                onDragOver={handleTabBarDragOver}
-              >
-                <TabStrip regionId="split" />
+              <div>
+                <TabStrip 
+                  regionId="split" 
+                  onDrop={(e) => handleTabBarDrop(e, 'split')}
+                  onDragOver={handleTabBarDragOver}
+                />
               </div>
               
               <div className="flex-1 overflow-hidden bg-muted/20">
@@ -178,21 +180,22 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
       ) : (
         // Single region layout
         <div className="flex-1 flex flex-col">
-          <div
-            onDrop={(e) => handleTabBarDrop(e, 'main')}
-            onDragOver={handleTabBarDragOver}
-          >
-            <TabStrip regionId="main" />
+          <div>
+            <TabStrip 
+              regionId="main" 
+              onDrop={(e) => handleTabBarDrop(e, 'main')}
+              onDragOver={handleTabBarDragOver}
+            />
           </div>
           
           <div className="flex-1 overflow-hidden">
-            {mainActiveTab ? (
-              // Show active tab content in place of manuscript (Obsidian-style)
+            {mainActiveTab && mainActiveTab.id !== 'manuscript' ? (
+              // Show active tab content as reference
               <div className="h-full bg-muted/20">
                 {renderTabContent(mainActiveTab)}
               </div>
             ) : (
-              // Default manuscript-only layout
+              // Show manuscript (default or when manuscript tab is active)
               children
             )}
           </div>
