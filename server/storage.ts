@@ -2494,6 +2494,9 @@ export class DatabaseStorage implements IStorage {
             case 'description':
               itemData = await this.getDescription(item.itemId);
               break;
+            case 'profession':
+              itemData = await this.getProfession(item.itemId);
+              break;
             default:
               console.warn(`Unknown item type: ${item.itemType}`);
           }
