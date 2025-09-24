@@ -10,6 +10,7 @@ import CharacterEditPage from "@/pages/CharacterEditPage";
 import CharacterEditPageWithSidebar from "@/pages/CharacterEditPageWithSidebar";
 import SettingPage from "@/pages/SettingPage";
 import CreaturePage from "@/pages/CreaturePage";
+import ManuscriptPage from "@/pages/ManuscriptPage";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -62,6 +63,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/notebook" component={NotebookPage} />
+      <Route path="/manuscripts" component={ManuscriptPage} />
       <Route path="/guides/:id" component={GuideDetail} />
       <Route path="/characters" component={CharacterPage} />
       <Route path="/characters/:id/edit" component={CharacterEditPageWithSidebar} />

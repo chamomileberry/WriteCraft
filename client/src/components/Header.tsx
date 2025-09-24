@@ -59,6 +59,13 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               Notebook
             </button>
+            <button 
+              onClick={() => onNavigate?.('manuscripts')}
+              className="text-foreground hover:text-primary transition-colors" 
+              data-testid="link-manuscripts"
+            >
+              Manuscripts
+            </button>
             <a href="#guides" className="text-foreground hover:text-primary transition-colors" data-testid="link-guides">
               Guides
             </a>

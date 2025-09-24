@@ -57,7 +57,8 @@ import {
   insertLawSchema,
   insertPolicySchema,
   insertPotionSchema,
-  insertProfessionSchema
+  insertProfessionSchema,
+  insertManuscriptSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI, generateCharacterFieldWithAI } from "./ai-generation";
@@ -922,6 +923,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching saved items:', error);
       res.status(500).json({ error: 'Failed to fetch saved items' });
+    }
+  });
+
+  // Manuscript routes
+  app.get("/api/manuscripts", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const manuscripts = await storage.getUserManuscripts(userId);
+      res.json(manuscripts);
+    } catch (error) {
+      console.error('Error fetching manuscripts:', error);
+      res.status(500).json({ error: 'Failed to fetch manuscripts' });
+    }
+  });
+
+  app.post("/api/manuscripts", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const manuscriptData = { ...req.body, userId };
+      
+      const validatedManuscript = insertManuscriptSchema.parse(manuscriptData);
+      const savedManuscript = await storage.createManuscript(validatedManuscript);
+      res.json(savedManuscript);
+    } catch (error) {
+      console.error('Error creating manuscript:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to create manuscript' });
+    }
+  });
+
+  app.get("/api/manuscripts/search", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const query = req.query.q as string || '';
+      
+      const searchResults = await storage.searchManuscripts(userId, query);
+      res.json(searchResults);
+    } catch (error) {
+      console.error('Error searching manuscripts:', error);
+      res.status(500).json({ error: 'Failed to search manuscripts' });
+    }
+  });
+
+  app.get("/api/manuscripts/:id", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const manuscript = await storage.getManuscript(req.params.id, userId);
+      
+      if (!manuscript) {
+        return res.status(404).json({ error: 'Manuscript not found' });
+      }
+      res.json(manuscript);
+    } catch (error) {
+      console.error('Error fetching manuscript:', error);
+      res.status(500).json({ error: 'Failed to fetch manuscript' });
+    }
+  });
+
+  app.put("/api/manuscripts/:id", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const manuscriptData = { ...req.body, userId };
+      
+      const validatedUpdates = insertManuscriptSchema.partial().parse(manuscriptData);
+      const updatedManuscript = await storage.updateManuscript(req.params.id, userId, validatedUpdates);
+      res.json(updatedManuscript);
+    } catch (error) {
+      console.error('Error updating manuscript:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update manuscript' });
+    }
+  });
+
+  app.delete("/api/manuscripts/:id", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      await storage.deleteManuscript(req.params.id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting manuscript:', error);
+      res.status(500).json({ error: 'Failed to delete manuscript' });
     }
   });
 
