@@ -1301,6 +1301,48 @@ export const savedItems = pgTable("saved_items", {
   uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
 }));
 
+// Manuscripts - Rich text documents for writing
+export const manuscripts = pgTable("manuscripts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content").notNull().default(''), // Rich text content
+  excerpt: text("excerpt"), // Auto-generated excerpt for previews
+  wordCount: integer("word_count").default(0),
+  tags: text("tags").array(), // User-defined tags
+  status: text("status").notNull().default('draft'), // 'draft', 'published', 'archived'
+  searchVector: text("search_vector"), // For full-text search - will be converted to tsvector in later phases
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Manuscript Links - Bidirectional links between manuscripts and content
+export const manuscriptLinks = pgTable("manuscript_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sourceId: varchar("source_id").notNull().references(() => manuscripts.id, { onDelete: 'cascade' }),
+  targetType: text("target_type").notNull(), // 'character', 'location', 'organization', 'manuscript', etc.
+  targetId: varchar("target_id").notNull(),
+  contextText: text("context_text"), // Surrounding text where link appears
+  linkText: text("link_text"), // The actual text of the link
+  position: integer("position"), // Position in the source document
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Pinned Content - User's pinned items for quick access
+export const pinnedContent = pgTable("pinned_content", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  targetType: text("target_type").notNull(), // 'character', 'location', 'manuscript', etc.
+  targetId: varchar("target_id").notNull(),
+  pinOrder: integer("pin_order").default(0), // For custom ordering
+  category: text("category"), // Optional grouping: 'characters', 'locations', 'research', etc.
+  notes: text("notes"), // User notes about why this is pinned
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueUserPin: sql`UNIQUE(${table.userId}, ${table.targetType}, ${table.targetId})`
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   characters: many(characters),
@@ -1357,6 +1399,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   potions: many(potions),
   professions: many(professions),
   savedItems: many(savedItems),
+  manuscripts: many(manuscripts),
+  manuscriptLinks: many(manuscriptLinks),
+  pinnedContent: many(pinnedContent),
 }));
 
 export const charactersRelations = relations(characters, ({ one }) => ({
@@ -1738,6 +1783,32 @@ export const professionsRelations = relations(professions, ({ one }) => ({
   }),
 }));
 
+export const manuscriptsRelations = relations(manuscripts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [manuscripts.userId],
+    references: [users.id],
+  }),
+  links: many(manuscriptLinks),
+}));
+
+export const manuscriptLinksRelations = relations(manuscriptLinks, ({ one }) => ({
+  user: one(users, {
+    fields: [manuscriptLinks.userId],
+    references: [users.id],
+  }),
+  manuscript: one(manuscripts, {
+    fields: [manuscriptLinks.sourceId],
+    references: [manuscripts.id],
+  }),
+}));
+
+export const pinnedContentRelations = relations(pinnedContent, ({ one }) => ({
+  user: one(users, {
+    fields: [pinnedContent.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -2025,6 +2096,22 @@ export const insertProfessionSchema = createInsertSchema(professions).omit({
   createdAt: true,
 });
 
+export const insertManuscriptSchema = createInsertSchema(manuscripts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertManuscriptLinkSchema = createInsertSchema(manuscriptLinks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPinnedContentSchema = createInsertSchema(pinnedContent).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -2055,6 +2142,12 @@ export type InsertDescription = z.infer<typeof insertDescriptionSchema>;
 export type Description = typeof descriptions.$inferSelect;
 export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;
+export type InsertManuscript = z.infer<typeof insertManuscriptSchema>;
+export type Manuscript = typeof manuscripts.$inferSelect;
+export type InsertManuscriptLink = z.infer<typeof insertManuscriptLinkSchema>;
+export type ManuscriptLink = typeof manuscriptLinks.$inferSelect;
+export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;
+export type PinnedContent = typeof pinnedContent.$inferSelect;
 
 // Types for all new content types
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
