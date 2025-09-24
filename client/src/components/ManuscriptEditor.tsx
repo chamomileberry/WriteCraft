@@ -64,7 +64,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Workspace store for managing panels
-  const { addPanel } = useWorkspaceStore();
+  const { addPanel, isPanelOpen, setActiveTab } = useWorkspaceStore();
 
   // Fetch manuscript data
   const { data: manuscript, isLoading: isLoadingManuscript } = useQuery({
@@ -187,6 +187,23 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       setTitleInput(manuscript.title);
     }
   }, [manuscript?.title]);
+
+  // Auto-create manuscript tab when manuscript loads
+  useEffect(() => {
+    if (manuscript && !isPanelOpen('manuscript', manuscriptId)) {
+      const { addPanel, setActiveTab } = useWorkspaceStore.getState();
+      addPanel({
+        id: 'manuscript',
+        type: 'manuscript',
+        title: manuscript.title || 'Untitled Manuscript',
+        entityId: manuscriptId,
+        mode: 'tabbed',
+        regionId: 'main'
+      });
+      // Set as active tab
+      setActiveTab('manuscript', 'main');
+    }
+  }, [manuscript, manuscriptId, isPanelOpen]);
 
   useEffect(() => {
     return () => {

@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface PanelDescriptor {
   id: string;
-  type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes';
+  type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript';
   title: string;
   entityId?: string;
   data?: any;

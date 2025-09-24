@@ -47,6 +47,9 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
     switch (panel.type) {
       case 'characterDetail':
         return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} />;
+      case 'manuscript':
+        // This is the main manuscript being edited - don't render here, let children show through
+        return null;
       case 'manuscriptOutline':
         return (
           <div className="h-full p-4 bg-background overflow-y-auto">

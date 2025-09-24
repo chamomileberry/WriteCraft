@@ -1,9 +1,12 @@
 import { DragEvent, useState, useRef, useEffect } from 'react';
-import { X, GripVertical, Copy, SplitSquareHorizontal } from 'lucide-react';
+import { X, GripVertical, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { PanelDescriptor, useWorkspaceStore } from '@/stores/workspaceStore';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { nanoid } from 'nanoid';
 
 interface TabStripProps {
   regionId: 'main' | 'split';
@@ -28,7 +31,25 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
   
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; panelId: string } | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
+  const { addPanel } = useWorkspaceStore();
+
+  // Search functionality for plus button
+  const { data: searchResults = [] } = useQuery({
+    queryKey: ['/api/search', searchQuery],
+    queryFn: async () => {
+      if (!searchQuery.trim()) return [];
+      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: searchQuery.trim().length > 0,
+  });
 
   const tabs = getTabsInRegion(regionId);
   const activeTab = getActiveTab(regionId);
@@ -96,6 +117,51 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
     setContextMenu(null);
   };
 
+  // Plus button and search handlers
+  const handlePlusClick = () => {
+    setShowSearchDropdown(!showSearchDropdown);
+  };
+
+  const handleSearchResultClick = (item: any) => {
+    const itemType = item.type;
+    const itemId = item.id;
+    const itemTitle = item.title;
+    
+    // Create new panel based on content type
+    if (itemType === 'character') {
+      addPanel({
+        id: nanoid(),
+        type: 'characterDetail',
+        title: itemTitle || 'Character Details',
+        entityId: itemId,
+        mode: 'tabbed',
+        regionId: regionId
+      });
+    } else if (itemType === 'manuscript') {
+      addPanel({
+        id: nanoid(),
+        type: 'manuscriptOutline',
+        title: itemTitle || 'Manuscript',
+        entityId: itemId,
+        mode: 'tabbed',
+        regionId: regionId
+      });
+    } else {
+      addPanel({
+        id: nanoid(),
+        type: 'notes',
+        title: itemTitle || `${itemType} Details`,
+        entityId: itemId,
+        mode: 'tabbed',
+        regionId: regionId
+      });
+    }
+    
+    // Close search dropdown
+    setShowSearchDropdown(false);
+    setSearchQuery('');
+  };
+
   // Handle tab bar level drag over (for floating panels)
   const handleTabBarDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -141,34 +207,16 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
       if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
         setContextMenu(null);
       }
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(e.target as Node)) {
+        setShowSearchDropdown(false);
+      }
     };
     
-    if (contextMenu) {
+    if (contextMenu || showSearchDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [contextMenu]);
-
-  if (tabs.length === 0) {
-    return (
-      <div 
-        className={cn(
-          "h-10 border-b bg-muted/20 flex items-center px-4 text-sm text-muted-foreground",
-          className
-        )}
-        onDrop={(e) => {
-          handleTabDrop(e);
-          onDrop?.(e);
-        }}
-        onDragOver={(e) => {
-          handleTabBarDragOver(e);
-          onDragOver?.(e);
-        }}
-      >
-        Drop tabs here or open a reference to get started
-      </div>
-    );
-  }
+  }, [contextMenu, showSearchDropdown]);
 
   // Show manuscript tab when there are reference tabs
   const showManuscriptTab = regionId === 'main' && tabs.length > 0;
@@ -268,6 +316,79 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
           </div>
         </div>
       ))}
+      
+      {/* Plus button for adding new references */}
+      <div className="relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-10 w-10 p-0 border-r hover:bg-accent"
+          onClick={handlePlusClick}
+          data-testid="button-add-reference"
+          title="Add reference"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        
+        {/* Search dropdown */}
+        {showSearchDropdown && (
+          <div
+            ref={searchDropdownRef}
+            className="absolute top-full left-0 bg-popover border rounded-md shadow-lg py-2 z-50 w-80"
+            data-testid="search-dropdown"
+          >
+            <div className="px-3 pb-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search content to reference..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-search-references"
+                  autoFocus
+                />
+              </div>
+            </div>
+            
+            {searchQuery.trim() && (
+              <div className="max-h-64 overflow-y-auto">
+                {searchResults.length > 0 ? (
+                  searchResults.map((item: any) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-accent cursor-pointer"
+                      onClick={() => handleSearchResultClick(item)}
+                      data-testid={`search-result-${item.id}`}
+                    >
+                      <Badge variant="outline" className="text-xs">
+                        {item.type}
+                      </Badge>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">{item.title}</div>
+                        {item.subtitle && (
+                          <div className="text-sm text-muted-foreground truncate">{item.subtitle}</div>
+                        )}
+                      </div>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-3 py-4 text-center text-muted-foreground text-sm">
+                    No results found
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {!searchQuery.trim() && (
+              <div className="px-3 py-4 text-center text-muted-foreground text-sm">
+                Type to search for references...
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       
       {/* Context Menu */}
       {contextMenu && (
