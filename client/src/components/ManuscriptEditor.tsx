@@ -498,7 +498,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
 
           {/* Editor */}
           <div className="flex-1 p-6 overflow-y-auto">
-            <div className="prose prose-slate dark:prose-invert max-w-none">
+            <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80">
               <EditorContent editor={editor} />
             </div>
           </div>
