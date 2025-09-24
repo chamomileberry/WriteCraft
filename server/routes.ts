@@ -1009,7 +1009,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             case 'character':
               const character = await storage.getCharacter(pin.targetId);
               if (character) {
-                title = character.name;
+                // Try multiple name fields before defaulting to "Untitled Character"
+                title = [character.givenName, character.familyName].filter(Boolean).join(' ').trim() ||
+                        character.nickname ||
+                        character.honorificTitle ||
+                        'Untitled Character';
                 subtitle = character.occupation || '';
               }
               break;

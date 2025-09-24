@@ -26,6 +26,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { getMappingById } from '@shared/contentTypes';
+import WorkspaceShell from './workspace/WorkspaceShell';
+import { useWorkspaceStore } from '@/stores/workspaceStore';
+import { nanoid } from 'nanoid';
 
 interface ManuscriptEditorProps {
   manuscriptId: string;
@@ -369,15 +372,43 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     unpinMutation.mutate(pinnedId);
   };
 
-  const navigateToContent = (item: SearchResult | PinnedItem) => {
-    const itemType = (item as SearchResult).type || (item as PinnedItem).targetType;
-    const itemId = (item as SearchResult).id || (item as PinnedItem).targetId;
-    const mapping = getMappingById(itemType);
-    if (mapping) {
-      const urlSegment = mapping.urlSegment;
-      window.open(`/${urlSegment}/${itemId}/edit`, '_blank');
+  const openInPanel = (item: SearchResult | PinnedItem) => {
+    // Check if this is a pinned item (has targetId) or search result (has type)  
+    const isPinnedItem = 'targetId' in item;
+    const itemType = isPinnedItem ? (item as PinnedItem).targetType : (item as SearchResult).type;
+    const itemId = isPinnedItem ? (item as PinnedItem).targetId : (item as SearchResult).id;
+    const itemTitle = item.title;
+    
+    // Use workspace store to add panel
+    const { addPanel, isPanelOpen, focusPanel } = useWorkspaceStore.getState();
+    
+    // Check if panel is already open
+    if (isPanelOpen(itemType === 'character' ? 'characterDetail' : itemType, itemId)) {
+      // Focus existing panel instead of creating duplicate
+      focusPanel(itemId);
+      return;
+    }
+    
+    // Create new panel based on content type
+    if (itemType === 'character') {
+      addPanel({
+        id: nanoid(),
+        type: 'characterDetail',
+        title: itemTitle || 'Character Details',
+        entityId: itemId
+      });
+    } else {
+      // For other types, fall back to opening in new tab for now
+      const mapping = getMappingById(itemType);
+      if (mapping) {
+        const urlSegment = mapping.urlSegment;
+        window.open(`/${urlSegment}/${itemId}/edit`, '_blank');
+      }
     }
   };
+
+  // Legacy function for backward compatibility
+  const navigateToContent = openInPanel;
 
   if (isLoadingManuscript) {
     return (
@@ -388,9 +419,10 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Main Editor Area */}
-      <div className="flex-1 flex flex-col">
+    <WorkspaceShell>
+      <div className="flex h-screen bg-background">
+        {/* Main Editor Area */}
+        <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center justify-between p-4">
@@ -623,6 +655,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         </Card>
       </div>
     </div>
+    </WorkspaceShell>
   );
 });
 
