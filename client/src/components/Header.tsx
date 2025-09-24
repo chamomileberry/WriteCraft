@@ -13,6 +13,7 @@ interface HeaderProps {
 export default function Header({ onSearch, searchQuery = "", onNavigate, onCreateNew }: HeaderProps) {
   const [searchValue, setSearchValue] = useState(searchQuery);
   const [isDark, setIsDark] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -114,12 +115,78 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
 
-            <Button variant="ghost" size="icon" className="md:hidden" data-testid="button-menu">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              data-testid="button-menu"
+            >
               <Menu className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </div>
+      
+      {/* Mobile Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-background border-b border-border">
+          <div className="px-4 py-4 space-y-4">
+            <button 
+              onClick={() => {
+                onNavigate?.('notebook');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+              data-testid="mobile-link-notebook"
+            >
+              Notebook
+            </button>
+            <button 
+              onClick={() => {
+                onNavigate?.('manuscripts');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+              data-testid="mobile-link-manuscripts"
+            >
+              Manuscripts
+            </button>
+            <a 
+              href="#generators" 
+              className="block text-foreground hover:text-primary transition-colors py-2" 
+              data-testid="mobile-link-generators"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Generators
+            </a>
+            <a 
+              href="#guides" 
+              className="block text-foreground hover:text-primary transition-colors py-2" 
+              data-testid="mobile-link-guides"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Guides
+            </a>
+            <a 
+              href="#prompts" 
+              className="block text-foreground hover:text-primary transition-colors py-2" 
+              data-testid="mobile-link-prompts"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Prompts
+            </a>
+            <a 
+              href="#resources" 
+              className="block text-foreground hover:text-primary transition-colors py-2" 
+              data-testid="mobile-link-resources"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Resources
+            </a>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
