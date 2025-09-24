@@ -128,7 +128,7 @@ export default function DescriptionGenerator() {
   const saveMutation = useMutation({
     mutationFn: async (description: Description) => {
       const res = await apiRequest('POST', '/api/saved-items', {
-        userId: null,
+        userId: 'guest', // Use guest user for consistency with Notebook
         itemType: 'description',
         itemId: description.id
       });
@@ -139,7 +139,7 @@ export default function DescriptionGenerator() {
         title: "Description Saved!",
         description: "Your description has been saved to your collection.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
     },
     onError: () => {
       toast({

@@ -40,7 +40,7 @@ export default function CharacterEditPageWithSidebar() {
       // Automatically save character to collection when edited
       try {
         await apiRequest('POST', '/api/saved-items', {
-          userId: null, // guest user
+          userId: 'guest', // Use guest user for consistency with Notebook
           itemType: 'character',
           itemId: id
         });

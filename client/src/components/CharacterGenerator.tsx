@@ -70,7 +70,7 @@ export default function CharacterGenerator() {
       if (!character?.id) return;
       
       const response = await apiRequest('POST', '/api/saved-items', {
-        userId: null, // Use null for guest users (no authentication)
+        userId: 'guest', // Use guest user for consistency with Notebook
         itemType: 'character',
         itemId: character.id
       });

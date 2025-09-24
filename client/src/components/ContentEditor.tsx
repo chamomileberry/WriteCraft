@@ -96,13 +96,13 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
       });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: [apiBase] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
       
       if (isCreating && result?.id) {
         // Automatically save the newly created item to saved-items
         try {
           await apiRequest('POST', '/api/saved-items', {
-            userId: 'guest', // Use guest user for unauthenticated users
+            userId: 'guest', // Use guest user for consistency with Notebook
             itemType: contentType,
             itemId: result.id
           });
