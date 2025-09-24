@@ -111,7 +111,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     content: manuscript?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4',
+        class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
       },
     },
     onUpdate: ({ editor }) => {
@@ -141,6 +141,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       setSaveStatus('saved');
       setLastSaveTime(new Date());
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
     },
     onError: (error: any) => {
       setSaveStatus('unsaved');
@@ -156,6 +157,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
       toast({ title: 'Title updated', description: 'Manuscript title has been saved.' });
     },
     onError: (error: any) => {
