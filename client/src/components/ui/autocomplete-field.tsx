@@ -166,6 +166,23 @@ export function AutocompleteField({
         case "potion":
           payload = { ...payload, potionType: "healing", rarity: "common", effects: ["healing"], description: `Auto-created potion: ${name}` };
           break;
+        case "profession":
+          payload = { 
+            ...payload, 
+            professionType: "general", 
+            description: `Auto-created profession: ${name}`,
+            skillsRequired: [],
+            responsibilities: "Various duties related to " + name.toLowerCase(),
+            workEnvironment: "Varies",
+            socialStatus: "middle",
+            riskLevel: "low",
+            physicalDemands: "Moderate",
+            mentalDemands: "Moderate",
+            commonTools: [],
+            relatedProfessions: [],
+            seasonalWork: false
+          };
+          break;
         default:
           payload = { ...payload, description: `Auto-created ${contentType}: ${name}` };
       }

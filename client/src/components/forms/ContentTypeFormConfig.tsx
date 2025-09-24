@@ -2299,7 +2299,65 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         ]
       }
     ]
+  },
+
+  // Profession
+  profession: {
+    title: "Profession Editor",
+    description: "Create and manage professions for your world",
+    icon: "User",
+    tabs: [
+      {
+        id: "basic",
+        label: "Basic Info",
+        icon: "User",
+        fields: [
+          { name: "name", label: "Profession Name", type: "text", placeholder: "Enter profession name...", description: "The name of this profession" },
+          { name: "professionType", label: "Profession Type", type: "select", options: ["warrior", "mage", "merchant", "craftsman", "noble", "scholar", "entertainer", "laborer", "administrator", "healer", "explorer", "criminal", "religious", "general"], description: "What category does this profession fall into?" },
+          { name: "description", label: "Description", type: "textarea", placeholder: "Describe this profession...", description: "Detailed description of the profession" },
+          { name: "socialStatus", label: "Social Status", type: "select", options: ["low", "middle", "high", "nobility"], description: "Social standing of this profession" },
+          { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
+        ]
+      },
+      {
+        id: "requirements",
+        label: "Requirements & Skills",
+        icon: "Star",
+        fields: [
+          { name: "skillsRequired", label: "Skills Required", type: "tags", placeholder: "Add required skills", description: "Skills and abilities needed for this profession" },
+          { name: "trainingRequired", label: "Training Required", type: "text", placeholder: "What training is needed?", description: "Education or training required" },
+          { name: "apprenticeship", label: "Apprenticeship", type: "text", placeholder: "Apprenticeship details", description: "Information about apprenticeship requirements" },
+          { name: "physicalDemands", label: "Physical Demands", type: "select", options: ["Low", "Moderate", "High", "Extreme"], description: "Physical requirements of the job" },
+          { name: "mentalDemands", label: "Mental Demands", type: "select", options: ["Low", "Moderate", "High", "Extreme"], description: "Mental and intellectual requirements" }
+        ]
+      },
+      {
+        id: "work",
+        label: "Work Environment",
+        icon: "Settings",
+        fields: [
+          { name: "responsibilities", label: "Responsibilities", type: "textarea", placeholder: "What do they do?", description: "Main duties and responsibilities" },
+          { name: "workEnvironment", label: "Work Environment", type: "text", placeholder: "Where do they work?", description: "Typical work locations and conditions" },
+          { name: "commonTools", label: "Common Tools", type: "tags", placeholder: "Add tools used", description: "Tools and equipment commonly used" },
+          { name: "riskLevel", label: "Risk Level", type: "select", options: ["low", "moderate", "high", "extreme"], description: "Danger level of this profession" },
+          { name: "seasonalWork", label: "Seasonal Work", type: "checkbox", description: "Is this profession seasonal or year-round?" }
+        ]
+      },
+      {
+        id: "career",
+        label: "Career & Society",
+        icon: "TrendingUp",
+        fields: [
+          { name: "averageIncome", label: "Average Income", type: "text", placeholder: "Income level", description: "Typical earnings for this profession" },
+          { name: "careerProgression", label: "Career Progression", type: "text", placeholder: "How do they advance?", description: "Career advancement opportunities" },
+          { name: "relatedProfessions", label: "Related Professions", type: "tags", placeholder: "Add related professions", description: "Similar or connected professions" },
+          { name: "guildsOrganizations", label: "Guilds & Organizations", type: "tags", placeholder: "Add associated groups", description: "Professional guilds or organizations" },
+          { name: "historicalContext", label: "Historical Context", type: "text", placeholder: "Historical background", description: "How this profession developed historically" },
+          { name: "culturalSignificance", label: "Cultural Significance", type: "text", placeholder: "Cultural importance", description: "Role in society and culture" }
+        ]
+      }
+    ]
   }
 
-  // 🎉 ALL 52 CONTENT TYPES NOW HAVE COMPREHENSIVE FORM CONFIGURATIONS! 🎉
+  // 🎉 ALL 53 CONTENT TYPES NOW HAVE COMPREHENSIVE FORM CONFIGURATIONS! 🎉
 };
