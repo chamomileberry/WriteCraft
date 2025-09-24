@@ -57,6 +57,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const [searchQuery, setSearchQuery] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -130,7 +132,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       if (!editor) throw new Error('Editor not initialized');
       
       const content = editor.getHTML();
-      const response = await apiRequest('PATCH', `/api/manuscripts/${manuscriptId}`, { content });
+      const response = await apiRequest('PUT', `/api/manuscripts/${manuscriptId}`, { content });
       return response.json();
     },
     onSuccess: () => {
@@ -141,6 +143,21 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     onError: (error: any) => {
       setSaveStatus('unsaved');
       toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Title update mutation
+  const titleMutation = useMutation({
+    mutationFn: async (newTitle: string) => {
+      const response = await apiRequest('PUT', `/api/manuscripts/${manuscriptId}`, { title: newTitle });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
+      toast({ title: 'Title updated', description: 'Manuscript title has been saved.' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -164,6 +181,12 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       editor.commands.setContent(manuscript.content);
     }
   }, [editor, manuscript?.content]);
+
+  useEffect(() => {
+    if (manuscript?.title) {
+      setTitleInput(manuscript.title);
+    }
+  }, [manuscript?.title]);
 
   useEffect(() => {
     return () => {
@@ -193,6 +216,31 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       await saveContent();
     } catch (error) {
       // Error handling is already in the mutation
+    }
+  };
+
+  const handleTitleClick = () => {
+    setTitleInput(manuscript?.title || 'Untitled Manuscript');
+    setIsEditingTitle(true);
+  };
+
+  const handleTitleSave = async () => {
+    if (titleInput.trim() !== manuscript?.title) {
+      await titleMutation.mutateAsync(titleInput.trim() || 'Untitled Manuscript');
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleCancel = () => {
+    setTitleInput(manuscript?.title || 'Untitled Manuscript');
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleTitleSave();
+    } else if (e.key === 'Escape') {
+      handleTitleCancel();
     }
   };
 
@@ -273,7 +321,27 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                 Back to Manuscripts
               </Button>
               <div>
-                <h1 className="text-xl font-semibold">{manuscript?.title || 'Untitled Manuscript'}</h1>
+                {isEditingTitle ? (
+                  <Input
+                    value={titleInput}
+                    onChange={(e) => setTitleInput(e.target.value)}
+                    onKeyDown={handleTitleKeyDown}
+                    onBlur={handleTitleSave}
+                    className="text-xl font-semibold h-8 px-2 -ml-2"
+                    data-testid="input-manuscript-title"
+                    autoFocus
+                    placeholder="Manuscript title..."
+                  />
+                ) : (
+                  <h1 
+                    className="text-xl font-semibold cursor-pointer hover:bg-accent/50 rounded px-2 py-1 -ml-2 transition-colors"
+                    onClick={handleTitleClick}
+                    data-testid="text-manuscript-title"
+                    title="Click to edit title"
+                  >
+                    {manuscript?.title || 'Untitled Manuscript'}
+                  </h1>
+                )}
                 <p className="text-sm text-muted-foreground">
                   {editor?.storage.characterCount?.words() || 0} words
                 </p>

@@ -75,14 +75,25 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
       data-testid={`floating-window-${panel.id}`}
     >
       <Card className="w-full h-full shadow-lg border-2 hover:border-primary/20">
-        <CardHeader 
-          className="flex flex-row items-center justify-between space-y-0 pb-2 drag-handle cursor-move"
-          draggable
-          onDragStart={handleDragStart}
-        >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="flex items-center gap-2 min-w-0">
-            <GripHorizontal className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium truncate">{panel.title}</span>
+            {/* Window drag handle - for moving the floating window */}
+            <div 
+              className="drag-handle cursor-move p-1 hover:bg-accent rounded"
+              title="Drag to move window"
+            >
+              <GripHorizontal className="h-4 w-4 text-muted-foreground" />
+            </div>
+            
+            {/* Tab creation drag handle - for creating tabs */}
+            <span 
+              className="text-sm font-medium truncate cursor-pointer hover:bg-accent/50 px-2 py-1 rounded transition-colors"
+              draggable
+              onDragStart={handleDragStart}
+              title="Drag to create tab"
+            >
+              {panel.title}
+            </span>
           </div>
           
           <div className="flex items-center gap-1">
