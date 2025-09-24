@@ -81,7 +81,7 @@ export default function CharacterGenerator() {
         title: "Character saved!",
         description: "Character has been saved to your collection.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
     },
     onError: (error) => {
       console.error('Error saving character:', error);

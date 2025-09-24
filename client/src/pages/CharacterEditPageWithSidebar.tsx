@@ -36,13 +36,25 @@ export default function CharacterEditPageWithSidebar() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (updatedCharacter) => {
+      // Automatically save character to collection when edited
+      try {
+        await apiRequest('POST', '/api/saved-items', {
+          userId: null, // guest user
+          itemType: 'character',
+          itemId: id
+        });
+      } catch (error) {
+        // Ignore error if already saved (duplicate key error is expected)
+        console.log('Character may already be saved to collection');
+      }
+      
       toast({
         title: "Character Updated",
-        description: "Your character has been successfully updated!",
+        description: "Your character has been successfully updated and saved to your collection!",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'null'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
     },
     onError: (error) => {
       console.error('Error updating character:', error);
@@ -106,13 +118,45 @@ export default function CharacterEditPageWithSidebar() {
   }
 
   return (
-    <CharacterEditorWithSidebar
-      config={contentTypeFormConfigs.character}
-      initialData={character}
-      onSubmit={onSubmit}
-      onGenerate={handleGenerate}
-      isLoading={updateMutation.isPending}
-      isCreating={false}
-    />
+    <div className="min-h-screen bg-background">
+      {/* Header with Back Navigation */}
+      <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/notebook')}
+              data-testid="button-back-to-notebook"
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Notebook
+            </Button>
+            <div className="h-4 w-px bg-border" />
+            <div>
+              <h1 className="text-lg font-semibold">
+                Edit Character
+                {character && (
+                  <span className="ml-2 text-muted-foreground font-normal">
+                    {[character.givenName, character.familyName].filter(Boolean).join(' ') || 'Untitled Character'}
+                  </span>
+                )}
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Character Editor */}
+      <CharacterEditorWithSidebar
+        config={contentTypeFormConfigs.character}
+        initialData={character}
+        onSubmit={onSubmit}
+        onGenerate={handleGenerate}
+        isLoading={updateMutation.isPending}
+        isCreating={false}
+      />
+    </div>
   );
 }

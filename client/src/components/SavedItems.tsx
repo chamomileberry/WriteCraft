@@ -11,6 +11,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { CONTENT_TYPE_MAPPINGS, getMappingById } from "@shared/contentTypes";
 
+// Helper function to get display name for different content types
+const getDisplayName = (item: SavedItem): string => {
+  if (item.itemType === 'character') {
+    const givenName = item.itemData?.givenName || '';
+    const familyName = item.itemData?.familyName || '';
+    const fullName = [givenName, familyName].filter(Boolean).join(' ').trim();
+    return fullName || 'Untitled Character';
+  }
+  return item.itemData?.name || 'Untitled';
+};
+
 interface SavedItem {
   id: string;
   userId: string;
@@ -150,7 +161,7 @@ export default function SavedItems() {
         title: "Item removed",
         description: "Item has been removed from your notebook.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
     },
     onError: () => {
       toast({
@@ -166,7 +177,7 @@ export default function SavedItems() {
   };
 
   const handleCopy = async (item: SavedItem) => {
-    const content = `${item.itemData?.name || 'Untitled'}\n\n${JSON.stringify(item.itemData, null, 2)}`;
+    const content = `${getDisplayName(item)}\n\n${JSON.stringify(item.itemData, null, 2)}`;
     await navigator.clipboard.writeText(content);
     toast({
       title: "Copied",
@@ -196,8 +207,9 @@ export default function SavedItems() {
 
   // Filter saved items
   const filteredItems = savedItems.filter(item => {
+    const displayName = getDisplayName(item);
     const matchesSearch = !searchQuery || 
-      (item.itemData?.name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.itemType.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (getCategoryForType(item.itemType)?.toLowerCase().includes(searchQuery.toLowerCase()));
     
@@ -371,7 +383,7 @@ export default function SavedItems() {
                             <div className="flex items-center gap-2">
                               <IconComponent className="w-4 h-4 text-primary" />
                               <CardTitle className="text-base line-clamp-1">
-                                {item.itemData?.name || 'Untitled'}
+                                {getDisplayName(item)}
                               </CardTitle>
                             </div>
                             <Badge variant="secondary" className="text-xs">
@@ -446,7 +458,7 @@ export default function SavedItems() {
                         <div className="flex items-center gap-2">
                           <IconComponent className="w-4 h-4 text-primary" />
                           <CardTitle className="text-base line-clamp-1">
-                            {item.itemData?.name || 'Untitled'}
+                            {getDisplayName(item)}
                           </CardTitle>
                         </div>
                         <Badge variant="secondary" className="text-xs">
