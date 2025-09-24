@@ -3,32 +3,27 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
-// import { suggestion } from '@/lib/suggestion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Bold, 
   Italic, 
-  Underline,
   Link as LinkIcon,
   Save,
   Search,
-  Pin,
   Eye,
   ArrowLeft,
   Loader2,
   ExternalLink
-, Layers } from 'lucide-react';
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { getMappingById } from '@shared/contentTypes';
-import WorkspaceShell from './workspace/WorkspaceShell';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
-import { SidebarDockingZones } from './workspace/DockingZones';
+import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { nanoid } from 'nanoid';
 
 interface ManuscriptEditorProps {
@@ -60,12 +55,14 @@ export interface ManuscriptEditorRef {
 
 const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(({ manuscriptId, onBack }, ref) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<SearchResult | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Workspace store for managing panels
+  const { addPanel } = useWorkspaceStore();
 
   // Fetch manuscript data
   const { data: manuscript, isLoading: isLoadingManuscript } = useQuery({
@@ -91,15 +88,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     enabled: searchQuery.trim().length > 0,
   });
 
-  // Fetch pinned content
-  const { data: pinnedItems = [] } = useQuery({
-    queryKey: ['/api/pinned-content'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/pinned-content');
-      return response.json();
-    },
-  });
-
   // Initialize TipTap editor
   const editor = useEditor({
     extensions: [
@@ -114,7 +102,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         HTMLAttributes: {
           class: 'bg-primary/10 text-primary px-1 py-0.5 rounded-md border border-primary/20',
         },
-        // suggestion: suggestion,
       }),
     ],
     content: manuscript?.content || '',
@@ -124,26 +111,26 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       },
     },
     onUpdate: ({ editor }) => {
-      const content = editor.getHTML();
-      debouncedSave(content);
+      setSaveStatus('unsaved');
+      
+      // Debounced autosave
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+      
+      autosaveTimeoutRef.current = setTimeout(() => {
+        saveContent();
+      }, 2000);
     },
   });
 
-  // Update editor content when manuscript loads
-  useEffect(() => {
-    if (manuscript?.content && editor && !editor.isFocused) {
-      editor.commands.setContent(manuscript.content);
-    }
-  }, [manuscript?.content, editor]);
-
   // Save mutation
   const saveMutation = useMutation({
-    mutationFn: async (content: string) => {
-      setSaveStatus('saving');
-      const response = await apiRequest('PUT', `/api/manuscripts/${manuscriptId}`, {
-        content,
-        wordCount: editor?.storage.characterCount?.words() || 0,
-      });
+    mutationFn: async () => {
+      if (!editor) throw new Error('Editor not initialized');
+      
+      const content = editor.getHTML();
+      const response = await apiRequest('PATCH', `/api/manuscripts/${manuscriptId}`, { content });
       return response.json();
     },
     onSuccess: () => {
@@ -151,119 +138,33 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       setLastSaveTime(new Date());
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
     },
-    onError: () => {
+    onError: (error: any) => {
       setSaveStatus('unsaved');
-      toast({
-        title: "Error",
-        description: "Failed to save manuscript. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
     },
   });
 
-  // Extract [[links]] from content and update manuscript links
-  const updateManuscriptLinks = useCallback(async (content: string) => {
+  const saveContent = useCallback(async () => {
+    if (saveStatus === 'saving') return;
+    setSaveStatus('saving');
+    
     try {
-      // Extract [[double bracket]] links from content
-      const linkRegex = /\[\[([^\]]+)\]\]/g;
-      const links: { linkText: string; position: number }[] = [];
-      let match;
-      
-      const plainText = content.replace(/<[^>]*>/g, ''); // Strip HTML tags to get position in plain text
-      
-      while ((match = linkRegex.exec(plainText)) !== null) {
-        links.push({
-          linkText: match[1],
-          position: match.index,
-        });
-      }
-
-      // Get current links for this manuscript
-      const currentLinksResponse = await apiRequest('GET', `/api/manuscripts/${manuscriptId}/links`);
-      const currentLinks = await currentLinksResponse.json();
-
-      // Create new links that don't exist yet
-      for (const link of links) {
-        const existingLink = currentLinks.find((l: any) => 
-          l.linkText === link.linkText && l.position === link.position
-        );
-        
-        if (!existingLink) {
-          // Search for the target content to determine targetType and targetId
-          const searchResponse = await fetch(`/api/search?q=${encodeURIComponent(link.linkText)}`, {
-            credentials: 'include'
-          });
-          const searchResults = await searchResponse.json();
-          
-          // Find exact match or best match
-          const target = searchResults.find((r: any) => 
-            r.title.toLowerCase() === link.linkText.toLowerCase()
-          ) || searchResults[0];
-          
-          if (target) {
-            await apiRequest('POST', `/api/manuscripts/${manuscriptId}/links`, {
-              targetType: target.type,
-              targetId: target.id,
-              linkText: link.linkText,
-              position: link.position,
-              contextText: plainText.substring(
-                Math.max(0, link.position - 50), 
-                link.position + link.linkText.length + 50
-              )
-            });
-          }
-        }
-      }
-
-      // Remove links that no longer exist in the content
-      for (const currentLink of currentLinks) {
-        const stillExists = links.some(l => 
-          l.linkText === currentLink.linkText && l.position === currentLink.position
-        );
-        
-        if (!stillExists) {
-          await apiRequest('DELETE', `/api/manuscript-links/${currentLink.id}`);
-        }
-      }
-
+      await saveMutation.mutateAsync();
     } catch (error) {
-      console.error('Failed to update manuscript links:', error);
-      // Don't throw here to avoid breaking the save process
+      console.error('Save error:', error);
     }
-  }, [manuscriptId]);
+  }, [saveStatus, saveMutation]);
 
-  // Autosave functionality
-  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const debouncedSave = useCallback((content: string) => {
-    if (autosaveTimeoutRef.current) {
-      clearTimeout(autosaveTimeoutRef.current);
-    }
-    
-    // Only update status to 'unsaved' if not currently saving
-    if (saveStatus !== 'saving') {
-      setSaveStatus('unsaved');
-    }
-    
-    autosaveTimeoutRef.current = setTimeout(async () => {
-      // Double-check we're not currently saving before triggering autosave
-      if (!saveMutation.isPending) {
-        try {
-          setSaveStatus('saving');
-          await saveMutation.mutateAsync(content);
-          // Update links after successful autosave
-          await updateManuscriptLinks(content);
-          setSaveStatus('saved');
-          setLastSaveTime(new Date());
-        } catch (error) {
-          setSaveStatus('unsaved');
-          console.error('Autosave failed:', error);
-        }
-      }
-    }, 2000); // Save after 2 seconds of inactivity
-  }, [saveMutation, saveStatus, updateManuscriptLinks]);
+  useImperativeHandle(ref, () => ({
+    saveContent
+  }), [saveContent]);
 
-  // Cleanup timeout on unmount
+  useEffect(() => {
+    if (editor && manuscript?.content && editor.getHTML() !== manuscript.content) {
+      editor.commands.setContent(manuscript.content);
+    }
+  }, [editor, manuscript?.content]);
+
   useEffect(() => {
     return () => {
       if (autosaveTimeoutRef.current) {
@@ -272,83 +173,20 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     };
   }, []);
 
-  // Pin content mutation
-  const pinMutation = useMutation({
-    mutationFn: async (item: SearchResult) => {
-      const response = await apiRequest('POST', '/api/pinned-content', {
-        targetType: item.type,
-        targetId: item.id,
-        category: item.type,
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Pinned",
-        description: "Item has been pinned to your reference panel.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/pinned-content'] });
-    },
-  });
-
-  // Unpin content mutation
-  const unpinMutation = useMutation({
-    mutationFn: async (pinnedId: string) => {
-      await apiRequest('DELETE', `/api/pinned-content/${pinnedId}`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Unpinned",
-        description: "Item has been removed from your reference panel.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/pinned-content'] });
-    },
-  });
-
-  const saveContent = useCallback(async () => {
-    if (editor) {
-      const content = editor.getHTML();
-      
-      try {
-        await saveMutation.mutateAsync(content);
-        
-        // Extract and update manuscript links
-        await updateManuscriptLinks(content);
-        
-      } catch (error) {
-        console.error('Save failed:', error);
-        throw error;
-      }
-    }
-  }, [editor, saveMutation]);
-
-  // Expose saveContent method via ref
-  useImperativeHandle(ref, () => ({
-    saveContent,
-  }));
-
-  // Format save status for display
   const getSaveStatusText = () => {
-    switch (saveStatus) {
-      case 'saving':
-        return 'Saving...';
-      case 'saved':
-        return lastSaveTime ? `Saved ${lastSaveTime.toLocaleTimeString()}` : 'Saved';
-      case 'unsaved':
-        return 'Unsaved changes';
-      default:
-        return '';
+    if (saveStatus === 'saving') return 'Saving...';
+    if (saveStatus === 'saved' && lastSaveTime) {
+      return `Saved ${lastSaveTime.toLocaleTimeString()}`;
     }
+    return 'Unsaved changes';
   };
 
   const handleManualSave = async () => {
-    // Cancel any pending autosave
     if (autosaveTimeoutRef.current) {
       clearTimeout(autosaveTimeoutRef.current);
       autosaveTimeoutRef.current = null;
     }
     
-    // Immediately set status to saving
     setSaveStatus('saving');
     
     try {
@@ -363,14 +201,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       const linkText = `[[${item.title}]]`;
       editor.chain().focus().insertContent(linkText).run();
     }
-  };
-
-  const handlePinItem = (item: SearchResult) => {
-    pinMutation.mutate(item);
-  };
-
-  const handleUnpinItem = (pinnedId: string) => {
-    unpinMutation.mutate(pinnedId);
   };
 
   const openInPanel = (item: SearchResult | PinnedItem) => {
@@ -397,7 +227,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         type: 'characterDetail',
         title: itemTitle || 'Character Details',
         entityId: itemId,
-        isDocked: false
+        mode: 'tabbed',
+        regionId: 'main'
       });
     } else {
       // For other types, fall back to opening in new tab for now
@@ -409,9 +240,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     }
   };
 
-  // Legacy function for backward compatibility
-  const navigateToContent = openInPanel;
-
   if (isLoadingManuscript) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -421,10 +249,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   }
 
   return (
-    <WorkspaceShell>
-      <div className="flex h-screen bg-background">
-        {/* Main Editor Area */}
-        <div className="flex-1 flex flex-col">
+    <WorkspaceLayout>
+      <div className="flex h-full bg-background flex-col">
         {/* Header */}
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center justify-between p-4">
@@ -449,109 +275,84 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                   variant="outline"
                   size="sm"
                   onClick={handleManualSave}
-                  disabled={saveStatus === 'saving'}
-                  data-testid="button-save-manuscript"
+                  disabled={saveMutation.isPending || saveStatus === 'saving'}
+                  data-testid="button-manual-save"
                 >
-                  {saveStatus === 'saving' ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {saveMutation.isPending || saveStatus === 'saving' ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="h-4 w-4 mr-2" />
                   )}
                   Save
                 </Button>
               </div>
             </div>
           </div>
-
-          {/* Editor Toolbar */}
-          {editor && (
-            <div className="border-t px-4 py-2">
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor.chain().focus().toggleBold().run()}
-                  className={editor.isActive('bold') ? 'bg-accent' : ''}
-                  data-testid="button-bold"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor.chain().focus().toggleItalic().run()}
-                  className={editor.isActive('italic') ? 'bg-accent' : ''}
-                  data-testid="button-italic"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const url = window.prompt('Enter URL:');
-                    if (url) {
-                      editor.chain().focus().setLink({ href: url }).run();
-                    }
-                  }}
-                  data-testid="button-link"
-                >
-                  <LinkIcon className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Editor Content */}
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-4xl mx-auto py-8">
-            <EditorContent editor={editor} className="min-h-[600px]" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between gap-2 p-4 border-b">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={editor?.isActive('bold') ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                disabled={!editor?.can().chain().focus().toggleBold().run()}
+                data-testid="button-bold"
+              >
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={editor?.isActive('italic') ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                disabled={!editor?.can().chain().focus().toggleItalic().run()}
+                data-testid="button-italic"
+              >
+                <Italic className="h-4 w-4" />
+              </Button>
+              <Separator orientation="vertical" className="mx-1 h-6" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualSave}
+                disabled={saveMutation.isPending || saveStatus === 'saving'}
+                data-testid="button-manual-save"
+              >
+                {saveMutation.isPending || saveStatus === 'saving' ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Save Now
+              </Button>
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Search content to open in tabs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-64"
+                data-testid="input-search-content"
+              />
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Right Sidebar */}
-      <div className="w-80 border-l bg-background/50 flex flex-col">
-        {/* Panel Docking Zones */}
-        <Card className="m-4 mb-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Layers className="h-4 w-4" />
-              Docked Panels
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <SidebarDockingZones />
-          </CardContent>
-        </Card>
-
-        {/* Search Panel */}
-        <Card className="m-4 mb-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Search className="h-4 w-4" />
-              Search Content
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Input
-              placeholder="Search characters, locations, etc..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8"
-              data-testid="input-search-content"
-            />
-            {searchQuery && (
-              <div className="h-32 overflow-y-auto">
-                <div className="space-y-2">
-                  {isSearching ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    searchResults.map((item: SearchResult) => (
+          {/* Search Results Dropdown */}
+          {searchQuery && (
+            <div className="border-b bg-muted/40 max-h-32 overflow-y-auto">
+              <div className="p-2">
+                {isSearching ? (
+                  <div className="flex items-center justify-center py-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="space-y-1">
+                    {searchResults.slice(0, 5).map((item: SearchResult) => (
                       <div
                         key={`${item.type}-${item.id}`}
                         className="flex items-center justify-between p-2 rounded-md border hover-elevate"
@@ -561,11 +362,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                             <Badge variant="outline" className="text-xs">
                               {item.type}
                             </Badge>
+                            <span className="text-sm font-medium truncate">{item.title}</span>
                           </div>
-                          <p className="text-sm font-medium truncate">{item.title}</p>
-                          {item.subtitle && (
-                            <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>
-                          )}
                         </div>
                         <div className="flex items-center gap-1">
                           <Button
@@ -573,104 +371,41 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                             size="sm"
                             onClick={() => insertLink(item)}
                             data-testid={`button-insert-link-${item.id}`}
+                            title="Insert link"
                           >
                             <LinkIcon className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handlePinItem(item)}
-                            disabled={pinMutation.isPending}
-                            data-testid={`button-pin-${item.id}`}
+                            onClick={() => openInPanel(item)}
+                            data-testid={`button-open-tab-${item.id}`}
+                            title="Open in tab"
                           >
-                            <Pin className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigateToContent(item)}
-                            data-testid={`button-view-${item.id}`}
-                          >
-                            <ExternalLink className="h-3 w-3" />
+                            <Eye className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No results found
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Pinned Content Panel */}
-        <Card className="m-4 mt-2 flex-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Pin className="h-4 w-4" />
-              Pinned References
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-full overflow-y-auto">
-              <div className="space-y-2">
-                {pinnedItems.length > 0 ? (
-                  pinnedItems.map((item: PinnedItem) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-2 rounded-md border hover-elevate"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {item.targetType}
-                          </Badge>
-                        </div>
-                        <p className="text-sm font-medium truncate">{item.title}</p>
-                        {item.subtitle && (
-                          <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>
-                        )}
-                        {item.notes && (
-                          <p className="text-xs text-muted-foreground mt-1">{item.notes}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigateToContent(item)}
-                          data-testid={`button-view-pinned-${item.id}`}
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleUnpinItem(item.id)}
-                          disabled={unpinMutation.isPending}
-                          data-testid={`button-unpin-${item.id}`}
-                        >
-                          <Pin className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No pinned content yet. Use the search above to find and pin items for quick reference.
+                  <p className="text-sm text-muted-foreground text-center py-2">
+                    No results found
                   </p>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+
+          {/* Editor */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="prose prose-slate dark:prose-invert max-w-none">
+              <EditorContent editor={editor} />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    </WorkspaceShell>
+    </WorkspaceLayout>
   );
 });
 

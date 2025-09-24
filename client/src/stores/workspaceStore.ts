@@ -7,9 +7,10 @@ export interface PanelDescriptor {
   title: string;
   entityId?: string;
   data?: any;
-  // Docking system
-  isDocked: boolean;
-  dockSlot?: string;
+  // Tab system
+  mode: 'tabbed' | 'floating' | 'split';
+  regionId: 'main' | 'split' | 'floating';
+  tabIndex?: number;
   // Position and size for floating panels
   position?: { x: number; y: number };
   size?: { width: number; height: number };
@@ -17,7 +18,12 @@ export interface PanelDescriptor {
 
 export interface WorkspaceLayout {
   panels: PanelDescriptor[];
-  layout?: any; // Golden Layout configuration
+  activeTabId?: string; // Currently active tab
+  splitMode: boolean; // Whether split screen is enabled
+  regions: {
+    main: string[]; // Panel IDs in main region tabs
+    split: string[]; // Panel IDs in split region tabs
+  };
 }
 
 interface WorkspaceState {
@@ -39,20 +45,30 @@ interface WorkspaceState {
   saveLayout: (layout: any) => void;
   resetLayout: () => void;
   
-  // Docking system
-  dockPanel: (panelId: string, dockSlot: string) => void;
-  undockPanel: (panelId: string) => void;
-  getDockSlots: () => string[];
-  getDockedPanels: (dockSlot?: string) => PanelDescriptor[];
+  // Tab system
+  attachToTabBar: (panelId: string, regionId?: 'main' | 'split') => void;
+  detachToFloating: (panelId: string, position?: { x: number; y: number }) => void;
+  assignToSplit: (panelId: string) => void;
+  setActiveTab: (panelId: string, regionId?: 'main' | 'split') => void;
+  toggleSplitMode: () => void;
+  reorderTabs: (regionId: 'main' | 'split', fromIndex: number, toIndex: number) => void;
   
   // Panel management
   isPanelOpen: (type: string, entityId?: string) => boolean;
   findPanel: (type: string, entityId?: string) => PanelDescriptor | undefined;
+  getTabsInRegion: (regionId: 'main' | 'split') => PanelDescriptor[];
+  getFloatingPanels: () => PanelDescriptor[];
+  getActiveTab: (regionId?: 'main' | 'split') => PanelDescriptor | undefined;
 }
 
 const defaultLayout: WorkspaceLayout = {
   panels: [],
-  layout: undefined
+  activeTabId: undefined,
+  splitMode: false,
+  regions: {
+    main: [],
+    split: []
+  }
 };
 
 const defaultPanelRegistry = {
@@ -93,33 +109,63 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           
           if (existingPanel) {
             // Focus existing panel instead of creating duplicate
+            get().setActiveTab(existingPanel.id, existingPanel.regionId === 'split' ? 'split' : 'main');
             return state;
           }
           
-          // Set default docking state for new panels
+          // Set default tab state for new panels - start as tabbed in main region
           const newPanel: PanelDescriptor = {
             ...panel,
-            isDocked: false, // Start as floating
+            mode: 'tabbed',
+            regionId: 'main',
+            tabIndex: state.currentLayout.regions.main.length,
             position: panel.position || { x: 400, y: 100 },
             size: panel.size || { width: 350, height: 500 }
+          };
+          
+          const updatedRegions = {
+            ...state.currentLayout.regions,
+            main: [...state.currentLayout.regions.main, newPanel.id]
           };
           
           return {
             currentLayout: {
               ...state.currentLayout,
-              panels: [...state.currentLayout.panels, newPanel]
+              panels: [...state.currentLayout.panels, newPanel],
+              regions: updatedRegions,
+              activeTabId: newPanel.id // Make new panel active
             }
           };
         });
       },
       
       removePanel: (panelId: string) => {
-        set((state) => ({
-          currentLayout: {
-            ...state.currentLayout,
-            panels: state.currentLayout.panels.filter(p => p.id !== panelId)
+        set((state) => {
+          const panel = state.currentLayout.panels.find(p => p.id === panelId);
+          if (!panel) return state;
+          
+          // Remove from regions
+          const updatedRegions = {
+            main: state.currentLayout.regions.main.filter(id => id !== panelId),
+            split: state.currentLayout.regions.split.filter(id => id !== panelId)
+          };
+          
+          // Update active tab if removing active tab
+          let newActiveTabId = state.currentLayout.activeTabId;
+          if (newActiveTabId === panelId) {
+            const regionPanels = panel.regionId === 'split' ? updatedRegions.split : updatedRegions.main;
+            newActiveTabId = regionPanels.length > 0 ? regionPanels[0] : undefined;
           }
-        }));
+          
+          return {
+            currentLayout: {
+              ...state.currentLayout,
+              panels: state.currentLayout.panels.filter(p => p.id !== panelId),
+              regions: updatedRegions,
+              activeTabId: newActiveTabId
+            }
+          };
+        });
       },
       
       updatePanel: (panelId: string, updates: Partial<PanelDescriptor>) => {
@@ -134,8 +180,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       },
       
       focusPanel: (panelId: string) => {
-        // Will be implemented with Golden Layout integration
-        console.log('Focusing panel:', panelId);
+        const panel = get().currentLayout.panels.find(p => p.id === panelId);
+        if (panel) {
+          get().setActiveTab(panelId, panel.regionId === 'split' ? 'split' : 'main');
+        }
       },
       
       saveLayout: (layout: any) => {
@@ -161,38 +209,164 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         return panels.find(p => p.type === type && (!entityId || p.entityId === entityId));
       },
       
-      // Docking implementation
-      dockPanel: (panelId: string, dockSlot: string) => {
+      // Tab system implementation
+      attachToTabBar: (panelId: string, regionId: 'main' | 'split' = 'main') => {
+        set((state) => {
+          const panel = state.currentLayout.panels.find(p => p.id === panelId);
+          if (!panel) return state;
+          
+          // Remove from floating and add to tabs
+          const updatedPanels = state.currentLayout.panels.map(p => 
+            p.id === panelId ? { 
+              ...p, 
+              mode: 'tabbed' as const, 
+              regionId: regionId as 'main' | 'split' | 'floating', 
+              tabIndex: state.currentLayout.regions[regionId].length 
+            } : p
+          );
+          
+          // Remove panel from all regions first, then add to target region
+          const cleanedRegions = {
+            main: state.currentLayout.regions.main.filter(id => id !== panelId),
+            split: state.currentLayout.regions.split.filter(id => id !== panelId)
+          };
+          
+          const updatedRegions = {
+            ...cleanedRegions,
+            [regionId]: [...cleanedRegions[regionId], panelId]
+          };
+          
+          return {
+            currentLayout: {
+              ...state.currentLayout,
+              panels: updatedPanels,
+              regions: updatedRegions,
+              activeTabId: panelId
+            }
+          };
+        });
+      },
+      
+      detachToFloating: (panelId: string, position?: { x: number; y: number }) => {
+        set((state) => {
+          const panel = state.currentLayout.panels.find(p => p.id === panelId);
+          if (!panel) return state;
+          
+          // Remove from regions and make floating
+          const updatedRegions = {
+            main: state.currentLayout.regions.main.filter(id => id !== panelId),
+            split: state.currentLayout.regions.split.filter(id => id !== panelId)
+          };
+          
+          const updatedPanels = state.currentLayout.panels.map(p => 
+            p.id === panelId ? { 
+              ...p, 
+              mode: 'floating' as const, 
+              regionId: 'floating' as const,
+              position: position || p.position || { x: 400, y: 100 }
+            } : p
+          );
+          
+          return {
+            currentLayout: {
+              ...state.currentLayout,
+              panels: updatedPanels,
+              regions: updatedRegions
+            }
+          };
+        });
+      },
+      
+      assignToSplit: (panelId: string) => {
+        set((state) => {
+          const panel = state.currentLayout.panels.find(p => p.id === panelId);
+          if (!panel) return state;
+          
+          // Remove from main region and add to split
+          const updatedRegions = {
+            main: state.currentLayout.regions.main.filter(id => id !== panelId),
+            split: [...state.currentLayout.regions.split, panelId]
+          };
+          
+          const updatedPanels = state.currentLayout.panels.map(p => 
+            p.id === panelId ? { 
+              ...p, 
+              mode: 'tabbed' as const, // Keep as tabbed, just in different region
+              regionId: 'split' as const,
+              tabIndex: state.currentLayout.regions.split.length 
+            } : p
+          );
+          
+          return {
+            currentLayout: {
+              ...state.currentLayout,
+              panels: updatedPanels,
+              regions: updatedRegions,
+              splitMode: true, // Always enable split mode when assigning to split
+              activeTabId: panelId
+            }
+          };
+        });
+      },
+      
+      setActiveTab: (panelId: string, regionId: 'main' | 'split' = 'main') => {
         set((state) => ({
           currentLayout: {
             ...state.currentLayout,
-            panels: state.currentLayout.panels.map(p => 
-              p.id === panelId ? { ...p, isDocked: true, dockSlot } : p
-            )
+            activeTabId: panelId
           }
         }));
       },
       
-      undockPanel: (panelId: string) => {
+      toggleSplitMode: () => {
         set((state) => ({
           currentLayout: {
             ...state.currentLayout,
-            panels: state.currentLayout.panels.map(p => 
-              p.id === panelId ? { ...p, isDocked: false, dockSlot: undefined } : p
-            )
+            splitMode: !state.currentLayout.splitMode
           }
         }));
       },
       
-      getDockSlots: () => {
-        return ['sidebar-top', 'sidebar-middle', 'sidebar-bottom'];
+      reorderTabs: (regionId: 'main' | 'split', fromIndex: number, toIndex: number) => {
+        set((state) => {
+          const regionPanels = [...state.currentLayout.regions[regionId]];
+          const [movedPanel] = regionPanels.splice(fromIndex, 1);
+          regionPanels.splice(toIndex, 0, movedPanel);
+          
+          return {
+            currentLayout: {
+              ...state.currentLayout,
+              regions: {
+                ...state.currentLayout.regions,
+                [regionId]: regionPanels
+              }
+            }
+          };
+        });
       },
       
-      getDockedPanels: (dockSlot?: string) => {
-        const panels = get().currentLayout.panels;
-        return dockSlot 
-          ? panels.filter(p => p.isDocked && p.dockSlot === dockSlot)
-          : panels.filter(p => p.isDocked);
+      getTabsInRegion: (regionId: 'main' | 'split') => {
+        const state = get();
+        const panelIds = state.currentLayout.regions[regionId];
+        return panelIds.map(id => 
+          state.currentLayout.panels.find(p => p.id === id)!
+        ).filter(Boolean);
+      },
+      
+      getFloatingPanels: () => {
+        const state = get();
+        return state.currentLayout.panels.filter(p => p.mode === 'floating');
+      },
+      
+      getActiveTab: (regionId: 'main' | 'split' = 'main') => {
+        const state = get();
+        if (!state.currentLayout.activeTabId) return undefined;
+        
+        const activePanel = state.currentLayout.panels.find(p => p.id === state.currentLayout.activeTabId);
+        if (!activePanel) return undefined;
+        
+        // Return active tab only if it's in the specified region
+        return activePanel.regionId === regionId ? activePanel : undefined;
       }
     }),
     {
