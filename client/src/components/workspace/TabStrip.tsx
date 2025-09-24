@@ -60,6 +60,11 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
 
   const handleTabClose = (panelId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    // Don't allow closing manuscript tabs
+    const panel = tabs.find(tab => tab.id === panelId);
+    if (panel?.type === 'manuscript') {
+      return;
+    }
     removePanel(panelId);
   };
 
@@ -224,7 +229,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
 
   return (
     <div 
-      className={cn("h-10 border-b bg-muted/20 flex items-center overflow-x-auto", className)}
+      className={cn("h-10 border-b bg-muted/20 flex items-center", className)}
       onDrop={(e) => {
         handleTabDrop(e);
         onDrop?.(e);
@@ -234,28 +239,6 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
         onDragOver?.(e);
       }}
     >
-      {/* Special Manuscript tab - always first when reference tabs exist */}
-      {showManuscriptTab && (
-        <div
-          className={cn(
-            "flex items-center gap-1 px-3 py-2 border-r cursor-pointer select-none hover-elevate",
-            "min-w-0 max-w-48 group relative",
-            manuscriptTabActive
-              ? "bg-background text-foreground border-b-2 border-b-primary" 
-              : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
-          )}
-          onClick={() => handleTabClick('manuscript')}
-          data-testid="tab-manuscript"
-        >
-          <Badge variant="outline" className="text-xs px-1 bg-primary/10">
-            doc
-          </Badge>
-          
-          <span className="truncate text-sm font-medium">
-            Manuscript
-          </span>
-        </div>
-      )}
       
       {tabs.map((tab, index) => (
         <div
@@ -280,10 +263,6 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
         >
           <GripVertical className="h-3 w-3 opacity-30 group-hover:opacity-60" />
           
-          <Badge variant="outline" className="text-xs px-1">
-            {tab.type === 'characterDetail' ? 'char' : tab.type.slice(0, 4)}
-          </Badge>
-          
           <span className="truncate text-sm font-medium">
             {tab.title}
           </span>
@@ -303,16 +282,18 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
               <GripVertical className="h-3 w-3" />
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-              onClick={(e) => handleTabClose(tab.id, e)}
-              data-testid={`button-close-tab-${tab.id}`}
-              title="Close tab"
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            {tab.type !== 'manuscript' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                onClick={(e) => handleTabClose(tab.id, e)}
+                data-testid={`button-close-tab-${tab.id}`}
+                title="Close tab"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         </div>
       ))}
