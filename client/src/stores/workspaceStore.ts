@@ -347,7 +347,12 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       
       getTabsInRegion: (regionId: 'main' | 'split') => {
         const state = get();
-        const panelIds = state.currentLayout.regions[regionId];
+        // Safety check for undefined regions
+        if (!state.currentLayout.regions) {
+          console.warn('Workspace regions undefined, using empty array');
+          return [];
+        }
+        const panelIds = state.currentLayout.regions[regionId] || [];
         return panelIds.map(id => 
           state.currentLayout.panels.find(p => p.id === id)!
         ).filter(Boolean);

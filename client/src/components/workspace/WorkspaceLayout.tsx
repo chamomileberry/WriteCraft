@@ -47,6 +47,74 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
     switch (panel.type) {
       case 'characterDetail':
         return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} />;
+      case 'manuscriptOutline':
+        return (
+          <div className="h-full p-4 bg-background overflow-y-auto">
+            <div className="mb-4 pb-4 border-b">
+              <h3 className="text-lg font-semibold">{panel.title}</h3>
+              <p className="text-sm text-muted-foreground">Manuscript Reference</p>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => window.open(`/manuscripts/${panel.entityId}/edit`, '_blank')}
+                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                >
+                  Open Full Editor
+                </button>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Quick Reference</h4>
+                <p className="text-sm text-muted-foreground">
+                  This is a reference view for manuscript "{panel.title}". 
+                  You can view this alongside your current manuscript for reference while writing.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Manuscript Details</h4>
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">ID:</span> {panel.entityId}</p>
+                  <p><span className="font-medium">Type:</span> Manuscript Reference</p>
+                  <p><span className="font-medium">Status:</span> Available for reference</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'notes':
+        return (
+          <div className="h-full p-4 bg-background overflow-y-auto">
+            <div className="mb-4 pb-4 border-b">
+              <h3 className="text-lg font-semibold">{panel.title}</h3>
+              <p className="text-sm text-muted-foreground">Content Reference</p>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => window.open(`/content/${panel.entityId}`, '_blank')}
+                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                >
+                  View Full Content
+                </button>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Reference Summary</h4>
+                <p className="text-sm text-muted-foreground">
+                  This is a reference panel for "{panel.title}". 
+                  Use this as a quick reference while working on your manuscript.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Content Details</h4>
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">ID:</span> {panel.entityId}</p>
+                  <p><span className="font-medium">Type:</span> Content Reference</p>
+                  <p><span className="font-medium">Purpose:</span> Side-by-side reference for writing</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       default:
         return (
           <div className="p-4 text-center text-muted-foreground">

@@ -230,13 +230,26 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         mode: 'tabbed',
         regionId: 'main'
       });
+    } else if (itemType === 'manuscript') {
+      // Open manuscript in tab using workspace store
+      addPanel({
+        id: nanoid(),
+        type: 'manuscriptOutline',
+        title: itemTitle || 'Manuscript',
+        entityId: itemId,
+        mode: 'tabbed',
+        regionId: 'main'
+      });
     } else {
-      // For other types, fall back to opening in new tab for now
-      const mapping = getMappingById(itemType);
-      if (mapping) {
-        const urlSegment = mapping.urlSegment;
-        window.open(`/${urlSegment}/${itemId}/edit`, '_blank');
-      }
+      // For other types, create generic panel in workspace
+      addPanel({
+        id: nanoid(),
+        type: 'notes', // Generic type for now
+        title: itemTitle || `${itemType} Details`,
+        entityId: itemId,
+        mode: 'tabbed',
+        regionId: 'main'
+      });
     }
   };
 
