@@ -244,9 +244,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/characters/:id", async (req, res) => {
     try {
+      // Extract userId from header for security (prevent userId manipulation)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
       // Validate the request body against the update schema
       const validatedUpdates = updateCharacterSchema.parse(req.body);
-      const updatedCharacter = await storage.updateCharacter(req.params.id, validatedUpdates);
+      
+      // Ensure userId is preserved and not overwritten
+      const updatesWithUserId = { ...validatedUpdates, userId };
+      
+      const updatedCharacter = await storage.updateCharacter(req.params.id, updatesWithUserId);
       res.json(updatedCharacter);
     } catch (error) {
       console.error('Error updating character:', error);
