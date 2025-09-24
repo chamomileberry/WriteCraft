@@ -823,11 +823,11 @@ export default function DynamicContentForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full overflow-x-auto scrollbar-hide flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 h-auto">
               {(config.tabs || []).map((tab) => {
                 const TabIcon = getIcon(tab.icon);
                 return (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">
                     <TabIcon className="w-4 h-4" />
                     {tab.label}
                   </TabsTrigger>

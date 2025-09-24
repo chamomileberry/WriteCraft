@@ -2313,9 +2313,9 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
         icon: "User",
         fields: [
           { name: "name", label: "Profession Name", type: "text", placeholder: "Enter profession name...", description: "The name of this profession" },
-          { name: "professionType", label: "Profession Type", type: "select", options: ["warrior", "mage", "merchant", "craftsman", "noble", "scholar", "entertainer", "laborer", "administrator", "healer", "explorer", "criminal", "religious", "general"], description: "What category does this profession fall into?" },
+          { name: "professionType", label: "Profession Type", type: "select", options: ["Warrior", "Mage", "Merchant", "Craftsman", "Noble", "Scholar", "Entertainer", "Laborer", "Administrator", "Healer", "Explorer", "Criminal", "Religious", "General"], description: "What category does this profession fall into?" },
           { name: "description", label: "Description", type: "textarea", placeholder: "Describe this profession...", description: "Detailed description of the profession" },
-          { name: "socialStatus", label: "Social Status", type: "select", options: ["low", "middle", "high", "nobility"], description: "Social standing of this profession" },
+          { name: "socialStatus", label: "Social Status", type: "select", options: ["Low", "Middle", "High", "Nobility"], description: "Social standing of this profession" },
           { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Historical", "Modern", "Other"], description: "What genre setting is this for?" }
         ]
       },
@@ -2339,7 +2339,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
           { name: "responsibilities", label: "Responsibilities", type: "textarea", placeholder: "What do they do?", description: "Main duties and responsibilities" },
           { name: "workEnvironment", label: "Work Environment", type: "text", placeholder: "Where do they work?", description: "Typical work locations and conditions" },
           { name: "commonTools", label: "Common Tools", type: "tags", placeholder: "Add tools used", description: "Tools and equipment commonly used" },
-          { name: "riskLevel", label: "Risk Level", type: "select", options: ["low", "moderate", "high", "extreme"], description: "Danger level of this profession" },
+          { name: "riskLevel", label: "Risk Level", type: "select", options: ["Low", "Moderate", "High", "Extreme"], description: "Danger level of this profession" },
           { name: "seasonalWork", label: "Seasonal Work", type: "checkbox", description: "Is this profession seasonal or year-round?" }
         ]
       },

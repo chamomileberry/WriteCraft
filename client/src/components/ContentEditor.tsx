@@ -27,20 +27,22 @@ interface ContentEditorProps {
 export default function ContentEditor({ contentType, contentId, onBack }: ContentEditorProps) {
   const [editingData, setEditingData] = useState<any>({});
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
+  const [createdItemId, setCreatedItemId] = useState<string | null>(null); // Track newly created item
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
   // Get the content type mapping
   const mapping = getMappingById(contentType);
   const apiBase = mapping?.apiBase || `/api/${contentType}`;
-  const isCreating = contentId === 'new';
+  const isCreating = contentId === 'new' && !createdItemId; // Not creating if we have a created item ID
+  const currentItemId = createdItemId || contentId;
 
   // Fetch the content data (only if not creating new content)
   const { data: contentData, isLoading, error } = useQuery({
-    queryKey: [apiBase, contentId],
+    queryKey: [apiBase, currentItemId],
     queryFn: async () => {
       if (isCreating) return null; // Don't fetch for new content
-      const response = await apiRequest('GET', `${apiBase}/${contentId}`);
+      const response = await apiRequest('GET', `${apiBase}/${currentItemId}`);
       return response.json();
     },
     enabled: !isCreating, // Only run query if not creating new content
@@ -59,9 +61,11 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   // Create/Update mutation
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('Save mutation starting:', { isCreating, apiBase, data });
+      // Compute isCreating dynamically within the mutation
+      const isMutationCreating = contentId === 'new' && !createdItemId;
+      console.log('Save mutation starting:', { isMutationCreating, apiBase, data });
       
-      if (isCreating) {
+      if (isMutationCreating) {
         // Create new content
         console.log('Making POST request to:', apiBase, 'with data:', data);
         const response = await apiRequest('POST', apiBase, data);
@@ -76,8 +80,8 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         return result;
       } else {
         // Update existing content
-        console.log('Making PUT request to:', `${apiBase}/${contentId}`, 'with data:', data);
-        const response = await apiRequest('PUT', `${apiBase}/${contentId}`, data);
+        console.log('Making PUT request to:', `${apiBase}/${currentItemId}`, 'with data:', data);
+        const response = await apiRequest('PUT', `${apiBase}/${currentItemId}`, data);
         console.log('PUT response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
@@ -90,15 +94,18 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
       }
     },
     onSuccess: async (result) => {
+      // Compute isCreating dynamically within the success handler
+      const wasCreating = contentId === 'new' && !createdItemId;
+      
       toast({
-        title: isCreating ? "Content created" : "Content updated",
-        description: isCreating ? "Your new content has been created successfully." : "Your changes have been saved successfully.",
+        title: wasCreating ? "Content created" : "Content updated",
+        description: wasCreating ? "Your new content has been created successfully." : "Your changes have been saved successfully.",
       });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: [apiBase] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
       
-      if (isCreating && result?.id) {
+      if (wasCreating && result?.id) {
         // Automatically save the newly created item to saved-items
         try {
           await apiRequest('POST', '/api/saved-items', {
@@ -112,11 +119,14 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           // Don't show error to user as the main content was created successfully
         }
         
-        // Navigate to the edit page of the newly created content
-        const urlSegment = mapping?.urlSegment || contentType;
-        setLocation(`/${urlSegment}/${result.id}/edit`);
-      } else if (!isCreating) {
-        queryClient.invalidateQueries({ queryKey: [apiBase, contentId] });
+        // Switch to edit mode by setting the created item ID
+        setCreatedItemId(result.id);
+        setEditingData(result);
+        
+        // Invalidate queries for the new item
+        queryClient.invalidateQueries({ queryKey: [apiBase, result.id] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: [apiBase, currentItemId] });
       }
     },
     onError: () => {
