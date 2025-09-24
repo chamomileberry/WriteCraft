@@ -3,6 +3,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
+import CharacterCount from '@tiptap/extension-character-count';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -94,6 +95,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const editor = useEditor({
     extensions: [
       StarterKit,
+      CharacterCount,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -333,9 +335,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={onBack} data-testid="button-back-to-manuscripts">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Manuscripts
+              <Button variant="ghost" size="sm" onClick={onBack} data-testid="button-back" title="Back to Manuscripts">
+                <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
                 {isEditingTitle ? (

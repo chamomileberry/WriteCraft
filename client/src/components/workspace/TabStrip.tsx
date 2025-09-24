@@ -1,5 +1,5 @@
 import { DragEvent, useState, useRef, useEffect } from 'react';
-import { X, GripVertical, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink } from 'lucide-react';
+import { X, GripVertical, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -261,32 +261,30 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
           onContextMenu={(e) => handleContextMenu(e, tab.id)}
           data-testid={`tab-${tab.id}`}
         >
-          <GripVertical className="h-3 w-3 opacity-30 group-hover:opacity-60" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-4 w-4 p-0 opacity-30 group-hover:opacity-100 hover:bg-primary/20"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDetachTab(tab.id);
+            }}
+            data-testid={`button-pin-tab-${tab.id}`}
+            title="Pin to floating window"
+          >
+            <Pin className="h-3 w-3" />
+          </Button>
           
           <span className="truncate text-sm font-medium">
             {tab.title}
           </span>
           
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 ml-auto">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-4 w-4 p-0 hover:bg-muted-foreground/20"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDetachTab(tab.id);
-              }}
-              data-testid={`button-detach-tab-${tab.id}`}
-              title="Detach to floating window"
-            >
-              <GripVertical className="h-3 w-3" />
-            </Button>
-            
             {tab.type !== 'manuscript' && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                className="h-4 w-4 p-0 hover:bg-primary/30 hover:text-primary-foreground rounded-full"
                 onClick={(e) => handleTabClose(tab.id, e)}
                 data-testid={`button-close-tab-${tab.id}`}
                 title="Close tab"
