@@ -1,5 +1,6 @@
 import { useLocation } from 'wouter';
 import ManuscriptEditor from '@/components/ManuscriptEditor';
+import Layout from '@/components/Layout';
 
 interface ManuscriptEditPageProps {
   params: { id: string };
@@ -13,11 +14,11 @@ export default function ManuscriptEditPage({ params }: ManuscriptEditPageProps) 
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <Layout>
       <ManuscriptEditor 
         manuscriptId={params.id}
         onBack={handleBack}
       />
-    </div>
+    </Layout>
   );
 }

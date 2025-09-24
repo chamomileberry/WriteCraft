@@ -1,8 +1,9 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import GuideDetail from "@/pages/GuideDetail";
 import CharacterPage from "@/pages/CharacterPage";
@@ -21,12 +22,13 @@ import { ArrowLeft } from "lucide-react";
 
 // Notebook page component
 function NotebookPage() {
+  const [, setLocation] = useLocation();
   return (
-    <div className="min-h-screen bg-background">
+    <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button 
           variant="ghost" 
-          onClick={() => window.location.href = '/'}
+          onClick={() => setLocation('/')}
           className="mb-6"
           data-testid="button-back-to-home"
         >
@@ -35,27 +37,28 @@ function NotebookPage() {
         </Button>
         <SavedItems />
       </div>
-    </div>
+    </Layout>
   );
 }
 
 // Content editor page component  
 function EditorPage({ params }: { params: { type: string; id: string } }) {
+  const [, setLocation] = useLocation();
   const mapping = getMappingByUrlSegment(params.type);
   if (!mapping) {
     return <NotFound />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ContentEditor 
           contentType={mapping.id}
           contentId={params.id}
-          onBack={() => window.location.href = '/notebook'}
+          onBack={() => setLocation('/notebook')}
         />
       </div>
-    </div>
+    </Layout>
   );
 }
 
