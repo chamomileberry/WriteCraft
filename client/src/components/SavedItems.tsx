@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,14 +12,25 @@ import { useLocation } from "wouter";
 import { CONTENT_TYPE_MAPPINGS, getMappingById } from "@shared/contentTypes";
 
 // Helper function to get display name for different content types
-const getDisplayName = (item: SavedItem): string => {
+const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
+  // Use actualItemData if itemData is null (for older saved items)
+  const dataSource = item.itemData || actualItemData;
+  
   if (item.itemType === 'character') {
-    const givenName = item.itemData?.givenName || '';
-    const familyName = item.itemData?.familyName || '';
-    const fullName = [givenName, familyName].filter(Boolean).join(' ').trim();
-    return fullName || 'Untitled Character';
+    if (dataSource) {
+      const givenName = dataSource.givenName || '';
+      const familyName = dataSource.familyName || '';
+      const fullName = [givenName, familyName].filter(Boolean).join(' ').trim();
+      return fullName || dataSource.name || 'Untitled Character';
+    }
+    return 'Untitled Character';
   }
-  return item.itemData?.name || 'Untitled';
+  
+  if (item.itemType === 'profession') {
+    return dataSource?.name || 'Untitled';
+  }
+  
+  return dataSource?.name || 'Untitled';
 };
 
 interface SavedItem {
@@ -134,6 +145,7 @@ export default function SavedItems() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [fetchedItemData, setFetchedItemData] = useState<{ [key: string]: any }>({});
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -145,6 +157,42 @@ export default function SavedItems() {
       return response.json() as Promise<SavedItem[]>;
     },
   });
+
+  // Fetch missing item data for entries that have itemData: null
+  const fetchMissingItemData = async (items: SavedItem[]) => {
+    const missingDataItems = items.filter(item => !item.itemData);
+    const newFetchedData: { [key: string]: any } = {};
+
+    for (const item of missingDataItems) {
+      try {
+        let endpoint = '';
+        if (item.itemType === 'character') {
+          endpoint = `/api/characters/${item.itemId}`;
+        } else if (item.itemType === 'profession') {
+          endpoint = `/api/professions/${item.itemId}`;
+        }
+        
+        if (endpoint) {
+          const response = await apiRequest('GET', endpoint);
+          if (response.ok) {
+            const data = await response.json();
+            newFetchedData[item.itemId] = data;
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch data for ${item.itemType} ${item.itemId}:`, error);
+      }
+    }
+
+    setFetchedItemData(prev => ({ ...prev, ...newFetchedData }));
+  };
+
+  // Fetch missing data when saved items change
+  useEffect(() => {
+    if (savedItems.length > 0) {
+      fetchMissingItemData(savedItems);
+    }
+  }, [savedItems]);
 
   // Unsave mutation
   const unsaveMutation = useMutation({
@@ -177,7 +225,7 @@ export default function SavedItems() {
   };
 
   const handleCopy = async (item: SavedItem) => {
-    const content = `${getDisplayName(item)}\n\n${JSON.stringify(item.itemData, null, 2)}`;
+    const content = `${getDisplayName(item, fetchedItemData[item.itemId])}\n\n${JSON.stringify(item.itemData || fetchedItemData[item.itemId], null, 2)}`;
     await navigator.clipboard.writeText(content);
     toast({
       title: "Copied",
@@ -207,7 +255,7 @@ export default function SavedItems() {
 
   // Filter saved items
   const filteredItems = savedItems.filter(item => {
-    const displayName = getDisplayName(item);
+    const displayName = getDisplayName(item, fetchedItemData[item.itemId]);
     const matchesSearch = !searchQuery || 
       (displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.itemType.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -383,16 +431,16 @@ export default function SavedItems() {
                             <div className="flex items-center gap-2">
                               <IconComponent className="w-4 h-4 text-primary" />
                               <CardTitle className="text-base line-clamp-1">
-                                {getDisplayName(item)}
+                                {getDisplayName(item, fetchedItemData[item.itemId])}
                               </CardTitle>
                             </div>
                             <Badge variant="secondary" className="text-xs">
                               {mapping?.name || type}
                             </Badge>
                           </div>
-                          {item.itemData?.description && (
+                          {(item.itemData?.description || fetchedItemData[item.itemId]?.description) && (
                             <CardDescription className="line-clamp-2">
-                              {item.itemData.description}
+                              {item.itemData?.description || fetchedItemData[item.itemId]?.description}
                             </CardDescription>
                           )}
                         </CardHeader>
@@ -458,7 +506,7 @@ export default function SavedItems() {
                         <div className="flex items-center gap-2">
                           <IconComponent className="w-4 h-4 text-primary" />
                           <CardTitle className="text-base line-clamp-1">
-                            {getDisplayName(item)}
+                            {getDisplayName(item, fetchedItemData[item.itemId])}
                           </CardTitle>
                         </div>
                         <Badge variant="secondary" className="text-xs">
