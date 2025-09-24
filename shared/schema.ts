@@ -1303,6 +1303,7 @@ export const savedItems = pgTable("saved_items", {
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   itemType: text("item_type").notNull(), // 'character', 'location', 'item', 'organization', etc.
   itemId: varchar("item_id").notNull(),
+  itemData: jsonb("item_data"), // Stores the actual item content (character names, profession details, etc.)
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
