@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Search, Edit, Calendar, FileText } from "lucide-react";
-import { Link } from "wouter";
+import { ArrowLeft, Plus, Search, Edit, Calendar, FileText, Trash2 } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Manuscript {
@@ -24,6 +24,7 @@ interface Manuscript {
 export default function ManuscriptPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   // Fetch manuscripts
   const { data: manuscripts = [], isLoading } = useQuery({
@@ -49,12 +50,28 @@ export default function ManuscriptPage() {
 
   // Create new manuscript mutation
   const createManuscriptMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/manuscripts', {
-      title: 'Untitled Manuscript',
-      content: '',
-      status: 'draft',
-      tags: []
-    }),
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/manuscripts', {
+        title: 'Untitled Manuscript',
+        content: '',
+        status: 'draft',
+        tags: []
+      });
+      return response.json() as Promise<Manuscript>;
+    },
+    onSuccess: (newManuscript: Manuscript) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
+      // Redirect to the editor for the new manuscript
+      navigate(`/manuscripts/${newManuscript.id}/edit`);
+    }
+  });
+
+  // Delete manuscript mutation
+  const deleteManuscriptMutation = useMutation({
+    mutationFn: async (manuscriptId: string) => {
+      const response = await apiRequest('DELETE', `/api/manuscripts/${manuscriptId}`);
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
     }
@@ -64,6 +81,12 @@ export default function ManuscriptPage() {
 
   const handleCreateNew = () => {
     createManuscriptMutation.mutate();
+  };
+
+  const handleDelete = (manuscriptId: string, manuscriptTitle: string) => {
+    if (confirm(`Are you sure you want to delete "${manuscriptTitle}"? This action cannot be undone.`)) {
+      deleteManuscriptMutation.mutate(manuscriptId);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -205,12 +228,24 @@ export default function ManuscriptPage() {
                     </div>
                   )}
                   
-                  <Link href={`/manuscripts/${manuscript.id}/edit`}>
-                    <Button size="sm" className="w-full" data-testid={`button-edit-manuscript-${manuscript.id}`}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
+                  <div className="flex gap-2">
+                    <Link href={`/manuscripts/${manuscript.id}/edit`} className="flex-1">
+                      <Button size="sm" className="w-full" data-testid={`button-edit-manuscript-${manuscript.id}`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                    </Link>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDelete(manuscript.id, manuscript.title)}
+                      disabled={deleteManuscriptMutation.isPending}
+                      data-testid={`button-delete-manuscript-${manuscript.id}`}
+                      title="Delete manuscript"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}

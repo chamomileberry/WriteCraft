@@ -976,6 +976,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/manuscripts/:id", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      await storage.deleteManuscript(req.params.id, userId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting manuscript:', error);
+      res.status(500).json({ error: 'Failed to delete manuscript' });
+    }
+  });
+
   // Universal search endpoint
   app.get("/api/search", async (req, res) => {
     try {
