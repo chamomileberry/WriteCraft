@@ -2,6 +2,7 @@ import { Search, BookOpen, Menu, Moon, Sun, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -14,6 +15,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [searchValue, setSearchValue] = useState(searchQuery);
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -23,6 +25,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     setIsDark(isDarkMode);
     document.documentElement.classList.toggle('dark', isDarkMode);
   }, []);
+
+  // Sync search input with searchQuery prop when it changes
+  useEffect(() => {
+    setSearchValue(searchQuery);
+  }, [searchQuery]);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -34,6 +41,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (searchValue.trim()) {
+      setLocation(`/search?q=${encodeURIComponent(searchValue.trim())}`);
+    } else {
+      setLocation('/search');
+    }
     onSearch?.(searchValue);
     console.log('Search triggered:', searchValue);
   };
@@ -43,16 +55,31 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <button 
+            onClick={() => setLocation('/')} 
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            data-testid="button-logo-home"
+          >
             <BookOpen className="h-8 w-8 text-primary" />
             <h1 className="text-xl font-serif font-bold text-foreground">WriteCraft</h1>
-          </div>
+          </button>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#generators" className="text-foreground hover:text-primary transition-colors" data-testid="link-generators">
+            <button 
+              onClick={() => setLocation('/generators')}
+              className="text-foreground hover:text-primary transition-colors" 
+              data-testid="link-generators"
+            >
               Generators
-            </a>
+            </button>
+            <button 
+              onClick={() => setLocation('/guides')}
+              className="text-foreground hover:text-primary transition-colors" 
+              data-testid="link-guides"
+            >
+              Guides
+            </button>
             <button 
               onClick={() => onNavigate?.('notebook')}
               className="text-foreground hover:text-primary transition-colors" 
@@ -67,15 +94,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               Manuscripts
             </button>
-            <a href="#guides" className="text-foreground hover:text-primary transition-colors" data-testid="link-guides">
-              Guides
-            </a>
-            <a href="#prompts" className="text-foreground hover:text-primary transition-colors" data-testid="link-prompts">
-              Prompts
-            </a>
-            <a href="#resources" className="text-foreground hover:text-primary transition-colors" data-testid="link-resources">
-              Resources
-            </a>
           </nav>
 
           {/* Search and Actions */}
@@ -152,38 +170,26 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               Manuscripts
             </button>
-            <a 
-              href="#generators" 
-              className="block text-foreground hover:text-primary transition-colors py-2" 
+            <button 
+              onClick={() => {
+                setLocation('/generators');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-generators"
-              onClick={() => setIsMobileMenuOpen(false)}
             >
               Generators
-            </a>
-            <a 
-              href="#guides" 
-              className="block text-foreground hover:text-primary transition-colors py-2" 
+            </button>
+            <button 
+              onClick={() => {
+                setLocation('/guides');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-guides"
-              onClick={() => setIsMobileMenuOpen(false)}
             >
               Guides
-            </a>
-            <a 
-              href="#prompts" 
-              className="block text-foreground hover:text-primary transition-colors py-2" 
-              data-testid="mobile-link-prompts"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Prompts
-            </a>
-            <a 
-              href="#resources" 
-              className="block text-foreground hover:text-primary transition-colors py-2" 
-              data-testid="mobile-link-resources"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Resources
-            </a>
+            </button>
           </div>
         </div>
       )}
