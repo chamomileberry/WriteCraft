@@ -448,6 +448,9 @@ export interface IStorage {
   updateManuscript(id: string, userId: string, updates: Partial<InsertManuscript>): Promise<Manuscript>;
   deleteManuscript(id: string, userId: string): Promise<void>;
   searchManuscripts(userId: string, query: string): Promise<Manuscript[]>;
+  
+  // Universal search method
+  searchAllContent(userId: string, query: string): Promise<any[]>;
 
   // Manuscript links methods
   createManuscriptLink(link: InsertManuscriptLink): Promise<ManuscriptLink>;
@@ -2590,6 +2593,143 @@ export class DatabaseStorage implements IStorage {
       )
     )
     .orderBy(desc(sql`ts_rank(${manuscripts.searchVector}, ${searchQuery})`));
+  }
+
+  async searchAllContent(userId: string, query: string): Promise<any[]> {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      return [];
+    }
+
+    const results: any[] = [];
+
+    try {
+      // Search manuscripts
+      const manuscriptResults = await this.searchManuscripts(userId, trimmedQuery);
+      manuscriptResults.forEach(item => {
+        results.push({
+          id: item.id,
+          title: item.title,
+          type: 'manuscript',
+          subtitle: item.status,
+          description: item.excerpt || item.content?.substring(0, 100) + '...'
+        });
+      });
+
+      // Search characters
+      const characterResults = await db.select().from(characters)
+        .where(and(
+          eq(characters.userId, userId),
+          sql`LOWER(${characters.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+        ))
+        .limit(5);
+      
+      characterResults.forEach(item => {
+        results.push({
+          id: item.id,
+          title: item.name,
+          type: 'character',
+          subtitle: item.occupation,
+          description: item.backstory?.substring(0, 100) + '...'
+        });
+      });
+
+      // Search locations
+      const locationResults = await db.select().from(locations)
+        .where(and(
+          eq(locations.userId, userId),
+          sql`LOWER(${locations.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+        ))
+        .limit(5);
+      
+      locationResults.forEach(item => {
+        results.push({
+          id: item.id,
+          title: item.name,
+          type: 'location',
+          subtitle: item.locationType,
+          description: item.description?.substring(0, 100) + '...'
+        });
+      });
+
+      // Search organizations
+      const organizationResults = await db.select().from(organizations)
+        .where(and(
+          eq(organizations.userId, userId),
+          sql`LOWER(${organizations.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+        ))
+        .limit(5);
+      
+      organizationResults.forEach(item => {
+        results.push({
+          id: item.id,
+          title: item.name,
+          type: 'organization',
+          subtitle: item.organizationType,
+          description: item.purpose?.substring(0, 100) + '...'
+        });
+      });
+
+      // Search species
+      const speciesResults = await db.select().from(species)
+        .where(and(
+          eq(species.userId, userId),
+          sql`LOWER(${species.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+        ))
+        .limit(5);
+      
+      speciesResults.forEach(item => {
+        results.push({
+          id: item.id,
+          title: item.name,
+          type: 'species',
+          subtitle: item.classification,
+          description: item.physicalDescription?.substring(0, 100) + '...'
+        });
+      });
+
+      // Search cultures
+      const cultureResults = await db.select().from(cultures)
+        .where(and(
+          eq(cultures.userId, userId),
+          sql`LOWER(${cultures.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+        ))
+        .limit(5);
+      
+      cultureResults.forEach(item => {
+        results.push({
+          id: item.id,
+          title: item.name,
+          type: 'culture',
+          subtitle: item.governance,
+          description: item.description?.substring(0, 100) + '...'
+        });
+      });
+
+      // Search items
+      const itemResults = await db.select().from(items)
+        .where(and(
+          eq(items.userId, userId),
+          sql`LOWER(${items.name}) LIKE LOWER(${`%${trimmedQuery}%`})`
+        ))
+        .limit(5);
+      
+      itemResults.forEach(item => {
+        results.push({
+          id: item.id,
+          title: item.name,
+          type: 'item',
+          subtitle: item.itemType,
+          description: item.description?.substring(0, 100) + '...'
+        });
+      });
+
+    } catch (error) {
+      console.error('Error in universal search:', error);
+    }
+
+    // Sort by relevance and limit results
+    return results.slice(0, 20);
   }
 
   // Manuscript links methods

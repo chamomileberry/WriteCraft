@@ -968,6 +968,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Universal search endpoint
+  app.get("/api/search", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const query = req.query.q as string || '';
+      
+      const searchResults = await storage.searchAllContent(userId, query);
+      res.json(searchResults);
+    } catch (error) {
+      console.error('Error searching content:', error);
+      res.status(500).json({ error: 'Failed to search content' });
+    }
+  });
+
+  // Pinned content endpoints
+  app.get("/api/pinned-content", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const category = req.query.category as string;
+      
+      const pinnedItems = await storage.getUserPinnedContent(userId, category);
+      
+      // Enhance pinned items with actual content data
+      const enhancedItems = await Promise.all(pinnedItems.map(async (pin) => {
+        let title = 'Unknown';
+        let subtitle = '';
+        
+        try {
+          // Fetch the actual content based on type
+          switch (pin.targetType) {
+            case 'character':
+              const character = await storage.getCharacter(pin.targetId);
+              if (character) {
+                title = character.name;
+                subtitle = character.occupation || '';
+              }
+              break;
+            case 'location':
+              const location = await storage.getLocation(pin.targetId);
+              if (location) {
+                title = location.name;
+                subtitle = location.locationType || '';
+              }
+              break;
+            case 'organization':
+              const organization = await storage.getOrganization(pin.targetId);
+              if (organization) {
+                title = organization.name;
+                subtitle = organization.organizationType || '';
+              }
+              break;
+            case 'manuscript':
+              const manuscript = await storage.getManuscript(pin.targetId, userId);
+              if (manuscript) {
+                title = manuscript.title;
+                subtitle = manuscript.status || '';
+              }
+              break;
+          }
+        } catch (error) {
+          console.error(`Error fetching ${pin.targetType} data:`, error);
+        }
+        
+        return {
+          ...pin,
+          title,
+          subtitle
+        };
+      }));
+      
+      res.json(enhancedItems);
+    } catch (error) {
+      console.error('Error fetching pinned content:', error);
+      res.status(500).json({ error: 'Failed to fetch pinned content' });
+    }
+  });
+
+  app.post("/api/pinned-content", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const pinData = { ...req.body, userId };
+      
+      const pinnedItem = await storage.pinContent(pinData);
+      res.json(pinnedItem);
+    } catch (error) {
+      console.error('Error pinning content:', error);
+      res.status(500).json({ error: 'Failed to pin content' });
+    }
+  });
+
+  app.delete("/api/pinned-content/:id", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const pinnedId = req.params.id;
+      
+      // Find the pinned item first to get its details
+      const pinnedItems = await storage.getUserPinnedContent(userId);
+      const pinnedItem = pinnedItems.find(item => item.id === pinnedId);
+      
+      if (!pinnedItem) {
+        return res.status(404).json({ error: 'Pinned item not found' });
+      }
+      
+      await storage.unpinContent(userId, pinnedItem.targetType, pinnedItem.targetId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error unpinning content:', error);
+      res.status(500).json({ error: 'Failed to unpin content' });
+    }
+  });
+
   app.get("/api/manuscripts/:id", async (req, res) => {
     try {
       const userId = req.headers['x-user-id'] as string || 'demo-user';
