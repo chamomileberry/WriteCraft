@@ -1,10 +1,21 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, User, Eye, Heart, Zap, MapPin, Clock, X } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Loader2, User, Eye, Heart, Zap, MapPin, Clock, X, Edit, Save } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { insertCharacterSchema } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import type { z } from 'zod';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import type { Character } from '@shared/schema';
 
@@ -12,15 +23,95 @@ interface CharacterDetailPanelProps {
   characterId: string;
   panelId: string;
   onClose?: () => void;
+  isCompact?: boolean;
 }
 
-const CharacterDetailPanel = ({ characterId, panelId, onClose }: CharacterDetailPanelProps) => {
+type CharacterFormData = z.infer<typeof insertCharacterSchema>;
+
+const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false }: CharacterDetailPanelProps) => {
+  const [isEditing, setIsEditing] = useState(false);
   const removePanel = useWorkspaceStore(state => state.removePanel);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: character, isLoading, error } = useQuery<Character>({
     queryKey: ['/api/characters', characterId],
     enabled: !!characterId
   });
+
+  const form = useForm<CharacterFormData>({
+    resolver: zodResolver(insertCharacterSchema),
+    defaultValues: {
+      givenName: character?.givenName || '',
+      familyName: character?.familyName || '',
+      nickname: character?.nickname || '',
+      age: character?.age?.toString() || '',
+      gender: character?.gender || '',
+      species: character?.species || '',
+      pronouns: character?.pronouns || '',
+      occupation: character?.occupation || '',
+      currentLocation: character?.currentLocation || '',
+      description: character?.physicalDescription || '',
+      backstory: character?.backstory || '',
+      personality: Array.isArray(character?.personality) ? character.personality.join(', ') : character?.personality || '',
+      motivation: character?.motivation || '',
+      flaws: character?.flaw || '',
+      strengths: character?.strengths || '',
+    }
+  });
+
+  // Reset form when character data loads
+  React.useEffect(() => {
+    if (character) {
+      form.reset({
+        givenName: character.givenName || '',
+        familyName: character.familyName || '',
+        nickname: character.nickname || '',
+        age: character.age?.toString() || '',
+        gender: character.gender || '',
+        species: character.species || '',
+        pronouns: character.pronouns || '',
+        occupation: character.occupation || '',
+        currentLocation: character.currentLocation || '',
+        description: character.physicalDescription || '',
+        backstory: character.backstory || '',
+        personality: Array.isArray(character.personality) ? character.personality.join(', ') : character.personality || '',
+        motivation: character.motivation || '',
+        flaws: character.flaw || '',
+        strengths: character.strengths || '',
+      });
+    }
+  }, [character, form]);
+
+  const updateCharacterMutation = useMutation({
+    mutationFn: async (data: CharacterFormData) => {
+      return apiRequest('PATCH', `/api/characters/${characterId}`, data);
+    },
+    onSuccess: () => {
+      toast({ title: 'Character updated successfully' });
+      // Invalidate all character queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/characters'] });
+      queryClient.refetchQueries({ queryKey: ['/api/characters', characterId] });
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      toast({ title: 'Error updating character', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const onSubmit = (data: CharacterFormData) => {
+    updateCharacterMutation.mutate(data);
+  };
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Cancel editing and reset form
+      form.reset();
+      setIsEditing(false);
+    } else {
+      setIsEditing(true);
+    }
+  };
 
   const handleClose = () => {
     removePanel(panelId);
@@ -71,9 +162,31 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose }: CharacterDetail
             <p className="text-xs text-muted-foreground">{character.occupation}</p>
           )}
         </div>
-        <Button variant="ghost" size="sm" onClick={handleClose} data-testid="button-close-panel">
-          <X className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleEditToggle}
+            disabled={updateCharacterMutation.isPending}
+            data-testid="button-edit-character"
+          >
+            {isEditing ? <X className="h-3 w-3" /> : <Edit className="h-3 w-3" />}
+          </Button>
+          {isEditing && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={updateCharacterMutation.isPending}
+              data-testid="button-save-character"
+            >
+              <Save className="h-3 w-3" />
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={handleClose} data-testid="button-close-panel">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       
       <CardContent className="flex-1 overflow-auto">
@@ -86,40 +199,157 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose }: CharacterDetail
           </TabsList>
           
           <TabsContent value="identity" className="space-y-3">
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {character.age && (
-                <div>
-                  <span className="font-medium">Age:</span> {character.age}
+            {isEditing ? (
+              <Form {...form}>
+                <div className="grid grid-cols-2 gap-2">
+                  <FormField
+                    control={form.control}
+                    name="givenName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Given Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-7 text-xs" />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="familyName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Family Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-7 text-xs" />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="age"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Age</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-7 text-xs" />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Gender</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-7 text-xs" />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="species"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Species</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-7 text-xs" />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="pronouns"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Pronouns</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-7 text-xs" />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              )}
-              {character.gender && (
-                <div>
-                  <span className="font-medium">Gender:</span> {character.gender}
+                <FormField
+                  control={form.control}
+                  name="nickname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Nickname</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-7 text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="occupation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Occupation</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-7 text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="currentLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Current Location</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-7 text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </Form>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {character.age && (
+                    <div>
+                      <span className="font-medium">Age:</span> {character.age}
+                    </div>
+                  )}
+                  {character.gender && (
+                    <div>
+                      <span className="font-medium">Gender:</span> {character.gender}
+                    </div>
+                  )}
+                  {character.species && (
+                    <div>
+                      <span className="font-medium">Species:</span> {character.species}
+                    </div>
+                  )}
+                  {character.pronouns && (
+                    <div>
+                      <span className="font-medium">Pronouns:</span> {character.pronouns}
+                    </div>
+                  )}
                 </div>
-              )}
-              {character.species && (
-                <div>
-                  <span className="font-medium">Species:</span> {character.species}
-                </div>
-              )}
-              {character.pronouns && (
-                <div>
-                  <span className="font-medium">Pronouns:</span> {character.pronouns}
-                </div>
-              )}
-            </div>
-            
-            {character.nickname && (
-              <div className="text-xs">
-                <span className="font-medium">Nickname:</span> {character.nickname}
-              </div>
-            )}
-            
-            {character.currentLocation && (
-              <div className="text-xs">
-                <MapPin className="h-3 w-3 inline mr-1" />
-                <span className="font-medium">Location:</span> {character.currentLocation}
-              </div>
+                
+                {character.nickname && (
+                  <div className="text-xs">
+                    <span className="font-medium">Nickname:</span> {character.nickname}
+                  </div>
+                )}
+                
+                {character.currentLocation && (
+                  <div className="text-xs">
+                    <MapPin className="h-3 w-3 inline mr-1" />
+                    <span className="font-medium">Location:</span> {character.currentLocation}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
           

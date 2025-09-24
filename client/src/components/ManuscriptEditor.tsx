@@ -21,13 +21,14 @@ import {
   ArrowLeft,
   Loader2,
   ExternalLink
-} from 'lucide-react';
+, Layers } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { getMappingById } from '@shared/contentTypes';
 import WorkspaceShell from './workspace/WorkspaceShell';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
+import { SidebarDockingZones } from './workspace/DockingZones';
 import { nanoid } from 'nanoid';
 
 interface ManuscriptEditorProps {
@@ -395,7 +396,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         id: nanoid(),
         type: 'characterDetail',
         title: itemTitle || 'Character Details',
-        entityId: itemId
+        entityId: itemId,
+        isDocked: false
       });
     } else {
       // For other types, fall back to opening in new tab for now
@@ -512,6 +514,19 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
 
       {/* Right Sidebar */}
       <div className="w-80 border-l bg-background/50 flex flex-col">
+        {/* Panel Docking Zones */}
+        <Card className="m-4 mb-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              Docked Panels
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2">
+            <SidebarDockingZones />
+          </CardContent>
+        </Card>
+
         {/* Search Panel */}
         <Card className="m-4 mb-2">
           <CardHeader className="pb-3">
