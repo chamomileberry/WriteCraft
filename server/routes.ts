@@ -410,11 +410,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (query || category || difficulty) {
         guides = await storage.searchGuides(
           query as string || '',
-          category as string,
-          difficulty as string
+          category as string
         );
       } else {
-        guides = await storage.getAllGuides();
+        guides = await storage.getGuides();
       }
       
       res.json(guides);

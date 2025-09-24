@@ -66,12 +66,14 @@ export interface IStorage {
   createPrompt(prompt: InsertPrompt): Promise<Prompt>;
   getPrompt(id: string): Promise<Prompt | undefined>;
   getUserPrompts(userId: string | null): Promise<Prompt[]>;
+  getRandomPrompts(count?: number): Promise<Prompt[]>;
   
   // Location methods
   createLocation(location: InsertLocation): Promise<Location>;
   getLocation(id: string): Promise<Location | undefined>;
   getUserLocations(userId: string | null): Promise<Location[]>;
   updateLocation(id: string, updates: Partial<InsertLocation>): Promise<Location>;
+  deleteLocation(id: string): Promise<void>;
 
   // Setting methods
   createSetting(setting: InsertSetting): Promise<Setting>;
@@ -83,12 +85,14 @@ export interface IStorage {
   getItem(id: string): Promise<Item | undefined>;
   getUserItems(userId: string | null): Promise<Item[]>;
   updateItem(id: string, updates: Partial<InsertItem>): Promise<Item>;
+  deleteItem(id: string): Promise<void>;
 
   // Organization methods
   createOrganization(organization: InsertOrganization): Promise<Organization>;
   getOrganization(id: string): Promise<Organization | undefined>;
   getUserOrganizations(userId: string | null): Promise<Organization[]>;
   updateOrganization(id: string, updates: Partial<InsertOrganization>): Promise<Organization>;
+  deleteOrganization(id: string): Promise<void>;
 
   // Creature methods
   createCreature(creature: InsertCreature): Promise<Creature>;
@@ -101,12 +105,14 @@ export interface IStorage {
   getSpecies(id: string): Promise<Species | undefined>;
   getUserSpecies(userId: string | null): Promise<Species[]>;
   updateSpecies(id: string, updates: Partial<InsertSpecies>): Promise<Species>;
+  deleteSpecies(id: string): Promise<void>;
 
   // Culture methods
   createCulture(culture: InsertCulture): Promise<Culture>;
   getCulture(id: string): Promise<Culture | undefined>;
   getUserCultures(userId: string | null): Promise<Culture[]>;
   updateCulture(id: string, updates: Partial<InsertCulture>): Promise<Culture>;
+  deleteCulture(id: string): Promise<void>;
 
   // Magic system methods
   createMagic(magic: any): Promise<any>;
@@ -119,36 +125,42 @@ export interface IStorage {
   getDocument(id: string): Promise<Document | undefined>;
   getUserDocuments(userId: string | null): Promise<Document[]>;
   updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document>;
+  deleteDocument(id: string): Promise<void>;
 
   // Food methods
   createFood(food: InsertFood): Promise<Food>;
   getFood(id: string): Promise<Food | undefined>;
   getUserFoods(userId: string | null): Promise<Food[]>;
   updateFood(id: string, updates: Partial<InsertFood>): Promise<Food>;
+  deleteFood(id: string): Promise<void>;
 
   // Language methods
   createLanguage(language: InsertLanguage): Promise<Language>;
   getLanguage(id: string): Promise<Language | undefined>;
   getUserLanguages(userId: string | null): Promise<Language[]>;
   updateLanguage(id: string, updates: Partial<InsertLanguage>): Promise<Language>;
+  deleteLanguage(id: string): Promise<void>;
 
   // Religion methods
   createReligion(religion: InsertReligion): Promise<Religion>;
   getReligion(id: string): Promise<Religion | undefined>;
   getUserReligions(userId: string | null): Promise<Religion[]>;
   updateReligion(id: string, updates: Partial<InsertReligion>): Promise<Religion>;
+  deleteReligion(id: string): Promise<void>;
 
   // Technology methods
   createTechnology(technology: InsertTechnology): Promise<Technology>;
   getTechnology(id: string): Promise<Technology | undefined>;
   getUserTechnologies(userId: string | null): Promise<Technology[]>;
   updateTechnology(id: string, updates: Partial<InsertTechnology>): Promise<Technology>;
+  deleteTechnology(id: string): Promise<void>;
 
   // Weapon methods
   createWeapon(weapon: InsertWeapon): Promise<Weapon>;
   getWeapon(id: string): Promise<Weapon | undefined>;
   getUserWeapons(userId: string | null): Promise<Weapon[]>;
   updateWeapon(id: string, updates: Partial<InsertWeapon>): Promise<Weapon>;
+  deleteWeapon(id: string): Promise<void>;
 
   // Vehicle methods
   createVehicle(vehicle: any): Promise<any>;
@@ -324,6 +336,12 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(prompts.createdAt))
       .limit(10);
   }
+
+  async getRandomPrompts(count = 5): Promise<Prompt[]> {
+    return await db.select().from(prompts)
+      .orderBy(sql`RANDOM()`)
+      .limit(count);
+  }
   
   // Location methods
   async createLocation(location: InsertLocation): Promise<Location> {
@@ -357,6 +375,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(locations.id, id))
       .returning();
     return updatedLocation;
+  }
+
+  async deleteLocation(id: string): Promise<void> {
+    await db.delete(locations).where(eq(locations.id, id));
   }
 
   // Setting methods
@@ -418,6 +440,10 @@ export class DatabaseStorage implements IStorage {
     return updatedItem;
   }
 
+  async deleteItem(id: string): Promise<void> {
+    await db.delete(items).where(eq(items.id, id));
+  }
+
   // Organization methods
   async createOrganization(organization: InsertOrganization): Promise<Organization> {
     const [newOrganization] = await db
@@ -450,6 +476,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(organizations.id, id))
       .returning();
     return updatedOrganization;
+  }
+
+  async deleteOrganization(id: string): Promise<void> {
+    await db.delete(organizations).where(eq(organizations.id, id));
   }
 
   // Creature methods
@@ -520,6 +550,10 @@ export class DatabaseStorage implements IStorage {
     return updatedSpecies;
   }
 
+  async deleteSpecies(id: string): Promise<void> {
+    await db.delete(species).where(eq(species.id, id));
+  }
+
   // Culture methods
   async createCulture(culture: InsertCulture): Promise<Culture> {
     const [newCulture] = await db
@@ -552,6 +586,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(cultures.id, id))
       .returning();
     return updatedCulture;
+  }
+
+  async deleteCulture(id: string): Promise<void> {
+    await db.delete(cultures).where(eq(cultures.id, id));
   }
 
   // Magic system methods (not implemented - table doesn't exist)
@@ -605,6 +643,10 @@ export class DatabaseStorage implements IStorage {
     return updatedDocument;
   }
 
+  async deleteDocument(id: string): Promise<void> {
+    await db.delete(documents).where(eq(documents.id, id));
+  }
+
   // Food methods
   async createFood(food: InsertFood): Promise<Food> {
     const [newFood] = await db
@@ -637,6 +679,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(foods.id, id))
       .returning();
     return updatedFood;
+  }
+
+  async deleteFood(id: string): Promise<void> {
+    await db.delete(foods).where(eq(foods.id, id));
   }
 
   // Language methods
@@ -673,6 +719,10 @@ export class DatabaseStorage implements IStorage {
     return updatedLanguage;
   }
 
+  async deleteLanguage(id: string): Promise<void> {
+    await db.delete(languages).where(eq(languages.id, id));
+  }
+
   // Religion methods
   async createReligion(religion: InsertReligion): Promise<Religion> {
     const [newReligion] = await db
@@ -705,6 +755,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(religions.id, id))
       .returning();
     return updatedReligion;
+  }
+
+  async deleteReligion(id: string): Promise<void> {
+    await db.delete(religions).where(eq(religions.id, id));
   }
 
   // Technology methods
@@ -741,6 +795,10 @@ export class DatabaseStorage implements IStorage {
     return updatedTechnology;
   }
 
+  async deleteTechnology(id: string): Promise<void> {
+    await db.delete(technologies).where(eq(technologies.id, id));
+  }
+
   // Weapon methods
   async createWeapon(weapon: InsertWeapon): Promise<Weapon> {
     const [newWeapon] = await db
@@ -773,6 +831,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(weapons.id, id))
       .returning();
     return updatedWeapon;
+  }
+
+  async deleteWeapon(id: string): Promise<void> {
+    await db.delete(weapons).where(eq(weapons.id, id));
   }
 
   // Vehicle methods (not implemented - table doesn't exist)
