@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -58,6 +58,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [selectedContent, setSelectedContent] = useState<SearchResult | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -118,7 +120,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       },
     },
     onUpdate: ({ editor }) => {
-      // Auto-save will be implemented here
+      const content = editor.getHTML();
+      debouncedSave(content);
     },
   });
 
@@ -132,6 +135,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   // Save mutation
   const saveMutation = useMutation({
     mutationFn: async (content: string) => {
+      setSaveStatus('saving');
       const response = await apiRequest('PUT', `/api/manuscripts/${manuscriptId}`, {
         content,
         wordCount: editor?.storage.characterCount?.words() || 0,
@@ -139,13 +143,12 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Saved",
-        description: "Your manuscript has been saved successfully.",
-      });
+      setSaveStatus('saved');
+      setLastSaveTime(new Date());
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
     },
     onError: () => {
+      setSaveStatus('unsaved');
       toast({
         title: "Error",
         description: "Failed to save manuscript. Please try again.",
@@ -153,6 +156,117 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       });
     },
   });
+
+  // Extract [[links]] from content and update manuscript links
+  const updateManuscriptLinks = useCallback(async (content: string) => {
+    try {
+      // Extract [[double bracket]] links from content
+      const linkRegex = /\[\[([^\]]+)\]\]/g;
+      const links: { linkText: string; position: number }[] = [];
+      let match;
+      
+      const plainText = content.replace(/<[^>]*>/g, ''); // Strip HTML tags to get position in plain text
+      
+      while ((match = linkRegex.exec(plainText)) !== null) {
+        links.push({
+          linkText: match[1],
+          position: match.index,
+        });
+      }
+
+      // Get current links for this manuscript
+      const currentLinksResponse = await apiRequest('GET', `/api/manuscripts/${manuscriptId}/links`);
+      const currentLinks = await currentLinksResponse.json();
+
+      // Create new links that don't exist yet
+      for (const link of links) {
+        const existingLink = currentLinks.find((l: any) => 
+          l.linkText === link.linkText && l.position === link.position
+        );
+        
+        if (!existingLink) {
+          // Search for the target content to determine targetType and targetId
+          const searchResponse = await fetch(`/api/search?q=${encodeURIComponent(link.linkText)}`, {
+            credentials: 'include'
+          });
+          const searchResults = await searchResponse.json();
+          
+          // Find exact match or best match
+          const target = searchResults.find((r: any) => 
+            r.title.toLowerCase() === link.linkText.toLowerCase()
+          ) || searchResults[0];
+          
+          if (target) {
+            await apiRequest('POST', `/api/manuscripts/${manuscriptId}/links`, {
+              targetType: target.type,
+              targetId: target.id,
+              linkText: link.linkText,
+              position: link.position,
+              contextText: plainText.substring(
+                Math.max(0, link.position - 50), 
+                link.position + link.linkText.length + 50
+              )
+            });
+          }
+        }
+      }
+
+      // Remove links that no longer exist in the content
+      for (const currentLink of currentLinks) {
+        const stillExists = links.some(l => 
+          l.linkText === currentLink.linkText && l.position === currentLink.position
+        );
+        
+        if (!stillExists) {
+          await apiRequest('DELETE', `/api/manuscript-links/${currentLink.id}`);
+        }
+      }
+
+    } catch (error) {
+      console.error('Failed to update manuscript links:', error);
+      // Don't throw here to avoid breaking the save process
+    }
+  }, [manuscriptId]);
+
+  // Autosave functionality
+  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const debouncedSave = useCallback((content: string) => {
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+    }
+    
+    // Only update status to 'unsaved' if not currently saving
+    if (saveStatus !== 'saving') {
+      setSaveStatus('unsaved');
+    }
+    
+    autosaveTimeoutRef.current = setTimeout(async () => {
+      // Double-check we're not currently saving before triggering autosave
+      if (!saveMutation.isPending) {
+        try {
+          setSaveStatus('saving');
+          await saveMutation.mutateAsync(content);
+          // Update links after successful autosave
+          await updateManuscriptLinks(content);
+          setSaveStatus('saved');
+          setLastSaveTime(new Date());
+        } catch (error) {
+          setSaveStatus('unsaved');
+          console.error('Autosave failed:', error);
+        }
+      }
+    }, 2000); // Save after 2 seconds of inactivity
+  }, [saveMutation, saveStatus, updateManuscriptLinks]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Pin content mutation
   const pinMutation = useMutation({
@@ -190,7 +304,17 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const saveContent = useCallback(async () => {
     if (editor) {
       const content = editor.getHTML();
-      await saveMutation.mutateAsync(content);
+      
+      try {
+        await saveMutation.mutateAsync(content);
+        
+        // Extract and update manuscript links
+        await updateManuscriptLinks(content);
+        
+      } catch (error) {
+        console.error('Save failed:', error);
+        throw error;
+      }
     }
   }, [editor, saveMutation]);
 
@@ -198,6 +322,37 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   useImperativeHandle(ref, () => ({
     saveContent,
   }));
+
+  // Format save status for display
+  const getSaveStatusText = () => {
+    switch (saveStatus) {
+      case 'saving':
+        return 'Saving...';
+      case 'saved':
+        return lastSaveTime ? `Saved ${lastSaveTime.toLocaleTimeString()}` : 'Saved';
+      case 'unsaved':
+        return 'Unsaved changes';
+      default:
+        return '';
+    }
+  };
+
+  const handleManualSave = async () => {
+    // Cancel any pending autosave
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
+    
+    // Immediately set status to saving
+    setSaveStatus('saving');
+    
+    try {
+      await saveContent();
+    } catch (error) {
+      // Error handling is already in the mutation
+    }
+  };
 
   const insertLink = (item: SearchResult) => {
     if (editor) {
@@ -252,20 +407,25 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={saveContent}
-                disabled={saveMutation.isPending}
-                data-testid="button-save-manuscript"
-              >
-                {saveMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save
-              </Button>
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-muted-foreground">
+                  {getSaveStatusText()}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleManualSave}
+                  disabled={saveStatus === 'saving'}
+                  data-testid="button-save-manuscript"
+                >
+                  {saveStatus === 'saving' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save
+                </Button>
+              </div>
             </div>
           </div>
 

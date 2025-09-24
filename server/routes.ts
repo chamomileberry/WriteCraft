@@ -58,7 +58,8 @@ import {
   insertPolicySchema,
   insertPotionSchema,
   insertProfessionSchema,
-  insertManuscriptSchema
+  insertManuscriptSchema,
+  insertManuscriptLinkSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI, generateCharacterFieldWithAI } from "./ai-generation";
