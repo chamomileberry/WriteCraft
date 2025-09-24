@@ -69,10 +69,27 @@ export default function CharacterGenerator() {
     mutationFn: async () => {
       if (!character?.id) return;
       
+      console.log('Saving character:', character);
+      
       const response = await apiRequest('POST', '/api/saved-items', {
         userId: 'guest', // Use guest user for consistency with Notebook
         itemType: 'character',
-        itemId: character.id
+        itemId: character.id,
+        itemData: {
+          givenName: (character as any).givenName || (character as any).name?.split(' ')[0] || '',
+          familyName: (character as any).familyName || (character as any).name?.split(' ').slice(1).join(' ') || '',
+          name: (character as any).givenName && (character as any).familyName 
+            ? `${(character as any).givenName} ${(character as any).familyName}`.trim()
+            : (character as any).name || '',
+          age: character.age,
+          occupation: character.occupation,
+          personality: character.personality,
+          backstory: character.backstory,
+          motivation: character.motivation,
+          flaw: character.flaw,
+          strength: character.strength,
+          gender: character.gender
+        }
       });
       return response.json();
     },

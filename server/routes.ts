@@ -889,8 +889,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Saved items routes
   app.post("/api/saved-items", async (req, res) => {
     try {
+      console.log('Received save request body:', JSON.stringify(req.body, null, 2));
       const validatedData = insertSavedItemSchema.parse(req.body);
+      console.log('Validated data:', JSON.stringify(validatedData, null, 2));
       const savedItem = await storage.saveItem(validatedData);
+      console.log('Saved item result:', JSON.stringify(savedItem, null, 2));
       res.json(savedItem);
     } catch (error) {
       console.error('Error saving item:', error);
