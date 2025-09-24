@@ -1122,6 +1122,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manuscript Links endpoints
+  app.get("/api/manuscripts/:id/links", async (req, res) => {
+    try {
+      const manuscriptId = req.params.id;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      const links = await storage.getManuscriptLinks(manuscriptId, userId);
+      res.json(links);
+    } catch (error) {
+      console.error('Error fetching manuscript links:', error);
+      res.status(500).json({ error: 'Failed to fetch manuscript links' });
+    }
+  });
+
+  app.post("/api/manuscripts/:id/links", async (req, res) => {
+    try {
+      const manuscriptId = req.params.id;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      // Validate the request body
+      const validatedData = insertManuscriptLinkSchema.parse({
+        ...req.body,
+        sourceId: manuscriptId,
+        userId
+      });
+      
+      const newLink = await storage.createManuscriptLink(validatedData);
+      res.json(newLink);
+    } catch (error) {
+      console.error('Error creating manuscript link:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Invalid link data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to create manuscript link' });
+    }
+  });
+
+  app.put("/api/manuscript-links/:id", async (req, res) => {
+    try {
+      const linkId = req.params.id;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      // Validate the request body and omit fields that shouldn't be updated
+      const allowedFields = insertManuscriptLinkSchema.omit({ 
+        sourceId: true, 
+        userId: true 
+      });
+      const validatedData = allowedFields.partial().parse(req.body);
+      
+      const updatedLink = await storage.updateManuscriptLink(linkId, validatedData, userId);
+      res.json(updatedLink);
+    } catch (error) {
+      console.error('Error updating manuscript link:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Invalid link data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update manuscript link' });
+    }
+  });
+
+  app.delete("/api/manuscript-links/:id", async (req, res) => {
+    try {
+      const linkId = req.params.id;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      await storage.deleteManuscriptLink(linkId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting manuscript link:', error);
+      res.status(500).json({ error: 'Failed to delete manuscript link' });
+    }
+  });
+
+  // Backlinks endpoint - get all links pointing to a specific content item
+  app.get("/api/content/:type/:id/backlinks", async (req, res) => {
+    try {
+      const contentType = req.params.type;
+      const contentId = req.params.id;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      const backlinks = await storage.getBacklinks(contentType, contentId, userId);
+      res.json(backlinks);
+    } catch (error) {
+      console.error('Error fetching backlinks:', error);
+      res.status(500).json({ error: 'Failed to fetch backlinks' });
+    }
+  });
+
   // Location routes
   app.post("/api/locations", async (req, res) => {
     try {

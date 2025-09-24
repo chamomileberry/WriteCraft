@@ -2742,19 +2742,76 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getManuscriptLinks(manuscriptId: string, userId: string): Promise<ManuscriptLink[]> {
-    return await db.select().from(manuscriptLinks)
-      .where(and(eq(manuscriptLinks.sourceId, manuscriptId), eq(manuscriptLinks.userId, userId)))
-      .orderBy(desc(manuscriptLinks.createdAt));
+    return await db
+      .select()
+      .from(manuscriptLinks)
+      .where(and(
+        eq(manuscriptLinks.sourceId, manuscriptId),
+        eq(manuscriptLinks.userId, userId)
+      ))
+      .orderBy(manuscriptLinks.position);
+  }
+
+  async updateManuscriptLink(linkId: string, updates: Partial<InsertManuscriptLink>, userId: string): Promise<ManuscriptLink> {
+    const [updatedLink] = await db
+      .update(manuscriptLinks)
+      .set(updates)
+      .where(and(
+        eq(manuscriptLinks.id, linkId),
+        eq(manuscriptLinks.userId, userId)
+      ))
+      .returning();
+    
+    if (!updatedLink) {
+      throw new Error('Manuscript link not found or access denied');
+    }
+    
+    return updatedLink;
+  }
+
+  async deleteManuscriptLink(linkId: string, userId: string): Promise<void> {
+    const result = await db
+      .delete(manuscriptLinks)
+      .where(and(
+        eq(manuscriptLinks.id, linkId),
+        eq(manuscriptLinks.userId, userId)
+      ));
+    
+    if (result.rowCount === 0) {
+      throw new Error('Manuscript link not found or access denied');
+    }
+  }
+
+  async getBacklinks(targetType: string, targetId: string, userId: string): Promise<Array<ManuscriptLink & { manuscriptTitle: string }>> {
+    const backlinks = await db
+      .select({
+        id: manuscriptLinks.id,
+        sourceId: manuscriptLinks.sourceId,
+        targetType: manuscriptLinks.targetType,
+        targetId: manuscriptLinks.targetId,
+        contextText: manuscriptLinks.contextText,
+        linkText: manuscriptLinks.linkText,
+        position: manuscriptLinks.position,
+        userId: manuscriptLinks.userId,
+        createdAt: manuscriptLinks.createdAt,
+        manuscriptTitle: manuscripts.title
+      })
+      .from(manuscriptLinks)
+      .innerJoin(manuscripts, eq(manuscriptLinks.sourceId, manuscripts.id))
+      .where(and(
+        eq(manuscriptLinks.targetType, targetType),
+        eq(manuscriptLinks.targetId, targetId),
+        eq(manuscriptLinks.userId, userId)
+      ))
+      .orderBy(manuscriptLinks.createdAt);
+    
+    return backlinks;
   }
 
   async getManuscriptLinksForUser(userId: string): Promise<ManuscriptLink[]> {
     return await db.select().from(manuscriptLinks)
       .where(eq(manuscriptLinks.userId, userId))
       .orderBy(desc(manuscriptLinks.createdAt));
-  }
-
-  async deleteManuscriptLink(id: string, userId: string): Promise<void> {
-    await db.delete(manuscriptLinks).where(and(eq(manuscriptLinks.id, id), eq(manuscriptLinks.userId, userId)));
   }
 
   async findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ManuscriptLink[]> {
