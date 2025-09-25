@@ -2379,6 +2379,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick note routes
+  app.post("/api/quick-note", async (req, res) => {
+    try {
+      const { userId, title, content } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      
+      // Check if user already has a quick note
+      const existingNote = await storage.getUserQuickNote(userId);
+      if (existingNote) {
+        // Update existing quick note
+        const updatedNote = await storage.updateQuickNote(existingNote.id, userId, { title, content });
+        res.json(updatedNote);
+      } else {
+        // Create new quick note
+        const newNote = await storage.createQuickNote(userId, title || 'Quick Note', content || '');
+        res.status(201).json(newNote);
+      }
+    } catch (error) {
+      console.error('Error saving quick note:', error);
+      res.status(500).json({ error: 'Failed to save quick note' });
+    }
+  });
+
+  app.get("/api/quick-note", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      
+      const quickNote = await storage.getUserQuickNote(userId as string);
+      if (!quickNote) {
+        return res.status(404).json({ error: 'Quick note not found' });
+      }
+      
+      res.json(quickNote);
+    } catch (error) {
+      console.error('Error fetching quick note:', error);
+      res.status(500).json({ error: 'Failed to fetch quick note' });
+    }
+  });
+
+  app.delete("/api/quick-note", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      
+      const quickNote = await storage.getUserQuickNote(userId as string);
+      if (!quickNote) {
+        return res.status(404).json({ error: 'Quick note not found' });
+      }
+      
+      await storage.deleteQuickNote(quickNote.id, userId as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting quick note:', error);
+      res.status(500).json({ error: 'Failed to delete quick note' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

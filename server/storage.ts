@@ -252,6 +252,12 @@ export interface IStorage {
   getFolderNotes(folderId: string, userId: string): Promise<Note[]>;
   updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note>;
   deleteNote(id: string, userId: string): Promise<void>;
+  
+  // Quick note methods
+  createQuickNote(userId: string, title: string, content: string): Promise<Note>;
+  getUserQuickNote(userId: string): Promise<Note | undefined>;
+  updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note>;
+  deleteQuickNote(id: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1764,6 +1770,65 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(notes.id, id),
         eq(notes.userId, userId)
+      ));
+  }
+
+  // Quick note methods
+  async createQuickNote(userId: string, title: string, content: string): Promise<Note> {
+    const [newNote] = await db
+      .insert(notes)
+      .values({
+        title,
+        content,
+        type: 'quick_note',
+        userId,
+        // Quick notes don't have parent relationships
+        folderId: null,
+        manuscriptId: null,
+        guideId: null,
+      })
+      .returning();
+    return newNote;
+  }
+
+  async getUserQuickNote(userId: string): Promise<Note | undefined> {
+    const [quickNote] = await db
+      .select()
+      .from(notes)
+      .where(and(
+        eq(notes.userId, userId),
+        eq(notes.type, 'quick_note')
+      ))
+      .orderBy(desc(notes.updatedAt))
+      .limit(1);
+    return quickNote || undefined;
+  }
+
+  async updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note> {
+    const [updatedNote] = await db
+      .update(notes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(notes.id, id),
+        eq(notes.userId, userId),
+        eq(notes.type, 'quick_note')
+      ))
+      .returning();
+    
+    if (!updatedNote) {
+      throw new Error("Quick note not found or unauthorized");
+    }
+    
+    return updatedNote;
+  }
+
+  async deleteQuickNote(id: string, userId: string): Promise<void> {
+    await db
+      .delete(notes)
+      .where(and(
+        eq(notes.id, id),
+        eq(notes.userId, userId),
+        eq(notes.type, 'quick_note')
       ));
   }
 }

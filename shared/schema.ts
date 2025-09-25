@@ -1331,7 +1331,7 @@ export const notes = pgTable("notes", {
   title: text("title").notNull(),
   content: text("content").notNull().default(''), // Rich text content
   excerpt: text("excerpt"), // Auto-generated excerpt for previews
-  type: text("type").notNull(), // 'manuscript_note' or 'guide_note'
+  type: text("type").notNull(), // 'manuscript_note', 'guide_note', or 'quick_note'
   folderId: varchar("folder_id").references(() => folders.id, { onDelete: 'cascade' }),
   manuscriptId: varchar("manuscript_id").references(() => manuscripts.id, { onDelete: 'cascade' }), // Link to parent manuscript
   guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
@@ -1340,10 +1340,13 @@ export const notes = pgTable("notes", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
-  // Ensure note has exactly one parent - either manuscript or guide, and optionally a folder
-  oneParentCheck: sql`CHECK (
-    (${table.manuscriptId} IS NOT NULL AND ${table.guideId} IS NULL) OR
-    (${table.manuscriptId} IS NULL AND ${table.guideId} IS NOT NULL)
+  // Ensure note has proper parent relationship - manuscript/guide notes need parent, quick notes don't
+  parentCheck: sql`CHECK (
+    (${table.type} = 'quick_note' AND ${table.manuscriptId} IS NULL AND ${table.guideId} IS NULL) OR
+    (${table.type} != 'quick_note' AND (
+      (${table.manuscriptId} IS NOT NULL AND ${table.guideId} IS NULL) OR
+      (${table.manuscriptId} IS NULL AND ${table.guideId} IS NOT NULL)
+    ))
   )`
 }));
 
