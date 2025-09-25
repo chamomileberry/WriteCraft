@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Rnd } from 'react-rnd';
 import { useWorkspaceStore, type PanelDescriptor } from '@/stores/workspaceStore';
 import CharacterDetailPanel from './CharacterDetailPanel';
+import QuickNotePanel from './QuickNotePanel';
 import { X, GripHorizontal, Pin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -10,11 +11,11 @@ interface WorkspaceShellProps {
 }
 
 const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
-  const { currentLayout, removePanel, updatePanel, dockPanel, undockPanel } = useWorkspaceStore();
+  const { currentLayout, removePanel, updatePanel, attachToTabBar } = useWorkspaceStore();
   const workspaceRef = useRef<HTMLDivElement>(null);
   
-  // Only render floating panels (docked panels are rendered in sidebar)
-  const floatingPanels = currentLayout.panels.filter(panel => !panel.isDocked);
+  // Only render floating panels (tabbed panels are rendered in tab bars)
+  const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating');
 
   const renderPanelContent = (panel: PanelDescriptor) => {
     switch (panel.type) {
@@ -23,6 +24,14 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           <CharacterDetailPanel
             characterId={panel.entityId!}
             panelId={panel.id}
+          />
+        );
+      case 'quickNote':
+        return (
+          <QuickNotePanel
+            panelId={panel.id}
+            onClose={() => removePanel(panel.id)}
+            onPin={() => attachToTabBar(panel.id, 'main')}
           />
         );
       default:
@@ -39,6 +48,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
       case 'characterDetail':
         return { width: 350, height: 500 };
       case 'searchResults':
+        return { width: 300, height: 400 };
+      case 'quickNote':
         return { width: 300, height: 400 };
       default:
         return { width: 300, height: 400 };
@@ -99,10 +110,10 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => dockPanel(panel.id, 'sidebar-top')}
+                    onClick={() => attachToTabBar(panel.id, 'main')}
                     className="h-6 w-6 p-0"
                     data-testid={`button-dock-${panel.id}`}
-                    title="Dock to top slot"
+                    title="Pin to tab bar"
                   >
                     <Pin className="h-3 w-3" />
                   </Button>

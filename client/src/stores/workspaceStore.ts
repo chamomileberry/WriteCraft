@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface PanelDescriptor {
   id: string;
-  type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript';
+  type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript' | 'quickNote';
   title: string;
   entityId?: string;
   data?: any;
@@ -59,6 +59,12 @@ interface WorkspaceState {
   getTabsInRegion: (regionId: 'main' | 'split') => PanelDescriptor[];
   getFloatingPanels: () => PanelDescriptor[];
   getActiveTab: (regionId?: 'main' | 'split') => PanelDescriptor | undefined;
+  
+  // Quick note methods
+  toggleQuickNote: () => void;
+  openQuickNote: () => void;
+  closeQuickNote: () => void;
+  isQuickNoteOpen: () => boolean;
 }
 
 const defaultLayout: WorkspaceLayout = {
@@ -90,6 +96,11 @@ const defaultPanelRegistry = {
   notes: {
     component: 'NotesPanel',
     defaultTitle: 'Notes',
+    icon: 'StickyNote'
+  },
+  quickNote: {
+    component: 'QuickNotePanel',
+    defaultTitle: 'Quick Note',
     icon: 'StickyNote'
   }
 };
@@ -377,6 +388,55 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         
         // Return active tab only if it's in the specified region
         return activePanel.regionId === regionId ? activePanel : undefined;
+      },
+
+      // Quick note methods
+      toggleQuickNote: () => {
+        const state = get();
+        const isOpen = state.currentLayout.panels.some(p => p.type === 'quickNote');
+        
+        if (isOpen) {
+          get().closeQuickNote();
+        } else {
+          get().openQuickNote();
+        }
+      },
+
+      openQuickNote: () => {
+        const state = get();
+        const existingQuickNote = state.currentLayout.panels.find(p => p.type === 'quickNote');
+        
+        if (!existingQuickNote) {
+          // Create new quick note panel as floating
+          const quickNotePanel: PanelDescriptor = {
+            id: 'quick-note',
+            type: 'quickNote',
+            title: 'Quick Note',
+            mode: 'floating',
+            regionId: 'floating',
+            position: { x: window.innerWidth - 350, y: 100 },
+            size: { width: 300, height: 400 }
+          };
+          
+          get().addPanel(quickNotePanel);
+        } else {
+          // Focus existing panel
+          get().focusPanel(existingQuickNote.id);
+        }
+      },
+
+      closeQuickNote: () => {
+        const state = get();
+        const quickNotePanel = state.currentLayout.panels.find(p => p.type === 'quickNote');
+        
+        if (quickNotePanel) {
+          get().removePanel(quickNotePanel.id);
+        }
+      },
+
+      isQuickNoteOpen: () => {
+        const state = get();
+        return state.currentLayout.panels.some(p => p.type === 'quickNote');
       }
     }),
     {

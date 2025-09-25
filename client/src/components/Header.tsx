@@ -1,8 +1,9 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -16,6 +17,9 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
+  
+  // Quick note functionality
+  const { toggleQuickNote, isQuickNoteOpen } = useWorkspaceStore();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -124,6 +128,18 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               Create
             </Button>
             
+            {/* Quick Note Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleQuickNote}
+              className={`${isQuickNoteOpen() ? 'bg-primary/10 text-primary' : ''}`}
+              data-testid="button-quick-note"
+              title="Quick Note"
+            >
+              <StickyNote className="h-4 w-4" />
+            </Button>
+            
             <Button
               variant="ghost"
               size="icon"
@@ -150,6 +166,19 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-b border-border">
           <div className="px-4 py-4 space-y-4">
+            <button 
+              onClick={() => {
+                toggleQuickNote();
+                setIsMobileMenuOpen(false);
+              }}
+              className={`flex items-center gap-2 w-full text-left transition-colors py-2 ${
+                isQuickNoteOpen() ? 'text-primary' : 'text-foreground hover:text-primary'
+              }`}
+              data-testid="mobile-button-quick-note"
+            >
+              <StickyNote className="h-4 w-4" />
+              Quick Note
+            </button>
             <button 
               onClick={() => {
                 onNavigate?.('notebook');
