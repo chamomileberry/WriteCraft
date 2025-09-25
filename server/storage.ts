@@ -200,6 +200,8 @@ export interface IStorage {
   getGuide(id: string): Promise<Guide | undefined>;
   getGuides(category?: string): Promise<Guide[]>;
   searchGuides(query: string, category?: string): Promise<Guide[]>;
+  updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide>;
+  deleteGuide(id: string): Promise<void>;
 
   // Saved item methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -1033,6 +1035,19 @@ export class DatabaseStorage implements IStorage {
       .where(and(...conditions))
       .orderBy(guides.title)
       .limit(20);
+  }
+
+  async updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide> {
+    const [updatedGuide] = await db
+      .update(guides)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(guides.id, id))
+      .returning();
+    return updatedGuide;
+  }
+
+  async deleteGuide(id: string): Promise<void> {
+    await db.delete(guides).where(eq(guides.id, id));
   }
 
   // Saved item methods
