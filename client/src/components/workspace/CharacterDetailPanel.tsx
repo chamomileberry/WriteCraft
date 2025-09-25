@@ -17,6 +17,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
+import { AutocompleteField } from '@/components/ui/autocomplete-field';
 import type { Character } from '@shared/schema';
 
 interface CharacterDetailPanelProps {
@@ -459,7 +460,13 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
                     <FormItem>
                       <FormLabel className="text-xs">Occupation</FormLabel>
                       <FormControl>
-                        <Input {...field} className="h-7 text-xs" />
+                        <AutocompleteField
+                          value={field.value}
+                          onChange={field.onChange}
+                          contentType="profession"
+                          placeholder="Search or create profession..."
+                          className="h-7 text-xs"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -471,7 +478,13 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
                     <FormItem>
                       <FormLabel className="text-xs">Current Location</FormLabel>
                       <FormControl>
-                        <Input {...field} className="h-7 text-xs" />
+                        <AutocompleteField
+                          value={field.value}
+                          onChange={field.onChange}
+                          contentType="location"
+                          placeholder="Search or create location..."
+                          className="h-7 text-xs"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
