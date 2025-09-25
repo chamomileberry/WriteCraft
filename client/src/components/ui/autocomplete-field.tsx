@@ -48,6 +48,12 @@ interface AutocompleteFieldProps {
   options?: Array<{ value: string; label: string; icon?: any }>; // For static options like location types
 }
 
+// Helper function to check if a string is a UUID
+function isUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
 export function AutocompleteField({
   value,
   onChange,
@@ -102,6 +108,37 @@ export function AutocompleteField({
       }));
     },
     enabled: true,
+  });
+
+  // Query to resolve IDs to names for display (only for professions with UUID values)
+  const currentValueIds = currentValues.filter(val => isUUID(val));
+  const { data: resolvedNames = {} } = useQuery({
+    queryKey: [`/api/${apiEndpoint}/resolve`, currentValueIds],
+    queryFn: async () => {
+      if (currentValueIds.length === 0 || contentType !== 'profession') return {};
+      
+      const nameMap: { [id: string]: string } = {};
+      
+      // Fetch details for each UUID
+      for (const id of currentValueIds) {
+        try {
+          const response = await fetch(`/api/${apiEndpoint}/${id}`, {
+            headers: {
+              'X-User-Id': 'demo-user'
+            }
+          });
+          if (response.ok) {
+            const item = await response.json();
+            nameMap[id] = item.name;
+          }
+        } catch (error) {
+          console.warn('Failed to resolve ID to name:', id, error);
+        }
+      }
+      
+      return nameMap;
+    },
+    enabled: currentValueIds.length > 0 && contentType === 'profession',
   });
 
   // Create new item mutation
@@ -204,8 +241,8 @@ export function AutocompleteField({
       
       // Add the new item to current selection
       const newValue = multiple 
-        ? [...currentValues, newItem.name]
-        : newItem.name;
+        ? [...currentValues, contentType === "profession" ? newItem.id : newItem.name]
+        : contentType === "profession" ? newItem.id : newItem.name;
       onChange(newValue);
       setSearchValue("");
       setOpen(false);
@@ -213,25 +250,46 @@ export function AutocompleteField({
   });
 
   const handleSelect = (itemName: string) => {
+    // Clear search value first to reset UI state
+    setSearchValue("");
+    
     if (multiple) {
-      if (currentValues.includes(itemName)) {
-        // Remove if already selected
-        onChange(currentValues.filter(v => v !== itemName));
+      if (contentType === "profession") {
+        // For professions in multiple mode, work with IDs
+        const selectedItem = items.find((item: AutocompleteOption) => item.name === itemName);
+        const itemId = selectedItem ? selectedItem.id : itemName;
+        
+        if (currentValues.includes(itemId)) {
+          // Remove if already selected
+          onChange(currentValues.filter(v => v !== itemId));
+        } else {
+          // Add to selection
+          onChange([...currentValues, itemId]);
+        }
       } else {
-        // Add to selection
-        onChange([...currentValues, itemName]);
+        // For other content types, use names
+        if (currentValues.includes(itemName)) {
+          // Remove if already selected
+          onChange(currentValues.filter(v => v !== itemName));
+        } else {
+          // Add to selection
+          onChange([...currentValues, itemName]);
+        }
       }
     } else {
       // For location-type, use the value instead of label if available
       if (contentType === "location-type" && options) {
         const selectedOption = options.find(opt => opt.label === itemName);
         onChange(selectedOption ? selectedOption.value : itemName);
+      } else if (contentType === "profession") {
+        // For professions, store the ID but display the name
+        const selectedItem = items.find((item: AutocompleteOption) => item.name === itemName);
+        onChange(selectedItem ? selectedItem.id : itemName);
       } else {
         onChange(itemName);
       }
       setOpen(false);
     }
-    setSearchValue("");
   };
 
   const handleRemove = (itemName: string) => {
@@ -248,10 +306,25 @@ export function AutocompleteField({
     }
   };
 
-  // Filter out already selected items
-  const availableItems = (items || []).filter((item: AutocompleteOption) => 
-    item && item.name && !currentValues.includes(item.name)
-  );
+  // Helper function to get display name for a value
+  const getDisplayName = (val: string) => {
+    if (contentType === 'profession' && isUUID(val)) {
+      return resolvedNames[val] || val;
+    }
+    return val;
+  };
+
+  // Filter out already selected items - need to handle both names and IDs
+  const availableItems = (items || []).filter((item: AutocompleteOption) => {
+    if (!item || !item.name) return false;
+    
+    // For professions, check against both names and resolved IDs
+    if (contentType === 'profession') {
+      return !currentValues.includes(item.name) && !currentValues.includes(item.id);
+    }
+    
+    return !currentValues.includes(item.name);
+  });
 
   // Check if search value exactly matches existing item
   const exactMatch = (items || []).find((item: AutocompleteOption) => 
@@ -276,7 +349,7 @@ export function AutocompleteField({
               className="text-sm"
               data-testid={`badge-${contentType}-${itemName}`}
             >
-              {itemName}
+              {getDisplayName(itemName)}
               <Button
                 variant="ghost"
                 size="sm"
@@ -304,7 +377,7 @@ export function AutocompleteField({
           >
             <span className="truncate">
               {!multiple && currentValues.length > 0 
-                ? currentValues[0]
+                ? getDisplayName(currentValues[0])
                 : placeholder
               }
             </span>
