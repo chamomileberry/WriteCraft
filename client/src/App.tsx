@@ -19,6 +19,7 @@ import ManuscriptPage from "@/pages/ManuscriptPage";
 import ManuscriptEditPage from "@/pages/ManuscriptEditPage";
 import ManuscriptEditPageWithSidebar from "@/pages/ManuscriptEditPageWithSidebar";
 import GuideEditPageWithSidebar from "@/pages/GuideEditPageWithSidebar";
+import NoteEditPage from "@/pages/NoteEditPage";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/guides/:id" component={GuideDetail} />
       <Route path="/guides/:id/edit" component={GuideEditPageWithSidebar} />
       <Route path="/guides/:id/edit-basic" component={GuideEditPage} />
+      <Route path="/notes/:id/edit" component={NoteEditPage} />
       <Route path="/characters" component={CharacterPage} />
       <Route path="/characters/:id/edit" component={CharacterEditPageWithSidebar} />
       <Route path="/characters/:id/edit-sidebar" component={CharacterEditPageWithSidebar} />

@@ -281,7 +281,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const hierarchicalFolders = buildFolderHierarchy(folders, notes);
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="offcanvas">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2">
