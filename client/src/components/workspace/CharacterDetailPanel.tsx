@@ -164,7 +164,7 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
         personality: Array.isArray(character.personality) ? character.personality.join(', ') : character.personality || '',
         motivation: character.motivation || '',
         flaws: character.flaw || '',
-        strengths: character.strengths || '',
+        strengths: character.strengths || character.strength || '', // Handle both possible field names
         
         // Background tab fields
         backstory: character.backstory || '',
@@ -233,8 +233,43 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
 
   const handleEditToggle = () => {
     if (isEditing) {
-      // Cancel editing and reset form
-      form.reset();
+      // Cancel editing and reset form to current character values
+      if (character) {
+        form.reset({
+          // Identity tab fields
+          givenName: character.givenName || '',
+          familyName: character.familyName || '',
+          nickname: character.nickname || '',
+          age: character.age?.toString() || '',
+          gender: character.gender || '',
+          species: character.species || '',
+          pronouns: character.pronouns || '',
+          occupation: professionName || character.occupation || '',
+          currentLocation: character.currentLocation || '',
+          
+          // Appearance tab fields
+          height: character.height || '',
+          build: character.build || '',
+          hairColor: character.hairColor || '',
+          eyeColor: character.eyeColor || '',
+          skinTone: character.skinTone || '',
+          facialFeatures: character.facialFeatures || '',
+          identifyingMarks: character.identifyingMarks || '',
+          description: character.physicalDescription || '',
+          
+          // Mind/Personality tab fields
+          personality: Array.isArray(character.personality) ? character.personality.join(', ') : character.personality || '',
+          motivation: character.motivation || '',
+          flaws: character.flaw || '',
+          strengths: character.strengths || character.strength || '', // Handle both possible field names
+          
+          // Background tab fields
+          backstory: character.backstory || '',
+          placeOfBirth: character.placeOfBirth || '',
+          education: character.education || '',
+          workHistory: character.workHistory || '',
+        });
+      }
       setIsEditing(false);
     } else {
       setIsEditing(true);
@@ -715,11 +750,11 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
                   </div>
                 )}
                 
-                {character.strength && (
+                {(character.strengths || character.strength) && (
                   <div className="text-xs">
                     <Zap className="h-3 w-3 inline mr-1" />
                     <span className="font-medium">Strength:</span>
-                    <p className="mt-1 text-muted-foreground">{character.strength}</p>
+                    <p className="mt-1 text-muted-foreground">{character.strengths || character.strength}</p>
                   </div>
                 )}
               </>
