@@ -414,21 +414,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
               >
                 <Italic className="h-4 w-4" />
               </Button>
-              <Separator orientation="vertical" className="mx-1 h-6" />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleManualSave}
-                disabled={saveMutation.isPending || saveStatus === 'saving'}
-                data-testid="button-manual-save"
-              >
-                {saveMutation.isPending || saveStatus === 'saving' ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                Save Now
-              </Button>
             </div>
             
             {/* Quick Actions */}
