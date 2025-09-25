@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
@@ -12,6 +13,17 @@ import { FontFamily } from '@tiptap/extension-font-family';
 import { BulletList } from '@tiptap/extension-bullet-list';
 import { OrderedList } from '@tiptap/extension-ordered-list';
 import { ListItem } from '@tiptap/extension-list-item';
+import Image from '@tiptap/extension-image';
+import { Table as TiptapTable } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import Youtube from '@tiptap/extension-youtube';
+import Focus from '@tiptap/extension-focus';
+import Typography from '@tiptap/extension-typography';
+import { createLowlight } from 'lowlight';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +46,30 @@ import {
   AlignJustify,
   Palette,
   Highlighter,
-  Type
+  Type,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+  Undo,
+  Redo,
+  Image as ImageIcon,
+  Table as TableIcon,
+  Code,
+  Minus,
+  FileText,
+  Play,
+  Printer,
+  ZoomIn,
+  Eye as FocusIcon,
+  Download,
+  Video,
+  Hash,
+  Type as SpecialChar,
+  Mail,
+  Users
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -70,6 +105,64 @@ interface PinnedItem {
 export interface ManuscriptEditorRef {
   saveContent: () => Promise<void>;
 }
+
+// Custom FontSize extension - same as GuideEditor
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    fontSize: {
+      setFontSize: (size: string) => ReturnType
+      unsetFontSize: () => ReturnType
+    }
+  }
+}
+
+const FontSize = Extension.create({
+  name: 'fontSize',
+
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    }
+  },
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize.replace(/['"]+/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {}
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              }
+            },
+          },
+        },
+      },
+    ]
+  },
+
+  addCommands() {
+    return {
+      setFontSize: fontSize => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize: fontSize })
+          .run()
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize: null })
+          .removeEmptyTextStyle()
+          .run()
+      },
+    }
+  },
+});
 
 const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(({ manuscriptId, onBack }, ref) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,18 +202,21 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   });
 
   // Initialize TipTap editor
+  const lowlight = createLowlight();
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Disable built-in list extensions to use separate ones
+        // Disable built-in extensions we're replacing
         bulletList: false,
         orderedList: false,
         listItem: false,
-        // Disable built-in link to avoid conflicts
         link: false,
+        codeBlock: false,
       }),
       CharacterCount,
       TextStyle,
+      FontSize,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
@@ -158,6 +254,38 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
           class: 'bg-primary/10 text-primary px-1 py-0.5 rounded-md border border-primary/20',
         },
       }),
+      // New Media Extensions
+      Image.configure({
+        HTMLAttributes: {
+          class: 'rounded-lg max-w-full h-auto',
+        },
+      }),
+      TiptapTable.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      CodeBlockLowlight.configure({
+        lowlight,
+      }),
+      HorizontalRule.configure({
+        HTMLAttributes: {
+          class: 'my-4 border-border',
+        },
+      }),
+      Youtube.configure({
+        controls: false,
+        nocookie: true,
+        HTMLAttributes: {
+          class: 'rounded-lg my-4',
+        },
+      }),
+      Focus.configure({
+        className: 'has-focus',
+        mode: 'all',
+      }),
+      Typography,
     ],
     content: manuscript?.content || '',
     editorProps: {
@@ -483,6 +611,92 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
 
                 <Separator orientation="vertical" className="mx-1 h-6" />
 
+                {/* Headings */}
+                <Button
+                  variant={editor?.isActive('heading', { level: 1 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                  data-testid="button-h1"
+                  title="Heading 1"
+                >
+                  <Heading1 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('heading', { level: 2 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                  data-testid="button-h2"
+                  title="Heading 2"
+                >
+                  <Heading2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('heading', { level: 3 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                  data-testid="button-h3"
+                  title="Heading 3"
+                >
+                  <Heading3 className="h-4 w-4" />
+                </Button>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
+                {/* Font Size */}
+                <select
+                  className="px-2 py-1 text-sm border rounded-md bg-background min-w-16"
+                  onChange={(e) => {
+                    if (e.target.value === 'unset') {
+                      editor?.chain().focus().unsetFontSize().run();
+                    } else {
+                      editor?.chain().focus().setFontSize(e.target.value).run();
+                    }
+                  }}
+                  value={editor?.getAttributes('textStyle').fontSize || '12pt'}
+                  data-testid="select-font-size"
+                  title="Font Size"
+                >
+                  <option value="8pt">8pt</option>
+                  <option value="9pt">9pt</option>
+                  <option value="10pt">10pt</option>
+                  <option value="11pt">11pt</option>
+                  <option value="12pt">12pt</option>
+                  <option value="14pt">14pt</option>
+                  <option value="16pt">16pt</option>
+                  <option value="18pt">18pt</option>
+                  <option value="20pt">20pt</option>
+                  <option value="24pt">24pt</option>
+                  <option value="28pt">28pt</option>
+                  <option value="32pt">32pt</option>
+                  <option value="36pt">36pt</option>
+                </select>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
+                {/* Undo/Redo */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().undo().run()}
+                  disabled={!editor?.can().chain().focus().undo().run()}
+                  data-testid="button-undo"
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().redo().run()}
+                  disabled={!editor?.can().chain().focus().redo().run()}
+                  data-testid="button-redo"
+                  title="Redo (Ctrl+Y)"
+                >
+                  <Redo className="h-4 w-4" />
+                </Button>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
                 {/* Lists */}
                 <Button
                   variant={editor?.isActive('bulletList') ? 'default' : 'outline'}
@@ -543,6 +757,232 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                   title="Justify"
                 >
                   <AlignJustify className="h-4 w-4" />
+                </Button>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
+                {/* Media Insertion */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const url = prompt('Enter image URL:');
+                    if (url) {
+                      editor?.chain().focus().setImage({ src: url }).run();
+                    }
+                  }}
+                  data-testid="button-insert-image"
+                  title="Insert Image"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+                  }}
+                  data-testid="button-insert-table"
+                  title="Insert Table"
+                >
+                  <TableIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    editor?.chain().focus().toggleCodeBlock().run();
+                  }}
+                  data-testid="button-code-block"
+                  title="Code Block"
+                >
+                  <Code className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    editor?.chain().focus().setHorizontalRule().run();
+                  }}
+                  data-testid="button-horizontal-rule"
+                  title="Horizontal Rule"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const url = prompt('Enter YouTube URL:');
+                    if (url) {
+                      editor?.chain().focus().setYoutubeVideo({
+                        src: url,
+                        width: 640,
+                        height: 480,
+                      }).run();
+                    }
+                  }}
+                  data-testid="button-insert-video"
+                  title="Insert YouTube Video"
+                >
+                  <Video className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const footnoteText = prompt('Enter footnote text:');
+                    if (footnoteText) {
+                      const footnoteId = Date.now();
+                      const footnoteRef = `<sup><a href="#footnote-${footnoteId}" id="ref-${footnoteId}">${footnoteId}</a></sup>`;
+                      const footnote = `<div id="footnote-${footnoteId}" class="footnote" style="border-top: 1px solid #ccc; margin-top: 2rem; padding-top: 1rem; font-size: 0.875rem;"><p><a href="#ref-${footnoteId}">${footnoteId}.</a> ${footnoteText}</p></div>`;
+                      editor?.chain().focus().insertContent(footnoteRef).run();
+                      // Insert footnote at end of document
+                      editor?.commands.insertContentAt(editor.state.doc.content.size, footnote);
+                    }
+                  }}
+                  data-testid="button-insert-footnote"
+                  title="Insert Footnote"
+                >
+                  <Hash className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const specialChars = ['©', '®', '™', '§', '¶', '†', '‡', '•', '…', '"', '"', "'", "'", '—', '–', '½', '¼', '¾', '±', '×', '÷', '°', 'α', 'β', 'γ', 'δ', 'π', 'Σ', '∞'];
+                    const selectedChar = prompt('Select special character:\n' + specialChars.map((char, i) => (i + 1) + '. ' + char).join(' ') + '\n\nEnter character number or the character directly:');
+                    if (selectedChar) {
+                      const charIndex = parseInt(selectedChar) - 1;
+                      const charToInsert = (!isNaN(charIndex) && specialChars[charIndex]) ? specialChars[charIndex] : selectedChar;
+                      editor?.chain().focus().insertContent(charToInsert).run();
+                    }
+                  }}
+                  data-testid="button-special-chars"
+                  title="Insert Special Characters"
+                >
+                  <SpecialChar className="h-4 w-4" />
+                </Button>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
+                {/* Print, Zoom, Focus, Export */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.print()}
+                  data-testid="button-print"
+                  title="Print Document"
+                >
+                  <Printer className="h-4 w-4" />
+                </Button>
+                <select
+                  className="px-2 py-1 text-sm border rounded-md bg-background min-w-20"
+                  onChange={(e) => {
+                    const zoom = parseInt(e.target.value) / 100;
+                    const editorElement = document.querySelector('.ProseMirror');
+                    if (editorElement) {
+                      (editorElement as HTMLElement).style.transform = `scale(${zoom})`;
+                      (editorElement as HTMLElement).style.transformOrigin = 'top left';
+                    }
+                  }}
+                  defaultValue="100"
+                  data-testid="select-zoom"
+                  title="Zoom Level"
+                >
+                  <option value="50">50%</option>
+                  <option value="75">75%</option>
+                  <option value="100">100%</option>
+                  <option value="125">125%</option>
+                  <option value="150">150%</option>
+                  <option value="200">200%</option>
+                </select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const toolbar = document.querySelector('.border-b.bg-background\\/95');
+                    const sidebar = document.querySelector('[data-sidebar]');
+                    if (toolbar) {
+                      toolbar.classList.toggle('hidden');
+                    }
+                    if (sidebar) {
+                      sidebar.classList.toggle('hidden');
+                    }
+                  }}
+                  data-testid="button-focus-mode"
+                  title="Focus Mode"
+                >
+                  <FocusIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const exportOptions = [
+                      '1. Export as HTML',
+                      '2. Export as PDF (Preview)',
+                      '3. Export as DOCX (Preview)', 
+                      '4. Send via Email (Coming Soon)',
+                      '5. Share for Collaboration (Coming Soon)'
+                    ].join('\n');
+                    
+                    const choice = prompt(`Choose export option:\n\n${exportOptions}\n\nEnter option number (1-5):`);
+                    const content = editor?.getHTML() || '';
+                    const title = manuscript?.title || 'Untitled';
+                    
+                    switch(choice) {
+                      case '1':
+                        // HTML Export
+                        const htmlFile = new Blob([content], { type: 'text/html' });
+                        const htmlLink = document.createElement('a');
+                        htmlLink.href = URL.createObjectURL(htmlFile);
+                        htmlLink.download = `${title}.html`;
+                        htmlLink.click();
+                        break;
+                        
+                      case '2':
+                        // PDF Export (Preview)
+                        alert('PDF Export: This feature uses browser print-to-PDF.\nClick OK to open print dialog, then select "Save as PDF".');
+                        setTimeout(() => window.print(), 500);
+                        break;
+                        
+                      case '3':
+                        // DOCX Export (Preview)
+                        try {
+                          const textContent = editor?.getText() || '';
+                          const docxBlob = new Blob([`${title}\n\n${textContent}`], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                          const docxLink = document.createElement('a');
+                          docxLink.href = URL.createObjectURL(docxBlob);
+                          docxLink.download = `${title}.docx`;
+                          docxLink.click();
+                        } catch (error) {
+                          alert('DOCX Export: Feature in development. Using text export for now.');
+                          const textBlob = new Blob([editor?.getText() || ''], { type: 'text/plain' });
+                          const textLink = document.createElement('a');
+                          textLink.href = URL.createObjectURL(textBlob);
+                          textLink.download = `${title}.txt`;
+                          textLink.click();
+                        }
+                        break;
+                        
+                      case '4':
+                        alert('Email Export: Coming soon! This will allow you to email your document directly to recipients.');
+                        break;
+                        
+                      case '5':
+                        alert('Collaboration Sharing: Coming soon! This will generate shareable links for collaborative editing.');
+                        break;
+                        
+                      default:
+                        if (choice) alert('Invalid option selected. Please choose 1-5.');
+                        break;
+                    }
+                  }}
+                  data-testid="button-export"
+                  title="Export & Share Document"
+                >
+                  <Download className="h-4 w-4" />
                 </Button>
 
                 <Separator orientation="vertical" className="mx-1 h-6" />
