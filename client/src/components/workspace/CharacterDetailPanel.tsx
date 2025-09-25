@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { insertCharacterSchema } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import type { Character } from '@shared/schema';
 
@@ -26,7 +26,32 @@ interface CharacterDetailPanelProps {
   isCompact?: boolean;
 }
 
-type CharacterFormData = z.infer<typeof insertCharacterSchema>;
+// Custom form schema that handles nullable fields by making them optional strings
+const characterFormSchema = z.object({
+  givenName: z.string().optional().default(''),
+  familyName: z.string().optional().default(''),
+  nickname: z.string().optional().default(''),
+  age: z.string().optional().default(''),
+  gender: z.string().optional().default(''),
+  species: z.string().optional().default(''),
+  pronouns: z.string().optional().default(''),
+  occupation: z.string().optional().default(''),
+  currentLocation: z.string().optional().default(''),
+  description: z.string().optional().default(''),
+  backstory: z.string().optional().default(''),
+  personality: z.string().optional().default(''),
+  motivation: z.string().optional().default(''),
+  flaws: z.string().optional().default(''),
+  strengths: z.string().optional().default(''),
+});
+
+type CharacterFormData = z.infer<typeof characterFormSchema>;
+
+// Helper function to check if a string is a UUID
+function isUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
 
 const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false }: CharacterDetailPanelProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -39,24 +64,40 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
     enabled: !!characterId
   });
 
+  // Query to resolve profession UUID to name if occupation contains a UUID
+  const professionId = character?.occupation && isUUID(character.occupation) ? character.occupation : null;
+  const { data: professionName } = useQuery({
+    queryKey: ['/api/professions', professionId],
+    queryFn: async () => {
+      if (!professionId) return null;
+      const response = await fetch(`/api/professions/${professionId}`, {
+        headers: { 'X-User-Id': 'demo-user' }
+      });
+      if (!response.ok) return null;
+      const profession = await response.json();
+      return profession.name;
+    },
+    enabled: !!professionId,
+  });
+
   const form = useForm<CharacterFormData>({
-    resolver: zodResolver(insertCharacterSchema),
+    resolver: zodResolver(characterFormSchema),
     defaultValues: {
-      givenName: character?.givenName || '',
-      familyName: character?.familyName || '',
-      nickname: character?.nickname || '',
-      age: character?.age?.toString() || '',
-      gender: character?.gender || '',
-      species: character?.species || '',
-      pronouns: character?.pronouns || '',
-      occupation: character?.occupation || '',
-      currentLocation: character?.currentLocation || '',
-      description: character?.physicalDescription || '',
-      backstory: character?.backstory || '',
-      personality: Array.isArray(character?.personality) ? character.personality.join(', ') : character?.personality || '',
-      motivation: character?.motivation || '',
-      flaws: character?.flaw || '',
-      strengths: character?.strengths || '',
+      givenName: '',
+      familyName: '',
+      nickname: '',
+      age: '',
+      gender: '',
+      species: '',
+      pronouns: '',
+      occupation: '',
+      currentLocation: '',
+      description: '',
+      backstory: '',
+      personality: '',
+      motivation: '',
+      flaws: '',
+      strengths: '',
     }
   });
 
@@ -85,7 +126,26 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
 
   const updateCharacterMutation = useMutation({
     mutationFn: async (data: CharacterFormData) => {
-      return apiRequest('PATCH', `/api/characters/${characterId}`, data);
+      // Convert form data to backend format
+      const updateData: Partial<Character> = {
+        givenName: data.givenName || null,
+        familyName: data.familyName || null,
+        nickname: data.nickname || null,
+        age: data.age ? parseInt(data.age) || null : null,
+        gender: data.gender || null,
+        species: data.species || null,
+        pronouns: data.pronouns || null,
+        occupation: data.occupation || null,
+        currentLocation: data.currentLocation || null,
+        physicalDescription: data.description || null,
+        backstory: data.backstory || null,
+        personality: data.personality ? data.personality.split(',').map(s => s.trim()).filter(Boolean) : null,
+        motivation: data.motivation || null,
+        flaw: data.flaws || null,
+        strengths: data.strengths || null,
+      };
+      
+      return apiRequest('PATCH', `/api/characters/${characterId}`, updateData);
     },
     onSuccess: () => {
       toast({ title: 'Character updated successfully' });
@@ -159,7 +219,9 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
         <div>
           <CardTitle className="text-sm font-semibold">{getDisplayName(character)}</CardTitle>
           {character.occupation && (
-            <p className="text-xs text-muted-foreground">{character.occupation}</p>
+            <p className="text-xs text-muted-foreground">
+              {professionName || character.occupation}
+            </p>
           )}
         </div>
         <div className="flex items-center gap-1">

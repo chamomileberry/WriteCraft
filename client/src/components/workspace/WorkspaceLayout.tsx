@@ -92,7 +92,20 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
               <p className="text-sm text-muted-foreground">Content Reference</p>
               <div className="flex items-center gap-2 mt-2">
                 <button
-                  onClick={() => window.open(`/content/${panel.entityId}`, '_blank')}
+                  onClick={() => {
+                    // Check if this is a character reference by looking at the entity ID
+                    // and see if we can find it in the professions table (character references)
+                    // For now, assume all IDs that look like UUIDs for content references are characters
+                    const isCharacterReference = panel.entityId && panel.entityId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+                    
+                    if (isCharacterReference) {
+                      // This is likely a character reference, open character edit page
+                      window.open(`/characters/${panel.entityId}/edit`, '_blank');
+                    } else {
+                      // For other content types, try to determine correct route
+                      window.open(`/editor/content/${panel.entityId}`, '_blank');
+                    }
+                  }}
                   className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90"
                 >
                   View Full Content

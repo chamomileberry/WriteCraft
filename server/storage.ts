@@ -1264,6 +1264,19 @@ export class DatabaseStorage implements IStorage {
       });
 
       // Search characters - include all user characters
+      // First, search for professions that match the query
+      const matchingProfessions = await db.select().from(professions)
+        .where(
+          and(
+            eq(professions.userId, userId),
+            ilike(professions.name, `%${trimmedQuery}%`)
+          )
+        )
+        .limit(10);
+      
+      const professionIds = matchingProfessions.map(p => p.id);
+
+      // Search characters by name AND by profession UUIDs
       const characterResults = await db.select().from(characters)
         .where(
           and(
@@ -1271,7 +1284,9 @@ export class DatabaseStorage implements IStorage {
             or(
               ilike(characters.givenName, `%${trimmedQuery}%`),
               ilike(characters.familyName, `%${trimmedQuery}%`),
-              ilike(characters.occupation, `%${trimmedQuery}%`)
+              ilike(characters.occupation, `%${trimmedQuery}%`),
+              // Also search for characters whose occupation matches any of the matching profession IDs
+              ...(professionIds.length > 0 ? professionIds.map(profId => eq(characters.occupation, profId)) : [])
             )
           )
         )
