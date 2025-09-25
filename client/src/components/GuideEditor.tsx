@@ -3,6 +3,14 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import CharacterCount from '@tiptap/extension-character-count';
+import { TextStyle, FontSize } from '@tiptap/extension-text-style';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Color } from '@tiptap/extension-color';
+import { Highlight } from '@tiptap/extension-highlight';
+import { FontFamily } from '@tiptap/extension-font-family';
+import { BulletList } from '@tiptap/extension-bullet-list';
+import { OrderedList } from '@tiptap/extension-ordered-list';
+import { ListItem } from '@tiptap/extension-list-item';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,7 +26,22 @@ import {
   Save,
   ArrowLeft,
   Loader2,
-  Clock
+  Clock,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Palette,
+  Highlighter,
+  Type,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -70,10 +93,41 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Disable the built-in Link extension from StarterKit to avoid duplicate
+        // Disable built-in extensions that we'll replace
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
         link: false,
       }),
       CharacterCount,
+      TextStyle,
+      FontSize,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Color.configure({
+        types: ['textStyle'],
+      }),
+      Highlight.configure({
+        multicolor: true,
+        HTMLAttributes: {
+          class: 'my-custom-highlight',
+        },
+      }),
+      FontFamily.configure({
+        types: ['textStyle'],
+      }),
+      BulletList.configure({
+        HTMLAttributes: {
+          class: 'prose-ul',
+        },
+      }),
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: 'prose-ol',
+        },
+      }),
+      ListItem,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -85,6 +139,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     editorProps: {
       attributes: {
         class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
+        style: 'font-size: 12pt;', // Set default font size to 12pt
       },
     },
     onUpdate: ({ editor }) => {
@@ -254,6 +309,48 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     }
   };
 
+  // Header toggle functions
+  const toggleHeading = (level: 1 | 2 | 3 | 4 | 5 | 6) => {
+    editor?.chain().focus().toggleHeading({ level }).run();
+  };
+
+  // Text formatting functions
+  const toggleBulletList = () => {
+    editor?.chain().focus().toggleBulletList().run();
+  };
+
+  const toggleOrderedList = () => {
+    editor?.chain().focus().toggleOrderedList().run();
+  };
+
+  const toggleHighlight = () => {
+    editor?.chain().focus().toggleHighlight({ color: '#ffff00' }).run();
+  };
+
+  const setTextAlign = (alignment: 'left' | 'center' | 'right' | 'justify') => {
+    editor?.chain().focus().setTextAlign(alignment).run();
+  };
+
+  const setFontSize = (size: string) => {
+    editor?.chain().focus().setFontSize(size).run();
+  };
+
+  const setColor = (color: string) => {
+    editor?.chain().focus().setColor(color).run();
+  };
+
+  const setHighlightColor = (color: string) => {
+    editor?.chain().focus().setHighlight({ color }).run();
+  };
+
+  const setFontFamily = (fontFamily: string) => {
+    if (fontFamily === 'unset') {
+      editor?.chain().focus().unsetFontFamily().run();
+    } else {
+      editor?.chain().focus().setFontFamily(fontFamily).run();
+    }
+  };
+
   if (isLoadingGuide && currentGuideId !== 'new') {
     return (
       <div className="flex justify-center py-12">
@@ -405,43 +502,245 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         <CardHeader>
           <CardTitle>Content</CardTitle>
           
-          {/* Editor Toolbar */}
-          <div className="flex items-center gap-2 pt-2">
-            <Button
-              type="button"
-              variant={editor?.isActive('bold') ? 'default' : 'outline'}
-              size="sm"
-              onClick={toggleBold}
-              data-testid="button-bold"
-            >
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant={editor?.isActive('italic') ? 'default' : 'outline'}
-              size="sm"
-              onClick={toggleItalic}
-              data-testid="button-italic"
-            >
-              <Italic className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addLink}
-              data-testid="button-link"
-            >
-              <LinkIcon className="h-4 w-4" />
-            </Button>
-            
-            <Separator orientation="vertical" className="h-6" />
-            
-            {editor && (
-              <div className="text-sm text-muted-foreground">
-                {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
+          {/* Rich Text Toolbar */}
+          <div className="border-t bg-muted/20 p-2">
+            <div className="flex items-center gap-1 flex-wrap">
+              {/* Headers */}
+              <div className="flex items-center gap-1">
+                <Button
+                  variant={editor?.isActive('heading', { level: 1 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleHeading(1)}
+                  data-testid="button-h1"
+                  title="Heading 1"
+                >
+                  <Heading1 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('heading', { level: 2 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleHeading(2)}
+                  data-testid="button-h2"
+                  title="Heading 2"
+                >
+                  <Heading2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('heading', { level: 3 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleHeading(3)}
+                  data-testid="button-h3"
+                  title="Heading 3"
+                >
+                  <Heading3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('heading', { level: 4 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleHeading(4)}
+                  data-testid="button-h4"
+                  title="Heading 4"
+                >
+                  <Heading4 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('heading', { level: 5 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleHeading(5)}
+                  data-testid="button-h5"
+                  title="Heading 5"
+                >
+                  <Heading5 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('heading', { level: 6 }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleHeading(6)}
+                  data-testid="button-h6"
+                  title="Heading 6"
+                >
+                  <Heading6 className="h-4 w-4" />
+                </Button>
               </div>
-            )}
+
+              <Separator orientation="vertical" className="mx-1 h-6" />
+
+              {/* Basic Formatting */}
+              <Button
+                variant={editor?.isActive('bold') ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleBold}
+                data-testid="button-bold"
+                title="Bold"
+              >
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={editor?.isActive('italic') ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleItalic}
+                data-testid="button-italic"
+                title="Italic"
+              >
+                <Italic className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={editor?.isActive('highlight') ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleHighlight}
+                data-testid="button-highlight"
+                title="Highlight"
+              >
+                <Highlighter className="h-4 w-4" />
+              </Button>
+
+              <Separator orientation="vertical" className="mx-1 h-6" />
+
+              {/* Lists */}
+              <Button
+                variant={editor?.isActive('bulletList') ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleBulletList}
+                data-testid="button-bullet-list"
+                title="Bullet List"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={editor?.isActive('orderedList') ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleOrderedList}
+                data-testid="button-ordered-list"
+                title="Numbered List"
+              >
+                <ListOrdered className="h-4 w-4" />
+              </Button>
+
+              <Separator orientation="vertical" className="mx-1 h-6" />
+
+              {/* Text Alignment */}
+              <Button
+                variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTextAlign('left')}
+                data-testid="button-align-left"
+                title="Align Left"
+              >
+                <AlignLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTextAlign('center')}
+                data-testid="button-align-center"
+                title="Align Center"
+              >
+                <AlignCenter className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTextAlign('right')}
+                data-testid="button-align-right"
+                title="Align Right"
+              >
+                <AlignRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTextAlign('justify')}
+                data-testid="button-align-justify"
+                title="Justify"
+              >
+                <AlignJustify className="h-4 w-4" />
+              </Button>
+
+              <Separator orientation="vertical" className="mx-1 h-6" />
+
+              {/* Font Size */}
+              <Select
+                onValueChange={setFontSize}
+                value={editor?.getAttributes('textStyle').fontSize || '12pt'}
+              >
+                <SelectTrigger className="w-20 h-8" data-testid="select-font-size">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="8pt">8pt</SelectItem>
+                  <SelectItem value="10pt">10pt</SelectItem>
+                  <SelectItem value="12pt">12pt</SelectItem>
+                  <SelectItem value="14pt">14pt</SelectItem>
+                  <SelectItem value="16pt">16pt</SelectItem>
+                  <SelectItem value="18pt">18pt</SelectItem>
+                  <SelectItem value="20pt">20pt</SelectItem>
+                  <SelectItem value="24pt">24pt</SelectItem>
+                  <SelectItem value="28pt">28pt</SelectItem>
+                  <SelectItem value="32pt">32pt</SelectItem>
+                  <SelectItem value="36pt">36pt</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Font Family */}
+              <Select
+                onValueChange={setFontFamily}
+                value={editor?.getAttributes('textStyle').fontFamily || 'default'}
+              >
+                <SelectTrigger className="w-32 h-8" data-testid="select-font-family">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="Inter">Inter</SelectItem>
+                  <SelectItem value="serif">Times New Roman</SelectItem>
+                  <SelectItem value="Georgia">Georgia</SelectItem>
+                  <SelectItem value="Arial">Arial</SelectItem>
+                  <SelectItem value="Helvetica">Helvetica</SelectItem>
+                  <SelectItem value="monospace">Monospace</SelectItem>
+                  <SelectItem value="cursive">Cursive</SelectItem>
+                  <SelectItem value="unset">Reset Font</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Text Color */}
+              <input
+                type="color"
+                className="w-8 h-8 border rounded cursor-pointer"
+                onChange={(e) => setColor(e.target.value)}
+                value={editor?.getAttributes('textStyle').color || '#000000'}
+                data-testid="input-text-color"
+                title="Text Color"
+              />
+
+              {/* Highlight Color */}
+              <input
+                type="color"
+                className="w-8 h-8 border rounded cursor-pointer bg-yellow-200"
+                onChange={(e) => setHighlightColor(e.target.value)}
+                value={editor?.getAttributes('highlight').color || '#ffff00'}
+                data-testid="input-highlight-color"
+                title="Highlight Color"
+              />
+
+              {/* Link */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addLink}
+                data-testid="button-link"
+                title="Add Link"
+              >
+                <LinkIcon className="h-4 w-4" />
+              </Button>
+
+              <Separator orientation="vertical" className="mx-1 h-6" />
+              
+              {editor && (
+                <div className="text-sm text-muted-foreground ml-2">
+                  {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
         
