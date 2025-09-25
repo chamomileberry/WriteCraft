@@ -9,6 +9,7 @@ import SearchPage from "@/pages/SearchPage";
 import GeneratorsPage from "@/pages/GeneratorsPage";
 import GuidesPage from "@/pages/GuidesPage";
 import GuideDetail from "@/pages/GuideDetail";
+import GuideEditPage from "@/pages/GuideEditPage";
 import CharacterPage from "@/pages/CharacterPage";
 import CharacterEditPage from "@/pages/CharacterEditPage";
 import CharacterEditPageWithSidebar from "@/pages/CharacterEditPageWithSidebar";
@@ -72,6 +73,8 @@ function Router() {
       <Route path="/search" component={SearchPage} />
       <Route path="/generators" component={GeneratorsPage} />
       <Route path="/guides" component={GuidesPage} />
+      <Route path="/guides/new" component={GuideEditPage} />
+      <Route path="/guides/:id/edit" component={GuideEditPage} />
       <Route path="/notebook" component={NotebookPage} />
       <Route path="/manuscripts" component={ManuscriptPage} />
       <Route path="/manuscripts/:id/edit" component={ManuscriptEditPage} />
