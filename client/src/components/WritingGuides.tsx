@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Clock, Star, Search, Filter, Loader2 } from "lucide-react";
+import { BookOpen, Clock, Star, Search, Filter, Loader2, Plus, Edit3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import type { Guide } from "@shared/schema";
@@ -47,6 +47,14 @@ export default function WritingGuides() {
     setLocation(`/guides/${guideId}`);
   };
 
+  const handleNewGuide = () => {
+    setLocation('/guides/new');
+  };
+
+  const handleEditGuide = (guideId: string) => {
+    setLocation(`/guides/${guideId}/edit`);
+  };
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Beginner': return 'bg-chart-4/10 text-chart-4';
@@ -59,11 +67,19 @@ export default function WritingGuides() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-serif font-bold">Writing Guides & Resources</h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Expert advice and comprehensive guides to help you master the craft of writing
-        </p>
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-center sm:text-left">
+            <h2 className="text-3xl font-serif font-bold">Writing Guides & Resources</h2>
+            <p className="text-muted-foreground max-w-2xl">
+              Expert advice and comprehensive guides to help you master the craft of writing
+            </p>
+          </div>
+          <Button onClick={handleNewGuide} data-testid="button-new-guide">
+            <Plus className="h-4 w-4 mr-2" />
+            New Guide
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -180,14 +196,23 @@ export default function WritingGuides() {
                 ))}
               </div>
               
-              <Button 
-                onClick={() => handleReadGuide(guide.id)}
-                className="w-full"
-                data-testid={`button-read-guide-${guide.id}`}
-              >
-                <BookOpen className="mr-2 h-4 w-4" />
-                Read Guide
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleReadGuide(guide.id)}
+                  className="flex-1"
+                  data-testid={`button-read-guide-${guide.id}`}
+                >
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Read
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleEditGuide(guide.id)}
+                  data-testid={`button-edit-guide-${guide.id}`}
+                >
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
