@@ -14,56 +14,23 @@ import {
   insertThemeSchema,
   insertMoodSchema,
   insertCreatureSchema,
-  insertPlantSchema,
-  insertDescriptionSchema,
   insertLocationSchema,
   insertItemSchema,
   insertOrganizationSchema,
   insertSpeciesSchema,
-  insertEthnicitySchema,
   insertCultureSchema,
   insertDocumentSchema,
   insertFoodSchema,
-  insertDrinkSchema,
   insertWeaponSchema,
-  insertArmorSchema,
   insertReligionSchema,
   insertLanguageSchema,
-  insertAccessorySchema,
-  insertClothingSchema,
-  insertMaterialSchema,
-  insertSettlementSchema,
-  insertSocietySchema,
-  insertFactionSchema,
-  insertMilitaryUnitSchema,
-  insertMythSchema,
-  insertLegendSchema,
-  insertEventSchema,
   insertTechnologySchema,
-  insertSpellSchema,
-  insertResourceSchema,
-  insertBuildingSchema,
-  insertAnimalSchema,
-  insertTransportationSchema,
-  insertNaturalLawSchema,
-  insertTraditionSchema,
-  insertRitualSchema,
-  insertFamilyTreeSchema,
-  insertTimelineSchema,
-  insertCeremonySchema,
-  insertMapSchema,
-  insertMusicSchema,
-  insertDanceSchema,
-  insertLawSchema,
-  insertPolicySchema,
-  insertPotionSchema,
   insertProfessionSchema,
   insertManuscriptSchema,
   insertManuscriptLinkSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePlantWithAI, generatePromptWithAI, generateDescriptionWithAI, generateCharacterFieldWithAI } from "./ai-generation";
-import { ALL_DESCRIPTION_TYPES } from "./genres";
+import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePromptWithAI, generateCharacterFieldWithAI } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -369,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const count = parseInt(req.query.count as string) || 5;
       const genre = req.query.genre as string;
-      const prompts = await storage.getRandomPrompts(count, genre);
+      const prompts = await storage.getRandomPrompts(count);
       res.json(prompts);
     } catch (error) {
       console.error('Error fetching random prompts:', error);
@@ -541,6 +508,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/settings/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const settings = await storage.getUserSettings(userId);
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+  });
+
+  app.get("/api/settings/:id", async (req, res) => {
+    try {
+      const setting = await storage.getSetting(req.params.id);
+      if (!setting) {
+        return res.status(404).json({ error: 'Setting not found' });
+      }
+      res.json(setting);
+    } catch (error) {
+      console.error('Error fetching setting:', error);
+      res.status(500).json({ error: 'Failed to fetch setting' });
+    }
+  });
+
   // Creature generator routes
   app.post("/api/creatures/generate", async (req, res) => {
     try {
@@ -605,144 +596,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Plant generator routes
-  app.post("/api/plants/generate", async (req, res) => {
+  app.patch("/api/creatures/:id", async (req, res) => {
     try {
-      const generateRequestSchema = z.object({
-        genre: z.string().optional(),
-        type: z.string().optional(),
-        userId: z.string().nullable().optional()
-      });
-      
-      const { genre, type, userId } = generateRequestSchema.parse(req.body);
-      
-      // Use AI generation
-      const aiPlant = await generatePlantWithAI({ genre, type });
-      
-      const plant = {
-        name: aiPlant.name,
-        scientificName: aiPlant.scientificName,
-        type: aiPlant.type,
-        description: aiPlant.description,
-        characteristics: aiPlant.characteristics,
-        habitat: aiPlant.habitat,
-        careInstructions: aiPlant.careInstructions,
-        bloomingSeason: aiPlant.bloomingSeason,
-        hardinessZone: aiPlant.hardinessZone,
-        genre: genre || null,
-        userId: userId || null
-      };
-
-      // Validate the generated plant data before saving
-      const validatedPlant = insertPlantSchema.parse(plant);
-      const savedPlant = await storage.createPlant(validatedPlant);
-      res.json(savedPlant);
+      const updates = insertCreatureSchema.partial().parse(req.body);
+      const updatedCreature = await storage.updateCreature(req.params.id, updates);
+      res.json(updatedCreature);
     } catch (error) {
-      console.error('Error generating plant:', error);
+      console.error('Error updating creature:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      res.status(500).json({ error: errorMessage });
-    }
-  });
-
-  app.get("/api/plants/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const plants = await storage.getUserPlants(userId);
-      res.json(plants);
-    } catch (error) {
-      console.error('Error fetching plants:', error);
-      res.status(500).json({ error: 'Failed to fetch plants' });
-    }
-  });
-
-  app.get("/api/plants/:id", async (req, res) => {
-    try {
-      const plant = await storage.getPlant(req.params.id);
-      if (!plant) {
-        return res.status(404).json({ error: 'Plant not found' });
-      }
-      res.json(plant);
-    } catch (error) {
-      console.error('Error fetching plant:', error);
-      res.status(500).json({ error: 'Failed to fetch plant' });
-    }
-  });
-
-  // Description generator routes
-  app.post("/api/descriptions/generate", async (req, res) => {
-    try {
-      const generateRequestSchema = z.object({
-        descriptionType: z.enum(ALL_DESCRIPTION_TYPES as [string, ...string[]]),
-        genre: z.string().optional(),
-        userId: z.string().nullable().optional()
-      });
-      
-      const { descriptionType, genre, userId } = generateRequestSchema.parse(req.body);
-      
-      // Use AI generation
-      const aiDescription = await generateDescriptionWithAI({ descriptionType, genre });
-      
-      const description = {
-        title: aiDescription.title,
-        content: aiDescription.content,
-        descriptionType,
-        genre: genre || null,
-        tags: aiDescription.tags || [],
-        userId: userId || null
-      };
-
-      // Validate the generated description data before saving
-      const validatedDescription = insertDescriptionSchema.parse(description);
-      const savedDescription = await storage.createDescription(validatedDescription);
-      res.json(savedDescription);
-    } catch (error) {
-      console.error('Error generating description:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      res.status(500).json({ error: errorMessage });
-    }
-  });
-
-  app.post("/api/descriptions", async (req, res) => {
-    try {
-      const validatedDescription = insertDescriptionSchema.parse(req.body);
-      const savedDescription = await storage.createDescription(validatedDescription);
-      res.json(savedDescription);
-    } catch (error) {
-      console.error('Error saving description:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save description' });
-    }
-  });
-
-  app.get("/api/descriptions/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const descriptions = await storage.getUserDescriptions(userId);
-      res.json(descriptions);
-    } catch (error) {
-      console.error('Error fetching descriptions:', error);
-      res.status(500).json({ error: 'Failed to fetch descriptions' });
-    }
-  });
-
-  app.get("/api/descriptions/:id", async (req, res) => {
-    try {
-      const description = await storage.getDescription(req.params.id);
-      if (!description) {
-        return res.status(404).json({ error: 'Description not found' });
-      }
-      res.json(description);
-    } catch (error) {
-      console.error('Error fetching description:', error);
-      res.status(500).json({ error: 'Failed to fetch description' });
+      res.status(500).json({ error: 'Failed to update creature' });
     }
   });
 
@@ -763,8 +627,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId || null
       }));
 
-      const validatedNames = namesList.map(name => insertNameSchema.parse(name));
-      const savedNames = await storage.createNames(validatedNames);
+      // Create individual names using createName
+      const savedNames = [];
+      for (const name of namesList) {
+        const validatedName = insertNameSchema.parse(name);
+        const savedName = await storage.createName(validatedName);
+        savedNames.push(savedName);
+      }
+      
       res.json(savedNames);
     } catch (error) {
       console.error('Error generating names:', error);
@@ -778,8 +648,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/names", async (req, res) => {
     try {
       const { names } = req.body;
-      const validatedNames = names.map((name: any) => insertNameSchema.parse(name));
-      const savedNames = await storage.createNames(validatedNames);
+      const savedNames = [];
+      for (const name of names) {
+        const validatedName = insertNameSchema.parse(name);
+        const savedName = await storage.createName(validatedName);
+        savedNames.push(savedName);
+      }
       res.json(savedNames);
     } catch (error) {
       console.error('Error saving names:', error);
@@ -787,6 +661,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save names' });
+    }
+  });
+
+  app.get("/api/names/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const names = await storage.getUserNames(userId);
+      res.json(names);
+    } catch (error) {
+      console.error('Error fetching names:', error);
+      res.status(500).json({ error: 'Failed to fetch names' });
+    }
+  });
+
+  app.get("/api/names/:id", async (req, res) => {
+    try {
+      const name = await storage.getName(req.params.id);
+      if (!name) {
+        return res.status(404).json({ error: 'Name not found' });
+      }
+      res.json(name);
+    } catch (error) {
+      console.error('Error fetching name:', error);
+      res.status(500).json({ error: 'Failed to fetch name' });
     }
   });
 
@@ -839,6 +737,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/conflicts/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const conflicts = await storage.getUserConflicts(userId);
+      res.json(conflicts);
+    } catch (error) {
+      console.error('Error fetching conflicts:', error);
+      res.status(500).json({ error: 'Failed to fetch conflicts' });
+    }
+  });
+
+  app.get("/api/conflicts/:id", async (req, res) => {
+    try {
+      const conflict = await storage.getConflict(req.params.id);
+      if (!conflict) {
+        return res.status(404).json({ error: 'Conflict not found' });
+      }
+      res.json(conflict);
+    } catch (error) {
+      console.error('Error fetching conflict:', error);
+      res.status(500).json({ error: 'Failed to fetch conflict' });
+    }
+  });
+
   // Theme generator routes
   app.post("/api/themes/generate", async (req, res) => {
     try {
@@ -887,6 +809,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/themes/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const themes = await storage.getUserThemes(userId);
+      res.json(themes);
+    } catch (error) {
+      console.error('Error fetching themes:', error);
+      res.status(500).json({ error: 'Failed to fetch themes' });
+    }
+  });
+
+  app.get("/api/themes/:id", async (req, res) => {
+    try {
+      const theme = await storage.getTheme(req.params.id);
+      if (!theme) {
+        return res.status(404).json({ error: 'Theme not found' });
+      }
+      res.json(theme);
+    } catch (error) {
+      console.error('Error fetching theme:', error);
+      res.status(500).json({ error: 'Failed to fetch theme' });
+    }
+  });
+
   // Mood generator routes
   app.post("/api/moods/generate", async (req, res) => {
     try {
@@ -931,6 +877,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save mood' });
+    }
+  });
+
+  app.get("/api/moods/user/:userId?", async (req, res) => {
+    try {
+      const userId = req.params.userId || null;
+      const moods = await storage.getUserMoods(userId);
+      res.json(moods);
+    } catch (error) {
+      console.error('Error fetching moods:', error);
+      res.status(500).json({ error: 'Failed to fetch moods' });
+    }
+  });
+
+  app.get("/api/moods/:id", async (req, res) => {
+    try {
+      const mood = await storage.getMood(req.params.id);
+      if (!mood) {
+        return res.status(404).json({ error: 'Mood not found' });
+      }
+      res.json(mood);
+    } catch (error) {
+      console.error('Error fetching mood:', error);
+      res.status(500).json({ error: 'Failed to fetch mood' });
     }
   });
 
@@ -1026,11 +996,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/manuscripts/:id", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const manuscript = await storage.getManuscript(req.params.id, userId);
+      
+      if (!manuscript) {
+        return res.status(404).json({ error: 'Manuscript not found' });
+      }
+      res.json(manuscript);
+    } catch (error) {
+      console.error('Error fetching manuscript:', error);
+      res.status(500).json({ error: 'Failed to fetch manuscript' });
+    }
+  });
+
+  app.put("/api/manuscripts/:id", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const manuscriptData = { ...req.body, userId };
+      
+      const validatedUpdates = insertManuscriptSchema.partial().parse(manuscriptData);
+      const updatedManuscript = await storage.updateManuscript(req.params.id, userId, validatedUpdates);
+      res.json(updatedManuscript);
+    } catch (error) {
+      console.error('Error updating manuscript:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update manuscript' });
+    }
+  });
+
   app.delete("/api/manuscripts/:id", async (req, res) => {
     try {
       const userId = req.headers['x-user-id'] as string || 'demo-user';
       await storage.deleteManuscript(req.params.id, userId);
-      res.status(204).send();
+      res.json({ success: true });
     } catch (error) {
       console.error('Error deleting manuscript:', error);
       res.status(500).json({ error: 'Failed to delete manuscript' });
@@ -1152,49 +1154,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/manuscripts/:id", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const manuscript = await storage.getManuscript(req.params.id, userId);
-      
-      if (!manuscript) {
-        return res.status(404).json({ error: 'Manuscript not found' });
-      }
-      res.json(manuscript);
-    } catch (error) {
-      console.error('Error fetching manuscript:', error);
-      res.status(500).json({ error: 'Failed to fetch manuscript' });
-    }
-  });
-
-  app.put("/api/manuscripts/:id", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const manuscriptData = { ...req.body, userId };
-      
-      const validatedUpdates = insertManuscriptSchema.partial().parse(manuscriptData);
-      const updatedManuscript = await storage.updateManuscript(req.params.id, userId, validatedUpdates);
-      res.json(updatedManuscript);
-    } catch (error) {
-      console.error('Error updating manuscript:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update manuscript' });
-    }
-  });
-
-  app.delete("/api/manuscripts/:id", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      await storage.deleteManuscript(req.params.id, userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting manuscript:', error);
-      res.status(500).json({ error: 'Failed to delete manuscript' });
-    }
-  });
-
   // Manuscript Links endpoints
   app.get("/api/manuscripts/:id/links", async (req, res) => {
     try {
@@ -1225,33 +1184,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(newLink);
     } catch (error) {
       console.error('Error creating manuscript link:', error);
-      if (error.name === 'ZodError') {
+      if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid link data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to create manuscript link' });
-    }
-  });
-
-  app.put("/api/manuscript-links/:id", async (req, res) => {
-    try {
-      const linkId = req.params.id;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      
-      // Validate the request body and omit fields that shouldn't be updated
-      const allowedFields = insertManuscriptLinkSchema.omit({ 
-        sourceId: true, 
-        userId: true 
-      });
-      const validatedData = allowedFields.partial().parse(req.body);
-      
-      const updatedLink = await storage.updateManuscriptLink(linkId, validatedData, userId);
-      res.json(updatedLink);
-    } catch (error) {
-      console.error('Error updating manuscript link:', error);
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: 'Invalid link data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update manuscript link' });
     }
   });
 
@@ -1265,21 +1201,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting manuscript link:', error);
       res.status(500).json({ error: 'Failed to delete manuscript link' });
-    }
-  });
-
-  // Backlinks endpoint - get all links pointing to a specific content item
-  app.get("/api/content/:type/:id/backlinks", async (req, res) => {
-    try {
-      const contentType = req.params.type;
-      const contentId = req.params.id;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      
-      const backlinks = await storage.getBacklinks(contentType, contentId, userId);
-      res.json(backlinks);
-    } catch (error) {
-      console.error('Error fetching backlinks:', error);
-      res.status(500).json({ error: 'Failed to fetch backlinks' });
     }
   });
 
@@ -1302,7 +1223,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add general locations endpoint with search support
   app.get("/api/locations", async (req, res) => {
     try {
       const search = req.query.search as string;
@@ -1348,6 +1268,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/locations/:id", async (req, res) => {
+    try {
+      const updates = insertLocationSchema.partial().parse(req.body);
+      const updatedLocation = await storage.updateLocation(req.params.id, updates);
+      res.json(updatedLocation);
+    } catch (error) {
+      console.error('Error updating location:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update location' });
+    }
+  });
+
+  app.delete("/api/locations/:id", async (req, res) => {
+    try {
+      await storage.deleteLocation(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      res.status(500).json({ error: 'Failed to delete location' });
+    }
+  });
+
   // Species routes
   app.post("/api/species", async (req, res) => {
     try {
@@ -1367,7 +1311,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add general species endpoint with search support
   app.get("/api/species", async (req, res) => {
     try {
       const search = req.query.search as string;
@@ -1413,6 +1356,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/species/:id", async (req, res) => {
+    try {
+      const updates = insertSpeciesSchema.partial().parse(req.body);
+      const updatedSpecies = await storage.updateSpecies(req.params.id, updates);
+      res.json(updatedSpecies);
+    } catch (error) {
+      console.error('Error updating species:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update species' });
+    }
+  });
+
+  app.delete("/api/species/:id", async (req, res) => {
+    try {
+      await storage.deleteSpecies(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting species:', error);
+      res.status(500).json({ error: 'Failed to delete species' });
+    }
+  });
+
   // Organizations routes  
   app.post("/api/organizations", async (req, res) => {
     try {
@@ -1432,7 +1399,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add general organizations endpoint with search support
   app.get("/api/organizations", async (req, res) => {
     try {
       const search = req.query.search as string;
@@ -1478,59 +1444,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PATCH and DELETE routes for existing content types
-  
-  // Location PATCH and DELETE
-  app.patch("/api/locations/:id", async (req, res) => {
-    try {
-      const updates = insertLocationSchema.partial().parse(req.body);
-      const updatedLocation = await storage.updateLocation(req.params.id, updates);
-      res.json(updatedLocation);
-    } catch (error) {
-      console.error('Error updating location:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update location' });
-    }
-  });
-
-  app.delete("/api/locations/:id", async (req, res) => {
-    try {
-      await storage.deleteLocation(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting location:', error);
-      res.status(500).json({ error: 'Failed to delete location' });
-    }
-  });
-
-  // Species PATCH and DELETE
-  app.patch("/api/species/:id", async (req, res) => {
-    try {
-      const updates = insertSpeciesSchema.partial().parse(req.body);
-      const updatedSpecies = await storage.updateSpecies(req.params.id, updates);
-      res.json(updatedSpecies);
-    } catch (error) {
-      console.error('Error updating species:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update species' });
-    }
-  });
-
-  app.delete("/api/species/:id", async (req, res) => {
-    try {
-      await storage.deleteSpecies(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting species:', error);
-      res.status(500).json({ error: 'Failed to delete species' });
-    }
-  });
-
-  // Organization PATCH and DELETE
   app.patch("/api/organizations/:id", async (req, res) => {
     try {
       const updates = insertOrganizationSchema.partial().parse(req.body);
@@ -1567,6 +1480,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save item' });
+    }
+  });
+
+  app.get("/api/items", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const items = await storage.getUserItems(userId);
+      
+      if (search) {
+        const filtered = items.filter(item =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(items);
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      res.status(500).json({ error: 'Failed to fetch items' });
     }
   });
 
@@ -1618,77 +1551,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Ethnicities routes
-  app.post("/api/ethnicities", async (req, res) => {
-    try {
-      const validatedEthnicity = insertEthnicitySchema.parse(req.body);
-      const savedEthnicity = await storage.createEthnicity(validatedEthnicity);
-      res.json(savedEthnicity);
-    } catch (error) {
-      console.error('Error saving ethnicity:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save ethnicity' });
-    }
-  });
-
-  app.get("/api/ethnicities/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const ethnicities = await storage.getUserEthnicities(userId);
-      res.json(ethnicities);
-    } catch (error) {
-      console.error('Error fetching ethnicities:', error);
-      res.status(500).json({ error: 'Failed to fetch ethnicities' });
-    }
-  });
-
-  app.get("/api/ethnicities/:id", async (req, res) => {
-    try {
-      const ethnicity = await storage.getEthnicity(req.params.id);
-      if (!ethnicity) {
-        return res.status(404).json({ error: 'Ethnicity not found' });
-      }
-      res.json(ethnicity);
-    } catch (error) {
-      console.error('Error fetching ethnicity:', error);
-      res.status(500).json({ error: 'Failed to fetch ethnicity' });
-    }
-  });
-
-  app.patch("/api/ethnicities/:id", async (req, res) => {
-    try {
-      const updates = insertEthnicitySchema.partial().parse(req.body);
-      const updatedEthnicity = await storage.updateEthnicity(req.params.id, updates);
-      res.json(updatedEthnicity);
-    } catch (error) {
-      console.error('Error updating ethnicity:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update ethnicity' });
-    }
-  });
-
-  app.delete("/api/ethnicities/:id", async (req, res) => {
-    try {
-      await storage.deleteEthnicity(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting ethnicity:', error);
-      res.status(500).json({ error: 'Failed to delete ethnicity' });
-    }
-  });
-
-  // Cultures routes
+  // Culture routes
   app.post("/api/cultures", async (req, res) => {
     try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const cultureData = { ...req.body, userId };
-      
-      const validatedCulture = insertCultureSchema.parse(cultureData);
+      const validatedCulture = insertCultureSchema.parse(req.body);
       const savedCulture = await storage.createCulture(validatedCulture);
       res.json(savedCulture);
     } catch (error) {
@@ -1700,7 +1566,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add general cultures endpoint with search support
   app.get("/api/cultures", async (req, res) => {
     try {
       const search = req.query.search as string;
@@ -1708,9 +1573,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cultures = await storage.getUserCultures(userId);
       
       if (search) {
-        // Filter cultures by name (case-insensitive)
-        const filtered = cultures.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
+        const filtered = cultures.filter(culture =>
+          culture.name?.toLowerCase().includes(search.toLowerCase())
         );
         res.json(filtered);
       } else {
@@ -1770,7 +1634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Documents routes
+  // Document routes
   app.post("/api/documents", async (req, res) => {
     try {
       const validatedDocument = insertDocumentSchema.parse(req.body);
@@ -1782,6 +1646,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save document' });
+    }
+  });
+
+  app.get("/api/documents", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const documents = await storage.getUserDocuments(userId);
+      
+      if (search) {
+        const filtered = documents.filter(document =>
+          document.title?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(documents);
+      }
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      res.status(500).json({ error: 'Failed to fetch documents' });
     }
   });
 
@@ -1833,7 +1717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Foods routes
+  // Food routes
   app.post("/api/foods", async (req, res) => {
     try {
       const validatedFood = insertFoodSchema.parse(req.body);
@@ -1845,6 +1729,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save food' });
+    }
+  });
+
+  app.get("/api/foods", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const foods = await storage.getUserFoods(userId);
+      
+      if (search) {
+        const filtered = foods.filter(food =>
+          food.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(foods);
+      }
+    } catch (error) {
+      console.error('Error fetching foods:', error);
+      res.status(500).json({ error: 'Failed to fetch foods' });
     }
   });
 
@@ -1896,733 +1800,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Drinks routes
-  app.post("/api/drinks", async (req, res) => {
-    try {
-      const validatedDrink = insertDrinkSchema.parse(req.body);
-      const savedDrink = await storage.createDrink(validatedDrink);
-      res.json(savedDrink);
-    } catch (error) {
-      console.error('Error saving drink:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save drink' });
-    }
-  });
-
-  app.get("/api/drinks/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const drinks = await storage.getUserDrinks(userId);
-      res.json(drinks);
-    } catch (error) {
-      console.error('Error fetching drinks:', error);
-      res.status(500).json({ error: 'Failed to fetch drinks' });
-    }
-  });
-
-  app.get("/api/drinks/:id", async (req, res) => {
-    try {
-      const drink = await storage.getDrink(req.params.id);
-      if (!drink) {
-        return res.status(404).json({ error: 'Drink not found' });
-      }
-      res.json(drink);
-    } catch (error) {
-      console.error('Error fetching drink:', error);
-      res.status(500).json({ error: 'Failed to fetch drink' });
-    }
-  });
-
-  app.patch("/api/drinks/:id", async (req, res) => {
-    try {
-      const updates = insertDrinkSchema.partial().parse(req.body);
-      const updatedDrink = await storage.updateDrink(req.params.id, updates);
-      res.json(updatedDrink);
-    } catch (error) {
-      console.error('Error updating drink:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update drink' });
-    }
-  });
-
-  app.delete("/api/drinks/:id", async (req, res) => {
-    try {
-      await storage.deleteDrink(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting drink:', error);
-      res.status(500).json({ error: 'Failed to delete drink' });
-    }
-  });
-
-  // Weapons routes
-  app.post("/api/weapons", async (req, res) => {
-    try {
-      const validatedWeapon = insertWeaponSchema.parse(req.body);
-      const savedWeapon = await storage.createWeapon(validatedWeapon);
-      res.json(savedWeapon);
-    } catch (error) {
-      console.error('Error saving weapon:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save weapon' });
-    }
-  });
-
-  app.get("/api/weapons/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const weapons = await storage.getUserWeapons(userId);
-      res.json(weapons);
-    } catch (error) {
-      console.error('Error fetching weapons:', error);
-      res.status(500).json({ error: 'Failed to fetch weapons' });
-    }
-  });
-
-  app.get("/api/weapons/:id", async (req, res) => {
-    try {
-      const weapon = await storage.getWeapon(req.params.id);
-      if (!weapon) {
-        return res.status(404).json({ error: 'Weapon not found' });
-      }
-      res.json(weapon);
-    } catch (error) {
-      console.error('Error fetching weapon:', error);
-      res.status(500).json({ error: 'Failed to fetch weapon' });
-    }
-  });
-
-  app.patch("/api/weapons/:id", async (req, res) => {
-    try {
-      const updates = insertWeaponSchema.partial().parse(req.body);
-      const updatedWeapon = await storage.updateWeapon(req.params.id, updates);
-      res.json(updatedWeapon);
-    } catch (error) {
-      console.error('Error updating weapon:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update weapon' });
-    }
-  });
-
-  app.delete("/api/weapons/:id", async (req, res) => {
-    try {
-      await storage.deleteWeapon(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting weapon:', error);
-      res.status(500).json({ error: 'Failed to delete weapon' });
-    }
-  });
-
-  // Armor routes
-  app.post("/api/armor", async (req, res) => {
-    try {
-      const validatedArmor = insertArmorSchema.parse(req.body);
-      const savedArmor = await storage.createArmor(validatedArmor);
-      res.json(savedArmor);
-    } catch (error) {
-      console.error('Error saving armor:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save armor' });
-    }
-  });
-
-  app.get("/api/armor/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const armor = await storage.getUserArmor(userId);
-      res.json(armor);
-    } catch (error) {
-      console.error('Error fetching armor:', error);
-      res.status(500).json({ error: 'Failed to fetch armor' });
-    }
-  });
-
-  app.get("/api/armor/:id", async (req, res) => {
-    try {
-      const armor = await storage.getArmor(req.params.id);
-      if (!armor) {
-        return res.status(404).json({ error: 'Armor not found' });
-      }
-      res.json(armor);
-    } catch (error) {
-      console.error('Error fetching armor:', error);
-      res.status(500).json({ error: 'Failed to fetch armor' });
-    }
-  });
-
-  app.patch("/api/armor/:id", async (req, res) => {
-    try {
-      const updates = insertArmorSchema.partial().parse(req.body);
-      const updatedArmor = await storage.updateArmor(req.params.id, updates);
-      res.json(updatedArmor);
-    } catch (error) {
-      console.error('Error updating armor:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update armor' });
-    }
-  });
-
-  app.delete("/api/armor/:id", async (req, res) => {
-    try {
-      await storage.deleteArmor(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting armor:', error);
-      res.status(500).json({ error: 'Failed to delete armor' });
-    }
-  });
-
-  // Accessories routes
-  app.post("/api/accessories", async (req, res) => {
-    try {
-      const validatedAccessory = insertAccessorySchema.parse(req.body);
-      const savedAccessory = await storage.createAccessory(validatedAccessory);
-      res.json(savedAccessory);
-    } catch (error) {
-      console.error('Error saving accessory:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save accessory' });
-    }
-  });
-
-  app.get("/api/accessories/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const accessories = await storage.getUserAccessories(userId);
-      res.json(accessories);
-    } catch (error) {
-      console.error('Error fetching accessories:', error);
-      res.status(500).json({ error: 'Failed to fetch accessories' });
-    }
-  });
-
-  app.get("/api/accessories/:id", async (req, res) => {
-    try {
-      const accessory = await storage.getAccessory(req.params.id);
-      if (!accessory) {
-        return res.status(404).json({ error: 'Accessory not found' });
-      }
-      res.json(accessory);
-    } catch (error) {
-      console.error('Error fetching accessory:', error);
-      res.status(500).json({ error: 'Failed to fetch accessory' });
-    }
-  });
-
-  app.patch("/api/accessories/:id", async (req, res) => {
-    try {
-      const updates = insertAccessorySchema.partial().parse(req.body);
-      const updatedAccessory = await storage.updateAccessory(req.params.id, updates);
-      res.json(updatedAccessory);
-    } catch (error) {
-      console.error('Error updating accessory:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update accessory' });
-    }
-  });
-
-  app.delete("/api/accessories/:id", async (req, res) => {
-    try {
-      await storage.deleteAccessory(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting accessory:', error);
-      res.status(500).json({ error: 'Failed to delete accessory' });
-    }
-  });
-
-  // Clothing routes
-  app.post("/api/clothing", async (req, res) => {
-    try {
-      const validatedClothing = insertClothingSchema.parse(req.body);
-      const savedClothing = await storage.createClothing(validatedClothing);
-      res.json(savedClothing);
-    } catch (error) {
-      console.error('Error saving clothing:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save clothing' });
-    }
-  });
-
-  app.get("/api/clothing/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const clothing = await storage.getUserClothing(userId);
-      res.json(clothing);
-    } catch (error) {
-      console.error('Error fetching clothing:', error);
-      res.status(500).json({ error: 'Failed to fetch clothing' });
-    }
-  });
-
-  app.get("/api/clothing/:id", async (req, res) => {
-    try {
-      const clothing = await storage.getClothing(req.params.id);
-      if (!clothing) {
-        return res.status(404).json({ error: 'Clothing not found' });
-      }
-      res.json(clothing);
-    } catch (error) {
-      console.error('Error fetching clothing:', error);
-      res.status(500).json({ error: 'Failed to fetch clothing' });
-    }
-  });
-
-  app.patch("/api/clothing/:id", async (req, res) => {
-    try {
-      const updates = insertClothingSchema.partial().parse(req.body);
-      const updatedClothing = await storage.updateClothing(req.params.id, updates);
-      res.json(updatedClothing);
-    } catch (error) {
-      console.error('Error updating clothing:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update clothing' });
-    }
-  });
-
-  app.delete("/api/clothing/:id", async (req, res) => {
-    try {
-      await storage.deleteClothing(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting clothing:', error);
-      res.status(500).json({ error: 'Failed to delete clothing' });
-    }
-  });
-
-  // Materials routes
-  app.post("/api/materials", async (req, res) => {
-    try {
-      const validatedMaterial = insertMaterialSchema.parse(req.body);
-      const savedMaterial = await storage.createMaterial(validatedMaterial);
-      res.json(savedMaterial);
-    } catch (error) {
-      console.error('Error saving material:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save material' });
-    }
-  });
-
-  app.get("/api/materials/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const materials = await storage.getUserMaterials(userId);
-      res.json(materials);
-    } catch (error) {
-      console.error('Error fetching materials:', error);
-      res.status(500).json({ error: 'Failed to fetch materials' });
-    }
-  });
-
-  app.get("/api/materials/:id", async (req, res) => {
-    try {
-      const material = await storage.getMaterial(req.params.id);
-      if (!material) {
-        return res.status(404).json({ error: 'Material not found' });
-      }
-      res.json(material);
-    } catch (error) {
-      console.error('Error fetching material:', error);
-      res.status(500).json({ error: 'Failed to fetch material' });
-    }
-  });
-
-  app.patch("/api/materials/:id", async (req, res) => {
-    try {
-      const updates = insertMaterialSchema.partial().parse(req.body);
-      const updatedMaterial = await storage.updateMaterial(req.params.id, updates);
-      res.json(updatedMaterial);
-    } catch (error) {
-      console.error('Error updating material:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update material' });
-    }
-  });
-
-  app.delete("/api/materials/:id", async (req, res) => {
-    try {
-      await storage.deleteMaterial(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting material:', error);
-      res.status(500).json({ error: 'Failed to delete material' });
-    }
-  });
-
-  // Settlements routes
-  app.post("/api/settlements", async (req, res) => {
-    try {
-      const validatedSettlement = insertSettlementSchema.parse(req.body);
-      const savedSettlement = await storage.createSettlement(validatedSettlement);
-      res.json(savedSettlement);
-    } catch (error) {
-      console.error('Error saving settlement:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save settlement' });
-    }
-  });
-
-  app.get("/api/settlements/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const settlements = await storage.getUserSettlements(userId);
-      res.json(settlements);
-    } catch (error) {
-      console.error('Error fetching settlements:', error);
-      res.status(500).json({ error: 'Failed to fetch settlements' });
-    }
-  });
-
-  app.get("/api/settlements/:id", async (req, res) => {
-    try {
-      const settlement = await storage.getSettlement(req.params.id);
-      if (!settlement) {
-        return res.status(404).json({ error: 'Settlement not found' });
-      }
-      res.json(settlement);
-    } catch (error) {
-      console.error('Error fetching settlement:', error);
-      res.status(500).json({ error: 'Failed to fetch settlement' });
-    }
-  });
-
-  app.patch("/api/settlements/:id", async (req, res) => {
-    try {
-      const updates = insertSettlementSchema.partial().parse(req.body);
-      const updatedSettlement = await storage.updateSettlement(req.params.id, updates);
-      res.json(updatedSettlement);
-    } catch (error) {
-      console.error('Error updating settlement:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update settlement' });
-    }
-  });
-
-  app.delete("/api/settlements/:id", async (req, res) => {
-    try {
-      await storage.deleteSettlement(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting settlement:', error);
-      res.status(500).json({ error: 'Failed to delete settlement' });
-    }
-  });
-
-  // Societies routes
-  app.post("/api/societies", async (req, res) => {
-    try {
-      const validatedSociety = insertSocietySchema.parse(req.body);
-      const savedSociety = await storage.createSociety(validatedSociety);
-      res.json(savedSociety);
-    } catch (error) {
-      console.error('Error saving society:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save society' });
-    }
-  });
-
-  app.get("/api/societies/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const societies = await storage.getUserSocieties(userId);
-      res.json(societies);
-    } catch (error) {
-      console.error('Error fetching societies:', error);
-      res.status(500).json({ error: 'Failed to fetch societies' });
-    }
-  });
-
-  app.get("/api/societies/:id", async (req, res) => {
-    try {
-      const society = await storage.getSociety(req.params.id);
-      if (!society) {
-        return res.status(404).json({ error: 'Society not found' });
-      }
-      res.json(society);
-    } catch (error) {
-      console.error('Error fetching society:', error);
-      res.status(500).json({ error: 'Failed to fetch society' });
-    }
-  });
-
-  app.patch("/api/societies/:id", async (req, res) => {
-    try {
-      const updates = insertSocietySchema.partial().parse(req.body);
-      const updatedSociety = await storage.updateSociety(req.params.id, updates);
-      res.json(updatedSociety);
-    } catch (error) {
-      console.error('Error updating society:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update society' });
-    }
-  });
-
-  app.delete("/api/societies/:id", async (req, res) => {
-    try {
-      await storage.deleteSociety(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting society:', error);
-      res.status(500).json({ error: 'Failed to delete society' });
-    }
-  });
-
-  // Factions routes
-  app.post("/api/factions", async (req, res) => {
-    try {
-      const validatedFaction = insertFactionSchema.parse(req.body);
-      const savedFaction = await storage.createFaction(validatedFaction);
-      res.json(savedFaction);
-    } catch (error) {
-      console.error('Error saving faction:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save faction' });
-    }
-  });
-
-  app.get("/api/factions/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const factions = await storage.getUserFactions(userId);
-      res.json(factions);
-    } catch (error) {
-      console.error('Error fetching factions:', error);
-      res.status(500).json({ error: 'Failed to fetch factions' });
-    }
-  });
-
-  app.get("/api/factions/:id", async (req, res) => {
-    try {
-      const faction = await storage.getFaction(req.params.id);
-      if (!faction) {
-        return res.status(404).json({ error: 'Faction not found' });
-      }
-      res.json(faction);
-    } catch (error) {
-      console.error('Error fetching faction:', error);
-      res.status(500).json({ error: 'Failed to fetch faction' });
-    }
-  });
-
-  app.patch("/api/factions/:id", async (req, res) => {
-    try {
-      const updates = insertFactionSchema.partial().parse(req.body);
-      const updatedFaction = await storage.updateFaction(req.params.id, updates);
-      res.json(updatedFaction);
-    } catch (error) {
-      console.error('Error updating faction:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update faction' });
-    }
-  });
-
-  app.delete("/api/factions/:id", async (req, res) => {
-    try {
-      await storage.deleteFaction(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting faction:', error);
-      res.status(500).json({ error: 'Failed to delete faction' });
-    }
-  });
-
-  // Military Units routes
-  app.post("/api/militaryunits", async (req, res) => {
-    try {
-      const validatedMilitaryUnit = insertMilitaryUnitSchema.parse(req.body);
-      const savedMilitaryUnit = await storage.createMilitaryUnit(validatedMilitaryUnit);
-      res.json(savedMilitaryUnit);
-    } catch (error) {
-      console.error('Error saving military unit:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save military unit' });
-    }
-  });
-
-  app.get("/api/militaryunits/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const militaryUnits = await storage.getUserMilitaryUnits(userId);
-      res.json(militaryUnits);
-    } catch (error) {
-      console.error('Error fetching military units:', error);
-      res.status(500).json({ error: 'Failed to fetch military units' });
-    }
-  });
-
-  app.get("/api/militaryunits/:id", async (req, res) => {
-    try {
-      const militaryUnit = await storage.getMilitaryUnit(req.params.id);
-      if (!militaryUnit) {
-        return res.status(404).json({ error: 'Military unit not found' });
-      }
-      res.json(militaryUnit);
-    } catch (error) {
-      console.error('Error fetching military unit:', error);
-      res.status(500).json({ error: 'Failed to fetch military unit' });
-    }
-  });
-
-  app.patch("/api/militaryunits/:id", async (req, res) => {
-    try {
-      const updates = insertMilitaryUnitSchema.partial().parse(req.body);
-      const updatedMilitaryUnit = await storage.updateMilitaryUnit(req.params.id, updates);
-      res.json(updatedMilitaryUnit);
-    } catch (error) {
-      console.error('Error updating military unit:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update military unit' });
-    }
-  });
-
-  app.delete("/api/militaryunits/:id", async (req, res) => {
-    try {
-      await storage.deleteMilitaryUnit(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting military unit:', error);
-      res.status(500).json({ error: 'Failed to delete military unit' });
-    }
-  });
-
-  // Religions routes
-  app.post("/api/religions", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const religionData = { ...req.body, userId };
-      
-      const validatedReligion = insertReligionSchema.parse(religionData);
-      const savedReligion = await storage.createReligion(validatedReligion);
-      res.json(savedReligion);
-    } catch (error) {
-      console.error('Error saving religion:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save religion' });
-    }
-  });
-
-  // Add general religions endpoint with search support
-  app.get("/api/religions", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const religions = await storage.getUserReligions(userId);
-      
-      if (search) {
-        // Filter religions by name (case-insensitive)
-        const filtered = religions.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(religions);
-      }
-    } catch (error) {
-      console.error('Error fetching religions:', error);
-      res.status(500).json({ error: 'Failed to fetch religions' });
-    }
-  });
-
-  app.get("/api/religions/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const religions = await storage.getUserReligions(userId);
-      res.json(religions);
-    } catch (error) {
-      console.error('Error fetching religions:', error);
-      res.status(500).json({ error: 'Failed to fetch religions' });
-    }
-  });
-
-  app.get("/api/religions/:id", async (req, res) => {
-    try {
-      const religion = await storage.getReligion(req.params.id);
-      if (!religion) {
-        return res.status(404).json({ error: 'Religion not found' });
-      }
-      res.json(religion);
-    } catch (error) {
-      console.error('Error fetching religion:', error);
-      res.status(500).json({ error: 'Failed to fetch religion' });
-    }
-  });
-
-  app.patch("/api/religions/:id", async (req, res) => {
-    try {
-      const updates = insertReligionSchema.partial().parse(req.body);
-      const updatedReligion = await storage.updateReligion(req.params.id, updates);
-      res.json(updatedReligion);
-    } catch (error) {
-      console.error('Error updating religion:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update religion' });
-    }
-  });
-
-  app.delete("/api/religions/:id", async (req, res) => {
-    try {
-      await storage.deleteReligion(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting religion:', error);
-      res.status(500).json({ error: 'Failed to delete religion' });
-    }
-  });
-
-  // Languages routes
+  // Language routes
   app.post("/api/languages", async (req, res) => {
     try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const languageData = { ...req.body, userId };
-      
-      const validatedLanguage = insertLanguageSchema.parse(languageData);
+      const validatedLanguage = insertLanguageSchema.parse(req.body);
       const savedLanguage = await storage.createLanguage(validatedLanguage);
       res.json(savedLanguage);
     } catch (error) {
@@ -2634,7 +1815,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add general languages endpoint with search support
   app.get("/api/languages", async (req, res) => {
     try {
       const search = req.query.search as string;
@@ -2642,9 +1822,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const languages = await storage.getUserLanguages(userId);
       
       if (search) {
-        // Filter languages by name (case-insensitive)
-        const filtered = languages.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
+        const filtered = languages.filter(language =>
+          language.name?.toLowerCase().includes(search.toLowerCase())
         );
         res.json(filtered);
       } else {
@@ -2704,196 +1883,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Myths routes
-  app.post("/api/myths", async (req, res) => {
+  // Religion routes
+  app.post("/api/religions", async (req, res) => {
     try {
-      const validatedMyth = insertMythSchema.parse(req.body);
-      const savedMyth = await storage.createMyth(validatedMyth);
-      res.json(savedMyth);
+      const validatedReligion = insertReligionSchema.parse(req.body);
+      const savedReligion = await storage.createReligion(validatedReligion);
+      res.json(savedReligion);
     } catch (error) {
-      console.error('Error saving myth:', error);
+      console.error('Error saving religion:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
-      res.status(500).json({ error: 'Failed to save myth' });
+      res.status(500).json({ error: 'Failed to save religion' });
     }
   });
 
-  app.get("/api/myths/user/:userId?", async (req, res) => {
+  app.get("/api/religions", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const religions = await storage.getUserReligions(userId);
+      
+      if (search) {
+        const filtered = religions.filter(religion =>
+          religion.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(religions);
+      }
+    } catch (error) {
+      console.error('Error fetching religions:', error);
+      res.status(500).json({ error: 'Failed to fetch religions' });
+    }
+  });
+
+  app.get("/api/religions/user/:userId?", async (req, res) => {
     try {
       const userId = req.params.userId || null;
-      const myths = await storage.getUserMyths(userId);
-      res.json(myths);
+      const religions = await storage.getUserReligions(userId);
+      res.json(religions);
     } catch (error) {
-      console.error('Error fetching myths:', error);
-      res.status(500).json({ error: 'Failed to fetch myths' });
+      console.error('Error fetching religions:', error);
+      res.status(500).json({ error: 'Failed to fetch religions' });
     }
   });
 
-  app.get("/api/myths/:id", async (req, res) => {
+  app.get("/api/religions/:id", async (req, res) => {
     try {
-      const myth = await storage.getMyth(req.params.id);
-      if (!myth) {
-        return res.status(404).json({ error: 'Myth not found' });
+      const religion = await storage.getReligion(req.params.id);
+      if (!religion) {
+        return res.status(404).json({ error: 'Religion not found' });
       }
-      res.json(myth);
+      res.json(religion);
     } catch (error) {
-      console.error('Error fetching myth:', error);
-      res.status(500).json({ error: 'Failed to fetch myth' });
+      console.error('Error fetching religion:', error);
+      res.status(500).json({ error: 'Failed to fetch religion' });
     }
   });
 
-  app.patch("/api/myths/:id", async (req, res) => {
+  app.patch("/api/religions/:id", async (req, res) => {
     try {
-      const updates = insertMythSchema.partial().parse(req.body);
-      const updatedMyth = await storage.updateMyth(req.params.id, updates);
-      res.json(updatedMyth);
+      const updates = insertReligionSchema.partial().parse(req.body);
+      const updatedReligion = await storage.updateReligion(req.params.id, updates);
+      res.json(updatedReligion);
     } catch (error) {
-      console.error('Error updating myth:', error);
+      console.error('Error updating religion:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
-      res.status(500).json({ error: 'Failed to update myth' });
+      res.status(500).json({ error: 'Failed to update religion' });
     }
   });
 
-  app.delete("/api/myths/:id", async (req, res) => {
+  app.delete("/api/religions/:id", async (req, res) => {
     try {
-      await storage.deleteMyth(req.params.id);
+      await storage.deleteReligion(req.params.id);
       res.status(204).send();
     } catch (error) {
-      console.error('Error deleting myth:', error);
-      res.status(500).json({ error: 'Failed to delete myth' });
+      console.error('Error deleting religion:', error);
+      res.status(500).json({ error: 'Failed to delete religion' });
     }
   });
 
-  // Legends routes
-  app.post("/api/legends", async (req, res) => {
-    try {
-      const validatedLegend = insertLegendSchema.parse(req.body);
-      const savedLegend = await storage.createLegend(validatedLegend);
-      res.json(savedLegend);
-    } catch (error) {
-      console.error('Error saving legend:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save legend' });
-    }
-  });
-
-  app.get("/api/legends/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const legends = await storage.getUserLegends(userId);
-      res.json(legends);
-    } catch (error) {
-      console.error('Error fetching legends:', error);
-      res.status(500).json({ error: 'Failed to fetch legends' });
-    }
-  });
-
-  app.get("/api/legends/:id", async (req, res) => {
-    try {
-      const legend = await storage.getLegend(req.params.id);
-      if (!legend) {
-        return res.status(404).json({ error: 'Legend not found' });
-      }
-      res.json(legend);
-    } catch (error) {
-      console.error('Error fetching legend:', error);
-      res.status(500).json({ error: 'Failed to fetch legend' });
-    }
-  });
-
-  app.patch("/api/legends/:id", async (req, res) => {
-    try {
-      const updates = insertLegendSchema.partial().parse(req.body);
-      const updatedLegend = await storage.updateLegend(req.params.id, updates);
-      res.json(updatedLegend);
-    } catch (error) {
-      console.error('Error updating legend:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update legend' });
-    }
-  });
-
-  app.delete("/api/legends/:id", async (req, res) => {
-    try {
-      await storage.deleteLegend(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting legend:', error);
-      res.status(500).json({ error: 'Failed to delete legend' });
-    }
-  });
-
-  // Events routes
-  app.post("/api/events", async (req, res) => {
-    try {
-      const validatedEvent = insertEventSchema.parse(req.body);
-      const savedEvent = await storage.createEvent(validatedEvent);
-      res.json(savedEvent);
-    } catch (error) {
-      console.error('Error saving event:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save event' });
-    }
-  });
-
-  app.get("/api/events/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const events = await storage.getUserEvents(userId);
-      res.json(events);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-      res.status(500).json({ error: 'Failed to fetch events' });
-    }
-  });
-
-  app.get("/api/events/:id", async (req, res) => {
-    try {
-      const event = await storage.getEvent(req.params.id);
-      if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
-      }
-      res.json(event);
-    } catch (error) {
-      console.error('Error fetching event:', error);
-      res.status(500).json({ error: 'Failed to fetch event' });
-    }
-  });
-
-  app.patch("/api/events/:id", async (req, res) => {
-    try {
-      const updates = insertEventSchema.partial().parse(req.body);
-      const updatedEvent = await storage.updateEvent(req.params.id, updates);
-      res.json(updatedEvent);
-    } catch (error) {
-      console.error('Error updating event:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update event' });
-    }
-  });
-
-  app.delete("/api/events/:id", async (req, res) => {
-    try {
-      await storage.deleteEvent(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      res.status(500).json({ error: 'Failed to delete event' });
-    }
-  });
-
-  // Technologies routes
+  // Technology routes
   app.post("/api/technologies", async (req, res) => {
     try {
       const validatedTechnology = insertTechnologySchema.parse(req.body);
@@ -2905,6 +1978,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to save technology' });
+    }
+  });
+
+  app.get("/api/technologies", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const technologies = await storage.getUserTechnologies(userId);
+      
+      if (search) {
+        const filtered = technologies.filter(technology =>
+          technology.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(technologies);
+      }
+    } catch (error) {
+      console.error('Error fetching technologies:', error);
+      res.status(500).json({ error: 'Failed to fetch technologies' });
     }
   });
 
@@ -2956,884 +2049,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Spells routes
-  app.post("/api/spells", async (req, res) => {
+  // Weapon routes
+  app.post("/api/weapons", async (req, res) => {
     try {
-      const validatedSpell = insertSpellSchema.parse(req.body);
-      const savedSpell = await storage.createSpell(validatedSpell);
-      res.json(savedSpell);
+      const validatedWeapon = insertWeaponSchema.parse(req.body);
+      const savedWeapon = await storage.createWeapon(validatedWeapon);
+      res.json(savedWeapon);
     } catch (error) {
-      console.error('Error saving spell:', error);
+      console.error('Error saving weapon:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
-      res.status(500).json({ error: 'Failed to save spell' });
+      res.status(500).json({ error: 'Failed to save weapon' });
     }
   });
 
-  app.get("/api/spells/user/:userId?", async (req, res) => {
+  app.get("/api/weapons", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const weapons = await storage.getUserWeapons(userId);
+      
+      if (search) {
+        const filtered = weapons.filter(weapon =>
+          weapon.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(weapons);
+      }
+    } catch (error) {
+      console.error('Error fetching weapons:', error);
+      res.status(500).json({ error: 'Failed to fetch weapons' });
+    }
+  });
+
+  app.get("/api/weapons/user/:userId?", async (req, res) => {
     try {
       const userId = req.params.userId || null;
-      const spells = await storage.getUserSpells(userId);
-      res.json(spells);
+      const weapons = await storage.getUserWeapons(userId);
+      res.json(weapons);
     } catch (error) {
-      console.error('Error fetching spells:', error);
-      res.status(500).json({ error: 'Failed to fetch spells' });
+      console.error('Error fetching weapons:', error);
+      res.status(500).json({ error: 'Failed to fetch weapons' });
     }
   });
 
-  app.get("/api/spells/:id", async (req, res) => {
+  app.get("/api/weapons/:id", async (req, res) => {
     try {
-      const spell = await storage.getSpell(req.params.id);
-      if (!spell) {
-        return res.status(404).json({ error: 'Spell not found' });
+      const weapon = await storage.getWeapon(req.params.id);
+      if (!weapon) {
+        return res.status(404).json({ error: 'Weapon not found' });
       }
-      res.json(spell);
+      res.json(weapon);
     } catch (error) {
-      console.error('Error fetching spell:', error);
-      res.status(500).json({ error: 'Failed to fetch spell' });
+      console.error('Error fetching weapon:', error);
+      res.status(500).json({ error: 'Failed to fetch weapon' });
     }
   });
 
-  app.patch("/api/spells/:id", async (req, res) => {
+  app.patch("/api/weapons/:id", async (req, res) => {
     try {
-      const updates = insertSpellSchema.partial().parse(req.body);
-      const updatedSpell = await storage.updateSpell(req.params.id, updates);
-      res.json(updatedSpell);
+      const updates = insertWeaponSchema.partial().parse(req.body);
+      const updatedWeapon = await storage.updateWeapon(req.params.id, updates);
+      res.json(updatedWeapon);
     } catch (error) {
-      console.error('Error updating spell:', error);
+      console.error('Error updating weapon:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }
-      res.status(500).json({ error: 'Failed to update spell' });
+      res.status(500).json({ error: 'Failed to update weapon' });
     }
   });
 
-  app.delete("/api/spells/:id", async (req, res) => {
+  app.delete("/api/weapons/:id", async (req, res) => {
     try {
-      await storage.deleteSpell(req.params.id);
+      await storage.deleteWeapon(req.params.id);
       res.status(204).send();
     } catch (error) {
-      console.error('Error deleting spell:', error);
-      res.status(500).json({ error: 'Failed to delete spell' });
-    }
-  });
-
-  // Resources routes
-  app.post("/api/resources", async (req, res) => {
-    try {
-      const validatedResource = insertResourceSchema.parse(req.body);
-      const savedResource = await storage.createResource(validatedResource);
-      res.json(savedResource);
-    } catch (error) {
-      console.error('Error saving resource:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save resource' });
-    }
-  });
-
-  app.get("/api/resources/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const resources = await storage.getUserResources(userId);
-      res.json(resources);
-    } catch (error) {
-      console.error('Error fetching resources:', error);
-      res.status(500).json({ error: 'Failed to fetch resources' });
-    }
-  });
-
-  app.get("/api/resources/:id", async (req, res) => {
-    try {
-      const resource = await storage.getResource(req.params.id);
-      if (!resource) {
-        return res.status(404).json({ error: 'Resource not found' });
-      }
-      res.json(resource);
-    } catch (error) {
-      console.error('Error fetching resource:', error);
-      res.status(500).json({ error: 'Failed to fetch resource' });
-    }
-  });
-
-  app.patch("/api/resources/:id", async (req, res) => {
-    try {
-      const updates = insertResourceSchema.partial().parse(req.body);
-      const updatedResource = await storage.updateResource(req.params.id, updates);
-      res.json(updatedResource);
-    } catch (error) {
-      console.error('Error updating resource:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update resource' });
-    }
-  });
-
-  app.delete("/api/resources/:id", async (req, res) => {
-    try {
-      await storage.deleteResource(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting resource:', error);
-      res.status(500).json({ error: 'Failed to delete resource' });
-    }
-  });
-
-  // Buildings routes
-  app.post("/api/buildings", async (req, res) => {
-    try {
-      const validatedBuilding = insertBuildingSchema.parse(req.body);
-      const savedBuilding = await storage.createBuilding(validatedBuilding);
-      res.json(savedBuilding);
-    } catch (error) {
-      console.error('Error saving building:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save building' });
-    }
-  });
-
-  app.get("/api/buildings/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const buildings = await storage.getUserBuildings(userId);
-      res.json(buildings);
-    } catch (error) {
-      console.error('Error fetching buildings:', error);
-      res.status(500).json({ error: 'Failed to fetch buildings' });
-    }
-  });
-
-  app.get("/api/buildings/:id", async (req, res) => {
-    try {
-      const building = await storage.getBuilding(req.params.id);
-      if (!building) {
-        return res.status(404).json({ error: 'Building not found' });
-      }
-      res.json(building);
-    } catch (error) {
-      console.error('Error fetching building:', error);
-      res.status(500).json({ error: 'Failed to fetch building' });
-    }
-  });
-
-  app.patch("/api/buildings/:id", async (req, res) => {
-    try {
-      const updates = insertBuildingSchema.partial().parse(req.body);
-      const updatedBuilding = await storage.updateBuilding(req.params.id, updates);
-      res.json(updatedBuilding);
-    } catch (error) {
-      console.error('Error updating building:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update building' });
-    }
-  });
-
-  app.delete("/api/buildings/:id", async (req, res) => {
-    try {
-      await storage.deleteBuilding(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting building:', error);
-      res.status(500).json({ error: 'Failed to delete building' });
-    }
-  });
-
-  // Animals routes
-  app.post("/api/animals", async (req, res) => {
-    try {
-      const validatedAnimal = insertAnimalSchema.parse(req.body);
-      const savedAnimal = await storage.createAnimal(validatedAnimal);
-      res.json(savedAnimal);
-    } catch (error) {
-      console.error('Error saving animal:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save animal' });
-    }
-  });
-
-  app.get("/api/animals/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const animals = await storage.getUserAnimals(userId);
-      res.json(animals);
-    } catch (error) {
-      console.error('Error fetching animals:', error);
-      res.status(500).json({ error: 'Failed to fetch animals' });
-    }
-  });
-
-  app.get("/api/animals/:id", async (req, res) => {
-    try {
-      const animal = await storage.getAnimal(req.params.id);
-      if (!animal) {
-        return res.status(404).json({ error: 'Animal not found' });
-      }
-      res.json(animal);
-    } catch (error) {
-      console.error('Error fetching animal:', error);
-      res.status(500).json({ error: 'Failed to fetch animal' });
-    }
-  });
-
-  app.patch("/api/animals/:id", async (req, res) => {
-    try {
-      const updates = insertAnimalSchema.partial().parse(req.body);
-      const updatedAnimal = await storage.updateAnimal(req.params.id, updates);
-      res.json(updatedAnimal);
-    } catch (error) {
-      console.error('Error updating animal:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update animal' });
-    }
-  });
-
-  app.delete("/api/animals/:id", async (req, res) => {
-    try {
-      await storage.deleteAnimal(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting animal:', error);
-      res.status(500).json({ error: 'Failed to delete animal' });
-    }
-  });
-
-  // Transportation routes
-  app.post("/api/transportation", async (req, res) => {
-    try {
-      const validatedTransportation = insertTransportationSchema.parse(req.body);
-      const savedTransportation = await storage.createTransportation(validatedTransportation);
-      res.json(savedTransportation);
-    } catch (error) {
-      console.error('Error saving transportation:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save transportation' });
-    }
-  });
-
-  app.get("/api/transportation/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const transportation = await storage.getUserTransportations(userId);
-      res.json(transportation);
-    } catch (error) {
-      console.error('Error fetching transportation:', error);
-      res.status(500).json({ error: 'Failed to fetch transportation' });
-    }
-  });
-
-  app.get("/api/transportation/:id", async (req, res) => {
-    try {
-      const transportation = await storage.getTransportation(req.params.id);
-      if (!transportation) {
-        return res.status(404).json({ error: 'Transportation not found' });
-      }
-      res.json(transportation);
-    } catch (error) {
-      console.error('Error fetching transportation:', error);
-      res.status(500).json({ error: 'Failed to fetch transportation' });
-    }
-  });
-
-  app.patch("/api/transportation/:id", async (req, res) => {
-    try {
-      const updates = insertTransportationSchema.partial().parse(req.body);
-      const updatedTransportation = await storage.updateTransportation(req.params.id, updates);
-      res.json(updatedTransportation);
-    } catch (error) {
-      console.error('Error updating transportation:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update transportation' });
-    }
-  });
-
-  app.delete("/api/transportation/:id", async (req, res) => {
-    try {
-      await storage.deleteTransportation(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting transportation:', error);
-      res.status(500).json({ error: 'Failed to delete transportation' });
-    }
-  });
-
-  // Natural Laws routes
-  app.post("/api/naturallaws", async (req, res) => {
-    try {
-      const validatedNaturalLaw = insertNaturalLawSchema.parse(req.body);
-      const savedNaturalLaw = await storage.createNaturalLaw(validatedNaturalLaw);
-      res.json(savedNaturalLaw);
-    } catch (error) {
-      console.error('Error saving natural law:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save natural law' });
-    }
-  });
-
-  app.get("/api/naturallaws/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const naturalLaws = await storage.getUserNaturalLaws(userId);
-      res.json(naturalLaws);
-    } catch (error) {
-      console.error('Error fetching natural laws:', error);
-      res.status(500).json({ error: 'Failed to fetch natural laws' });
-    }
-  });
-
-  app.get("/api/naturallaws/:id", async (req, res) => {
-    try {
-      const naturalLaw = await storage.getNaturalLaw(req.params.id);
-      if (!naturalLaw) {
-        return res.status(404).json({ error: 'Natural law not found' });
-      }
-      res.json(naturalLaw);
-    } catch (error) {
-      console.error('Error fetching natural law:', error);
-      res.status(500).json({ error: 'Failed to fetch natural law' });
-    }
-  });
-
-  app.patch("/api/naturallaws/:id", async (req, res) => {
-    try {
-      const updates = insertNaturalLawSchema.partial().parse(req.body);
-      const updatedNaturalLaw = await storage.updateNaturalLaw(req.params.id, updates);
-      res.json(updatedNaturalLaw);
-    } catch (error) {
-      console.error('Error updating natural law:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update natural law' });
-    }
-  });
-
-  app.delete("/api/naturallaws/:id", async (req, res) => {
-    try {
-      await storage.deleteNaturalLaw(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting natural law:', error);
-      res.status(500).json({ error: 'Failed to delete natural law' });
-    }
-  });
-
-  // Traditions routes
-  app.post("/api/traditions", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const traditionData = { ...req.body, userId };
-      
-      const validatedTradition = insertTraditionSchema.parse(traditionData);
-      const savedTradition = await storage.createTradition(validatedTradition);
-      res.json(savedTradition);
-    } catch (error) {
-      console.error('Error saving tradition:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save tradition' });
-    }
-  });
-
-  // Add general traditions endpoint with search support
-  app.get("/api/traditions", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const traditions = await storage.getUserTraditions(userId);
-      
-      if (search) {
-        // Filter traditions by name (case-insensitive)
-        const filtered = traditions.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(traditions);
-      }
-    } catch (error) {
-      console.error('Error fetching traditions:', error);
-      res.status(500).json({ error: 'Failed to fetch traditions' });
-    }
-  });
-
-  app.get("/api/traditions/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const traditions = await storage.getUserTraditions(userId);
-      res.json(traditions);
-    } catch (error) {
-      console.error('Error fetching traditions:', error);
-      res.status(500).json({ error: 'Failed to fetch traditions' });
-    }
-  });
-
-  app.get("/api/traditions/:id", async (req, res) => {
-    try {
-      const tradition = await storage.getTradition(req.params.id);
-      if (!tradition) {
-        return res.status(404).json({ error: 'Tradition not found' });
-      }
-      res.json(tradition);
-    } catch (error) {
-      console.error('Error fetching tradition:', error);
-      res.status(500).json({ error: 'Failed to fetch tradition' });
-    }
-  });
-
-  app.patch("/api/traditions/:id", async (req, res) => {
-    try {
-      const updates = insertTraditionSchema.partial().parse(req.body);
-      const updatedTradition = await storage.updateTradition(req.params.id, updates);
-      res.json(updatedTradition);
-    } catch (error) {
-      console.error('Error updating tradition:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update tradition' });
-    }
-  });
-
-  app.delete("/api/traditions/:id", async (req, res) => {
-    try {
-      await storage.deleteTradition(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting tradition:', error);
-      res.status(500).json({ error: 'Failed to delete tradition' });
-    }
-  });
-
-  // Rituals routes
-  app.post("/api/rituals", async (req, res) => {
-    try {
-      const validatedRitual = insertRitualSchema.parse(req.body);
-      const savedRitual = await storage.createRitual(validatedRitual);
-      res.json(savedRitual);
-    } catch (error) {
-      console.error('Error saving ritual:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save ritual' });
-    }
-  });
-
-  app.get("/api/rituals/user/:userId?", async (req, res) => {
-    try {
-      const userId = req.params.userId || null;
-      const rituals = await storage.getUserRituals(userId);
-      res.json(rituals);
-    } catch (error) {
-      console.error('Error fetching rituals:', error);
-      res.status(500).json({ error: 'Failed to fetch rituals' });
-    }
-  });
-
-  app.get("/api/rituals/:id", async (req, res) => {
-    try {
-      const ritual = await storage.getRitual(req.params.id);
-      if (!ritual) {
-        return res.status(404).json({ error: 'Ritual not found' });
-      }
-      res.json(ritual);
-    } catch (error) {
-      console.error('Error fetching ritual:', error);
-      res.status(500).json({ error: 'Failed to fetch ritual' });
-    }
-  });
-
-  app.patch("/api/rituals/:id", async (req, res) => {
-    try {
-      const updates = insertRitualSchema.partial().parse(req.body);
-      const updatedRitual = await storage.updateRitual(req.params.id, updates);
-      res.json(updatedRitual);
-    } catch (error) {
-      console.error('Error updating ritual:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to update ritual' });
-    }
-  });
-
-  app.delete("/api/rituals/:id", async (req, res) => {
-    try {
-      await storage.deleteRitual(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting ritual:', error);
-      res.status(500).json({ error: 'Failed to delete ritual' });
-    }
-  });
-
-  // Family Tree routes
-  app.post("/api/family-trees", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const familyTreeData = { ...req.body, userId };
-      
-      const validatedFamilyTree = insertFamilyTreeSchema.parse(familyTreeData);
-      const savedFamilyTree = await storage.createFamilyTree(validatedFamilyTree);
-      res.json(savedFamilyTree);
-    } catch (error) {
-      console.error('Error saving family tree:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save family tree' });
-    }
-  });
-
-  app.get("/api/family-trees", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const familyTrees = await storage.getUserFamilyTrees(userId);
-      
-      if (search) {
-        const filtered = familyTrees.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(familyTrees);
-      }
-    } catch (error) {
-      console.error('Error fetching family trees:', error);
-      res.status(500).json({ error: 'Failed to fetch family trees' });
-    }
-  });
-
-  // Timeline routes
-  app.post("/api/timelines", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const timelineData = { ...req.body, userId };
-      
-      const validatedTimeline = insertTimelineSchema.parse(timelineData);
-      const savedTimeline = await storage.createTimeline(validatedTimeline);
-      res.json(savedTimeline);
-    } catch (error) {
-      console.error('Error saving timeline:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save timeline' });
-    }
-  });
-
-  app.get("/api/timelines", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const timelines = await storage.getUserTimelines(userId);
-      
-      if (search) {
-        const filtered = timelines.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(timelines);
-      }
-    } catch (error) {
-      console.error('Error fetching timelines:', error);
-      res.status(500).json({ error: 'Failed to fetch timelines' });
-    }
-  });
-
-  // Ceremony routes
-  app.post("/api/ceremonies", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const ceremonyData = { ...req.body, userId };
-      
-      const validatedCeremony = insertCeremonySchema.parse(ceremonyData);
-      const savedCeremony = await storage.createCeremony(validatedCeremony);
-      res.json(savedCeremony);
-    } catch (error) {
-      console.error('Error saving ceremony:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save ceremony' });
-    }
-  });
-
-  app.get("/api/ceremonies", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const ceremonies = await storage.getUserCeremonies(userId);
-      
-      if (search) {
-        const filtered = ceremonies.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(ceremonies);
-      }
-    } catch (error) {
-      console.error('Error fetching ceremonies:', error);
-      res.status(500).json({ error: 'Failed to fetch ceremonies' });
-    }
-  });
-
-  // Map routes
-  app.post("/api/maps", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const mapData = { ...req.body, userId };
-      
-      const validatedMap = insertMapSchema.parse(mapData);
-      const savedMap = await storage.createMap(validatedMap);
-      res.json(savedMap);
-    } catch (error) {
-      console.error('Error saving map:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save map' });
-    }
-  });
-
-  app.get("/api/maps", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const maps = await storage.getUserMaps(userId);
-      
-      if (search) {
-        const filtered = maps.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(maps);
-      }
-    } catch (error) {
-      console.error('Error fetching maps:', error);
-      res.status(500).json({ error: 'Failed to fetch maps' });
-    }
-  });
-
-  // Music routes
-  app.post("/api/music", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const musicData = { ...req.body, userId };
-      
-      const validatedMusic = insertMusicSchema.parse(musicData);
-      const savedMusic = await storage.createMusic(validatedMusic);
-      res.json(savedMusic);
-    } catch (error) {
-      console.error('Error saving music:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save music' });
-    }
-  });
-
-  app.get("/api/music", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const music = await storage.getUserMusic(userId);
-      
-      if (search) {
-        const filtered = music.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(music);
-      }
-    } catch (error) {
-      console.error('Error fetching music:', error);
-      res.status(500).json({ error: 'Failed to fetch music' });
-    }
-  });
-
-  // Dance routes
-  app.post("/api/dances", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const danceData = { ...req.body, userId };
-      
-      const validatedDance = insertDanceSchema.parse(danceData);
-      const savedDance = await storage.createDance(validatedDance);
-      res.json(savedDance);
-    } catch (error) {
-      console.error('Error saving dance:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save dance' });
-    }
-  });
-
-  app.get("/api/dances", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const dances = await storage.getUserDances(userId);
-      
-      if (search) {
-        const filtered = dances.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(dances);
-      }
-    } catch (error) {
-      console.error('Error fetching dances:', error);
-      res.status(500).json({ error: 'Failed to fetch dances' });
-    }
-  });
-
-  // Law routes
-  app.post("/api/laws", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const lawData = { ...req.body, userId };
-      
-      const validatedLaw = insertLawSchema.parse(lawData);
-      const savedLaw = await storage.createLaw(validatedLaw);
-      res.json(savedLaw);
-    } catch (error) {
-      console.error('Error saving law:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save law' });
-    }
-  });
-
-  app.get("/api/laws", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const laws = await storage.getUserLaws(userId);
-      
-      if (search) {
-        const filtered = laws.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(laws);
-      }
-    } catch (error) {
-      console.error('Error fetching laws:', error);
-      res.status(500).json({ error: 'Failed to fetch laws' });
-    }
-  });
-
-  // Policy routes
-  app.post("/api/policies", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const policyData = { ...req.body, userId };
-      
-      const validatedPolicy = insertPolicySchema.parse(policyData);
-      const savedPolicy = await storage.createPolicy(validatedPolicy);
-      res.json(savedPolicy);
-    } catch (error) {
-      console.error('Error saving policy:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save policy' });
-    }
-  });
-
-  app.get("/api/policies", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const policies = await storage.getUserPolicies(userId);
-      
-      if (search) {
-        const filtered = policies.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(policies);
-      }
-    } catch (error) {
-      console.error('Error fetching policies:', error);
-      res.status(500).json({ error: 'Failed to fetch policies' });
-    }
-  });
-
-  // Potion routes
-  app.post("/api/potions", async (req, res) => {
-    try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const potionData = { ...req.body, userId };
-      
-      const validatedPotion = insertPotionSchema.parse(potionData);
-      const savedPotion = await storage.createPotion(validatedPotion);
-      res.json(savedPotion);
-    } catch (error) {
-      console.error('Error saving potion:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to save potion' });
-    }
-  });
-
-  app.get("/api/potions", async (req, res) => {
-    try {
-      const search = req.query.search as string;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const potions = await storage.getUserPotions(userId);
-      
-      if (search) {
-        const filtered = potions.filter(item =>
-          item.name?.toLowerCase().includes(search.toLowerCase())
-        );
-        res.json(filtered);
-      } else {
-        res.json(potions);
-      }
-    } catch (error) {
-      console.error('Error fetching potions:', error);
-      res.status(500).json({ error: 'Failed to fetch potions' });
+      console.error('Error deleting weapon:', error);
+      res.status(500).json({ error: 'Failed to delete weapon' });
     }
   });
 
@@ -3907,6 +2202,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/professions/:id", async (req, res) => {
+    try {
+      await storage.deleteProfession(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting profession:', error);
+      res.status(500).json({ error: 'Failed to delete profession' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -3917,665 +2222,297 @@ function generateRandomName(): string {
   return names[Math.floor(Math.random() * names.length)];
 }
 
-
-function generateRandomPersonalities(count: number): string[] {
-  const traits = [
-    "Ambitious", "Curious", "Loyal", "Witty", "Mysterious", "Compassionate", "Stubborn", "Creative", "Analytical", "Charismatic",
-    "Brave", "Cautious", "Optimistic", "Cynical", "Generous", "Independent", "Patient", "Impulsive", "Wise", "Quirky"
-  ];
-  return traits.sort(() => Math.random() - 0.5).slice(0, count);
-}
-
-
-function generateCoherentCharacter() {
-  const directCharacters = [
-    {
-      ageMin: 28,
-      ageMax: 35,
-      profession: "Private Investigator",
-      personality: ["Determined", "Distrustful", "Observant"],
-      backstory: "A former circus acrobat turned private investigator in their early thirties. After a trapeze accident ended their performing career, they used their specialized knowledge and unique perspective to transition into their current role. They still practice on silk ribbons in their apartment and have an uncanny ability to scale buildings and squeeze through tight spaces. Speaks four languages and has a photographic memory for faces, though they struggle with trust issues stemming from their circus family's abandonment after their accident.",
-      coreMotivation: "Driven by a deep need to expose people's authentic selves when they think no one is watching or when the stakes get high. Their circus family's abandonment after their accident taught them that people's true nature emerges in moments of crisis - and they're compelled to seek out and document these moments of truth. This manifests in their investigative work as an almost obsessive focus on catching people in the act of deception, particularly when they're betraying trust for personal gain (like insurance fraud). But it goes deeper than just solving cases - they're unconsciously recreating scenarios where they can witness and prove that people will abandon their principles when it suits them. The tragic irony is that their relentless pursuit of exposing others' character flaws keeps them isolated and prevents them from forming the genuine connections they actually crave. They're simultaneously trying to protect themselves from future abandonment by exposing people's capacity for betrayal, while also punishing themselves by repeatedly confirming their belief that people are fundamentally unreliable. Their acrobatic skills become metaphorical - they're always positioned to observe from above or outside, never truly landing among people where they might be vulnerable to being left behind again.",
-      greatestStrength: "Determination",
-      fatalFlaw: "Distrust"
-    },
-    {
-      ageMin: 32,
-      ageMax: 40,
-      profession: "Freelance Security Consultant",
-      personality: ["Courageous", "Paranoid", "Tactical"],
-      backstory: "A former military sniper turned freelance security consultant in their mid-thirties. When a mission went wrong and they lost their hearing in one ear, they used their specialized knowledge and unique perspective to transition into their current role. They maintain their marksmanship skills at a private range and can read micro-expressions and body language like a book. Speaks three languages and can communicate effectively in sign language, but suffers from hypervigilance and difficulty sleeping in unfamiliar places.",
-      coreMotivation: "To prevent civilian casualties by exposing the weapons manufacturer that provided faulty equipment, by leveraging their military contacts and tactical expertise to gather intelligence on corporate corruption. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
-      greatestStrength: "Courage",
-      fatalFlaw: "Paranoia"
-    },
-    {
-      ageMin: 26,
-      ageMax: 33,
-      profession: "Music Therapist",
-      personality: ["Empathetic", "Perfectionist", "Creative"],
-      backstory: "A former classical pianist turned music therapist in their late twenties. Following a hand injury that ended their concert career, they used their specialized knowledge and unique perspective to transition into their current role. They continue to compose music in their spare time and have perfect pitch that helps them detect emotional distress in voices. Speaks five languages and can read musical notation from any culture, however they battle perfectionism that stems from their conservatory training and fear of public failure.",
-      coreMotivation: "To help trauma survivors find healing through music, especially those who lost their passions to injury, by developing innovative therapy techniques that combine their professional training with personal experience of loss. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
-      greatestStrength: "Empathy",
-      fatalFlaw: "Perfectionism"
-    },
-    {
-      ageMin: 30,
-      ageMax: 38,
-      profession: "Environmental Consultant",
-      personality: ["Intelligent", "Guilt-ridden", "Methodical"],
-      backstory: "A former marine biologist turned environmental consultant in their early thirties. After discovering their research was being used to justify harmful industrial practices, they used their specialized knowledge and unique perspective to transition into their current role. They keep detailed field notes on ecosystem changes and can identify environmental damage patterns invisible to others. Is fluent in three languages and can read scientific papers in six different languages, though they're haunted by the knowledge that their early research contributed to environmental destruction.",
-      coreMotivation: "To prevent the ecological collapse of marine ecosystems by exposing corporate environmental crimes, by using their scientific expertise to document evidence and their industry connections to access restricted data. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
-      greatestStrength: "Intelligence",
-      fatalFlaw: "Guilt"
-    },
-    {
-      ageMin: 35,
-      ageMax: 45,
-      profession: "Rural Clinic Doctor",
-      personality: ["Compassionate", "Self-doubting", "Thorough"],
-      backstory: "A former emergency room surgeon turned rural clinic doctor in their early forties. After a medical malpractice lawsuit destroyed their reputation despite being innocent, they used their specialized knowledge and unique perspective to transition into their current role. They perform complex procedures with steady hands and have an intuitive ability to diagnose rare conditions. Speaks four languages and has memorized medical terminology in seven languages, but struggles with anxiety about making mistakes and second-guesses their medical decisions.",
-      coreMotivation: "To prove their innocence by uncovering the real cause of the patient deaths that ruined their career, by secretly investigating medical records and building relationships with former colleagues who might provide evidence. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
-      greatestStrength: "Compassion",
-      fatalFlaw: "Self-doubt"
-    },
-    {
-      ageMin: 29,
-      ageMax: 37,
-      profession: "Art Authentication Expert",
-      personality: ["Detail-oriented", "Ashamed", "Knowledgeable"],
-      backstory: "A former art forger turned art authentication expert in their early thirties. Following the revelation that their mentor was running an international art theft ring, they used their specialized knowledge and unique perspective to transition into their current role. They create intricate analyses of artistic techniques and have an encyclopedic knowledge of art history and forgery methods. Speaks six languages fluently and can read historical documents in ancient scripts, however they struggle with impostor syndrome despite their obvious expertise and reformed criminal past.",
-      coreMotivation: "To return stolen artworks to their rightful owners and expose the criminal network that exploited their skills, by using their insider knowledge of forgery techniques to identify stolen pieces in private collections. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
-      greatestStrength: "Attention to detail",
-      fatalFlaw: "Shame"
-    },
-    {
-      ageMin: 27,
-      ageMax: 34,
-      profession: "Strategic Business Consultant",
-      personality: ["Strategic", "Obsessive", "Analytical"],
-      backstory: "A former competitive chess player turned strategic business consultant in their late twenties. When they discovered match-fixing corruption in professional chess, they used their specialized knowledge and unique perspective to transition into their current role. They analyze complex strategic scenarios and can calculate probability outcomes and long-term consequences. Communicates in four languages and has studied game theory across different cultures, though they battle obsessive tendencies and difficulty accepting when situations can't be controlled.",
-      coreMotivation: "To expose corruption in competitive industries by revealing the systematic cheating that destroyed fair play, by applying strategic thinking to investigate fraud patterns and building cases through careful analysis. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
-      greatestStrength: "Strategic thinking",
-      fatalFlaw: "Obsessiveness"
-    },
-    {
-      ageMin: 31,
-      ageMax: 39,
-      profession: "Documentary Filmmaker",
-      personality: ["Charismatic", "Detached", "Investigative"],
-      backstory: "A former undercover journalist turned documentary filmmaker in their mid-thirties. Following exposure of their editor's unethical practices and corporate connections, they used their specialized knowledge and unique perspective to transition into their current role. They blend into different social environments seamlessly and have an intuitive ability to gain people's trust. Speaks five languages and can adopt different accents and dialects convincingly, but has difficulty forming genuine relationships after years of maintaining false identities.",
-      coreMotivation: "To expose media manipulation and restore public trust in investigative journalism, by creating documentaries that reveal corporate influence on news media and the stories that were suppressed. This driving force shapes every major decision they make and influences how they approach both their professional work and personal relationships.",
-      greatestStrength: "Charisma",
-      fatalFlaw: "Emotional detachment"
-    },
-    {
-      ageMin: 62,
-      ageMax: 72,
-      profession: "Antiquarian Bookshop Owner",
-      personality: ["Culturally sensitive", "Guilt-ridden", "Scholarly"],
-      backstory: "A former archaeologist turned antiquarian bookshop owner in their mid-sixties. After malaria forced their early retirement and a jaguar encounter in Belize cost them their eye, they used their specialized knowledge and unique perspective to transition into their current role. They maintain correspondence with treasure hunters worldwide and have an encyclopedic knowledge of artifact authentication and provenance. Speaks ancient Mayan dialects fluently and can read historical documents in multiple indigenous languages, though they carry profound guilt over spending thirty years in what they now recognize as sanctioned cultural theft.",
-      coreMotivation: "Driven by a profound need to return cultural artifacts to where they truly belong. After decades of 'discovering' and removing treasures for Western museums, they understand that they were part of a system that stripped indigenous peoples of their heritage. The jaguar attack that cost them their eye was nature itself rejecting their presence in sacred spaces - earning them the right to become a guardian rather than an exploiter of ancient cultures. This manifests as secretly using their archaeological contacts to track down stolen artifacts for repatriation. Their bookshop becomes both a front for this work and a place to educate people about the cost of cultural appropriation. Every stolen piece they recover and return is an act of justice and personal redemption. They're fighting modern-day tomb raiders while battling the legacy of their own profession's colonial mindset. Undoing decades of institutional harm drives them to work in secrecy, knowing they can never fully undo what they've taken, but can maybe prevent others from taking more. Their transition from archaeologist to artifact repatriation agent is their attempt to atone for thirty years of well-intentioned but harmful work.",
-      greatestStrength: "Cultural sensitivity",
-      fatalFlaw: "Guilt"
-    }
-  ];
-
-  const character = directCharacters[Math.floor(Math.random() * directCharacters.length)];
-  const age = Math.floor(Math.random() * (character.ageMax - character.ageMin + 1)) + character.ageMin;
-
-  return {
-    age,
-    occupation: character.profession,
-    personality: character.personality,
-    backstory: character.backstory,
-    motivation: character.coreMotivation,
-    strength: character.greatestStrength,
-    flaw: character.fatalFlaw
-  };
-}
-
 function generateRandomSetup(): string {
   const setups = [
-    "A quiet town harbors a dark secret that threatens its very existence",
-    "An unlikely hero discovers they possess extraordinary abilities",
-    "Two rival families are forced to work together against a common enemy",
-    "A mysterious artifact resurfaces after centuries of being lost",
-    "A young person inherits more than they bargained for",
-    "Strange phenomena begin occurring around the world simultaneously"
+    "In a world where magic is forbidden, a young apprentice discovers they possess incredible powers",
+    "A detective investigating a series of mysterious disappearances uncovers a conspiracy that goes to the highest levels of government",
+    "After a global catastrophe, survivors must navigate a dangerous new world filled with strange creatures",
+    "A time traveler accidentally changes history and must find a way to set things right",
+    "In a society where emotions are illegal, a rebel group fights to restore humanity's right to feel"
   ];
   return setups[Math.floor(Math.random() * setups.length)];
 }
 
 function generateRandomTheme(): string {
-  const themes = [
-    "The power of forgiveness and redemption",
-    "Finding strength in vulnerability",
-    "The cost of ambition and power",
-    "Love conquers all obstacles",
-    "Truth will always surface",
-    "Growth comes through adversity",
-    "The importance of sacrifice for others"
-  ];
+  const themes = ["Redemption", "Coming of age", "Good vs. evil", "Love conquers all", "Power corrupts", "Identity and self-discovery"];
   return themes[Math.floor(Math.random() * themes.length)];
 }
 
 function generateRandomConflict(): string {
-  const conflicts = [
-    "Person vs. Self - internal struggle with identity and purpose",
-    "Person vs. Person - direct confrontation with an antagonist",
-    "Person vs. Society - fighting against corrupt systems",
-    "Person vs. Nature - survival against natural forces",
-    "Person vs. Technology - struggle with artificial intelligence",
-    "Person vs. Fate - fighting against predetermined destiny"
-  ];
+  const conflicts = ["Man vs. nature", "Man vs. society", "Man vs. self", "Man vs. technology", "Man vs. fate"];
   return conflicts[Math.floor(Math.random() * conflicts.length)];
 }
 
-function generateRandomPrompt(genre?: string): string {
-  const promptTemplates = {
-    fantasy: [
-      "A young apprentice discovers their magic teacher has been secretly stealing power from students",
-      "In a world where dragons are extinct, someone finds a living egg in their grandmother's attic",
-      "The kingdom's most powerful wizard loses their magic on the day they need it most",
-      "Ancient gods return to find the modern world has forgotten them entirely"
-    ],
-    'sci-fi': [
-      "Earth receives a message from space, but it's from humans who left centuries ago",
-      "A time traveler keeps trying to prevent a disaster, but each attempt makes it worse",
-      "The last human on Earth discovers they're not alone after all",
-      "An AI designed to help humanity decides the best way is to control it completely"
-    ],
-    romance: [
-      "Two rival coffee shop owners are forced to work together when their buildings merge",
-      "A wedding planner falls in love with someone who's sworn off marriage forever",
-      "Love letters meant for someone else keep appearing in your mailbox",
-      "Two people keep meeting in different time periods throughout history"
-    ],
-    mystery: [
-      "A detective realizes the serial killer they're hunting is someone they know personally",
-      "Everyone in town claims to have an alibi for the same exact time",
-      "A murder victim keeps leaving clues from beyond the grave",
-      "The same crime keeps happening in different cities, decades apart"
-    ],
-    thriller: [
-      "You wake up in a room with no memory and a countdown timer showing 24 hours",
-      "Your identical twin, who died years ago, appears at your door",
-      "Every night at midnight, you receive a call from your own phone number",
-      "A passenger on your flight whispers that the plane will never land"
-    ],
-    contemporary: [
-      "A social media influencer discovers their entire online life has been fabricated",
-      "Two strangers get stuck in an elevator and realize they've ruined each other's lives",
-      "A person inherits a house and finds diary entries that predict their future",
-      "Everyone in your city starts receiving the same recurring dream"
-    ]
-  };
-
-  const selectedGenre = genre || 'contemporary';
-  const templates = promptTemplates[selectedGenre as keyof typeof promptTemplates] || promptTemplates.contemporary;
-  return templates[Math.floor(Math.random() * templates.length)];
-}
-
 function getRandomGenre(): string {
-  const genres = ['fantasy', 'sci-fi', 'romance', 'mystery', 'thriller', 'contemporary'];
+  const genres = ["Fantasy", "Science Fiction", "Mystery", "Romance", "Horror", "Thriller", "Historical Fiction", "Literary Fiction"];
   return genres[Math.floor(Math.random() * genres.length)];
 }
 
 function getRandomDifficulty(): string {
-  const difficulties = ['Easy', 'Medium', 'Hard'];
+  const difficulties = ["Beginner", "Intermediate", "Advanced"];
   return difficulties[Math.floor(Math.random() * difficulties.length)];
 }
 
 function getRandomPromptType(): string {
-  const types = ['Story Starter', 'Character Focus', 'Dialogue', 'Setting', 'Conflict'];
+  const types = ["Character", "Setting", "Plot", "Dialogue", "First Line", "What If"];
   return types[Math.floor(Math.random() * types.length)];
 }
 
-function getRandomWordCount(): string {
-  const wordCounts = ['500-1000 words', '1000-2500 words', '2500-5000 words', '5000+ words'];
+function getRandomWordCount(): number {
+  const wordCounts = [100, 250, 500, 1000, 1500, 2000];
   return wordCounts[Math.floor(Math.random() * wordCounts.length)];
 }
 
-// Setting generator helper functions
-function generateRandomSettingName(): string {
-  const prefixes = ['Ancient', 'Crystal', 'Shadow', 'Golden', 'Emerald', 'Silver', 'Crimson', 'Mystic', 'Fallen', 'Lost'];
-  const suffixes = ['Haven', 'Peaks', 'Falls', 'Harbor', 'Glen', 'Ridge', 'Vale', 'Reach', 'Hollow', 'Crossing'];
-  return `${prefixes[Math.floor(Math.random() * prefixes.length)]} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`;
-}
-
-function generateRandomLocation(): string {
-  const locations = [
-    'Remote mountain village', 'Coastal fishing town', 'Desert oasis', 'Forest clearing',
-    'Island settlement', 'Underground cavern city', 'Floating sky city', 'River delta',
-    'Canyon stronghold', 'Tundra outpost', 'Jungle temple complex', 'Prairie trading post'
-  ];
-  return locations[Math.floor(Math.random() * locations.length)];
-}
-
-function generateRandomTimePeriod(): string {
-  const periods = [
-    'Medieval era', 'Renaissance period', 'Industrial age', 'Modern day',
-    'Near future', 'Distant future', 'Ancient times', 'Post-apocalyptic',
-    'Steampunk era', 'Space age', 'Victorian era', 'Wild West'
-  ];
-  return periods[Math.floor(Math.random() * periods.length)];
-}
-
-function generateRandomPopulation(): string {
-  const populations = [
-    'Small hamlet (50-200)', 'Village (200-1,000)', 'Town (1,000-10,000)',
-    'Small city (10,000-50,000)', 'Large city (50,000-500,000)', 'Metropolis (500,000+)',
-    'Tiny settlement (10-50)', 'Nomadic group (100-500)', 'Isolated family (3-12)'
-  ];
-  return populations[Math.floor(Math.random() * populations.length)];
-}
-
-function generateRandomClimate(): string {
-  const climates = [
-    'Temperate', 'Tropical', 'Arid desert', 'Arctic tundra', 'Mediterranean',
-    'Subtropical', 'Continental', 'Oceanic', 'Monsoon', 'Alpine', 'Steppe', 'Humid continental'
-  ];
-  return climates[Math.floor(Math.random() * climates.length)];
-}
-
-function generateRandomSettingDescription(): string {
-  const descriptions = [
-    'A place where old traditions meet new challenges, creating unique tensions and opportunities.',
-    'Known for its distinctive architecture and the mysterious phenomena that occur here regularly.',
-    'A crossroads of different cultures and peoples, each bringing their own customs and conflicts.',
-    'Hidden from the outside world, this location harbors secrets that could change everything.',
-    'Once prosperous, now struggling to maintain its former glory while adapting to new realities.',
-    'A place of natural beauty marred by ancient conflicts that still echo through the community.',
-    'Where the boundaries between the mundane and magical are thinner than anywhere else.',
-    'A settlement built around a powerful natural resource that both blesses and curses its inhabitants.'
-  ];
-  return descriptions[Math.floor(Math.random() * descriptions.length)];
-}
-
-function generateRandomAtmosphere(): string {
-  const atmospheres = [
-    'Tense and mysterious, with locals whispering about strange occurrences in the shadows.',
-    'Warm and welcoming, though visitors sense undercurrents of ancient rivalries.',
-    'Melancholic and nostalgic, as if the place is mourning for better times past.',
-    'Vibrant and chaotic, with constant activity and an underlying sense of urgency.',
-    'Peaceful on the surface, but with an ominous feeling that something is about to change.',
-    'Magical and otherworldly, where the impossible seems commonplace.',
-    'Gritty and determined, with residents who have learned to survive against all odds.',
-    'Elegant but decaying, like a beautiful flower slowly wilting away.'
-  ];
-  return atmospheres[Math.floor(Math.random() * atmospheres.length)];
-}
-
-function generateRandomCulturalElements(): string[] {
-  const elements = [
-    'Annual harvest festival', 'Coming-of-age rituals', 'Elder council governance',
-    'Artisan craft traditions', 'Storytelling circles', 'Religious ceremonies',
-    'Trading partnerships', 'Warrior codes', 'Healing practices', 'Music traditions',
-    'Architecture styles', 'Dietary customs', 'Marriage ceremonies', 'Death rites',
-    'Seasonal celebrations', 'Language dialects'
-  ];
-  return elements.sort(() => Math.random() - 0.5).slice(0, 4);
-}
-
-function generateRandomNotableFeatures(): string[] {
-  const features = [
-    'Ancient stone circle with mysterious properties',
-    'Natural hot springs believed to have healing powers',
-    'Towering lighthouse that guides travelers through dangerous terrain',
-    'Underground network of tunnels and chambers',
-    'Massive library containing rare and forbidden knowledge',
-    'Floating gardens that defy natural laws',
-    'Crystal formations that glow with inner light',
-    'Ancient battlefield where spirits still roam',
-    'Marketplace that attracts traders from distant lands',
-    'Observatory for studying celestial movements',
-    'Sacred grove where no violence can occur',
-    'Natural amphitheater with perfect acoustics'
-  ];
-  return features.sort(() => Math.random() - 0.5).slice(0, 3);
-}
-
-// Name generator helper functions
 function generateRandomNames(nameType: string, culture: string, userId: string | null): any[] {
-  const nameData = {
-    character: {
-      english: [
-        { name: 'Evelyn Hartwell', meaning: 'Wished for child', origin: 'English' },
-        { name: 'Theodore Manning', meaning: 'Gift of God', origin: 'English' },
-        { name: 'Violet Ashford', meaning: 'Purple flower', origin: 'English' },
-        { name: 'Sebastian Cross', meaning: 'Venerable', origin: 'English' }
-      ],
-      celtic: [
-        { name: 'Aileen MacBride', meaning: 'Light bearer', origin: 'Celtic' },
-        { name: 'Cian O\'Sullivan', meaning: 'Ancient one', origin: 'Celtic' },
-        { name: 'Niamh Gallagher', meaning: 'Brightness', origin: 'Celtic' },
-        { name: 'Declan Murphy', meaning: 'Full of goodness', origin: 'Celtic' }
-      ],
-      fantasy: [
-        { name: 'Zephyria Moonwhisper', meaning: 'West wind speaker', origin: 'Fantasy' },
-        { name: 'Thalorin Starweaver', meaning: 'Eternal star worker', origin: 'Fantasy' },
-        { name: 'Lyralei Dawnbringer', meaning: 'Song of dawn', origin: 'Fantasy' },
-        { name: 'Drakmor Shadowbane', meaning: 'Dragon shadow destroyer', origin: 'Fantasy' }
-      ]
-    },
-    place: {
-      english: [
-        { name: 'Willowbrook', meaning: 'Stream by the willows', origin: 'English' },
-        { name: 'Oakenhaven', meaning: 'Oak tree sanctuary', origin: 'English' },
-        { name: 'Thornfield', meaning: 'Field of thorns', origin: 'English' },
-        { name: 'Rosemere', meaning: 'Rose lake', origin: 'English' }
-      ],
-      fantasy: [
-        { name: 'Aethermoor', meaning: 'Sky marshland', origin: 'Fantasy' },
-        { name: 'Crystalvale', meaning: 'Valley of crystals', origin: 'Fantasy' },
-        { name: 'Shadowpeak', meaning: 'Dark mountain top', origin: 'Fantasy' },
-        { name: 'Starfall Crossing', meaning: 'Where stars descend', origin: 'Fantasy' }
-      ]
-    }
-  };
-
-  const selectedType = nameType in nameData ? nameType as keyof typeof nameData : 'character';
-  const selectedCulture = culture === 'any' ? Object.keys(nameData[selectedType])[0] : culture;
-  const typeData = nameData[selectedType];
-  const names = (typeData as any)[selectedCulture] || (typeData as any)[Object.keys(typeData)[0]];
+  const firstNames = ["Aria", "Zara", "Kai", "Luna", "Dex", "Nova", "Orion", "Maya", "Finn", "Phoenix"];
+  const lastNames = ["Stormwind", "Shadowbane", "Goldleaf", "Ironforge", "Moonwhisper", "Starfall", "Bloodmoon", "Frostborn", "Earthshaker", "Voidwalker"];
   
-  return names.slice(0, 5).map((name: { name: string; meaning: string; origin: string }) => ({
-    ...name,
-    nameType,
-    culture: selectedCulture
-  }));
+  const names = [];
+  for (let i = 0; i < 10; i++) {
+    names.push({
+      name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
+      nameType,
+      culture,
+      userId
+    });
+  }
+  return names;
 }
 
-// Conflict generator helper functions
 function generateRandomConflictTitle(): string {
   const titles = [
-    'The Betrayal Within', 'Shadows of the Past', 'The Impossible Choice', 'Divided Loyalties',
-    'The Price of Power', 'Honor vs. Survival', 'The Weight of Truth', 'Broken Promises',
-    'The Last Stand', 'Between Two Worlds', 'The Burden of Legacy', 'Crossing the Line'
+    "The Great Divide",
+    "Shadows of Betrayal",
+    "The Last Stand",
+    "Broken Alliances",
+    "The Price of Power",
+    "Echoes of War",
+    "The Final Choice"
   ];
   return titles[Math.floor(Math.random() * titles.length)];
 }
 
 function generateRandomConflictType(): string {
-  const types = ['internal', 'external', 'interpersonal', 'societal'];
+  const types = ["Internal", "Interpersonal", "External", "Societal", "Supernatural", "Moral"];
   return types[Math.floor(Math.random() * types.length)];
 }
 
 function generateRandomConflictDescription(): string {
   const descriptions = [
-    'A fundamental disagreement about values and priorities that cannot be easily resolved.',
-    'Two opposing forces clash over resources, territory, or ideological differences.',
-    'A character must choose between competing loyalties, each with valid claims.',
-    'Past mistakes come back to haunt the present, creating new complications.',
-    'A moral dilemma where there is no clearly right or wrong answer.',
-    'External pressures force difficult decisions that test character relationships.',
-    'A secret threatens to destroy everything the character has worked to build.',
-    'Conflicting desires within the character create internal turmoil and doubt.'
+    "A deep-seated disagreement that threatens to tear apart everything the characters hold dear",
+    "An ancient rivalry that resurfaces at the worst possible moment",
+    "A moral dilemma that forces characters to choose between their values and survival",
+    "A power struggle that reveals the true nature of those involved",
+    "A secret that, once revealed, changes everything"
   ];
   return descriptions[Math.floor(Math.random() * descriptions.length)];
 }
 
 function generateRandomStakes(): string {
   const stakes = [
-    'The fate of an entire community hangs in the balance.',
-    'A cherished relationship will be permanently damaged or destroyed.',
-    'The character\'s deepest held beliefs and values are challenged.',
-    'Lives will be lost if the wrong choice is made.',
-    'The character\'s identity and sense of self are at risk.',
-    'Years of hard work and progress could be undone.',
-    'Trust, once broken, may never be repaired.',
-    'The character must sacrifice something precious to save what matters most.'
+    "The fate of the kingdom hangs in the balance",
+    "Lives of innocent people are at risk",
+    "The character's deepest relationships are threatened",
+    "Everything they've worked for could be lost",
+    "The very fabric of reality might be torn apart"
   ];
   return stakes[Math.floor(Math.random() * stakes.length)];
 }
 
-function generateRandomObstacles(): string[] {
+function generateRandomObstacles(): string {
   const obstacles = [
-    'Limited time to make a crucial decision',
-    'Lack of complete information about the situation',
-    'Conflicting advice from trusted advisors',
-    'Physical barriers that prevent direct action',
-    'Legal or social constraints that limit options',
-    'Emotional baggage that clouds judgment',
-    'Powerful enemies working against the character',
-    'Unexpected complications that change the rules',
-    'Personal fears and insecurities',
-    'Competing priorities that demand attention'
+    "Powerful enemies who will stop at nothing",
+    "Time is running out before disaster strikes",
+    "The character's own fears and doubts",
+    "Limited resources and impossible odds",
+    "Conflicting loyalties that create difficult choices"
   ];
-  return obstacles.sort(() => Math.random() - 0.5).slice(0, 3);
+  return obstacles[Math.floor(Math.random() * obstacles.length)];
 }
 
-function generateRandomResolutions(): string[] {
+function generateRandomResolutions(): string {
   const resolutions = [
-    'Find a creative third option that satisfies multiple parties',
-    'Make a sacrifice that demonstrates true character growth',
-    'Confront the root cause rather than just the symptoms',
-    'Seek help from an unexpected ally or source',
-    'Accept responsibility and work to make amends',
-    'Choose the greater good over personal desires',
-    'Stand firm on principles despite the cost',
-    'Forgive past wrongs and focus on the future',
-    'Use wisdom gained through experience to find a new path',
-    'Transform the conflict into an opportunity for positive change'
+    "A sacrifice that saves everyone but costs everything",
+    "Finding an unexpected ally in a former enemy",
+    "Discovering inner strength to overcome the impossible",
+    "A clever plan that turns weakness into strength",
+    "Learning that some conflicts can only be resolved through understanding"
   ];
-  return resolutions.sort(() => Math.random() - 0.5).slice(0, 3);
+  return resolutions[Math.floor(Math.random() * resolutions.length)];
 }
 
 function generateRandomEmotionalImpact(): string {
   const impacts = [
-    'Forces the character to confront their deepest fears and weaknesses.',
-    'Creates lasting trauma that will affect future relationships and decisions.',
-    'Strengthens resolve and clarifies what truly matters in life.',
-    'Leads to profound personal growth and a new understanding of self.',
-    'Damages trust and creates lasting suspicion of others\' motives.',
-    'Inspires courage and determination to face future challenges.',
-    'Creates guilt and regret that must be processed and overcome.',
-    'Develops empathy and understanding for others\' struggles.'
+    "Forces characters to confront their deepest fears",
+    "Reveals hidden strengths and vulnerabilities",
+    "Tests the bonds of friendship and loyalty",
+    "Challenges long-held beliefs and assumptions",
+    "Creates lasting change in how characters see the world"
   ];
   return impacts[Math.floor(Math.random() * impacts.length)];
 }
 
-// Theme generator helper functions
 function generateRandomThemeTitle(): string {
-  const themes = [
-    'The Power of Redemption', 'Identity and Belonging', 'The Cost of Progress',
-    'Love vs. Duty', 'The Nature of Sacrifice', 'Truth and Deception',
-    'The Burden of Legacy', 'Freedom and Responsibility', 'Justice and Mercy',
-    'The Search for Meaning', 'Courage in Adversity', 'The Price of Ambition'
+  const titles = [
+    "The Power of Forgiveness",
+    "Identity and Belonging",
+    "The Cost of Ambition",
+    "Love in Dark Times",
+    "The Nature of Sacrifice",
+    "Finding Hope in Despair",
+    "The Burden of Legacy"
   ];
-  return themes[Math.floor(Math.random() * themes.length)];
+  return titles[Math.floor(Math.random() * titles.length)];
 }
 
 function generateRandomThemeDescription(): string {
   const descriptions = [
-    'Explores the complex relationship between individual desires and societal expectations.',
-    'Examines how past actions continue to influence present circumstances and future possibilities.',
-    'Investigates the tension between maintaining tradition and embracing necessary change.',
-    'Delves into the moral complexities of making difficult choices in ambiguous situations.',
-    'Questions the true nature of heroism and what it means to do the right thing.',
-    'Explores how relationships shape identity and the ways people influence each other.',
-    'Examines the consequences of power and the responsibilities that come with it.',
-    'Investigates themes of forgiveness, both of others and of oneself.'
+    "An exploration of what it means to be human in challenging circumstances",
+    "The universal struggle between personal desires and greater responsibility",
+    "How individuals respond when their core beliefs are tested",
+    "The transformative power of relationships and connection",
+    "The price we pay for the choices we make"
   ];
   return descriptions[Math.floor(Math.random() * descriptions.length)];
 }
 
 function generateRandomCoreMessage(): string {
   const messages = [
-    'True strength comes from vulnerability and the courage to be authentic.',
-    'The greatest battles are often fought within ourselves.',
-    'Love and connection are more powerful than fear and isolation.',
-    'Every ending is also a beginning in disguise.',
-    'The past informs the present but does not have to define the future.',
-    'Sometimes the greatest victory is knowing when to surrender.',
-    'Wisdom comes from experience, but understanding comes from reflection.',
-    'The journey matters more than the destination.'
+    "True strength comes from facing our vulnerabilities",
+    "The most powerful force in the universe is compassion",
+    "Sometimes losing everything is the only way to find yourself",
+    "The greatest battles are fought within our own hearts",
+    "Hope can survive in even the darkest circumstances"
   ];
   return messages[Math.floor(Math.random() * messages.length)];
 }
 
-function generateRandomSymbolicElements(): string[] {
-  const symbols = [
-    'Broken mirrors representing fractured identity',
-    'Bridges symbolizing connection and transition',
-    'Seeds representing potential and new growth',
-    'Storms symbolizing internal conflict and change',
-    'Keys representing opportunity and hidden knowledge',
-    'Crossroads representing choice and uncertainty',
-    'Light and shadow representing moral ambiguity',
-    'Circles representing cycles and completion',
-    'Doors representing new opportunities',
-    'Water representing purification and renewal'
+function generateRandomSymbolicElements(): string {
+  const elements = [
+    "Light and darkness representing knowledge and ignorance",
+    "Bridges symbolizing connection and transition",
+    "Storms as metaphors for internal turmoil",
+    "Gardens representing growth and nurturing",
+    "Mirrors reflecting self-discovery and truth"
   ];
-  return symbols.sort(() => Math.random() - 0.5).slice(0, 4);
+  return elements[Math.floor(Math.random() * elements.length)];
 }
 
-function generateRandomThematicQuestions(): string[] {
+function generateRandomThematicQuestions(): string {
   const questions = [
-    'What does it truly mean to be brave?',
-    'How do we balance personal desires with responsibilities to others?',
-    'Can people really change, or are we bound by our nature?',
-    'What price are we willing to pay for our dreams?',
-    'How do we forgive the unforgivable?',
-    'What makes a life worth living?',
-    'How do we find hope in hopeless situations?',
-    'What is the difference between justice and revenge?',
-    'How do we learn to trust again after betrayal?',
-    'What legacy do we want to leave behind?'
+    "What does it mean to be truly free?",
+    "How do we find meaning in suffering?",
+    "What is the difference between justice and revenge?",
+    "Can love survive betrayal?",
+    "What price are we willing to pay for our dreams?"
   ];
-  return questions.sort(() => Math.random() - 0.5).slice(0, 3);
+  return questions[Math.floor(Math.random() * questions.length)];
 }
 
-function generateRandomThematicConflicts(): string[] {
+function generateRandomThematicConflicts(): string {
   const conflicts = [
-    'Individual freedom vs. collective responsibility',
-    'Loyalty to family vs. personal moral code',
-    'Desire for revenge vs. need for healing',
-    'Ambition for success vs. maintaining relationships',
-    'Following tradition vs. embracing change',
-    'Seeking truth vs. preserving peace',
-    'Personal safety vs. standing up for others',
-    'Accepting fate vs. fighting for control'
+    "Individual desires versus collective needs",
+    "Tradition versus progress and change",
+    "The known versus the unknown",
+    "Safety versus adventure and growth",
+    "Truth versus comfortable illusions"
   ];
-  return conflicts.sort(() => Math.random() - 0.5).slice(0, 3);
+  return conflicts[Math.floor(Math.random() * conflicts.length)];
 }
 
-function generateRandomLiteraryExamples(): string[] {
+function generateRandomLiteraryExamples(): string {
   const examples = [
-    '"To Kill a Mockingbird" - Moral courage in the face of social pressure',
-    '"The Great Gatsby" - The corruption of the American Dream',
-    '"1984" - The nature of truth and the power of language',
-    '"Pride and Prejudice" - The importance of looking beyond first impressions',
-    '"The Lord of the Rings" - The struggle between good and evil',
-    '"Beloved" - The lasting trauma of historical injustice',
-    '"The Kite Runner" - Redemption and the weight of guilt',
-    '"Hamlet" - The paralysis of overthinking and moral uncertainty'
+    "Like Atticus Finch standing up for justice despite social pressure",
+    "Similar to Elizabeth Bennet overcoming her prejudices",
+    "Reminiscent of Jean Valjean's journey toward redemption",
+    "Echoing Frodo's burden and the corrupting power of the Ring",
+    "Parallel to Scout Finch's loss of innocence"
   ];
-  return examples.sort(() => Math.random() - 0.5).slice(0, 3);
+  return examples[Math.floor(Math.random() * examples.length)];
 }
 
-// Mood generator helper functions
 function generateRandomMoodName(): string {
-  const moods = [
-    'Twilight Melancholy', 'Dawn\'s Promise', 'Stormy Introspection', 'Peaceful Reflection',
-    'Autumn Nostalgia', 'Winter\'s Silence', 'Spring Awakening', 'Summer\'s Embrace',
-    'Mysterious Tension', 'Joyful Celebration', 'Quiet Contemplation', 'Passionate Intensity'
+  const names = [
+    "Melancholy Twilight",
+    "Electric Anticipation",
+    "Cozy Contemplation",
+    "Ethereal Wonder",
+    "Tense Uncertainty",
+    "Nostalgic Warmth",
+    "Mysterious Allure"
   ];
-  return moods[Math.floor(Math.random() * moods.length)];
+  return names[Math.floor(Math.random() * names.length)];
 }
 
 function generateRandomMoodDescription(): string {
   const descriptions = [
-    'A bittersweet atmosphere that evokes both sadness and hope, perfect for moments of transition.',
-    'An energetic and uplifting feeling that encourages action and positive change.',
-    'A contemplative mood that invites deep thought and introspection.',
-    'A tense and mysterious atmosphere that keeps readers on edge.',
-    'A warm and comforting feeling that provides safety and reassurance.',
-    'A dramatic and intense mood that heightens emotional stakes.',
-    'A peaceful and serene atmosphere that offers respite from conflict.',
-    'A playful and light-hearted mood that brings joy and laughter.'
+    "A bittersweet atmosphere that evokes memories of things lost and found",
+    "An energetic feeling that makes everything seem possible",
+    "A peaceful state of mind where thoughts flow freely",
+    "A dreamlike quality that blurs the line between reality and imagination",
+    "A charged atmosphere where anything could happen",
+    "A comfortable familiarity that feels like coming home",
+    "An intriguing ambiance that draws you deeper into the story"
   ];
   return descriptions[Math.floor(Math.random() * descriptions.length)];
 }
 
 function generateRandomEmotionalTone(): string {
-  const tones = [
-    'Melancholic', 'Hopeful', 'Tense', 'Peaceful', 'Nostalgic', 'Mysterious',
-    'Joyful', 'Contemplative', 'Dramatic', 'Serene', 'Passionate', 'Whimsical'
-  ];
+  const tones = ["Hopeful", "Melancholic", "Mysterious", "Energetic", "Peaceful", "Tense", "Romantic"];
   return tones[Math.floor(Math.random() * tones.length)];
 }
 
-function generateRandomSensoryDetails(): string[] {
+function generateRandomSensoryDetails(): string {
   const details = [
-    'The musty scent of old books and parchment',
-    'Soft golden light filtering through dusty windows',
-    'The distant sound of church bells echoing',
-    'Cool marble surfaces under fingertips',
-    'The taste of salt spray in the ocean air',
-    'Warm bread baking in nearby ovens',
-    'Silk curtains rustling in a gentle breeze',
-    'The crackle of logs burning in a fireplace',
-    'Damp earth after a summer rain',
-    'Morning dew glistening on grass blades'
+    "The scent of rain on warm earth",
+    "Soft candlelight flickering against stone walls",
+    "The distant sound of ocean waves",
+    "Cool morning mist and fresh pine",
+    "The warmth of sunlight through autumn leaves"
   ];
-  return details.sort(() => Math.random() - 0.5).slice(0, 4);
+  return details[Math.floor(Math.random() * details.length)];
 }
 
-function generateRandomColorAssociations(): string[] {
+function generateRandomColorAssociations(): string {
   const colors = [
-    'Deep amber', 'Soft silver', 'Rich burgundy', 'Pale gold', 'Dusky rose',
-    'Midnight blue', 'Forest green', 'Warm copper', 'Lavender gray', 'Cream white',
-    'Charcoal black', 'Sunset orange', 'Sage green', 'Pearl white', 'Crimson red'
+    "Deep blues and silver",
+    "Warm golds and amber",
+    "Rich purples and violet",
+    "Soft greens and cream",
+    "Dusky rose and charcoal"
   ];
-  return colors.sort(() => Math.random() - 0.5).slice(0, 5);
+  return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function generateRandomWeatherElements(): string[] {
+function generateRandomWeatherElements(): string {
   const weather = [
-    'Gentle mist rising from the ground',
-    'Dramatic storm clouds gathering overhead',
-    'Soft snowflakes falling silently',
-    'Warm sunshine breaking through clouds',
-    'Light rain pattering on rooftops',
-    'Strong winds bending tree branches',
-    'Heavy fog obscuring the distance',
-    'Clear starry skies overhead',
-    'Lightning illuminating the horizon',
-    'Rainbow appearing after the storm'
+    "Gentle rainfall",
+    "Golden sunset",
+    "Misty morning",
+    "Starlit night",
+    "Autumn breeze"
   ];
-  return weather.sort(() => Math.random() - 0.5).slice(0, 3);
+  return weather[Math.floor(Math.random() * weather.length)];
 }
 
-function generateRandomLightingEffects(): string[] {
+function generateRandomLightingEffects(): string {
   const lighting = [
-    'Flickering candlelight casting dancing shadows',
-    'Harsh fluorescent light creating stark contrasts',
-    'Soft lamplight creating a warm glow',
-    'Moonlight streaming through windows',
-    'Firelight painting everything in orange hues',
-    'Sunlight filtered through leaves',
-    'Neon signs reflecting in puddles',
-    'Starlight providing faint illumination',
-    'Dawn light gradually brightening the sky',
-    'Dusk shadows growing longer'
+    "Soft, diffused light",
+    "Dramatic shadows",
+    "Warm, glowing ambiance",
+    "Cool, ethereal illumination",
+    "Flickering, unstable light"
   ];
-  return lighting.sort(() => Math.random() - 0.5).slice(0, 3);
+  return lighting[Math.floor(Math.random() * lighting.length)];
 }
 
-function generateRandomSoundscape(): string[] {
+function generateRandomSoundscape(): string {
   const sounds = [
-    'Distant thunder rumbling low',
-    'Birds chirping in nearby trees',
-    'Clock ticking steadily in the background',
-    'Footsteps echoing in empty hallways',
-    'Wind whistling through cracks',
-    'Water dripping rhythmically',
-    'Voices murmuring in conversation',
-    'Papers rustling softly',
-    'Doors creaking on old hinges',
-    'Music playing faintly from another room'
+    "Distant thunder and rain",
+    "Gentle wind through trees",
+    "Crackling fireplace",
+    "Soft instrumental music",
+    "Echoing footsteps in empty halls"
   ];
-  return sounds.sort(() => Math.random() - 0.5).slice(0, 4);
+  return sounds[Math.floor(Math.random() * sounds.length)];
 }
