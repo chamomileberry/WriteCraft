@@ -27,7 +27,9 @@ import {
   insertTechnologySchema,
   insertProfessionSchema,
   insertManuscriptSchema,
-  insertManuscriptLinkSchema
+  insertManuscriptLinkSchema,
+  insertFolderSchema,
+  insertNoteSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePromptWithAI, generateCharacterFieldWithAI } from "./ai-generation";
@@ -2209,6 +2211,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting profession:', error);
       res.status(500).json({ error: 'Failed to delete profession' });
+    }
+  });
+
+  // Folder routes
+  app.post("/api/folders", async (req, res) => {
+    try {
+      const folder = insertFolderSchema.parse(req.body);
+      const newFolder = await storage.createFolder(folder);
+      res.status(201).json(newFolder);
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      res.status(400).json({ error: 'Failed to create folder' });
+    }
+  });
+
+  app.get("/api/folders/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const folder = await storage.getFolder(id);
+      if (!folder) {
+        return res.status(404).json({ error: 'Folder not found' });
+      }
+      res.json(folder);
+    } catch (error) {
+      console.error('Error fetching folder:', error);
+      res.status(500).json({ error: 'Failed to fetch folder' });
+    }
+  });
+
+  app.get("/api/folders", async (req, res) => {
+    try {
+      const { userId, type } = req.query;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      const folders = await storage.getUserFolders(userId as string, type as string);
+      res.json(folders);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      res.status(500).json({ error: 'Failed to fetch folders' });
+    }
+  });
+
+  app.get("/api/folders/:userId/:type/hierarchy", async (req, res) => {
+    try {
+      const { userId, type } = req.params;
+      const folders = await storage.getFolderHierarchy(userId, type);
+      res.json(folders);
+    } catch (error) {
+      console.error('Error fetching folder hierarchy:', error);
+      res.status(500).json({ error: 'Failed to fetch folder hierarchy' });
+    }
+  });
+
+  app.put("/api/folders/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId, ...updates } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      const folder = await storage.updateFolder(id, userId, updates);
+      res.json(folder);
+    } catch (error: any) {
+      console.error('Error updating folder:', error);
+      if (error.message === 'Folder not found or unauthorized') {
+        res.status(404).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Failed to update folder' });
+      }
+    }
+  });
+
+  app.delete("/api/folders/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      await storage.deleteFolder(id, userId as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      res.status(500).json({ error: 'Failed to delete folder' });
+    }
+  });
+
+  // Note routes
+  app.post("/api/notes", async (req, res) => {
+    try {
+      const note = insertNoteSchema.parse(req.body);
+      const newNote = await storage.createNote(note);
+      res.status(201).json(newNote);
+    } catch (error) {
+      console.error('Error creating note:', error);
+      res.status(400).json({ error: 'Failed to create note' });
+    }
+  });
+
+  app.get("/api/notes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const note = await storage.getNote(id);
+      if (!note) {
+        return res.status(404).json({ error: 'Note not found' });
+      }
+      res.json(note);
+    } catch (error) {
+      console.error('Error fetching note:', error);
+      res.status(500).json({ error: 'Failed to fetch note' });
+    }
+  });
+
+  app.get("/api/notes", async (req, res) => {
+    try {
+      const { userId, type, folderId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      
+      let notes;
+      if (folderId) {
+        notes = await storage.getFolderNotes(folderId as string, userId as string);
+      } else {
+        notes = await storage.getUserNotes(userId as string, type as string);
+      }
+      res.json(notes);
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      res.status(500).json({ error: 'Failed to fetch notes' });
+    }
+  });
+
+  app.put("/api/notes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId, ...updates } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      const note = await storage.updateNote(id, userId, updates);
+      res.json(note);
+    } catch (error: any) {
+      console.error('Error updating note:', error);
+      if (error.message === 'Note not found or unauthorized') {
+        res.status(404).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Failed to update note' });
+      }
+    }
+  });
+
+  app.delete("/api/notes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      await storage.deleteNote(id, userId as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      res.status(500).json({ error: 'Failed to delete note' });
     }
   });
 

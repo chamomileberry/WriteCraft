@@ -228,6 +228,8 @@ export const guides = pgTable("guides", {
   author: text("author").notNull(),
   tags: text("tags").array().notNull(),
   published: boolean("published").default(true),
+  folderId: varchar("folder_id"), // FK constraint handled via relations
+  userId: varchar("user_id"), // FK constraint handled via relations
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1309,7 +1311,43 @@ export const savedItems = pgTable("saved_items", {
   uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
 }));
 
-// Manuscripts - Rich text documents for writing
+// Folders - Organizational structure for manuscripts and guides
+export const folders = pgTable("folders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color"), // Optional color for visual organization
+  type: text("type").notNull(), // 'manuscript' or 'guide'
+  parentId: varchar("parent_id"), // Self-reference handled via relations to avoid circular dependency
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  sortOrder: integer("sort_order").default(0), // For custom ordering
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notes - Sub-documents within folders (scenes for manuscripts, individual guides for guide folders)
+export const notes = pgTable("notes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content").notNull().default(''), // Rich text content
+  excerpt: text("excerpt"), // Auto-generated excerpt for previews
+  type: text("type").notNull(), // 'manuscript_note' or 'guide_note'
+  folderId: varchar("folder_id").references(() => folders.id, { onDelete: 'cascade' }),
+  manuscriptId: varchar("manuscript_id").references(() => manuscripts.id, { onDelete: 'cascade' }), // Link to parent manuscript
+  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
+  sortOrder: integer("sort_order").default(0), // For custom ordering within folder
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // Ensure note has exactly one parent - either manuscript or guide, and optionally a folder
+  oneParentCheck: sql`CHECK (
+    (${table.manuscriptId} IS NOT NULL AND ${table.guideId} IS NULL) OR
+    (${table.manuscriptId} IS NULL AND ${table.guideId} IS NOT NULL)
+  )`
+}));
+
+// Manuscripts - Rich text documents for writing (updated with folder support)
 export const manuscripts = pgTable("manuscripts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -1319,6 +1357,7 @@ export const manuscripts = pgTable("manuscripts", {
   tags: text("tags").array(), // User-defined tags
   status: text("status").notNull().default('draft'), // 'draft', 'published', 'archived'
   searchVector: tsvector("search_vector"),
+  folderId: varchar("folder_id").references(() => folders.id, { onDelete: 'set null' }), // Optional folder organization
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1798,7 +1837,58 @@ export const manuscriptsRelations = relations(manuscripts, ({ one, many }) => ({
     fields: [manuscripts.userId],
     references: [users.id],
   }),
+  folder: one(folders, {
+    fields: [manuscripts.folderId],
+    references: [folders.id],
+  }),
   links: many(manuscriptLinks),
+  notes: many(notes),
+}));
+
+export const foldersRelations = relations(folders, ({ one, many }) => ({
+  user: one(users, {
+    fields: [folders.userId],
+    references: [users.id],
+  }),
+  parent: one(folders, {
+    fields: [folders.parentId],
+    references: [folders.id],
+  }),
+  children: many(folders),
+  manuscripts: many(manuscripts),
+  guides: many(guides),
+  notes: many(notes),
+}));
+
+export const notesRelations = relations(notes, ({ one }) => ({
+  user: one(users, {
+    fields: [notes.userId],
+    references: [users.id],
+  }),
+  folder: one(folders, {
+    fields: [notes.folderId],
+    references: [folders.id],
+  }),
+  manuscript: one(manuscripts, {
+    fields: [notes.manuscriptId],
+    references: [manuscripts.id],
+  }),
+  guide: one(guides, {
+    fields: [notes.guideId],
+    references: [guides.id],
+  }),
+}));
+
+export const guidesRelations = relations(guides, ({ one, many }) => ({
+  user: one(users, {
+    fields: [guides.userId],
+    references: [users.id],
+  }),
+  folder: one(folders, {
+    fields: [guides.folderId],
+    references: [folders.id],
+  }),
+  notes: many(notes),
 }));
 
 export const manuscriptLinksRelations = relations(manuscriptLinks, ({ one }) => ({
@@ -2112,6 +2202,18 @@ export const insertManuscriptSchema = createInsertSchema(manuscripts).omit({
   updatedAt: true,
 });
 
+export const insertFolderSchema = createInsertSchema(folders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNoteSchema = createInsertSchema(notes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertManuscriptLinkSchema = createInsertSchema(manuscriptLinks).omit({
   id: true,
   createdAt: true,
@@ -2154,6 +2256,10 @@ export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;
 export type InsertManuscript = z.infer<typeof insertManuscriptSchema>;
 export type Manuscript = typeof manuscripts.$inferSelect;
+export type InsertFolder = z.infer<typeof insertFolderSchema>;
+export type Folder = typeof folders.$inferSelect;
+export type InsertNote = z.infer<typeof insertNoteSchema>;
+export type Note = typeof notes.$inferSelect;
 export type InsertManuscriptLink = z.infer<typeof insertManuscriptLinkSchema>;
 export type ManuscriptLink = typeof manuscriptLinks.$inferSelect;
 export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;

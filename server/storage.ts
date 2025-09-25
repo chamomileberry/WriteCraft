@@ -25,11 +25,14 @@ import {
   type InsertGuide, type Guide,
   type Manuscript, type InsertManuscript,
   type ManuscriptLink, type InsertManuscriptLink,
+  type Folder, type InsertFolder,
+  type Note, type InsertNote,
   users, characters, 
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
   languages, religions, technologies, weapons, professions,
   savedItems, names, themes, moods, conflicts, guides, manuscripts, manuscriptLinks,
+  folders, notes,
   type PinnedContent, type InsertPinnedContent, pinnedContent
 } from "@shared/schema";
 import { db } from "./db";
@@ -233,6 +236,22 @@ export interface IStorage {
   getUserPinnedContent(userId: string, category?: string): Promise<PinnedContent[]>;
   reorderPinnedContent(userId: string, itemId: string, newOrder: number): Promise<void>;
   isContentPinned(userId: string, itemType: string, itemId: string): Promise<boolean>;
+
+  // Folder methods
+  createFolder(folder: InsertFolder): Promise<Folder>;
+  getFolder(id: string): Promise<Folder | undefined>;
+  getUserFolders(userId: string, type?: string): Promise<Folder[]>;
+  updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder>;
+  deleteFolder(id: string, userId: string): Promise<void>;
+  getFolderHierarchy(userId: string, type: string): Promise<Folder[]>;
+
+  // Note methods
+  createNote(note: InsertNote): Promise<Note>;
+  getNote(id: string): Promise<Note | undefined>;
+  getUserNotes(userId: string, type?: string): Promise<Note[]>;
+  getFolderNotes(folderId: string, userId: string): Promise<Note[]>;
+  updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note>;
+  deleteNote(id: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1609,6 +1628,143 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return !!pin;
+  }
+
+  // Folder methods
+  async createFolder(folder: InsertFolder): Promise<Folder> {
+    const [newFolder] = await db
+      .insert(folders)
+      .values(folder)
+      .returning();
+    return newFolder;
+  }
+
+  async getFolder(id: string): Promise<Folder | undefined> {
+    const [folder] = await db
+      .select()
+      .from(folders)
+      .where(eq(folders.id, id));
+    return folder || undefined;
+  }
+
+  async getUserFolders(userId: string, type?: string): Promise<Folder[]> {
+    const conditions = [eq(folders.userId, userId)];
+    
+    if (type) {
+      conditions.push(eq(folders.type, type));
+    }
+    
+    return await db
+      .select()
+      .from(folders)
+      .where(and(...conditions))
+      .orderBy(folders.sortOrder, folders.createdAt);
+  }
+
+  async updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder> {
+    const [updatedFolder] = await db
+      .update(folders)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(folders.id, id),
+        eq(folders.userId, userId)
+      ))
+      .returning();
+    
+    if (!updatedFolder) {
+      throw new Error("Folder not found or unauthorized");
+    }
+    
+    return updatedFolder;
+  }
+
+  async deleteFolder(id: string, userId: string): Promise<void> {
+    await db
+      .delete(folders)
+      .where(and(
+        eq(folders.id, id),
+        eq(folders.userId, userId)
+      ));
+  }
+
+  async getFolderHierarchy(userId: string, type: string): Promise<Folder[]> {
+    // Get all folders for the user and type, ordered for hierarchy building
+    return await db
+      .select()
+      .from(folders)
+      .where(and(
+        eq(folders.userId, userId),
+        eq(folders.type, type)
+      ))
+      .orderBy(folders.sortOrder, folders.createdAt);
+  }
+
+  // Note methods
+  async createNote(note: InsertNote): Promise<Note> {
+    const [newNote] = await db
+      .insert(notes)
+      .values(note)
+      .returning();
+    return newNote;
+  }
+
+  async getNote(id: string): Promise<Note | undefined> {
+    const [note] = await db
+      .select()
+      .from(notes)
+      .where(eq(notes.id, id));
+    return note || undefined;
+  }
+
+  async getUserNotes(userId: string, type?: string): Promise<Note[]> {
+    const conditions = [eq(notes.userId, userId)];
+    
+    if (type) {
+      conditions.push(eq(notes.type, type));
+    }
+    
+    return await db
+      .select()
+      .from(notes)
+      .where(and(...conditions))
+      .orderBy(notes.sortOrder, notes.createdAt);
+  }
+
+  async getFolderNotes(folderId: string, userId: string): Promise<Note[]> {
+    return await db
+      .select()
+      .from(notes)
+      .where(and(
+        eq(notes.folderId, folderId),
+        eq(notes.userId, userId)
+      ))
+      .orderBy(notes.sortOrder, notes.createdAt);
+  }
+
+  async updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note> {
+    const [updatedNote] = await db
+      .update(notes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(notes.id, id),
+        eq(notes.userId, userId)
+      ))
+      .returning();
+    
+    if (!updatedNote) {
+      throw new Error("Note not found or unauthorized");
+    }
+    
+    return updatedNote;
+  }
+
+  async deleteNote(id: string, userId: string): Promise<void> {
+    await db
+      .delete(notes)
+      .where(and(
+        eq(notes.id, id),
+        eq(notes.userId, userId)
+      ));
   }
 }
 
