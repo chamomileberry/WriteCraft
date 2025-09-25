@@ -436,6 +436,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/guides", async (req, res) => {
+    try {
+      const guideData = insertGuideSchema.parse(req.body);
+      const newGuide = await storage.createGuide(guideData);
+      res.status(201).json(newGuide);
+    } catch (error) {
+      console.error('Error creating guide:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid guide data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to create guide' });
+    }
+  });
+
   app.put("/api/guides/:id", async (req, res) => {
     try {
       const updateData = insertGuideSchema.partial().parse(req.body);
