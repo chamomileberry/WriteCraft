@@ -23,8 +23,8 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className }: Q
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // TODO: Replace with actual user ID from authentication context
-  const userId = 'user-1'; 
+  // Using guest user for consistency with other components in this demo app
+  const userId = 'guest'; 
 
   // Fetch existing quick note
   const { data: quickNote, isLoading } = useQuery({

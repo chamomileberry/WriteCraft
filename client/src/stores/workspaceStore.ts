@@ -129,19 +129,19 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             return state;
           }
           
-          // Set default tab state for new panels - start as tabbed in main region
+          // Set default tab state for new panels - start as tabbed in main region unless explicitly floating
           const newPanel: PanelDescriptor = {
             ...panel,
-            mode: 'tabbed',
-            regionId: 'main',
-            tabIndex: safeMainRegion.length,
+            mode: panel.mode || 'tabbed', // Preserve explicit mode or default to tabbed
+            regionId: panel.mode === 'floating' ? 'floating' : 'main', // Use 'floating' region for floating panels
+            tabIndex: panel.mode === 'floating' ? undefined : safeMainRegion.length,
             position: panel.position || { x: 400, y: 100 },
             size: panel.size || { width: 350, height: 500 }
           };
           
           const updatedRegions = {
             ...safeRegions,
-            main: [...safeMainRegion, newPanel.id]
+            main: newPanel.mode === 'floating' ? safeMainRegion : [...safeMainRegion, newPanel.id]
           };
           
           return {

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import Header from "./Header";
 import { useLocation } from "wouter";
+import WorkspaceShell from "./workspace/WorkspaceShell";
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,15 +35,17 @@ export default function Layout({ children, hideNavigation = false }: LayoutProps
   };
   
   return (
-    <div className="min-h-screen bg-background">
-      {!hideNavigation && (
-        <Header 
-          onSearch={handleSearch}
-          onNavigate={handleNavigate}
-          onCreateNew={handleCreateNew}
-        />
-      )}
-      {children}
-    </div>
+    <WorkspaceShell>
+      <div className="min-h-screen bg-background">
+        {!hideNavigation && (
+          <Header 
+            onSearch={handleSearch}
+            onNavigate={handleNavigate}
+            onCreateNew={handleCreateNew}
+          />
+        )}
+        {children}
+      </div>
+    </WorkspaceShell>
   );
 }
