@@ -116,6 +116,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         bulletList: false,
         orderedList: false,
         listItem: false,
+        // Disable built-in link to avoid conflicts
+        link: false,
       }),
       CharacterCount,
       TextStyle,
@@ -127,6 +129,9 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       }),
       Highlight.configure({
         multicolor: true,
+        HTMLAttributes: {
+          class: 'my-custom-highlight',
+        },
       }),
       FontFamily.configure({
         types: ['textStyle'],
@@ -580,7 +585,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                   type="color"
                   className="w-8 h-8 border rounded cursor-pointer bg-yellow-200"
                   onChange={(e) => editor?.chain().focus().setHighlight({ color: e.target.value }).run()}
-                  defaultValue="#ffff00"
+                  value={editor?.getAttributes('highlight').color || '#ffff00'}
                   data-testid="input-highlight-color"
                   title="Highlight Color"
                 />
