@@ -17,6 +17,8 @@ import SettingPage from "@/pages/SettingPage";
 import CreaturePage from "@/pages/CreaturePage";
 import ManuscriptPage from "@/pages/ManuscriptPage";
 import ManuscriptEditPage from "@/pages/ManuscriptEditPage";
+import ManuscriptEditPageWithSidebar from "@/pages/ManuscriptEditPageWithSidebar";
+import GuideEditPageWithSidebar from "@/pages/GuideEditPageWithSidebar";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -74,11 +76,13 @@ function Router() {
       <Route path="/generators" component={GeneratorsPage} />
       <Route path="/guides" component={GuidesPage} />
       <Route path="/guides/new" component={GuideEditPage} />
-      <Route path="/guides/:id/edit" component={GuideEditPage} />
       <Route path="/notebook" component={NotebookPage} />
       <Route path="/manuscripts" component={ManuscriptPage} />
-      <Route path="/manuscripts/:id/edit" component={ManuscriptEditPage} />
+      <Route path="/manuscripts/:id/edit" component={ManuscriptEditPageWithSidebar} />
+      <Route path="/manuscripts/:id/edit-basic" component={ManuscriptEditPage} />
       <Route path="/guides/:id" component={GuideDetail} />
+      <Route path="/guides/:id/edit" component={GuideEditPageWithSidebar} />
+      <Route path="/guides/:id/edit-basic" component={GuideEditPage} />
       <Route path="/characters" component={CharacterPage} />
       <Route path="/characters/:id/edit" component={CharacterEditPageWithSidebar} />
       <Route path="/characters/:id/edit-sidebar" component={CharacterEditPageWithSidebar} />
