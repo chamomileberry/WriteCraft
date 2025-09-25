@@ -47,8 +47,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [author, setAuthor] = useState('');
+  const [readTime, setReadTime] = useState<number>(5);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [hasBeenSavedOnce, setHasBeenSavedOnce] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -91,8 +93,8 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       }
       
       autosaveTimeoutRef.current = setTimeout(() => {
-        if (currentGuideId !== 'new') {
-          handleSave();
+        if (hasBeenSavedOnce && isFormValid()) {
+          handleAutoSave();
         }
       }, 2000);
     },
@@ -106,7 +108,9 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       setCategory(guide.category || '');
       setDifficulty(guide.difficulty || '');
       setAuthor(guide.author || '');
+      setReadTime(guide.readTime || 5);
       setTags(guide.tags || []);
+      setHasBeenSavedOnce(true);
       
       if (editor && guide.content) {
         editor.commands.setContent(guide.content);
@@ -129,6 +133,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       // If this was a new guide, update the current guide ID
       if (currentGuideId === 'new' && savedGuide.id) {
         setCurrentGuideId(savedGuide.id);
+        setHasBeenSavedOnce(true);
         onGuideCreated?.(savedGuide.id);
       }
       
@@ -151,35 +156,51 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     },
   });
 
+  const isFormValid = () => {
+    return !!editor && !!title.trim() && !!category && !!difficulty;
+  };
+
+  const buildGuideData = () => {
+    const content = editor!.getHTML();
+    const wordCount = editor!.storage.characterCount.words();
+    const calculatedReadTime = Math.max(1, Math.round(wordCount / 200));
+
+    return {
+      title: title.trim(),
+      description: description.trim(),
+      content,
+      excerpt: description.trim() || content.substring(0, 200).replace(/<[^>]+>/g, ''),
+      category: category || 'Writing Craft',
+      readTime: readTime || calculatedReadTime,
+      difficulty: difficulty || 'Beginner',
+      author: author.trim() || 'Anonymous',
+      tags: tags.filter(tag => tag.trim()),
+      published: true,
+    };
+  };
+
+  const handleAutoSave = async () => {
+    if (!isFormValid()) {
+      return;
+    }
+    
+    setSaveStatus('saving');
+    const guideData = buildGuideData();
+    await saveMutation.mutateAsync(guideData);
+  };
+
   const handleSave = async () => {
-    if (!editor || !title.trim()) {
+    if (!isFormValid()) {
       toast({
         title: 'Missing required fields',
-        description: 'Please provide a title for the guide.',
+        description: 'Please provide a title, category, and difficulty for the guide.',
         variant: 'destructive',
       });
       return;
     }
 
     setSaveStatus('saving');
-
-    const content = editor.getHTML();
-    const wordCount = editor.storage.characterCount.words();
-    const readTime = Math.max(1, Math.round(wordCount / 200)); // Assume 200 words per minute
-
-    const guideData = {
-      title: title.trim(),
-      description: description.trim(),
-      content,
-      excerpt: description.trim() || content.substring(0, 200).replace(/<[^>]+>/g, ''),
-      category: category || 'Writing Craft',
-      readTime,
-      difficulty: difficulty || 'Beginner',
-      author: author.trim() || 'Anonymous',
-      tags: tags.filter(tag => tag.trim()),
-      published: true,
-    };
-
+    const guideData = buildGuideData();
     await saveMutation.mutateAsync(guideData);
   };
 
@@ -329,6 +350,27 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="readTime">Read Time (minutes)</Label>
+              <Input
+                id="readTime"
+                type="number"
+                min="1"
+                max="120"
+                value={readTime}
+                onChange={(e) => setReadTime(parseInt(e.target.value) || 5)}
+                placeholder="5"
+                data-testid="input-read-time"
+              />
+            </div>
+            <div className="flex items-end">
+              <p className="text-sm text-muted-foreground">
+                Auto-calculated from word count if not specified
+              </p>
             </div>
           </div>
           
