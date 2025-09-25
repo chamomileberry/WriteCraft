@@ -1251,12 +1251,6 @@ export class DatabaseStorage implements IStorage {
     const results: any[] = [];
 
     try {
-      // First get the user's saved items to filter results
-      const userSavedItems = await this.getUserSavedItems(userId);
-      const savedItemsMap = new Map(
-        userSavedItems.map(item => [`${item.itemType}-${item.itemId}`, true])
-      );
-
       // Search manuscripts (always include these as they're user-specific)
       const manuscriptResults = await this.searchManuscripts(userId, trimmedQuery);
       manuscriptResults.forEach(item => {
@@ -1269,7 +1263,7 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
-      // Search characters - only from saved items
+      // Search characters - include all user characters
       const characterResults = await db.select().from(characters)
         .where(
           and(
@@ -1284,8 +1278,6 @@ export class DatabaseStorage implements IStorage {
         .limit(20);
       
       for (const character of characterResults) {
-        // Only include if it's in saved items
-        if (!savedItemsMap.has(`character-${character.id}`)) continue;
         
         const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ').trim() || 'Untitled Character';
         
@@ -1312,7 +1304,7 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
-      // Search professions - only from saved items
+      // Search professions - include all user professions
       const professionResults = await db.select().from(professions)
         .where(
           and(
@@ -1326,8 +1318,6 @@ export class DatabaseStorage implements IStorage {
         .limit(10);
       
       for (const profession of professionResults) {
-        // Only include if it's in saved items
-        if (!savedItemsMap.has(`profession-${profession.id}`)) continue;
         
         results.push({
           id: profession.id,
@@ -1338,7 +1328,7 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
-      // Search locations - only from saved items
+      // Search locations - include all user locations
       const locationResults = await db.select().from(locations)
         .where(and(
           eq(locations.userId, userId),
@@ -1347,8 +1337,6 @@ export class DatabaseStorage implements IStorage {
         .limit(10);
       
       locationResults.forEach(item => {
-        // Only include if it's in saved items
-        if (!savedItemsMap.has(`location-${item.id}`)) return;
         
         results.push({
           id: item.id,
@@ -1359,7 +1347,7 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
-      // Search organizations - only from saved items
+      // Search organizations - include all user organizations
       const organizationResults = await db.select().from(organizations)
         .where(and(
           eq(organizations.userId, userId),
@@ -1368,8 +1356,6 @@ export class DatabaseStorage implements IStorage {
         .limit(10);
       
       organizationResults.forEach(item => {
-        // Only include if it's in saved items
-        if (!savedItemsMap.has(`organization-${item.id}`)) return;
         
         results.push({
           id: item.id,
@@ -1380,7 +1366,7 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
-      // Search species - only from saved items
+      // Search species - include all user species
       const speciesResults = await db.select().from(species)
         .where(and(
           eq(species.userId, userId),
@@ -1389,8 +1375,6 @@ export class DatabaseStorage implements IStorage {
         .limit(10);
       
       speciesResults.forEach(item => {
-        // Only include if it's in saved items
-        if (!savedItemsMap.has(`species-${item.id}`)) return;
         
         results.push({
           id: item.id,
@@ -1401,7 +1385,7 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
-      // Search cultures - only from saved items
+      // Search cultures - include all user cultures
       const cultureResults = await db.select().from(cultures)
         .where(and(
           eq(cultures.userId, userId),
@@ -1410,8 +1394,6 @@ export class DatabaseStorage implements IStorage {
         .limit(10);
       
       cultureResults.forEach(item => {
-        // Only include if it's in saved items
-        if (!savedItemsMap.has(`culture-${item.id}`)) return;
         
         results.push({
           id: item.id,
@@ -1422,7 +1404,7 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
-      // Search items - only from saved items
+      // Search items - include all user items
       const itemResults = await db.select().from(items)
         .where(and(
           eq(items.userId, userId),
@@ -1431,8 +1413,6 @@ export class DatabaseStorage implements IStorage {
         .limit(10);
       
       itemResults.forEach(item => {
-        // Only include if it's in saved items
-        if (!savedItemsMap.has(`item-${item.id}`)) return;
         
         results.push({
           id: item.id,
