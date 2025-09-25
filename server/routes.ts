@@ -436,6 +436,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/guides/:id", async (req, res) => {
+    try {
+      const updateData = insertGuideSchema.partial().parse(req.body);
+      const updatedGuide = await storage.updateGuide(req.params.id, updateData);
+      
+      if (!updatedGuide) {
+        return res.status(404).json({ error: 'Guide not found' });
+      }
+      
+      res.json(updatedGuide);
+    } catch (error) {
+      console.error('Error updating guide:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid guide data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update guide' });
+    }
+  });
+
+  app.delete("/api/guides/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteGuide(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Guide not found' });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting guide:', error);
+      res.status(500).json({ error: 'Failed to delete guide' });
+    }
+  });
+
   // Setting generator routes
   app.post("/api/settings/generate", async (req, res) => {
     try {

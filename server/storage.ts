@@ -200,8 +200,8 @@ export interface IStorage {
   getGuide(id: string): Promise<Guide | undefined>;
   getGuides(category?: string): Promise<Guide[]>;
   searchGuides(query: string, category?: string): Promise<Guide[]>;
-  updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide>;
-  deleteGuide(id: string): Promise<void>;
+  updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
+  deleteGuide(id: string): Promise<boolean>;
 
   // Saved item methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -1037,7 +1037,7 @@ export class DatabaseStorage implements IStorage {
       .limit(20);
   }
 
-  async updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide> {
+  async updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined> {
     const [updatedGuide] = await db
       .update(guides)
       .set({ ...updates, updatedAt: new Date() })
@@ -1046,8 +1046,11 @@ export class DatabaseStorage implements IStorage {
     return updatedGuide;
   }
 
-  async deleteGuide(id: string): Promise<void> {
-    await db.delete(guides).where(eq(guides.id, id));
+  async deleteGuide(id: string): Promise<boolean> {
+    const deletedGuides = await db.delete(guides)
+      .where(eq(guides.id, id))
+      .returning({ id: guides.id });
+    return deletedGuides.length > 0;
   }
 
   // Saved item methods
