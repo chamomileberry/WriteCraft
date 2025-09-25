@@ -4,6 +4,14 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
 import CharacterCount from '@tiptap/extension-character-count';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import { Highlight } from '@tiptap/extension-highlight';
+import { FontFamily } from '@tiptap/extension-font-family';
+import { BulletList } from '@tiptap/extension-bullet-list';
+import { OrderedList } from '@tiptap/extension-ordered-list';
+import { ListItem } from '@tiptap/extension-list-item';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +25,16 @@ import {
   Eye,
   ArrowLeft,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Palette,
+  Highlighter,
+  Type
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -94,8 +111,37 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   // Initialize TipTap editor
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Disable built-in list extensions to use separate ones
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+      }),
       CharacterCount,
+      TextStyle,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Color.configure({
+        types: ['textStyle'],
+      }),
+      Highlight.configure({
+        multicolor: true,
+      }),
+      FontFamily.configure({
+        types: ['textStyle'],
+      }),
+      BulletList.configure({
+        HTMLAttributes: {
+          class: 'prose-ul',
+        },
+      }),
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: 'prose-ol',
+        },
+      }),
+      ListItem,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -393,38 +439,163 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
 
         {/* Editor Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between gap-2 p-4 border-b">
-            <div className="flex items-center gap-2">
-              <Button
-                variant={editor?.isActive('bold') ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-                disabled={!editor?.can().chain().focus().toggleBold().run()}
-                data-testid="button-bold"
-              >
-                <Bold className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={editor?.isActive('italic') ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => editor?.chain().focus().toggleItalic().run()}
-                disabled={!editor?.can().chain().focus().toggleItalic().run()}
-                data-testid="button-italic"
-              >
-                <Italic className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search content to open in tabs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64"
-                data-testid="input-search-content"
-              />
+          {/* Rich Text Toolbar */}
+          <div className="border-b bg-background/95 backdrop-blur">
+            <div className="flex items-center justify-between gap-2 p-4">
+              {/* Formatting Tools */}
+              <div className="flex items-center gap-1 flex-wrap">
+                {/* Basic Formatting */}
+                <Button
+                  variant={editor?.isActive('bold') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  disabled={!editor?.can().chain().focus().toggleBold().run()}
+                  data-testid="button-bold"
+                  title="Bold"
+                >
+                  <Bold className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('italic') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  disabled={!editor?.can().chain().focus().toggleItalic().run()}
+                  data-testid="button-italic"
+                  title="Italic"
+                >
+                  <Italic className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('highlight') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleHighlight({ color: '#ffff00' }).run()}
+                  disabled={!editor?.can().chain().focus().toggleHighlight().run()}
+                  data-testid="button-highlight"
+                  title="Highlight"
+                >
+                  <Highlighter className="h-4 w-4" />
+                </Button>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
+                {/* Lists */}
+                <Button
+                  variant={editor?.isActive('bulletList') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                  disabled={!editor?.can().chain().focus().toggleBulletList().run()}
+                  data-testid="button-bullet-list"
+                  title="Bullet List"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive('orderedList') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                  disabled={!editor?.can().chain().focus().toggleOrderedList().run()}
+                  data-testid="button-ordered-list"
+                  title="Numbered List"
+                >
+                  <ListOrdered className="h-4 w-4" />
+                </Button>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
+                {/* Text Alignment */}
+                <Button
+                  variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                  data-testid="button-align-left"
+                  title="Align Left"
+                >
+                  <AlignLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                  data-testid="button-align-center"
+                  title="Align Center"
+                >
+                  <AlignCenter className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                  data-testid="button-align-right"
+                  title="Align Right"
+                >
+                  <AlignRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => editor?.chain().focus().setTextAlign('justify').run()}
+                  data-testid="button-align-justify"
+                  title="Justify"
+                >
+                  <AlignJustify className="h-4 w-4" />
+                </Button>
+
+                <Separator orientation="vertical" className="mx-1 h-6" />
+
+                {/* Font Family */}
+                <select
+                  className="px-3 py-1 text-sm border rounded-md bg-background"
+                  onChange={(e) => {
+                    if (e.target.value === 'unset') {
+                      editor?.chain().focus().unsetFontFamily().run();
+                    } else {
+                      editor?.chain().focus().setFontFamily(e.target.value).run();
+                    }
+                  }}
+                  value={editor?.getAttributes('textStyle').fontFamily || 'default'}
+                  data-testid="select-font-family"
+                >
+                  <option value="default">Default</option>
+                  <option value="Inter">Inter</option>
+                  <option value="serif">Times New Roman</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="monospace">Monospace</option>
+                  <option value="cursive">Cursive</option>
+                </select>
+
+                {/* Text Color */}
+                <input
+                  type="color"
+                  className="w-8 h-8 border rounded cursor-pointer"
+                  onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()}
+                  value={editor?.getAttributes('textStyle').color || '#000000'}
+                  data-testid="input-text-color"
+                  title="Text Color"
+                />
+
+                {/* Highlight Color */}
+                <input
+                  type="color"
+                  className="w-8 h-8 border rounded cursor-pointer bg-yellow-200"
+                  onChange={(e) => editor?.chain().focus().setHighlight({ color: e.target.value }).run()}
+                  defaultValue="#ffff00"
+                  data-testid="input-highlight-color"
+                  title="Highlight Color"
+                />
+              </div>
+              
+              {/* Search Actions */}
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Search content to open in tabs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-64"
+                  data-testid="input-search-content"
+                />
+              </div>
             </div>
           </div>
 
