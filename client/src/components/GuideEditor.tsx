@@ -47,10 +47,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [author, setAuthor] = useState('');
-  const [readTime, setReadTime] = useState<number>(5);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [hasBeenSavedOnce, setHasBeenSavedOnce] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -69,7 +69,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Initialize TipTap editor
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Disable the built-in Link extension from StarterKit to avoid duplicate
+        link: false,
+      }),
       CharacterCount,
       Link.configure({
         openOnClick: false,
@@ -86,6 +89,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     },
     onUpdate: ({ editor }) => {
       setSaveStatus('unsaved');
+      
+      // Update word count
+      const currentWordCount = editor.storage.characterCount.words();
+      setWordCount(currentWordCount);
       
       // Debounced autosave
       if (autosaveTimeoutRef.current) {
@@ -108,15 +115,23 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       setCategory(guide.category || '');
       setDifficulty(guide.difficulty || '');
       setAuthor(guide.author || '');
-      setReadTime(guide.readTime || 5);
       setTags(guide.tags || []);
       setHasBeenSavedOnce(true);
       
       if (editor && guide.content) {
         editor.commands.setContent(guide.content);
+        // Update word count after setting content
+        setWordCount(editor.storage.characterCount.words());
       }
     }
   }, [guide, editor]);
+
+  // Update word count when editor is first created
+  useEffect(() => {
+    if (editor) {
+      setWordCount(editor.storage.characterCount.words());
+    }
+  }, [editor]);
 
   // Save mutation
   const saveMutation = useMutation({
@@ -139,7 +154,12 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       
       setSaveStatus('saved');
       setLastSaveTime(new Date());
-      queryClient.invalidateQueries({ queryKey: ['/api/guides'] });
+      // Invalidate all guide-related queries (including filtered ones)
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return Array.isArray(query.queryKey) && query.queryKey[0] === '/api/guides';
+        }
+      });
       toast({
         title: 'Guide saved',
         description: 'Your guide has been saved successfully.',
@@ -171,7 +191,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       content,
       excerpt: description.trim() || content.substring(0, 200).replace(/<[^>]+>/g, ''),
       category: category || 'Writing Craft',
-      readTime: readTime || calculatedReadTime,
+      readTime: calculatedReadTime,
       difficulty: difficulty || 'Beginner',
       author: author.trim() || 'Anonymous',
       tags: tags.filter(tag => tag.trim()),
@@ -353,26 +373,6 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="readTime">Read Time (minutes)</Label>
-              <Input
-                id="readTime"
-                type="number"
-                min="1"
-                max="120"
-                value={readTime}
-                onChange={(e) => setReadTime(parseInt(e.target.value) || 5)}
-                placeholder="5"
-                data-testid="input-read-time"
-              />
-            </div>
-            <div className="flex items-end">
-              <p className="text-sm text-muted-foreground">
-                Auto-calculated from word count if not specified
-              </p>
-            </div>
-          </div>
           
           <div className="space-y-2">
             <Label htmlFor="tags">Tags</Label>
@@ -439,7 +439,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
             
             {editor && (
               <div className="text-sm text-muted-foreground">
-                {editor.storage.characterCount.words()} words
+                {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
               </div>
             )}
           </div>

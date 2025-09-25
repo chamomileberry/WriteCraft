@@ -41,7 +41,12 @@ export default function GuideDetail() {
         title: 'Guide deleted',
         description: 'The guide has been successfully deleted.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/guides'] });
+      // Invalidate all guide-related queries (including filtered ones)
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return Array.isArray(query.queryKey) && query.queryKey[0] === '/api/guides';
+        }
+      });
       setLocation('/guides');
     },
     onError: (error: any) => {
