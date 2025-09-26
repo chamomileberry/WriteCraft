@@ -68,14 +68,16 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
 
   // Load quick note data after saveMutation is defined
   useEffect(() => {
-    if (quickNote && !hasInitialized.current) {
+    if (quickNote && !hasInitialized.current && !isLoading) {
       const serverContent = quickNote.content || '';
+      console.log('[QuickNote] Loading content from server:', serverContent);
       // Always set the content from the server
       setContent(serverContent);
+      contentRef.current = serverContent; // Also update ref immediately
       hasBeenSavedOnce.current = true;
       hasInitialized.current = true;
     }
-  }, [quickNote, saveMutation]);
+  }, [quickNote, saveMutation, isLoading]);
 
   // Autosave functionality
   const triggerAutosave = () => {
@@ -95,6 +97,7 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
   const handleAutoSave = async () => {
     if (saveMutation.isPending) return;
     
+    console.log('[QuickNote] Auto-saving content:', content);
     setSaveStatus('saving');
     try {
       await saveMutation.mutateAsync({ content });
@@ -105,18 +108,26 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
 
   // Handle content changes
   const handleContentChange = (value: string) => {
+    console.log('[QuickNote] Content changed to:', value);
     setContent(value);
     triggerAutosave();
   };
 
-  // Cleanup timeout on unmount
+  // Cleanup on unmount - reset hasInitialized so data reloads on next open
   useEffect(() => {
     return () => {
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
+        // Save any pending content before unmounting
+        if (contentRef.current && contentRef.current.trim() && !saveMutation.isPending) {
+          console.log('[QuickNote] Saving on unmount:', contentRef.current);
+          saveMutation.mutate({ content: contentRef.current });
+        }
       }
+      // Reset hasInitialized so next time the panel opens it loads fresh data
+      hasInitialized.current = false;
     };
-  }, []);
+  }, [saveMutation]);
 
   // Keep a ref to the current content
   const contentRef = useRef(content);

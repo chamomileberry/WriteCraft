@@ -116,20 +116,17 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           >
             <div className="w-full h-full bg-background border border-border rounded-lg shadow-lg flex flex-col">
               {/* Panel Header */}
-              <div className="flex items-center justify-between p-2 border-b bg-muted/50 rounded-t-lg panel-drag-handle cursor-move">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between p-2 border-b bg-muted/50 rounded-t-lg">
+                <div className="flex items-center gap-2 flex-1 panel-drag-handle cursor-move">
                   <GripHorizontal className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium truncate">{panel.title}</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 relative z-10">
                   {panel.type === 'quickNote' && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={async (e) => {
-                        e.stopPropagation();
                         // Save quick note to notebook
                         const saveFunction = quickNoteSaveFunctions.current[panel.id];
                         if (!saveFunction) {
@@ -212,10 +209,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
-                      e.stopPropagation();
                       if (panel.type === 'quickNote' && !isInManuscriptEditor()) {
                         // Minimize the quick note panel instead of pinning
                         minimizePanel(panel.id);
@@ -236,10 +230,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
-                      e.stopPropagation();
                       removePanel(panel.id);
                     }}
                     className="h-6 w-6 p-0 hover:bg-destructive/10"
