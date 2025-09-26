@@ -70,10 +70,7 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
   useEffect(() => {
     if (quickNote && !hasInitialized.current) {
       const serverContent = quickNote.content || '';
-      console.log('Loading quick note from server:', serverContent);
-      
-      // Always set the content from the server, don't filter based on length
-      // The single-character issue was from autosave timing, not from loading
+      // Always set the content from the server
       setContent(serverContent);
       hasBeenSavedOnce.current = true;
       hasInitialized.current = true;
@@ -159,12 +156,18 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
         setContent('');
         contentRef.current = '';
         setSaveStatus('saved');
-        // Don't reset hasInitialized - we want to keep it true to prevent reloading
-        // The content has been explicitly cleared, so we don't want to reload from server
+        // Update the React Query cache to reflect the cleared content
+        queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
+          if (oldData) {
+            return { ...oldData, content: '' };
+          }
+          return oldData;
+        });
+        // Don't reset hasInitialized - the cache is now updated
       };
       onRegisterClearFunction(clearContent);
     }
-  }, [onRegisterClearFunction]);
+  }, [onRegisterClearFunction, queryClient, userId]);
 
   const getSaveStatusIndicator = () => {
     switch (saveStatus) {
