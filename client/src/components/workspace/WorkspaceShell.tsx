@@ -19,8 +19,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Store save functions for quick note panels
+  // Store save and clear functions for quick note panels
   const quickNoteSaveFunctions = useRef<{ [panelId: string]: () => Promise<{ content: string; id: string }> }>({});
+  const quickNoteClearFunctions = useRef<{ [panelId: string]: () => void }>({});
   
   // Only render floating panels that are not minimized (tabbed panels are rendered in tab bars)
   const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating' && !panel.minimized);
@@ -42,6 +43,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             onPin={() => attachToTabBar(panel.id, 'main')}
             onRegisterSaveFunction={(fn) => {
               quickNoteSaveFunctions.current[panel.id] = fn;
+            }}
+            onRegisterClearFunction={(fn) => {
+              quickNoteClearFunctions.current[panel.id] = fn;
             }}
           />
         );
@@ -122,6 +126,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={async (e) => {
                         e.stopPropagation();
                         // Save quick note to notebook
@@ -158,14 +164,20 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                                 description: 'Your note has been saved to your Notebook.',
                               });
                               
-                              // Clear the quick note after saving (without invalidating to avoid overwriting user input)
+                              // Clear the quick note after saving
                               await apiRequest('POST', '/api/quick-note', {
                                 userId: 'guest',
                                 title: 'Quick Note',
                                 content: '',
                               });
                               
-                              // Only invalidate saved-items, not quick-note (to avoid overwriting user input)
+                              // Clear the UI content directly using the registered clear function
+                              const clearFunction = quickNoteClearFunctions.current[panel.id];
+                              if (clearFunction) {
+                                clearFunction();
+                              }
+                              
+                              // Only invalidate saved-items
                               queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
                             } catch (error) {
                               toast({
@@ -200,6 +212,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (panel.type === 'quickNote' && !isInManuscriptEditor()) {
@@ -222,6 +236,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       removePanel(panel.id);

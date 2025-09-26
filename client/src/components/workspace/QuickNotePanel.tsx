@@ -9,9 +9,10 @@ interface QuickNotePanelProps {
   onPin?: () => void;
   className?: string;
   onRegisterSaveFunction?: (fn: () => Promise<{ content: string; id: string }>) => void;
+  onRegisterClearFunction?: (fn: () => void) => void;
 }
 
-export default function QuickNotePanel({ panelId, onClose, onPin, className, onRegisterSaveFunction }: QuickNotePanelProps) {
+export default function QuickNotePanel({ panelId, onClose, onPin, className, onRegisterSaveFunction, onRegisterClearFunction }: QuickNotePanelProps) {
   const [content, setContent] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,13 +40,6 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
 
   // Load quick note data only on initial mount or when panel is opened
   const hasInitialized = useRef(false);
-  useEffect(() => {
-    if (quickNote && !hasInitialized.current) {
-      setContent(quickNote.content || '');
-      hasBeenSavedOnce.current = true;
-      hasInitialized.current = true;
-    }
-  }, [quickNote]);
 
   // Save mutation
   const saveMutation = useMutation({
@@ -71,6 +65,20 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
       console.error('Save error:', error);
     },
   });
+
+  // Load quick note data after saveMutation is defined
+  useEffect(() => {
+    if (quickNote && !hasInitialized.current) {
+      const serverContent = quickNote.content || '';
+      console.log('Loading quick note from server:', serverContent);
+      
+      // Always set the content from the server, don't filter based on length
+      // The single-character issue was from autosave timing, not from loading
+      setContent(serverContent);
+      hasBeenSavedOnce.current = true;
+      hasInitialized.current = true;
+    }
+  }, [quickNote, saveMutation]);
 
   // Autosave functionality
   const triggerAutosave = () => {
@@ -143,6 +151,20 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
       onRegisterSaveFunction(saveAndGetContent);
     }
   }, [onRegisterSaveFunction, saveMutation, quickNote]); // Don't include content in deps
+  
+  // Register clear function with parent component
+  useEffect(() => {
+    if (onRegisterClearFunction) {
+      const clearContent = () => {
+        setContent('');
+        contentRef.current = '';
+        setSaveStatus('saved');
+        // Don't reset hasInitialized - we want to keep it true to prevent reloading
+        // The content has been explicitly cleared, so we don't want to reload from server
+      };
+      onRegisterClearFunction(clearContent);
+    }
+  }, [onRegisterClearFunction]);
 
   const getSaveStatusIndicator = () => {
     switch (saveStatus) {
