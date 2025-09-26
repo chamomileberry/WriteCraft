@@ -37,11 +37,13 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
     },
   });
 
-  // Load quick note data when fetched
+  // Load quick note data only on initial mount or when panel is opened
+  const hasInitialized = useRef(false);
   useEffect(() => {
-    if (quickNote) {
+    if (quickNote && !hasInitialized.current) {
       setContent(quickNote.content || '');
       hasBeenSavedOnce.current = true;
+      hasInitialized.current = true;
     }
   }, [quickNote]);
 
@@ -57,7 +59,7 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
     onSuccess: () => {
       setSaveStatus('saved');
       hasBeenSavedOnce.current = true;
-      queryClient.invalidateQueries({ queryKey: ['/api/quick-note', userId] });
+      // Don't invalidate query here to avoid overwriting user input
     },
     onError: (error) => {
       setSaveStatus('unsaved');

@@ -122,7 +122,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.stopPropagation();
                         // Save quick note to notebook
                         const saveFunction = quickNoteSaveFunctions.current[panel.id];
                         if (!saveFunction) {
@@ -157,14 +158,14 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                                 description: 'Your note has been saved to your Notebook.',
                               });
                               
-                              // Clear the quick note after saving
+                              // Clear the quick note after saving (without invalidating to avoid overwriting user input)
                               await apiRequest('POST', '/api/quick-note', {
                                 userId: 'guest',
                                 title: 'Quick Note',
                                 content: '',
                               });
                               
-                              queryClient.invalidateQueries({ queryKey: ['/api/quick-note'] });
+                              // Only invalidate saved-items, not quick-note (to avoid overwriting user input)
                               queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
                             } catch (error) {
                               toast({
@@ -199,7 +200,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (panel.type === 'quickNote' && !isInManuscriptEditor()) {
                         // Minimize the quick note panel instead of pinning
                         minimizePanel(panel.id);
@@ -220,7 +222,10 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removePanel(panel.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePanel(panel.id);
+                    }}
                     className="h-6 w-6 p-0 hover:bg-destructive/10"
                     data-testid={`button-close-${panel.type}-${panel.entityId || panel.id}`}
                   >
