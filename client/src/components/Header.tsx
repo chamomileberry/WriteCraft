@@ -116,19 +116,19 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               </div>
             </form>
             
-            {/* Create New Button */}
+            {/* Create New Button - Hidden on mobile */}
             <Button
               variant="default"
               size="default"
               onClick={() => onCreateNew?.()}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground"
               data-testid="button-create-new"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create
             </Button>
             
-            {/* Quick Note Button */}
+            {/* Quick Note Button - Visible on all screen sizes */}
             <Button
               variant="ghost"
               size="icon"

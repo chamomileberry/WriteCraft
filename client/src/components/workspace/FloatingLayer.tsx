@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { PanelDescriptor, useWorkspaceStore } from '@/stores/workspaceStore';
 import CharacterDetailPanel from './CharacterDetailPanel';
+import QuickNotePanel from './QuickNotePanel';
 import { cn } from '@/lib/utils';
 
 interface FloatingWindowProps {
@@ -53,6 +54,8 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
     switch (panel.type) {
       case 'characterDetail':
         return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} />;
+      case 'quickNote':
+        return <QuickNotePanel panelId={panel.id} />;
       // Add other panel types here as needed
       default:
         return <div className="p-4">Panel type: {panel.type}</div>;
