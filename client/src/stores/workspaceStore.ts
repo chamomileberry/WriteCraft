@@ -14,6 +14,8 @@ export interface PanelDescriptor {
   // Position and size for floating panels
   position?: { x: number; y: number };
   size?: { width: number; height: number };
+  // Minimize state for panels
+  minimized?: boolean;
 }
 
 export interface WorkspaceLayout {
@@ -65,6 +67,9 @@ interface WorkspaceState {
   openQuickNote: () => void;
   closeQuickNote: () => void;
   isQuickNoteOpen: () => boolean;
+  minimizePanel: (panelId: string) => void;
+  restorePanel: (panelId: string) => void;
+  isInManuscriptEditor: () => boolean;
 }
 
 const defaultLayout: WorkspaceLayout = {
@@ -393,11 +398,18 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       // Quick note methods
       toggleQuickNote: () => {
         const state = get();
-        const isOpen = state.currentLayout.panels.some(p => p.type === 'quickNote');
+        const quickNote = state.currentLayout.panels.find(p => p.type === 'quickNote');
         
-        if (isOpen) {
-          get().closeQuickNote();
+        if (quickNote) {
+          if (quickNote.minimized) {
+            // If minimized, restore it
+            get().restorePanel(quickNote.id);
+          } else {
+            // If visible, close it
+            get().closeQuickNote();
+          }
         } else {
+          // If not open, open it
           get().openQuickNote();
         }
       },
@@ -444,6 +456,34 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       isQuickNoteOpen: () => {
         const state = get();
         return state.currentLayout.panels.some(p => p.type === 'quickNote');
+      },
+      
+      minimizePanel: (panelId: string) => {
+        set((state) => ({
+          currentLayout: {
+            ...state.currentLayout,
+            panels: state.currentLayout.panels.map(p => 
+              p.id === panelId ? { ...p, minimized: true } : p
+            )
+          }
+        }));
+      },
+      
+      restorePanel: (panelId: string) => {
+        set((state) => ({
+          currentLayout: {
+            ...state.currentLayout,
+            panels: state.currentLayout.panels.map(p => 
+              p.id === panelId ? { ...p, minimized: false } : p
+            )
+          }
+        }));
+      },
+      
+      isInManuscriptEditor: () => {
+        // Check if current URL contains manuscript editor paths
+        return window.location.pathname.includes('/manuscripts/') && 
+               window.location.pathname.includes('/edit');
       }
     }),
     {

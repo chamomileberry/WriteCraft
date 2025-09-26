@@ -3,19 +3,24 @@ import { Rnd } from 'react-rnd';
 import { useWorkspaceStore, type PanelDescriptor } from '@/stores/workspaceStore';
 import CharacterDetailPanel from './CharacterDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
-import { X, GripHorizontal, Pin, ExternalLink } from 'lucide-react';
+import { X, GripHorizontal, Pin, Save, Minimize2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
 }
 
 const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
-  const { currentLayout, removePanel, updatePanel, attachToTabBar } = useWorkspaceStore();
+  const { currentLayout, removePanel, updatePanel, attachToTabBar, minimizePanel, isInManuscriptEditor } = useWorkspaceStore();
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  // Only render floating panels (tabbed panels are rendered in tab bars)
-  const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating');
+  // Only render floating panels that are not minimized (tabbed panels are rendered in tab bars)
+  const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating' && !panel.minimized);
 
   const renderPanelContent = (panel: PanelDescriptor) => {
     switch (panel.type) {
@@ -107,15 +112,101 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <span className="text-sm font-medium truncate">{panel.title}</span>
                 </div>
                 <div className="flex items-center gap-1">
+                  {panel.type === 'quickNote' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        // Save quick note to notebook
+                        try {
+                          const response = await fetch('/api/quick-note?userId=guest', {
+                            credentials: 'include'
+                          });
+                          
+                          if (!response.ok && response.status !== 404) {
+                            throw new Error('Failed to fetch quick note');
+                          }
+                          
+                          const quickNoteData = response.status === 404 ? null : await response.json();
+                          
+                        if (quickNoteData && quickNoteData.content) {
+                          try {
+                            // Save to saved items as a quick note
+                            await apiRequest('POST', '/api/saved-items', {
+                              userId: 'guest',
+                              contentType: 'quickNote',
+                              contentId: quickNoteData.id || `quick-note-${Date.now()}`,
+                              title: 'Quick Note',
+                              content: quickNoteData.content,
+                              metadata: {
+                                savedAt: new Date().toISOString()
+                              }
+                            });
+                            
+                            toast({
+                              title: 'Quick Note saved',
+                              description: 'Your note has been saved to your Notebook.',
+                            });
+                            
+                            // Clear the quick note after saving
+                            await apiRequest('POST', '/api/quick-note', {
+                              userId: 'guest',
+                              title: 'Quick Note',
+                              content: '',
+                            });
+                            
+                            queryClient.invalidateQueries({ queryKey: ['/api/quick-note'] });
+                            queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+                          } catch (error) {
+                            toast({
+                              title: 'Save failed',
+                              description: 'Could not save to Notebook.',
+                              variant: 'destructive',
+                            });
+                          }
+                        } else {
+                          toast({
+                            title: 'Nothing to save',
+                            description: 'Write something in your Quick Note first.',
+                            variant: 'destructive',
+                          });
+                        }
+                        } catch (error) {
+                          console.error('Error fetching quick note:', error);
+                          toast({
+                            title: 'Error',
+                            description: 'Could not access quick note data.',
+                            variant: 'destructive',
+                          });
+                        }
+                      }}
+                      className="h-6 w-6 p-0"
+                      data-testid={`button-save-${panel.id}`}
+                      title="Save to Notebook"
+                    >
+                      <Save className="h-3 w-3" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => attachToTabBar(panel.id, 'main')}
+                    onClick={() => {
+                      if (panel.type === 'quickNote' && !isInManuscriptEditor()) {
+                        // Minimize the quick note panel instead of pinning
+                        minimizePanel(panel.id);
+                      } else {
+                        attachToTabBar(panel.id, 'main');
+                      }
+                    }}
                     className="h-6 w-6 p-0"
                     data-testid={`button-dock-${panel.id}`}
-                    title="Pin to tab bar"
+                    title={panel.type === 'quickNote' && !isInManuscriptEditor() ? "Minimize" : "Pin to tab bar"}
                   >
-                    <Pin className="h-3 w-3" />
+                    {panel.type === 'quickNote' && !isInManuscriptEditor() ? (
+                      <Minimize2 className="h-3 w-3" />
+                    ) : (
+                      <Pin className="h-3 w-3" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"

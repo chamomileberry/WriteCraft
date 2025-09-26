@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Edit, Trash2, Copy, User, MapPin, Building, Star, Package, Users, Globe, Flag, Crown, Circle, Home, UtensilsCrossed, Wine, Sword, Shield, TreePine, Car, Calculator, Feather, Sparkles, Mountain, PaintBucket } from "lucide-react";
+import { Search, Edit, Trash2, Copy, User, MapPin, Building, Star, Package, Users, Globe, Flag, Crown, Circle, Home, UtensilsCrossed, Wine, Sword, Shield, TreePine, Car, Calculator, Feather, Sparkles, Mountain, PaintBucket, StickyNote } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -13,6 +13,11 @@ import { CONTENT_TYPE_MAPPINGS, getMappingById } from "@shared/contentTypes";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
+  // For quick notes, use the title field
+  if (item.contentType === 'quickNote') {
+    return item.title || 'Quick Note';
+  }
+  
   // Use actualItemData if itemData is null (for older saved items)
   const dataSource = item.itemData || actualItemData;
   
@@ -36,14 +41,22 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
 interface SavedItem {
   id: string;
   userId: string;
-  itemType: string;
-  itemId: string;
+  itemType?: string;
+  contentType?: string;
+  itemId?: string;
+  contentId?: string;
+  title?: string;
+  content?: string;
   itemData?: any;
+  metadata?: any;
   createdAt: string;
 }
 
 // Icon mapping for all 40+ content types
 const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
+  // Quick Notes
+  quickNote: StickyNote,
+  
   // People & Characters
   character: User,
   ethnicity: Users,
@@ -131,6 +144,7 @@ const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ className?: str
 
 // Content type categories for filtering
 const CONTENT_CATEGORIES: { [key: string]: string[] } = {
+  "Quick Notes": ["quickNote"],
   "People": ["character", "ethnicity", "culture", "profession", "role", "title"],
   "Places": ["location", "settlement", "building", "geography", "territory", "district", "city", "country"],
   "Groups": ["organization", "society", "faction", "militaryunit"],
@@ -196,12 +210,12 @@ export default function SavedItems() {
 
   // Unsave mutation
   const unsaveMutation = useMutation({
-    mutationFn: async ({ itemType, itemId }: { itemType: string; itemId: string }) => {
-      const response = await apiRequest('DELETE', '/api/saved-items', {
-        userId: 'guest',
-        itemType,
-        itemId
-      });
+    mutationFn: async (item: SavedItem) => {
+      const body = item.contentType === 'quickNote' 
+        ? { userId: 'guest', contentType: 'quickNote', contentId: item.contentId || item.id }
+        : { userId: 'guest', itemType: item.itemType || '', itemId: item.itemId || '' };
+      
+      const response = await apiRequest('DELETE', '/api/saved-items', body);
       return response.json();
     },
     onSuccess: () => {
@@ -220,12 +234,18 @@ export default function SavedItems() {
     },
   });
 
-  const handleUnsave = async (itemType: string, itemId: string) => {
-    unsaveMutation.mutate({ itemType, itemId });
+  const handleUnsave = async (item: SavedItem) => {
+    unsaveMutation.mutate(item);
   };
 
   const handleCopy = async (item: SavedItem) => {
-    const content = `${getDisplayName(item, fetchedItemData[item.itemId])}\n\n${JSON.stringify(item.itemData || fetchedItemData[item.itemId], null, 2)}`;
+    let content = '';
+    if (item.contentType === 'quickNote') {
+      content = `${item.title || 'Quick Note'}\n\n${item.content || ''}`;
+    } else {
+      const id = item.itemId || item.contentId || '';
+      content = `${getDisplayName(item, fetchedItemData[id])}\n\n${JSON.stringify(item.itemData || fetchedItemData[id], null, 2)}`;
+    }
     await navigator.clipboard.writeText(content);
     toast({
       title: "Copied",
@@ -233,20 +253,31 @@ export default function SavedItems() {
     });
   };
 
-  const handleEdit = (itemType: string, itemId: string) => {
-    const mapping = getMappingById(itemType);
+  const handleEdit = (item: SavedItem) => {
+    // Quick notes don't have edit functionality
+    if (item.contentType === 'quickNote') {
+      toast({
+        title: "Quick Note",
+        description: item.content || '',
+      });
+      return;
+    }
+    
+    const type = item.itemType || item.contentType || '';
+    const id = item.itemId || item.contentId || '';
+    const mapping = getMappingById(type);
     if (mapping) {
-      setLocation(`/${mapping.urlSegment}/${itemId}/edit`);
+      setLocation(`/${mapping.urlSegment}/${id}/edit`);
     } else {
       // Fallback for unmapped content types
-      setLocation(`/editor/${itemType}/${itemId}`);
+      setLocation(`/editor/${type}/${id}`);
     }
   };
 
   // Get category for a content type
-  const getCategoryForType = (itemType: string): string | null => {
+  const getCategoryForType = (type: string): string | null => {
     for (const [category, types] of Object.entries(CONTENT_CATEGORIES)) {
-      if (types.includes(itemType)) {
+      if (types.includes(type)) {
         return category;
       }
     }
@@ -255,24 +286,25 @@ export default function SavedItems() {
 
   // Filter saved items
   const filteredItems = savedItems.filter(item => {
-    const displayName = getDisplayName(item, fetchedItemData[item.itemId]);
+    const type = item.contentType || item.itemType || 'unknown';
+    const displayName = getDisplayName(item, fetchedItemData[item.itemId || item.contentId || '']);
     const matchesSearch = !searchQuery || 
       (displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.itemType.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (getCategoryForType(item.itemType)?.toLowerCase().includes(searchQuery.toLowerCase()));
+      (type.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (getCategoryForType(type)?.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesTab = activeTab === "all" || 
       (activeTab === "recent" && new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
     
     const matchesCategory = !selectedCategory || 
-      (CONTENT_CATEGORIES[selectedCategory]?.includes(item.itemType));
+      (CONTENT_CATEGORIES[selectedCategory]?.includes(type));
     
     return matchesSearch && matchesTab && matchesCategory;
   });
 
   // Group items by type for better organization
   const groupedItems = filteredItems.reduce((acc, item) => {
-    const type = item.itemType;
+    const type = item.contentType || item.itemType || 'unknown';
     if (!acc[type]) acc[type] = [];
     acc[type].push(item);
     return acc;
@@ -431,16 +463,16 @@ export default function SavedItems() {
                             <div className="flex items-center gap-2">
                               <IconComponent className="w-4 h-4 text-primary" />
                               <CardTitle className="text-base line-clamp-1">
-                                {getDisplayName(item, fetchedItemData[item.itemId])}
+                                {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                               </CardTitle>
                             </div>
                             <Badge variant="secondary" className="text-xs">
                               {mapping?.name || type}
                             </Badge>
                           </div>
-                          {(item.itemData?.description || fetchedItemData[item.itemId]?.description) && (
+                          {(item.contentType === 'quickNote' ? item.content : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
                             <CardDescription className="line-clamp-2">
-                              {item.itemData?.description || fetchedItemData[item.itemId]?.description}
+                              {item.contentType === 'quickNote' ? item.content : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
                             </CardDescription>
                           )}
                         </CardHeader>
@@ -454,7 +486,7 @@ export default function SavedItems() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleEdit(item.itemType, item.itemId)}
+                                onClick={() => handleEdit(item)}
                                 data-testid={`button-edit-${item.id}`}
                               >
                                 <Edit className="w-3 h-3" />
@@ -470,7 +502,7 @@ export default function SavedItems() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleUnsave(item.itemType, item.itemId)}
+                                onClick={() => handleUnsave(item)}
                                 disabled={unsaveMutation.isPending}
                                 data-testid={`button-delete-${item.id}`}
                               >
@@ -496,8 +528,9 @@ export default function SavedItems() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredItems.slice(0, 12).map((item) => {
-                const mapping = getMappingById(item.itemType);
-                const IconComponent = CONTENT_TYPE_ICONS[item.itemType] || Package;
+                const type = item.contentType || item.itemType || 'unknown';
+                const mapping = getMappingById(type);
+                const IconComponent = CONTENT_TYPE_ICONS[type] || Package;
                 
                 return (
                   <Card key={item.id} className="group hover-elevate" data-testid={`card-recent-${item.id}`}>
@@ -506,11 +539,11 @@ export default function SavedItems() {
                         <div className="flex items-center gap-2">
                           <IconComponent className="w-4 h-4 text-primary" />
                           <CardTitle className="text-base line-clamp-1">
-                            {getDisplayName(item, fetchedItemData[item.itemId])}
+                            {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                           </CardTitle>
                         </div>
                         <Badge variant="secondary" className="text-xs">
-                          {mapping?.name || item.itemType}
+                          {mapping?.name || type}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -523,7 +556,7 @@ export default function SavedItems() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleEdit(item.itemType, item.itemId)}
+                          onClick={() => handleEdit(item)}
                           data-testid={`button-edit-recent-${item.id}`}
                         >
                           <Edit className="w-3 h-3" />
