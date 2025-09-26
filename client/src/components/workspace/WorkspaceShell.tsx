@@ -19,6 +19,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Store save functions for quick note panels
+  const quickNoteSaveFunctions = useRef<{ [panelId: string]: () => Promise<{ content: string; id: string }> }>({});
+  
   // Only render floating panels that are not minimized (tabbed panels are rendered in tab bars)
   const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating' && !panel.minimized);
 
@@ -37,6 +40,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             panelId={panel.id}
             onClose={() => removePanel(panel.id)}
             onPin={() => attachToTabBar(panel.id, 'main')}
+            onRegisterSaveFunction={(fn) => {
+              quickNoteSaveFunctions.current[panel.id] = fn;
+            }}
           />
         );
       default:
@@ -118,64 +124,67 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                       size="sm"
                       onClick={async () => {
                         // Save quick note to notebook
-                        try {
-                          const response = await fetch('/api/quick-note?userId=guest', {
-                            credentials: 'include'
+                        const saveFunction = quickNoteSaveFunctions.current[panel.id];
+                        if (!saveFunction) {
+                          toast({
+                            title: 'Error',
+                            description: 'Quick note panel not ready.',
+                            variant: 'destructive',
                           });
+                          return;
+                        }
+
+                        try {
+                          // Get the current content after forcing a save
+                          const quickNoteData = await saveFunction();
                           
-                          if (!response.ok && response.status !== 404) {
-                            throw new Error('Failed to fetch quick note');
-                          }
-                          
-                          const quickNoteData = response.status === 404 ? null : await response.json();
-                          
-                        if (quickNoteData && quickNoteData.content) {
-                          try {
-                            // Save to saved items as a quick note
-                            await apiRequest('POST', '/api/saved-items', {
-                              userId: 'guest',
-                              contentType: 'quickNote',
-                              contentId: quickNoteData.id || `quick-note-${Date.now()}`,
-                              title: 'Quick Note',
-                              content: quickNoteData.content,
-                              metadata: {
-                                savedAt: new Date().toISOString()
-                              }
-                            });
-                            
+                          if (quickNoteData && quickNoteData.content) {
+                            try {
+                              // Save to saved items as a quick note
+                              await apiRequest('POST', '/api/saved-items', {
+                                userId: 'guest',
+                                contentType: 'quickNote',
+                                contentId: quickNoteData.id,
+                                title: 'Quick Note',
+                                content: quickNoteData.content,
+                                metadata: {
+                                  savedAt: new Date().toISOString()
+                                }
+                              });
+                              
+                              toast({
+                                title: 'Quick Note saved',
+                                description: 'Your note has been saved to your Notebook.',
+                              });
+                              
+                              // Clear the quick note after saving
+                              await apiRequest('POST', '/api/quick-note', {
+                                userId: 'guest',
+                                title: 'Quick Note',
+                                content: '',
+                              });
+                              
+                              queryClient.invalidateQueries({ queryKey: ['/api/quick-note'] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+                            } catch (error) {
+                              toast({
+                                title: 'Save failed',
+                                description: 'Could not save to Notebook.',
+                                variant: 'destructive',
+                              });
+                            }
+                          } else {
                             toast({
-                              title: 'Quick Note saved',
-                              description: 'Your note has been saved to your Notebook.',
-                            });
-                            
-                            // Clear the quick note after saving
-                            await apiRequest('POST', '/api/quick-note', {
-                              userId: 'guest',
-                              title: 'Quick Note',
-                              content: '',
-                            });
-                            
-                            queryClient.invalidateQueries({ queryKey: ['/api/quick-note'] });
-                            queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
-                          } catch (error) {
-                            toast({
-                              title: 'Save failed',
-                              description: 'Could not save to Notebook.',
+                              title: 'Nothing to save',
+                              description: 'Write something in your Quick Note first.',
                               variant: 'destructive',
                             });
                           }
-                        } else {
-                          toast({
-                            title: 'Nothing to save',
-                            description: 'Write something in your Quick Note first.',
-                            variant: 'destructive',
-                          });
-                        }
                         } catch (error) {
-                          console.error('Error fetching quick note:', error);
+                          console.error('Error saving quick note:', error);
                           toast({
                             title: 'Error',
-                            description: 'Could not access quick note data.',
+                            description: 'Could not save quick note.',
                             variant: 'destructive',
                           });
                         }

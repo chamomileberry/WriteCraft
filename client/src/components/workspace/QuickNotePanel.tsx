@@ -8,9 +8,10 @@ interface QuickNotePanelProps {
   onClose?: () => void;
   onPin?: () => void;
   className?: string;
+  onRegisterSaveFunction?: (fn: () => Promise<{ content: string; id: string }>) => void;
 }
 
-export default function QuickNotePanel({ panelId, onClose, onPin, className }: QuickNotePanelProps) {
+export default function QuickNotePanel({ panelId, onClose, onPin, className, onRegisterSaveFunction }: QuickNotePanelProps) {
   const [content, setContent] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -109,6 +110,30 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className }: Q
       }
     };
   }, []);
+
+  // Register save function with parent component
+  useEffect(() => {
+    if (onRegisterSaveFunction) {
+      const saveAndGetContent = async () => {
+        // Force save current content immediately if there are unsaved changes
+        if (content.trim()) {
+          setSaveStatus('saving');
+          try {
+            await saveMutation.mutateAsync({ content });
+            // Wait a moment for the save to complete
+            await new Promise(resolve => setTimeout(resolve, 100));
+          } catch (error) {
+            console.error('Failed to save before exporting:', error);
+          }
+        }
+        return {
+          content: content,
+          id: quickNote?.id || `quick-note-${Date.now()}`
+        };
+      };
+      onRegisterSaveFunction(saveAndGetContent);
+    }
+  }, [content, onRegisterSaveFunction, saveMutation, quickNote]);
 
   const getSaveStatusIndicator = () => {
     switch (saveStatus) {

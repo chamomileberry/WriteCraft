@@ -190,7 +190,7 @@ export default function SavedItems() {
           const response = await apiRequest('GET', endpoint);
           if (response.ok) {
             const data = await response.json();
-            newFetchedData[item.itemId] = data;
+            newFetchedData[item.itemId || ''] = data;
           }
         }
       } catch (error) {
@@ -349,9 +349,10 @@ export default function SavedItems() {
     new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   ).length;
   const categoryStats = Object.keys(CONTENT_CATEGORIES).reduce((acc, category) => {
-    acc[category] = savedItems.filter(item => 
-      CONTENT_CATEGORIES[category].includes(item.itemType)
-    ).length;
+    acc[category] = savedItems.filter(item => {
+      const type = item.contentType || item.itemType || '';
+      return CONTENT_CATEGORIES[category].includes(type);
+    }).length;
     return acc;
   }, {} as Record<string, number>);
 
