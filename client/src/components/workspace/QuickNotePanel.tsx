@@ -125,10 +125,10 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className }: Q
     return (
       <div className={`w-full h-full flex items-center justify-center ${className}`}
            style={{ 
-             backgroundColor: '#fef3c7',
-             backgroundImage: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+             backgroundColor: '#e9d5ff',
+             backgroundImage: 'linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)'
            }}>
-        <span className="text-gray-700/60">Loading...</span>
+        <span className="text-purple-700/60">Loading...</span>
       </div>
     );
   }
@@ -136,18 +136,18 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className }: Q
   return (
     <div className={`w-full h-full flex flex-col ${className}`}
          style={{ 
-           backgroundColor: '#fef3c7',
-           backgroundImage: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+           backgroundColor: '#e9d5ff',
+           backgroundImage: 'linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)'
          }}>
       {/* Simple sticky note style textarea */}
       <textarea
         value={content}
         onChange={(e) => handleContentChange(e.target.value)}
         placeholder="Start writing your quick note..."
-        className="flex-1 w-full p-4 resize-none bg-transparent border-0 outline-none text-gray-800 placeholder-gray-600/50"
+        className="flex-1 w-full p-4 resize-none bg-transparent border-0 outline-none text-purple-900 placeholder-purple-700/50"
         style={{ 
-          fontFamily: "'Caveat', cursive, sans-serif",
-          fontSize: '1.1rem',
+          fontFamily: "Arial, Helvetica, sans-serif",
+          fontSize: '0.95rem',
           lineHeight: '1.6',
         }}
         data-testid={`textarea-content-${panelId}`}
@@ -155,10 +155,10 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className }: Q
 
       {/* Minimal status indicator */}
       <div className="px-4 pb-2 flex items-center justify-between">
-        <span className="text-xs text-gray-600/70">
+        <span className="text-xs text-purple-700/70">
           {getSaveStatusIndicator()}
         </span>
-        <span className="text-xs text-gray-600/50">
+        <span className="text-xs text-purple-700/50">
           {content.length} characters
         </span>
       </div>
