@@ -13,9 +13,9 @@ import { CONTENT_TYPE_MAPPINGS, getMappingById } from "@shared/contentTypes";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
-  // For quick notes, use the title field
-  if (item.contentType === 'quickNote') {
-    return item.title || 'Quick Note';
+  // For quick notes (handle both itemType and contentType for compatibility)
+  if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
+    return item.itemData?.title || item.title || 'Quick Note';
   }
   
   // Use actualItemData if itemData is null (for older saved items)
@@ -211,9 +211,12 @@ export default function SavedItems() {
   // Unsave mutation
   const unsaveMutation = useMutation({
     mutationFn: async (item: SavedItem) => {
-      const body = item.contentType === 'quickNote' 
-        ? { userId: 'guest', contentType: 'quickNote', contentId: item.contentId || item.id }
-        : { userId: 'guest', itemType: item.itemType || '', itemId: item.itemId || '' };
+      // Always use itemType/itemId for DELETE requests since that's what the backend expects
+      const body = {
+        userId: 'guest',
+        itemType: item.itemType || item.contentType || '',
+        itemId: item.itemId || item.contentId || item.id
+      };
       
       const response = await apiRequest('DELETE', '/api/saved-items', body);
       return response.json();
@@ -240,8 +243,10 @@ export default function SavedItems() {
 
   const handleCopy = async (item: SavedItem) => {
     let content = '';
-    if (item.contentType === 'quickNote') {
-      content = `${item.title || 'Quick Note'}\n\n${item.content || ''}`;
+    if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
+      const title = item.itemData?.title || item.title || 'Quick Note';
+      const noteContent = item.itemData?.content || item.content || '';
+      content = `${title}\n\n${noteContent}`;
     } else {
       const id = item.itemId || item.contentId || '';
       content = `${getDisplayName(item, fetchedItemData[id])}\n\n${JSON.stringify(item.itemData || fetchedItemData[id], null, 2)}`;
@@ -255,10 +260,11 @@ export default function SavedItems() {
 
   const handleEdit = (item: SavedItem) => {
     // Quick notes don't have edit functionality
-    if (item.contentType === 'quickNote') {
+    if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
+      const noteContent = item.itemData?.content || item.content || '';
       toast({
         title: "Quick Note",
-        description: item.content || '',
+        description: noteContent,
       });
       return;
     }
@@ -471,9 +477,9 @@ export default function SavedItems() {
                               {mapping?.name || type}
                             </Badge>
                           </div>
-                          {(item.contentType === 'quickNote' ? item.content : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
+                          {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
                             <CardDescription className="line-clamp-2">
-                              {item.contentType === 'quickNote' ? item.content : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
+                              {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
                             </CardDescription>
                           )}
                         </CardHeader>

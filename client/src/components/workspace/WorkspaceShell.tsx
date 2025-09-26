@@ -143,11 +143,11 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                               // Save to saved items as a quick note
                               await apiRequest('POST', '/api/saved-items', {
                                 userId: 'guest',
-                                contentType: 'quickNote',
-                                contentId: quickNoteData.id,
-                                title: 'Quick Note',
-                                content: quickNoteData.content,
-                                metadata: {
+                                itemType: 'quickNote',
+                                itemId: quickNoteData.id,
+                                itemData: {
+                                  title: 'Quick Note',
+                                  content: quickNoteData.content,
                                   savedAt: new Date().toISOString()
                                 }
                               });

@@ -111,15 +111,22 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
     };
   }, []);
 
-  // Register save function with parent component
+  // Keep a ref to the current content
+  const contentRef = useRef(content);
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
+
+  // Register save function with parent component (only once)
   useEffect(() => {
     if (onRegisterSaveFunction) {
       const saveAndGetContent = async () => {
+        const currentContent = contentRef.current; // Use ref to get current content
         // Force save current content immediately if there are unsaved changes
-        if (content.trim()) {
+        if (currentContent.trim()) {
           setSaveStatus('saving');
           try {
-            await saveMutation.mutateAsync({ content });
+            await saveMutation.mutateAsync({ content: currentContent });
             // Wait a moment for the save to complete
             await new Promise(resolve => setTimeout(resolve, 100));
           } catch (error) {
@@ -127,13 +134,13 @@ export default function QuickNotePanel({ panelId, onClose, onPin, className, onR
           }
         }
         return {
-          content: content,
+          content: currentContent,
           id: quickNote?.id || `quick-note-${Date.now()}`
         };
       };
       onRegisterSaveFunction(saveAndGetContent);
     }
-  }, [content, onRegisterSaveFunction, saveMutation, quickNote]);
+  }, [onRegisterSaveFunction, saveMutation, quickNote]); // Don't include content in deps
 
   const getSaveStatusIndicator = () => {
     switch (saveStatus) {
