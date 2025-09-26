@@ -408,14 +408,21 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         
         if (!existingQuickNote) {
           // Create new quick note panel as floating
+          // Calculate mobile-friendly position
+          const isMobile = window.innerWidth < 640; // sm breakpoint
+          const panelWidth = isMobile ? Math.min(window.innerWidth - 20, 300) : 300;
+          const panelHeight = isMobile ? Math.min(window.innerHeight - 100, 400) : 400;
+          const xPosition = isMobile ? 10 : Math.max(10, window.innerWidth - 350);
+          const yPosition = isMobile ? 70 : 100; // Account for header on mobile
+          
           const quickNotePanel: PanelDescriptor = {
             id: 'quick-note',
             type: 'quickNote',
             title: 'Quick Note',
             mode: 'floating',
             regionId: 'floating',
-            position: { x: window.innerWidth - 350, y: 100 },
-            size: { width: 300, height: 400 }
+            position: { x: xPosition, y: yPosition },
+            size: { width: panelWidth, height: panelHeight }
           };
           
           get().addPanel(quickNotePanel);

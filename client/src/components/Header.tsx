@@ -101,7 +101,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </nav>
 
           {/* Search and Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <form onSubmit={handleSearch} className="hidden sm:flex items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -116,16 +116,16 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               </div>
             </form>
             
-            {/* Create New Button - Hidden on mobile */}
+            {/* Create New Button - Visible on all screen sizes */}
             <Button
               variant="default"
               size="default"
               onClick={() => onCreateNew?.()}
-              className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="flex bg-primary hover:bg-primary/90 text-primary-foreground"
               data-testid="button-create-new"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Create
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Create</span>
             </Button>
             
             {/* Quick Note Button - Visible on all screen sizes */}
@@ -136,6 +136,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               className={`${isQuickNoteOpen() ? 'bg-primary/10 text-primary' : ''}`}
               data-testid="button-quick-note"
               title="Quick Note"
+              aria-label="Quick Note"
             >
               <StickyNote className="h-4 w-4" />
             </Button>
