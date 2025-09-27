@@ -89,9 +89,7 @@ export default function CreatureGenerator() {
       const creatureText = `**${generatedCreature.name}**
       
 **Type:** ${generatedCreature.creatureType}
-**Size:** ${generatedCreature.size}
 **Habitat:** ${generatedCreature.habitat}
-**Temperament:** ${generatedCreature.temperament}
 
 **Physical Description:**
 ${generatedCreature.physicalDescription}
@@ -102,8 +100,8 @@ ${generatedCreature.behavior}
 **Abilities:**
 ${generatedCreature.abilities.join(', ')}
 
-**Weaknesses:**
-${generatedCreature.weaknesses.join(', ')}`;
+**Cultural Significance:**
+${generatedCreature.culturalSignificance}`;
 
       navigator.clipboard.writeText(creatureText);
       toast({
@@ -293,8 +291,8 @@ ${generatedCreature.weaknesses.join(', ')}`;
                   {generatedCreature.genre && (
                     <Badge variant="outline" data-testid="badge-genre">{generatedCreature.genre}</Badge>
                   )}
-                  <Badge variant="secondary" data-testid="badge-size">{generatedCreature.size}</Badge>
-                  <Badge variant="secondary" data-testid="badge-temperament">{generatedCreature.temperament}</Badge>
+                  <Badge variant="secondary" data-testid="badge-type">{generatedCreature.creatureType}</Badge>
+                  <Badge variant="secondary" data-testid="badge-habitat">{generatedCreature.habitat}</Badge>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -336,7 +334,7 @@ ${generatedCreature.weaknesses.join(', ')}`;
                   Temperament
                 </div>
                 <p className="text-sm text-muted-foreground" data-testid="text-temperament">
-                  {generatedCreature.temperament}
+                  {generatedCreature.behavior}
                 </p>
               </div>
               <div className="space-y-1">
@@ -345,7 +343,7 @@ ${generatedCreature.weaknesses.join(', ')}`;
                   Size
                 </div>
                 <p className="text-sm text-muted-foreground" data-testid="text-size">
-                  {generatedCreature.size}
+                  {generatedCreature.creatureType}
                 </p>
               </div>
             </div>
@@ -372,7 +370,7 @@ ${generatedCreature.weaknesses.join(', ')}`;
 
             <Separator />
 
-            {/* Abilities and Weaknesses */}
+            {/* Abilities and Cultural Significance */}
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <h3 className="font-semibold flex items-center gap-2">
@@ -388,11 +386,11 @@ ${generatedCreature.weaknesses.join(', ')}`;
                 </div>
               </div>
               <div className="space-y-3">
-                <h3 className="font-semibold">Weaknesses</h3>
-                <div className="flex flex-wrap gap-2" data-testid="list-weaknesses">
-                  {generatedCreature.weaknesses.map((weakness, index) => (
+                <h3 className="font-semibold">Cultural Significance</h3>
+                <div className="flex flex-wrap gap-2" data-testid="list-abilities">
+                  {generatedCreature.abilities.map((ability, index) => (
                     <Badge key={index} variant="outline">
-                      {weakness}
+                      {ability}
                     </Badge>
                   ))}
                 </div>

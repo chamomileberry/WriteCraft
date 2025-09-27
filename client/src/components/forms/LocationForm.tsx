@@ -239,7 +239,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Genre</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                             <FormControl>
                               <SelectTrigger data-testid="select-location-genre">
                                 <SelectValue placeholder="Select genre" />
@@ -264,7 +264,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Climate</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                             <FormControl>
                               <SelectTrigger data-testid="select-location-climate">
                                 <SelectValue placeholder="Select climate" />
@@ -306,6 +306,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                           <Textarea 
                             placeholder="Describe the physical landscape, terrain, and natural features..."
                             {...field}
+                            value={field.value || ''}
                             data-testid="textarea-location-geography"
                           />
                         </FormControl>
@@ -324,6 +325,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                           <Input 
                             placeholder="e.g., 'About 5,000 residents' or 'Sparsely populated'"
                             {...field}
+                            value={field.value || ''}
                             data-testid="input-location-population"
                           />
                         </FormControl>
@@ -345,6 +347,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                           <Textarea 
                             placeholder="Describe the location's founding, major events, and historical significance..."
                             {...field}
+                            value={field.value || ''}
                             data-testid="textarea-location-history"
                           />
                         </FormControl>
@@ -375,6 +378,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                           <Textarea 
                             placeholder="Describe the political system, leadership, and governance structure..."
                             {...field}
+                            value={field.value || ''}
                             data-testid="textarea-location-government"
                           />
                         </FormControl>
@@ -393,6 +397,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                           <Textarea 
                             placeholder="Describe trade, commerce, major industries, and economic activities..."
                             {...field}
+                            value={field.value || ''}
                             data-testid="textarea-location-economy"
                           />
                         </FormControl>
@@ -411,6 +416,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                           <Textarea 
                             placeholder="Describe customs, traditions, beliefs, and cultural practices..."
                             {...field}
+                            value={field.value || ''}
                             data-testid="textarea-location-culture"
                           />
                         </FormControl>

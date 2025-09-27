@@ -1254,6 +1254,7 @@ export class DatabaseStorage implements IStorage {
       tags: manuscripts.tags,
       status: manuscripts.status,
       searchVector: manuscripts.searchVector,
+      folderId: manuscripts.folderId,
       userId: manuscripts.userId,
       createdAt: manuscripts.createdAt,
       updatedAt: manuscripts.updatedAt,

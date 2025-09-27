@@ -139,7 +139,7 @@ export default function CharacterEditPageWithSidebar() {
                 Edit Character
                 {character && (
                   <span className="ml-2 text-muted-foreground font-normal">
-                    {[character.givenName, character.familyName].filter(Boolean).join(' ') || 'Untitled Character'}
+                    {[(character as any)?.givenName, (character as any)?.familyName].filter(Boolean).join(' ') || 'Untitled Character'}
                   </span>
                 )}
               </h1>

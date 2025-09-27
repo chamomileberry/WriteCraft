@@ -65,7 +65,9 @@ export const suggestion = {
           return true;
         }
 
-        return component.ref?.onKeyDown?.(props) || false;
+        return (component.ref && typeof component.ref === 'object' && component.ref !== null && 'onKeyDown' in component.ref && typeof (component.ref as any).onKeyDown === 'function') 
+          ? (component.ref as any).onKeyDown(props) 
+          : false;
       },
 
       onExit: () => {
