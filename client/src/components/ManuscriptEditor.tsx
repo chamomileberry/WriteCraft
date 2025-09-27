@@ -350,7 +350,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     content: manuscript?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
+        class: 'prose dark:prose-invert mx-auto focus:outline-none min-h-[500px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
       },
     },
     onUpdate: ({ editor }) => {

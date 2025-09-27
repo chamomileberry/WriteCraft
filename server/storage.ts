@@ -241,6 +241,7 @@ export interface IStorage {
   createFolder(folder: InsertFolder): Promise<Folder>;
   getFolder(id: string): Promise<Folder | undefined>;
   getUserFolders(userId: string, type?: string): Promise<Folder[]>;
+  getDocumentFolders(documentId: string, userId: string): Promise<Folder[]>;
   updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder>;
   deleteFolder(id: string, userId: string): Promise<void>;
   getFolderHierarchy(userId: string, type: string): Promise<Folder[]>;
@@ -250,6 +251,7 @@ export interface IStorage {
   getNote(id: string): Promise<Note | undefined>;
   getUserNotes(userId: string, type?: string): Promise<Note[]>;
   getFolderNotes(folderId: string, userId: string): Promise<Note[]>;
+  getDocumentNotes(documentId: string, userId: string): Promise<Note[]>;
   updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note>;
   deleteNote(id: string, userId: string): Promise<void>;
   
@@ -1667,6 +1669,12 @@ export class DatabaseStorage implements IStorage {
       .orderBy(folders.sortOrder, folders.createdAt);
   }
 
+  async getDocumentFolders(documentId: string, userId: string): Promise<Folder[]> {
+    // For now, return empty array as folders don't currently link to specific documents
+    // This is a placeholder for future implementation when document-specific folders are needed
+    return [];
+  }
+
   async updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder> {
     const [updatedFolder] = await db
       .update(folders)
@@ -1742,6 +1750,20 @@ export class DatabaseStorage implements IStorage {
       .from(notes)
       .where(and(
         eq(notes.folderId, folderId),
+        eq(notes.userId, userId)
+      ))
+      .orderBy(notes.sortOrder, notes.createdAt);
+  }
+
+  async getDocumentNotes(documentId: string, userId: string): Promise<Note[]> {
+    return await db
+      .select()
+      .from(notes)
+      .where(and(
+        or(
+          eq(notes.manuscriptId, documentId),
+          eq(notes.guideId, documentId)
+        ),
         eq(notes.userId, userId)
       ))
       .orderBy(notes.sortOrder, notes.createdAt);

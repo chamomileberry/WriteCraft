@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, Search, Edit, Calendar, FileText, Trash2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
+import { useWorkspaceStore, type PanelDescriptor } from "@/stores/workspaceStore";
 
 interface Manuscript {
   id: string;
@@ -72,8 +73,22 @@ export default function ManuscriptPage() {
       const response = await apiRequest('DELETE', `/api/manuscripts/${manuscriptId}`);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (_, manuscriptId) => {
+      // Clean up workspace panels related to the deleted manuscript
+      const { currentLayout, removePanel } = useWorkspaceStore.getState();
+      
+      // Remove all panels related to this manuscript
+      const panelsToRemove = currentLayout.panels.filter((panel: PanelDescriptor) => 
+        panel.entityId === manuscriptId || 
+        (panel.type === 'manuscript' && panel.entityId === manuscriptId)
+      );
+      
+      panelsToRemove.forEach(panel => removePanel(panel.id));
+      
+      // Invalidate queries to refresh the manuscripts list
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/folders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notes'] });
     }
   });
 

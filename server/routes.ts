@@ -2255,11 +2255,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/folders", async (req, res) => {
     try {
-      const { userId, type } = req.query;
+      const { userId, type, documentId } = req.query;
       if (!userId) {
         return res.status(400).json({ error: 'userId is required' });
       }
-      const folders = await storage.getUserFolders(userId as string, type as string);
+      
+      let folders;
+      if (documentId) {
+        // Get folders for specific document (manuscript or guide)
+        folders = await storage.getDocumentFolders(documentId as string, userId as string);
+      } else {
+        // Get all folders for user and type (backward compatibility)
+        folders = await storage.getUserFolders(userId as string, type as string);
+      }
+      
       res.json(folders);
     } catch (error) {
       console.error('Error fetching folders:', error);
@@ -2340,7 +2349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/notes", async (req, res) => {
     try {
-      const { userId, type, folderId } = req.query;
+      const { userId, type, folderId, documentId } = req.query;
       if (!userId) {
         return res.status(400).json({ error: 'userId is required' });
       }
@@ -2348,7 +2357,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let notes;
       if (folderId) {
         notes = await storage.getFolderNotes(folderId as string, userId as string);
+      } else if (documentId) {
+        // Get notes for specific document (manuscript or guide)
+        notes = await storage.getDocumentNotes(documentId as string, userId as string);
       } else {
+        // Get all notes for user and type (backward compatibility)
         notes = await storage.getUserNotes(userId as string, type as string);
       }
       res.json(notes);

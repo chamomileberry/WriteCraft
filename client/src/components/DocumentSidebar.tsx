@@ -73,11 +73,11 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     enabled: !!userId,
   });
 
-  // Fetch notes for the document type
+  // Fetch notes for the document type and specific document
   const { data: notes = [], isLoading: notesLoading } = useQuery({
-    queryKey: ['/api/notes', userId, `${type}_note`],
-    queryFn: () => fetch(`/api/notes?userId=${userId}&type=${type}_note`).then(res => res.json()),
-    enabled: !!userId,
+    queryKey: ['/api/notes', userId, `${type}_note`, currentDocumentId],
+    queryFn: () => fetch(`/api/notes?userId=${userId}&type=${type}_note&documentId=${currentDocumentId}`).then(res => res.json()),
+    enabled: !!userId && !!currentDocumentId,
   });
 
   // Build hierarchical folder structure with notes
