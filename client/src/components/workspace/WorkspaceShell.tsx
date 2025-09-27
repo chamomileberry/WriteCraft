@@ -103,9 +103,6 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         {dockedPanels.length > 0 && (
           <div 
             className="w-96 border-l border-border bg-background flex-shrink-0 self-start docked-sidebar-sticky"
-            style={{
-              zIndex: 40
-            }}
             data-testid="docked-sidebar-container"
           >
             {dockedPanels.map((panel, index) => (

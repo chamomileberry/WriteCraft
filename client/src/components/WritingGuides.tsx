@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Clock, Star, Search, Filter, Loader2, Plus, Edit3 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { BookOpen, Clock, Star, Search, Filter, Loader2, Plus, Edit3, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { Guide } from "@shared/schema";
 
 
@@ -18,6 +20,8 @@ export default function WritingGuides() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Build query parameters for API call
   const queryParams = new URLSearchParams();
@@ -53,6 +57,35 @@ export default function WritingGuides() {
 
   const handleEditGuide = (guideId: string) => {
     setLocation(`/guides/${guideId}/edit`);
+  };
+
+  // Delete guide mutation
+  const deleteGuideMutation = useMutation({
+    mutationFn: async (guideId: string) => {
+      const response = await apiRequest('DELETE', `/api/guides/${guideId}`);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/guides'] });
+      toast({
+        title: 'Guide deleted',
+        description: 'The guide has been successfully deleted.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error deleting guide:', error);
+      toast({
+        title: 'Error deleting guide',
+        description: 'Failed to delete the guide. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleDeleteGuide = (guideId: string, guideTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${guideTitle}"? This action cannot be undone.`)) {
+      deleteGuideMutation.mutate(guideId);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -211,6 +244,15 @@ export default function WritingGuides() {
                   data-testid={`button-edit-guide-${guide.id}`}
                 >
                   <Edit3 className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleDeleteGuide(guide.id, guide.title)}
+                  disabled={deleteGuideMutation.isPending}
+                  data-testid={`button-delete-guide-${guide.id}`}
+                  className="text-destructive hover:text-destructive hover:border-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>

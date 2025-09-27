@@ -56,14 +56,14 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   // Deterministic indentation mapping to avoid dynamic Tailwind class issues
   const getIndentationClass = (level: number): string => {
     const indentationMap: Record<number, string> = {
-      0: "",
-      1: "ml-4",
-      2: "ml-8", 
-      3: "ml-12",
-      4: "ml-16",
-      5: "ml-20"
+      0: "pl-0",
+      1: "pl-4",
+      2: "pl-8", 
+      3: "pl-12",
+      4: "pl-16",
+      5: "pl-20"
     };
-    return indentationMap[Math.min(level, 5)] || "ml-20";
+    return indentationMap[Math.min(level, 5)] || "pl-20";
   };
 
   // Fetch folders for the document type
@@ -299,7 +299,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 ) : (
                   <>
                     {/* Render hierarchical folders */}
-                    {hierarchicalFolders.map(folder => renderFolder(folder))}
+                    {hierarchicalFolders.map(folder => renderFolder(folder, 0))}
 
                     {/* Render orphaned notes */}
                     {orphanedNotes.map((note: any) => (

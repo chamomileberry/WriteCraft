@@ -2,6 +2,7 @@ import { useLocation } from 'wouter';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import ManuscriptEditor from '@/components/ManuscriptEditor';
 import DocumentSidebar from '@/components/DocumentSidebar';
+import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
@@ -16,6 +17,27 @@ export default function ManuscriptEditPageWithSidebar({ params }: ManuscriptEdit
     setLocation('/manuscripts');
   };
 
+  const handleSearch = (query: string) => {
+    setLocation(`/?search=${encodeURIComponent(query)}`);
+  };
+
+  const handleNavigate = (view: string) => {
+    switch (view) {
+      case 'notebook':
+        setLocation('/notebook');
+        break;
+      case 'manuscripts':
+        setLocation('/manuscripts');
+        break;
+      default:
+        setLocation('/');
+    }
+  };
+
+  const handleCreateNew = () => {
+    setLocation('/?create=true');
+  };
+
   // Custom sidebar width for document organization
   const style = {
     "--sidebar-width": "20rem",     // 320px for better content organization
@@ -23,42 +45,51 @@ export default function ManuscriptEditPageWithSidebar({ params }: ManuscriptEdit
   };
 
   return (
-    <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        {/* Document Tree Sidebar */}
-        <DocumentSidebar 
-          type="manuscript"
-          currentDocumentId={params.id}
-          userId="guest" // Using guest user for now
-        />
-        
-        {/* Main Content Area */}
-        <div className="flex flex-col flex-1">
-          {/* Header with sidebar toggle and back button */}
-          <header className="flex items-center justify-between p-2 border-b bg-background">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger data-testid="button-sidebar-toggle" />
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleBack}
-                data-testid="button-back-to-manuscripts"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Manuscripts
-              </Button>
-            </div>
-          </header>
+    <div className="min-h-screen bg-background">
+      {/* Main Navigation Header */}
+      <Header 
+        onSearch={handleSearch}
+        onNavigate={handleNavigate}
+        onCreateNew={handleCreateNew}
+      />
+      
+      <SidebarProvider style={style as React.CSSProperties}>
+        <div className="flex h-[calc(100vh-4rem)] w-full">
+          {/* Document Tree Sidebar */}
+          <DocumentSidebar 
+            type="manuscript"
+            currentDocumentId={params.id}
+            userId="guest" // Using guest user for now
+          />
           
-          {/* Editor Content */}
-          <main className="flex-1 overflow-hidden">
-            <ManuscriptEditor 
-              manuscriptId={params.id}
-              onBack={handleBack}
-            />
-          </main>
+          {/* Main Content Area */}
+          <div className="flex flex-col flex-1">
+            {/* Document-specific header with sidebar toggle and back button */}
+            <header className="flex items-center justify-between p-2 border-b bg-background">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger data-testid="button-sidebar-toggle" />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={handleBack}
+                  data-testid="button-back-to-manuscripts"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Manuscripts
+                </Button>
+              </div>
+            </header>
+            
+            {/* Editor Content */}
+            <main className="flex-1 overflow-hidden">
+              <ManuscriptEditor 
+                manuscriptId={params.id}
+                onBack={handleBack}
+              />
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 }

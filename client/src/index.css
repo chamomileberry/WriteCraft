@@ -8,6 +8,7 @@
   top: 0px !important;
   height: 100vh !important;
   max-height: 100vh !important;
+  z-index: 30 !important; /* Below header but above content */
 }
 
 /* LIGHT MODE */
