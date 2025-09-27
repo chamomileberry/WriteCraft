@@ -44,7 +44,8 @@ import {
   generateSynonyms,
   getWordDefinition,
   generateQuestions,
-  improveText
+  improveText,
+  conversationalChat
 } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2573,6 +2574,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ text: improved });
     } catch (error) {
       console.error('Error improving text:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/writing-assistant/chat", async (req, res) => {
+    try {
+      const { message, conversationHistory } = z.object({ 
+        message: z.string(), 
+        conversationHistory: z.array(z.object({
+          role: z.enum(['user', 'assistant']),
+          content: z.string()
+        })).optional()
+      }).parse(req.body);
+      
+      const response = await conversationalChat(message, conversationHistory);
+      res.json({ message: response });
+    } catch (error) {
+      console.error('Error in conversational chat:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid request data', details: error.errors });
       }

@@ -154,6 +154,36 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
     },
   });
 
+  // Conversational chat mutation
+  const chatMutation = useMutation({
+    mutationFn: async (message: string) => {
+      // Prepare conversation history from messages
+      const conversationHistory = messages
+        .slice(-10) // Only send last 10 messages for context
+        .map(msg => ({
+          role: msg.type,
+          content: msg.content
+        }));
+
+      const response = await fetch('/api/writing-assistant/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message, 
+          conversationHistory: conversationHistory.length > 0 ? conversationHistory : undefined 
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to get chat response');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      addMessage('assistant', data.message);
+    },
+    onError: () => {
+      addMessage('assistant', "I'm having trouble processing your message right now. Please try again, and I'll do my best to help with your writing!");
+    },
+  });
+
   // Get current page text content
   const getPageText = () => {
     // Exclude the writing assistant panel itself from text extraction
@@ -219,7 +249,8 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
         addMessage('assistant', 'I need some text to generate questions about. Could you provide the content?');
       }
     } else {
-      addMessage('assistant', 'I can help you with:\n• Analyzing text for clarity and style\n• Proofreading and corrections\n• Rephrasing in different styles\n• Generating reader questions\n• Improving specific aspects of your writing\n\nWhat would you like help with?');
+      // Use conversational chat for general writing discussions, brainstorming, and questions
+      chatMutation.mutate(text);
     }
   };
 
