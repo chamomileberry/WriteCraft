@@ -896,6 +896,281 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   }
 }
 
+// Writing assistant functions for text analysis and improvement
+export async function analyzeText(text: string): Promise<{
+  suggestions: string[];
+  readabilityScore: number;
+  potentialIssues: string[];
+}> {
+  const systemPrompt = `You are a professional writing assistant specialized in analyzing text for clarity, engagement, and effectiveness. Provide constructive feedback that helps improve the writing.
+
+Analyze the provided text and identify:
+1. Areas for improvement in clarity, flow, and engagement
+2. Potential grammar or style issues
+3. Suggestions for making the text more compelling
+4. A readability assessment
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "suggestions": ["specific suggestion 1", "specific suggestion 2", "specific suggestion 3"],
+  "readabilityScore": 85,
+  "potentialIssues": ["issue 1", "issue 2"]
+}`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: `Analyze this text: "${text}"` }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    let cleanedText = content.text.trim();
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error('Error analyzing text with AI:', error);
+    // Fallback response
+    return {
+      suggestions: ['Consider breaking up long sentences for better readability'],
+      readabilityScore: 75,
+      potentialIssues: ['Unable to analyze - please try again']
+    };
+  }
+}
+
+export async function rephraseText(text: string, style: string): Promise<string> {
+  const systemPrompt = `You are a professional writing assistant specialized in rephrasing text while maintaining the original meaning. Adapt the tone and style as requested while preserving all key information.
+
+Style instructions:
+- "formal": Use professional, academic language
+- "casual": Use conversational, friendly language
+- "concise": Make the text shorter while keeping key points
+- "detailed": Expand with more explanation and examples
+- "creative": Use more engaging, creative language
+- "clear": Focus on clarity and simplicity
+
+Provide only the rephrased text, no explanations or additional formatting.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: `Rephrase this text in a ${style} style: "${text}"` }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    return content.text.trim();
+  } catch (error) {
+    console.error('Error rephrasing text with AI:', error);
+    return text; // Return original text as fallback
+  }
+}
+
+export async function proofreadText(text: string): Promise<{
+  correctedText: string;
+  corrections: { original: string; corrected: string; reason: string }[];
+}> {
+  const systemPrompt = `You are a professional proofreader and editor. Correct grammar, spelling, punctuation, and style issues while maintaining the author's voice and intent.
+
+Provide corrections and explanations for any changes made.
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "correctedText": "The fully corrected version of the text",
+  "corrections": [
+    {
+      "original": "original phrase",
+      "corrected": "corrected phrase",
+      "reason": "brief explanation of the correction"
+    }
+  ]
+}`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: `Proofread and correct this text: "${text}"` }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    let cleanedText = content.text.trim();
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error('Error proofreading text with AI:', error);
+    return {
+      correctedText: text,
+      corrections: []
+    };
+  }
+}
+
+export async function generateSynonyms(word: string): Promise<string[]> {
+  const systemPrompt = `You are a vocabulary assistant. Provide a list of relevant synonyms for the given word, considering context and common usage.
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "synonyms": ["synonym1", "synonym2", "synonym3", "synonym4", "synonym5"]
+}`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 300,
+      messages: [
+        { role: 'user', content: `Provide synonyms for the word: "${word}"` }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    let cleanedText = content.text.trim();
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    const result = JSON.parse(cleanedText);
+    return result.synonyms || [];
+  } catch (error) {
+    console.error('Error generating synonyms with AI:', error);
+    return []; // Return empty array as fallback
+  }
+}
+
+export async function getWordDefinition(word: string): Promise<string> {
+  const systemPrompt = `You are a dictionary assistant. Provide a clear, concise definition of the given word, including its part of speech and common usage.
+
+Provide only the definition, no additional formatting or explanations.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 200,
+      messages: [
+        { role: 'user', content: `Define the word: "${word}"` }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    return content.text.trim();
+  } catch (error) {
+    console.error('Error getting word definition with AI:', error);
+    return `Unable to find definition for "${word}"`;
+  }
+}
+
+export async function generateQuestions(text: string): Promise<string[]> {
+  const systemPrompt = `You are a critical thinking assistant. Generate thoughtful questions that readers might ask about the provided text. These questions should help identify areas where the writing could be expanded, clarified, or improved.
+
+Generate questions that:
+1. Point out potential gaps in information
+2. Challenge assumptions or statements
+3. Ask for more detail or examples
+4. Identify areas that need clarification
+5. Suggest areas for expansion
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+{
+  "questions": ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]
+}`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 800,
+      messages: [
+        { role: 'user', content: `Generate thoughtful questions about this text: "${text}"` }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    let cleanedText = content.text.trim();
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+
+    const result = JSON.parse(cleanedText);
+    return result.questions || [];
+  } catch (error) {
+    console.error('Error generating questions with AI:', error);
+    return ['What additional information would help readers understand this better?'];
+  }
+}
+
+export async function improveText(text: string, instruction: string): Promise<string> {
+  const systemPrompt = `You are a professional writing assistant. Follow the user's specific instructions to improve the provided text while maintaining the original meaning and voice.
+
+Provide only the improved text, no explanations or additional formatting.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content: `${instruction}: "${text}"` }
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    return content.text.trim();
+  } catch (error) {
+    console.error('Error improving text with AI:', error);
+    return text; // Return original text as fallback
+  }
+}
+
 export async function generateDescriptionWithAI(options: DescriptionGenerationOptions): Promise<GeneratedDescription> {
   const { descriptionType, genre } = options;
   

@@ -32,7 +32,20 @@ import {
   insertNoteSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateCharacterWithAI, generateSettingWithAI, generateCreatureWithAI, generatePromptWithAI, generateCharacterFieldWithAI } from "./ai-generation";
+import { 
+  generateCharacterWithAI, 
+  generateSettingWithAI, 
+  generateCreatureWithAI, 
+  generatePromptWithAI, 
+  generateCharacterFieldWithAI,
+  analyzeText,
+  rephraseText,
+  proofreadText,
+  generateSynonyms,
+  getWordDefinition,
+  generateQuestions,
+  improveText
+} from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Character generator routes
@@ -2440,6 +2453,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting quick note:', error);
       res.status(500).json({ error: 'Failed to delete quick note' });
+    }
+  });
+
+  // Writing Assistant API routes
+  app.post("/api/writing-assistant/analyze", async (req, res) => {
+    try {
+      const { text } = z.object({ text: z.string() }).parse(req.body);
+      const analysis = await analyzeText(text);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error analyzing text:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/writing-assistant/rephrase", async (req, res) => {
+    try {
+      const { text, style } = z.object({ 
+        text: z.string(), 
+        style: z.string() 
+      }).parse(req.body);
+      const rephrased = await rephraseText(text, style);
+      res.json({ text: rephrased });
+    } catch (error) {
+      console.error('Error rephrasing text:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/writing-assistant/proofread", async (req, res) => {
+    try {
+      const { text } = z.object({ text: z.string() }).parse(req.body);
+      const result = await proofreadText(text);
+      res.json(result);
+    } catch (error) {
+      console.error('Error proofreading text:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/writing-assistant/synonyms", async (req, res) => {
+    try {
+      const { word } = z.object({ word: z.string() }).parse(req.body);
+      const synonyms = await generateSynonyms(word);
+      res.json({ synonyms });
+    } catch (error) {
+      console.error('Error generating synonyms:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/writing-assistant/definition", async (req, res) => {
+    try {
+      const { word } = z.object({ word: z.string() }).parse(req.body);
+      const definition = await getWordDefinition(word);
+      res.json({ definition });
+    } catch (error) {
+      console.error('Error getting word definition:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/writing-assistant/questions", async (req, res) => {
+    try {
+      const { text } = z.object({ text: z.string() }).parse(req.body);
+      const questions = await generateQuestions(text);
+      res.json({ questions });
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.post("/api/writing-assistant/improve", async (req, res) => {
+    try {
+      const { text, instruction } = z.object({ 
+        text: z.string(), 
+        instruction: z.string() 
+      }).parse(req.body);
+      const improved = await improveText(text, instruction);
+      res.json({ text: improved });
+    } catch (error) {
+      console.error('Error improving text:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
     }
   });
 
