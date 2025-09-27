@@ -32,13 +32,8 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
         focusPanel(existingPanel.id);
         return;
       }
-      // If it exists as a tab, focus it
-      if (existingPanel.mode === 'tabbed') {
-        focusPanel(existingPanel.id);
-        return;
-      }
-      // If it's floating, convert it to docked mode
-      if (existingPanel.mode === 'floating') {
+      // If it exists as a tab or floating, convert it to docked mode
+      if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
         updatePanel(existingPanel.id, { 
           mode: 'docked',
           regionId: 'docked'
@@ -50,10 +45,10 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     // Create new docked panel if none exists
     addPanel({
       id: `writing-assistant-${Date.now()}`,
-      type: 'writingAssistant',
+      type: 'writingAssistant' as const,
       title: 'Writing Assistant',
-      mode: 'docked',
-      regionId: 'docked',
+      mode: 'docked' as const,
+      regionId: 'docked' as const,
       size: { width: 400, height: 600 },
       entityId: 'writing-assistant', // Stable entityId for proper duplicate detection
     });
