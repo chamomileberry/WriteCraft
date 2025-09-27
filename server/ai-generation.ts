@@ -152,15 +152,13 @@ BACKSTORY DIVERSITY GUIDELINES:
 - Avoid repetitive profession/culture associations - vary the careers and life paths within ethnic groups
 
 PROFESSION DIVERSITY REQUIREMENTS:
-- AVOID overused "creative" professions like: artist, writer, journalist, photographer, musician, dancer, actor, chef, bartender, bookstore owner, librarian, teacher, counselor, detective, lawyer, doctor
-- STRONGLY DIVERSIFY into: technical trades, specialized sciences, business operations, government roles, service industries, manufacturing, agriculture, transportation, communications, finance, healthcare specialties, research fields, engineering disciplines, skilled crafts, emerging technology roles
 - Consider realistic career paths based on character's background, education, and circumstances
 - Include characters in transitional career phases, career changes, or unconventional professional journeys
 - Vary income levels and professional status across all ethnic and cultural backgrounds
 
 PHYSICAL DESCRIPTION GUIDELINES:
 - Make physical descriptions culturally authentic and respectful to the character's ethnicity/heritage
-- Use specific, realistic measurements for height (e.g., "5'7\"", "173 cm")
+- Use specific, realistic measurements for height (e.g., "5'7"", "173 cm")
 - Include age-appropriate physical characteristics
 - Consider how occupation, background, and lifestyle affect physical appearance
 - Create distinctive, memorable physical features without relying on stereotypes
