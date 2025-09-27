@@ -156,14 +156,24 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
 
   // Get current page text content
   const getPageText = () => {
-    const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, div[contenteditable], textarea');
+    // Exclude the writing assistant panel itself from text extraction
+    const assistantPanel = document.querySelector(`[data-testid*="writing-assistant-panel"]`);
+    
+    const textElements = document.querySelectorAll('main p, main h1, main h2, main h3, main h4, main h5, main h6, main div[contenteditable], main textarea, article p, article h1, article h2, article h3, article h4, article h5, article h6, [role="main"] p, [role="main"] h1, [role="main"] h2, [role="main"] h3, [role="main"] h4, [role="main"] h5, [role="main"] h6');
+    
     let allText = '';
     textElements.forEach(el => {
+      // Skip if this element is inside the assistant panel
+      if (assistantPanel && assistantPanel.contains(el)) {
+        return;
+      }
+      
       const text = el.textContent || '';
-      if (text.trim() && text.length > 20) {
+      if (text.trim() && text.length > 10) { // Require at least 10 characters for meaningful content
         allText += text.trim() + ' ';
       }
     });
+    
     return allText.trim().slice(0, 2000); // Limit to reasonable size
   };
 
@@ -189,21 +199,21 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
     // Auto-detect intent and respond accordingly
     if (text.toLowerCase().includes('analyze')) {
       const pageText = getPageText();
-      if (pageText) {
+      if (pageText && pageText.length >= 10) {
         analyzeMutation.mutate(pageText);
       } else {
         addMessage('assistant', 'I need some text to analyze. Could you provide the text you\'d like me to examine?');
       }
     } else if (text.toLowerCase().includes('proofread')) {
       const pageText = getPageText();
-      if (pageText) {
+      if (pageText && pageText.length >= 10) {
         proofreadMutation.mutate(pageText);
       } else {
         addMessage('assistant', 'I need some text to proofread. Could you provide the text you\'d like me to check?');
       }
     } else if (text.toLowerCase().includes('questions')) {
       const pageText = getPageText();
-      if (pageText) {
+      if (pageText && pageText.length >= 10) {
         questionsMutation.mutate(pageText);
       } else {
         addMessage('assistant', 'I need some text to generate questions about. Could you provide the content?');
@@ -216,12 +226,8 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
   // Quick action handlers
   const handleQuickAction = (action: string) => {
     const pageText = getPageText();
-    if (!pageText) {
-      toast({
-        title: 'No text found',
-        description: 'I need some text on the page to work with.',
-        variant: 'destructive',
-      });
+    if (!pageText || pageText.length < 10) {
+      addMessage('assistant', 'I need some text to work with. Could you please:\n\n1. Navigate to a page with content, or\n2. Paste or type some text in the chat for me to analyze\n\nI can help with analyzing, proofreading, rephrasing, and improving any text you provide!');
       return;
     }
 

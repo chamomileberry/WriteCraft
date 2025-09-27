@@ -9,14 +9,20 @@ export default function WritingAssistantTrigger() {
   const { addPanel } = useWorkspaceStore();
 
   const handleClick = () => {
+    // Calculate safe position within viewport
+    const panelWidth = 400;
+    const panelHeight = 600;
+    const safeX = Math.max(20, Math.min(window.innerWidth - panelWidth - 20, window.innerWidth - 450));
+    const safeY = Math.max(20, Math.min(window.innerHeight - panelHeight - 20, 100));
+    
     addPanel({
       id: `writing-assistant-${Date.now()}`,
       type: 'writingAssistant',
       title: 'Writing Assistant',
       mode: 'floating',
       regionId: 'floating',
-      position: { x: window.innerWidth - 450, y: 100 },
-      size: { width: 400, height: 600 },
+      position: { x: safeX, y: safeY },
+      size: { width: panelWidth, height: panelHeight },
     });
   };
 
