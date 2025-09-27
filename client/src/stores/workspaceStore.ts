@@ -8,8 +8,8 @@ export interface PanelDescriptor {
   entityId?: string;
   data?: any;
   // Tab system
-  mode: 'tabbed' | 'floating' | 'split';
-  regionId: 'main' | 'split' | 'floating';
+  mode: 'tabbed' | 'floating' | 'split' | 'docked';
+  regionId: 'main' | 'split' | 'floating' | 'docked';
   tabIndex?: number;
   // Position and size for floating panels
   position?: { x: number; y: number };
@@ -25,6 +25,7 @@ export interface WorkspaceLayout {
   regions: {
     main: string[]; // Panel IDs in main region tabs
     split: string[]; // Panel IDs in split region tabs
+    docked: string[]; // Panel IDs in docked sidebar region
   };
 }
 
@@ -78,7 +79,8 @@ const defaultLayout: WorkspaceLayout = {
   splitMode: false,
   regions: {
     main: [],
-    split: []
+    split: [],
+    docked: []
   }
 };
 
@@ -124,9 +126,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       addPanel: (panel: PanelDescriptor) => {
         set((state) => {
           // Ensure regions structure exists (handle old persisted states)
-          const safeRegions = state.currentLayout.regions || { main: [], split: [] };
+          const safeRegions = state.currentLayout.regions || { main: [], split: [], docked: [] };
           const safeMainRegion = safeRegions.main || [];
           const safeSplitRegion = safeRegions.split || [];
+          const safeDockedRegion = safeRegions.docked || [];
           
           // Check if panel already exists for this entity
           const existingPanel = state.currentLayout.panels.find(
@@ -139,19 +142,21 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             return state;
           }
           
-          // Set default tab state for new panels - start as tabbed in main region unless explicitly floating
+          // Set default tab state for new panels - start as tabbed in main region unless explicitly floating or docked
           const newPanel: PanelDescriptor = {
             ...panel,
             mode: panel.mode || 'tabbed', // Preserve explicit mode or default to tabbed
-            regionId: panel.mode === 'floating' ? 'floating' : 'main', // Use 'floating' region for floating panels
-            tabIndex: panel.mode === 'floating' ? undefined : safeMainRegion.length,
+            regionId: panel.mode === 'floating' ? 'floating' : 
+                     panel.mode === 'docked' ? 'docked' : 'main', // Use appropriate region for panel mode
+            tabIndex: (panel.mode === 'floating' || panel.mode === 'docked') ? undefined : safeMainRegion.length,
             position: panel.position || { x: 400, y: 100 },
             size: panel.size || { width: 350, height: 500 }
           };
           
           const updatedRegions = {
             ...safeRegions,
-            main: newPanel.mode === 'floating' ? safeMainRegion : [...safeMainRegion, newPanel.id]
+            main: newPanel.mode === 'floating' || newPanel.mode === 'docked' ? safeMainRegion : [...safeMainRegion, newPanel.id],
+            docked: newPanel.mode === 'docked' ? [...safeDockedRegion, newPanel.id] : safeDockedRegion
           };
           
           return {
@@ -173,7 +178,9 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           // Remove from regions
           const updatedRegions = {
             main: state.currentLayout.regions.main.filter(id => id !== panelId),
-            split: state.currentLayout.regions.split.filter(id => id !== panelId)
+            split: state.currentLayout.regions.split.filter(id => id !== panelId),
+            docked: (state.currentLayout.regions.docked || []).filter(id => id !== panelId),
+            floating: (state.currentLayout.regions.floating || []).filter(id => id !== panelId)
           };
           
           // Update active tab if removing active tab
@@ -195,20 +202,57 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       },
       
       updatePanel: (panelId: string, updates: Partial<PanelDescriptor>) => {
-        set((state) => ({
-          currentLayout: {
-            ...state.currentLayout,
-            panels: state.currentLayout.panels.map(p => 
-              p.id === panelId ? { ...p, ...updates } : p
-            )
+        set((state) => {
+          const panel = state.currentLayout.panels.find(p => p.id === panelId);
+          if (!panel) return state;
+          
+          // If changing mode or regionId, update regions accordingly
+          let updatedRegions = state.currentLayout.regions;
+          if (updates.mode || updates.regionId) {
+            const newMode = updates.mode || panel.mode;
+            const newRegionId = updates.regionId || panel.regionId;
+            
+            // Remove from current region
+            updatedRegions = {
+              main: state.currentLayout.regions.main.filter(id => id !== panelId),
+              split: state.currentLayout.regions.split.filter(id => id !== panelId),
+              docked: (state.currentLayout.regions.docked || []).filter(id => id !== panelId),
+              floating: (state.currentLayout.regions.floating || []).filter(id => id !== panelId)
+            };
+            
+            // Add to new region if it's not floating (floating panels don't belong to regions)
+            if (newMode !== 'floating') {
+              const targetRegion = newRegionId as keyof typeof updatedRegions;
+              if (updatedRegions[targetRegion]) {
+                updatedRegions[targetRegion] = [...updatedRegions[targetRegion], panelId];
+              }
+            }
           }
-        }));
+          
+          return {
+            currentLayout: {
+              ...state.currentLayout,
+              panels: state.currentLayout.panels.map(p => 
+                p.id === panelId ? { ...p, ...updates } : p
+              ),
+              regions: updatedRegions
+            }
+          };
+        });
       },
       
       focusPanel: (panelId: string) => {
         const panel = get().currentLayout.panels.find(p => p.id === panelId);
         if (panel) {
-          get().setActiveTab(panelId, panel.regionId === 'split' ? 'split' : 'main');
+          // Handle tabbed panels in main/split regions
+          if (panel.mode === 'tabbed') {
+            get().setActiveTab(panelId, panel.regionId === 'split' ? 'split' : 'main');
+          }
+          // Docked and floating panels are always visible, no need for tab activation
+          // But we can ensure they're not minimized
+          if (panel.minimized) {
+            get().updatePanel(panelId, { minimized: false });
+          }
         }
       },
       
@@ -251,10 +295,12 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             } : p
           );
           
-          // Remove panel from all regions first, then add to target region
+          // Remove panel from all regions first, then add to target region  
           const cleanedRegions = {
             main: state.currentLayout.regions.main.filter(id => id !== panelId),
-            split: state.currentLayout.regions.split.filter(id => id !== panelId)
+            split: state.currentLayout.regions.split.filter(id => id !== panelId),
+            docked: (state.currentLayout.regions.docked || []).filter(id => id !== panelId),
+            floating: (state.currentLayout.regions.floating || []).filter(id => id !== panelId)
           };
           
           const updatedRegions = {
@@ -281,7 +327,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           // Remove from regions and make floating
           const updatedRegions = {
             main: state.currentLayout.regions.main.filter(id => id !== panelId),
-            split: state.currentLayout.regions.split.filter(id => id !== panelId)
+            split: state.currentLayout.regions.split.filter(id => id !== panelId),
+            docked: (state.currentLayout.regions.docked || []).filter(id => id !== panelId)
           };
           
           const updatedPanels = state.currentLayout.panels.map(p => 
@@ -311,7 +358,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           // Remove from main region and add to split
           const updatedRegions = {
             main: state.currentLayout.regions.main.filter(id => id !== panelId),
-            split: [...state.currentLayout.regions.split, panelId]
+            split: [...state.currentLayout.regions.split, panelId],
+            docked: state.currentLayout.regions.docked || []
           };
           
           const updatedPanels = state.currentLayout.panels.map(p => 

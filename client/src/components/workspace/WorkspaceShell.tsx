@@ -26,6 +26,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   
   // Only render floating panels that are not minimized (tabbed panels are rendered in tab bars)
   const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating' && !panel.minimized);
+  
+  // Get docked panels for sidebar
+  const dockedPanels = currentLayout.panels.filter(panel => panel.mode === 'docked' && !panel.minimized);
 
   const renderPanelContent = (panel: PanelDescriptor) => {
     switch (panel.type) {
@@ -90,9 +93,58 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
 
   return (
     <div ref={workspaceRef} className="relative w-full h-full bg-background">
-      {/* Main Content Area */}
-      <div className="w-full h-full">
-        {children}
+      <div className="flex w-full h-full">
+        {/* Main Content Area */}
+        <div className={`flex-1 min-w-0 ${dockedPanels.length > 0 ? 'pr-2' : ''}`}>
+          {children}
+        </div>
+        
+        {/* Docked Sidebar */}
+        {dockedPanels.length > 0 && (
+          <div className="w-96 border-l border-border bg-background flex-shrink-0">
+            {dockedPanels.map((panel) => (
+              <div
+                key={panel.id}
+                className="h-full flex flex-col"
+                data-testid={`docked-panel-${panel.type}-${panel.entityId || panel.id}`}
+              >
+                {/* Docked Panel Header */}
+                <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-sm font-medium">{panel.title}</h3>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => attachToTabBar(panel.id, 'main')}
+                      className="h-6 w-6 p-0"
+                      data-testid={`button-undock-${panel.id}`}
+                      title="Convert to Tab"
+                    >
+                      <Pin className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePanel(panel.id)}
+                      className="h-6 w-6 p-0"
+                      data-testid={`button-close-${panel.id}`}
+                      title="Close"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Docked Panel Content */}
+                <div className="flex-1 overflow-hidden">
+                  {renderPanelContent(panel)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Floating Panels Only */}

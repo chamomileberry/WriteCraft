@@ -19,24 +19,42 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [, setLocation] = useLocation();
   
   // Quick note functionality
-  const { toggleQuickNote, isQuickNoteOpen, addPanel } = useWorkspaceStore();
+  const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel } = useWorkspaceStore();
   
   // Writing Assistant functionality
   const openWritingAssistant = () => {
-    // Calculate safe position within viewport for floating panel
-    const panelWidth = 400;
-    const panelHeight = 600;
-    const safeX = Math.max(20, Math.min(window.innerWidth - panelWidth - 20, window.innerWidth - 450));
-    const safeY = Math.max(20, Math.min(window.innerHeight - panelHeight - 20, 100));
+    // Check if there's already an existing writing assistant panel
+    const existingPanel = findPanel('writingAssistant', 'writing-assistant');
     
+    if (existingPanel) {
+      // If it's already docked, focus it
+      if (existingPanel.mode === 'docked') {
+        focusPanel(existingPanel.id);
+        return;
+      }
+      // If it exists as a tab, focus it
+      if (existingPanel.mode === 'tabbed') {
+        focusPanel(existingPanel.id);
+        return;
+      }
+      // If it's floating, convert it to docked mode
+      if (existingPanel.mode === 'floating') {
+        updatePanel(existingPanel.id, { 
+          mode: 'docked',
+          regionId: 'docked'
+        });
+        return;
+      }
+    }
+    
+    // Create new docked panel if none exists
     addPanel({
       id: `writing-assistant-${Date.now()}`,
       type: 'writingAssistant',
       title: 'Writing Assistant',
-      mode: 'floating',
-      regionId: 'floating',
-      position: { x: safeX, y: safeY },
-      size: { width: panelWidth, height: panelHeight },
+      mode: 'docked',
+      regionId: 'docked',
+      size: { width: 400, height: 600 },
       entityId: 'writing-assistant', // Stable entityId for proper duplicate detection
     });
   };
