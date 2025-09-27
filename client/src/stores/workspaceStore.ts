@@ -26,6 +26,7 @@ export interface WorkspaceLayout {
     main: string[]; // Panel IDs in main region tabs
     split: string[]; // Panel IDs in split region tabs
     docked: string[]; // Panel IDs in docked sidebar region
+    floating: string[]; // Panel IDs in floating region
   };
 }
 
@@ -80,7 +81,8 @@ const defaultLayout: WorkspaceLayout = {
   regions: {
     main: [],
     split: [],
-    docked: []
+    docked: [],
+    floating: []
   }
 };
 
@@ -126,7 +128,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       addPanel: (panel: PanelDescriptor) => {
         set((state) => {
           // Ensure regions structure exists (handle old persisted states)
-          const safeRegions = state.currentLayout.regions || { main: [], split: [], docked: [] };
+          const safeRegions = state.currentLayout.regions || { main: [], split: [], docked: [], floating: [] };
           const safeMainRegion = safeRegions.main || [];
           const safeSplitRegion = safeRegions.split || [];
           const safeDockedRegion = safeRegions.docked || [];
@@ -328,7 +330,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           const updatedRegions = {
             main: state.currentLayout.regions.main.filter(id => id !== panelId),
             split: state.currentLayout.regions.split.filter(id => id !== panelId),
-            docked: (state.currentLayout.regions.docked || []).filter(id => id !== panelId)
+            docked: (state.currentLayout.regions.docked || []).filter(id => id !== panelId),
+            floating: (state.currentLayout.regions.floating || []).filter(id => id !== panelId)
           };
           
           const updatedPanels = state.currentLayout.panels.map(p => 
@@ -359,7 +362,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           const updatedRegions = {
             main: state.currentLayout.regions.main.filter(id => id !== panelId),
             split: [...state.currentLayout.regions.split, panelId],
-            docked: state.currentLayout.regions.docked || []
+            docked: state.currentLayout.regions.docked || [],
+            floating: state.currentLayout.regions.floating || []
           };
           
           const updatedPanels = state.currentLayout.panels.map(p => 
