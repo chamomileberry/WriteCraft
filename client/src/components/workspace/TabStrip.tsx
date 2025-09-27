@@ -225,7 +225,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
 
   // Show manuscript tab when there are reference tabs
   const showManuscriptTab = regionId === 'main' && tabs.length > 0;
-  const manuscriptTabActive = !activeTab || activeTab.id === 'manuscript';
+  const manuscriptTabActive = !activeTab || activeTab.type === 'manuscript';
 
   return (
     <div 

@@ -205,7 +205,7 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
           </div>
           
           <div className="flex-1 overflow-hidden">
-            {mainActiveTab && mainActiveTab.id !== 'manuscript' ? (
+            {mainActiveTab && mainActiveTab.type !== 'manuscript' ? (
               // Show active tab content as reference
               <div className="h-full bg-muted/20">
                 {renderTabContent(mainActiveTab)}

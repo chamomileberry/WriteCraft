@@ -1,0 +1,28 @@
+Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s manuscript 
+    at div
+    at TabStrip (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/workspace/TabStrip.tsx:27:28)
+    at div
+    at div
+    at div
+    at WorkspaceLayout (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/workspace/WorkspaceLayout.tsx:24:35)
+    at https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/ManuscriptEditor.tsx:170:51
+    at main
+    at div
+    at div
+    at div
+    at Provider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NNZVJN4K.js?v=e1075cf2:38:15)
+    at TooltipProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=e1075cf2:61:5)
+    at SidebarProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/ui/sidebar.tsx:59:3)
+    at div
+    at ManuscriptEditPageWithSidebar (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/pages/ManuscriptEditPageWithSidebar.tsx:25:57)
+    at Route (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=e1075cf2:191:16)
+    at Switch (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=e1075cf2:247:17)
+    at Router
+    at div
+    at div
+    at div
+    at WorkspaceShell (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/workspace/WorkspaceShell.tsx:29:27)
+    at Provider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NNZVJN4K.js?v=e1075cf2:38:15)
+    at TooltipProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=e1075cf2:61:5)
+    at QueryClientProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=e1075cf2:2805:3)
+    at App

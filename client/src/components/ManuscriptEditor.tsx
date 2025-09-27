@@ -273,6 +273,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         listItem: false,
         link: false,
         codeBlock: false,
+        horizontalRule: false, // Disable built-in horizontal rule since we use CustomHorizontalRule
       }),
       CharacterCount,
       TextStyle,
@@ -433,10 +434,16 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
 
   // Auto-create manuscript tab when manuscript loads
   useEffect(() => {
-    if (manuscript && !isPanelOpen('manuscript', manuscriptId)) {
-      const { addPanel, setActiveTab } = useWorkspaceStore.getState();
+    if (manuscript && !isPanelOpen(`manuscript-${manuscriptId}`, manuscriptId)) {
+      const { addPanel, setActiveTab, removePanel } = useWorkspaceStore.getState();
+      
+      // Clean up any old manuscript panels with hardcoded 'manuscript' ID
+      const oldPanel = useWorkspaceStore.getState().currentLayout.panels.find(p => p.id === 'manuscript' && p.type === 'manuscript');
+      if (oldPanel) {
+        removePanel('manuscript');
+      }
       addPanel({
-        id: 'manuscript',
+        id: `manuscript-${manuscriptId}`, // Make ID unique per manuscript
         type: 'manuscript',
         title: manuscript.title || 'Untitled Manuscript',
         entityId: manuscriptId,
@@ -444,7 +451,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         regionId: 'main'
       });
       // Set as active tab
-      setActiveTab('manuscript', 'main');
+      setActiveTab(`manuscript-${manuscriptId}`, 'main');
     }
   }, [manuscript, manuscriptId, isPanelOpen]);
 
