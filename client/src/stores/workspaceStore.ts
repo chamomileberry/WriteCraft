@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { nanoid } from 'nanoid';
 
 export interface PanelDescriptor {
   id: string;
@@ -485,7 +486,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           const yPosition = isMobile ? 70 : 100; // Account for header on mobile
           
           const quickNotePanel: PanelDescriptor = {
-            id: 'quick-note',
+            id: `quick-note-${nanoid()}`,
             type: 'quickNote',
             title: 'Quick Note',
             mode: 'floating',
