@@ -27,6 +27,7 @@ import SavedItems from "@/components/SavedItems";
 import { getMappingByUrlSegment } from "@shared/contentTypes";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import WritingAssistantTrigger from "@/components/WritingAssistantTrigger";
 
 // Notebook page component
 function NotebookPage() {
@@ -105,6 +106,7 @@ function App() {
       <TooltipProvider>
         <WorkspaceShell>
           <Router />
+          <WritingAssistantTrigger />
         </WorkspaceShell>
         <Toaster />
       </TooltipProvider>

@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface PanelDescriptor {
   id: string;
-  type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript' | 'quickNote';
+  type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript' | 'quickNote' | 'writingAssistant';
   title: string;
   entityId?: string;
   data?: any;
@@ -107,6 +107,11 @@ const defaultPanelRegistry = {
     component: 'QuickNotePanel',
     defaultTitle: 'Quick Note',
     icon: 'StickyNote'
+  },
+  writingAssistant: {
+    component: 'WritingAssistantPanel',
+    defaultTitle: 'Writing Assistant',
+    icon: 'Sparkles'
   }
 };
 

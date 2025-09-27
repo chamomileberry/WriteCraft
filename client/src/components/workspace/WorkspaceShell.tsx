@@ -3,6 +3,7 @@ import { Rnd } from 'react-rnd';
 import { useWorkspaceStore, type PanelDescriptor } from '@/stores/workspaceStore';
 import CharacterDetailPanel from './CharacterDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
+import WritingAssistantPanel from './WritingAssistantPanel';
 import { X, GripHorizontal, Pin, Save, Minimize2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -49,6 +50,14 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             }}
           />
         );
+      case 'writingAssistant':
+        return (
+          <WritingAssistantPanel
+            panelId={panel.id}
+            onClose={() => removePanel(panel.id)}
+            onPin={() => attachToTabBar(panel.id, 'main')}
+          />
+        );
       default:
         return (
           <div className="p-4 border rounded bg-background">
@@ -66,6 +75,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         return { width: 300, height: 400 };
       case 'quickNote':
         return { width: 300, height: 400 };
+      case 'writingAssistant':
+        return { width: 400, height: 600 };
       default:
         return { width: 300, height: 400 };
     }
