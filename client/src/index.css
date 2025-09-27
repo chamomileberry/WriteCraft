@@ -5,9 +5,9 @@
 /* Force sticky positioning for docked sidebar */
 .docked-sidebar-sticky {
   position: sticky !important;
-  top: 0px !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
+  top: calc(4rem + 2px) !important; /* Start below header + border with gap (h-16 + border + gap = 66px) */
+  height: calc(100vh - 4rem - 2px) !important; /* Adjust height to account for header + border + gap */
+  max-height: calc(100vh - 4rem - 2px) !important;
   z-index: 30 !important; /* Below header but above content */
 }
 

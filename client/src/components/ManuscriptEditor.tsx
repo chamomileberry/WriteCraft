@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
+import { NodeSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
@@ -78,6 +79,65 @@ import { getMappingById } from '@shared/contentTypes';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { nanoid } from 'nanoid';
+
+// Custom HorizontalRule extension with proper backspace handling
+const CustomHorizontalRule = HorizontalRule.extend({
+  addKeyboardShortcuts() {
+    return {
+      'Backspace': () => {
+        const { state, dispatch } = this.editor.view;
+        const { selection } = state;
+        
+        // Check if we're selecting a horizontal rule directly
+        if (selection instanceof NodeSelection && selection.node.type.name === 'horizontalRule') {
+          const tr = state.tr.deleteSelection();
+          dispatch(tr);
+          return true;
+        }
+        
+        // Check if cursor is at the start of a paragraph that follows a horizontal rule
+        if (selection.empty && selection.$from.pos > 0) {
+          const $pos = selection.$from;
+          
+          // Look for horizontal rule immediately before current position
+          const before = $pos.nodeBefore;
+          if (before && before.type.name === 'horizontalRule') {
+            const hrPos = $pos.pos - before.nodeSize;
+            const tr = state.tr.delete(hrPos, $pos.pos);
+            dispatch(tr);
+            return true;
+          }
+        }
+        
+        return false;
+      },
+      'Delete': () => {
+        const { state, dispatch } = this.editor.view;
+        const { selection } = state;
+        const { $from } = selection;
+        
+        // Check if cursor is right before a horizontal rule
+        if ($from.pos < state.doc.content.size) {
+          const nodeAtPos = state.doc.nodeAt($from.pos);
+          if (nodeAtPos?.type.name === 'horizontalRule') {
+            const tr = state.tr.delete($from.pos, $from.pos + nodeAtPos.nodeSize);
+            dispatch(tr);
+            return true;
+          }
+        }
+        
+        // Check if we're selecting a horizontal rule
+        if (selection instanceof NodeSelection && selection.node.type.name === 'horizontalRule') {
+          const tr = state.tr.deleteSelection();
+          dispatch(tr);
+          return true;
+        }
+        
+        return false;
+      }
+    };
+  }
+});
 
 interface ManuscriptEditorProps {
   manuscriptId: string;
@@ -269,7 +329,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       CodeBlockLowlight.configure({
         lowlight,
       }),
-      HorizontalRule.configure({
+      CustomHorizontalRule.configure({
         HTMLAttributes: {
           class: 'my-4 border-border',
         },
