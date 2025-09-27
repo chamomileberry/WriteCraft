@@ -12,6 +12,8 @@ export interface PanelDescriptor {
   mode: 'tabbed' | 'floating' | 'split' | 'docked';
   regionId: 'main' | 'split' | 'floating' | 'docked';
   tabIndex?: number;
+  // Docking system
+  dockSlot?: string; // For docked panels, specifies which slot (e.g., 'sidebar-top', 'sidebar-middle', 'sidebar-bottom')
   // Position and size for floating panels
   position?: { x: number; y: number };
   size?: { width: number; height: number };
@@ -73,6 +75,11 @@ interface WorkspaceState {
   minimizePanel: (panelId: string) => void;
   restorePanel: (panelId: string) => void;
   isInManuscriptEditor: () => boolean;
+  
+  // Docking system
+  getDockedPanels: (slot: string) => PanelDescriptor[];
+  dockPanel: (panelId: string, slot: string) => void;
+  undockPanel: (panelId: string) => void;
 }
 
 const defaultLayout: WorkspaceLayout = {
@@ -542,6 +549,64 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         // Check if current URL contains manuscript editor paths
         return window.location.pathname.includes('/manuscripts/') && 
                window.location.pathname.includes('/edit');
+      },
+
+      // Docking system implementation
+      getDockedPanels: (slot: string) => {
+        const state = get();
+        return state.currentLayout.panels.filter(p => 
+          p.mode === 'docked' && p.dockSlot === slot
+        );
+      },
+
+      dockPanel: (panelId: string, slot: string) => {
+        set((state) => ({
+          currentLayout: {
+            ...state.currentLayout,
+            panels: state.currentLayout.panels.map(p =>
+              p.id === panelId
+                ? { ...p, mode: 'docked', regionId: 'docked', dockSlot: slot }
+                : p
+            ),
+            // Add to docked region if not already there
+            regions: {
+              ...state.currentLayout.regions,
+              docked: state.currentLayout.regions.docked.includes(panelId)
+                ? state.currentLayout.regions.docked
+                : [...state.currentLayout.regions.docked, panelId],
+              // Remove from other regions
+              main: state.currentLayout.regions.main.filter(id => id !== panelId),
+              split: state.currentLayout.regions.split.filter(id => id !== panelId),
+              floating: state.currentLayout.regions.floating.filter(id => id !== panelId)
+            }
+          }
+        }));
+      },
+
+      undockPanel: (panelId: string) => {
+        set((state) => {
+          const panel = state.currentLayout.panels.find(p => p.id === panelId);
+          if (!panel) return state;
+
+          return {
+            currentLayout: {
+              ...state.currentLayout,
+              panels: state.currentLayout.panels.map(p =>
+                p.id === panelId
+                  ? { ...p, mode: 'tabbed', regionId: 'main', dockSlot: undefined }
+                  : p
+              ),
+              // Move to main region
+              regions: {
+                ...state.currentLayout.regions,
+                main: [...state.currentLayout.regions.main, panelId],
+                docked: state.currentLayout.regions.docked.filter(id => id !== panelId),
+                split: state.currentLayout.regions.split.filter(id => id !== panelId),
+                floating: state.currentLayout.regions.floating.filter(id => id !== panelId)
+              }
+            }
+          };
+        });
       }
     }),
     {

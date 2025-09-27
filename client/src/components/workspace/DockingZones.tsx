@@ -1,4 +1,4 @@
-import { useWorkspaceStore } from '@/stores/workspaceStore';
+import { useWorkspaceStore, PanelDescriptor } from '@/stores/workspaceStore';
 import { Layers, Pin, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -17,7 +17,7 @@ export const DockingZone = ({ slot, className = '' }: DockingZoneProps) => {
   // Drag and drop will be implemented later - for now use buttons
   const isOver = false;
   
-  const renderPanelContent = (panel: any) => {
+  const renderPanelContent = (panel: PanelDescriptor) => {
     switch (panel.type) {
       case 'characterDetail':
         return (
