@@ -424,7 +424,7 @@ export default function CharacterEditorWithSidebar({
               contentType={field.type.replace('autocomplete-', '') as any}
               placeholder={field.placeholder || `Search ${field.label.toLowerCase()}...`}
               multiple={field.multiple || false}
-              value={form.getValues(field.name)}
+              value={form.watch(field.name)}
               onChange={(value: any) => form.setValue(field.name, value)}
             />
             {field.description && (

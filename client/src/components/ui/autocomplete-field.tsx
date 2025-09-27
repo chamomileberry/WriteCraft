@@ -110,12 +110,12 @@ export function AutocompleteField({
     enabled: true,
   });
 
-  // Query to resolve IDs to names for display (only for professions with UUID values)
+  // Query to resolve IDs to names for display (for professions and species with UUID values)
   const currentValueIds = currentValues.filter(val => isUUID(val));
   const { data: resolvedNames = {} } = useQuery({
     queryKey: [`/api/${apiEndpoint}/resolve`, currentValueIds],
     queryFn: async () => {
-      if (currentValueIds.length === 0 || contentType !== 'profession') return {};
+      if (currentValueIds.length === 0 || (contentType !== 'profession' && contentType !== 'species')) return {};
       
       const nameMap: { [id: string]: string } = {};
       
@@ -138,7 +138,7 @@ export function AutocompleteField({
       
       return nameMap;
     },
-    enabled: currentValueIds.length > 0 && contentType === 'profession',
+    enabled: currentValueIds.length > 0 && (contentType === 'profession' || contentType === 'species'),
   });
 
   // Create new item mutation
@@ -281,10 +281,11 @@ export function AutocompleteField({
       if (contentType === "location-type" && options) {
         const selectedOption = options.find(opt => opt.label === itemName);
         onChange(selectedOption ? selectedOption.value : itemName);
-      } else if (contentType === "profession") {
-        // For professions, store the ID but display the name
+      } else if (contentType === "profession" || contentType === "species") {
+        // For professions and species, store the ID but display the name
         const selectedItem = items.find((item: AutocompleteOption) => item.name === itemName);
-        onChange(selectedItem ? selectedItem.id : itemName);
+        const newValue = selectedItem ? selectedItem.id : itemName;
+        onChange(newValue);
       } else {
         onChange(itemName);
       }
@@ -308,8 +309,19 @@ export function AutocompleteField({
 
   // Helper function to get display name for a value
   const getDisplayName = (val: string) => {
-    if (contentType === 'profession' && isUUID(val)) {
-      return resolvedNames[val] || val;
+    if ((contentType === 'profession' || contentType === 'species') && isUUID(val)) {
+      // Try resolved names cache first
+      if (resolvedNames[val]) {
+        return resolvedNames[val];
+      }
+      
+      // Fall back to items array for newly selected items
+      const item = items.find((item: AutocompleteOption) => item.id === val);
+      if (item) {
+        return item.name;
+      }
+      
+      return val;
     }
     return val;
   };
@@ -318,10 +330,10 @@ export function AutocompleteField({
   const availableItems = (items || []).filter((item: AutocompleteOption) => {
     if (!item || !item.name) return false;
     
-    // For professions, check against both names and resolved IDs
-    if (contentType === 'profession') {
+    // For professions and species, check against both names and resolved IDs
+    if (contentType === 'profession' || contentType === 'species') {
       return !currentValues.includes(item.name) && !currentValues.includes(item.id);
-    }
+    };
     
     return !currentValues.includes(item.name);
   });
