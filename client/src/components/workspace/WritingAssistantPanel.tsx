@@ -263,9 +263,9 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
   };
 
   return (
-    <div className={`h-full flex flex-col bg-background ${className}`} data-testid={`writing-assistant-panel-${panelId}`}>
+    <div className={`h-full flex flex-col bg-background overflow-hidden ${className}`} data-testid={`writing-assistant-panel-${panelId}`}>
       {/* Header */}
-      <div className="flex items-center gap-2 p-3 border-b">
+      <div className="flex items-center gap-2 p-3 border-b flex-shrink-0">
         <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
           <Sparkles className="w-4 h-4 text-white" />
         </div>
@@ -276,9 +276,9 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-4 m-2">
+          <TabsList className="grid w-full grid-cols-4 m-2 flex-shrink-0">
             <TabsTrigger value="chat" className="text-xs" data-testid="tab-chat">
               <MessageSquare className="w-3 h-3 mr-1" />
               Chat
@@ -298,8 +298,8 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
           </TabsList>
 
           {/* Chat Tab */}
-          <TabsContent value="chat" className="flex-1 flex flex-col mt-0">
-            <ScrollArea className="flex-1 p-3">
+          <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0">
+            <ScrollArea className="flex-1 p-3 min-h-0">
               <div className="space-y-3">
                 {messages.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
@@ -339,7 +339,7 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
               </div>
             </ScrollArea>
             
-            <div className="p-3 border-t">
+            <div className="p-3 border-t flex-shrink-0">
               <div className="flex gap-2">
                 <Textarea
                   ref={textareaRef}
@@ -368,7 +368,7 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
           </TabsContent>
 
           {/* Analysis Tab */}
-          <TabsContent value="analysis" className="flex-1 mt-0">
+          <TabsContent value="analysis" className="flex-1 mt-0 min-h-0">
             <ScrollArea className="h-full p-3">
               {analysis ? (
                 <div className="space-y-4">
@@ -445,7 +445,7 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
           </TabsContent>
 
           {/* Actions Tab */}
-          <TabsContent value="actions" className="flex-1 mt-0">
+          <TabsContent value="actions" className="flex-1 mt-0 min-h-0">
             <ScrollArea className="h-full p-3">
               <div className="space-y-4">
                 <div className="grid gap-2">
@@ -561,7 +561,7 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
           </TabsContent>
 
           {/* Questions Tab */}
-          <TabsContent value="questions" className="flex-1 mt-0">
+          <TabsContent value="questions" className="flex-1 mt-0 min-h-0">
             <ScrollArea className="h-full p-3">
               {questions.length > 0 ? (
                 <div className="space-y-3">

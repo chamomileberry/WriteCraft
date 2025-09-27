@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force sticky positioning for docked sidebar */
+.docked-sidebar-sticky {
+  position: sticky !important;
+  top: 0px !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);

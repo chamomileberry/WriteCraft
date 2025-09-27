@@ -92,24 +92,30 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   };
 
   return (
-    <div ref={workspaceRef} className="relative w-full h-full bg-background">
-      <div className="flex w-full h-full">
+    <div ref={workspaceRef} className="relative w-full min-h-screen bg-background">
+      <div className="flex w-full min-h-screen">
         {/* Main Content Area */}
-        <div className={`flex-1 min-w-0 ${dockedPanels.length > 0 ? 'pr-2' : ''}`}>
+        <div className="flex-1 min-w-0">
           {children}
         </div>
         
         {/* Docked Sidebar */}
         {dockedPanels.length > 0 && (
-          <div className="w-96 border-l border-border bg-background flex-shrink-0">
-            {dockedPanels.map((panel) => (
+          <div 
+            className="w-96 border-l border-border bg-background flex-shrink-0 self-start docked-sidebar-sticky"
+            style={{
+              zIndex: 40
+            }}
+            data-testid="docked-sidebar-container"
+          >
+            {dockedPanels.map((panel, index) => (
               <div
-                key={panel.id}
-                className="h-full flex flex-col"
+                key={`${panel.type}-${panel.entityId || panel.id}-${index}`}
+                className="h-full flex flex-col w-full"
                 data-testid={`docked-panel-${panel.type}-${panel.entityId || panel.id}`}
               >
                 {/* Docked Panel Header */}
-                <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30">
+                <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30 flex-shrink-0">
                   <div className="flex items-center space-x-2">
                     <h3 className="text-sm font-medium">{panel.title}</h3>
                   </div>
@@ -138,7 +144,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                 </div>
                 
                 {/* Docked Panel Content */}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden min-h-0">
                   {renderPanelContent(panel)}
                 </div>
               </div>
