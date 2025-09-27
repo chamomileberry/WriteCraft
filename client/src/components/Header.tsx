@@ -1,4 +1,4 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -19,7 +19,27 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [, setLocation] = useLocation();
   
   // Quick note functionality
-  const { toggleQuickNote, isQuickNoteOpen } = useWorkspaceStore();
+  const { toggleQuickNote, isQuickNoteOpen, addPanel } = useWorkspaceStore();
+  
+  // Writing Assistant functionality
+  const openWritingAssistant = () => {
+    // Calculate safe position within viewport for floating panel
+    const panelWidth = 400;
+    const panelHeight = 600;
+    const safeX = Math.max(20, Math.min(window.innerWidth - panelWidth - 20, window.innerWidth - 450));
+    const safeY = Math.max(20, Math.min(window.innerHeight - panelHeight - 20, 100));
+    
+    addPanel({
+      id: `writing-assistant-${Date.now()}`,
+      type: 'writingAssistant',
+      title: 'Writing Assistant',
+      mode: 'floating',
+      regionId: 'floating',
+      position: { x: safeX, y: safeY },
+      size: { width: panelWidth, height: panelHeight },
+      entityId: 'writing-assistant', // Stable entityId for proper duplicate detection
+    });
+  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -141,6 +161,23 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               <StickyNote className="h-4 w-4" />
             </Button>
             
+            {/* Writing Assistant Button - Visible on all screen sizes */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={openWritingAssistant}
+              className="hover:bg-primary/10 hover:text-primary"
+              style={{
+                background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)',
+                color: 'white'
+              }}
+              data-testid="button-writing-assistant"
+              title="Writing Assistant"
+              aria-label="Writing Assistant"
+            >
+              <Sparkles className="h-4 w-4" />
+            </Button>
+            
             <Button
               variant="ghost"
               size="icon"
@@ -179,6 +216,17 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               <StickyNote className="h-4 w-4" />
               Quick Note
+            </button>
+            <button 
+              onClick={() => {
+                openWritingAssistant();
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center gap-2 w-full text-left text-foreground hover:text-primary transition-colors py-2"
+              data-testid="mobile-button-writing-assistant"
+            >
+              <Sparkles className="h-4 w-4" style={{ color: 'hsl(270, 75%, 75%)' }} />
+              Writing Assistant
             </button>
             <button 
               onClick={() => {
