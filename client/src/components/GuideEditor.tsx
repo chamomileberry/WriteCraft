@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useState, useReducer, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -54,6 +54,84 @@ export interface GuideEditorRef {
 
 const categories = ['Character Writing', 'Writing Craft', 'World Building', 'Story Structure', 'Genre Writing'];
 const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
+
+// Guide editor state management
+interface GuideEditorState {
+  currentGuideId: string;
+  saveStatus: 'saved' | 'saving' | 'unsaved';
+  lastSaveTime: Date | null;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  author: string;
+  tags: string[];
+  tagInput: string;
+  hasBeenSavedOnce: boolean;
+  wordCount: number;
+}
+
+type GuideEditorAction =
+  | { type: 'SET_CURRENT_GUIDE_ID'; payload: string }
+  | { type: 'SET_SAVE_STATUS'; payload: 'saved' | 'saving' | 'unsaved' }
+  | { type: 'SET_LAST_SAVE_TIME'; payload: Date | null }
+  | { type: 'SET_TITLE'; payload: string }
+  | { type: 'SET_DESCRIPTION'; payload: string }
+  | { type: 'SET_CATEGORY'; payload: string }
+  | { type: 'SET_DIFFICULTY'; payload: string }
+  | { type: 'SET_AUTHOR'; payload: string }
+  | { type: 'SET_TAGS'; payload: string[] }
+  | { type: 'SET_TAG_INPUT'; payload: string }
+  | { type: 'SET_HAS_BEEN_SAVED_ONCE'; payload: boolean }
+  | { type: 'SET_WORD_COUNT'; payload: number }
+  | { type: 'LOAD_GUIDE_DATA'; payload: Partial<GuideEditorState> }
+  | { type: 'RESET_FORM' };
+
+function guideEditorReducer(state: GuideEditorState, action: GuideEditorAction): GuideEditorState {
+  switch (action.type) {
+    case 'SET_CURRENT_GUIDE_ID':
+      return { ...state, currentGuideId: action.payload };
+    case 'SET_SAVE_STATUS':
+      return { ...state, saveStatus: action.payload };
+    case 'SET_LAST_SAVE_TIME':
+      return { ...state, lastSaveTime: action.payload };
+    case 'SET_TITLE':
+      return { ...state, title: action.payload };
+    case 'SET_DESCRIPTION':
+      return { ...state, description: action.payload };
+    case 'SET_CATEGORY':
+      return { ...state, category: action.payload };
+    case 'SET_DIFFICULTY':
+      return { ...state, difficulty: action.payload };
+    case 'SET_AUTHOR':
+      return { ...state, author: action.payload };
+    case 'SET_TAGS':
+      return { ...state, tags: action.payload };
+    case 'SET_TAG_INPUT':
+      return { ...state, tagInput: action.payload };
+    case 'SET_HAS_BEEN_SAVED_ONCE':
+      return { ...state, hasBeenSavedOnce: action.payload };
+    case 'SET_WORD_COUNT':
+      return { ...state, wordCount: action.payload };
+    case 'LOAD_GUIDE_DATA':
+      return { ...state, ...action.payload };
+    case 'RESET_FORM':
+      return {
+        ...state,
+        title: '',
+        description: '',
+        category: '',
+        difficulty: '',
+        author: '',
+        tags: [],
+        tagInput: '',
+        hasBeenSavedOnce: false,
+        wordCount: 0,
+      };
+    default:
+      return state;
+  }
+}
 
 // Custom FontSize extension - 2024 best practice approach
 declare module '@tiptap/core' {
@@ -114,18 +192,37 @@ const FontSize = Extension.create({
 });
 
 const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: initialGuideId, onBack, onGuideCreated }, ref) => {
-  const [currentGuideId, setCurrentGuideId] = useState(initialGuideId);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
-  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [difficulty, setDifficulty] = useState('');
-  const [author, setAuthor] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
-  const [hasBeenSavedOnce, setHasBeenSavedOnce] = useState(false);
-  const [wordCount, setWordCount] = useState(0);
+  // Centralized state management with useReducer
+  const [guideState, dispatch] = useReducer(guideEditorReducer, {
+    currentGuideId: initialGuideId,
+    saveStatus: 'saved' as const,
+    lastSaveTime: null,
+    title: '',
+    description: '',
+    category: '',
+    difficulty: '',
+    author: '',
+    tags: [],
+    tagInput: '',
+    hasBeenSavedOnce: false,
+    wordCount: 0,
+  });
+
+  // Destructure state for easier access
+  const {
+    currentGuideId,
+    saveStatus,
+    lastSaveTime,
+    title,
+    description,
+    category,
+    difficulty,
+    author,
+    tags,
+    tagInput,
+    hasBeenSavedOnce,
+    wordCount,
+  } = guideState;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -230,11 +327,11 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       },
     },
     onUpdate: ({ editor }) => {
-      setSaveStatus('unsaved');
+      dispatch({ type: 'SET_SAVE_STATUS', payload: 'unsaved' });
       
       // Update word count
       const currentWordCount = editor.storage.characterCount.words();
-      setWordCount(currentWordCount);
+      dispatch({ type: 'SET_WORD_COUNT', payload: currentWordCount });
       
       // Debounced autosave
       if (autosaveTimeoutRef.current) {
@@ -252,18 +349,20 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Load guide data into form
   useEffect(() => {
     if (guide) {
-      setTitle(guide.title || '');
-      setDescription(guide.description || '');
-      setCategory(guide.category || '');
-      setDifficulty(guide.difficulty || '');
-      setAuthor(guide.author || '');
-      setTags(guide.tags || []);
-      setHasBeenSavedOnce(true);
+      dispatch({ type: 'LOAD_GUIDE_DATA', payload: {
+        title: guide.title || '',
+        description: guide.description || '',
+        category: guide.category || '',
+        difficulty: guide.difficulty || '',
+        author: guide.author || '',
+        tags: guide.tags || [],
+        hasBeenSavedOnce: true,
+      } });
       
       if (editor && guide.content) {
         editor.commands.setContent(guide.content);
         // Update word count after setting content
-        setWordCount(editor.storage.characterCount.words());
+        dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
       }
     }
   }, [guide, editor]);
@@ -271,7 +370,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Update word count when editor is first created
   useEffect(() => {
     if (editor) {
-      setWordCount(editor.storage.characterCount.words());
+      dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
     }
   }, [editor]);
 
@@ -289,13 +388,13 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     onSuccess: (savedGuide) => {
       // If this was a new guide, update the current guide ID
       if (currentGuideId === 'new' && savedGuide.id) {
-        setCurrentGuideId(savedGuide.id);
-        setHasBeenSavedOnce(true);
+        dispatch({ type: 'SET_CURRENT_GUIDE_ID', payload: savedGuide.id });
+        dispatch({ type: 'SET_HAS_BEEN_SAVED_ONCE', payload: true });
         onGuideCreated?.(savedGuide.id);
       }
       
-      setSaveStatus('saved');
-      setLastSaveTime(new Date());
+      dispatch({ type: 'SET_SAVE_STATUS', payload: 'saved' });
+      dispatch({ type: 'SET_LAST_SAVE_TIME', payload: new Date() });
       // Invalidate all guide-related queries (including filtered ones)
       queryClient.invalidateQueries({ 
         predicate: (query) => {
@@ -309,7 +408,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     },
     onError: (error: any) => {
       console.error('Error saving guide:', error);
-      setSaveStatus('unsaved');
+      dispatch({ type: 'SET_SAVE_STATUS', payload: 'unsaved' });
       toast({
         title: 'Error saving guide',
         description: 'Failed to save the guide. Please try again.',
@@ -346,7 +445,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       return;
     }
     
-    setSaveStatus('saving');
+    dispatch({ type: 'SET_SAVE_STATUS', payload: 'saving' });
     const guideData = buildGuideData();
     await saveMutation.mutateAsync(guideData);
   };
@@ -361,7 +460,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       return;
     }
 
-    setSaveStatus('saving');
+    dispatch({ type: 'SET_SAVE_STATUS', payload: 'saving' });
     const guideData = buildGuideData();
     await saveMutation.mutateAsync(guideData);
   };
@@ -372,13 +471,13 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput('');
+      dispatch({ type: 'SET_TAGS', payload: [...tags, tagInput.trim()] });
+      dispatch({ type: 'SET_TAG_INPUT', payload: '' });
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    dispatch({ type: 'SET_TAGS', payload: tags.filter(tag => tag !== tagToRemove) });
   };
 
 
@@ -437,7 +536,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               <Input
                 id="title"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => dispatch({ type: 'SET_TITLE', payload: e.target.value })}
                 placeholder="Enter guide title"
                 data-testid="input-title"
               />
@@ -448,7 +547,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               <Input
                 id="author"
                 value={author}
-                onChange={(e) => setAuthor(e.target.value)}
+                onChange={(e) => dispatch({ type: 'SET_AUTHOR', payload: e.target.value })}
                 placeholder="Guide author"
                 data-testid="input-author"
               />
@@ -460,7 +559,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
             <Textarea
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => dispatch({ type: 'SET_DESCRIPTION', payload: e.target.value })}
               placeholder="Brief description of the guide"
               rows={3}
               data-testid="input-description"
@@ -470,7 +569,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={category} onValueChange={(value) => dispatch({ type: 'SET_CATEGORY', payload: value })}>
                 <SelectTrigger data-testid="select-category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -486,7 +585,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
             
             <div className="space-y-2">
               <Label htmlFor="difficulty">Difficulty</Label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
+              <Select value={difficulty} onValueChange={(value) => dispatch({ type: 'SET_DIFFICULTY', payload: value })}>
                 <SelectTrigger data-testid="select-difficulty">
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
@@ -508,7 +607,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               <Input
                 id="tags"
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
+                onChange={(e) => dispatch({ type: 'SET_TAG_INPUT', payload: e.target.value })}
                 placeholder="Add a tag"
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                 data-testid="input-tag"
