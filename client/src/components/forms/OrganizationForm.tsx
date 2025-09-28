@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Building, Users, Crown, Shield, Coins, Globe, Star, Flag, BookOpen, Handshake, Swords } from "lucide-react";
 import { insertOrganizationSchema, type InsertOrganization, type Organization } from "@shared/schema";
 import { useState } from "react";
+import { z } from "zod";
 
 interface OrganizationFormProps {
   initialData?: Partial<Organization>;
@@ -51,6 +52,36 @@ const genres = [
   "Cyberpunk", "Medieval", "Victorian", "Ancient", "Futuristic", "Political"
 ];
 
+// Dedicated form schema that extends the base schema for optional array fields
+const organizationFormSchema = insertOrganizationSchema.extend({
+  allies: insertOrganizationSchema.shape.allies.optional(),
+  enemies: insertOrganizationSchema.shape.enemies.optional(),
+});
+
+// Helper function to generate default values from schema and initial data
+const getOrganizationFormDefaults = (initialData?: Partial<Organization>) => {
+  const defaults: Partial<InsertOrganization> = {};
+  
+  // Get all keys from the schema shape
+  const schemaKeys = Object.keys(organizationFormSchema.shape) as (keyof InsertOrganization)[];
+  
+  schemaKeys.forEach(key => {
+    const initialValue = initialData?.[key as keyof Organization];
+    
+    // Set appropriate defaults based on field type
+    switch (key) {
+      case "allies":
+      case "enemies":
+        defaults[key] = Array.isArray(initialValue) ? initialValue : [];
+        break;
+      default:
+        defaults[key] = initialValue ?? "";
+    }
+  });
+  
+  return defaults;
+};
+
 export default function OrganizationForm({ initialData, onSubmit, onGenerate, isLoading }: OrganizationFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
   
@@ -63,27 +94,8 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
   );
   
   const form = useForm<InsertOrganization>({
-    resolver: zodResolver(insertOrganizationSchema.extend({
-      allies: insertOrganizationSchema.shape.allies.optional(),
-      enemies: insertOrganizationSchema.shape.enemies.optional(),
-    })),
-    defaultValues: {
-      name: initialData?.name ?? "",
-      organizationType: initialData?.organizationType ?? "",
-      purpose: initialData?.purpose ?? "",
-      description: initialData?.description ?? "",
-      structure: initialData?.structure ?? "",
-      leadership: initialData?.leadership ?? "",
-      members: initialData?.members ?? "",
-      headquarters: initialData?.headquarters ?? "",
-      influence: initialData?.influence ?? "",
-      resources: initialData?.resources ?? "",
-      goals: initialData?.goals ?? "",
-      history: initialData?.history ?? "",
-      allies: initialData?.allies ?? [],
-      enemies: initialData?.enemies ?? [],
-      genre: initialData?.genre ?? "",
-    },
+    resolver: zodResolver(organizationFormSchema),
+    defaultValues: getOrganizationFormDefaults(initialData),
   });
 
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +86,6 @@ export default function CharacterEditorWithSidebar({
   const [activeTab, setActiveTab] = useState("basic");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["identity"]));
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [tagValues, setTagValues] = useState<Record<string, string>>({});
 
   // Generate schema from config
   const generateSchema = (config: ContentTypeFormConfig) => {
@@ -106,43 +105,17 @@ export default function CharacterEditorWithSidebar({
           case "checkbox":
             fieldSchema = z.boolean().nullable();
             break;
-          // All autocomplete types - schema depends on multiple property
-          case "autocomplete-location":
-          case "autocomplete-character":
-          case "autocomplete-tradition":
-          case "autocomplete-organization":
-          case "autocomplete-species":
-          case "autocomplete-culture":
-          case "autocomplete-weapon":
-          case "autocomplete-building":
-          case "autocomplete-plot":
-          case "autocomplete-document":
-          case "autocomplete-accessory":
-          case "autocomplete-clothing":
-          case "autocomplete-material":
-          case "autocomplete-settlement":
-          case "autocomplete-society":
-          case "autocomplete-faction":
-          case "autocomplete-military-unit":
-          case "autocomplete-family-tree":
-          case "autocomplete-timeline":
-          case "autocomplete-ceremony":
-          case "autocomplete-map":
-          case "autocomplete-music":
-          case "autocomplete-dance":
-          case "autocomplete-law":
-          case "autocomplete-policy":
-          case "autocomplete-potion":
-          case "autocomplete-profession":
-          case "autocomplete-language":
-          case "autocomplete-religion":
-            // Schema depends on multiple property: true = array, false/undefined = string
-            fieldSchema = field.multiple === true 
-              ? z.array(z.string()).nullable()
-              : z.string().nullable();
-            break;
           default:
-            fieldSchema = z.string().nullable();
+            // Handle autocomplete types based on their multiple property
+            if (field.type.startsWith("autocomplete-")) {
+              // Schema depends on multiple property: true = array, false/undefined = string
+              fieldSchema = field.multiple === true 
+                ? z.array(z.string()).nullable()
+                : z.string().nullable();
+            } else {
+              // Regular text fields
+              fieldSchema = z.string().nullable();
+            }
         }
         
         if (field.required) {
@@ -151,6 +124,10 @@ export default function CharacterEditorWithSidebar({
             fieldSchema = z.array(z.string()).min(1, `${field.label} is required`);
           } else if (field.type === "number") {
             fieldSchema = z.number({ required_error: `${field.label} is required` });
+          } else if (field.type === "checkbox") {
+            fieldSchema = z.boolean().refine(val => val === true, {
+              message: `${field.label} is required`
+            });
           } else {
             fieldSchema = z.string().min(1, `${field.label} is required`);
           }
@@ -206,46 +183,17 @@ export default function CharacterEditorWithSidebar({
     return defaults;
   };
 
-  const schema = generateSchema(config);
-  const defaultValues = getDefaultValues(config, initialData);
+  const schema = useMemo(() => generateSchema(config), [config]);
+  const defaultValues = useMemo(() => getDefaultValues(config, initialData), [config, initialData]);
 
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
-  // Initialize tag values for display
-  useEffect(() => {
-    const tagFields: Record<string, string> = {};
-    (config.tabs || []).forEach(tab => {
-      tab.fields.forEach(field => {
-        if (field.type === "tags") {
-          const value = initialData?.[field.name];
-          if (typeof value === "string") {
-            tagFields[field.name] = value ? value : "";
-          } else if (Array.isArray(value)) {
-            tagFields[field.name] = value.join(", ");
-          } else {
-            tagFields[field.name] = "";
-          }
-        }
-      });
-    });
-    setTagValues(tagFields);
-  }, [config, initialData]);
 
   const handleSubmit = (data: any) => {
-    // Convert tag strings back to arrays
-    const processedData = { ...data };
-    (config.tabs || []).forEach(tab => {
-      tab.fields.forEach(field => {
-        if (field.type === "tags") {
-          const tagValue = tagValues[field.name];
-          processedData[field.name] = tagValue ? tagValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-        }
-      });
-    });
-    onSubmit(processedData);
+    onSubmit(data);
   };
 
   const toggleSection = (sectionId: string) => {
@@ -268,11 +216,13 @@ export default function CharacterEditorWithSidebar({
   const currentTab = (config.tabs || []).find(tab => tab.id === activeTab);
   const currentSection = characterNavigation.find(section => section.id === activeSection);
 
-  // Create sections with their tabs
-  const sectionsWithTabs = characterNavigation.map(section => ({
-    ...section,
-    tabs: (config.tabs || []).filter(tab => section.tabIds.includes(tab.id))
-  }));
+  // Create sections with their tabs (memoized to prevent recalculation)
+  const sectionsWithTabs = useMemo(() => 
+    characterNavigation.map(section => ({
+      ...section,
+      tabs: (config.tabs || []).filter(tab => section.tabIds.includes(tab.id))
+    })), [config]
+  );
 
   // Render individual field
   const renderField = (field: FormField) => {
@@ -367,19 +317,32 @@ export default function CharacterEditorWithSidebar({
 
       case "tags":
         return (
-          <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>{field.label} {field.required && "*"}</Label>
-            <Input 
-              id={field.name}
-              placeholder={field.placeholder}
-              value={tagValues[field.name] || ""}
-              onChange={(e) => setTagValues(prev => ({ ...prev, [field.name]: e.target.value }))}
-              data-testid={`input-${field.name}`}
-            />
-            {field.description && (
-              <p className="text-sm text-muted-foreground">{field.description}</p>
+          <FormFieldComponent
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder={field.placeholder}
+                    value={Array.isArray(formField.value) ? formField.value.join(", ") : (formField.value || "")}
+                    onChange={(e) => {
+                      const stringValue = e.target.value;
+                      const arrayValue = stringValue ? stringValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                      formField.onChange(arrayValue);
+                    }}
+                    data-testid={`input-${field.name}`}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
         );
 
       case "checkbox":
@@ -409,31 +372,38 @@ export default function CharacterEditorWithSidebar({
           />
         );
 
-      // Autocomplete field types
-      case "autocomplete-character":
-      case "autocomplete-location":
-      case "autocomplete-organization":
-      case "autocomplete-species":
-      case "autocomplete-profession":
-      case "autocomplete-weapon":
-        return (
-          <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>{field.label} {field.required && "*"}</Label>
-            <AutocompleteField
-              contentType={field.type.replace('autocomplete-', '') as any}
-              placeholder={field.placeholder || `Search ${field.label.toLowerCase()}...`}
-              multiple={field.multiple || false}
-              value={form.watch(field.name)}
-              onChange={(value: any) => form.setValue(field.name, value)}
-            />
-            {field.description && (
-              <p className="text-sm text-muted-foreground">{field.description}</p>
-            )}
-          </div>
-        );
-
-      // Default text input
+      // Default field handler - includes autocomplete types  
       default:
+        // Handle autocomplete field types
+        if (field.type.startsWith("autocomplete-")) {
+          return (
+            <FormFieldComponent
+              key={field.name}
+              control={form.control}
+              name={field.name}
+              render={({ field: formField }) => (
+                <FormItem>
+                  <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                  <FormControl>
+                    <AutocompleteField
+                      contentType={field.type.replace('autocomplete-', '') as any}
+                      placeholder={field.placeholder || `Search ${field.label.toLowerCase()}...`}
+                      multiple={field.multiple || false}
+                      value={formField.value}
+                      onChange={formField.onChange}
+                    />
+                  </FormControl>
+                  {field.description && (
+                    <FormDescription>{field.description}</FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          );
+        }
+
+        // Regular text input
         return (
           <FormFieldComponent
             key={field.name}
