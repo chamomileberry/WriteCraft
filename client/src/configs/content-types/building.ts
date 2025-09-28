@@ -1,0 +1,47 @@
+import { ContentTypeFormConfig } from '../../components/forms/types';
+
+export const buildingConfig: ContentTypeFormConfig = {
+  title: "Building Editor", 
+  description: "Design structures for your world",
+  icon: "Building",
+  tabs: [
+    {
+      id: "basic",
+      label: "Basic Info",
+      icon: "Building",
+      fields: [
+        { name: "name", label: "Building Name", type: "text", placeholder: "Enter building name..." },
+        { name: "buildingType", label: "Building Type", type: "select", options: ["House", "Castle", "Temple", "Shop", "Tavern", "Library", "Prison", "Tower", "Mansion", "Barracks", "Other"] },
+        { name: "description", label: "Description", type: "textarea", placeholder: "Detailed description of the building...", description: "What does this building look like from the outside?" },
+        { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Steampunk", "Other"] }
+      ]
+    },
+    {
+      id: "structure",
+      label: "Structure",
+      icon: "Hammer",
+      fields: [
+        { name: "architecture", label: "Architecture", type: "text", placeholder: "Gothic, Roman, modern, etc." },
+        { name: "materials", label: "Materials", type: "tags", placeholder: "stone, wood, metal...", description: "Construction materials (comma-separated)" },
+        { name: "capacity", label: "Capacity", type: "text", placeholder: "Number of people it can hold" },
+        { name: "defenses", label: "Defenses", type: "text", placeholder: "Walls, guards, magical wards, etc." },
+        { name: "currentCondition", label: "Current Condition", type: "text", placeholder: "Excellent, worn, ruins, etc." }
+      ]
+    },
+    {
+      id: "purpose",
+      label: "Purpose & Lore",
+      icon: "Scroll",
+      fields: [
+        { name: "purpose", label: "Purpose", type: "textarea", placeholder: "What is this building used for?..." },
+        { name: "history", label: "History", type: "textarea", placeholder: "The building's construction and past..." },
+        { name: "location", label: "Location", type: "text", placeholder: "Where in the world is it located?" },
+        { name: "owner", label: "Owner", type: "text", placeholder: "Who owns or controls this building?" },
+        { name: "significance", label: "Significance", type: "textarea", placeholder: "Why is this building important?..." },
+        { name: "secrets", label: "Secrets", type: "textarea", placeholder: "Hidden rooms, mysteries, secrets..." }
+      ]
+    }
+  ]
+};
+
+export default buildingConfig;
