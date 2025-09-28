@@ -1,0 +1,71 @@
+import { Router } from "express";
+import { storage } from "../storage";
+import { insertArmorSchema } from "@shared/schema";
+import { z } from "zod";
+
+const router = Router();
+
+router.post("/", async (req, res) => {
+  try {
+    const validatedArmor = insertArmorSchema.parse(req.body);
+    const savedArmor = await storage.createArmor(validatedArmor);
+    res.json(savedArmor);
+  } catch (error) {
+    console.error('Error saving armor:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to save armor' });
+  }
+});
+
+router.get("/user/:userId?", async (req, res) => {
+  try {
+    const userId = req.params.userId || null;
+    const armors = await storage.getUserArmor(userId);
+    res.json(armors);
+  } catch (error) {
+    console.error('Error fetching armors:', error);
+    res.status(500).json({ error: 'Failed to fetch armors' });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const armor = await storage.getArmor(req.params.id);
+    if (!armor) {
+      return res.status(404).json({ error: 'Armor not found' });
+    }
+    res.json(armor);
+  } catch (error) {
+    console.error('Error fetching armor:', error);
+    res.status(500).json({ error: 'Failed to fetch armor' });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const validatedUpdates = insertArmorSchema.parse(req.body);
+    const updatedArmor = await storage.updateArmor(req.params.id, validatedUpdates);
+    res.json(updatedArmor);
+  } catch (error) {
+    console.error('Error updating armor:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    await storage.deleteArmor(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting armor:', error);
+    res.status(500).json({ error: 'Failed to delete armor' });
+  }
+});
+
+export default router;

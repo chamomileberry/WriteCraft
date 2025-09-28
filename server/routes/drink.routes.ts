@@ -1,0 +1,71 @@
+import { Router } from "express";
+import { storage } from "../storage";
+import { insertDrinkSchema } from "@shared/schema";
+import { z } from "zod";
+
+const router = Router();
+
+router.post("/", async (req, res) => {
+  try {
+    const validatedDrink = insertDrinkSchema.parse(req.body);
+    const savedDrink = await storage.createDrink(validatedDrink);
+    res.json(savedDrink);
+  } catch (error) {
+    console.error('Error saving drink:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to save drink' });
+  }
+});
+
+router.get("/user/:userId?", async (req, res) => {
+  try {
+    const userId = req.params.userId || null;
+    const drinks = await storage.getUserDrinks(userId);
+    res.json(drinks);
+  } catch (error) {
+    console.error('Error fetching drinks:', error);
+    res.status(500).json({ error: 'Failed to fetch drinks' });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const drink = await storage.getDrink(req.params.id);
+    if (!drink) {
+      return res.status(404).json({ error: 'Drink not found' });
+    }
+    res.json(drink);
+  } catch (error) {
+    console.error('Error fetching drink:', error);
+    res.status(500).json({ error: 'Failed to fetch drink' });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const validatedUpdates = insertDrinkSchema.parse(req.body);
+    const updatedDrink = await storage.updateDrink(req.params.id, validatedUpdates);
+    res.json(updatedDrink);
+  } catch (error) {
+    console.error('Error updating drink:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    await storage.deleteDrink(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting drink:', error);
+    res.status(500).json({ error: 'Failed to delete drink' });
+  }
+});
+
+export default router;

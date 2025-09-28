@@ -1,0 +1,51 @@
+I'd like to adjust the Manuscript Editor to better align with common writing application patterns, like Obsidian and Google Docs. The goal is to create a more intuitive interface where the manuscript's structure is distinct from the user's open reference panels.
+
+The Goal:
+Main Document Area: The manuscript itself should be the central, primary view, not just another tab within its own workspace.
+
+Top Tab Bar (like Obsidian): Across the top, there should be a tab bar. This bar is for opening secondary, reference documents (like Characters, Locations, or other notes) alongside the main manuscript. The manuscript itself is the anchor; these tabs are supporting material.
+
+Left Sidebar (like Google Docs): The sidebar on the left should function as a classic document outline. It should only show the chapters and scenes that belong to the currently open manuscript.
+
+The Current Problems:
+Persistent State: When I create a new manuscript, the tabs from my previous session are still loaded.
+
+Duplicate Tabs: The new manuscript I'm creating is being added as a new tab in the top bar, which is confusing. It should be the main content area itself.
+
+Global Sidebar: The left sidebar shows chapters from all my manuscripts at once, not just the one I'm currently editing.
+
+Technical Changes Required:
+To achieve this, we need to make the following architectural changes:
+
+1. Isolate the Manuscript from the Tab System:
+
+Decouple State: The ManuscriptEditor should not be just another panel managed by the global workspaceStore. The workspaceStore should be used exclusively for the secondary, reference tabs (Characters, Locations, etc.).
+
+Create a "Primary View": The ManuscriptEditor page should render the main editor content directly.
+
+Update the Tab Component: The <TabStrip> component should be modified so that it only renders and manages the secondary panels from the workspaceStore. It should not try to render the manuscript itself as a tab. When a new manuscript is created (/manuscripts/new), the workspaceStore should be cleared of any old tabs to provide a fresh workspace.
+
+2. Scope the Sidebar to the Current Manuscript:
+
+This is a backend and frontend change that requires linking chapters directly to a manuscript.
+
+Database Schema Change (Backend):
+
+In shared/schema.ts, the folders table needs a new column: manuscriptId: text('manuscriptId'). This creates the essential link between a folder (Chapter) and its parent Manuscript.
+
+API Change (Backend):
+
+In server/routes/folder.routes.ts, the GET /api/folders endpoint must be updated. It needs to accept a manuscriptId query parameter and use it to filter the database query. The new query should look something like: db.select().from(folders).where(and(eq(folders.type, 'manuscript'), eq(folders.manuscriptId, manuscriptId))).
+
+Data Fetching Change (Frontend):
+
+In client/src/components/DocumentSidebar.tsx, the useQuery hook that fetches folders needs to be updated. It must pass the current manuscriptId from the URL to the API. The query key and fetch URL should be updated to include the manuscript ID to ensure queries are unique per manuscript.
+
+By making these changes, we can achieve a clear and logical separation: the Sidebar will manage the document's permanent structure, and the Tab Bar will manage the user's temporary workspace of reference material.
+
+
+
+
+
+
+

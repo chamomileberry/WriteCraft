@@ -1,0 +1,71 @@
+import { Router } from "express";
+import { storage } from "../storage";
+import { insertBuildingSchema } from "@shared/schema";
+import { z } from "zod";
+
+const router = Router();
+
+router.post("/", async (req, res) => {
+  try {
+    const validatedBuilding = insertBuildingSchema.parse(req.body);
+    const savedBuilding = await storage.createBuilding(validatedBuilding);
+    res.json(savedBuilding);
+  } catch (error) {
+    console.error('Error saving building:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to save building' });
+  }
+});
+
+router.get("/user/:userId?", async (req, res) => {
+  try {
+    const userId = req.params.userId || null;
+    const buildings = await storage.getUserBuilding(userId);
+    res.json(buildings);
+  } catch (error) {
+    console.error('Error fetching buildings:', error);
+    res.status(500).json({ error: 'Failed to fetch buildings' });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const building = await storage.getBuilding(req.params.id);
+    if (!building) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+    res.json(building);
+  } catch (error) {
+    console.error('Error fetching building:', error);
+    res.status(500).json({ error: 'Failed to fetch building' });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const validatedUpdates = insertBuildingSchema.parse(req.body);
+    const updatedBuilding = await storage.updateBuilding(req.params.id, validatedUpdates);
+    res.json(updatedBuilding);
+  } catch (error) {
+    console.error('Error updating building:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    await storage.deleteBuilding(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting building:', error);
+    res.status(500).json({ error: 'Failed to delete building' });
+  }
+});
+
+export default router;

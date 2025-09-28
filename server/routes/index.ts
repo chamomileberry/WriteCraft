@@ -25,6 +25,38 @@ import religionRoutes from "./religion.routes";
 import languageRoutes from "./language.routes";
 import technologyRoutes from "./technology.routes";
 import professionRoutes from "./profession.routes";
+import plantRoutes from "./plant.routes";
+import descriptionRoutes from "./description.routes";
+import ethnicityRoutes from "./ethnicity.routes";
+import drinkRoutes from "./drink.routes";
+import armorRoutes from "./armor.routes";
+import accessoryRoutes from "./accessory.routes";
+import clothingRoutes from "./clothing.routes";
+import materialRoutes from "./material.routes";
+import settlementRoutes from "./settlement.routes";
+import societyRoutes from "./society.routes";
+import factionRoutes from "./faction.routes";
+import militaryUnitRoutes from "./military-unit.routes";
+import mythRoutes from "./myth.routes";
+import legendRoutes from "./legend.routes";
+import eventRoutes from "./event.routes";
+import spellRoutes from "./spell.routes";
+import resourceRoutes from "./resource.routes";
+import buildingRoutes from "./building.routes";
+import animalRoutes from "./animal.routes";
+import transportationRoutes from "./transportation.routes";
+import naturalLawRoutes from "./natural-law.routes";
+import traditionRoutes from "./tradition.routes";
+import ritualRoutes from "./ritual.routes";
+import familyTreeRoutes from "./family-tree.routes";
+import timelineRoutes from "./timeline.routes";
+import ceremonyRoutes from "./ceremony.routes";
+import mapRoutes from "./map.routes";
+import musicRoutes from "./music.routes";
+import danceRoutes from "./dance.routes";
+import lawRoutes from "./law.routes";
+import policyRoutes from "./policy.routes";
+import potionRoutes from "./potion.routes";
 
 export function registerDomainRoutes(app: Express) {
   // Register all domain-specific routes
@@ -54,7 +86,36 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/languages", languageRoutes);
   app.use("/api/technologies", technologyRoutes);
   app.use("/api/professions", professionRoutes);
-  
-  // TODO: Add more routes as we break them out:
-  // etc.
+  app.use("/api/plants", plantRoutes);
+  app.use("/api/descriptions", descriptionRoutes);
+  app.use("/api/ethnicities", ethnicityRoutes);
+  app.use("/api/drinks", drinkRoutes);
+  app.use("/api/armor", armorRoutes);
+  app.use("/api/accessories", accessoryRoutes);
+  app.use("/api/clothing", clothingRoutes);
+  app.use("/api/materials", materialRoutes);
+  app.use("/api/settlements", settlementRoutes);
+  app.use("/api/societies", societyRoutes);
+  app.use("/api/factions", factionRoutes);
+  app.use("/api/military-units", militaryUnitRoutes);
+  app.use("/api/myths", mythRoutes);
+  app.use("/api/legends", legendRoutes);
+  app.use("/api/events", eventRoutes);
+  app.use("/api/spells", spellRoutes);
+  app.use("/api/resources", resourceRoutes);
+  app.use("/api/buildings", buildingRoutes);
+  app.use("/api/animals", animalRoutes);
+  app.use("/api/transportation", transportationRoutes);
+  app.use("/api/natural-laws", naturalLawRoutes);
+  app.use("/api/traditions", traditionRoutes);
+  app.use("/api/rituals", ritualRoutes);
+  app.use("/api/family-trees", familyTreeRoutes);
+  app.use("/api/timelines", timelineRoutes);
+  app.use("/api/ceremonies", ceremonyRoutes);
+  app.use("/api/maps", mapRoutes);
+  app.use("/api/music", musicRoutes);
+  app.use("/api/dances", danceRoutes);
+  app.use("/api/laws", lawRoutes);
+  app.use("/api/policies", policyRoutes);
+  app.use("/api/potions", potionRoutes);
 }

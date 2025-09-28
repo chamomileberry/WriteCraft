@@ -1,0 +1,71 @@
+import { Router } from "express";
+import { storage } from "../storage";
+import { insertDanceSchema } from "@shared/schema";
+import { z } from "zod";
+
+const router = Router();
+
+router.post("/", async (req, res) => {
+  try {
+    const validatedDance = insertDanceSchema.parse(req.body);
+    const savedDance = await storage.createDance(validatedDance);
+    res.json(savedDance);
+  } catch (error) {
+    console.error('Error saving dance:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to save dance' });
+  }
+});
+
+router.get("/user/:userId?", async (req, res) => {
+  try {
+    const userId = req.params.userId || null;
+    const dances = await storage.getUserDance(userId);
+    res.json(dances);
+  } catch (error) {
+    console.error('Error fetching dances:', error);
+    res.status(500).json({ error: 'Failed to fetch dances' });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const dance = await storage.getDance(req.params.id);
+    if (!dance) {
+      return res.status(404).json({ error: 'Dance not found' });
+    }
+    res.json(dance);
+  } catch (error) {
+    console.error('Error fetching dance:', error);
+    res.status(500).json({ error: 'Failed to fetch dance' });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const validatedUpdates = insertDanceSchema.parse(req.body);
+    const updatedDance = await storage.updateDance(req.params.id, validatedUpdates);
+    res.json(updatedDance);
+  } catch (error) {
+    console.error('Error updating dance:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    await storage.deleteDance(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting dance:', error);
+    res.status(500).json({ error: 'Failed to delete dance' });
+  }
+});
+
+export default router;
