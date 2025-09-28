@@ -14,7 +14,7 @@ import {
   Sparkles, User, Eye, Heart, MapPin, Sword, Zap, Wrench, Building, 
   Hammer, Scroll, BookOpen, Save, Loader2 
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { FormField as FormFieldConfig, ContentTypeFormConfig } from './types';
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
@@ -174,30 +174,10 @@ export default function DynamicContentForm({
   isCreating 
 }: DynamicContentFormProps) {
   const [activeTab, setActiveTab] = useState((config.tabs || [])[0]?.id || "basic");
-  const [tagValues, setTagValues] = useState<Record<string, string>>({});
   
   const schema = generateSchema(config);
   const defaultValues = getDefaultValues(config, initialData);
   
-  // Initialize tag values for display
-  useEffect(() => {
-    const tagFields: Record<string, string> = {};
-    (config.tabs || []).forEach(tab => {
-      tab.fields.forEach(field => {
-        if (field.type === "tags") {
-          const value = initialData?.[field.name];
-          if (typeof value === "string") {
-            tagFields[field.name] = value ? value : "";
-          } else if (Array.isArray(value)) {
-            tagFields[field.name] = value.join(", ");
-          } else {
-            tagFields[field.name] = "";
-          }
-        }
-      });
-    });
-    setTagValues(tagFields);
-  }, [config, initialData]);
   
   const form = useForm({
     resolver: zodResolver(schema),
@@ -205,17 +185,7 @@ export default function DynamicContentForm({
   });
 
   const handleSubmit = (data: any) => {
-    // Convert tag strings back to arrays
-    const processedData = { ...data };
-    (config.tabs || []).forEach(tab => {
-      tab.fields.forEach(field => {
-        if (field.type === "tags") {
-          const tagValue = tagValues[field.name];
-          processedData[field.name] = tagValue ? tagValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-        }
-      });
-    });
-    onSubmit(processedData);
+    onSubmit(data);
   };
 
   // Render individual field
@@ -311,19 +281,32 @@ export default function DynamicContentForm({
 
       case "tags":
         return (
-          <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>{field.label} {field.required && "*"}</Label>
-            <Input 
-              id={field.name}
-              placeholder={field.placeholder}
-              value={tagValues[field.name] || ""}
-              onChange={(e) => setTagValues(prev => ({ ...prev, [field.name]: e.target.value }))}
-              data-testid={`input-${field.name}`}
-            />
-            {field.description && (
-              <p className="text-sm text-muted-foreground">{field.description}</p>
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder={field.placeholder}
+                    value={Array.isArray(formField.value) ? formField.value.join(", ") : (formField.value || "")}
+                    onChange={(e) => {
+                      const stringValue = e.target.value;
+                      const arrayValue = stringValue ? stringValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                      formField.onChange(arrayValue);
+                    }}
+                    data-testid={`input-${field.name}`}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
         );
 
       case "checkbox":
@@ -352,415 +335,41 @@ export default function DynamicContentForm({
           />
         );
 
-      case "autocomplete-location":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || (field.multiple ?? true ? [] : "")}
-                    onChange={(value) => {
-                      console.log('AutocompleteField location onChange called with:', value);
-                      formField.onChange(value);
-                    }}
-                    placeholder={field.placeholder}
-                    contentType="location"
-                    multiple={field.multiple ?? true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
+      // All autocomplete field types - consolidated into single case
+      default:
+        // Handle all autocomplete field types
+        if (field.type.startsWith("autocomplete-")) {
+          const contentType = field.type.replace("autocomplete-", "");
+          const isMultiple = field.multiple ?? true;
+          
+          return (
+            <FormField
+              key={field.name}
+              control={form.control}
+              name={field.name}
+              render={({ field: formField }) => (
+                <FormItem>
+                  <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                  <FormControl>
+                    <AutocompleteField
+                      value={formField.value || (isMultiple ? [] : "")}
+                      onChange={(value) => formField.onChange(value)}
+                      placeholder={field.placeholder}
+                      contentType={contentType as any}
+                      multiple={isMultiple}
+                    />
+                  </FormControl>
+                  {field.description && (
+                    <FormDescription>{field.description}</FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          );
+        }
 
-      case "autocomplete-character":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || (field.multiple ?? true ? [] : "")}
-                    onChange={(value) => {
-                      console.log('AutocompleteField onChange called with:', value);
-                      formField.onChange(value);
-                    }}
-                    placeholder={field.placeholder}
-                    contentType="character"
-                    multiple={field.multiple ?? true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-tradition":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || []}
-                    onChange={(value) => {
-                      formField.onChange(value);
-                    }}
-                    placeholder={field.placeholder}
-                    contentType="tradition"
-                    multiple={true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-language":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || ""}
-                    onChange={(value) => {
-                      formField.onChange(value);
-                    }}
-                    placeholder={field.placeholder}
-                    contentType="language"
-                    multiple={false}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-religion":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || ""}
-                    onChange={(value) => {
-                      formField.onChange(value);
-                    }}
-                    placeholder={field.placeholder}
-                    contentType="religion"
-                    multiple={false}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      // Additional existing content types with autocomplete (multiple selection)
-      case "autocomplete-organization":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || (field.multiple ?? true ? [] : "")}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="organization"
-                    multiple={field.multiple ?? true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-species":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || (field.multiple ?? true ? [] : "")}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="species"
-                    multiple={field.multiple ?? true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-culture":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || []}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="culture"
-                    multiple={true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      // New content types with autocomplete (multiple selection)
-      case "autocomplete-family-tree":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || []}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="family-tree"
-                    multiple={true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-timeline":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || []}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="timeline"
-                    multiple={true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-ceremony":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || []}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="ceremony"
-                    multiple={true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-map":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || []}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="map"
-                    multiple={true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "autocomplete-law":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || []}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType="law"
-                    multiple={true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      // Remaining autocomplete types
-      case "autocomplete-weapon":
-      case "autocomplete-building":
-      case "autocomplete-plot":
-      case "autocomplete-document":
-      case "autocomplete-accessory":
-      case "autocomplete-clothing":
-      case "autocomplete-material":
-      case "autocomplete-settlement":
-      case "autocomplete-society":
-      case "autocomplete-faction":
-      case "autocomplete-military-unit":
-      case "autocomplete-music":
-      case "autocomplete-dance":
-      case "autocomplete-policy":
-      case "autocomplete-potion":
-      case "autocomplete-profession":
-        return (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <FormControl>
-                  <AutocompleteField
-                    value={formField.value || (field.multiple ?? true ? [] : "")}
-                    onChange={(value) => formField.onChange(value)}
-                    placeholder={field.placeholder}
-                    contentType={field.type.replace('autocomplete-', '') as any}
-                    multiple={field.multiple ?? true}
-                  />
-                </FormControl>
-                {field.description && (
-                  <FormDescription>{field.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      default: // text
+        // Default text field case
         return (
           <FormField
             key={field.name}

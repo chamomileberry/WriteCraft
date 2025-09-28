@@ -36,7 +36,7 @@ import {
   type PinnedContent, type InsertPinnedContent, pinnedContent
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, isNull, sql } from "drizzle-orm";
+import { eq, desc, and, or, ilike, isNull, isNotNull, inArray, sql } from "drizzle-orm";
 
 // Types for content mapping
 export interface ContentMapping {
@@ -165,11 +165,6 @@ export interface IStorage {
   updateWeapon(id: string, updates: Partial<InsertWeapon>): Promise<Weapon>;
   deleteWeapon(id: string): Promise<void>;
 
-  // Vehicle methods
-  createVehicle(): Promise<any>;
-  getVehicle(id: string): Promise<any | undefined>;
-  getUserVehicles(userId: string | null): Promise<any[]>;
-  updateVehicle(id: string, updates: any): Promise<any>;
 
   // Profession methods
   createProfession(profession: InsertProfession): Promise<Profession>;
@@ -866,22 +861,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(weapons).where(eq(weapons.id, id));
   }
 
-  // Vehicle methods (not implemented - table doesn't exist)
-  async createVehicle(): Promise<any> {
-    throw new Error('Vehicle system not implemented');
-  }
-
-  async getVehicle(id: string): Promise<any | undefined> {
-    return undefined;
-  }
-
-  async getUserVehicles(userId: string | null): Promise<any[]> {
-    return [];
-  }
-
-  async updateVehicle(id: string, updates: any): Promise<any> {
-    throw new Error('Vehicle system not implemented');
-  }
 
   // Profession methods
   async createProfession(profession: InsertProfession): Promise<Profession> {
@@ -1620,9 +1599,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async reorderPinnedContent(userId: string, itemId: string, newOrder: number): Promise<void> {
-    // Note: sortOrder field doesn't exist in schema, so this won't work
-    // The method signature is maintained for compatibility
-    throw new Error('sortOrder field not available in pinnedContent table');
+    await db
+      .update(pinnedContent)
+      .set({ pinOrder: newOrder })
+      .where(and(
+        eq(pinnedContent.userId, userId),
+        eq(pinnedContent.id, itemId)
+      ));
   }
 
   async isContentPinned(userId: string, targetType: string, targetId: string): Promise<boolean> {
@@ -1671,9 +1654,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocumentFolders(documentId: string, userId: string): Promise<Folder[]> {
-    // For now, return empty array as folders don't currently link to specific documents
-    // This is a placeholder for future implementation when document-specific folders are needed
-    return [];
+    // Find all notes that belong to this document (manuscript or guide)
+    const documentNotes = await db
+      .select({ folderId: notes.folderId })
+      .from(notes)
+      .where(and(
+        eq(notes.userId, userId),
+        or(
+          eq(notes.manuscriptId, documentId),
+          eq(notes.guideId, documentId)
+        ),
+        isNotNull(notes.folderId) // Only get notes that are in folders
+      ));
+
+    // Get unique folder IDs
+    const folderIds = [...new Set(documentNotes.map(note => note.folderId).filter(Boolean))];
+    
+    if (folderIds.length === 0) {
+      return [];
+    }
+
+    // Fetch the actual folders
+    return await db
+      .select()
+      .from(folders)
+      .where(and(
+        eq(folders.userId, userId),
+        inArray(folders.id, folderIds)
+      ))
+      .orderBy(folders.sortOrder, folders.createdAt);
   }
 
   async updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder> {
