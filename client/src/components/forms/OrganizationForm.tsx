@@ -75,7 +75,7 @@ const getOrganizationFormDefaults = (initialData?: Partial<Organization>) => {
         defaults[key] = Array.isArray(initialValue) ? initialValue : [];
         break;
       default:
-        defaults[key] = initialValue ?? "";
+        defaults[key] = (typeof initialValue === "string" || typeof initialValue === "number") ? initialValue : "";
     }
   });
   
@@ -85,28 +85,13 @@ const getOrganizationFormDefaults = (initialData?: Partial<Organization>) => {
 export default function OrganizationForm({ initialData, onSubmit, onGenerate, isLoading }: OrganizationFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
   
-  // String state for display in inputs
-  const [alliesText, setAlliesText] = useState(
-    initialData?.allies?.join(", ") ?? ""
-  );
-  const [enemiesText, setEnemiesText] = useState(
-    initialData?.enemies?.join(", ") ?? ""
-  );
-  
   const form = useForm<InsertOrganization>({
     resolver: zodResolver(organizationFormSchema),
     defaultValues: getOrganizationFormDefaults(initialData),
   });
 
-
   const handleSubmit = (data: InsertOrganization) => {
-    // Convert string state to arrays and merge with form data
-    const formattedData = {
-      ...data,
-      allies: alliesText ? alliesText.split(",").map(s => s.trim()).filter(Boolean) : [],
-      enemies: enemiesText ? enemiesText.split(",").map(s => s.trim()).filter(Boolean) : [],
-    };
-    onSubmit(formattedData);
+    onSubmit(data);
   };
 
   return (
@@ -480,43 +465,53 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="allies">Allies & Partners</Label>
-                    <Input 
-                      id="allies"
-                      placeholder="Enter allied organizations separated by commas (e.g., Royal Guard, Merchant Guild, Temple of Light)"
-                      value={alliesText}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setAlliesText(newValue);
-                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-                        form.setValue("allies", arrayValue);
-                      }}
-                      data-testid="input-organization-allies"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Organizations that support or work with this group
-                    </p>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="allies"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Allies & Partners</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter allied organizations separated by commas (e.g., Royal Guard, Merchant Guild, Temple of Light)"
+                            value={field.value ? field.value.join(", ") : ""}
+                            onChange={(e) => field.onChange(
+                              e.target.value ? e.target.value.split(",").map(s => s.trim()).filter(Boolean) : []
+                            )}
+                            data-testid="input-organization-allies"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Organizations that support or work with this group
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="enemies">Enemies & Rivals</Label>
-                    <Input 
-                      id="enemies"
-                      placeholder="Enter enemy organizations separated by commas (e.g., Shadow Cult, Bandit Clans, Corrupt Officials)"
-                      value={enemiesText}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setEnemiesText(newValue);
-                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-                        form.setValue("enemies", arrayValue);
-                      }}
-                      data-testid="input-organization-enemies"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Organizations that oppose or compete with this group
-                    </p>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="enemies"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Enemies & Rivals</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter enemy organizations separated by commas (e.g., Shadow Cult, Bandit Clans, Corrupt Officials)"
+                            value={field.value ? field.value.join(", ") : ""}
+                            onChange={(e) => field.onChange(
+                              e.target.value ? e.target.value.split(",").map(s => s.trim()).filter(Boolean) : []
+                            )}
+                            data-testid="input-organization-enemies"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Organizations that oppose or compete with this group
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>

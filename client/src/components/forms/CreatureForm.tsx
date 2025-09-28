@@ -72,18 +72,8 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
     },
   });
 
-  // Convert abilities array to comma-separated string for display
-  const [abilitiesText, setAbilitiesText] = useState(
-    initialData?.abilities?.join(", ") ?? ""
-  );
-
   const handleSubmit = (data: InsertCreature) => {
-    // Convert comma-separated string back to array
-    const formattedData = {
-      ...data,
-      abilities: abilitiesText ? abilitiesText.split(",").map(s => s.trim()).filter(Boolean) : [],
-    };
-    onSubmit(formattedData);
+    onSubmit(data);
   };
 
   return (
@@ -313,19 +303,29 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="abilities">Special Abilities</Label>
-                    <Input 
-                      id="abilities"
-                      placeholder="Enter abilities separated by commas (e.g., Flight, Fire breath, Invisibility, Telepathy)"
-                      value={abilitiesText}
-                      onChange={(e) => setAbilitiesText(e.target.value)}
-                      data-testid="input-creature-abilities"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Special powers, magical abilities, or unique traits this creature possesses
-                    </p>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="abilities"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Special Abilities</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter abilities separated by commas (e.g., Flight, Fire breath, Invisibility, Telepathy)"
+                            value={field.value ? field.value.join(", ") : ""}
+                            onChange={(e) => field.onChange(
+                              e.target.value ? e.target.value.split(",").map(s => s.trim()).filter(Boolean) : []
+                            )}
+                            data-testid="input-creature-abilities"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Special powers, magical abilities, or unique traits this creature possesses
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
