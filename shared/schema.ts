@@ -1403,6 +1403,23 @@ export const pinnedContent = pgTable("pinned_content", {
   uniqueUserPin: sql`UNIQUE(${table.userId}, ${table.targetType}, ${table.targetId})`
 }));
 
+// Chat Messages - Persistent chat history for Writing Assistant
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  manuscriptId: varchar("manuscript_id").references(() => manuscripts.id, { onDelete: 'cascade' }), // Optional - links to specific manuscript
+  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - links to specific guide
+  type: text("type").notNull(), // 'user' or 'assistant'
+  content: text("content").notNull(), // Message content
+  metadata: jsonb("metadata"), // Optional metadata like analysis results, suggestions, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("chat_messages_user_id_idx").on(table.userId),
+  manuscriptIdIdx: index("chat_messages_manuscript_id_idx").on(table.manuscriptId),
+  guideIdIdx: index("chat_messages_guide_id_idx").on(table.guideId),
+  createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   characters: many(characters),
@@ -1462,6 +1479,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   manuscripts: many(manuscripts),
   manuscriptLinks: many(manuscriptLinks),
   pinnedContent: many(pinnedContent),
+  chatMessages: many(chatMessages),
 }));
 
 export const charactersRelations = relations(characters, ({ one }) => ({
@@ -1920,6 +1938,21 @@ export const pinnedContentRelations = relations(pinnedContent, ({ one }) => ({
   }),
 }));
 
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  user: one(users, {
+    fields: [chatMessages.userId],
+    references: [users.id],
+  }),
+  manuscript: one(manuscripts, {
+    fields: [chatMessages.manuscriptId],
+    references: [manuscripts.id],
+  }),
+  guide: one(guides, {
+    fields: [chatMessages.guideId],
+    references: [guides.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -2235,6 +2268,11 @@ export const insertPinnedContentSchema = createInsertSchema(pinnedContent).omit(
   createdAt: true,
 });
 
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -2275,6 +2313,8 @@ export type InsertManuscriptLink = z.infer<typeof insertManuscriptLinkSchema>;
 export type ManuscriptLink = typeof manuscriptLinks.$inferSelect;
 export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;
 export type PinnedContent = typeof pinnedContent.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
 
 // Types for all new content types
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
