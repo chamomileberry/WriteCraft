@@ -47,7 +47,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "organizationType",
       description: "purpose",
-      badges: ["size", "influence"]
+      badges: ["influence", "structure"]
     }
   },
   species: {
@@ -57,7 +57,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/species", 
     displayFields: {
       title: "name",
-      subtitle: "speciesType",
+      subtitle: "classification",
       description: "physicalDescription",
       badges: ["habitat", "intelligence"]
     }
@@ -95,7 +95,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "itemType",
       description: "description",
-      badges: ["rarity", "material"]
+      badges: ["rarity", "value"]
     }
   },
   weapon: {
@@ -107,7 +107,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "weaponType",
       description: "description",
-      badges: ["material", "rarity"]
+      badges: ["rarity", "value"]
     }
   },
   armor: {
@@ -119,7 +119,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "armorType",
       description: "description",
-      badges: ["material", "protection"]
+      badges: ["protection", "rarity"]
     }
   },
   food: {
@@ -165,9 +165,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/languages",
     displayFields: {
       title: "name", 
-      subtitle: "languageFamily",
-      description: "description",
-      badges: ["speakers", "complexity"]
+      subtitle: "family",
+      description: "culturalContext",
+      badges: ["speakers", "status"]
     }
   },
   plot: {
@@ -249,9 +249,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/ethnicities",
     displayFields: {
       title: "name",
-      subtitle: "ethnicType",
-      description: "description",
-      badges: ["region", "population"]
+      subtitle: "origin",
+      description: "history",
+      badges: ["language", "religion"]
     }
   },
   culture: {
@@ -323,7 +323,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "unitType",
       description: "description",
-      badges: ["size", "specialization"]
+      badges: ["size", "currentStatus"]
     }
   },
   accessory: {
@@ -335,7 +335,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "accessoryType",
       description: "description",
-      badges: ["material", "value"]
+      badges: ["rarity", "value"]
     }
   },
   clothing: {
@@ -347,7 +347,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "clothingType",
       description: "description",
-      badges: ["material", "style"]
+      badges: ["style", "durability"]
     }
   },
   material: {
@@ -359,7 +359,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "materialType",
       description: "description",
-      badges: ["rarity", "properties"]
+      badges: ["rarity", "durability"]
     }
   },
   resource: {
@@ -443,7 +443,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "buildingType",
       description: "description", 
-      badges: ["material", "purpose"]
+      badges: ["purpose", "currentCondition"]
     }
   },
   transportation: {
@@ -453,7 +453,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/transportation",
     displayFields: {
       title: "name",
-      subtitle: "transportationType", 
+      subtitle: "transportType", 
       description: "description",
       badges: ["speed", "capacity"]
     }
