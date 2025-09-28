@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real, index, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -32,7 +32,7 @@ export const notebooks = pgTable("notebooks", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   // Ensure only one default notebook per user
-  uniqueDefaultPerUser: sql`CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS notebooks_user_default_idx ON ${table} (${table.userId}) WHERE ${table.isDefault} = true`
+  uniqueDefaultPerUser: uniqueIndex("notebooks_user_default_idx").on(table.userId).where(sql`${table.isDefault} = true`)
 }));
 
 // Generated characters
@@ -265,6 +265,7 @@ export const settings = pgTable("settings", {
   notableFeatures: text("notable_features").array().notNull(),
   genre: text("genre"),
   settingType: text("setting_type"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -292,6 +293,7 @@ export const conflicts = pgTable("conflicts", {
   potentialResolutions: text("potential_resolutions").array().notNull(),
   emotionalImpact: text("emotional_impact").notNull(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -307,6 +309,7 @@ export const themes = pgTable("themes", {
   conflicts: text("conflicts").array().notNull(),
   examples: text("examples").array().notNull(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -337,6 +340,7 @@ export const creatures = pgTable("creatures", {
   behavior: text("behavior").notNull(),
   culturalSignificance: text("cultural_significance").notNull(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -354,6 +358,7 @@ export const plants = pgTable("plants", {
   bloomingSeason: text("blooming_season").notNull(),
   hardinessZone: text("hardiness_zone").notNull(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -409,6 +414,7 @@ export const items = pgTable("items", {
   requirements: text("requirements"),
   crafting: text("crafting"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -431,6 +437,7 @@ export const organizations = pgTable("organizations", {
   allies: text("allies").array(),
   enemies: text("enemies").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -452,6 +459,7 @@ export const species = pgTable("species", {
   culturalTraits: text("cultural_traits"),
   reproduction: text("reproduction"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -472,6 +480,7 @@ export const ethnicities = pgTable("ethnicities", {
   values: text("values").array(),
   customs: text("customs").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -494,6 +503,7 @@ export const cultures = pgTable("cultures", {
   family: text("family"),
   ceremonies: text("ceremonies").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -514,6 +524,7 @@ export const documents = pgTable("documents", {
   secrets: text("secrets"),
   history: text("history"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -535,6 +546,7 @@ export const foods = pgTable("foods", {
   rarity: text("rarity"),
   preservation: text("preservation"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -556,6 +568,7 @@ export const drinks = pgTable("drinks", {
   cost: text("cost"),
   rarity: text("rarity"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -578,6 +591,7 @@ export const weapons = pgTable("weapons", {
   requirements: text("requirements"),
   maintenance: text("maintenance"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -600,6 +614,7 @@ export const armor = pgTable("armor", {
   value: text("value"),
   maintenance: text("maintenance"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -622,6 +637,7 @@ export const religions = pgTable("religions", {
   afterlife: text("afterlife"),
   influence: text("influence"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -644,6 +660,7 @@ export const languages = pgTable("languages", {
   difficulty: text("difficulty"),
   status: text("status"), // living, dead, constructed, etc.
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -663,6 +680,7 @@ export const accessories = pgTable("accessories", {
   appearance: text("appearance"),
   functionality: text("functionality"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -683,6 +701,7 @@ export const clothing = pgTable("clothing", {
   cost: text("cost"),
   durability: text("durability"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -703,6 +722,7 @@ export const materials = pgTable("materials", {
   appearance: text("appearance"),
   weight: text("weight"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -726,6 +746,7 @@ export const settlements = pgTable("settlements", {
   landmarks: text("landmarks").array(),
   districts: text("districts").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -749,6 +770,7 @@ export const societies = pgTable("societies", {
   arts: text("arts"),
   history: text("history"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -772,6 +794,7 @@ export const factions = pgTable("factions", {
   history: text("history"),
   secrets: text("secrets"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -794,6 +817,7 @@ export const militaryUnits = pgTable("military_units", {
   battleRecord: text("battle_record"),
   currentStatus: text("current_status"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -814,6 +838,7 @@ export const myths = pgTable("myths", {
   modernRelevance: text("modern_relevance"),
   relatedMyths: text("related_myths").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -834,6 +859,7 @@ export const legends = pgTable("legends", {
   culturalImpact: text("cultural_impact"),
   modernAdaptations: text("modern_adaptations").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -856,6 +882,7 @@ export const events = pgTable("events", {
   conflictingAccounts: text("conflicting_accounts"),
   legacy: text("legacy"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -877,6 +904,7 @@ export const technologies = pgTable("technologies", {
   risks: text("risks"),
   evolution: text("evolution"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -899,6 +927,7 @@ export const spells = pgTable("spells", {
   variations: text("variations").array(),
   risks: text("risks"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -922,6 +951,7 @@ export const resources = pgTable("resources", {
   controlledBy: text("controlled_by"),
   conflicts: text("conflicts"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -944,6 +974,7 @@ export const buildings = pgTable("buildings", {
   significance: text("significance"),
   secrets: text("secrets"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -966,6 +997,7 @@ export const animals = pgTable("animals", {
   culturalRole: text("cultural_role"),
   threats: text("threats"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -988,6 +1020,7 @@ export const transportation = pgTable("transportation", {
   disadvantages: text("disadvantages").array(),
   culturalSignificance: text("cultural_significance"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1009,6 +1042,7 @@ export const naturalLaws = pgTable("natural_laws", {
   controversies: text("controversies"),
   evidence: text("evidence"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1031,6 +1065,7 @@ export const traditions = pgTable("traditions", {
   variations: text("variations").array(),
   relatedTraditions: text("related_traditions").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1053,6 +1088,7 @@ export const rituals = pgTable("rituals", {
   risks: text("risks"),
   variations: text("variations").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1075,6 +1111,7 @@ export const familyTrees = pgTable("family_trees", {
   ancestralHome: text("ancestral_home"),
   currentStatus: text("current_status"), // thriving, declining, extinct, etc.
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1098,6 +1135,7 @@ export const timelines = pgTable("timelines", {
   technologicalAdvances: text("technological_advances").array(),
   scope: text("scope"), // global, regional, local, personal, etc.
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1126,6 +1164,7 @@ export const ceremonies = pgTable("ceremonies", {
   restrictions: text("restrictions").array(),
   variations: text("variations"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1151,6 +1190,7 @@ export const maps = pgTable("maps", {
   accuracy: text("accuracy"), // precise, rough, outdated, etc.
   legends: text("legends").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1203,6 +1243,7 @@ export const dances = pgTable("dances", {
   variations: text("variations").array(),
   teachingMethods: text("teaching_methods"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1228,6 +1269,7 @@ export const laws = pgTable("laws", {
   historicalContext: text("historical_context"),
   effectiveness: text("effectiveness"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1254,6 +1296,7 @@ export const policies = pgTable("policies", {
   relatedPolicies: text("related_policies").array(),
   effectiveness: text("effectiveness"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1285,6 +1328,7 @@ export const potions = pgTable("potions", {
   creator: text("creator"),
   legality: text("legality"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1313,6 +1357,7 @@ export const professions = pgTable("professions", {
   historicalContext: text("historical_context"),
   culturalSignificance: text("cultural_significance"),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1324,6 +1369,7 @@ export const savedItems = pgTable("saved_items", {
   itemType: text("item_type").notNull(), // 'character', 'location', 'item', 'organization', etc.
   itemId: varchar("item_id").notNull(),
   itemData: jsonb("item_data"), // Stores the actual item content (character names, profession details, etc.)
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
@@ -1494,16 +1540,73 @@ export const usersRelations = relations(users, ({ many }) => ({
   potions: many(potions),
   professions: many(professions),
   savedItems: many(savedItems),
+  notebooks: many(notebooks),
   projects: many(projects),
   projectLinks: many(projectLinks),
   pinnedContent: many(pinnedContent),
   chatMessages: many(chatMessages),
 }));
 
+export const notebooksRelations = relations(notebooks, ({ one, many }) => ({
+  user: one(users, {
+    fields: [notebooks.userId],
+    references: [users.id],
+  }),
+  characters: many(characters),
+  locations: many(locations),
+  items: many(items),
+  organizations: many(organizations),
+  species: many(species),
+  ethnicities: many(ethnicities),
+  cultures: many(cultures),
+  documents: many(documents),
+  foods: many(foods),
+  drinks: many(drinks),
+  weapons: many(weapons),
+  armor: many(armor),
+  religions: many(religions),
+  languages: many(languages),
+  accessories: many(accessories),
+  clothing: many(clothing),
+  materials: many(materials),
+  settlements: many(settlements),
+  societies: many(societies),
+  factions: many(factions),
+  militaryUnits: many(militaryUnits),
+  myths: many(myths),
+  legends: many(legends),
+  events: many(events),
+  technologies: many(technologies),
+  spells: many(spells),
+  resources: many(resources),
+  buildings: many(buildings),
+  animals: many(animals),
+  transportation: many(transportation),
+  naturalLaws: many(naturalLaws),
+  traditions: many(traditions),
+  rituals: many(rituals),
+  familyTrees: many(familyTrees),
+  timelines: many(timelines),
+  ceremonies: many(ceremonies),
+  maps: many(maps),
+  music: many(music),
+  dances: many(dances),
+  laws: many(laws),
+  policies: many(policies),
+  potions: many(potions),
+  professions: many(professions),
+  savedItems: many(savedItems),
+  settings: many(settings),
+}));
+
 export const charactersRelations = relations(characters, ({ one }) => ({
   user: one(users, {
     fields: [characters.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [characters.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1525,6 +1628,10 @@ export const settingsRelations = relations(settings, ({ one }) => ({
   user: one(users, {
     fields: [settings.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [settings.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1582,6 +1689,10 @@ export const savedItemsRelations = relations(savedItems, ({ one }) => ({
     fields: [savedItems.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [savedItems.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 // Add relations for all new content types
@@ -1590,12 +1701,20 @@ export const locationsRelations = relations(locations, ({ one }) => ({
     fields: [locations.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [locations.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const itemsRelations = relations(items, ({ one }) => ({
   user: one(users, {
     fields: [items.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [items.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1604,12 +1723,20 @@ export const organizationsRelations = relations(organizations, ({ one }) => ({
     fields: [organizations.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [organizations.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const speciesRelations = relations(species, ({ one }) => ({
   user: one(users, {
     fields: [species.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [species.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1618,12 +1745,20 @@ export const ethnicitiesRelations = relations(ethnicities, ({ one }) => ({
     fields: [ethnicities.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [ethnicities.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const culturesRelations = relations(cultures, ({ one }) => ({
   user: one(users, {
     fields: [cultures.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [cultures.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1632,12 +1767,20 @@ export const documentsRelations = relations(documents, ({ one }) => ({
     fields: [documents.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [documents.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const foodsRelations = relations(foods, ({ one }) => ({
   user: one(users, {
     fields: [foods.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [foods.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1646,12 +1789,20 @@ export const drinksRelations = relations(drinks, ({ one }) => ({
     fields: [drinks.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [drinks.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const weaponsRelations = relations(weapons, ({ one }) => ({
   user: one(users, {
     fields: [weapons.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [weapons.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1660,12 +1811,20 @@ export const armorRelations = relations(armor, ({ one }) => ({
     fields: [armor.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [armor.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const religionsRelations = relations(religions, ({ one }) => ({
   user: one(users, {
     fields: [religions.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [religions.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1674,12 +1833,20 @@ export const languagesRelations = relations(languages, ({ one }) => ({
     fields: [languages.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [languages.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const accessoriesRelations = relations(accessories, ({ one }) => ({
   user: one(users, {
     fields: [accessories.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [accessories.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1688,12 +1855,20 @@ export const clothingRelations = relations(clothing, ({ one }) => ({
     fields: [clothing.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [clothing.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const materialsRelations = relations(materials, ({ one }) => ({
   user: one(users, {
     fields: [materials.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [materials.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1702,12 +1877,20 @@ export const settlementsRelations = relations(settlements, ({ one }) => ({
     fields: [settlements.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [settlements.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const societiesRelations = relations(societies, ({ one }) => ({
   user: one(users, {
     fields: [societies.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [societies.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1716,12 +1899,20 @@ export const factionsRelations = relations(factions, ({ one }) => ({
     fields: [factions.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [factions.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const militaryUnitsRelations = relations(militaryUnits, ({ one }) => ({
   user: one(users, {
     fields: [militaryUnits.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [militaryUnits.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1730,12 +1921,20 @@ export const mythsRelations = relations(myths, ({ one }) => ({
     fields: [myths.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [myths.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const legendsRelations = relations(legends, ({ one }) => ({
   user: one(users, {
     fields: [legends.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [legends.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1744,12 +1943,20 @@ export const eventsRelations = relations(events, ({ one }) => ({
     fields: [events.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [events.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const technologiesRelations = relations(technologies, ({ one }) => ({
   user: one(users, {
     fields: [technologies.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [technologies.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1758,12 +1965,20 @@ export const spellsRelations = relations(spells, ({ one }) => ({
     fields: [spells.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [spells.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const resourcesRelations = relations(resources, ({ one }) => ({
   user: one(users, {
     fields: [resources.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [resources.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1772,12 +1987,20 @@ export const buildingsRelations = relations(buildings, ({ one }) => ({
     fields: [buildings.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [buildings.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const animalsRelations = relations(animals, ({ one }) => ({
   user: one(users, {
     fields: [animals.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [animals.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1786,12 +2009,20 @@ export const transportationRelations = relations(transportation, ({ one }) => ({
     fields: [transportation.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [transportation.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const naturalLawsRelations = relations(naturalLaws, ({ one }) => ({
   user: one(users, {
     fields: [naturalLaws.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [naturalLaws.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1800,12 +2031,20 @@ export const traditionsRelations = relations(traditions, ({ one }) => ({
     fields: [traditions.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [traditions.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const ritualsRelations = relations(rituals, ({ one }) => ({
   user: one(users, {
     fields: [rituals.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [rituals.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1814,12 +2053,20 @@ export const familyTreesRelations = relations(familyTrees, ({ one }) => ({
     fields: [familyTrees.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [familyTrees.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const timelinesRelations = relations(timelines, ({ one }) => ({
   user: one(users, {
     fields: [timelines.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [timelines.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1828,12 +2075,20 @@ export const ceremoniesRelations = relations(ceremonies, ({ one }) => ({
     fields: [ceremonies.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [ceremonies.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const mapsRelations = relations(maps, ({ one }) => ({
   user: one(users, {
     fields: [maps.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [maps.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1842,12 +2097,20 @@ export const musicRelations = relations(music, ({ one }) => ({
     fields: [music.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [music.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const dancesRelations = relations(dances, ({ one }) => ({
   user: one(users, {
     fields: [dances.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [dances.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1856,12 +2119,20 @@ export const lawsRelations = relations(laws, ({ one }) => ({
     fields: [laws.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [laws.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const policiesRelations = relations(policies, ({ one }) => ({
   user: one(users, {
     fields: [policies.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [policies.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1870,12 +2141,20 @@ export const potionsRelations = relations(potions, ({ one }) => ({
     fields: [potions.userId],
     references: [users.id],
   }),
+  notebook: one(notebooks, {
+    fields: [potions.notebookId],
+    references: [notebooks.id],
+  }),
 }));
 
 export const professionsRelations = relations(professions, ({ one }) => ({
   user: one(users, {
     fields: [professions.userId],
     references: [users.id],
+  }),
+  notebook: one(notebooks, {
+    fields: [professions.notebookId],
+    references: [notebooks.id],
   }),
 }));
 
@@ -1975,6 +2254,16 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+});
+
+export const insertNotebookSchema = createInsertSchema(notebooks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateNotebookSchema = insertNotebookSchema.partial().omit({
+  userId: true,
 });
 
 export const insertCharacterSchema = createInsertSchema(characters).omit({
@@ -2294,6 +2583,9 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertNotebook = z.infer<typeof insertNotebookSchema>;
+export type UpdateNotebook = z.infer<typeof updateNotebookSchema>;
+export type Notebook = typeof notebooks.$inferSelect;
 export type InsertCharacter = z.infer<typeof insertCharacterSchema>;
 export type UpdateCharacter = z.infer<typeof updateCharacterSchema>;
 export type Character = typeof characters.$inferSelect;
