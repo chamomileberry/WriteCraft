@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateCharacterSchema, type UpdateCharacter, type Character } from "@shared/schema";
+import { type UpdateCharacter, type Character } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { contentTypeFormConfigs } from "@/components/forms/ContentTypeFormConfig";
@@ -11,7 +10,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function CharacterEditPageWithSidebar() {
   const { id } = useParams();
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
