@@ -58,11 +58,8 @@ export default function CharacterGenerator() {
         itemType: 'character',
         itemId: character.id,
         itemData: {
-          givenName: character.givenName || character.name?.split(' ')[0] || '',
-          familyName: character.familyName || character.name?.split(' ').slice(1).join(' ') || '',
-          name: character.givenName && character.familyName 
-            ? `${character.givenName} ${character.familyName}`.trim()
-            : character.name || '',
+          givenName: character.givenName || '',
+          familyName: character.familyName || '',
           age: character.age,
           occupation: character.occupation,
           personality: character.personality,
@@ -99,9 +96,10 @@ export default function CharacterGenerator() {
   const copyCharacter = () => {
     if (!character) return;
     
-    const text = `**${character.name}** (Age: ${character.age})
+    const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ') || 'Unnamed Character';
+    const text = `**${fullName}** (Age: ${character.age})
 **Occupation:** ${character.occupation}
-**Personality:** ${character.personality.join(', ')}
+**Personality:** ${character.personality?.join(', ') || 'None specified'}
 **Backstory:** ${character.backstory}
 **Motivation:** ${character.motivation}
 **Strength:** ${character.strength}
@@ -191,7 +189,9 @@ export default function CharacterGenerator() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl">{character.name}</CardTitle>
+                <CardTitle className="text-2xl">
+                  {[character.givenName, character.familyName].filter(Boolean).join(' ') || 'Unnamed Character'}
+                </CardTitle>
                 <CardDescription>
                   Age {character.age} • {character.occupation}
                   {character.gender && (
@@ -232,9 +232,9 @@ export default function CharacterGenerator() {
             <div>
               <h4 className="font-semibold mb-2">Personality Traits</h4>
               <div className="flex flex-wrap gap-2">
-                {character.personality.map((trait, index) => (
+                {character.personality?.map((trait, index) => (
                   <Badge key={index} variant="secondary">{trait}</Badge>
-                ))}
+                )) || <span className="text-muted-foreground">No personality traits specified</span>}
               </div>
             </div>
 

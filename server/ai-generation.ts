@@ -24,7 +24,8 @@ export interface CharacterGenerationOptions {
 }
 
 export interface GeneratedCharacter {
-  name: string;
+  givenName: string;
+  familyName: string;
   age: number;
   occupation: string;
   personality: string[];
@@ -168,7 +169,8 @@ PHYSICAL DESCRIPTION GUIDELINES:
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
-  "name": "Full character name",
+  "givenName": "Character's first name",
+  "familyName": "Character's last/family name",
   "age": 25,
   "occupation": "Specific profession or role",
   "personality": ["trait1", "trait2", "trait3"],
@@ -231,7 +233,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     const characterData = JSON.parse(cleanedText);
     
     // Validate the response structure
-    const requiredFields = ['name', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength', 'height', 'build', 'hairColor', 'eyeColor', 'skinTone', 'facialFeatures', 'identifyingMarks', 'physicalDescription'];
+    const requiredFields = ['givenName', 'familyName', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength', 'height', 'build', 'hairColor', 'eyeColor', 'skinTone', 'facialFeatures', 'identifyingMarks', 'physicalDescription'];
     for (const field of requiredFields) {
       if (!(field in characterData)) {
         throw new Error(`Missing required field: ${field}`);
@@ -298,8 +300,13 @@ function generateFallbackCharacter(options: CharacterGenerationOptions = {}): Ge
   
   const age = 22 + (Math.abs(hashString(`${genre}-${gender}-${ethnicity}-age`)) % 38); // 22-60
   
+  const fullName = fallbackNames[nameIndex];
+  const [givenName, ...familyNameParts] = fullName.split(' ');
+  const familyName = familyNameParts.join(' ') || 'Unknown';
+  
   return {
-    name: fallbackNames[nameIndex],
+    givenName,
+    familyName,
     age,
     occupation: occupations[occupationIndex],
     personality: personalityTraits[personalityIndex],
@@ -441,7 +448,12 @@ TASK: ${promptText} that fits perfectly with this character's established identi
 function createCharacterContext(character: any): string {
   const contextParts = [];
   
-  if (character.name) contextParts.push(`Name: ${character.name}`);
+  // Build full name from givenName and familyName, with fallback to legacy name field
+  const fullName = character.givenName && character.familyName 
+    ? `${character.givenName} ${character.familyName}`.trim()
+    : character.givenName || character.familyName || character.name || '';
+  if (fullName) contextParts.push(`Name: ${fullName}`);
+  
   if (character.age) contextParts.push(`Age: ${character.age}`);
   if (character.gender) contextParts.push(`Gender: ${character.gender}`);
   if (character.occupation) contextParts.push(`Occupation: ${character.occupation}`);
@@ -507,7 +519,10 @@ function generateFallbackFieldContent(fieldName: string, character: any): string
   ];
 
   // Use character name as seed for deterministic selection
-  const seed = character.name || fieldName;
+  const fullName = character.givenName && character.familyName 
+    ? `${character.givenName} ${character.familyName}`.trim()
+    : character.givenName || character.familyName || character.name || '';
+  const seed = fullName || fieldName;
   const index = Math.abs(hashString(seed + fieldName)) % options.length;
   
   return options[index];
