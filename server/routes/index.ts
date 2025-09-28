@@ -6,7 +6,7 @@ import plotRoutes from "./plot.routes";
 import promptRoutes from "./prompt.routes";
 import settingRoutes from "./setting.routes";
 import savedItemRoutes from "./saved-item.routes";
-import manuscriptRoutes from "./manuscript.routes";
+import projectRoutes from "./project.routes";
 import nameRoutes from "./name.routes";
 import conflictRoutes from "./conflict.routes";
 import themeRoutes from "./theme.routes";
@@ -67,7 +67,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/prompts", promptRoutes);
   app.use("/api/settings", settingRoutes);
   app.use("/api/saved-items", savedItemRoutes);
-  app.use("/api/manuscripts", manuscriptRoutes);
+  app.use("/api/projects", projectRoutes);
   app.use("/api/names", nameRoutes);
   app.use("/api/conflicts", conflictRoutes);
   app.use("/api/themes", themeRoutes);

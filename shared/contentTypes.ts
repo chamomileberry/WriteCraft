@@ -628,11 +628,11 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       badges: ["socialStatus", "riskLevel"]
     }
   },
-  manuscript: {
-    id: "manuscript",
-    name: "Manuscript",
-    urlSegment: "manuscripts",
-    apiBase: "/api/manuscripts",
+  project: {
+    id: "project",
+    name: "Project",
+    urlSegment: "projects",
+    apiBase: "/api/projects",
     displayFields: {
       title: "title",
       subtitle: "status",

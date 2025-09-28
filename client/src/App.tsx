@@ -15,9 +15,9 @@ import CharacterPage from "@/pages/CharacterPage";
 import CharacterEditPageWithSidebar from "@/pages/CharacterEditPageWithSidebar";
 import SettingPage from "@/pages/SettingPage";
 import CreaturePage from "@/pages/CreaturePage";
-import ManuscriptPage from "@/pages/ManuscriptPage";
-import ManuscriptEditPage from "@/pages/ManuscriptEditPage";
-import ManuscriptEditPageWithSidebar from "@/pages/ManuscriptEditPageWithSidebar";
+import ProjectPage from "@/pages/ProjectPage";
+import ProjectEditPage from "@/pages/ProjectEditPage";
+import ProjectEditPageWithSidebar from "@/pages/ProjectEditPageWithSidebar";
 import GuideEditPageWithSidebar from "@/pages/GuideEditPageWithSidebar";
 import NoteEditPage from "@/pages/NoteEditPage";
 import NotFound from "@/pages/not-found";
@@ -78,9 +78,9 @@ function Router() {
       <Route path="/guides" component={GuidesPage} />
       <Route path="/guides/new" component={GuideEditPage} />
       <Route path="/notebook" component={NotebookPage} />
-      <Route path="/manuscripts" component={ManuscriptPage} />
-      <Route path="/manuscripts/:id/edit" component={ManuscriptEditPageWithSidebar} />
-      <Route path="/manuscripts/:id/edit-basic" component={ManuscriptEditPage} />
+      <Route path="/projects" component={ProjectPage} />
+      <Route path="/projects/:id/edit" component={ProjectEditPageWithSidebar} />
+      <Route path="/projects/:id/edit-basic" component={ProjectEditPage} />
       <Route path="/guides/:id" component={GuideDetail} />
       <Route path="/guides/:id/edit" component={GuideEditPageWithSidebar} />
       <Route path="/guides/:id/edit-basic" component={GuideEditPage} />

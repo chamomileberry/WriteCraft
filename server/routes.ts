@@ -27,8 +27,8 @@ import {
   insertLanguageSchema,
   insertTechnologySchema,
   insertProfessionSchema,
-  insertManuscriptSchema,
-  insertManuscriptLinkSchema,
+  insertProjectSchema,
+  insertProjectLinkSchema,
   insertFolderSchema,
   insertNoteSchema
 } from "@shared/schema";

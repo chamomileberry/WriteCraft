@@ -23,8 +23,8 @@ import {
   type Mood, type InsertMood,
   type Conflict, type InsertConflict,
   type InsertGuide, type Guide,
-  type Manuscript, type InsertManuscript,
-  type ManuscriptLink, type InsertManuscriptLink,
+  type Project, type InsertProject,
+  type ProjectLink, type InsertProjectLink,
   type Folder, type InsertFolder,
   type Note, type InsertNote,
   // Missing content types - Import types
@@ -65,7 +65,7 @@ import {
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
   languages, religions, technologies, weapons, professions,
-  savedItems, names, themes, moods, conflicts, guides, manuscripts, manuscriptLinks,
+  savedItems, names, themes, moods, conflicts, guides, projects, projectLinks,
   folders, notes,
   // Missing content types - Import tables
   plants, descriptions, ethnicities, drinks, armor, accessories, clothing, materials,
@@ -471,23 +471,23 @@ export interface IStorage {
   getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]>;
   isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
 
-  // Manuscript methods
-  createManuscript(manuscript: InsertManuscript): Promise<Manuscript>;
-  getManuscript(id: string, userId: string): Promise<Manuscript | undefined>;
-  getUserManuscripts(userId: string): Promise<Manuscript[]>;
-  updateManuscript(id: string, userId: string, updates: Partial<InsertManuscript>): Promise<Manuscript>;
-  deleteManuscript(id: string, userId: string): Promise<void>;
-  searchManuscripts(userId: string, query: string): Promise<Manuscript[]>;
+  // Project methods
+  createProject(project: InsertProject): Promise<Project>;
+  getProject(id: string, userId: string): Promise<Project | undefined>;
+  getUserProjects(userId: string): Promise<Project[]>;
+  updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project>;
+  deleteProject(id: string, userId: string): Promise<void>;
+  searchProjects(userId: string, query: string): Promise<Project[]>;
   
   // Universal search method
   searchAllContent(userId: string, query: string): Promise<any[]>;
 
-  // Manuscript links methods
-  createManuscriptLink(link: InsertManuscriptLink): Promise<ManuscriptLink>;
-  getManuscriptLinks(manuscriptId: string, userId: string): Promise<ManuscriptLink[]>;
-  getManuscriptLinksForUser(userId: string): Promise<ManuscriptLink[]>;
-  deleteManuscriptLink(id: string, userId: string): Promise<void>;
-  findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ManuscriptLink[]>;
+  // Project links methods
+  createProjectLink(link: InsertProjectLink): Promise<ProjectLink>;
+  getProjectLinks(projectId: string, userId: string): Promise<ProjectLink[]>;
+  getProjectLinksForUser(userId: string): Promise<ProjectLink[]>;
+  deleteProjectLink(id: string, userId: string): Promise<void>;
+  findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ProjectLink[]>;
 
   // Pinned content methods
   pinContent(pin: InsertPinnedContent): Promise<PinnedContent>;
@@ -522,8 +522,8 @@ export interface IStorage {
   
   // Chat message methods
   createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
-  getChatMessages(userId: string, manuscriptId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]>;
-  deleteChatHistory(userId: string, manuscriptId?: string, guideId?: string): Promise<void>;
+  getChatMessages(userId: string, projectId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]>;
+  deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2625,35 +2625,35 @@ export class DatabaseStorage implements IStorage {
     return !!saved;
   }
 
-  // Manuscript methods
-  async createManuscript(manuscript: InsertManuscript): Promise<Manuscript> {
-    const [newManuscript] = await db
-      .insert(manuscripts)
-      .values(manuscript)
+  // Project methods
+  async createProject(project: InsertProject): Promise<Project> {
+    const [newProject] = await db
+      .insert(projects)
+      .values(project)
       .returning();
-    return newManuscript;
+    return newProject;
   }
 
-  async getManuscript(id: string, userId: string): Promise<Manuscript | undefined> {
-    const [manuscript] = await db
+  async getProject(id: string, userId: string): Promise<Project | undefined> {
+    const [project] = await db
       .select()
-      .from(manuscripts)
+      .from(projects)
       .where(and(
-        eq(manuscripts.id, id),
-        eq(manuscripts.userId, userId)
+        eq(projects.id, id),
+        eq(projects.userId, userId)
       ));
-    return manuscript || undefined;
+    return project || undefined;
   }
 
-  async getUserManuscripts(userId: string): Promise<Manuscript[]> {
+  async getUserProjects(userId: string): Promise<Project[]> {
     return await db
       .select()
-      .from(manuscripts)
-      .where(eq(manuscripts.userId, userId))
-      .orderBy(desc(manuscripts.updatedAt));
+      .from(projects)
+      .where(eq(projects.userId, userId))
+      .orderBy(desc(projects.updatedAt));
   }
 
-  async updateManuscript(id: string, userId: string, updates: Partial<InsertManuscript>): Promise<Manuscript> {
+  async updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project> {
     // Count words if content is being updated
     if (updates.content) {
       const plainText = updates.content
@@ -2669,69 +2669,69 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    const [updatedManuscript] = await db
-      .update(manuscripts)
+    const [updatedProject] = await db
+      .update(projects)
       .set({
         ...updates,
         updatedAt: new Date(),
       })
       .where(and(
-        eq(manuscripts.id, id),
-        eq(manuscripts.userId, userId)
+        eq(projects.id, id),
+        eq(projects.userId, userId)
       ))
       .returning();
       
-    if (!updatedManuscript) {
-      throw new Error('Manuscript not found or access denied');
+    if (!updatedProject) {
+      throw new Error('Project not found or access denied');
     }
     
-    return updatedManuscript;
+    return updatedProject;
   }
 
-  async deleteManuscript(id: string, userId: string): Promise<void> {
+  async deleteProject(id: string, userId: string): Promise<void> {
     const result = await db
-      .delete(manuscripts)
+      .delete(projects)
       .where(and(
-        eq(manuscripts.id, id),
-        eq(manuscripts.userId, userId)
+        eq(projects.id, id),
+        eq(projects.userId, userId)
       ));
       
     if (result.rowCount === 0) {
-      throw new Error('Manuscript not found or access denied');
+      throw new Error('Project not found or access denied');
     }
   }
 
-  async searchManuscripts(userId: string, query: string): Promise<Manuscript[]> {
+  async searchProjects(userId: string, query: string): Promise<Project[]> {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
-      return this.getUserManuscripts(userId);
+      return this.getUserProjects(userId);
     }
 
     // Enhanced full-text search using PostgreSQL tsvector with ranking
     const searchQuery = sql`plainto_tsquery('english', ${trimmedQuery})`;
     return await db.select({
-      id: manuscripts.id,
-      title: manuscripts.title,
-      content: manuscripts.content,
-      excerpt: manuscripts.excerpt,
-      wordCount: manuscripts.wordCount,
-      tags: manuscripts.tags,
-      status: manuscripts.status,
-      searchVector: manuscripts.searchVector,
-      folderId: manuscripts.folderId,
-      userId: manuscripts.userId,
-      createdAt: manuscripts.createdAt,
-      updatedAt: manuscripts.updatedAt,
-      rank: sql<number>`ts_rank(${manuscripts.searchVector}, ${searchQuery})`.as('rank')
+      id: projects.id,
+      title: projects.title,
+      content: projects.content,
+      excerpt: projects.excerpt,
+      wordCount: projects.wordCount,
+      tags: projects.tags,
+      status: projects.status,
+      searchVector: projects.searchVector,
+      folderId: projects.folderId,
+      userId: projects.userId,
+      createdAt: projects.createdAt,
+      updatedAt: projects.updatedAt,
+      rank: sql<number>`ts_rank(${projects.searchVector}, ${searchQuery})`.as('rank')
     })
-    .from(manuscripts)
+    .from(projects)
     .where(
       and(
-        eq(manuscripts.userId, userId),
-        sql`${manuscripts.searchVector} @@ ${searchQuery}`
+        eq(projects.userId, userId),
+        sql`${projects.searchVector} @@ ${searchQuery}`
       )
     )
-    .orderBy(desc(sql`ts_rank(${manuscripts.searchVector}, ${searchQuery})`));
+    .orderBy(desc(sql`ts_rank(${projects.searchVector}, ${searchQuery})`));
   }
 
   async searchAllContent(userId: string, query: string): Promise<any[]> {
@@ -2743,13 +2743,13 @@ export class DatabaseStorage implements IStorage {
     const results: any[] = [];
 
     try {
-      // Search manuscripts (always include these as they're user-specific)
-      const manuscriptResults = await this.searchManuscripts(userId, trimmedQuery);
-      manuscriptResults.forEach(item => {
+      // Search projects (always include these as they're user-specific)
+      const projectResults = await this.searchProjects(userId, trimmedQuery);
+      projectResults.forEach(item => {
         results.push({
           id: item.id,
           title: item.title,
-          type: 'manuscript',
+          type: 'project',
           subtitle: item.status,
           description: item.excerpt || item.content?.substring(0, 100) + '...'
         });

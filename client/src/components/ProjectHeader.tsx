@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 
-interface ManuscriptHeaderProps {
-  manuscript?: {
+interface ProjectHeaderProps {
+  project?: {
     title?: string;
   };
   wordCount: number;
@@ -22,8 +22,8 @@ interface ManuscriptHeaderProps {
   isSaving: boolean;
 }
 
-export function ManuscriptHeader({
-  manuscript,
+export function ProjectHeader({
+  project,
   wordCount,
   saveStatus,
   lastSaveTime,
@@ -37,7 +37,7 @@ export function ManuscriptHeader({
   onTitleKeyDown,
   onManualSave,
   isSaving,
-}: ManuscriptHeaderProps) {
+}: ProjectHeaderProps) {
   const getSaveStatusText = () => {
     if (saveStatus === 'saving') return 'Saving...';
     if (saveStatus === 'saved' && lastSaveTime) {
@@ -59,7 +59,7 @@ export function ManuscriptHeader({
             size="sm" 
             onClick={onBack} 
             data-testid="button-back" 
-            title="Back to Manuscripts"
+            title="Back to Projects"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -71,32 +71,32 @@ export function ManuscriptHeader({
                 onKeyDown={onTitleKeyDown}
                 onBlur={onTitleSave}
                 className="text-xl font-semibold h-8 px-2 -ml-2"
-                data-testid="input-manuscript-title"
+                data-testid="input-project-title"
                 autoFocus
-                placeholder="Manuscript title..."
+                placeholder="Project title..."
               />
             ) : (
               <h1 
-                className="text-xl font-semibold cursor-pointer hover:bg-accent/50 rounded px-2 py-1 -ml-2 transition-colors"
+                className="text-xl font-semibold cursor-pointer hover:text-primary transition-colors"
                 onClick={onTitleClick}
-                data-testid="text-manuscript-title"
-                title="Click to edit title"
+                data-testid="text-project-title"
               >
-                {manuscript?.title || 'Untitled Manuscript'}
+                {project?.title || 'Untitled Project'}
               </h1>
             )}
-            <p className="text-sm text-muted-foreground">
-              {wordCount} words
-            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center space-x-3">
-            <span className="text-sm text-muted-foreground">
-              {getSaveStatusText()}
-            </span>
-            <Button
-              variant="outline"
+        
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-muted-foreground">
+            {wordCount} words
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {getSaveStatusText()}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
               size="sm"
               onClick={onManualSave}
               disabled={isSaving || saveStatus === 'saving'}

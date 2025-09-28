@@ -1,28 +1,28 @@
 import { useLocation } from 'wouter';
 import { useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import ManuscriptEditor from '@/components/ManuscriptEditor';
+import ProjectEditor from '@/components/ProjectEditor';
 import DocumentSidebar from '@/components/DocumentSidebar';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 
-interface ManuscriptEditPageWithSidebarProps {
+interface ProjectEditPageWithSidebarProps {
   params: { id: string };
 }
 
-export default function ManuscriptEditPageWithSidebar({ params }: ManuscriptEditPageWithSidebarProps) {
+export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWithSidebarProps) {
   const [, setLocation] = useLocation();
   const { resetLayout } = useWorkspaceStore();
 
-  // Clear workspace when navigating to a new manuscript
+  // Clear workspace when navigating to a new project
   useEffect(() => {
     resetLayout();
   }, [params.id, resetLayout]);
 
   const handleBack = () => {
-    setLocation('/manuscripts');
+    setLocation('/projects');
   };
 
   const handleSearch = (query: string) => {
@@ -34,8 +34,8 @@ export default function ManuscriptEditPageWithSidebar({ params }: ManuscriptEdit
       case 'notebook':
         setLocation('/notebook');
         break;
-      case 'manuscripts':
-        setLocation('/manuscripts');
+      case 'projects':
+        setLocation('/projects');
         break;
       default:
         setLocation('/');
@@ -65,7 +65,7 @@ export default function ManuscriptEditPageWithSidebar({ params }: ManuscriptEdit
         <div className="flex h-[calc(100vh-4rem)] w-full">
           {/* Document Tree Sidebar */}
           <DocumentSidebar 
-            type="manuscript"
+            type="project"
             currentDocumentId={params.id}
             userId="guest" // Using guest user for now
           />
@@ -80,18 +80,18 @@ export default function ManuscriptEditPageWithSidebar({ params }: ManuscriptEdit
                   variant="ghost" 
                   size="sm"
                   onClick={handleBack}
-                  data-testid="button-back-to-manuscripts"
+                  data-testid="button-back-to-projects"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Manuscripts
+                  Back to Projects
                 </Button>
               </div>
             </header>
             
             {/* Editor Content */}
             <main className="flex-1 overflow-hidden">
-              <ManuscriptEditor 
-                manuscriptId={params.id}
+              <ProjectEditor 
+                projectId={params.id}
                 onBack={handleBack}
               />
             </main>

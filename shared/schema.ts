@@ -1311,15 +1311,15 @@ export const savedItems = pgTable("saved_items", {
   uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
 }));
 
-// Folders - Organizational structure for manuscripts and guides
+// Folders - Organizational structure for projects and guides
 export const folders = pgTable("folders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description"),
   color: text("color"), // Optional color for visual organization
-  type: text("type").notNull(), // 'manuscript' or 'guide'
+  type: text("type").notNull(), // 'project' or 'guide'
   parentId: varchar("parent_id"), // Self-reference handled via relations to avoid circular dependency
-  manuscriptId: varchar("manuscript_id").references(() => manuscripts.id, { onDelete: 'cascade' }), // Link to parent manuscript
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Link to parent project
   guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   sortOrder: integer("sort_order").default(0), // For custom ordering
@@ -1328,38 +1328,38 @@ export const folders = pgTable("folders", {
 }, (table) => ({
   // Ensure folder has proper parent relationship when type is specified
   parentCheck: sql`CHECK (
-    (${table.type} = 'manuscript' AND ${table.manuscriptId} IS NOT NULL AND ${table.guideId} IS NULL) OR
-    (${table.type} = 'guide' AND ${table.guideId} IS NOT NULL AND ${table.manuscriptId} IS NULL)
+    (${table.type} = 'project' AND ${table.projectId} IS NOT NULL AND ${table.guideId} IS NULL) OR
+    (${table.type} = 'guide' AND ${table.guideId} IS NOT NULL AND ${table.projectId} IS NULL)
   )`
 }));
 
-// Notes - Sub-documents within folders (scenes for manuscripts, individual guides for guide folders)
+// Notes - Sub-documents within folders (scenes for projects, individual guides for guide folders)
 export const notes = pgTable("notes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   content: text("content").notNull().default(''), // Rich text content
   excerpt: text("excerpt"), // Auto-generated excerpt for previews
-  type: text("type").notNull(), // 'manuscript_note', 'guide_note', or 'quick_note'
+  type: text("type").notNull(), // 'project_note', 'guide_note', or 'quick_note'
   folderId: varchar("folder_id").references(() => folders.id, { onDelete: 'cascade' }),
-  manuscriptId: varchar("manuscript_id").references(() => manuscripts.id, { onDelete: 'cascade' }), // Link to parent manuscript
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Link to parent project
   guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
   sortOrder: integer("sort_order").default(0), // For custom ordering within folder
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
-  // Ensure note has proper parent relationship - manuscript/guide notes need parent, quick notes don't
+  // Ensure note has proper parent relationship - project/guide notes need parent, quick notes don't
   parentCheck: sql`CHECK (
-    (${table.type} = 'quick_note' AND ${table.manuscriptId} IS NULL AND ${table.guideId} IS NULL) OR
+    (${table.type} = 'quick_note' AND ${table.projectId} IS NULL AND ${table.guideId} IS NULL) OR
     (${table.type} != 'quick_note' AND (
-      (${table.manuscriptId} IS NOT NULL AND ${table.guideId} IS NULL) OR
-      (${table.manuscriptId} IS NULL AND ${table.guideId} IS NOT NULL)
+      (${table.projectId} IS NOT NULL AND ${table.guideId} IS NULL) OR
+      (${table.projectId} IS NULL AND ${table.guideId} IS NOT NULL)
     ))
   )`
 }));
 
-// Manuscripts - Rich text documents for writing (updated with folder support)
-export const manuscripts = pgTable("manuscripts", {
+// Projects - Rich text documents for writing (updated with folder support)
+export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   content: text("content").notNull().default(''), // Rich text content
@@ -1373,14 +1373,14 @@ export const manuscripts = pgTable("manuscripts", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
-  searchIdx: index("manuscript_search_idx").using("gin", table.searchVector),
+  searchIdx: index("project_search_idx").using("gin", table.searchVector),
 }));
 
-// Manuscript Links - Bidirectional links between manuscripts and content
-export const manuscriptLinks = pgTable("manuscript_links", {
+// Project Links - Bidirectional links between projects and content
+export const projectLinks = pgTable("project_links", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sourceId: varchar("source_id").notNull().references(() => manuscripts.id, { onDelete: 'cascade' }),
-  targetType: text("target_type").notNull(), // 'character', 'location', 'organization', 'manuscript', etc.
+  sourceId: varchar("source_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  targetType: text("target_type").notNull(), // 'character', 'location', 'organization', 'project', etc.
   targetId: varchar("target_id").notNull(),
   contextText: text("context_text"), // Surrounding text where link appears
   linkText: text("link_text"), // The actual text of the link
@@ -1393,7 +1393,7 @@ export const manuscriptLinks = pgTable("manuscript_links", {
 export const pinnedContent = pgTable("pinned_content", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  targetType: text("target_type").notNull(), // 'character', 'location', 'manuscript', etc.
+  targetType: text("target_type").notNull(), // 'character', 'location', 'project', etc.
   targetId: varchar("target_id").notNull(),
   pinOrder: integer("pin_order").default(0), // For custom ordering
   category: text("category"), // Optional grouping: 'characters', 'locations', 'research', etc.
@@ -1407,7 +1407,7 @@ export const pinnedContent = pgTable("pinned_content", {
 export const chatMessages = pgTable("chat_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  manuscriptId: varchar("manuscript_id").references(() => manuscripts.id, { onDelete: 'cascade' }), // Optional - links to specific manuscript
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional - links to specific project
   guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - links to specific guide
   type: text("type").notNull(), // 'user' or 'assistant'
   content: text("content").notNull(), // Message content
@@ -1415,7 +1415,7 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   userIdIdx: index("chat_messages_user_id_idx").on(table.userId),
-  manuscriptIdIdx: index("chat_messages_manuscript_id_idx").on(table.manuscriptId),
+  projectIdIdx: index("chat_messages_project_id_idx").on(table.projectId),
   guideIdIdx: index("chat_messages_guide_id_idx").on(table.guideId),
   createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
 }));
@@ -1476,8 +1476,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   potions: many(potions),
   professions: many(professions),
   savedItems: many(savedItems),
-  manuscripts: many(manuscripts),
-  manuscriptLinks: many(manuscriptLinks),
+  projects: many(projects),
+  projectLinks: many(projectLinks),
   pinnedContent: many(pinnedContent),
   chatMessages: many(chatMessages),
 }));
@@ -1861,16 +1861,16 @@ export const professionsRelations = relations(professions, ({ one }) => ({
   }),
 }));
 
-export const manuscriptsRelations = relations(manuscripts, ({ one, many }) => ({
+export const projectsRelations = relations(projects, ({ one, many }) => ({
   user: one(users, {
-    fields: [manuscripts.userId],
+    fields: [projects.userId],
     references: [users.id],
   }),
   folder: one(folders, {
-    fields: [manuscripts.folderId],
+    fields: [projects.folderId],
     references: [folders.id],
   }),
-  links: many(manuscriptLinks),
+  links: many(projectLinks),
   notes: many(notes),
 }));
 
@@ -1884,7 +1884,7 @@ export const foldersRelations = relations(folders, ({ one, many }) => ({
     references: [folders.id],
   }),
   children: many(folders),
-  manuscripts: many(manuscripts),
+  projects: many(projects),
   guides: many(guides),
   notes: many(notes),
 }));
@@ -1898,9 +1898,9 @@ export const notesRelations = relations(notes, ({ one }) => ({
     fields: [notes.folderId],
     references: [folders.id],
   }),
-  manuscript: one(manuscripts, {
-    fields: [notes.manuscriptId],
-    references: [manuscripts.id],
+  project: one(projects, {
+    fields: [notes.projectId],
+    references: [projects.id],
   }),
   guide: one(guides, {
     fields: [notes.guideId],
@@ -1920,14 +1920,14 @@ export const guidesRelations = relations(guides, ({ one, many }) => ({
   notes: many(notes),
 }));
 
-export const manuscriptLinksRelations = relations(manuscriptLinks, ({ one }) => ({
+export const projectLinksRelations = relations(projectLinks, ({ one }) => ({
   user: one(users, {
-    fields: [manuscriptLinks.userId],
+    fields: [projectLinks.userId],
     references: [users.id],
   }),
-  manuscript: one(manuscripts, {
-    fields: [manuscriptLinks.sourceId],
-    references: [manuscripts.id],
+  project: one(projects, {
+    fields: [projectLinks.sourceId],
+    references: [projects.id],
   }),
 }));
 
@@ -1943,9 +1943,9 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
     fields: [chatMessages.userId],
     references: [users.id],
   }),
-  manuscript: one(manuscripts, {
-    fields: [chatMessages.manuscriptId],
-    references: [manuscripts.id],
+  project: one(projects, {
+    fields: [chatMessages.projectId],
+    references: [projects.id],
   }),
   guide: one(guides, {
     fields: [chatMessages.guideId],
@@ -2240,7 +2240,7 @@ export const insertProfessionSchema = createInsertSchema(professions).omit({
   createdAt: true,
 });
 
-export const insertManuscriptSchema = createInsertSchema(manuscripts).omit({
+export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -2258,7 +2258,7 @@ export const insertNoteSchema = createInsertSchema(notes).omit({
   updatedAt: true,
 });
 
-export const insertManuscriptLinkSchema = createInsertSchema(manuscriptLinks).omit({
+export const insertProjectLinkSchema = createInsertSchema(projectLinks).omit({
   id: true,
   createdAt: true,
 });
@@ -2303,14 +2303,14 @@ export type InsertDescription = z.infer<typeof insertDescriptionSchema>;
 export type Description = typeof descriptions.$inferSelect;
 export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;
-export type InsertManuscript = z.infer<typeof insertManuscriptSchema>;
-export type Manuscript = typeof manuscripts.$inferSelect;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type Project = typeof projects.$inferSelect;
 export type InsertFolder = z.infer<typeof insertFolderSchema>;
 export type Folder = typeof folders.$inferSelect;
 export type InsertNote = z.infer<typeof insertNoteSchema>;
 export type Note = typeof notes.$inferSelect;
-export type InsertManuscriptLink = z.infer<typeof insertManuscriptLinkSchema>;
-export type ManuscriptLink = typeof manuscriptLinks.$inferSelect;
+export type InsertProjectLink = z.infer<typeof insertProjectLinkSchema>;
+export type ProjectLink = typeof projectLinks.$inferSelect;
 export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;
 export type PinnedContent = typeof pinnedContent.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;

@@ -61,7 +61,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore, EditorActions } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
-import { ManuscriptHeader } from './ManuscriptHeader';
+import { ProjectHeader } from './ProjectHeader';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 
@@ -118,8 +118,8 @@ const CustomHorizontalRule = HorizontalRule.extend({
   }
 });
 
-interface ManuscriptEditorProps {
-  manuscriptId: string;
+interface ProjectEditorProps {
+  projectId: string;
   onBack: () => void;
 }
 
@@ -131,7 +131,7 @@ interface SearchResult {
   description?: string;
 }
 
-export interface ManuscriptEditorRef {
+export interface ProjectEditorRef {
   saveContent: () => Promise<void>;
 }
 
@@ -159,7 +159,7 @@ const FontSize = Extension.create({
         attributes: {
           fontSize: {
             default: null,
-            parseHTML: element => element.style.fontSize.replace(/['"]+/g, ''),
+            parseHTML: element => element.style.fontSize.replace(/['"+]/g, ''),
             renderHTML: attributes => {
               if (!attributes.fontSize) {
                 return {}
@@ -190,7 +190,7 @@ const FontSize = Extension.create({
   },
 });
 
-const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(({ manuscriptId, onBack }, ref) => {
+const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projectId, onBack }, ref) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
@@ -214,14 +214,14 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
 
-  // Fetch manuscript data
-  const { data: manuscript, isLoading: isLoadingManuscript } = useQuery({
-    queryKey: ['/api/manuscripts', manuscriptId],
+  // Fetch project data
+  const { data: project, isLoading: isLoadingProject } = useQuery({
+    queryKey: ['/api/projects', projectId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/manuscripts/${manuscriptId}`);
+      const response = await apiRequest('GET', `/api/projects/${projectId}`);
       return response.json();
     },
-    enabled: !!manuscriptId && manuscriptId !== 'new',
+    enabled: !!projectId && projectId !== 'new',
   });
 
   // **REFINED**: Unified data fetching using useQuery instead of native fetch
@@ -321,7 +321,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       }),
       Typography,
     ],
-    content: manuscript?.content || '',
+    content: project?.content || '',
     editorProps: {
       attributes: {
         class: 'prose dark:prose-invert mx-auto focus:outline-none min-h-[500px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
@@ -336,9 +336,9 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       updateEditorContext({
         content,
         htmlContent,
-        title: manuscript?.title || 'Untitled Manuscript',
-        type: 'manuscript',
-        entityId: manuscriptId
+        title: project?.title || 'Untitled Project',
+        type: 'project',
+        entityId: projectId
       });
       
       if (autosaveTimeoutRef.current) {
@@ -357,20 +357,20 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       if (!editor) throw new Error('Editor not initialized');
       
       const content = editor.getHTML();
-      const response = await apiRequest('PUT', `/api/manuscripts/${manuscriptId}`, { content });
+      const response = await apiRequest('PUT', `/api/projects/${projectId}`, { content });
       return response.json();
     },
     onSuccess: () => {
       setSaveStatus('saved');
       setLastSaveTime(new Date());
-      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
     },
     onError: (error: any) => {
       setSaveStatus('unsaved');
       toast({
         title: "Save failed",
-        description: error.message || "Failed to save manuscript. Please try again.",
+        description: error.message || "Failed to save project. Please try again.",
         variant: "destructive"
       });
     },
@@ -379,29 +379,30 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   // Title update mutation
   const titleMutation = useMutation({
     mutationFn: async (newTitle: string) => {
-      const response = await apiRequest('PUT', `/api/manuscripts/${manuscriptId}`, { title: newTitle });
+      const response = await apiRequest('PUT', `/api/projects/${projectId}`, { title: newTitle });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
     },
   });
 
-  // Initialize editor context when manuscript data loads
+
+  // Initialize editor context when project data loads
   useEffect(() => {
-    if (manuscript && editor) {
+    if (project && editor) {
       const content = editor.getText();
       const htmlContent = editor.getHTML();
       updateEditorContext({
         content,
         htmlContent,
-        title: manuscript.title || 'Untitled Manuscript',
-        type: 'manuscript',
-        entityId: manuscriptId
+        title: project.title || 'Untitled Project',
+        type: 'project',
+        entityId: projectId
       });
     }
-  }, [manuscript, editor, manuscriptId, updateEditorContext]);
+  }, [project, editor, projectId, updateEditorContext]);
 
   // Register editor actions for cross-component communication
   useEffect(() => {
@@ -459,19 +460,19 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
 
   // Title editing handlers
   const handleTitleClick = () => {
-    setTitleInput(manuscript?.title || 'Untitled Manuscript');
+    setTitleInput(project?.title || 'Untitled Project');
     setIsEditingTitle(true);
   };
 
   const handleTitleSave = async () => {
-    if (titleInput.trim() !== manuscript?.title) {
-      await titleMutation.mutateAsync(titleInput.trim() || 'Untitled Manuscript');
+    if (titleInput.trim() !== project?.title) {
+      await titleMutation.mutateAsync(titleInput.trim() || 'Untitled Project');
     }
     setIsEditingTitle(false);
   };
 
   const handleTitleCancel = () => {
-    setTitleInput(manuscript?.title || 'Untitled Manuscript');
+    setTitleInput(project?.title || 'Untitled Project');
     setIsEditingTitle(false);
   };
 
@@ -511,10 +512,10 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         mode: 'tabbed',
         regionId: 'main'
       });
-    } else if (itemType === 'manuscript') {
-      // Navigate to manuscript editor instead of opening as panel
-      // Manuscripts should not be opened as reference tabs
-      window.open(`/manuscripts/${itemId}/edit`, '_blank');
+    } else if (itemType === 'project') {
+      // Navigate to project editor instead of opening as panel
+      // Projects should not be opened as reference tabs
+      window.open(`/projects/${itemId}/edit`, '_blank');
       return;
     } else {
       addPanel({
@@ -560,7 +561,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   // **REFINED**: Export functionality with DropdownMenu instead of prompt()
   const handleExport = (format: string) => {
     const content = editor?.getHTML() || '';
-    const title = manuscript?.title || 'Untitled';
+    const title = project?.title || 'Untitled';
     
     switch(format) {
       case 'html':
@@ -605,7 +606,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     }
   };
 
-  if (isLoadingManuscript) {
+  if (isLoadingProject) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -617,8 +618,8 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     <WorkspaceLayout>
       <div className="flex h-full bg-background flex-col">
         {/* Header */}
-        <ManuscriptHeader
-          manuscript={manuscript}
+        <ProjectHeader
+          project={project}
           wordCount={editor?.storage.characterCount?.words() || 0}
           saveStatus={saveStatus}
           lastSaveTime={lastSaveTime}
@@ -641,7 +642,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
             <div className="flex items-center justify-between gap-2 p-4">
               {/* Left side - Editor Toolbar */}
               <div className="flex-1">
-                <EditorToolbar editor={editor} title={manuscript?.title} />
+                <EditorToolbar editor={editor} title={project?.title} />
               </div>
               
               {/* Media insertion with dialogs */}
@@ -684,15 +685,15 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Insert YouTube Video</DialogTitle>
+                      <DialogTitle>Insert Video</DialogTitle>
                       <DialogDescription>
-                        Enter the URL of the YouTube video you want to embed.
+                        Enter the YouTube URL of the video you want to insert.
                       </DialogDescription>
                     </DialogHeader>
                     <Input
                       value={insertVideoUrl}
                       onChange={(e) => setInsertVideoUrl(e.target.value)}
-                      placeholder="https://youtube.com/watch?v=..."
+                      placeholder="https://www.youtube.com/watch?v=..."
                       onKeyDown={(e) => e.key === 'Enter' && handleInsertVideo()}
                     />
                     <DialogFooter>
@@ -716,7 +717,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                     <DialogHeader>
                       <DialogTitle>Insert Link</DialogTitle>
                       <DialogDescription>
-                        Enter the URL for the link.
+                        Enter the URL you want to link to.
                       </DialogDescription>
                     </DialogHeader>
                     <Input
@@ -736,10 +737,10 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                   </DialogContent>
                 </Dialog>
 
-                {/* **REFINED**: Export with DropdownMenu instead of prompt */}
+                {/* Export Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" title="Export Document">
+                    <Button variant="outline" size="sm" title="Export">
                       <Download className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -755,116 +756,12 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                {/* **REFINED**: UI controls managed with state */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsFocusMode(!isFocusMode)}
-                  title="Focus Mode"
-                >
-                  Focus
-                </Button>
-
-                <select
-                  className="px-2 py-1 text-sm border rounded-md bg-background min-w-20"
-                  value={zoomLevel}
-                  onChange={(e) => setZoomLevel(parseInt(e.target.value))}
-                  title="Zoom Level"
-                >
-                  <option value={50}>50%</option>
-                  <option value={75}>75%</option>
-                  <option value={100}>100%</option>
-                  <option value={125}>125%</option>
-                  <option value={150}>150%</option>
-                  <option value={200}>200%</option>
-                </select>
-              </div>
-              
-              {/* Right side - Search */}
-              <div className="relative">
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Search content to open in tabs..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-64"
-                    data-testid="input-search-content"
-                  />
-                </div>
-                
-                {/* **REFINED**: Search Results using useQuery data */}
-                {searchQuery && (
-                  <div className="absolute top-full left-0 right-0 z-50 border bg-background rounded-md shadow-lg max-h-32 overflow-y-auto mt-1">
-                    <div className="p-2">
-                      {isSearching ? (
-                        <div className="flex items-center justify-center py-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                      ) : searchResults.length > 0 ? (
-                        <div className="space-y-1">
-                          {searchResults.slice(0, 5).map((item: SearchResult) => (
-                            <div
-                              key={`${item.type}-${item.id}`}
-                              className="flex items-center justify-between p-2 rounded-md border hover-elevate"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className="text-xs">
-                                    {item.type}
-                                  </Badge>
-                                  <span className="text-sm font-medium truncate">{item.title}</span>
-                                </div>
-                                {item.subtitle && (
-                                  <p className="text-xs text-muted-foreground truncate mt-1">
-                                    {item.subtitle}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => insertMention(item)}
-                                  className="h-6 w-6 p-0"
-                                  title="Insert as mention (type @ to search)"
-                                  data-testid={`button-insert-mention-${item.type}-${item.id}`}
-                                >
-                                  <span className="text-xs font-bold">@</span>
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => openInPanel(item)}
-                                  className="h-6 w-6 p-0"
-                                  title="Open in panel"
-                                  data-testid={`button-open-panel-${item.type}-${item.id}`}
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground py-2">No results found</p>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
-          {/* **REFINED**: Editor with zoom state applied via style */}
-          <div 
-            className="flex-1 p-6 overflow-y-auto transition-transform duration-200"
-            style={{ 
-              transform: `scale(${zoomLevel / 100})`,
-              transformOrigin: 'top left',
-              width: `${10000 / zoomLevel}%`, // Compensate for scale
-            }}
-          >
+          {/* **REFINED**: Main editor area with focus mode support */}
+          <div className="flex-1 overflow-auto">
             <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80">
               <EditorContent editor={editor} />
             </div>
@@ -875,6 +772,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   );
 });
 
-ManuscriptEditor.displayName = 'ManuscriptEditor';
+ProjectEditor.displayName = 'ProjectEditor';
 
-export default ManuscriptEditor;
+export default ProjectEditor;
