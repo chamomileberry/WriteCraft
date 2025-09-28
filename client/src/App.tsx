@@ -12,7 +12,6 @@ import GuidesPage from "@/pages/GuidesPage";
 import GuideDetail from "@/pages/GuideDetail";
 import GuideEditPage from "@/pages/GuideEditPage";
 import CharacterPage from "@/pages/CharacterPage";
-import CharacterEditPage from "@/pages/CharacterEditPage";
 import CharacterEditPageWithSidebar from "@/pages/CharacterEditPageWithSidebar";
 import SettingPage from "@/pages/SettingPage";
 import CreaturePage from "@/pages/CreaturePage";
