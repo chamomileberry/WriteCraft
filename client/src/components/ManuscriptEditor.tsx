@@ -451,14 +451,10 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         regionId: 'main'
       });
     } else if (itemType === 'manuscript') {
-      addPanel({
-        id: nanoid(),
-        type: 'manuscriptOutline',
-        title: itemTitle || 'Manuscript',
-        entityId: itemId,
-        mode: 'tabbed',
-        regionId: 'main'
-      });
+      // Navigate to manuscript editor instead of opening as panel
+      // Manuscripts should not be opened as reference tabs
+      window.open(`/manuscripts/${itemId}/edit`, '_blank');
+      return;
     } else {
       addPanel({
         id: nanoid(),
