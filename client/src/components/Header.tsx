@@ -235,11 +235,14 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                 openWritingAssistant();
                 setIsMobileMenuOpen(false);
               }}
-              className="flex items-center gap-2 w-full text-left text-foreground hover:text-primary transition-colors py-2"
+              className="flex items-center justify-center w-12 h-12 rounded-full transition-colors"
+              style={{
+                background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)'
+              }}
               data-testid="mobile-button-writing-assistant"
+              title="Writing Assistant"
             >
-              <Sparkles className="h-4 w-4" style={{ color: 'hsl(270, 75%, 75%)' }} />
-              Writing Assistant
+              <Sparkles className="h-4 w-4 text-white" />
             </button>
             <button 
               onClick={() => {
