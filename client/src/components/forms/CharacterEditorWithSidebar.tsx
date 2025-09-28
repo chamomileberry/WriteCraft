@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { FormField as FormFieldComponent, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { 
-  User, Eye, Brain, Zap, BookOpen, MessageCircle, 
+  User, Eye, Brain, Zap, BookOpen, 
   ChevronRight, ChevronDown, Menu, X 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
