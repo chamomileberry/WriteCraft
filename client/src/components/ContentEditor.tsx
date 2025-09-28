@@ -22,7 +22,7 @@ interface ContentEditorProps {
 }
 
 export default function ContentEditor({ contentType, contentId, onBack }: ContentEditorProps) {
-  const [editingData, setEditingData] = useState<any>({});
+  const [editingData, setEditingData] = useState<any>({}); // For generic fallback form only
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
   const [formConfig, setFormConfig] = useState<ContentTypeFormConfig | null>(null);
   const [, setLocation] = useLocation();
@@ -140,24 +140,28 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
     }
   });
 
-  // Initialize editing data when content loads
+  // Initialize editing data when content loads (for generic fallback form only)
   useEffect(() => {
     if (contentData) {
       setEditingData(contentData);
     }
   }, [contentData]);
 
+  // Handle generic fallback form submission
   const handleSave = () => {
     saveMutation.mutate(editingData);
   };
 
-  // Handle type-specific form submission
+  // Handle dynamic form submission
   const handleFormSubmit = (data: any) => {
     saveMutation.mutate(data);
   };
 
   const handleCancel = () => {
-    setEditingData(contentData);
+    if (!formConfig) {
+      // Reset fallback form data
+      setEditingData(contentData);
+    }
     setIsEditing(false);
   };
 
@@ -168,13 +172,13 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
     }));
   };
 
-  // Get field type and render appropriate input
+  // Render field for generic fallback form (editable when no formConfig and in editing mode)
   const renderField = (key: string, value: any) => {
     if (key === 'id' || key === 'createdAt' || key === 'updatedAt') {
       return null; // Skip system fields
     }
 
-    const isEditable = isEditing;
+    const isEditable = isEditing && !formConfig; // Only editable in generic fallback form
     const displayValue = Array.isArray(value) ? value.join(', ') : value?.toString() || '';
 
     if (key.includes('description') || key.includes('backstory') || key.includes('content')) {
@@ -293,7 +297,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             </Button>
           ) : (
             <>
-              {/* Only show header save buttons for generic forms, not dynamic forms */}
+              {/* Only show header save buttons for generic fallback forms, not dynamic forms */}
               {!formConfig && (
                 <>
                   <Button variant="outline" onClick={handleCancel} data-testid="button-cancel-editing">
@@ -346,7 +350,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             />
           );
         } else {
-          // Fallback to generic form (for non-configured types or view mode)
+          // Fallback to generic form (for non-configured types)
           return (
             <Card>
               <CardHeader>
