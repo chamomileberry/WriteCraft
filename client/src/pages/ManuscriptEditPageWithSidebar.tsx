@@ -1,10 +1,12 @@
 import { useLocation } from 'wouter';
+import { useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import ManuscriptEditor from '@/components/ManuscriptEditor';
 import DocumentSidebar from '@/components/DocumentSidebar';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useWorkspaceStore } from '@/stores/workspaceStore';
 
 interface ManuscriptEditPageWithSidebarProps {
   params: { id: string };
@@ -12,6 +14,12 @@ interface ManuscriptEditPageWithSidebarProps {
 
 export default function ManuscriptEditPageWithSidebar({ params }: ManuscriptEditPageWithSidebarProps) {
   const [, setLocation] = useLocation();
+  const { resetLayout } = useWorkspaceStore();
+
+  // Clear workspace when navigating to a new manuscript
+  useEffect(() => {
+    resetLayout();
+  }, [params.id, resetLayout]);
 
   const handleBack = () => {
     setLocation('/manuscripts');
