@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { FormField as FormFieldComponent, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { 
-  User, Eye, Brain, Zap, BookOpen, 
   ChevronRight, ChevronDown, Menu, X 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,51 +18,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { ContentTypeFormConfig, FormField } from "./types";
+import { characterNavigation } from "@/config/character-editor-config";
 import { z } from "zod";
 
-// Navigation structure for character editor
-const characterNavigation = [
-  {
-    id: "identity",
-    label: "Identity",
-    icon: User,
-    description: "Basic information and identity",
-    tabIds: ["basic"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
-  },
-  {
-    id: "appearance",
-    label: "Appearance",
-    icon: Eye,
-    description: "Physical appearance and traits",
-    tabIds: ["physical", "facial", "marks"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
-  },
-  {
-    id: "mind",
-    label: "Mind & Personality",
-    icon: Brain,
-    description: "Personality, relationships, and mental traits",
-    tabIds: ["personality", "flaws"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
-  },
-  {
-    id: "powers",
-    label: "Skills & Powers",
-    icon: Zap,
-    description: "Abilities, skills, and special powers",
-    tabIds: ["skills", "supernatural", "equipment"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
-  },
-  {
-    id: "background",
-    label: "Life & Background",
-    icon: BookOpen,
-    description: "History, lifestyle, and cultural background",
-    tabIds: ["background", "legacy"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
-  }
-];
 
 interface CharacterEditorWithSidebarProps {
   config: ContentTypeFormConfig;
