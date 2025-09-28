@@ -60,6 +60,7 @@ import {
   type Law, type InsertLaw,
   type Policy, type InsertPolicy,
   type Potion, type InsertPotion,
+  type ChatMessage, type InsertChatMessage,
   users, characters, 
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
@@ -71,7 +72,8 @@ import {
   settlements, societies, factions, militaryUnits, myths, legends, events, spells,
   resources, buildings, animals, transportation, naturalLaws, traditions, rituals,
   familyTrees, timelines, ceremonies, maps, music, dances, laws, policies, potions,
-  type PinnedContent, type InsertPinnedContent, pinnedContent
+  type PinnedContent, type InsertPinnedContent, pinnedContent,
+  chatMessages
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, isNull, isNotNull, inArray, sql } from "drizzle-orm";
@@ -517,6 +519,11 @@ export interface IStorage {
   getUserQuickNote(userId: string): Promise<Note | undefined>;
   updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note>;
   deleteQuickNote(id: string, userId: string): Promise<void>;
+  
+  // Chat message methods
+  createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessages(userId: string, manuscriptId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]>;
+  deleteChatHistory(userId: string, manuscriptId?: string, guideId?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3323,6 +3330,62 @@ export class DatabaseStorage implements IStorage {
         eq(notes.userId, userId),
         eq(notes.type, 'quick_note')
       ));
+  }
+
+  // Chat message methods
+  async createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage> {
+    const [newMessage] = await db
+      .insert(chatMessages)
+      .values(chatMessage)
+      .returning();
+    return newMessage;
+  }
+
+  async getChatMessages(userId: string, manuscriptId?: string, guideId?: string, limit = 50): Promise<ChatMessage[]> {
+    let whereCondition = eq(chatMessages.userId, userId);
+    
+    if (manuscriptId) {
+      whereCondition = and(whereCondition, eq(chatMessages.manuscriptId, manuscriptId));
+    } else if (guideId) {
+      whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId));
+    } else {
+      // Get general chat messages (not associated with any specific document)
+      whereCondition = and(
+        whereCondition, 
+        isNull(chatMessages.manuscriptId), 
+        isNull(chatMessages.guideId)
+      );
+    }
+
+    const messages = await db
+      .select()
+      .from(chatMessages)
+      .where(whereCondition)
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
+    
+    return messages.reverse(); // Return in chronological order
+  }
+
+  async deleteChatHistory(userId: string, manuscriptId?: string, guideId?: string): Promise<void> {
+    let whereCondition = eq(chatMessages.userId, userId);
+    
+    if (manuscriptId) {
+      whereCondition = and(whereCondition, eq(chatMessages.manuscriptId, manuscriptId));
+    } else if (guideId) {
+      whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId));
+    } else {
+      // Delete general chat messages (not associated with any specific document)
+      whereCondition = and(
+        whereCondition, 
+        isNull(chatMessages.manuscriptId), 
+        isNull(chatMessages.guideId)
+      );
+    }
+
+    await db
+      .delete(chatMessages)
+      .where(whereCondition);
   }
 }
 

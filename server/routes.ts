@@ -540,6 +540,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat Messages API routes
+  app.post("/api/chat-messages", async (req, res) => {
+    try {
+      const { userId, manuscriptId, guideId, type, content, metadata } = z.object({
+        userId: z.string(),
+        manuscriptId: z.string().optional(),
+        guideId: z.string().optional(),
+        type: z.enum(['user', 'assistant']),
+        content: z.string(),
+        metadata: z.any().optional()
+      }).parse(req.body);
+
+      const chatMessage = await storage.createChatMessage({
+        userId,
+        manuscriptId: manuscriptId || null,
+        guideId: guideId || null,
+        type,
+        content,
+        metadata: metadata || null
+      });
+
+      res.json(chatMessage);
+    } catch (error) {
+      console.error('Error creating chat message:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.get("/api/chat-messages", async (req, res) => {
+    try {
+      const { userId, manuscriptId, guideId, limit } = z.object({
+        userId: z.string(),
+        manuscriptId: z.string().optional(),
+        guideId: z.string().optional(),
+        limit: z.coerce.number().optional().default(50)
+      }).parse(req.query);
+
+      const messages = await storage.getChatMessages(userId, manuscriptId, guideId, limit);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching chat messages:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.delete("/api/chat-messages", async (req, res) => {
+    try {
+      const { userId, manuscriptId, guideId } = z.object({
+        userId: z.string(),
+        manuscriptId: z.string().optional(),
+        guideId: z.string().optional()
+      }).parse(req.query);
+
+      await storage.deleteChatHistory(userId, manuscriptId, guideId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting chat history:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
