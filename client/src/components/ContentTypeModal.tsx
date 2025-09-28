@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, User, MapPin, Building, Zap, Book, FileText, UtensilsCrossed, Wine, Sword, Shield, Star, Globe, Users, Flag, Crown, Target, Scroll, Lightbulb, Rocket, TreePine, Package, Home, Palette, PaintBucket, Mountain, Car, Calculator, Feather, Sparkles, Circle, GitBranch, Clock, Camera, Music, PersonStanding, Scale, FileText as Policy, FlaskConical, Briefcase } from "lucide-react";
+import { Search, User, MapPin, Building, Zap, Book, FileText, UtensilsCrossed, Wine, Sword, Shield, Star, Globe, Users, Flag, Crown, Target, Scroll, Lightbulb, Package, Home, Palette, PaintBucket, Car, Calculator, Feather, Sparkles, Circle, GitBranch, Clock, Camera, Music, PersonStanding, Scale, FileText as Policy, FlaskConical, Briefcase } from "lucide-react";
 
 interface ContentType {
   id: string;

@@ -1,5 +1,5 @@
 import { DragEvent, useState, useRef, useEffect } from 'react';
-import { X, GripVertical, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink, Pin } from 'lucide-react';
+import { X, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -23,8 +23,6 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
     removePanel, 
     detachToFloating,
     assignToSplit,
-    toggleSplitMode,
-    currentLayout,
     reorderTabs,
     attachToTabBar
   } = useWorkspaceStore();
