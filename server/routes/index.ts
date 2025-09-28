@@ -57,6 +57,7 @@ import danceRoutes from "./dance.routes";
 import lawRoutes from "./law.routes";
 import policyRoutes from "./policy.routes";
 import potionRoutes from "./potion.routes";
+import notebookRoutes from "./notebook.routes";
 
 export function registerDomainRoutes(app: Express) {
   // Register all domain-specific routes
@@ -68,6 +69,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/settings", settingRoutes);
   app.use("/api/saved-items", savedItemRoutes);
   app.use("/api/projects", projectRoutes);
+  app.use("/api/notebooks", notebookRoutes);
   app.use("/api/names", nameRoutes);
   app.use("/api/conflicts", conflictRoutes);
   app.use("/api/themes", themeRoutes);

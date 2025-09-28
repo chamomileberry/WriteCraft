@@ -61,12 +61,13 @@ import {
   type Policy, type InsertPolicy,
   type Potion, type InsertPotion,
   type ChatMessage, type InsertChatMessage,
+  type Notebook, type InsertNotebook, type UpdateNotebook,
   users, characters, 
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
   languages, religions, technologies, weapons, professions,
   savedItems, names, themes, moods, conflicts, guides, projects, projectLinks,
-  folders, notes,
+  folders, notes, notebooks,
   // Missing content types - Import tables
   plants, descriptions, ethnicities, drinks, armor, accessories, clothing, materials,
   settlements, societies, factions, militaryUnits, myths, legends, events, spells,
@@ -93,6 +94,13 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
+  
+  // Notebook methods
+  createNotebook(notebook: InsertNotebook): Promise<Notebook>;
+  getNotebook(id: string, userId: string): Promise<Notebook | undefined>;
+  getUserNotebooks(userId: string): Promise<Notebook[]>;
+  updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined>;
+  deleteNotebook(id: string, userId: string): Promise<void>;
   
   // Character methods
   createCharacter(character: InsertCharacter): Promise<Character>;
@@ -544,6 +552,46 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+  
+  // Notebook methods
+  async createNotebook(notebook: InsertNotebook): Promise<Notebook> {
+    const [newNotebook] = await db
+      .insert(notebooks)
+      .values(notebook)
+      .returning();
+    return newNotebook;
+  }
+
+  async getNotebook(id: string, userId: string): Promise<Notebook | undefined> {
+    const [notebook] = await db
+      .select()
+      .from(notebooks)
+      .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
+    return notebook || undefined;
+  }
+
+  async getUserNotebooks(userId: string): Promise<Notebook[]> {
+    return await db
+      .select()
+      .from(notebooks)
+      .where(eq(notebooks.userId, userId))
+      .orderBy(desc(notebooks.createdAt));
+  }
+
+  async updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined> {
+    const [updatedNotebook] = await db
+      .update(notebooks)
+      .set(updates)
+      .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)))
+      .returning();
+    return updatedNotebook || undefined;
+  }
+
+  async deleteNotebook(id: string, userId: string): Promise<void> {
+    await db
+      .delete(notebooks)
+      .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
   }
   
   // Character methods

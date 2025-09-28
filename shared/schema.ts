@@ -1217,6 +1217,7 @@ export const music = pgTable("music", {
   length: text("length"),
   difficulty: text("difficulty"),
   variations: text("variations").array(),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
