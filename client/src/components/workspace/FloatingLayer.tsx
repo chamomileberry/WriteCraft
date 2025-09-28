@@ -6,7 +6,6 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { PanelDescriptor, useWorkspaceStore } from '@/stores/workspaceStore';
 import CharacterDetailPanel from './CharacterDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
-import { cn } from '@/lib/utils';
 
 interface FloatingWindowProps {
   panel: PanelDescriptor;
@@ -24,17 +23,17 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragStop = (e: any, data: { x: number; y: number }) => {
+  const handleDragStop = (_e: any, data: { x: number; y: number }) => {
     updatePanel(panel.id, { 
       position: { x: data.x, y: data.y } 
     });
   };
 
   const handleResizeStop = (
-    e: any,
-    direction: any,
+    _e: any,
+    _direction: any,
     ref: HTMLElement,
-    delta: any,
+    _delta: any,
     position: { x: number; y: number }
   ) => {
     updatePanel(panel.id, {

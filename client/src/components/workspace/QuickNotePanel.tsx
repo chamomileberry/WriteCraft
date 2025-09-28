@@ -5,14 +5,12 @@ import { apiRequest } from '@/lib/queryClient';
 
 interface QuickNotePanelProps {
   panelId: string;
-  onClose?: () => void;
-  onPin?: () => void;
   className?: string;
   onRegisterSaveFunction?: (fn: () => Promise<{ content: string; id: string }>) => void;
   onRegisterClearFunction?: (fn: () => void) => void;
 }
 
-export default function QuickNotePanel({ panelId, onClose, onPin, className, onRegisterSaveFunction, onRegisterClearFunction }: QuickNotePanelProps) {
+export default function QuickNotePanel({ panelId, className, onRegisterSaveFunction, onRegisterClearFunction }: QuickNotePanelProps) {
   const [content, setContent] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);

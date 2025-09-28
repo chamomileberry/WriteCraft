@@ -11,7 +11,7 @@ interface DockingZoneProps {
 }
 
 export const DockingZone = ({ slot, className = '' }: DockingZoneProps) => {
-  const { getDockedPanels, undockPanel, dockPanel } = useWorkspaceStore();
+  const { getDockedPanels, undockPanel } = useWorkspaceStore();
   const dockedPanels = getDockedPanels(slot);
   
   // Drag and drop will be implemented later - for now use buttons

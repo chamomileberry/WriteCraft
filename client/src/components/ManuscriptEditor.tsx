@@ -63,7 +63,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { getMappingById } from '@shared/contentTypes';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { nanoid } from 'nanoid';

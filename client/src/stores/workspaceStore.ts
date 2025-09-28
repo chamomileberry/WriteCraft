@@ -138,7 +138,6 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           // Ensure regions structure exists (handle old persisted states)
           const safeRegions = state.currentLayout.regions || { main: [], split: [], docked: [], floating: [] };
           const safeMainRegion = safeRegions.main || [];
-          const safeSplitRegion = safeRegions.split || [];
           const safeDockedRegion = safeRegions.docked || [];
           
           // Check if panel already exists for this entity

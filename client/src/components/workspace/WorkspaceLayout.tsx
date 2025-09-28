@@ -15,8 +15,7 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
   const { 
     currentLayout, 
     getActiveTab, 
-    attachToTabBar, 
-    detachToFloating 
+    attachToTabBar
   } = useWorkspaceStore();
 
   const mainActiveTab = getActiveTab('main');

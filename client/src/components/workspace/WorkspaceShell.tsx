@@ -1,14 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Rnd } from 'react-rnd';
 import { useWorkspaceStore, type PanelDescriptor } from '@/stores/workspaceStore';
 import CharacterDetailPanel from './CharacterDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
 import WritingAssistantPanel from './WritingAssistantPanel';
-import { X, GripHorizontal, Pin, Save, Minimize2, ExternalLink } from 'lucide-react';
+import { X, GripHorizontal, Pin, Save, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
@@ -43,8 +43,6 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         return (
           <QuickNotePanel
             panelId={panel.id}
-            onClose={() => removePanel(panel.id)}
-            onPin={() => attachToTabBar(panel.id, 'main')}
             onRegisterSaveFunction={(fn) => {
               quickNoteSaveFunctions.current[panel.id] = fn;
             }}

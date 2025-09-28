@@ -4,15 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Mountain, Building, Trees, Waves, Sun, Users, Coins, Crown, Shield, Scroll, Star, AlertTriangle, Package } from "lucide-react";
+import { MapPin, Mountain, Building, Trees, Waves, Sun, Users, Coins, Crown, Shield, Scroll, Star, AlertTriangle } from "lucide-react";
 import { insertLocationSchema, type InsertLocation, type Location } from "@shared/schema";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface LocationFormProps {
   initialData?: Partial<Location>;
