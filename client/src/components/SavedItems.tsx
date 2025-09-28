@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Edit, Trash2, Copy, User, MapPin, Building, Star, Package, Users, Globe, Flag, Crown, Circle, Home, UtensilsCrossed, Wine, Sword, Shield, TreePine, Car, Calculator, Feather, Sparkles, Mountain, PaintBucket, StickyNote } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package } from "lucide-react";
+import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -52,95 +53,7 @@ interface SavedItem {
   createdAt: string;
 }
 
-// Icon mapping for all 40+ content types
-const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
-  // Quick Notes
-  quickNote: StickyNote,
-  
-  // People & Characters
-  character: User,
-  ethnicity: Users,
-  culture: Globe,
-  
-  // Places & Locations
-  location: MapPin,
-  settlement: Building,
-  building: Home,
-  geography: Mountain,
-  territory: MapPin,
-  district: Building,
-  city: Building,
-  country: Flag,
-  
-  // Organizations & Groups
-  organization: Building,
-  society: Users,
-  faction: Flag,
-  militaryunit: Crown,
-  
-  // Creatures & Life
-  species: Star,
-  creature: Star,
-  animal: Circle,
-  
-  // Items & Objects
-  item: Package,
-  weapon: Sword,
-  armor: Shield,
-  accessory: Package,
-  clothing: Package,
-  food: UtensilsCrossed,
-  drink: Wine,
-  material: Package,
-  resource: Package,
-  
-  // Knowledge & Culture
-  document: Package,
-  language: Feather,
-  religion: Star,
-  myth: Package,
-  legend: Package,
-  tradition: Package,
-  ritual: Star,
-  
-  // Events & Time
-  event: Package,
-  timeline: Package,
-  familytree: Users,
-  
-  // Nature & Environment
-  plant: TreePine,
-  condition: Package,
-  naturallaw: Package,
-  
-  // Technology & Magic
-  technology: Calculator,
-  spell: Sparkles,
-  
-  // Transportation & Infrastructure
-  transportation: Car,
-  
-  // Story Elements
-  plot: Package,
-  conflict: Package,
-  theme: Package,
-  mood: PaintBucket,
-  prompt: Package,
-  
-  // Professions & Roles
-  profession: User,
-  role: User,
-  title: Crown,
-  
-  // Culinary
-  cuisine: UtensilsCrossed,
-  
-  // Deities & Religion
-  deity: Star,
-  
-  // Fallback
-  setting: MapPin
-};
+// Icon mapping moved to centralized config - imported from @/config/content-types
 
 // Content type categories for filtering
 const CONTENT_CATEGORIES: { [key: string]: string[] } = {
@@ -451,7 +364,7 @@ export default function SavedItems() {
           ) : (
             Object.entries(groupedItems).map(([type, items]) => {
               const mapping = getMappingById(type);
-              const IconComponent = CONTENT_TYPE_ICONS[type] || Package;
+              const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
               
               return (
                 <div key={type} className="space-y-3">
@@ -537,7 +450,7 @@ export default function SavedItems() {
               {filteredItems.slice(0, 12).map((item) => {
                 const type = item.contentType || item.itemType || 'unknown';
                 const mapping = getMappingById(type);
-                const IconComponent = CONTENT_TYPE_ICONS[type] || Package;
+                const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
                 
                 return (
                   <Card key={item.id} className="group hover-elevate" data-testid={`card-recent-${item.id}`}>

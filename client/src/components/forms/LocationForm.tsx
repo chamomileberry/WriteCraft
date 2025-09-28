@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Mountain, Building, Trees, Waves, Sun, Users, Coins, Crown, Shield, Scroll, Star, AlertTriangle } from "lucide-react";
+import { MapPin, Mountain, Building, Users, Star } from "lucide-react";
 import { insertLocationSchema, type InsertLocation, type Location } from "@shared/schema";
+import { LOCATION_TYPES, CLIMATE_TYPES, FORM_GENRE_OPTIONS } from "@/config/form-options";
 import { useState } from "react";
 
 interface LocationFormProps {
@@ -20,37 +21,7 @@ interface LocationFormProps {
   isLoading?: boolean;
 }
 
-const locationTypes = [
-  { value: "city", label: "City", icon: Building },
-  { value: "town", label: "Town", icon: Building },
-  { value: "village", label: "Village", icon: Building },
-  { value: "capital", label: "Capital", icon: Crown },
-  { value: "fortress", label: "Fortress", icon: Shield },
-  { value: "castle", label: "Castle", icon: Crown },
-  { value: "port", label: "Port", icon: Waves },
-  { value: "forest", label: "Forest", icon: Trees },
-  { value: "mountain", label: "Mountain", icon: Mountain },
-  { value: "desert", label: "Desert", icon: Sun },
-  { value: "plains", label: "Plains", icon: MapPin },
-  { value: "swamp", label: "Swamp", icon: Trees },
-  { value: "island", label: "Island", icon: Waves },
-  { value: "dungeon", label: "Dungeon", icon: AlertTriangle },
-  { value: "temple", label: "Temple", icon: Star },
-  { value: "ruins", label: "Ruins", icon: Scroll },
-  { value: "tavern", label: "Tavern", icon: Building },
-  { value: "market", label: "Market", icon: Coins },
-  { value: "other", label: "Other", icon: MapPin }
-];
-
-const climateTypes = [
-  "Tropical", "Subtropical", "Temperate", "Continental", "Polar", "Arid", "Mediterranean", 
-  "Oceanic", "Subarctic", "Alpine", "Monsoon", "Magical", "Harsh", "Mild", "Variable"
-];
-
-const genres = [
-  "Fantasy", "Sci-Fi", "Historical", "Modern", "Post-Apocalyptic", "Steampunk", 
-  "Cyberpunk", "Medieval", "Victorian", "Ancient", "Futuristic", "Mythological"
-];
+// Constants moved to centralized config
 
 export default function LocationForm({ initialData, onSubmit, onGenerate, isLoading }: LocationFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
@@ -191,7 +162,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {locationTypes.map((type) => {
+                              {LOCATION_TYPES.map((type) => {
                                 const IconComponent = type.icon;
                                 return (
                                   <SelectItem key={type.value} value={type.value}>
@@ -246,7 +217,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {genres.map((genre) => (
+                              {FORM_GENRE_OPTIONS.map((genre) => (
                                 <SelectItem key={genre} value={genre}>
                                   {genre}
                                 </SelectItem>
@@ -271,7 +242,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {climateTypes.map((climate) => (
+                              {CLIMATE_TYPES.map((climate) => (
                                 <SelectItem key={climate} value={climate}>
                                   {climate}
                                 </SelectItem>

@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, BookOpen, FileText, Users, Map, Scroll, ExternalLink } from "lucide-react";
+import { Search, ExternalLink } from "lucide-react";
 import ContentTypeModal from "@/components/ContentTypeModal";
 import { getMappingById } from "@shared/contentTypes";
+import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 
 interface SearchResult {
   id: string;
@@ -19,16 +20,6 @@ interface SearchResult {
   content?: string;
   createdAt?: string;
 }
-
-const CONTENT_TYPE_ICONS: Record<string, any> = {
-  'guide': BookOpen,
-  'manuscript': FileText,
-  'character': Users,
-  'setting': Map,
-  'profession': Scroll,
-  'species': Users,
-  'default': FileText
-};
 
 export default function SearchPage() {
   const [location, setLocation] = useLocation();

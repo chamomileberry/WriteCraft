@@ -65,6 +65,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
+import { ManuscriptHeader } from './ManuscriptHeader';
+import { ContentSearch } from './ContentSearch';
+import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 
 // Custom HorizontalRule extension with proper backspace handling
@@ -567,74 +570,75 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     <WorkspaceLayout>
       <div className="flex h-full bg-background flex-col">
         {/* Header */}
-        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={onBack} data-testid="button-back" title="Back to Manuscripts">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                {isEditingTitle ? (
-                  <Input
-                    value={titleInput}
-                    onChange={(e) => setTitleInput(e.target.value)}
-                    onKeyDown={handleTitleKeyDown}
-                    onBlur={handleTitleSave}
-                    className="text-xl font-semibold h-8 px-2 -ml-2"
-                    data-testid="input-manuscript-title"
-                    autoFocus
-                    placeholder="Manuscript title..."
-                  />
-                ) : (
-                  <h1 
-                    className="text-xl font-semibold cursor-pointer hover:bg-accent/50 rounded px-2 py-1 -ml-2 transition-colors"
-                    onClick={handleTitleClick}
-                    data-testid="text-manuscript-title"
-                    title="Click to edit title"
-                  >
-                    {manuscript?.title || 'Untitled Manuscript'}
-                  </h1>
-                )}
-                <p className="text-sm text-muted-foreground">
-                  {editor?.storage.characterCount?.words() || 0} words
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-muted-foreground">
-                  {getSaveStatusText()}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleManualSave}
-                  disabled={saveMutation.isPending || saveStatus === 'saving'}
-                  data-testid="button-manual-save"
-                >
-                  {saveMutation.isPending || saveStatus === 'saving' ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  Save
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ManuscriptHeader
+          manuscript={manuscript}
+          wordCount={editor?.storage.characterCount?.words() || 0}
+          saveStatus={saveStatus}
+          lastSaveTime={lastSaveTime}
+          isEditingTitle={isEditingTitle}
+          titleInput={titleInput}
+          onBack={onBack}
+          onTitleClick={handleTitleClick}
+          onTitleChange={setTitleInput}
+          onTitleSave={handleTitleSave}
+          onTitleCancel={handleTitleCancel}
+          onTitleKeyDown={handleTitleKeyDown}
+          onManualSave={handleManualSave}
+          isSaving={saveMutation.isPending}
+        />
 
         {/* Editor Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Rich Text Toolbar */}
           <div className="border-b bg-background/95 backdrop-blur">
             <div className="flex items-center justify-between gap-2 p-4">
-              {/* Formatting Tools */}
-              <div className="flex items-center gap-1 flex-wrap">
-                {/* Basic Formatting */}
-                <Button
-                  variant={editor?.isActive('bold') ? 'default' : 'outline'}
-                  size="sm"
+              {/* Left side - Editor Toolbar */}
+              <div className="flex-1">
+                <EditorToolbar 
+                  editor={editor} 
+                  manuscript={manuscript}
+                  onExport={undefined}
+                  onPrint={() => window.print()}
+                  onFocusMode={() => {
+                    const toolbar = document.querySelector('.border-b.bg-background\\/95');
+                    const sidebar = document.querySelector('[data-sidebar]');
+                    if (toolbar) {
+                      toolbar.classList.toggle('hidden');
+                    }
+                    if (sidebar) {
+                      sidebar.classList.toggle('hidden');
+                    }
+                  }}
+                />
+              </div>
+              
+              {/* Right side - Search */}
+              <div className="relative">
+                <ContentSearch
+                  searchQuery={searchQuery}
+                  searchResults={searchResults}
+                  isSearching={isSearching}
+                  onSearchChange={setSearchQuery}
+                  onInsertLink={insertLink}
+                  onOpenInPanel={openInPanel}
+                />
+              </div>
+            </div>
+          {/* Editor */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80">
+              <EditorContent editor={editor} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </WorkspaceLayout>
+  );
+});
+
+ManuscriptEditor.displayName = 'ManuscriptEditor';
+
+export default ManuscriptEditor;
                   onClick={() => editor?.chain().focus().toggleBold().run()}
                   disabled={!editor?.can().chain().focus().toggleBold().run()}
                   data-testid="button-bold"

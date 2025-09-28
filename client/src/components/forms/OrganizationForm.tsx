@@ -9,10 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building, Users, Crown, Shield, Coins, Globe, Star, Flag, BookOpen, Handshake, Swords } from "lucide-react";
 import { insertOrganizationSchema, type InsertOrganization, type Organization } from "@shared/schema";
+import { ORGANIZATION_TYPES, INFLUENCE_LEVELS, FORM_GENRE_OPTIONS } from "@/config/form-options";
 import { useState } from "react";
 import { z } from "zod";
+import { Building, Star, Flag, Users, Globe, Handshake } from "lucide-react";
 
 interface OrganizationFormProps {
   initialData?: Partial<Organization>;
@@ -21,36 +22,7 @@ interface OrganizationFormProps {
   isLoading?: boolean;
 }
 
-const organizationTypes = [
-  { value: "guild", label: "Guild", icon: Users },
-  { value: "faction", label: "Faction", icon: Flag },
-  { value: "government", label: "Government", icon: Crown },
-  { value: "military", label: "Military", icon: Shield },
-  { value: "religious", label: "Religious Order", icon: Star },
-  { value: "merchant", label: "Merchant Company", icon: Coins },
-  { value: "criminal", label: "Criminal Organization", icon: Swords },
-  { value: "academic", label: "Academic Institution", icon: BookOpen },
-  { value: "secret", label: "Secret Society", icon: Shield },
-  { value: "noble", label: "Noble House", icon: Crown },
-  { value: "tribal", label: "Tribal Council", icon: Users },
-  { value: "corporate", label: "Corporation", icon: Building },
-  { value: "cult", label: "Cult", icon: Star },
-  { value: "rebellion", label: "Rebellion", icon: Swords },
-  { value: "alliance", label: "Alliance", icon: Handshake },
-  { value: "order", label: "Knightly Order", icon: Shield },
-  { value: "syndicate", label: "Syndicate", icon: Coins },
-  { value: "other", label: "Other", icon: Building }
-];
-
-const influenceLevels = [
-  "Local", "Regional", "National", "International", "Continental", "Global",
-  "Minor", "Moderate", "Major", "Dominant", "Legendary", "Mythical"
-];
-
-const genres = [
-  "Fantasy", "Sci-Fi", "Modern", "Historical", "Post-Apocalyptic", "Steampunk", 
-  "Cyberpunk", "Medieval", "Victorian", "Ancient", "Futuristic", "Political"
-];
+// Constants moved to centralized config
 
 // Dedicated form schema that extends the base schema for optional array fields
 const organizationFormSchema = insertOrganizationSchema.extend({
@@ -178,7 +150,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {organizationTypes.map((type) => {
+                              {ORGANIZATION_TYPES.map((type) => {
                                 const IconComponent = type.icon;
                                 return (
                                   <SelectItem key={type.value} value={type.value}>
@@ -256,7 +228,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {genres.map((genre) => (
+                            {FORM_GENRE_OPTIONS.map((genre) => (
                               <SelectItem key={genre} value={genre}>
                                 {genre}
                               </SelectItem>
@@ -381,7 +353,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {influenceLevels.map((level) => (
+                            {INFLUENCE_LEVELS.map((level) => (
                               <SelectItem key={level} value={level}>
                                 {level}
                               </SelectItem>
