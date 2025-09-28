@@ -9,9 +9,6 @@ import { itemConfig } from './item';
 import { buildingConfig } from './building';
 import { creatureConfig } from './creature';
 
-// Import remaining configs from the original file (temporary until all are split)
-import { contentTypeFormConfigs as originalConfigs } from '../../components/forms/ContentTypeFormConfig';
-
 // Static configurations for core content types
 const staticConfigs: Record<string, ContentTypeFormConfig> = {
   character: characterConfig,
@@ -21,12 +18,6 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   item: itemConfig,
   building: buildingConfig,
   creature: creatureConfig,
-  // Include remaining configs from original file to maintain functionality
-  ...Object.fromEntries(
-    Object.entries(originalConfigs).filter(([key]) => 
-      !['character', 'weapon', 'location', 'organization', 'item', 'building', 'creature'].includes(key)
-    )
-  ),
 };
 
 // Dynamic import factory for less frequently used content types
@@ -89,20 +80,44 @@ export async function getContentTypeConfig(contentType: string): Promise<Content
     }
   }
 
+  // Fallback: Try to load from original monolithic file (only loads when needed)
+  try {
+    const { contentTypeFormConfigs } = await import('../../components/forms/ContentTypeFormConfig');
+    const config = contentTypeFormConfigs[contentType];
+    if (config) {
+      configCache.set(contentType, config);
+      return config;
+    }
+  } catch (error) {
+    console.error(`Failed to load fallback config for content type: ${contentType}`, error);
+  }
+
   // Content type not found
   console.warn(`No configuration found for content type: ${contentType}`);
   return null;
 }
 
+// Hardcoded list of all known content types (extracted from monolithic file)
+// This provides immediate access without loading the large file
+const ALL_CONTENT_TYPES = [
+  // Static configs (loaded immediately)
+  'character', 'weapon', 'location', 'organization', 'item', 'building', 'creature',
+  // Dynamic/fallback configs (loaded on demand)
+  'plot', 'language', 'species', 'food', 'drink', 'armor', 'religion', 'technology', 
+  'spell', 'animal', 'resource', 'ethnicity', 'culture', 'document', 'accessory', 
+  'clothing', 'material', 'settlement', 'society', 'faction', 'militaryUnit', 
+  'transportation', 'naturalLaw', 'tradition', 'ritual', 'setting', 'name', 
+  'conflict', 'theme', 'mood', 'plant', 'description', 'myth', 'legend', 'event', 
+  'familyTree', 'timeline', 'map', 'ceremony', 'music', 'dance', 'law', 'policy', 
+  'potion', 'prompt', 'profession'
+];
+
 /**
- * Get all available content type keys
+ * Get all available content type keys (synchronous, no imports)
  * @returns Array of all available content type keys
  */
 export function getAvailableContentTypes(): string[] {
-  return [
-    ...Object.keys(staticConfigs),
-    ...Object.keys(dynamicConfigLoaders)
-  ].sort();
+  return ALL_CONTENT_TYPES.slice(); // Return a copy to prevent mutation
 }
 
 /**
@@ -120,7 +135,7 @@ export function getStaticContentTypeConfig(contentType: string): ContentTypeForm
  * @returns True if the content type is available
  */
 export function isContentTypeAvailable(contentType: string): boolean {
-  return contentType in staticConfigs || contentType in dynamicConfigLoaders;
+  return ALL_CONTENT_TYPES.includes(contentType);
 }
 
 /**

@@ -11,7 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { getMappingById } from "@shared/contentTypes";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
-import { contentTypeFormConfigs } from "@/components/forms/content-types";
+import { getContentTypeConfig } from "@/configs/content-types";
+import type { ContentTypeFormConfig } from "@/components/forms/types";
 
 interface ContentEditorProps {
   contentType: string;
@@ -23,7 +24,17 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const [editingData, setEditingData] = useState<any>({});
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
   const [createdItemId, setCreatedItemId] = useState<string | null>(null); // Track newly created item
+  const [formConfig, setFormConfig] = useState<ContentTypeFormConfig | null>(null);
   const { toast } = useToast();
+
+  // Load content type configuration
+  useEffect(() => {
+    async function loadConfig() {
+      const config = await getContentTypeConfig(contentType);
+      setFormConfig(config);
+    }
+    loadConfig();
+  }, [contentType]);
   
   // Get the content type mapping
   const mapping = getMappingById(contentType);
@@ -286,7 +297,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           ) : (
             <>
               {/* Only show header save buttons for generic forms, not dynamic forms */}
-              {!contentTypeFormConfigs[contentType] && (
+              {!formConfig && (
                 <>
                   <Button variant="outline" onClick={handleCancel} data-testid="button-cancel-editing">
                     Cancel
@@ -312,7 +323,6 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
 
       {/* Dynamic Form System or Generic Fallback */}
       {(() => {
-        const formConfig = contentTypeFormConfigs[contentType];
         
         if (formConfig && (isEditing || isCreating)) {
           // Use character sidebar editor for characters specifically
