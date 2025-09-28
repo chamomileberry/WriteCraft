@@ -307,7 +307,7 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
     <div className={`h-full flex flex-col bg-background overflow-hidden ${className}`} data-testid={`writing-assistant-panel-${panelId}`}>
       {/* Header */}
       <div className="flex items-center gap-2 p-3 border-b flex-shrink-0">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-purple-500 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)'}}>
           <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1">
