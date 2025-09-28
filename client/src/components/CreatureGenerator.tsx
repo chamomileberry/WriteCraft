@@ -3,10 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Label } from "@/components/ui/label";
-import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Check, ChevronsUpDown, Brain, Globe } from "lucide-react";
+import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Brain, Globe } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +18,6 @@ export default function CreatureGenerator() {
   const [generatedCreature, setGeneratedCreature] = useState<Creature | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedCreatureType, setSelectedCreatureType] = useState<string>("");
-  const [genreSearchOpen, setGenreSearchOpen] = useState(false);
-  const [creatureTypeSearchOpen, setCreatureTypeSearchOpen] = useState(false);
   const { toast } = useToast();
 
   const generateMutation = useMutation({
@@ -132,121 +129,37 @@ ${generatedCreature.culturalSignificance}`;
           {/* Genre Selection */}
           <div className="space-y-2">
             <Label>Genre (Optional)</Label>
-            <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={genreSearchOpen}
-                  className="w-full justify-between"
-                  data-testid="button-genre-select"
-                >
-                  {selectedGenre ? selectedGenre : "Any Genre"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search genres..." data-testid="input-genre-search" />
-                  <CommandList>
-                    <CommandEmpty>No genre found.</CommandEmpty>
-                    <CommandItem
-                      value=""
-                      onSelect={() => {
-                        setSelectedGenre("");
-                        setGenreSearchOpen(false);
-                      }}
-                      data-testid="option-any-genre"
-                    >
-                      <Check
-                        className={`mr-2 h-4 w-4 ${selectedGenre === "" ? "opacity-100" : "opacity-0"}`}
-                      />
-                      Any Genre
-                    </CommandItem>
-                    {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                      <CommandGroup key={category} heading={category}>
-                        {genres.map((genre) => (
-                          <CommandItem
-                            key={genre}
-                            value={genre}
-                            onSelect={(currentValue) => {
-                              setSelectedGenre(currentValue === selectedGenre ? "" : currentValue);
-                              setGenreSearchOpen(false);
-                            }}
-                            data-testid={`option-genre-${genre}`}
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${selectedGenre === genre ? "opacity-100" : "opacity-0"}`}
-                            />
-                            {genre}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <SearchableSelect
+              value={selectedGenre}
+              onValueChange={setSelectedGenre}
+              categorizedOptions={GENRE_CATEGORIES}
+              placeholder="Any Genre"
+              searchPlaceholder="Search genres..."
+              emptyText="No genre found."
+              className="w-full justify-between"
+              testId="button-genre-select"
+              allowEmpty={true}
+              emptyLabel="Any Genre"
+              formatLabel={(value) => value}
+            />
           </div>
 
           {/* Creature Type Selection */}
           <div className="space-y-2">
             <Label>Creature Type (Optional)</Label>
-            <Popover open={creatureTypeSearchOpen} onOpenChange={setCreatureTypeSearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={creatureTypeSearchOpen}
-                  className="w-full justify-between"
-                  data-testid="button-creature-type-select"
-                >
-                  {selectedCreatureType ? selectedCreatureType : "Any Creature Type"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search creature types..." data-testid="input-creature-type-search" />
-                  <CommandList>
-                    <CommandEmpty>No creature type found.</CommandEmpty>
-                    <CommandItem
-                      value=""
-                      onSelect={() => {
-                        setSelectedCreatureType("");
-                        setCreatureTypeSearchOpen(false);
-                      }}
-                      data-testid="option-any-creature-type"
-                    >
-                      <Check
-                        className={`mr-2 h-4 w-4 ${selectedCreatureType === "" ? "opacity-100" : "opacity-0"}`}
-                      />
-                      Any Creature Type
-                    </CommandItem>
-                    {Object.entries(CREATURE_TYPE_CATEGORIES).map(([category, types]) => (
-                      <CommandGroup key={category} heading={category}>
-                        {types.map((type) => (
-                          <CommandItem
-                            key={type}
-                            value={type}
-                            onSelect={(currentValue) => {
-                              setSelectedCreatureType(currentValue === selectedCreatureType ? "" : currentValue);
-                              setCreatureTypeSearchOpen(false);
-                            }}
-                            data-testid={`option-creature-type-${type}`}
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${selectedCreatureType === type ? "opacity-100" : "opacity-0"}`}
-                            />
-                            {type}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <SearchableSelect
+              value={selectedCreatureType}
+              onValueChange={setSelectedCreatureType}
+              categorizedOptions={CREATURE_TYPE_CATEGORIES}
+              placeholder="Any Creature Type"
+              searchPlaceholder="Search creature types..."
+              emptyText="No creature type found."
+              className="w-full justify-between"
+              testId="button-creature-type-select"
+              allowEmpty={true}
+              emptyLabel="Any Creature Type"
+              formatLabel={(value) => value}
+            />
           </div>
 
           <Button 

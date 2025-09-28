@@ -4,10 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
-import { Shuffle, Copy, Heart, Loader2, Check, ChevronsUpDown, Edit } from "lucide-react";
+import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -36,8 +35,6 @@ export default function CharacterGenerator() {
   const [genre, setGenre] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [ethnicity, setEthnicity] = useState<string>("");
-  const [genreSearchOpen, setGenreSearchOpen] = useState(false);
-  const [ethnicitySearchOpen, setEthnicitySearchOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -151,45 +148,16 @@ export default function CharacterGenerator() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
-            <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={genreSearchOpen}
-                  className="sm:w-48 justify-between"
-                  data-testid="select-genre"
-                >
-                  {genre ? genre.charAt(0).toUpperCase() + genre.slice(1) : "Select genre..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search genres..." />
-                  <CommandList className="max-h-60">
-                    <CommandEmpty>No genre found.</CommandEmpty>
-                    {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                      <CommandGroup key={category} heading={category}>
-                        {genres.map((genreOption) => (
-                          <CommandItem
-                            key={genreOption}
-                            value={genreOption}
-                            onSelect={() => {
-                              setGenre(genreOption);
-                              setGenreSearchOpen(false);
-                            }}
-                          >
-                            <Check className={`mr-2 h-4 w-4 ${genre === genreOption ? "opacity-100" : "opacity-0"}`} />
-                            {genreOption.charAt(0).toUpperCase() + genreOption.slice(1)}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <SearchableSelect
+              value={genre}
+              onValueChange={setGenre}
+              categorizedOptions={GENRE_CATEGORIES}
+              placeholder="Select genre..."
+              searchPlaceholder="Search genres..."
+              emptyText="No genre found."
+              className="sm:w-48 justify-between"
+              testId="select-genre"
+            />
 
             <Select value={gender} onValueChange={setGender}>
               <SelectTrigger className="sm:w-48" data-testid="select-gender">
@@ -204,45 +172,17 @@ export default function CharacterGenerator() {
               </SelectContent>
             </Select>
 
-            <Popover open={ethnicitySearchOpen} onOpenChange={setEthnicitySearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={ethnicitySearchOpen}
-                  className="sm:w-48 justify-between"
-                  data-testid="select-ethnicity"
-                >
-                  {ethnicity ? ethnicity : "Select ethnicity..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search ethnicities..." />
-                  <CommandList className="max-h-60">
-                    <CommandEmpty>No ethnicity found.</CommandEmpty>
-                    {Object.entries(ETHNICITY_CATEGORIES).map(([category, ethnicities]) => (
-                      <CommandGroup key={category} heading={category}>
-                        {ethnicities.map((ethnicityOption) => (
-                          <CommandItem
-                            key={ethnicityOption}
-                            value={ethnicityOption}
-                            onSelect={() => {
-                              setEthnicity(ethnicityOption);
-                              setEthnicitySearchOpen(false);
-                            }}
-                          >
-                            <Check className={`mr-2 h-4 w-4 ${ethnicity === ethnicityOption ? "opacity-100" : "opacity-0"}`} />
-                            {ethnicityOption}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <SearchableSelect
+              value={ethnicity}
+              onValueChange={setEthnicity}
+              categorizedOptions={ETHNICITY_CATEGORIES}
+              placeholder="Select ethnicity..."
+              searchPlaceholder="Search ethnicities..."
+              emptyText="No ethnicity found."
+              className="sm:w-48 justify-between"
+              testId="select-ethnicity"
+              formatLabel={(value) => value}
+            />
             
             <Button 
               onClick={generateCharacter}
