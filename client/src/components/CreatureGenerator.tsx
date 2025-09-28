@@ -45,9 +45,10 @@ export default function CreatureGenerator() {
   const saveMutation = useMutation({
     mutationFn: async (creature: Creature) => {
       const res = await apiRequest('POST', '/api/saved-items', {
-        userId: null,
+        userId: 'guest', // Use guest user for consistency 
         itemType: 'creature',
-        itemId: creature.id
+        itemId: creature.id,
+        itemData: creature // Include the complete creature data
       });
       return await res.json();
     },

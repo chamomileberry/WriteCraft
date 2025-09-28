@@ -79,7 +79,8 @@ export default function PlantGenerator() {
       const response = await apiRequest('POST', '/api/saved-items', {
         userId: 'guest', // For now, using guest user
         itemType: 'plant',
-        itemId: currentPlant.id
+        itemId: currentPlant.id,
+        itemData: currentPlant // Include the complete plant data
       });
       return response.json();
     },

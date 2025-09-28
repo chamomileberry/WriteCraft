@@ -49,9 +49,10 @@ export default function SettingGenerator() {
   const saveMutation = useMutation({
     mutationFn: async (setting: Setting) => {
       const res = await apiRequest('POST', '/api/saved-items', {
-        userId: null,
+        userId: 'guest', // Use guest user for consistency
         itemType: 'setting',
-        itemId: setting.id
+        itemId: setting.id,
+        itemData: setting // Include the complete setting data
       });
       return await res.json();
     },

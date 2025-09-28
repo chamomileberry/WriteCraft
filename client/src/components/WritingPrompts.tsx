@@ -69,7 +69,8 @@ export default function WritingPrompts() {
       const response = await apiRequest('POST', '/api/saved-items', {
         userId: 'guest', // For now, using guest user
         itemType: 'prompt',
-        itemId: currentPrompt.id
+        itemId: currentPrompt.id,
+        itemData: currentPrompt // Include the complete prompt data
       });
       return response.json();
     },

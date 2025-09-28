@@ -130,7 +130,8 @@ export default function DescriptionGenerator() {
       const res = await apiRequest('POST', '/api/saved-items', {
         userId: 'guest', // Use guest user for consistency with Notebook
         itemType: 'description',
-        itemId: description.id
+        itemId: description.id,
+        itemData: description // Include the complete description data
       });
       return await res.json();
     },

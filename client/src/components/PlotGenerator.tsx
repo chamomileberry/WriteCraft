@@ -81,7 +81,8 @@ export default function PlotGenerator() {
       const response = await apiRequest('POST', '/api/saved-items', {
         userId: 'guest', // For now, using guest user
         itemType: 'plot',
-        itemId: plot.id
+        itemId: plot.id,
+        itemData: plot // Include the complete plot data
       });
       return response.json();
     },
