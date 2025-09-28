@@ -388,8 +388,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Writing Assistant API routes
   app.post("/api/writing-assistant/analyze", async (req, res) => {
     try {
-      const { text } = z.object({ text: z.string() }).parse(req.body);
-      const analysis = await analyzeText(text);
+      const { text, editorContent, documentTitle, documentType } = z.object({ 
+        text: z.string(),
+        editorContent: z.string().optional(),
+        documentTitle: z.string().optional(),
+        documentType: z.enum(['manuscript', 'guide']).optional()
+      }).parse(req.body);
+      const analysis = await analyzeText(text, editorContent, documentTitle, documentType);
       res.json(analysis);
     } catch (error) {
       console.error('Error analyzing text:', error);
@@ -403,11 +408,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/writing-assistant/rephrase", async (req, res) => {
     try {
-      const { text, style } = z.object({ 
+      const { text, style, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(), 
-        style: z.string() 
+        style: z.string(),
+        editorContent: z.string().optional(),
+        documentTitle: z.string().optional(),
+        documentType: z.enum(['manuscript', 'guide']).optional()
       }).parse(req.body);
-      const rephrased = await rephraseText(text, style);
+      const rephrased = await rephraseText(text, style, editorContent, documentTitle, documentType);
       res.json({ text: rephrased });
     } catch (error) {
       console.error('Error rephrasing text:', error);
@@ -421,8 +429,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/writing-assistant/proofread", async (req, res) => {
     try {
-      const { text } = z.object({ text: z.string() }).parse(req.body);
-      const result = await proofreadText(text);
+      const { text, editorContent, documentTitle, documentType } = z.object({ 
+        text: z.string(),
+        editorContent: z.string().optional(),
+        documentTitle: z.string().optional(),
+        documentType: z.enum(['manuscript', 'guide']).optional()
+      }).parse(req.body);
+      const result = await proofreadText(text, editorContent, documentTitle, documentType);
       res.json(result);
     } catch (error) {
       console.error('Error proofreading text:', error);
@@ -466,8 +479,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/writing-assistant/questions", async (req, res) => {
     try {
-      const { text } = z.object({ text: z.string() }).parse(req.body);
-      const questions = await generateQuestions(text);
+      const { text, editorContent, documentTitle, documentType } = z.object({ 
+        text: z.string(),
+        editorContent: z.string().optional(),
+        documentTitle: z.string().optional(),
+        documentType: z.enum(['manuscript', 'guide']).optional()
+      }).parse(req.body);
+      const questions = await generateQuestions(text, editorContent, documentTitle, documentType);
       res.json({ questions });
     } catch (error) {
       console.error('Error generating questions:', error);
@@ -499,15 +517,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/writing-assistant/chat", async (req, res) => {
     try {
-      const { message, conversationHistory } = z.object({ 
+      const { message, conversationHistory, editorContent, documentTitle, documentType } = z.object({ 
         message: z.string(), 
         conversationHistory: z.array(z.object({
           role: z.enum(['user', 'assistant']),
           content: z.string()
-        })).optional()
+        })).optional(),
+        editorContent: z.string().optional(),
+        documentTitle: z.string().optional(),
+        documentType: z.enum(['manuscript', 'guide']).optional()
       }).parse(req.body);
       
-      const response = await conversationalChat(message, conversationHistory);
+      const response = await conversationalChat(message, conversationHistory, editorContent, documentTitle, documentType);
       res.json({ message: response });
     } catch (error) {
       console.error('Error in conversational chat:', error);
