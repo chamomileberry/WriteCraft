@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import {
@@ -276,9 +276,17 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     );
   };
 
-  // Get orphaned notes (notes without folders)
-  const orphanedNotes = notes.filter((note: { folderId?: string }) => !note.folderId);
-  const hierarchicalFolders = buildFolderHierarchy(folders, notes);
+  // Get orphaned notes (notes without folders) - memoized for performance
+  const orphanedNotes = useMemo(() => 
+    notes.filter((note: { folderId?: string }) => !note.folderId),
+    [notes]
+  );
+
+  // Build hierarchical folder structure - memoized for performance
+  const hierarchicalFolders = useMemo(() => 
+    buildFolderHierarchy(folders, notes),
+    [folders, notes]
+  );
 
   return (
     <Sidebar collapsible="offcanvas">

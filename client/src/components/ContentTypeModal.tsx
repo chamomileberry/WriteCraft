@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -93,12 +93,16 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
 
   const categories = Array.from(new Set(CONTENT_TYPES.map(type => type.category)));
   
-  const filteredTypes = CONTENT_TYPES.filter(type => {
-    const matchesSearch = type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         type.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || type.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Memoize expensive filtering operation for performance
+  const filteredTypes = useMemo(() => 
+    CONTENT_TYPES.filter(type => {
+      const matchesSearch = type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           type.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = !selectedCategory || type.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    }),
+    [searchQuery, selectedCategory]
+  );
 
   const handleSelectType = (contentType: string) => {
     onSelectType(contentType);
