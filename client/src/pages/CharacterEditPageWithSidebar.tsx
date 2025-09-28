@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type UpdateCharacter, type Character } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { contentTypeFormConfigs } from "@/components/forms/ContentTypeFormConfig";
+import { characterConfig } from "@/components/forms/content-types";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -149,7 +149,7 @@ export default function CharacterEditPageWithSidebar() {
 
       {/* Character Editor */}
       <CharacterEditorWithSidebar
-        config={contentTypeFormConfigs.character}
+        config={characterConfig}
         initialData={character}
         onSubmit={onSubmit}
         onGenerate={handleGenerate}

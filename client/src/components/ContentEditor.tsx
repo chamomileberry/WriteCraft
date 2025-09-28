@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getMappingById } from "@shared/contentTypes";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
-import { contentTypeFormConfigs } from "@/components/forms/ContentTypeFormConfig";
+import { contentTypeFormConfigs } from "@/components/forms/content-types";
 
 interface ContentEditorProps {
   contentType: string;
