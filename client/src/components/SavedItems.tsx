@@ -9,7 +9,7 @@ import { Search, Edit, Trash2, Copy, User, MapPin, Building, Star, Package, User
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { CONTENT_TYPE_MAPPINGS, getMappingById } from "@shared/contentTypes";
+import { getMappingById } from "@shared/contentTypes";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {

@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown, Cloud } from "lucide-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Setting } from "@shared/schema";
@@ -15,8 +15,6 @@ import { GENRE_CATEGORIES, SETTING_TYPE_CATEGORIES } from "../../../server/genre
 
 // Now using backend data - imported from server/genres.ts
 
-const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
-const ALL_SETTING_TYPES = Object.values(SETTING_TYPE_CATEGORIES).flat();
 
 export default function SettingGenerator() {
   const [generatedSetting, setGeneratedSetting] = useState<Setting | null>(null);
