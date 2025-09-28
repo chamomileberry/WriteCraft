@@ -117,7 +117,8 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           await apiRequest('POST', '/api/saved-items', {
             userId: 'guest', // Use guest user for consistency with Notebook
             itemType: contentType,
-            itemId: result.id
+            itemId: result.id,
+            itemData: result // Include the complete data from the successful creation
           });
           console.log('Successfully saved item to saved-items:', { contentType, itemId: result.id });
         } catch (error) {
