@@ -5,6 +5,7 @@ import { NodeSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
+import { suggestion } from '@/lib/suggestion';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -286,6 +287,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         HTMLAttributes: {
           class: 'bg-primary/10 text-primary px-1 py-0.5 rounded-md border border-primary/20',
         },
+        suggestion,
       }),
       Image.configure({
         HTMLAttributes: {
@@ -423,11 +425,12 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     }
   };
 
-  // Search and content interaction
-  const insertLink = (item: SearchResult) => {
+  // Search and content interaction - use @ mentions instead
+  const insertMention = (item: SearchResult) => {
     if (editor) {
-      const linkText = `[[${item.title}]]`;
-      editor.chain().focus().insertContent(linkText).run();
+      // Focus the editor and trigger mention suggestion
+      editor.chain().focus().insertContent('@').run();
+      // The mention system will handle the rest through the suggestion configuration
     }
   };
 
@@ -764,12 +767,12 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => insertLink(item)}
+                                  onClick={() => insertMention(item)}
                                   className="h-6 w-6 p-0"
-                                  title="Insert as link"
-                                  data-testid={`button-insert-link-${item.type}-${item.id}`}
+                                  title="Insert as mention (type @ to search)"
+                                  data-testid={`button-insert-mention-${item.type}-${item.id}`}
                                 >
-                                  <Plus className="h-3 w-3" />
+                                  <span className="text-xs font-bold">@</span>
                                 </Button>
                                 <Button
                                   variant="ghost"
