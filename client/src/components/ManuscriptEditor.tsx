@@ -59,7 +59,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useWorkspaceStore } from '@/stores/workspaceStore';
+import { useWorkspaceStore, EditorActions } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ManuscriptHeader } from './ManuscriptHeader';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
@@ -212,7 +212,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext } = useWorkspaceStore();
+  const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
 
   // Fetch manuscript data
   const { data: manuscript, isLoading: isLoadingManuscript } = useQuery({
@@ -402,6 +402,31 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       });
     }
   }, [manuscript, editor, manuscriptId, updateEditorContext]);
+
+  // Register editor actions for cross-component communication
+  useEffect(() => {
+    if (editor) {
+      const editorActions: EditorActions = {
+        insertContent: (content: string) => {
+          editor.chain().focus().insertContent(content).run();
+        },
+        replaceContent: (content: string) => {
+          editor.commands.setContent(content);
+        },
+        replaceSelection: (content: string) => {
+          editor.chain().focus().deleteSelection().insertContent(content).run();
+        },
+        selectAll: () => {
+          editor.commands.selectAll();
+        },
+        insertAtCursor: (content: string) => {
+          editor.chain().focus().insertContent(content).run();
+        }
+      };
+      
+      registerEditorActions(editorActions);
+    }
+  }, [editor, registerEditorActions]);
 
   // Clear editor context on unmount
   useEffect(() => {

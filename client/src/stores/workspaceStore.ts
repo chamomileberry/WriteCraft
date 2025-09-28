@@ -2,6 +2,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
 
+export interface EditorActions {
+  insertContent: (content: string) => void;
+  replaceContent: (content: string) => void;
+  replaceSelection: (content: string) => void;
+  selectAll: () => void;
+  insertAtCursor: (content: string) => void;
+}
+
 export interface PanelDescriptor {
   id: string;
   type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript' | 'quickNote' | 'writingAssistant';
@@ -53,6 +61,9 @@ interface WorkspaceState {
     entityId: string | null; // ID of the document being edited
   };
   
+  // Editor actions for cross-component communication
+  editorActions: EditorActions | null;
+  
   // Actions
   addPanel: (panel: PanelDescriptor) => void;
   removePanel: (panelId: string) => void;
@@ -94,6 +105,10 @@ interface WorkspaceState {
   updateEditorContext: (context: Partial<WorkspaceState['editorContext']>) => void;
   clearEditorContext: () => void;
   getEditorContext: () => WorkspaceState['editorContext'];
+  
+  // Editor actions for cross-component communication
+  registerEditorActions: (actions: EditorActions) => void;
+  executeEditorAction: (action: string, ...args: any[]) => boolean;
 }
 
 const defaultLayout: WorkspaceLayout = {
@@ -153,6 +168,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         type: null,
         entityId: null
       },
+      editorActions: null,
       
       addPanel: (panel: PanelDescriptor) => {
         set((state) => {
@@ -653,6 +669,31 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 
       getEditorContext: () => {
         return get().editorContext;
+      },
+
+      registerEditorActions: (actions: EditorActions) => {
+        set({ editorActions: actions });
+      },
+
+      executeEditorAction: (action: string, ...args: any[]): boolean => {
+        const editorActions = get().editorActions;
+        if (!editorActions) {
+          console.warn('No editor actions registered');
+          return false;
+        }
+
+        if (action in editorActions) {
+          try {
+            (editorActions as any)[action](...args);
+            return true;
+          } catch (error) {
+            console.error(`Failed to execute editor action ${action}:`, error);
+            return false;
+          }
+        } else {
+          console.warn(`Unknown editor action: ${action}`);
+          return false;
+        }
       }
     }),
     {
