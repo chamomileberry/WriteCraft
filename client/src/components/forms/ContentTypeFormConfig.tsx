@@ -1,4 +1,4 @@
-import { FormFieldType, FormTabConfig, ContentTypeFormConfig } from './types';
+import { ContentTypeFormConfig } from './types';
 
 // Field type configurations for different content types
 export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {

@@ -7,16 +7,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Check, ChevronsUpDown, Brain, Globe } from "lucide-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Creature } from "@shared/schema";
 import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "../../../server/genres";
 
 // Now using backend data - imported from server/genres.ts
-
-const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
-const ALL_CREATURE_TYPES = Object.values(CREATURE_TYPE_CATEGORIES).flat();
 
 export default function CreatureGenerator() {
   const [generatedCreature, setGeneratedCreature] = useState<Creature | null>(null);
