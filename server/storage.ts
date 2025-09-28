@@ -118,7 +118,7 @@ export interface IStorage {
   deleteCulture(id: string): Promise<void>;
 
   // Magic system methods
-  createMagic(magic: any): Promise<any>;
+  createMagic(): Promise<any>;
   getMagic(id: string): Promise<any | undefined>;
   getUserMagic(userId: string | null): Promise<any[]>;
   updateMagic(id: string, updates: any): Promise<any>;
@@ -166,7 +166,7 @@ export interface IStorage {
   deleteWeapon(id: string): Promise<void>;
 
   // Vehicle methods
-  createVehicle(vehicle: any): Promise<any>;
+  createVehicle(): Promise<any>;
   getVehicle(id: string): Promise<any | undefined>;
   getUserVehicles(userId: string | null): Promise<any[]>;
   updateVehicle(id: string, updates: any): Promise<any>;
@@ -622,7 +622,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Magic system methods (not implemented - table doesn't exist)
-  async createMagic(magic: any): Promise<any> {
+  async createMagic(): Promise<any> {
     throw new Error('Magic system not implemented');
   }
 
@@ -867,7 +867,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Vehicle methods (not implemented - table doesn't exist)
-  async createVehicle(vehicle: any): Promise<any> {
+  async createVehicle(): Promise<any> {
     throw new Error('Vehicle system not implemented');
   }
 
