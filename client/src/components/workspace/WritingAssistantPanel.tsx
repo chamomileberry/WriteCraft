@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -59,6 +60,7 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { getEditorContext } = useWorkspaceStore();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -70,10 +72,18 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   // AI analysis mutation
   const analyzeMutation = useMutation({
     mutationFn: async (text: string) => {
+      const editorContext = getEditorContext();
+      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
+      
       const response = await fetch('/api/writing-assistant/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ 
+          text,
+          editorContent: hasEditorContent ? editorContext.content : undefined,
+          documentTitle: hasEditorContent ? editorContext.title : undefined,
+          documentType: hasEditorContent ? editorContext.type : undefined
+        }),
       });
       if (!response.ok) throw new Error('Failed to analyze text');
       return response.json();
@@ -94,10 +104,19 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   // Rephrase mutation
   const rephraseMutation = useMutation({
     mutationFn: async ({ text, style }: { text: string; style: string }) => {
+      const editorContext = getEditorContext();
+      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
+      
       const response = await fetch('/api/writing-assistant/rephrase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, style }),
+        body: JSON.stringify({ 
+          text, 
+          style,
+          editorContent: hasEditorContent ? editorContext.content : undefined,
+          documentTitle: hasEditorContent ? editorContext.title : undefined,
+          documentType: hasEditorContent ? editorContext.type : undefined
+        }),
       });
       if (!response.ok) throw new Error('Failed to rephrase text');
       return response.json();
@@ -110,10 +129,18 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   // Proofread mutation
   const proofreadMutation = useMutation({
     mutationFn: async (text: string) => {
+      const editorContext = getEditorContext();
+      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
+      
       const response = await fetch('/api/writing-assistant/proofread', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ 
+          text,
+          editorContent: hasEditorContent ? editorContext.content : undefined,
+          documentTitle: hasEditorContent ? editorContext.title : undefined,
+          documentType: hasEditorContent ? editorContext.type : undefined
+        }),
       });
       if (!response.ok) throw new Error('Failed to proofread text');
       return response.json();
@@ -130,10 +157,18 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   // Generate questions mutation
   const questionsMutation = useMutation({
     mutationFn: async (text: string) => {
+      const editorContext = getEditorContext();
+      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
+      
       const response = await fetch('/api/writing-assistant/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ 
+          text,
+          editorContent: hasEditorContent ? editorContext.content : undefined,
+          documentTitle: hasEditorContent ? editorContext.title : undefined,
+          documentType: hasEditorContent ? editorContext.type : undefined
+        }),
       });
       if (!response.ok) throw new Error('Failed to generate questions');
       return response.json();
@@ -148,6 +183,9 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   // Conversational chat mutation
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
+      const editorContext = getEditorContext();
+      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
+      
       // Prepare conversation history from messages
       const conversationHistory = messages
         .slice(-10) // Only send last 10 messages for context
@@ -161,7 +199,10 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message, 
-          conversationHistory: conversationHistory.length > 0 ? conversationHistory : undefined 
+          conversationHistory: conversationHistory.length > 0 ? conversationHistory : undefined,
+          editorContent: hasEditorContent ? editorContext.content : undefined,
+          documentTitle: hasEditorContent ? editorContext.title : undefined,
+          documentType: hasEditorContent ? editorContext.type : undefined
         }),
       });
       if (!response.ok) throw new Error('Failed to get chat response');
@@ -175,27 +216,27 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
     },
   });
 
-  // Get current page text content
-  const getPageText = () => {
-    // Exclude the writing assistant panel itself from text extraction
-    const assistantPanel = document.querySelector(`[data-testid*="writing-assistant-panel"]`);
+  // Get editor content from workspace context
+  const getEditorText = () => {
+    const editorContext = getEditorContext();
     
-    const textElements = document.querySelectorAll('main p, main h1, main h2, main h3, main h4, main h5, main h6, main div[contenteditable], main textarea, article p, article h1, article h2, article h3, article h4, article h5, article h6, [role="main"] p, [role="main"] h1, [role="main"] h2, [role="main"] h3, [role="main"] h4, [role="main"] h5, [role="main"] h6');
+    // If we have editor content, use it (this is the manuscript/guide being edited)
+    if (editorContext.content && editorContext.content.length > 10) {
+      return {
+        text: editorContext.content.slice(0, 2000), // Limit to reasonable size
+        hasEditorContent: true,
+        title: editorContext.title,
+        type: editorContext.type
+      };
+    }
     
-    let allText = '';
-    textElements.forEach(el => {
-      // Skip if this element is inside the assistant panel
-      if (assistantPanel && assistantPanel.contains(el)) {
-        return;
-      }
-      
-      const text = el.textContent || '';
-      if (text.trim() && text.length > 10) { // Require at least 10 characters for meaningful content
-        allText += text.trim() + ' ';
-      }
-    });
-    
-    return allText.trim().slice(0, 2000); // Limit to reasonable size
+    // Fallback: if no editor content, return empty
+    return {
+      text: '',
+      hasEditorContent: false,
+      title: '',
+      type: null
+    };
   };
 
   // Add message helper
@@ -218,26 +259,25 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
     setInputText('');
 
     // Auto-detect intent and respond accordingly
+    const editorContent = getEditorText();
+    
     if (text.toLowerCase().includes('analyze')) {
-      const pageText = getPageText();
-      if (pageText && pageText.length >= 10) {
-        analyzeMutation.mutate(pageText);
+      if (editorContent.text && editorContent.text.length >= 10) {
+        analyzeMutation.mutate(editorContent.text);
       } else {
-        addMessage('assistant', 'I need some text to analyze. Could you provide the text you\'d like me to examine?');
+        addMessage('assistant', 'I need some text to analyze. Could you provide the text you\'d like me to examine, or open a manuscript to edit?');
       }
     } else if (text.toLowerCase().includes('proofread')) {
-      const pageText = getPageText();
-      if (pageText && pageText.length >= 10) {
-        proofreadMutation.mutate(pageText);
+      if (editorContent.text && editorContent.text.length >= 10) {
+        proofreadMutation.mutate(editorContent.text);
       } else {
-        addMessage('assistant', 'I need some text to proofread. Could you provide the text you\'d like me to check?');
+        addMessage('assistant', 'I need some text to proofread. Could you provide the text you\'d like me to check, or open a manuscript to edit?');
       }
     } else if (text.toLowerCase().includes('questions')) {
-      const pageText = getPageText();
-      if (pageText && pageText.length >= 10) {
-        questionsMutation.mutate(pageText);
+      if (editorContent.text && editorContent.text.length >= 10) {
+        questionsMutation.mutate(editorContent.text);
       } else {
-        addMessage('assistant', 'I need some text to generate questions about. Could you provide the content?');
+        addMessage('assistant', 'I need some text to generate questions about. Could you provide the content, or open a manuscript to edit?');
       }
     } else {
       // Use conversational chat for general writing discussions, brainstorming, and questions
@@ -247,30 +287,31 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
 
   // Quick action handlers
   const handleQuickAction = (action: string) => {
-    const pageText = getPageText();
-    if (!pageText || pageText.length < 10) {
-      addMessage('assistant', 'I need some text to work with. Could you please:\n\n1. Navigate to a page with content, or\n2. Paste or type some text in the chat for me to analyze\n\nI can help with analyzing, proofreading, rephrasing, and improving any text you provide!');
+    const editorContent = getEditorText();
+    
+    if (!editorContent.text || editorContent.text.length < 10) {
+      addMessage('assistant', 'I need some text to work with. Could you please:\n\n1. Open a manuscript for editing, or\n2. Paste or type some text in the chat for me to analyze\n\nI can help with analyzing, proofreading, rephrasing, and improving any text you provide!');
       return;
     }
 
     switch (action) {
       case 'analyze':
-        analyzeMutation.mutate(pageText);
+        analyzeMutation.mutate(editorContent.text);
         break;
       case 'proofread':
-        proofreadMutation.mutate(pageText);
+        proofreadMutation.mutate(editorContent.text);
         break;
       case 'questions':
-        questionsMutation.mutate(pageText);
+        questionsMutation.mutate(editorContent.text);
         break;
       case 'rephrase-formal':
-        rephraseMutation.mutate({ text: pageText, style: 'formal' });
+        rephraseMutation.mutate({ text: editorContent.text, style: 'formal' });
         break;
       case 'rephrase-casual':
-        rephraseMutation.mutate({ text: pageText, style: 'casual' });
+        rephraseMutation.mutate({ text: editorContent.text, style: 'casual' });
         break;
       case 'rephrase-concise':
-        rephraseMutation.mutate({ text: pageText, style: 'concise' });
+        rephraseMutation.mutate({ text: editorContent.text, style: 'concise' });
         break;
     }
   };
@@ -293,7 +334,17 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
         </div>
         <div className="flex-1">
           <h3 className="font-medium text-sm">Writing Assistant</h3>
-          <p className="text-xs text-muted-foreground">AI-powered writing help</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground">AI-powered writing help</p>
+            {(() => {
+              const editorContent = getEditorText();
+              return editorContent.hasEditorContent && (
+                <Badge variant="secondary" className="text-xs">
+                  {editorContent.type === 'manuscript' ? '📖' : '📝'} {editorContent.title}
+                </Badge>
+              );
+            })()}
+          </div>
         </div>
       </div>
 
