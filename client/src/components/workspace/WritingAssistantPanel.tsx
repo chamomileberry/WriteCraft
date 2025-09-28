@@ -21,7 +21,10 @@ import {
   HelpCircle, 
   Lightbulb,
   Loader2,
-  Copy
+  Copy,
+  ArrowRightToLine,
+  User,
+  Bot
 } from 'lucide-react';
 
 interface WritingAssistantPanelProps {
@@ -61,7 +64,7 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { getEditorContext } = useWorkspaceStore();
+  const { getEditorContext, executeEditorAction } = useWorkspaceStore();
 
   // Load chat history when component mounts or editor context changes
   useEffect(() => {
@@ -281,6 +284,59 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
     };
   };
 
+  // Extract text suggestions from assistant messages
+  const extractTextSuggestions = (content: string) => {
+    const suggestions: { text: string; type: 'replace' | 'insert' }[] = [];
+    
+    // Look for quoted text suggestions in messages
+    const quotedTextRegex = /"([^"]+)"/g;
+    let match;
+    while ((match = quotedTextRegex.exec(content)) !== null) {
+      const text = match[1];
+      if (text.length > 10 && text.length < 500) { // Reasonable text length
+        suggestions.push({ text, type: 'replace' });
+      }
+    }
+    
+    // Look for "corrected" or "improved" text patterns
+    const correctedTextRegex = /(?:corrected|improved|rephrased|better).*?:\s*"([^"]+)"/gi;
+    match = correctedTextRegex.exec(content);
+    while (match !== null) {
+      const text = match[1];
+      if (text.length > 5) {
+        suggestions.push({ text, type: 'replace' });
+      }
+      match = correctedTextRegex.exec(content);
+    }
+    
+    return suggestions;
+  };
+
+  // Apply text change to editor
+  const applyTextChange = (text: string, type: 'replace' | 'insert' = 'replace') => {
+    try {
+      const success = executeEditorAction(type === 'replace' ? 'replaceSelection' : 'insertAtCursor', text);
+      if (success) {
+        toast({
+          title: "Applied successfully",
+          description: "The suggested text has been applied to your document.",
+        });
+      } else {
+        toast({
+          title: "Could not apply change",
+          description: "Please make sure you have a document open for editing.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error applying change",
+        description: "Something went wrong while applying the text.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Add message helper - saves to database and updates local state
   const addMessage = async (type: 'user' | 'assistant', content: string, metadata?: any) => {
     const newMessage: Message = {
@@ -402,6 +458,86 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
     });
   };
 
+  // Message component with apply buttons for suggestions
+  const MessageWithApplyButtons = ({ message }: { message: Message }) => {
+    const suggestions = extractTextSuggestions(message.content);
+    const hasApplicableText = suggestions.length > 0;
+
+    return (
+      <div className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+        {message.type === 'assistant' && (
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Bot className="w-4 h-4 text-primary" />
+          </div>
+        )}
+        
+        <div className={`max-w-[85%] ${message.type === 'user' ? 'order-first' : ''}`}>
+          <div
+            className={`rounded-lg px-4 py-3 ${
+              message.type === 'user'
+                ? 'bg-primary text-primary-foreground ml-auto'
+                : 'bg-muted'
+            }`}
+          >
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              className="prose prose-sm dark:prose-invert max-w-none"
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+          
+          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+            <span>{message.timestamp.toLocaleTimeString()}</span>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyToClipboard(message.content)}
+                className="h-6 px-2"
+                data-testid={`button-copy-message-${message.id}`}
+              >
+                <Copy className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Apply buttons for text suggestions */}
+          {hasApplicableText && message.type === 'assistant' && (
+            <div className="mt-3 space-y-2">
+              <div className="text-xs text-muted-foreground font-medium">
+                Suggested text changes:
+              </div>
+              {suggestions.map((suggestion, index) => (
+                <div key={index} className="flex items-center gap-2 p-2 bg-background/50 rounded border">
+                  <div className="flex-1 text-sm font-mono bg-muted px-2 py-1 rounded text-xs">
+                    "{suggestion.text.length > 60 ? suggestion.text.substring(0, 60) + '...' : suggestion.text}"
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => applyTextChange(suggestion.text, suggestion.type)}
+                    className="h-8 px-3"
+                    data-testid={`button-apply-change-${message.id}-${index}`}
+                  >
+                    <ArrowRightToLine className="h-3 w-3 mr-1" />
+                    Apply
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {message.type === 'user' && (
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+            <User className="w-4 h-4 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={`h-full flex flex-col bg-background overflow-hidden ${className}`} data-testid={`writing-assistant-panel-${panelId}`}>
       {/* Header */}
@@ -460,61 +596,7 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
                 )}
                 
                 {messages.map((message) => (
-                  <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} group`}>
-                    <div className={`max-w-[80%] ${message.type === 'user' ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
-                      <div className={`rounded-lg p-2 text-sm ${
-                        message.type === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted'
-                      }`}>
-                        {message.type === 'assistant' ? (
-                          <div className="prose prose-sm max-w-none dark:prose-invert">
-                            <ReactMarkdown 
-                              remarkPlugins={[remarkGfm]}
-                              components={{
-                                // Ensure proper styling for markdown elements
-                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                                h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-                                h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-                                h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
-                                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                em: ({ children }) => <em className="italic">{children}</em>,
-                                code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs">{children}</code>,
-                                blockquote: ({ children }) => <blockquote className="border-l-2 border-muted-foreground/20 pl-3 italic">{children}</blockquote>
-                              }}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
-                          </div>
-                        ) : (
-                          <p className="whitespace-pre-wrap">{message.content}</p>
-                        )}
-                      </div>
-                      
-                      {/* Message metadata and actions */}
-                      <div className={`flex items-center gap-2 mt-1 px-1 ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <span className="text-xs opacity-70">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        {message.type === 'assistant' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => copyToClipboard(message.content)}
-                            className="h-6 w-16 p-0 text-xs opacity-70 hover:opacity-100 transition-opacity"
-                            data-testid="button-copy-message"
-                            title="Copy message"
-                          >
-                            <Copy className="w-3 h-3 mr-1" />
-                            Copy
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  <MessageWithApplyButtons key={message.id} message={message} />
                 ))}
                 
                 {/* Scroll target for auto-scrolling */}
