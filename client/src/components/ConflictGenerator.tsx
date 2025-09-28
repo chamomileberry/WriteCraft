@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Target, AlertTriangle, Users, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
 import { useToast } from "@/hooks/use-toast";
 import type { Conflict } from "@shared/schema";
 
@@ -32,44 +31,19 @@ export default function ConflictGenerator() {
   const [genre, setGenre] = useState('any');
   const { toast } = useToast();
 
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/conflicts/generate', { conflictType, genre });
-      return await res.json() as Conflict;
-    },
+  const generateMutation = useGenerateMutation<Conflict, void>('/api/conflicts/generate', {
+    transformPayload: () => ({ conflictType, genre }),
+    errorMessage: "Unable to create conflict. Please try again.",
     onSuccess: (conflict: Conflict) => {
       setGeneratedConflict(conflict);
-      queryClient.invalidateQueries({ queryKey: ['/api/conflicts'] });
     },
-    onError: (error) => {
-      console.error('Failed to generate conflict:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to create conflict. Please try again.",
-        variant: "destructive",
-      });
-    }
+    invalidateQueries: ['/api/conflicts']
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (conflict: Conflict) => {
-      const res = await apiRequest('POST', '/api/conflicts', conflict);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Conflict Saved!",
-        description: "Your conflict has been saved to your collection.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/conflicts'] });
-    },
-    onError: () => {
-      toast({
-        title: "Save Failed",
-        description: "Unable to save conflict. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const saveMutation = useSaveMutation<any, Conflict>('/api/conflicts', {
+    successMessage: "Your conflict has been saved to your collection!",
+    errorMessage: "Unable to save conflict. Please try again.",
+    invalidateQueries: ['/api/conflicts']
   });
 
   const handleGenerate = () => {
