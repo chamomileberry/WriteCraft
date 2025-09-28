@@ -49,7 +49,12 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
     enabled: searchQuery.trim().length > 0,
   });
 
-  const tabs = getTabsInRegion(regionId);
+  // Filter out manuscript-related panels - only show reference/secondary panels
+  const allTabs = getTabsInRegion(regionId);
+  const tabs = allTabs.filter(tab => 
+    tab.type !== 'manuscript' && 
+    tab.type !== 'manuscriptOutline'
+  );
   const activeTab = getActiveTab(regionId);
 
   const handleTabClick = (panelId: string) => {
@@ -58,11 +63,6 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
 
   const handleTabClose = (panelId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Don't allow closing manuscript tabs
-    const panel = tabs.find(tab => tab.id === panelId);
-    if (panel?.type === 'manuscript') {
-      return;
-    }
     removePanel(panelId);
   };
 
@@ -140,15 +140,6 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
         mode: 'tabbed',
         regionId: regionId
       });
-    } else if (itemType === 'manuscript') {
-      addPanel({
-        id: nanoid(),
-        type: 'manuscriptOutline',
-        title: itemTitle || 'Manuscript',
-        entityId: itemId,
-        mode: 'tabbed',
-        regionId: regionId
-      });
     } else {
       addPanel({
         id: nanoid(),
@@ -221,9 +212,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
     }
   }, [contextMenu, showSearchDropdown]);
 
-  // Show manuscript tab when there are reference tabs
-  const showManuscriptTab = regionId === 'main' && tabs.length > 0;
-  const manuscriptTabActive = !activeTab || activeTab.type === 'manuscript';
+  // No longer show manuscript tabs - only secondary reference panels
 
   return (
     <div 
@@ -278,18 +267,16 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
           </span>
           
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 ml-auto">
-            {tab.type !== 'manuscript' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-primary/30 hover:text-primary-foreground rounded-full"
-                onClick={(e) => handleTabClose(tab.id, e)}
-                data-testid={`button-close-tab-${tab.id}`}
-                title="Close tab"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 hover:bg-primary/30 hover:text-primary-foreground rounded-full"
+              onClick={(e) => handleTabClose(tab.id, e)}
+              data-testid={`button-close-tab-${tab.id}`}
+              title="Close tab"
+            >
+              <X className="h-3 w-3" />
+            </Button>
           </div>
         </div>
       ))}
