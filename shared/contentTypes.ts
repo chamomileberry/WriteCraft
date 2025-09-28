@@ -20,7 +20,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     urlSegment: "characters",
     apiBase: "/api/characters",
     displayFields: {
-      title: "name",
+      title: "givenName",
       subtitle: "occupation",
       description: "backstory",
       badges: ["gender", "genre"]
@@ -176,10 +176,10 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     urlSegment: "plots",
     apiBase: "/api/plots",
     displayFields: {
-      title: "title",
-      subtitle: "plotType",
-      description: "summary",
-      badges: ["genre", "complexity"]
+      title: "theme",
+      subtitle: "genre",
+      description: "setup",
+      badges: ["conflict"]
     }
   },
   prompt: {
@@ -188,9 +188,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     urlSegment: "prompts",
     apiBase: "/api/prompts",
     displayFields: {
-      title: "title",
-      subtitle: "promptType",
-      description: "content",
+      title: "text",
+      subtitle: "type",
+      description: "text",
       badges: ["genre", "difficulty"]
     }
   },
@@ -200,10 +200,10 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     urlSegment: "themes",
     apiBase: "/api/themes",
     displayFields: {
-      title: "name",
-      subtitle: "themeType",
+      title: "title",
+      subtitle: "genre",
       description: "description",
-      badges: ["genre", "complexity"]
+      badges: ["genre"]
     }
   },
   mood: {
@@ -213,9 +213,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/moods",
     displayFields: {
       title: "name",
-      subtitle: "moodType", 
+      subtitle: "emotionalTone", 
       description: "description",
-      badges: ["intensity", "genre"]
+      badges: ["emotionalTone"]
     }
   },
   plant: {
@@ -225,9 +225,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/plants",
     displayFields: {
       title: "name",
-      subtitle: "plantType",
+      subtitle: "type",
       description: "description",
-      badges: ["habitat", "rarity"]
+      badges: ["habitat", "genre"]
     }
   },
   animal: {
@@ -467,7 +467,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "lawType",
       description: "description",
-      badges: ["scope", "effects"]
+      badges: ["scope"]
     }
   },
   technology: {
