@@ -66,10 +66,19 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     return indentationMap[Math.min(level, 5)] || "pl-20";
   };
 
-  // Fetch folders for the document type
+  // Fetch folders for the specific document
   const { data: folders = [], isLoading: foldersLoading } = useQuery({
-    queryKey: ['/api/folders', userId, type],
-    queryFn: () => fetch(`/api/folders?userId=${userId}&type=${type}`).then(res => res.json()),
+    queryKey: ['/api/folders', userId, type, currentDocumentId],
+    queryFn: () => {
+      if (currentDocumentId) {
+        // Use document-specific endpoint for manuscript or guide folders
+        const param = type === 'manuscript' ? 'manuscriptId' : 'guideId';
+        return fetch(`/api/folders?userId=${userId}&${param}=${currentDocumentId}`).then(res => res.json());
+      } else {
+        // Fallback to type-based folders (for backwards compatibility)
+        return fetch(`/api/folders?userId=${userId}&type=${type}`).then(res => res.json());
+      }
+    },
     enabled: !!userId,
   });
 
@@ -151,6 +160,9 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
         type: type,
         userId: userId,
         sortOrder: folders.length,
+        // Link the folder to the specific document
+        ...(type === 'manuscript' && currentDocumentId ? { manuscriptId: currentDocumentId } : {}),
+        ...(type === 'guide' && currentDocumentId ? { guideId: currentDocumentId } : {}),
       };
       
       const response = await fetch('/api/folders', {
@@ -161,7 +173,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       
       if (response.ok) {
         // Invalidate queries to refresh folder list without hard reload
-        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type] });
+        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
         queryClient.invalidateQueries({ queryKey: ['/api/folders', userId] });
       }
     } catch (error) {
