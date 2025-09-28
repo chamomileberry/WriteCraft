@@ -1,0 +1,83 @@
+import { Router } from "express";
+import { storage } from "../storage";
+import { insertProfessionSchema } from "@shared/schema";
+import { z } from "zod";
+
+const router = Router();
+
+router.post("/", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const validatedProfession = insertProfessionSchema.parse({ ...req.body, userId });
+    const savedProfession = await storage.createProfession(validatedProfession);
+    res.json(savedProfession);
+  } catch (error) {
+    console.error('Error saving profession:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to save profession' });
+  }
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const search = req.query.search as string;
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const professions = await storage.getUserProfessions(userId);
+    
+    if (search) {
+      const filtered = professions.filter(item =>
+        item.name?.toLowerCase().includes(search.toLowerCase())
+      );
+      res.json(filtered);
+    } else {
+      res.json(professions);
+    }
+  } catch (error) {
+    console.error('Error fetching professions:', error);
+    res.status(500).json({ error: 'Failed to fetch professions' });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const profession = await storage.getProfession(req.params.id);
+    if (!profession) {
+      return res.status(404).json({ error: 'Profession not found' });
+    }
+    res.json(profession);
+  } catch (error) {
+    console.error('Error fetching profession:', error);
+    res.status(500).json({ error: 'Failed to fetch profession' });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const professionData = { ...req.body, userId };
+    
+    const validatedUpdates = insertProfessionSchema.partial().parse(professionData);
+    const updatedProfession = await storage.updateProfession(req.params.id, validatedUpdates);
+    res.json(updatedProfession);
+  } catch (error) {
+    console.error('Error updating profession:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to update profession' });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    await storage.deleteProfession(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting profession:', error);
+    res.status(500).json({ error: 'Failed to delete profession' });
+  }
+});
+
+export default router;
