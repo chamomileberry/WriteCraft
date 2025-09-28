@@ -47,42 +47,9 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
       case 'characterDetail':
         return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} />;
       case 'manuscript':
-        // This is the main manuscript being edited - don't render here, let children show through
-        return null;
       case 'manuscriptOutline':
-        return (
-          <div className="h-full p-4 bg-background overflow-y-auto">
-            <div className="mb-4 pb-4 border-b">
-              <h3 className="text-lg font-semibold">{panel.title}</h3>
-              <p className="text-sm text-muted-foreground">Manuscript Reference</p>
-              <div className="flex items-center gap-2 mt-2">
-                <button
-                  onClick={() => window.open(`/manuscripts/${panel.entityId}/edit`, '_blank')}
-                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-                >
-                  Open Full Editor
-                </button>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium mb-2">Quick Reference</h4>
-                <p className="text-sm text-muted-foreground">
-                  This is a reference view for manuscript "{panel.title}". 
-                  You can view this alongside your current manuscript for reference while writing.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Manuscript Details</h4>
-                <div className="text-sm space-y-1">
-                  <p><span className="font-medium">ID:</span> {panel.entityId}</p>
-                  <p><span className="font-medium">Type:</span> Manuscript Reference</p>
-                  <p><span className="font-medium">Status:</span> Available for reference</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        // Manuscript content should not be rendered as tabs - they are filtered out in TabStrip
+        return null;
       case 'notes':
         return (
           <div className="h-full p-4 bg-background overflow-y-auto">
@@ -161,7 +128,7 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
                     {renderTabContent(mainActiveTab)}
                   </div>
                 ) : (
-                  children // Default manuscript content
+                  children // Primary manuscript content
                 )}
               </div>
             </div>
@@ -204,13 +171,13 @@ export function WorkspaceLayout({ children, className }: WorkspaceLayoutProps) {
           </div>
           
           <div className="flex-1 overflow-hidden">
-            {mainActiveTab && mainActiveTab.type !== 'manuscript' ? (
+            {mainActiveTab ? (
               // Show active tab content as reference
               <div className="h-full bg-muted/20">
                 {renderTabContent(mainActiveTab)}
               </div>
             ) : (
-              // Show manuscript (default or when manuscript tab is active)
+              // Always show primary manuscript content when no reference tabs are active
               children
             )}
           </div>
