@@ -6,7 +6,7 @@ import ContentTypeModal from "@/components/ContentTypeModal";
 import { getMappingById } from "@shared/contentTypes";
 
 export default function GuidesPage() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isContentModalOpen, setIsContentModalOpen] = useState<boolean>(false);
 
