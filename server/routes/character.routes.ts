@@ -22,25 +22,87 @@ router.post("/generate", async (req, res) => {
     const aiCharacter = await generateCharacterWithAI({ genre, gender, ethnicity });
     
     const character = {
-      name: aiCharacter.name,
+      // Basic demographics and identity
       age: aiCharacter.age,
-      occupation: aiCharacter.occupation,
-      personality: aiCharacter.personality,
-      backstory: aiCharacter.backstory,
-      motivation: aiCharacter.motivation,
-      flaw: aiCharacter.flaw,
-      strength: aiCharacter.strength,
+      sex: aiCharacter.sex,
       gender: aiCharacter.gender,
+      genderIdentity: aiCharacter.genderIdentity,
+      pronouns: aiCharacter.pronouns,
+      ethnicity: aiCharacter.ethnicity,
+      species: aiCharacter.species,
       genre: genre || null,
-      // Physical description fields
+      // Names
+      givenName: aiCharacter.givenName,
+      familyName: aiCharacter.familyName,
+      middleName: aiCharacter.middleName || null,
+      nickname: aiCharacter.nickname || null,
+      // Location and origin
+      placeOfBirth: aiCharacter.placeOfBirth,
+      currentLocation: aiCharacter.currentLocation,
+      currentResidence: aiCharacter.currentResidence,
+      // Physical description
       height: aiCharacter.height,
+      heightDetail: aiCharacter.heightDetail,
+      weight: aiCharacter.weight,
       build: aiCharacter.build,
       hairColor: aiCharacter.hairColor,
+      hairTexture: aiCharacter.hairTexture,
+      hairStyle: aiCharacter.hairStyle,
       eyeColor: aiCharacter.eyeColor,
       skinTone: aiCharacter.skinTone,
       facialFeatures: aiCharacter.facialFeatures,
+      facialDetails: aiCharacter.facialDetails,
+      strikingFeatures: aiCharacter.strikingFeatures,
+      distinctiveBodyFeatures: aiCharacter.distinctiveBodyFeatures,
+      marksPiercingsTattoos: aiCharacter.marksPiercingsTattoos,
       identifyingMarks: aiCharacter.identifyingMarks,
       physicalDescription: aiCharacter.physicalDescription,
+      physicalPresentation: aiCharacter.physicalPresentation,
+      physicalCondition: aiCharacter.physicalCondition,
+      // Professional and background
+      occupation: aiCharacter.occupation,
+      profession: aiCharacter.profession,
+      education: aiCharacter.education,
+      workHistory: aiCharacter.workHistory,
+      accomplishments: aiCharacter.accomplishments,
+      // Personality and psychology
+      personality: aiCharacter.personality,
+      backstory: aiCharacter.backstory,
+      upbringing: aiCharacter.upbringing,
+      motivation: aiCharacter.motivation,
+      flaw: aiCharacter.flaw,
+      strength: aiCharacter.strength,
+      characterFlaws: aiCharacter.characterFlaws,
+      intellectualTraits: aiCharacter.intellectualTraits,
+      valuesEthicsMorals: aiCharacter.valuesEthicsMorals,
+      mentalHealth: aiCharacter.mentalHealth,
+      negativeEvents: aiCharacter.negativeEvents,
+      // Skills and abilities
+      languages: aiCharacter.languages,
+      languageFluencyAccent: aiCharacter.languageFluencyAccent,
+      mainSkills: aiCharacter.mainSkills,
+      strengths: aiCharacter.strengths,
+      positiveAspects: aiCharacter.positiveAspects,
+      proficiencies: aiCharacter.proficiencies,
+      lackingSkills: aiCharacter.lackingSkills,
+      lackingKnowledge: aiCharacter.lackingKnowledge,
+      // Personal preferences
+      likes: aiCharacter.likes,
+      dislikes: aiCharacter.dislikes,
+      addictions: aiCharacter.addictions,
+      vices: aiCharacter.vices,
+      secretBeliefs: aiCharacter.secretBeliefs,
+      // Style and possessions
+      typicalAttire: aiCharacter.typicalAttire,
+      accessories: aiCharacter.accessories,
+      // Cultural and social
+      sexualOrientation: aiCharacter.sexualOrientation,
+      religiousBelief: aiCharacter.religiousBelief,
+      family: aiCharacter.family,
+      // Additional character details
+      conditions: aiCharacter.conditions,
+      genderUnderstanding: aiCharacter.genderUnderstanding,
+      frownedUponViews: aiCharacter.frownedUponViews,
       userId: userId || null
     };
 

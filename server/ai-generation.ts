@@ -24,25 +24,86 @@ export interface CharacterGenerationOptions {
 }
 
 export interface GeneratedCharacter {
+  // Names and identity (matching database schema)
   givenName: string;
   familyName: string;
+  middleName?: string;
+  nickname?: string;
+  // Demographics
   age: number;
-  occupation: string;
-  personality: string[];
-  backstory: string;
-  motivation: string;
-  flaw: string;
-  strength: string;
+  sex?: string;
   gender: string;
-  // Physical description fields
+  genderIdentity?: string;
+  pronouns?: string;
+  ethnicity?: string;
+  species?: string;
+  // Physical description
   height: string;
+  heightDetail?: string;
+  weight?: string;
   build: string;
   hairColor: string;
+  hairTexture?: string;
+  hairStyle?: string;
   eyeColor: string;
   skinTone: string;
   facialFeatures: string;
+  facialDetails?: string;
+  strikingFeatures?: string;
+  distinctiveBodyFeatures?: string;
+  marksPiercingsTattoos?: string;
   identifyingMarks: string;
   physicalDescription: string;
+  physicalPresentation?: string;
+  physicalCondition?: string;
+  // Professional and background
+  occupation: string;
+  profession?: string;
+  education?: string;
+  workHistory?: string;
+  accomplishments?: string;
+  // Location and origin
+  placeOfBirth?: string;
+  currentLocation?: string;
+  currentResidence?: string;
+  // Personality and psychology
+  personality: string[];
+  backstory: string;
+  upbringing?: string;
+  motivation: string;
+  flaw: string;
+  strength: string;
+  characterFlaws?: string;
+  intellectualTraits?: string;
+  valuesEthicsMorals?: string;
+  mentalHealth?: string;
+  negativeEvents?: string;
+  // Skills and abilities
+  languages?: string[];
+  languageFluencyAccent?: string;
+  mainSkills?: string;
+  strengths?: string;
+  positiveAspects?: string;
+  proficiencies?: string;
+  lackingSkills?: string;
+  lackingKnowledge?: string;
+  // Personal preferences
+  likes?: string;
+  dislikes?: string;
+  addictions?: string;
+  vices?: string;
+  secretBeliefs?: string;
+  // Style and possessions
+  typicalAttire?: string;
+  accessories?: string;
+  // Cultural and social
+  sexualOrientation?: string;
+  religiousBelief?: string;
+  family?: string[];
+  // Additional character details
+  conditions?: string;
+  genderUnderstanding?: string;
+  frownedUponViews?: string;
 }
 
 export interface SettingGenerationOptions {
@@ -167,26 +228,43 @@ PHYSICAL DESCRIPTION GUIDELINES:
 - Ensure skin tone, hair, and eye colors are appropriate to the character's heritage
 - Write comprehensive physical descriptions that paint a vivid picture
 
-CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object. Include ALL required fields and as many optional fields as make sense for a rich character:
 {
   "givenName": "Character's first name",
-  "familyName": "Character's last/family name",
+  "familyName": "Character's last/family name", 
   "age": 25,
-  "occupation": "Specific profession or role",
+  "gender": "gender identity",
+  "height": "height with units (e.g., 5'7\")",
+  "build": "body type and build",
+  "hairColor": "hair color",
+  "eyeColor": "eye color and notable features", 
+  "skinTone": "skin tone appropriate to ethnicity",
+  "facialFeatures": "notable facial characteristics",
+  "identifyingMarks": "most recognizable identifying marks",
+  "physicalDescription": "comprehensive physical overview",
+  "occupation": "current job or role",
   "personality": ["trait1", "trait2", "trait3"],
-  "backstory": "Rich background explaining who they are and how they got here",
-  "motivation": "Core driving force - what they want most",
-  "flaw": "Fatal weakness or character defect that creates conflict",
-  "strength": "Greatest personal strength or virtue",
-  "gender": "specified_gender_identity",
-  "height": "Specific height with appropriate units",
-  "build": "Body type and build description",
-  "hairColor": "Hair color and style",
-  "eyeColor": "Eye color and notable features",
-  "skinTone": "Skin tone appropriate to ethnicity/heritage",
-  "facialFeatures": "Notable facial characteristics",
-  "identifyingMarks": "Scars, tattoos, birthmarks, etc.",
-  "physicalDescription": "Overall comprehensive physical description"
+  "backstory": "rich personal history explaining their journey",
+  "motivation": "core driving forces and goals",
+  "flaw": "primary character weakness",
+  "strength": "greatest personal strength",
+  "middleName": "optional middle name",
+  "nickname": "optional nickname",
+  "pronouns": "preferred pronouns (e.g., they/them)",
+  "ethnicity": "cultural/ethnic background",
+  "education": "educational background",
+  "placeOfBirth": "where they were born",
+  "currentLocation": "where they live now",
+  "upbringing": "childhood and formative experiences",
+  "intellectualTraits": "mental capabilities and thinking patterns",
+  "valuesEthicsMorals": "moral framework and values",
+  "languages": ["language1", "language2"],
+  "mainSkills": "primary abilities and talents",
+  "likes": "things they enjoy and prefer",
+  "dislikes": "things they dislike or avoid",
+  "typicalAttire": "usual clothing style and preferences",
+  "religiousBelief": "religious or spiritual beliefs",
+  "family": ["family member descriptions"]
 }`;
 
   let userPrompt = "Generate a compelling, psychologically complex character for creative writing.";
@@ -210,7 +288,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR,
       system: systemPrompt,
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [
         { role: 'user', content: userPrompt }
       ],
@@ -232,8 +310,8 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     
     const characterData = JSON.parse(cleanedText);
     
-    // Validate the response structure
-    const requiredFields = ['givenName', 'familyName', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength', 'height', 'build', 'hairColor', 'eyeColor', 'skinTone', 'facialFeatures', 'identifyingMarks', 'physicalDescription'];
+    // Validate the response structure - check core required fields
+    const requiredFields = ['givenName', 'familyName', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength', 'gender', 'height', 'build', 'hairColor', 'eyeColor', 'skinTone', 'facialFeatures', 'identifyingMarks', 'physicalDescription'];
     for (const field of requiredFields) {
       if (!(field in characterData)) {
         throw new Error(`Missing required field: ${field}`);
@@ -305,24 +383,43 @@ function generateFallbackCharacter(options: CharacterGenerationOptions = {}): Ge
   const familyName = familyNameParts.join(' ') || 'Unknown';
   
   return {
+    // Core required fields
     givenName,
     familyName,
     age,
+    gender: gender || "non-binary",
+    height: "5'7\"",
+    build: "average build with good posture",
+    hairColor: "dark brown",
+    eyeColor: "warm brown with flecks of gold",
+    skinTone: "medium olive complexion",
+    facialFeatures: "expressive eyes and a thoughtful expression",
+    identifyingMarks: "small scar on left hand from childhood accident",
+    physicalDescription: "Medium height with an approachable presence. Their expressive eyes often reflect deep thought, and they carry themselves with quiet confidence. A small scar on their left hand tells of childhood adventures.",
     occupation: occupations[occupationIndex],
     personality: personalityTraits[personalityIndex],
     backstory: backstories[backstoryIndex],
     motivation: "To find balance between personal aspirations and the needs of those they care about",
     flaw: "Tendency to overthink decisions, sometimes missing opportunities while analyzing every angle",
     strength: "Exceptional ability to see multiple perspectives and find common ground in conflicts",
-    gender: gender || "non-binary",
-    height: "5'7\"",
-    build: "average build with good posture",
-    hairColor: "dark brown, usually styled simply",
-    eyeColor: "warm brown with flecks of gold",
-    skinTone: "medium olive complexion",
-    facialFeatures: "expressive eyes and a thoughtful expression",
-    identifyingMarks: "small scar on left hand from childhood accident",
-    physicalDescription: "Medium height with an approachable presence. Their expressive eyes often reflect deep thought, and they carry themselves with quiet confidence. A small scar on their left hand tells of childhood adventures."
+    // Enhanced optional fields for richer character data
+    middleName: "",
+    nickname: "",
+    pronouns: gender === "male" ? "he/him" : gender === "female" ? "she/her" : "they/them",
+    ethnicity: ethnicity || "mixed heritage",
+    education: "college degree in their field",
+    placeOfBirth: "medium-sized city",
+    currentLocation: "urban area",
+    upbringing: "supportive family environment with some challenges",
+    intellectualTraits: "analytical thinking with good intuition",
+    valuesEthicsMorals: "believes in fairness, honesty, and helping others",
+    languages: ["English"],
+    mainSkills: "communication, problem-solving, and empathy",
+    likes: "meaningful conversations, creative pursuits, and helping others",
+    dislikes: "unnecessary conflict, dishonesty, and rushed decisions",
+    typicalAttire: "practical, comfortable clothing that looks professional",
+    religiousBelief: "spiritual but not strictly religious",
+    family: ["supportive family members with varying relationships"]
   };
 }
 
