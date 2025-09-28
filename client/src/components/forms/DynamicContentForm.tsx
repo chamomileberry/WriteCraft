@@ -14,7 +14,7 @@ import {
   Sparkles, User, Eye, Heart, MapPin, Sword, Zap, Wrench, Building, 
   Hammer, Scroll, BookOpen, Save, Loader2 
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { z } from "zod";
 import { FormField as FormFieldConfig, ContentTypeFormConfig } from './types';
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
@@ -56,43 +56,17 @@ const generateSchema = (config: ContentTypeFormConfig) => {
         case "checkbox":
           fieldSchema = z.boolean().nullable();
           break;
-        // All autocomplete types - schema depends on multiple property
-        case "autocomplete-location":
-        case "autocomplete-character":
-        case "autocomplete-tradition":
-        case "autocomplete-organization":
-        case "autocomplete-species":
-        case "autocomplete-culture":
-        case "autocomplete-weapon":
-        case "autocomplete-building":
-        case "autocomplete-plot":
-        case "autocomplete-document":
-        case "autocomplete-accessory":
-        case "autocomplete-clothing":
-        case "autocomplete-material":
-        case "autocomplete-settlement":
-        case "autocomplete-society":
-        case "autocomplete-faction":
-        case "autocomplete-military-unit":
-        case "autocomplete-family-tree":
-        case "autocomplete-timeline":
-        case "autocomplete-ceremony":
-        case "autocomplete-map":
-        case "autocomplete-music":
-        case "autocomplete-dance":
-        case "autocomplete-law":
-        case "autocomplete-policy":
-        case "autocomplete-potion":
-        case "autocomplete-profession":
-        case "autocomplete-language":
-        case "autocomplete-religion":
-          // Schema depends on multiple property: true = array, false/undefined = string
-          fieldSchema = field.multiple === true 
-            ? z.array(z.string()).nullable()
-            : z.string().nullable();
-          break;
         default:
-          fieldSchema = z.string().nullable();
+          // Handle autocomplete types based on their multiple property
+          if (field.type.startsWith("autocomplete-")) {
+            // Schema depends on multiple property: true = array, false/undefined = string
+            fieldSchema = field.multiple === true 
+              ? z.array(z.string()).nullable()
+              : z.string().nullable();
+          } else {
+            // Regular text fields
+            fieldSchema = z.string().nullable();
+          }
       }
       
       if (field.required) {
@@ -101,6 +75,10 @@ const generateSchema = (config: ContentTypeFormConfig) => {
           fieldSchema = z.array(z.string()).min(1, `${field.label} is required`);
         } else if (field.type === "number") {
           fieldSchema = z.number({ required_error: `${field.label} is required` });
+        } else if (field.type === "checkbox") {
+          fieldSchema = z.boolean().refine(val => val === true, {
+            message: `${field.label} is required`
+          });
         } else {
           fieldSchema = z.string().min(1, `${field.label} is required`);
         }
@@ -175,8 +153,8 @@ export default function DynamicContentForm({
 }: DynamicContentFormProps) {
   const [activeTab, setActiveTab] = useState((config.tabs || [])[0]?.id || "basic");
   
-  const schema = generateSchema(config);
-  const defaultValues = getDefaultValues(config, initialData);
+  const schema = useMemo(() => generateSchema(config), [config]);
+  const defaultValues = useMemo(() => getDefaultValues(config, initialData), [config, initialData]);
   
   
   const form = useForm({

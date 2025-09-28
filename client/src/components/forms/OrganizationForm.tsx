@@ -54,6 +54,14 @@ const genres = [
 export default function OrganizationForm({ initialData, onSubmit, onGenerate, isLoading }: OrganizationFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
   
+  // String state for display in inputs
+  const [alliesText, setAlliesText] = useState(
+    initialData?.allies?.join(", ") ?? ""
+  );
+  const [enemiesText, setEnemiesText] = useState(
+    initialData?.enemies?.join(", ") ?? ""
+  );
+  
   const form = useForm<InsertOrganization>({
     resolver: zodResolver(insertOrganizationSchema.extend({
       allies: insertOrganizationSchema.shape.allies.optional(),
@@ -78,16 +86,9 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
     },
   });
 
-  // Convert array fields to comma-separated strings for display
-  const [alliesText, setAlliesText] = useState(
-    initialData?.allies?.join(", ") ?? ""
-  );
-  const [enemiesText, setEnemiesText] = useState(
-    initialData?.enemies?.join(", ") ?? ""
-  );
 
   const handleSubmit = (data: InsertOrganization) => {
-    // Convert comma-separated strings back to arrays
+    // Convert string state to arrays and merge with form data
     const formattedData = {
       ...data,
       allies: alliesText ? alliesText.split(",").map(s => s.trim()).filter(Boolean) : [],
@@ -473,7 +474,12 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       id="allies"
                       placeholder="Enter allied organizations separated by commas (e.g., Royal Guard, Merchant Guild, Temple of Light)"
                       value={alliesText}
-                      onChange={(e) => setAlliesText(e.target.value)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setAlliesText(newValue);
+                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        form.setValue("allies", arrayValue);
+                      }}
                       data-testid="input-organization-allies"
                     />
                     <p className="text-sm text-muted-foreground">
@@ -487,7 +493,12 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       id="enemies"
                       placeholder="Enter enemy organizations separated by commas (e.g., Shadow Cult, Bandit Clans, Corrupt Officials)"
                       value={enemiesText}
-                      onChange={(e) => setEnemiesText(e.target.value)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setEnemiesText(newValue);
+                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        form.setValue("enemies", arrayValue);
+                      }}
                       data-testid="input-organization-enemies"
                     />
                     <p className="text-sm text-muted-foreground">

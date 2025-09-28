@@ -55,6 +55,20 @@ const genres = [
 export default function LocationForm({ initialData, onSubmit, onGenerate, isLoading }: LocationFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
   
+  // String state for display in inputs
+  const [notableFeaturesText, setNotableFeaturesText] = useState(
+    initialData?.notableFeatures?.join(", ") ?? ""
+  );
+  const [landmarksText, setLandmarksText] = useState(
+    initialData?.landmarks?.join(", ") ?? ""
+  );
+  const [threatsText, setThreatsText] = useState(
+    initialData?.threats?.join(", ") ?? ""
+  );
+  const [resourcesText, setResourcesText] = useState(
+    initialData?.resources?.join(", ") ?? ""
+  );
+  
   const form = useForm<InsertLocation>({
     resolver: zodResolver(insertLocationSchema.extend({
       notableFeatures: insertLocationSchema.shape.notableFeatures.optional(),
@@ -81,22 +95,9 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
     },
   });
 
-  // Convert array fields to comma-separated strings for display
-  const [notableFeaturesText, setNotableFeaturesText] = useState(
-    initialData?.notableFeatures?.join(", ") ?? ""
-  );
-  const [landmarksText, setLandmarksText] = useState(
-    initialData?.landmarks?.join(", ") ?? ""
-  );
-  const [threatsText, setThreatsText] = useState(
-    initialData?.threats?.join(", ") ?? ""
-  );
-  const [resourcesText, setResourcesText] = useState(
-    initialData?.resources?.join(", ") ?? ""
-  );
 
   const handleSubmit = (data: InsertLocation) => {
-    // Convert comma-separated strings back to arrays
+    // Convert string state to arrays and merge with form data
     const formattedData = {
       ...data,
       notableFeatures: notableFeaturesText ? notableFeaturesText.split(",").map(s => s.trim()).filter(Boolean) : [],
@@ -445,7 +446,12 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       id="notable-features"
                       placeholder="Enter features separated by commas (e.g., Ancient tower, Magical fountain, Hidden passage)"
                       value={notableFeaturesText}
-                      onChange={(e) => setNotableFeaturesText(e.target.value)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setNotableFeaturesText(newValue);
+                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        form.setValue("notableFeatures", arrayValue);
+                      }}
                       data-testid="input-location-features"
                     />
                     <p className="text-sm text-muted-foreground">
@@ -459,7 +465,12 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       id="landmarks"
                       placeholder="Enter landmarks separated by commas (e.g., Great Library, Temple of Shadows, Market Square)"
                       value={landmarksText}
-                      onChange={(e) => setLandmarksText(e.target.value)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setLandmarksText(newValue);
+                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        form.setValue("landmarks", arrayValue);
+                      }}
                       data-testid="input-location-landmarks"
                     />
                     <p className="text-sm text-muted-foreground">
@@ -473,7 +484,12 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       id="threats"
                       placeholder="Enter threats separated by commas (e.g., Bandits, Wild beasts, Cursed areas)"
                       value={threatsText}
-                      onChange={(e) => setThreatsText(e.target.value)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setThreatsText(newValue);
+                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        form.setValue("threats", arrayValue);
+                      }}
                       data-testid="input-location-threats"
                     />
                     <p className="text-sm text-muted-foreground">
@@ -487,7 +503,12 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       id="resources"
                       placeholder="Enter resources separated by commas (e.g., Iron ore, Fertile farmland, Fresh water)"
                       value={resourcesText}
-                      onChange={(e) => setResourcesText(e.target.value)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setResourcesText(newValue);
+                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        form.setValue("resources", arrayValue);
+                      }}
                       data-testid="input-location-resources"
                     />
                     <p className="text-sm text-muted-foreground">
