@@ -8,6 +8,7 @@ import { Save, Loader2, Edit, ArrowLeft } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { getMappingById } from "@shared/contentTypes";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
@@ -23,8 +24,8 @@ interface ContentEditorProps {
 export default function ContentEditor({ contentType, contentId, onBack }: ContentEditorProps) {
   const [editingData, setEditingData] = useState<any>({});
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
-  const [createdItemId, setCreatedItemId] = useState<string | null>(null); // Track newly created item
   const [formConfig, setFormConfig] = useState<ContentTypeFormConfig | null>(null);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   // Load content type configuration
@@ -39,8 +40,8 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   // Get the content type mapping
   const mapping = getMappingById(contentType);
   const apiBase = mapping?.apiBase || `/api/${contentType}`;
-  const isCreating = contentId === 'new' && !createdItemId; // Not creating if we have a created item ID
-  const currentItemId = createdItemId || contentId;
+  const isCreating = contentId === 'new';
+  const currentItemId = contentId;
 
   // Fetch the content data (only if not creating new content)
   const { data: contentData, isLoading, error } = useQuery({
@@ -67,7 +68,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
       // Compute isCreating dynamically within the mutation
-      const isMutationCreating = contentId === 'new' && !createdItemId;
+      const isMutationCreating = contentId === 'new';
       console.log('Save mutation starting:', { isMutationCreating, apiBase, data });
       
       if (isMutationCreating) {
@@ -100,7 +101,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
     },
     onSuccess: async (result) => {
       // Compute isCreating dynamically within the success handler
-      const wasCreating = contentId === 'new' && !createdItemId;
+      const wasCreating = contentId === 'new';
       
       toast({
         title: wasCreating ? "Content created" : "Content updated",
@@ -124,12 +125,8 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           // Don't show error to user as the main content was created successfully
         }
         
-        // Switch to edit mode by setting the created item ID
-        setCreatedItemId(result.id);
-        setEditingData(result);
-        
-        // Invalidate queries for the new item
-        queryClient.invalidateQueries({ queryKey: [apiBase, result.id] });
+        // Navigate to the newly created content's edit page using router
+        setLocation(`/content-editor/${contentType}/${result.id}`);
       } else {
         queryClient.invalidateQueries({ queryKey: [apiBase, currentItemId] });
       }
