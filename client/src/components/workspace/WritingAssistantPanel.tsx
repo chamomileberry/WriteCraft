@@ -57,17 +57,59 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   const [inputText, setInputText] = useState('');
   const [analysis, setAnalysis] = useState<TextAnalysis | null>(null);
   const [questions, setQuestions] = useState<string[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { getEditorContext } = useWorkspaceStore();
 
+  // Load chat history when component mounts or editor context changes
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        setIsLoadingHistory(true);
+        const editorContext = getEditorContext();
+        
+        // Build query parameters for fetching messages
+        const params = new URLSearchParams();
+        if (editorContext.type === 'manuscript' && editorContext.entityId) {
+          params.append('manuscriptId', editorContext.entityId);
+        } else if (editorContext.type === 'guide' && editorContext.entityId) {
+          params.append('guideId', editorContext.entityId);
+        }
+        
+        const response = await fetch(`/api/chat-messages?${params.toString()}`, {
+          headers: {
+            'x-user-id': 'demo-user' // TODO: Replace with actual user ID
+          }
+        });
+        
+        if (response.ok) {
+          const chatMessages = await response.json();
+          const formattedMessages: Message[] = chatMessages.map((msg: any) => ({
+            id: msg.id,
+            type: msg.type,
+            content: msg.content,
+            timestamp: new Date(msg.createdAt)
+          }));
+          setMessages(formattedMessages);
+        }
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadChatHistory();
+  }, [getEditorContext]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (messagesEndRef.current && !isLoadingHistory) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, isLoadingHistory]);
 
   // AI analysis mutation
   const analyzeMutation = useMutation({
@@ -239,15 +281,50 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
     };
   };
 
-  // Add message helper
-  const addMessage = (type: 'user' | 'assistant', content: string) => {
+  // Add message helper - saves to database and updates local state
+  const addMessage = async (type: 'user' | 'assistant', content: string, metadata?: any) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       type,
       content,
       timestamp: new Date(),
     };
+    
+    // Update local state immediately for responsive UI
     setMessages(prev => [...prev, newMessage]);
+    
+    // Save to database in background
+    try {
+      const editorContext = getEditorContext();
+      
+      const response = await fetch('/api/chat-messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': 'demo-user' // TODO: Replace with actual user ID
+        },
+        body: JSON.stringify({
+          type,
+          content,
+          manuscriptId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
+          guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
+          metadata
+        })
+      });
+      
+      if (response.ok) {
+        const savedMessage = await response.json();
+        // Update the message with the actual database ID
+        setMessages(prev => prev.map(msg => 
+          msg.id === newMessage.id 
+            ? { ...msg, id: savedMessage.id }
+            : msg
+        ));
+      }
+    } catch (error) {
+      console.error('Failed to save message to database:', error);
+      // Message still shows in UI even if database save fails
+    }
   };
 
   // Handle chat submission

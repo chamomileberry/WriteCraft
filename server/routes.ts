@@ -543,8 +543,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat Messages API routes
   app.post("/api/chat-messages", async (req, res) => {
     try {
-      const { userId, manuscriptId, guideId, type, content, metadata } = z.object({
-        userId: z.string(),
+      // Extract userId from header for security (override client payload)
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      const { manuscriptId, guideId, type, content, metadata } = z.object({
         manuscriptId: z.string().optional(),
         guideId: z.string().optional(),
         type: z.enum(['user', 'assistant']),
@@ -574,8 +576,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/chat-messages", async (req, res) => {
     try {
-      const { userId, manuscriptId, guideId, limit } = z.object({
-        userId: z.string(),
+      // Extract userId from header for security
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      const { manuscriptId, guideId, limit } = z.object({
         manuscriptId: z.string().optional(),
         guideId: z.string().optional(),
         limit: z.coerce.number().optional().default(50)
@@ -595,8 +599,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/chat-messages", async (req, res) => {
     try {
-      const { userId, manuscriptId, guideId } = z.object({
-        userId: z.string(),
+      // Extract userId from header for security
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      
+      const { manuscriptId, guideId } = z.object({
         manuscriptId: z.string().optional(),
         guideId: z.string().optional()
       }).parse(req.query);
