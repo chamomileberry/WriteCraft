@@ -1,4 +1,9 @@
 import { ContentTypeFormConfig } from '../types';
+import { 
+  createRarityField,
+  createValueField,
+  createMaterialsField
+} from '@/lib/field-definitions';
 
 export const weaponConfig: ContentTypeFormConfig = {
   title: "Weapon Editor",
@@ -10,6 +15,7 @@ export const weaponConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Sword",
       fields: [
+        // Using original custom text to preserve exact UX
         { name: "name", label: "Weapon Name", type: "text", placeholder: "Enter weapon name..." },
         { name: "weaponType", label: "Weapon Type", type: "select", options: ["Sword", "Bow", "Staff", "Dagger", "Axe", "Mace", "Spear", "Crossbow", "Wand", "Other"] },
         { name: "description", label: "Description", type: "textarea", placeholder: "Detailed description of the weapon...", description: "What does this weapon look like and how does it function?" },
@@ -33,12 +39,15 @@ export const weaponConfig: ContentTypeFormConfig = {
       label: "Crafting & Lore",
       icon: "Wrench",
       fields: [
-        { name: "materials", label: "Materials", type: "tags", placeholder: "steel, wood, leather...", description: "Materials used in construction (comma-separated)" },
+        // Using shared field where text exactly matches original
+        createMaterialsField(),
         { name: "craftsmanship", label: "Craftsmanship", type: "text", placeholder: "Masterwork, crude, ornate, etc." },
         { name: "enchantments", label: "Enchantments", type: "tags", placeholder: "fire damage, glowing, etc.", description: "Magical properties (comma-separated)" },
+        // Using original custom text to preserve exact UX
         { name: "history", label: "History", type: "textarea", placeholder: "The weapon's origin story and past owners..." },
-        { name: "rarity", label: "Rarity", type: "select", options: ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"] },
-        { name: "value", label: "Value", type: "text", placeholder: "500 gold, priceless, etc." }
+        // Using shared fields where text exactly matches original
+        createRarityField(),
+        createValueField()
       ]
     }
   ]

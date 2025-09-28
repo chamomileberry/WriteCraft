@@ -384,13 +384,9 @@ ${generatedCreature.culturalSignificance}`;
               </div>
               <div className="space-y-3">
                 <h3 className="font-semibold">Cultural Significance</h3>
-                <div className="flex flex-wrap gap-2" data-testid="list-abilities">
-                  {generatedCreature.abilities.map((ability, index) => (
-                    <Badge key={index} variant="outline">
-                      {ability}
-                    </Badge>
-                  ))}
-                </div>
+                <p className="text-muted-foreground leading-relaxed" data-testid="text-cultural-significance">
+                  {generatedCreature.culturalSignificance}
+                </p>
               </div>
             </div>
           </CardContent>
