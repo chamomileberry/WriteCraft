@@ -125,11 +125,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               Notebook
             </button>
             <button 
-              onClick={() => onNavigate?.('manuscripts')}
+              onClick={() => onNavigate?.('projects')}
               className="text-foreground hover:text-primary transition-colors" 
-              data-testid="link-manuscripts"
+              data-testid="link-projects"
             >
-              Manuscripts
+              Projects
             </button>
           </nav>
 
@@ -256,13 +256,13 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             </button>
             <button 
               onClick={() => {
-                onNavigate?.('manuscripts');
+                onNavigate?.('projects');
                 setIsMobileMenuOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
-              data-testid="mobile-link-manuscripts"
+              data-testid="mobile-link-projects"
             >
-              Manuscripts
+              Projects
             </button>
             <button 
               onClick={() => {

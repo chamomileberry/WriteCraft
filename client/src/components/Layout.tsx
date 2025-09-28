@@ -20,8 +20,8 @@ export default function Layout({ children, hideNavigation = false }: LayoutProps
       case 'notebook':
         setLocation('/notebook');
         break;
-      case 'manuscripts':
-        setLocation('/manuscripts');
+      case 'projects':
+        setLocation('/projects');
         break;
       default:
         setLocation('/');

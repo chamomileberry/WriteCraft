@@ -145,7 +145,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   const navigateToDocument = (docId: string, docType: 'manuscript' | 'guide' | 'note') => {
     if (docType === 'manuscript') {
-      setLocation(`/manuscripts/${docId}/edit`);
+      setLocation(`/projects/${docId}/edit`);
     } else if (docType === 'guide') {
       setLocation(`/guides/${docId}/edit`);
     } else if (docType === 'note') {

@@ -32,8 +32,8 @@ export default function Home() {
   const handleToolSelect = (toolId: string) => {
     if (toolId === 'notebook') {
       setLocation('/notebook');
-    } else if (toolId === 'manuscripts') {
-      setLocation('/manuscripts');
+    } else if (toolId === 'projects') {
+      setLocation('/projects');
     } else {
       setActiveView(toolId);
     }
