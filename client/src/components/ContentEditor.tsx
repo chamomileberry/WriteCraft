@@ -4,16 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Save, Loader2, Edit, ArrowLeft } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getMappingById } from "@shared/contentTypes";
 import { useLocation } from "wouter";
-import LocationForm from "@/components/forms/LocationForm";
-import CreatureForm from "@/components/forms/CreatureForm";
-import OrganizationForm from "@/components/forms/OrganizationForm";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
 import { contentTypeFormConfigs } from "@/components/forms/ContentTypeFormConfig";
@@ -29,7 +25,6 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
   const [createdItemId, setCreatedItemId] = useState<string | null>(null); // Track newly created item
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
   
   // Get the content type mapping
   const mapping = getMappingById(contentType);
