@@ -212,7 +212,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { addPanel, isPanelOpen, focusPanel } = useWorkspaceStore();
+  const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext } = useWorkspaceStore();
 
   // Fetch manuscript data
   const { data: manuscript, isLoading: isLoadingManuscript } = useQuery({
@@ -330,6 +330,17 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     onUpdate: ({ editor }) => {
       setSaveStatus('unsaved');
       
+      // Update editor context for AI Writing Assistant
+      const content = editor.getText();
+      const htmlContent = editor.getHTML();
+      updateEditorContext({
+        content,
+        htmlContent,
+        title: manuscript?.title || 'Untitled Manuscript',
+        type: 'manuscript',
+        entityId: manuscriptId
+      });
+      
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
       }
@@ -376,6 +387,28 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
     },
   });
+
+  // Initialize editor context when manuscript data loads
+  useEffect(() => {
+    if (manuscript && editor) {
+      const content = editor.getText();
+      const htmlContent = editor.getHTML();
+      updateEditorContext({
+        content,
+        htmlContent,
+        title: manuscript.title || 'Untitled Manuscript',
+        type: 'manuscript',
+        entityId: manuscriptId
+      });
+    }
+  }, [manuscript, editor, manuscriptId, updateEditorContext]);
+
+  // Clear editor context on unmount
+  useEffect(() => {
+    return () => {
+      clearEditorContext();
+    };
+  }, [clearEditorContext]);
 
   // Expose save function via ref
   useImperativeHandle(ref, () => ({
