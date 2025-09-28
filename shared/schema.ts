@@ -19,6 +19,22 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Notebooks - Separate world bibles/collections for organizing worldbuilding content
+export const notebooks = pgTable("notebooks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color"), // Optional color for visual organization
+  icon: text("icon"), // Optional icon identifier
+  isDefault: boolean("is_default").default(false), // One notebook can be marked as default per user
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // Ensure only one default notebook per user
+  uniqueDefaultPerUser: sql`CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS notebooks_user_default_idx ON ${table} (${table.userId}) WHERE ${table.isDefault} = true`
+}));
+
 // Generated characters
 export const characters = pgTable("characters", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -179,6 +195,7 @@ export const characters = pgTable("characters", {
   disposableIncome: text("disposable_income"),
   assets: text("assets"),
   investments: text("investments"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -371,6 +388,7 @@ export const locations = pgTable("locations", {
   threats: text("threats").array(),
   resources: text("resources").array(),
   genre: text("genre"),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
