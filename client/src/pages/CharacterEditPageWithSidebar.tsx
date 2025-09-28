@@ -15,7 +15,7 @@ export default function CharacterEditPageWithSidebar() {
   const queryClient = useQueryClient();
 
   // Fetch character data
-  const { data: character, isLoading } = useQuery({
+  const { data: character, isLoading } = useQuery<Character>({
     queryKey: ['/api/characters', id],
     enabled: !!id,
   });
@@ -138,7 +138,7 @@ export default function CharacterEditPageWithSidebar() {
                 Edit Character
                 {character && (
                   <span className="ml-2 text-muted-foreground font-normal">
-                    {[(character as any)?.givenName, (character as any)?.familyName].filter(Boolean).join(' ') || 'Untitled Character'}
+                    {[character?.givenName, character?.familyName].filter(Boolean).join(' ') || 'Untitled Character'}
                   </span>
                 )}
               </h1>

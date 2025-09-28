@@ -11,22 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "../../../server/genres";
-
-interface Character {
-  id?: string;
-  name: string;
-  age: number;
-  occupation: string;
-  personality: string[];
-  backstory: string;
-  motivation: string;
-  flaw: string;
-  strength: string;
-  gender?: string | null;
-  genre?: string | null;
-  userId?: string | null;
-  createdAt?: string;
-}
+import { type Character } from "@shared/schema";
 
 // Now using backend data - imported from server/genres.ts
 
@@ -73,11 +58,11 @@ export default function CharacterGenerator() {
         itemType: 'character',
         itemId: character.id,
         itemData: {
-          givenName: (character as any).givenName || (character as any).name?.split(' ')[0] || '',
-          familyName: (character as any).familyName || (character as any).name?.split(' ').slice(1).join(' ') || '',
-          name: (character as any).givenName && (character as any).familyName 
-            ? `${(character as any).givenName} ${(character as any).familyName}`.trim()
-            : (character as any).name || '',
+          givenName: character.givenName || character.name?.split(' ')[0] || '',
+          familyName: character.familyName || character.name?.split(' ').slice(1).join(' ') || '',
+          name: character.givenName && character.familyName 
+            ? `${character.givenName} ${character.familyName}`.trim()
+            : character.name || '',
           age: character.age,
           occupation: character.occupation,
           personality: character.personality,

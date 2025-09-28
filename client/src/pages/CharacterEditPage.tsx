@@ -3,7 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { updateCharacterSchema, type UpdateCharacter } from "@shared/schema";
+import { updateCharacterSchema, type UpdateCharacter, type Character } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -234,7 +234,7 @@ export default function CharacterEditPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Edit Character</h1>
-            <p className="text-muted-foreground">Enhance and develop your character{(character as any)?.name ? `: ${(character as any).name}` : ''}</p>
+            <p className="text-muted-foreground">Enhance and develop your character{character?.name ? `: ${character.name}` : ''}</p>
           </div>
         </div>
 
