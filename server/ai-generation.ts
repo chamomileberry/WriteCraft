@@ -1007,12 +1007,17 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 }
 
 // Writing assistant functions for text analysis and improvement
-export async function analyzeText(text: string): Promise<{
+export async function analyzeText(
+  text: string,
+  editorContent?: string,
+  documentTitle?: string,
+  documentType?: 'manuscript' | 'guide'
+): Promise<{
   suggestions: string[];
   readabilityScore: number;
   potentialIssues: string[];
 }> {
-  const systemPrompt = `You are a professional writing assistant specialized in analyzing text for clarity, engagement, and effectiveness. Provide constructive feedback that helps improve the writing.
+  let systemPrompt = `You are a professional writing assistant specialized in analyzing text for clarity, engagement, and effectiveness. Provide constructive feedback that helps improve the writing.
 
 Analyze the provided text and identify:
 1. Areas for improvement in clarity, flow, and engagement
@@ -1027,13 +1032,29 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   "potentialIssues": ["issue 1", "issue 2"]
 }`;
 
+  // Build contextual user message
+  let userMessage = `Analyze this text: "${text}"`;
+  
+  if (editorContent && documentTitle) {
+    const contextInfo = documentType === 'manuscript' ? 'manuscript chapter/scene' : 'writing guide section';
+    userMessage = `I'm working on a ${contextInfo} titled "${documentTitle}". Here's the full context:
+
+FULL DOCUMENT CONTENT:
+${editorContent.slice(0, 1500)}${editorContent.length > 1500 ? '...' : ''}
+
+SPECIFIC TEXT TO ANALYZE:
+"${text}"
+
+Please analyze the specific text within the context of the larger work. Consider how it fits within the overall narrative/document flow and provide contextually relevant suggestions.`;
+  }
+
   try {
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR,
       system: systemPrompt,
       max_tokens: 1024,
       messages: [
-        { role: 'user', content: `Analyze this text: "${text}"` }
+        { role: 'user', content: userMessage }
       ],
     });
 
@@ -1060,7 +1081,13 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   }
 }
 
-export async function rephraseText(text: string, style: string): Promise<string> {
+export async function rephraseText(
+  text: string, 
+  style: string,
+  editorContent?: string,
+  documentTitle?: string,
+  documentType?: 'manuscript' | 'guide'
+): Promise<string> {
   const systemPrompt = `You are a professional writing assistant specialized in rephrasing text while maintaining the original meaning. Adapt the tone and style as requested while preserving all key information.
 
 Style instructions:
@@ -1095,7 +1122,12 @@ Provide only the rephrased text, no explanations or additional formatting.`;
   }
 }
 
-export async function proofreadText(text: string): Promise<{
+export async function proofreadText(
+  text: string,
+  editorContent?: string,
+  documentTitle?: string,
+  documentType?: 'manuscript' | 'guide'
+): Promise<{
   correctedText: string;
   corrections: { original: string; corrected: string; reason: string }[];
 }> {
@@ -1210,7 +1242,12 @@ Provide only the definition, no additional formatting or explanations.`;
   }
 }
 
-export async function generateQuestions(text: string): Promise<string[]> {
+export async function generateQuestions(
+  text: string,
+  editorContent?: string,
+  documentTitle?: string,
+  documentType?: 'manuscript' | 'guide'
+): Promise<string[]> {
   const systemPrompt = `You are a critical thinking assistant. Generate thoughtful questions that readers might ask about the provided text. These questions should help identify areas where the writing could be expanded, clarified, or improved.
 
 Generate questions that:
@@ -1570,7 +1607,10 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
 export async function conversationalChat(
   message: string, 
-  conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
+  conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>,
+  editorContent?: string,
+  documentTitle?: string,
+  documentType?: 'manuscript' | 'guide'
 ): Promise<string> {
   /*
   <important_code_snippet_instructions>
@@ -1580,7 +1620,7 @@ export async function conversationalChat(
   </important_code_snippet_instructions>
   */
   
-  const systemPrompt = `You are an expert writing assistant and creative companion for writers using the WriteCraft platform. You're knowledgeable, encouraging, and deeply skilled in all aspects of the craft of writing.
+  let systemPrompt = `You are an expert writing assistant and creative companion for writers using the WriteCraft platform. You're knowledgeable, encouraging, and deeply skilled in all aspects of the craft of writing.
 
 YOUR CORE CAPABILITIES:
 • Creative brainstorming and idea development
@@ -1624,6 +1664,18 @@ CONVERSATION GUIDELINES:
 • Remember details from the conversation for continuity
 
 You should feel like a knowledgeable writing mentor who genuinely cares about helping writers succeed with their creative projects.`;
+
+  // Add context if editor content is available
+  if (editorContent && documentTitle) {
+    const contextInfo = documentType === 'manuscript' ? 'manuscript chapter/scene' : 'writing guide section';
+    systemPrompt += `
+
+CURRENT CONTEXT: The writer is currently working on a ${contextInfo} titled "${documentTitle}". Here's the current content they're working with:
+
+${editorContent.slice(0, 1500)}${editorContent.length > 1500 ? '...' : ''}
+
+Use this context to provide more relevant and specific advice about their current work when appropriate.`;
+  }
 
   try {
     // Build the messages array with conversation history
