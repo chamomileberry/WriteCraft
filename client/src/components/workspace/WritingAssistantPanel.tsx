@@ -351,50 +351,56 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
                 )}
                 
                 {messages.map((message) => (
-                  <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-lg p-2 text-sm ${
-                      message.type === 'user' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted'
-                    }`}>
-                      {message.type === 'assistant' ? (
-                        <div className="prose prose-sm max-w-none dark:prose-invert">
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              // Ensure proper styling for markdown elements
-                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                              li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                              h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-                              h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-                              h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
-                              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                              em: ({ children }) => <em className="italic">{children}</em>,
-                              code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs">{children}</code>,
-                              blockquote: ({ children }) => <blockquote className="border-l-2 border-muted-foreground/20 pl-3 italic">{children}</blockquote>
-                            }}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
-                        </div>
-                      ) : (
-                        <p className="whitespace-pre-wrap">{message.content}</p>
-                      )}
-                      <div className="flex items-center justify-between mt-1">
+                  <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} group`}>
+                    <div className={`max-w-[80%] ${message.type === 'user' ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
+                      <div className={`rounded-lg p-2 text-sm ${
+                        message.type === 'user' 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted'
+                      }`}>
+                        {message.type === 'assistant' ? (
+                          <div className="prose prose-sm max-w-none dark:prose-invert">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                // Ensure proper styling for markdown elements
+                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                                h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                                h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+                                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                em: ({ children }) => <em className="italic">{children}</em>,
+                                code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs">{children}</code>,
+                                blockquote: ({ children }) => <blockquote className="border-l-2 border-muted-foreground/20 pl-3 italic">{children}</blockquote>
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        )}
+                      </div>
+                      
+                      {/* Message metadata and actions */}
+                      <div className={`flex items-center gap-2 mt-1 px-1 ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                         <span className="text-xs opacity-70">
                           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {message.type === 'assistant' && (
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => copyToClipboard(message.content)}
-                            className="h-5 w-5 p-0 ml-2"
+                            className="h-6 w-16 p-0 text-xs opacity-70 hover:opacity-100 transition-opacity"
                             data-testid="button-copy-message"
+                            title="Copy message"
                           >
-                            <Copy className="w-3 h-3" />
+                            <Copy className="w-3 h-3 mr-1" />
+                            Copy
                           </Button>
                         )}
                       </div>
