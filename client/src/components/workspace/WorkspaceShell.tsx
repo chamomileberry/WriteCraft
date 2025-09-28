@@ -276,8 +276,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
-                      if (panel.type === 'quickNote' && !isInManuscriptEditor()) {
-                        // Minimize the quick note panel instead of pinning
+                      if ((panel.type === 'quickNote' && !isInManuscriptEditor()) || panel.type === 'writingAssistant') {
+                        // Minimize the panel instead of pinning
                         minimizePanel(panel.id);
                       } else {
                         attachToTabBar(panel.id, 'main');
@@ -285,9 +285,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     }}
                     className="h-6 w-6 p-0"
                     data-testid={`button-dock-${panel.id}`}
-                    title={panel.type === 'quickNote' && !isInManuscriptEditor() ? "Minimize" : "Pin to tab bar"}
+                    title={(panel.type === 'quickNote' && !isInManuscriptEditor()) || panel.type === 'writingAssistant' ? "Minimize" : "Pin to tab bar"}
                   >
-                    {panel.type === 'quickNote' && !isInManuscriptEditor() ? (
+                    {(panel.type === 'quickNote' && !isInManuscriptEditor()) || panel.type === 'writingAssistant' ? (
                       <Minimize2 className="h-3 w-3" />
                     ) : (
                       <Pin className="h-3 w-3" />
