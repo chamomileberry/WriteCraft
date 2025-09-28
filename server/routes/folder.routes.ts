@@ -25,8 +25,22 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const folders = await storage.getUserFolders(userId);
-    res.json(folders);
+    const type = req.query.type as string;
+    const manuscriptId = req.query.manuscriptId as string;
+    const guideId = req.query.guideId as string;
+    
+    // If manuscriptId or guideId is provided, use document-specific method
+    if (manuscriptId) {
+      const folders = await storage.getDocumentFolders(manuscriptId, userId);
+      res.json(folders);
+    } else if (guideId) {
+      const folders = await storage.getDocumentFolders(guideId, userId);
+      res.json(folders);
+    } else {
+      // Fallback to general method with type filter
+      const folders = await storage.getUserFolders(userId, type);
+      res.json(folders);
+    }
   } catch (error) {
     console.error('Error fetching folders:', error);
     res.status(500).json({ error: 'Failed to fetch folders' });
@@ -52,7 +66,7 @@ router.put("/:id", async (req, res) => {
     const folderData = { ...req.body, userId };
     
     const validatedUpdates = insertFolderSchema.partial().parse(folderData);
-    const updatedFolder = await storage.updateFolder(req.params.id, validatedUpdates);
+    const updatedFolder = await storage.updateFolder(req.params.id, userId, validatedUpdates);
     
     if (!updatedFolder) {
       return res.status(404).json({ error: 'Folder not found' });
@@ -70,12 +84,8 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    const deleted = await storage.deleteFolder(req.params.id);
-    
-    if (!deleted) {
-      return res.status(404).json({ error: 'Folder not found' });
-    }
-    
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteFolder(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting folder:', error);
