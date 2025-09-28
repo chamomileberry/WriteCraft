@@ -28,37 +28,32 @@ import { createLowlight } from 'lowlight';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { 
-  Bold, 
-  Italic, 
-  Link as LinkIcon,
-  Save,
-  Eye,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
   ArrowLeft,
+  Save,
   Loader2,
-  List,
-  ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  Highlighter,
-  Heading1,
-  Heading2,
-  Heading3,
-  Undo,
-  Redo,
-  Image as ImageIcon,
-  Table as TableIcon,
-  Code,
-  Minus,
-  Printer,
-  Eye as FocusIcon,
+  Search,
+  ExternalLink,
+  Plus,
   Download,
+  ImageIcon,
   Video,
-  Hash,
-  Type as SpecialChar
+  LinkIcon,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -66,7 +61,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ManuscriptHeader } from './ManuscriptHeader';
-import { ContentSearch } from './ContentSearch';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 
@@ -78,18 +72,14 @@ const CustomHorizontalRule = HorizontalRule.extend({
         const { state, dispatch } = this.editor.view;
         const { selection } = state;
         
-        // Check if we're selecting a horizontal rule directly
         if (selection instanceof NodeSelection && selection.node.type.name === 'horizontalRule') {
           const tr = state.tr.deleteSelection();
           dispatch(tr);
           return true;
         }
         
-        // Check if cursor is at the start of a paragraph that follows a horizontal rule
         if (selection.empty && selection.$from.pos > 0) {
           const $pos = selection.$from;
-          
-          // Look for horizontal rule immediately before current position
           const before = $pos.nodeBefore;
           if (before && before.type.name === 'horizontalRule') {
             const hrPos = $pos.pos - before.nodeSize;
@@ -106,7 +96,6 @@ const CustomHorizontalRule = HorizontalRule.extend({
         const { selection } = state;
         const { $from } = selection;
         
-        // Check if cursor is right before a horizontal rule
         if ($from.pos < state.doc.content.size) {
           const nodeAtPos = state.doc.nodeAt($from.pos);
           if (nodeAtPos?.type.name === 'horizontalRule') {
@@ -116,7 +105,6 @@ const CustomHorizontalRule = HorizontalRule.extend({
           }
         }
         
-        // Check if we're selecting a horizontal rule
         if (selection instanceof NodeSelection && selection.node.type.name === 'horizontalRule') {
           const tr = state.tr.deleteSelection();
           dispatch(tr);
@@ -142,21 +130,11 @@ interface SearchResult {
   description?: string;
 }
 
-interface PinnedItem {
-  id: string;
-  targetType: string;
-  targetId: string;
-  category?: string;
-  notes?: string;
-  title: string;
-  subtitle?: string;
-}
-
 export interface ManuscriptEditorRef {
   saveContent: () => Promise<void>;
 }
 
-// Custom FontSize extension - same as GuideEditor
+// Custom FontSize extension
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     fontSize: {
@@ -168,13 +146,11 @@ declare module '@tiptap/core' {
 
 const FontSize = Extension.create({
   name: 'fontSize',
-
   addOptions() {
     return {
       types: ['textStyle'],
     }
   },
-
   addGlobalAttributes() {
     return [
       {
@@ -196,7 +172,6 @@ const FontSize = Extension.create({
       },
     ]
   },
-
   addCommands() {
     return {
       setFontSize: fontSize => ({ chain }) => {
@@ -220,12 +195,23 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState('');
+  
+  // UI state managed with React instead of direct DOM manipulation
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(100);
+  
+  // Dialog states for better UX instead of prompts
+  const [isInsertImageDialogOpen, setIsInsertImageDialogOpen] = useState(false);
+  const [isInsertVideoDialogOpen, setIsInsertVideoDialogOpen] = useState(false);
+  const [isInsertLinkDialogOpen, setIsInsertLinkDialogOpen] = useState(false);
+  const [insertImageUrl, setInsertImageUrl] = useState('');
+  const [insertVideoUrl, setInsertVideoUrl] = useState('');
+  const [insertLinkUrl, setInsertLinkUrl] = useState('');
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Workspace store for managing panels
-  const { addPanel, isPanelOpen, setActiveTab } = useWorkspaceStore();
+  const { addPanel, isPanelOpen, focusPanel } = useWorkspaceStore();
 
   // Fetch manuscript data
   const { data: manuscript, isLoading: isLoadingManuscript } = useQuery({
@@ -237,15 +223,12 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     enabled: !!manuscriptId && manuscriptId !== 'new',
   });
 
-  // Search across all content types
+  // **REFINED**: Unified data fetching using useQuery instead of native fetch
   const { data: searchResults = [], isLoading: isSearching } = useQuery({
     queryKey: ['/api/search', searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
-      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`, {
-        credentials: 'include'
-      });
-      if (!response.ok) return [];
+      const response = await apiRequest('GET', `/api/search?q=${encodeURIComponent(searchQuery)}`);
       return response.json();
     },
     enabled: searchQuery.trim().length > 0,
@@ -257,13 +240,12 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Disable built-in extensions we're replacing
         bulletList: false,
         orderedList: false,
         listItem: false,
         link: false,
         codeBlock: false,
-        horizontalRule: false, // Disable built-in horizontal rule since we use CustomHorizontalRule
+        horizontalRule: false,
       }),
       CharacterCount,
       TextStyle,
@@ -305,7 +287,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
           class: 'bg-primary/10 text-primary px-1 py-0.5 rounded-md border border-primary/20',
         },
       }),
-      // New Media Extensions
       Image.configure({
         HTMLAttributes: {
           class: 'rounded-lg max-w-full h-auto',
@@ -347,7 +328,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     onUpdate: ({ editor }) => {
       setSaveStatus('unsaved');
       
-      // Debounced autosave
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
       }
@@ -375,7 +355,11 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     },
     onError: (error: any) => {
       setSaveStatus('unsaved');
-      toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
+      toast({
+        title: "Save failed",
+        description: error.message || "Failed to save manuscript. Please try again.",
+        variant: "destructive"
+      });
     },
   });
 
@@ -388,94 +372,32 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts', manuscriptId] });
       queryClient.invalidateQueries({ queryKey: ['/api/manuscripts'] });
-      toast({ title: 'Title updated', description: 'Manuscript title has been saved.' });
-    },
-    onError: (error: any) => {
-      toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
     },
   });
 
-  const saveContent = useCallback(async () => {
-    if (saveStatus === 'saving') return;
-    setSaveStatus('saving');
-    
-    try {
-      await saveMutation.mutateAsync();
-    } catch (error) {
-      console.error('Save error:', error);
-    }
-  }, [saveStatus, saveMutation]);
-
+  // Expose save function via ref
   useImperativeHandle(ref, () => ({
-    saveContent
-  }), [saveContent]);
-
-  useEffect(() => {
-    if (editor && manuscript?.content && editor.getHTML() !== manuscript.content) {
-      editor.commands.setContent(manuscript.content);
+    saveContent: async () => {
+      await saveMutation.mutateAsync();
     }
-  }, [editor, manuscript?.content]);
+  }));
 
-  useEffect(() => {
-    if (manuscript?.title) {
-      setTitleInput(manuscript.title);
-    }
-  }, [manuscript?.title]);
-
-  // Auto-create manuscript tab when manuscript loads
-  useEffect(() => {
-    if (manuscript && !isPanelOpen(`manuscript-${manuscriptId}`, manuscriptId)) {
-      const { addPanel, setActiveTab, removePanel } = useWorkspaceStore.getState();
-      
-      // Clean up any old manuscript panels with hardcoded 'manuscript' ID
-      const oldPanel = useWorkspaceStore.getState().currentLayout.panels.find(p => p.id === 'manuscript' && p.type === 'manuscript');
-      if (oldPanel) {
-        removePanel('manuscript');
+  const saveContent = useCallback(async () => {
+    if (editor && saveStatus !== 'saving') {
+      setSaveStatus('saving');
+      try {
+        await saveMutation.mutateAsync();
+      } catch (error) {
+        console.error('Save error:', error);
       }
-      addPanel({
-        id: `manuscript-${manuscriptId}`, // Make ID unique per manuscript
-        type: 'manuscript',
-        title: manuscript.title || 'Untitled Manuscript',
-        entityId: manuscriptId,
-        mode: 'tabbed',
-        regionId: 'main'
-      });
-      // Set as active tab
-      setActiveTab(`manuscript-${manuscriptId}`, 'main');
     }
-  }, [manuscript, manuscriptId, isPanelOpen]);
+  }, [editor, saveStatus, saveMutation]);
 
-  useEffect(() => {
-    return () => {
-      if (autosaveTimeoutRef.current) {
-        clearTimeout(autosaveTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const getSaveStatusText = () => {
-    if (saveStatus === 'saving') return 'Saving...';
-    if (saveStatus === 'saved' && lastSaveTime) {
-      return `Saved ${lastSaveTime.toLocaleTimeString()}`;
-    }
-    return 'Unsaved changes';
+  const handleManualSave = () => {
+    saveContent();
   };
 
-  const handleManualSave = async () => {
-    if (autosaveTimeoutRef.current) {
-      clearTimeout(autosaveTimeoutRef.current);
-      autosaveTimeoutRef.current = null;
-    }
-    
-    setSaveStatus('saving');
-    
-    try {
-      await saveContent();
-    } catch (error) {
-      // Error handling is already in the mutation
-    }
-  };
-
+  // Title editing handlers
   const handleTitleClick = () => {
     setTitleInput(manuscript?.title || 'Untitled Manuscript');
     setIsEditingTitle(true);
@@ -501,6 +423,7 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     }
   };
 
+  // Search and content interaction
   const insertLink = (item: SearchResult) => {
     if (editor) {
       const linkText = `[[${item.title}]]`;
@@ -508,24 +431,16 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
     }
   };
 
-  const openInPanel = (item: SearchResult | PinnedItem) => {
-    // Check if this is a pinned item (has targetId) or search result (has type)  
-    const isPinnedItem = 'targetId' in item;
-    const itemType = isPinnedItem ? (item as PinnedItem).targetType : (item as SearchResult).type;
-    const itemId = isPinnedItem ? (item as PinnedItem).targetId : (item as SearchResult).id;
+  const openInPanel = (item: SearchResult) => {
+    const itemType = item.type;
+    const itemId = item.id;
     const itemTitle = item.title;
     
-    // Use workspace store to add panel
-    const { addPanel, isPanelOpen, focusPanel } = useWorkspaceStore.getState();
-    
-    // Check if panel is already open
     if (isPanelOpen(itemType === 'character' ? 'characterDetail' : itemType, itemId)) {
-      // Focus existing panel instead of creating duplicate
       focusPanel(itemId);
       return;
     }
     
-    // Create new panel based on content type
     if (itemType === 'character') {
       addPanel({
         id: nanoid(),
@@ -536,7 +451,6 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         regionId: 'main'
       });
     } else if (itemType === 'manuscript') {
-      // Open manuscript in tab using workspace store
       addPanel({
         id: nanoid(),
         type: 'manuscriptOutline',
@@ -546,15 +460,91 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
         regionId: 'main'
       });
     } else {
-      // For other types, create generic panel in workspace
       addPanel({
         id: nanoid(),
-        type: 'notes', // Generic type for now
+        type: 'notes',
         title: itemTitle || `${itemType} Details`,
         entityId: itemId,
         mode: 'tabbed',
         regionId: 'main'
       });
+    }
+  };
+
+  // **REFINED**: Dialog handlers for better UX instead of prompt()
+  const handleInsertImage = () => {
+    if (insertImageUrl.trim()) {
+      editor?.chain().focus().setImage({ src: insertImageUrl.trim() }).run();
+      setInsertImageUrl('');
+      setIsInsertImageDialogOpen(false);
+    }
+  };
+
+  const handleInsertVideo = () => {
+    if (insertVideoUrl.trim()) {
+      editor?.commands.setYoutubeVideo({
+        src: insertVideoUrl.trim(),
+        width: 640,
+        height: 480,
+      });
+      setInsertVideoUrl('');
+      setIsInsertVideoDialogOpen(false);
+    }
+  };
+
+  const handleInsertLink = () => {
+    if (insertLinkUrl.trim()) {
+      editor?.chain().focus().setLink({ href: insertLinkUrl.trim() }).run();
+      setInsertLinkUrl('');
+      setIsInsertLinkDialogOpen(false);
+    }
+  };
+
+  // **REFINED**: Export functionality with DropdownMenu instead of prompt()
+  const handleExport = (format: string) => {
+    const content = editor?.getHTML() || '';
+    const title = manuscript?.title || 'Untitled';
+    
+    switch(format) {
+      case 'html':
+        const htmlFile = new Blob([content], { type: 'text/html' });
+        const htmlLink = document.createElement('a');
+        htmlLink.href = URL.createObjectURL(htmlFile);
+        htmlLink.download = `${title}.html`;
+        htmlLink.click();
+        break;
+        
+      case 'pdf':
+        toast({
+          title: "PDF Export",
+          description: "Opening print dialog. Select 'Save as PDF' from the destination dropdown.",
+        });
+        setTimeout(() => window.print(), 500);
+        break;
+        
+      case 'docx':
+        try {
+          const textContent = editor?.getText() || '';
+          const docxBlob = new Blob([`${title}\n\n${textContent}`], { 
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+          });
+          const docxLink = document.createElement('a');
+          docxLink.href = URL.createObjectURL(docxBlob);
+          docxLink.download = `${title}.docx`;
+          docxLink.click();
+        } catch (error) {
+          toast({
+            title: "DOCX Export",
+            description: "Feature in development. Using text export for now.",
+            variant: "destructive"
+          });
+          const textBlob = new Blob([editor?.getText() || ''], { type: 'text/plain' });
+          const textLink = document.createElement('a');
+          textLink.href = URL.createObjectURL(textBlob);
+          textLink.download = `${title}.txt`;
+          textLink.click();
+        }
+        break;
     }
   };
 
@@ -589,576 +579,235 @@ const ManuscriptEditor = forwardRef<ManuscriptEditorRef, ManuscriptEditorProps>(
 
         {/* Editor Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Rich Text Toolbar */}
-          <div className="border-b bg-background/95 backdrop-blur">
+          {/* **REFINED**: Toolbar with clean state management */}
+          <div className={`border-b bg-background/95 backdrop-blur transition-all duration-200 ${isFocusMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <div className="flex items-center justify-between gap-2 p-4">
               {/* Left side - Editor Toolbar */}
               <div className="flex-1">
-                <EditorToolbar 
-                  editor={editor} 
-                  manuscript={manuscript}
-                  onExport={undefined}
-                  onPrint={() => window.print()}
-                  onFocusMode={() => {
-                    const toolbar = document.querySelector('.border-b.bg-background\\/95');
-                    const sidebar = document.querySelector('[data-sidebar]');
-                    if (toolbar) {
-                      toolbar.classList.toggle('hidden');
-                    }
-                    if (sidebar) {
-                      sidebar.classList.toggle('hidden');
-                    }
-                  }}
-                />
+                <EditorToolbar editor={editor} title={manuscript?.title} />
+              </div>
+              
+              {/* Media insertion with dialogs */}
+              <div className="flex items-center gap-2">
+                <Dialog open={isInsertImageDialogOpen} onOpenChange={setIsInsertImageDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" title="Insert Image">
+                      <ImageIcon className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Insert Image</DialogTitle>
+                      <DialogDescription>
+                        Enter the URL of the image you want to insert.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Input
+                      value={insertImageUrl}
+                      onChange={(e) => setInsertImageUrl(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      onKeyDown={(e) => e.key === 'Enter' && handleInsertImage()}
+                    />
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsInsertImageDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleInsertImage} disabled={!insertImageUrl.trim()}>
+                        Insert
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isInsertVideoDialogOpen} onOpenChange={setIsInsertVideoDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" title="Insert Video">
+                      <Video className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Insert YouTube Video</DialogTitle>
+                      <DialogDescription>
+                        Enter the URL of the YouTube video you want to embed.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Input
+                      value={insertVideoUrl}
+                      onChange={(e) => setInsertVideoUrl(e.target.value)}
+                      placeholder="https://youtube.com/watch?v=..."
+                      onKeyDown={(e) => e.key === 'Enter' && handleInsertVideo()}
+                    />
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsInsertVideoDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleInsertVideo} disabled={!insertVideoUrl.trim()}>
+                        Insert
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isInsertLinkDialogOpen} onOpenChange={setIsInsertLinkDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" title="Insert Link">
+                      <LinkIcon className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Insert Link</DialogTitle>
+                      <DialogDescription>
+                        Enter the URL for the link.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Input
+                      value={insertLinkUrl}
+                      onChange={(e) => setInsertLinkUrl(e.target.value)}
+                      placeholder="https://example.com"
+                      onKeyDown={(e) => e.key === 'Enter' && handleInsertLink()}
+                    />
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsInsertLinkDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleInsertLink} disabled={!insertLinkUrl.trim()}>
+                        Insert
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* **REFINED**: Export with DropdownMenu instead of prompt */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" title="Export Document">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExport('html')}>
+                      Export as HTML
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                      Export as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('docx')}>
+                      Export as DOCX
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* **REFINED**: UI controls managed with state */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsFocusMode(!isFocusMode)}
+                  title="Focus Mode"
+                >
+                  Focus
+                </Button>
+
+                <select
+                  className="px-2 py-1 text-sm border rounded-md bg-background min-w-20"
+                  value={zoomLevel}
+                  onChange={(e) => setZoomLevel(parseInt(e.target.value))}
+                  title="Zoom Level"
+                >
+                  <option value={50}>50%</option>
+                  <option value={75}>75%</option>
+                  <option value={100}>100%</option>
+                  <option value={125}>125%</option>
+                  <option value={150}>150%</option>
+                  <option value={200}>200%</option>
+                </select>
               </div>
               
               {/* Right side - Search */}
               <div className="relative">
-                <ContentSearch
-                  searchQuery={searchQuery}
-                  searchResults={searchResults}
-                  isSearching={isSearching}
-                  onSearchChange={setSearchQuery}
-                  onInsertLink={insertLink}
-                  onOpenInPanel={openInPanel}
-                />
-              </div>
-            </div>
-          {/* Editor */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80">
-              <EditorContent editor={editor} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </WorkspaceLayout>
-  );
-});
-
-ManuscriptEditor.displayName = 'ManuscriptEditor';
-
-export default ManuscriptEditor;
-                  onClick={() => editor?.chain().focus().toggleBold().run()}
-                  disabled={!editor?.can().chain().focus().toggleBold().run()}
-                  data-testid="button-bold"
-                  title="Bold"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive('italic') ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  disabled={!editor?.can().chain().focus().toggleItalic().run()}
-                  data-testid="button-italic"
-                  title="Italic"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive('highlight') ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleHighlight({ color: '#ffff00' }).run()}
-                  disabled={!editor?.can().chain().focus().toggleHighlight().run()}
-                  data-testid="button-highlight"
-                  title="Highlight"
-                >
-                  <Highlighter className="h-4 w-4" />
-                </Button>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Headings */}
-                <Button
-                  variant={editor?.isActive('heading', { level: 1 }) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                  data-testid="button-h1"
-                  title="Heading 1"
-                >
-                  <Heading1 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive('heading', { level: 2 }) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                  data-testid="button-h2"
-                  title="Heading 2"
-                >
-                  <Heading2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive('heading', { level: 3 }) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-                  data-testid="button-h3"
-                  title="Heading 3"
-                >
-                  <Heading3 className="h-4 w-4" />
-                </Button>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Font Size */}
-                <select
-                  className="px-2 py-1 text-sm border rounded-md bg-background min-w-16"
-                  onChange={(e) => {
-                    if (e.target.value === 'unset') {
-                      editor?.chain().focus().unsetFontSize().run();
-                    } else {
-                      editor?.chain().focus().setFontSize(e.target.value).run();
-                    }
-                  }}
-                  value={editor?.getAttributes('textStyle').fontSize || '12pt'}
-                  data-testid="select-font-size"
-                  title="Font Size"
-                >
-                  <option value="8pt">8pt</option>
-                  <option value="9pt">9pt</option>
-                  <option value="10pt">10pt</option>
-                  <option value="11pt">11pt</option>
-                  <option value="12pt">12pt</option>
-                  <option value="14pt">14pt</option>
-                  <option value="16pt">16pt</option>
-                  <option value="18pt">18pt</option>
-                  <option value="20pt">20pt</option>
-                  <option value="24pt">24pt</option>
-                  <option value="28pt">28pt</option>
-                  <option value="32pt">32pt</option>
-                  <option value="36pt">36pt</option>
-                </select>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Undo/Redo */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().undo().run()}
-                  disabled={!editor?.can().chain().focus().undo().run()}
-                  data-testid="button-undo"
-                  title="Undo (Ctrl+Z)"
-                >
-                  <Undo className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().redo().run()}
-                  disabled={!editor?.can().chain().focus().redo().run()}
-                  data-testid="button-redo"
-                  title="Redo (Ctrl+Y)"
-                >
-                  <Redo className="h-4 w-4" />
-                </Button>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Lists */}
-                <Button
-                  variant={editor?.isActive('bulletList') ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                  disabled={!editor?.can().chain().focus().toggleBulletList().run()}
-                  data-testid="button-bullet-list"
-                  title="Bullet List"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive('orderedList') ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                  disabled={!editor?.can().chain().focus().toggleOrderedList().run()}
-                  data-testid="button-ordered-list"
-                  title="Numbered List"
-                >
-                  <ListOrdered className="h-4 w-4" />
-                </Button>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Text Alignment */}
-                <Button
-                  variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-                  data-testid="button-align-left"
-                  title="Align Left"
-                >
-                  <AlignLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-                  data-testid="button-align-center"
-                  title="Align Center"
-                >
-                  <AlignCenter className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-                  data-testid="button-align-right"
-                  title="Align Right"
-                >
-                  <AlignRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => editor?.chain().focus().setTextAlign('justify').run()}
-                  data-testid="button-align-justify"
-                  title="Justify"
-                >
-                  <AlignJustify className="h-4 w-4" />
-                </Button>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Media Insertion */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const url = prompt('Enter image URL:');
-                    if (url) {
-                      editor?.chain().focus().setImage({ src: url }).run();
-                    }
-                  }}
-                  data-testid="button-insert-image"
-                  title="Insert Image"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-                  }}
-                  data-testid="button-insert-table"
-                  title="Insert Table"
-                >
-                  <TableIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    editor?.chain().focus().toggleCodeBlock().run();
-                  }}
-                  data-testid="button-code-block"
-                  title="Code Block"
-                >
-                  <Code className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    editor?.chain().focus().setHorizontalRule().run();
-                  }}
-                  data-testid="button-horizontal-rule"
-                  title="Horizontal Rule"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const url = prompt('Enter YouTube URL:');
-                    if (url) {
-                      editor?.chain().focus().setYoutubeVideo({
-                        src: url,
-                        width: 640,
-                        height: 480,
-                      }).run();
-                    }
-                  }}
-                  data-testid="button-insert-video"
-                  title="Insert YouTube Video"
-                >
-                  <Video className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const footnoteText = prompt('Enter footnote text:');
-                    if (footnoteText) {
-                      const footnoteId = Date.now();
-                      const footnoteRef = `<sup><a href="#footnote-${footnoteId}" id="ref-${footnoteId}">${footnoteId}</a></sup>`;
-                      const footnote = `<div id="footnote-${footnoteId}" class="footnote" style="border-top: 1px solid #ccc; margin-top: 2rem; padding-top: 1rem; font-size: 0.875rem;"><p><a href="#ref-${footnoteId}">${footnoteId}.</a> ${footnoteText}</p></div>`;
-                      editor?.chain().focus().insertContent(footnoteRef).run();
-                      // Insert footnote at end of document
-                      editor?.commands.insertContentAt(editor.state.doc.content.size, footnote);
-                    }
-                  }}
-                  data-testid="button-insert-footnote"
-                  title="Insert Footnote"
-                >
-                  <Hash className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const specialChars = ['©', '®', '™', '§', '¶', '†', '‡', '•', '…', '"', '"', "'", "'", '—', '–', '½', '¼', '¾', '±', '×', '÷', '°', 'α', 'β', 'γ', 'δ', 'π', 'Σ', '∞'];
-                    const selectedChar = prompt('Select special character:\n' + specialChars.map((char, i) => (i + 1) + '. ' + char).join(' ') + '\n\nEnter character number or the character directly:');
-                    if (selectedChar) {
-                      const charIndex = parseInt(selectedChar) - 1;
-                      const charToInsert = (!isNaN(charIndex) && specialChars[charIndex]) ? specialChars[charIndex] : selectedChar;
-                      editor?.chain().focus().insertContent(charToInsert).run();
-                    }
-                  }}
-                  data-testid="button-special-chars"
-                  title="Insert Special Characters"
-                >
-                  <SpecialChar className="h-4 w-4" />
-                </Button>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Print, Zoom, Focus, Export */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.print()}
-                  data-testid="button-print"
-                  title="Print Document"
-                >
-                  <Printer className="h-4 w-4" />
-                </Button>
-                <select
-                  className="px-2 py-1 text-sm border rounded-md bg-background min-w-20"
-                  onChange={(e) => {
-                    const zoom = parseInt(e.target.value) / 100;
-                    const editorElement = document.querySelector('.ProseMirror');
-                    if (editorElement) {
-                      (editorElement as HTMLElement).style.transform = `scale(${zoom})`;
-                      (editorElement as HTMLElement).style.transformOrigin = 'top left';
-                    }
-                  }}
-                  defaultValue="100"
-                  data-testid="select-zoom"
-                  title="Zoom Level"
-                >
-                  <option value="50">50%</option>
-                  <option value="75">75%</option>
-                  <option value="100">100%</option>
-                  <option value="125">125%</option>
-                  <option value="150">150%</option>
-                  <option value="200">200%</option>
-                </select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const toolbar = document.querySelector('.border-b.bg-background\\/95');
-                    const sidebar = document.querySelector('[data-sidebar]');
-                    if (toolbar) {
-                      toolbar.classList.toggle('hidden');
-                    }
-                    if (sidebar) {
-                      sidebar.classList.toggle('hidden');
-                    }
-                  }}
-                  data-testid="button-focus-mode"
-                  title="Focus Mode"
-                >
-                  <FocusIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const exportOptions = [
-                      '1. Export as HTML',
-                      '2. Export as PDF (Preview)',
-                      '3. Export as DOCX (Preview)', 
-                      '4. Send via Email (Coming Soon)',
-                      '5. Share for Collaboration (Coming Soon)'
-                    ].join('\n');
-                    
-                    const choice = prompt(`Choose export option:\n\n${exportOptions}\n\nEnter option number (1-5):`);
-                    const content = editor?.getHTML() || '';
-                    const title = manuscript?.title || 'Untitled';
-                    
-                    switch(choice) {
-                      case '1':
-                        // HTML Export
-                        const htmlFile = new Blob([content], { type: 'text/html' });
-                        const htmlLink = document.createElement('a');
-                        htmlLink.href = URL.createObjectURL(htmlFile);
-                        htmlLink.download = `${title}.html`;
-                        htmlLink.click();
-                        break;
-                        
-                      case '2':
-                        // PDF Export (Preview)
-                        alert('PDF Export: This feature uses browser print-to-PDF.\nClick OK to open print dialog, then select "Save as PDF".');
-                        setTimeout(() => window.print(), 500);
-                        break;
-                        
-                      case '3':
-                        // DOCX Export (Preview)
-                        try {
-                          const textContent = editor?.getText() || '';
-                          const docxBlob = new Blob([`${title}\n\n${textContent}`], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-                          const docxLink = document.createElement('a');
-                          docxLink.href = URL.createObjectURL(docxBlob);
-                          docxLink.download = `${title}.docx`;
-                          docxLink.click();
-                        } catch (error) {
-                          alert('DOCX Export: Feature in development. Using text export for now.');
-                          const textBlob = new Blob([editor?.getText() || ''], { type: 'text/plain' });
-                          const textLink = document.createElement('a');
-                          textLink.href = URL.createObjectURL(textBlob);
-                          textLink.download = `${title}.txt`;
-                          textLink.click();
-                        }
-                        break;
-                        
-                      case '4':
-                        alert('Email Export: Coming soon! This will allow you to email your document directly to recipients.');
-                        break;
-                        
-                      case '5':
-                        alert('Collaboration Sharing: Coming soon! This will generate shareable links for collaborative editing.');
-                        break;
-                        
-                      default:
-                        if (choice) alert('Invalid option selected. Please choose 1-5.');
-                        break;
-                    }
-                  }}
-                  data-testid="button-export"
-                  title="Export & Share Document"
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* Font Family */}
-                <select
-                  className="px-3 py-1 text-sm border rounded-md bg-background"
-                  onChange={(e) => {
-                    if (e.target.value === 'unset') {
-                      editor?.chain().focus().unsetFontFamily().run();
-                    } else {
-                      editor?.chain().focus().setFontFamily(e.target.value).run();
-                    }
-                  }}
-                  value={editor?.getAttributes('textStyle').fontFamily || 'default'}
-                  data-testid="select-font-family"
-                >
-                  <option value="default">Default</option>
-                  <option value="Inter">Inter</option>
-                  <option value="serif">Times New Roman</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Helvetica">Helvetica</option>
-                  <option value="monospace">Monospace</option>
-                  <option value="cursive">Cursive</option>
-                </select>
-
-                {/* Text Color */}
-                <input
-                  type="color"
-                  className="w-8 h-8 border rounded cursor-pointer"
-                  onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()}
-                  value={editor?.getAttributes('textStyle').color || '#000000'}
-                  data-testid="input-text-color"
-                  title="Text Color"
-                />
-
-                {/* Highlight Color */}
-                <input
-                  type="color"
-                  className="w-8 h-8 border rounded cursor-pointer bg-yellow-200"
-                  onChange={(e) => editor?.chain().focus().setHighlight({ color: e.target.value }).run()}
-                  value={editor?.getAttributes('highlight').color || '#ffff00'}
-                  data-testid="input-highlight-color"
-                  title="Highlight Color"
-                />
-              </div>
-              
-              {/* Search Actions */}
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="Search content to open in tabs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-64"
-                  data-testid="input-search-content"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Search Results Dropdown */}
-          {searchQuery && (
-            <div className="border-b bg-muted/40 max-h-32 overflow-y-auto">
-              <div className="p-2">
-                {isSearching ? (
-                  <div className="flex items-center justify-center py-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
-                ) : searchResults.length > 0 ? (
-                  <div className="space-y-1">
-                    {searchResults.slice(0, 5).map((item: SearchResult) => (
-                      <div
-                        key={`${item.type}-${item.id}`}
-                        className="flex items-center justify-between p-2 rounded-md border hover-elevate"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {item.type}
-                            </Badge>
-                            <span className="text-sm font-medium truncate">{item.title}</span>
-                          </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Search content to open in tabs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-64"
+                    data-testid="input-search-content"
+                  />
+                </div>
+                
+                {/* **REFINED**: Search Results using useQuery data */}
+                {searchQuery && (
+                  <div className="absolute top-full left-0 right-0 z-50 border bg-background rounded-md shadow-lg max-h-32 overflow-y-auto mt-1">
+                    <div className="p-2">
+                      {isSearching ? (
+                        <div className="flex items-center justify-center py-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => insertLink(item)}
-                            data-testid={`button-insert-link-${item.id}`}
-                            title="Insert link"
-                          >
-                            <LinkIcon className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openInPanel(item)}
-                            data-testid={`button-open-tab-${item.id}`}
-                            title="Open in tab"
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
+                      ) : searchResults.length > 0 ? (
+                        <div className="space-y-1">
+                          {searchResults.slice(0, 5).map((item: SearchResult) => (
+                            <div
+                              key={`${item.type}-${item.id}`}
+                              className="flex items-center justify-between p-2 rounded-md border hover-elevate"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {item.type}
+                                  </Badge>
+                                  <span className="text-sm font-medium truncate">{item.title}</span>
+                                </div>
+                                {item.subtitle && (
+                                  <p className="text-xs text-muted-foreground truncate mt-1">
+                                    {item.subtitle}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => insertLink(item)}
+                                  className="h-6 w-6 p-0"
+                                  title="Insert as link"
+                                  data-testid={`button-insert-link-${item.type}-${item.id}`}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openInPanel(item)}
+                                  className="h-6 w-6 p-0"
+                                  title="Open in panel"
+                                  data-testid={`button-open-panel-${item.type}-${item.id}`}
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    ))}
+                      ) : (
+                        <p className="text-sm text-muted-foreground py-2">No results found</p>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-2">
-                    No results found
-                  </p>
                 )}
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Editor */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          {/* **REFINED**: Editor with zoom state applied via style */}
+          <div 
+            className="flex-1 p-6 overflow-y-auto transition-transform duration-200"
+            style={{ 
+              transform: `scale(${zoomLevel / 100})`,
+              transformOrigin: 'top left',
+              width: `${10000 / zoomLevel}%`, // Compensate for scale
+            }}
+          >
             <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80">
               <EditorContent editor={editor} />
             </div>
