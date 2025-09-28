@@ -44,6 +44,15 @@ interface WorkspaceState {
     icon?: string;
   }>;
   
+  // Editor context for AI Writing Assistant
+  editorContext: {
+    content: string; // Current editor content as plain text
+    htmlContent: string; // Current editor content as HTML
+    title: string; // Document title (manuscript/guide name)
+    type: 'manuscript' | 'guide' | null; // Type of document being edited
+    entityId: string | null; // ID of the document being edited
+  };
+  
   // Actions
   addPanel: (panel: PanelDescriptor) => void;
   removePanel: (panelId: string) => void;
@@ -80,6 +89,11 @@ interface WorkspaceState {
   getDockedPanels: (slot: string) => PanelDescriptor[];
   dockPanel: (panelId: string, slot: string) => void;
   undockPanel: (panelId: string) => void;
+  
+  // Editor context for AI Writing Assistant
+  updateEditorContext: (context: Partial<WorkspaceState['editorContext']>) => void;
+  clearEditorContext: () => void;
+  getEditorContext: () => WorkspaceState['editorContext'];
 }
 
 const defaultLayout: WorkspaceLayout = {
@@ -132,6 +146,13 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     (set, get) => ({
       currentLayout: defaultLayout,
       panelRegistry: defaultPanelRegistry,
+      editorContext: {
+        content: '',
+        htmlContent: '',
+        title: '',
+        type: null,
+        entityId: null
+      },
       
       addPanel: (panel: PanelDescriptor) => {
         set((state) => {
@@ -606,11 +627,37 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             }
           };
         });
+      },
+
+      // Editor context methods for AI Writing Assistant
+      updateEditorContext: (context: Partial<WorkspaceState['editorContext']>) => {
+        set((state) => ({
+          editorContext: {
+            ...state.editorContext,
+            ...context
+          }
+        }));
+      },
+
+      clearEditorContext: () => {
+        set({
+          editorContext: {
+            content: '',
+            htmlContent: '',
+            title: '',
+            type: null,
+            entityId: null
+          }
+        });
+      },
+
+      getEditorContext: () => {
+        return get().editorContext;
       }
     }),
     {
       name: 'writecraft-workspace',
-      // Only persist layout and panels, not functions
+      // Only persist layout and panels, not editor context (it's transient)
       partialize: (state) => ({
         currentLayout: state.currentLayout
       })
