@@ -61,7 +61,15 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
   const [analysis, setAnalysis] = useState<TextAnalysis | null>(null);
   const [questions, setQuestions] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   // AI analysis mutation
   const analyzeMutation = useMutation({
@@ -332,8 +340,8 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0">
-            <ScrollArea className="flex-1 p-3 min-h-0">
-              <div className="space-y-3">
+            <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
+              <div className="space-y-3 p-3 pb-6">
                 {messages.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -393,6 +401,9 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
                     </div>
                   </div>
                 ))}
+                
+                {/* Scroll target for auto-scrolling */}
+                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
             
