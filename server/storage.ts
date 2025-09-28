@@ -3132,33 +3132,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocumentFolders(documentId: string, userId: string): Promise<Folder[]> {
-    // Find all notes that belong to this document (manuscript or guide)
-    const documentNotes = await db
-      .select({ folderId: notes.folderId })
-      .from(notes)
-      .where(and(
-        eq(notes.userId, userId),
-        or(
-          eq(notes.manuscriptId, documentId),
-          eq(notes.guideId, documentId)
-        ),
-        isNotNull(notes.folderId) // Only get notes that are in folders
-      ));
-
-    // Get unique folder IDs
-    const folderIds = [...new Set(documentNotes.map(note => note.folderId).filter(Boolean))];
-    
-    if (folderIds.length === 0) {
-      return [];
-    }
-
-    // Fetch the actual folders
+    // With the new schema, folders have direct links to manuscripts/guides
     return await db
       .select()
       .from(folders)
       .where(and(
         eq(folders.userId, userId),
-        inArray(folders.id, folderIds)
+        or(
+          eq(folders.manuscriptId, documentId),
+          eq(folders.guideId, documentId)
+        )
       ))
       .orderBy(folders.sortOrder, folders.createdAt);
   }
