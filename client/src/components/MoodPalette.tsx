@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Palette, Eye, Ear, Sun, Cloud, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
 import { useToast } from "@/hooks/use-toast";
 import type { Mood } from "@shared/schema";
 
@@ -13,48 +12,22 @@ export default function MoodPalette() {
   const [generatedMood, setGeneratedMood] = useState<Mood | null>(null);
   const { toast } = useToast();
 
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/moods/generate');
-      return await res.json() as Mood;
-    },
+  const generateMutation = useGenerateMutation<Mood>('/api/moods/generate', {
+    errorMessage: "Unable to create mood palette. Please try again.",
     onSuccess: (mood: Mood) => {
       setGeneratedMood(mood);
-      queryClient.invalidateQueries({ queryKey: ['/api/moods'] });
     },
-    onError: (error) => {
-      console.error('Failed to generate mood:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to create mood palette. Please try again.",
-        variant: "destructive",
-      });
-    }
+    invalidateQueries: ['/api/moods'],
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (mood: Mood) => {
-      const res = await apiRequest('POST', '/api/moods', mood);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Mood Saved!",
-        description: "Your mood palette has been saved to your collection.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/moods'] });
-    },
-    onError: () => {
-      toast({
-        title: "Save Failed",
-        description: "Unable to save mood palette. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const saveMutation = useSaveMutation<any, Mood>('/api/moods', {
+    successMessage: "Your mood palette has been saved to your collection.",
+    errorMessage: "Unable to save mood palette. Please try again.",
+    invalidateQueries: ['/api/moods'],
   });
 
   const handleGenerate = () => {
-    generateMutation.mutate();
+    generateMutation.mutate({});
   };
 
   const handleSave = () => {

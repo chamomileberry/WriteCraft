@@ -2,12 +2,10 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
-import { FileText, User, MapPin, Crown, Copy, Heart, Loader2, Sparkles, RefreshCw, Check, ChevronsUpDown } from "lucide-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { FileText, User, MapPin, Crown, Copy, Heart, Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
 import { useToast } from "@/hooks/use-toast";
 import type { GeneratedName } from "@shared/schema";
 
@@ -365,8 +363,6 @@ export default function NameGenerator() {
   const [generatedNames, setGeneratedNames] = useState<GeneratedName[]>([]);
   const [nameType, setNameType] = useState('character');
   const [culture, setCulture] = useState('');
-  const [nameTypeSearchOpen, setNameTypeSearchOpen] = useState(false);
-  const [cultureSearchOpen, setCultureSearchOpen] = useState(false);
   const { toast } = useToast();
 
   // Helper functions to get all name types and ethnicities
@@ -382,6 +378,23 @@ export default function NameGenerator() {
     );
   };
 
+  // Convert categories to format expected by SearchableSelect
+  const getNameTypeCategorizedOptions = () => {
+    const result: Record<string, string[]> = {};
+    Object.entries(NAME_TYPE_CATEGORIES).forEach(([category, types]) => {
+      result[category] = types.map(type => type.value);
+    });
+    return result;
+  };
+
+  const getEthnicityCategorizedOptions = () => {
+    const result: Record<string, string[]> = {};
+    Object.entries(ETHNICITY_CATEGORIES).forEach(([category, ethnicities]) => {
+      result[category] = ethnicities.map(ethnicity => ethnicity.toLowerCase().replace(/[^a-z0-9]/g, '_'));
+    });
+    return result;
+  };
+
   // Get display names
   const getNameTypeLabel = () => {
     const allTypes = getAllNameTypes();
@@ -393,53 +406,29 @@ export default function NameGenerator() {
     return allEthnicities.find(eth => eth.value === culture)?.label || 'Any culture';
   };
 
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/names/generate', { nameType, culture });
-      return await res.json() as GeneratedName[];
-    },
+  const generateMutation = useGenerateMutation<GeneratedName[]>('/api/names/generate', {
+    errorMessage: "Unable to create names. Please try again.",
     onSuccess: (names: GeneratedName[]) => {
       setGeneratedNames(names);
-      queryClient.invalidateQueries({ queryKey: ['/api/names'] });
     },
-    onError: (error) => {
-      console.error('Failed to generate names:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to create names. Please try again.",
-        variant: "destructive",
-      });
-    }
+    invalidateQueries: ['/api/names'],
+    transformPayload: () => ({ nameType, culture }),
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (names: GeneratedName[]) => {
-      const res = await apiRequest('POST', '/api/names', { names, nameType, culture });
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Names Saved!",
-        description: "Your names have been saved to your collection.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/names'] });
-    },
-    onError: () => {
-      toast({
-        title: "Save Failed",
-        description: "Unable to save names. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const saveMutation = useSaveMutation('/api/names', {
+    successMessage: "Your names have been saved to your collection.",
+    errorMessage: "Unable to save names. Please try again.",
+    invalidateQueries: ['/api/names'],
+    transformPayload: () => ({ names: generatedNames, nameType, culture }),
   });
 
   const handleGenerate = () => {
-    generateMutation.mutate();
+    generateMutation.mutate({});
   };
 
   const handleSave = () => {
     if (generatedNames.length > 0) {
-      saveMutation.mutate(generatedNames);
+      saveMutation.mutate({});
     }
   };
 
@@ -495,118 +484,35 @@ export default function NameGenerator() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Name Type</label>
-              <Popover open={nameTypeSearchOpen} onOpenChange={setNameTypeSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={nameTypeSearchOpen}
-                    className="w-full justify-between"
-                    data-testid="select-name-type"
-                  >
-                    {getNameTypeLabel()}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search name types..." data-testid="input-name-type-search" />
-                    <CommandList>
-                      <CommandEmpty>No name type found.</CommandEmpty>
-                      {Object.entries(NAME_TYPE_CATEGORIES).map(([category, types]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {types.map((type) => (
-                            <CommandItem
-                              key={type.value}
-                              value={type.label}
-                              data-testid={`item-name-type-${type.value}`}
-                              onSelect={() => {
-                                setNameType(type.value);
-                                setNameTypeSearchOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  nameType === type.value ? "opacity-100" : "opacity-0"
-                                }`}
-                              />
-                              {type.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <SearchableSelect
+                value={nameType}
+                onValueChange={setNameType}
+                placeholder="Select name type..."
+                categorizedOptions={getNameTypeCategorizedOptions()}
+                testId="select-name-type"
+                formatLabel={(value) => {
+                  const allTypes = getAllNameTypes();
+                  return allTypes.find(type => type.value === value)?.label || value;
+                }}
+              />
             </div>
             
             <div>
               <label className="block text-sm font-medium mb-2">Cultural Style</label>
-              <Popover open={cultureSearchOpen} onOpenChange={setCultureSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={cultureSearchOpen}
-                    className="w-full justify-between"
-                    data-testid="select-culture"
-                  >
-                    {getCultureLabel()}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search cultural styles..." data-testid="input-culture-search" />
-                    <CommandList>
-                      <CommandEmpty>No cultural style found.</CommandEmpty>
-                      <CommandGroup heading="Any Culture">
-                        <CommandItem
-                          value="Any Culture"
-                          data-testid="item-culture-any"
-                          onSelect={() => {
-                            setCulture('');
-                            setCultureSearchOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              culture === '' ? "opacity-100" : "opacity-0"
-                            }`}
-                          />
-                          Any Culture
-                        </CommandItem>
-                      </CommandGroup>
-                      {Object.entries(ETHNICITY_CATEGORIES).map(([category, ethnicities]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {ethnicities.map((ethnicity) => {
-                            const value = ethnicity.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                            return (
-                              <CommandItem
-                                key={value}
-                                value={ethnicity}
-                                data-testid={`item-culture-${value}`}
-                                onSelect={() => {
-                                  setCulture(value);
-                                  setCultureSearchOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={`mr-2 h-4 w-4 ${
-                                    culture === value ? "opacity-100" : "opacity-0"
-                                  }`}
-                                />
-                                {ethnicity}
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <SearchableSelect
+                value={culture}
+                onValueChange={setCulture}
+                placeholder="Any culture..."
+                categorizedOptions={getEthnicityCategorizedOptions()}
+                testId="select-culture"
+                allowEmpty={true}
+                emptyLabel="Any Culture"
+                formatLabel={(value) => {
+                  if (!value) return "Any Culture";
+                  const allEthnicities = getAllEthnicities();
+                  return allEthnicities.find(eth => eth.value === value)?.label || value;
+                }}
+              />
             </div>
           </div>
         </CardContent>
