@@ -45,9 +45,7 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Palette,
   Highlighter,
-  Type,
   Heading1,
   Heading2,
   Heading3,
@@ -61,14 +59,11 @@ import {
   Code,
   Minus,
   Printer,
-  ZoomIn,
   Eye as FocusIcon,
   Download,
   Video,
   Hash,
-  Type as SpecialChar,
-  Mail,
-  Users
+  Type as SpecialChar
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -599,7 +594,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="Add a tag"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                 data-testid="input-tag"
               />
               <Button type="button" onClick={addTag} variant="outline" size="sm" data-testid="button-add-tag">
