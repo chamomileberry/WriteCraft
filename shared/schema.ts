@@ -1458,6 +1458,7 @@ export const projectLinks = pgTable("project_links", {
 export const pinnedContent = pgTable("pinned_content", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   targetType: text("target_type").notNull(), // 'character', 'location', 'project', etc.
   targetId: varchar("target_id").notNull(),
   pinOrder: integer("pin_order").default(0), // For custom ordering

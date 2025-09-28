@@ -80,9 +80,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/pinned-content", async (req, res) => {
     try {
       const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const notebookId = req.query.notebookId as string;
       const category = req.query.category as string;
       
-      const pinnedItems = await storage.getUserPinnedContent(userId, category);
+      if (!notebookId) {
+        return res.status(400).json({ error: 'Notebook ID is required' });
+      }
+      
+      const pinnedItems = await storage.getUserPinnedContent(userId, notebookId, category);
       
       // Enhance pinned items with actual content data
       const enhancedItems = await Promise.all(pinnedItems.map(async (pin) => {
@@ -91,32 +96,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         try {
           // Fetch the actual content based on type
-          switch (pin.targetType) {
-            case 'character':
-              const character = await storage.getCharacter(pin.targetId);
-              if (character) {
-                // Try multiple name fields before defaulting to "Untitled Character"
-                title = [character.givenName, character.familyName].filter(Boolean).join(' ').trim() ||
-                        character.nickname ||
-                        character.honorificTitle ||
-                        'Untitled Character';
-                subtitle = character.occupation || '';
-              }
-              break;
-            case 'location':
-              const location = await storage.getLocation(pin.targetId);
-              if (location) {
-                title = location.name;
-                subtitle = location.locationType || '';
-              }
-              break;
-            case 'organization':
-              const organization = await storage.getOrganization(pin.targetId);
-              if (organization) {
-                title = organization.name;
-                subtitle = organization.organizationType || '';
-              }
-              break;
+          // Note: If pin.notebookId is not available, skip enhanced data
+          if (pin.notebookId) {
+            switch (pin.targetType) {
+              case 'character':
+                const character = await storage.getCharacter(pin.targetId, pin.userId, pin.notebookId);
+                if (character) {
+                  // Try multiple name fields before defaulting to "Untitled Character"
+                  title = [character.givenName, character.familyName].filter(Boolean).join(' ').trim() ||
+                          character.nickname ||
+                          character.honorificTitle ||
+                          'Untitled Character';
+                  subtitle = character.occupation || '';
+                }
+                break;
+              case 'location':
+                const location = await storage.getLocation(pin.targetId, pin.userId, pin.notebookId);
+                if (location) {
+                  title = location.name;
+                  subtitle = location.locationType || '';
+                }
+                break;
+              case 'organization':
+                const organization = await storage.getOrganization(pin.targetId, pin.userId, pin.notebookId);
+                if (organization) {
+                  title = organization.name;
+                  subtitle = organization.organizationType || '';
+                }
+                break;
             case 'manuscript':
               const manuscript = await storage.getManuscript(pin.targetId, userId);
               if (manuscript) {
@@ -125,6 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
               break;
           }
+        }
         } catch (error) {
           console.error(`Error fetching ${pin.targetType} data:`, error);
         }
@@ -146,7 +154,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/pinned-content", async (req, res) => {
     try {
       const userId = req.headers['x-user-id'] as string || 'demo-user';
-      const pinData = { ...req.body, userId };
+      const { notebookId, targetType, targetId, category, notes } = req.body;
+      
+      if (!notebookId) {
+        return res.status(400).json({ error: 'Notebook ID is required' });
+      }
+      
+      const pinData = {
+        userId,
+        notebookId,
+        targetType,
+        targetId,
+        category,
+        notes
+      };
       
       const pinnedItem = await storage.pinContent(pinData);
       res.json(pinnedItem);
@@ -160,16 +181,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.headers['x-user-id'] as string || 'demo-user';
       const pinnedId = req.params.id;
+      const notebookId = req.query.notebookId as string;
+      
+      if (!notebookId) {
+        return res.status(400).json({ error: 'Notebook ID is required' });
+      }
       
       // Find the pinned item first to get its details
-      const pinnedItems = await storage.getUserPinnedContent(userId);
+      const pinnedItems = await storage.getUserPinnedContent(userId, notebookId);
       const pinnedItem = pinnedItems.find(item => item.id === pinnedId);
       
       if (!pinnedItem) {
         return res.status(404).json({ error: 'Pinned item not found' });
       }
       
-      await storage.unpinContent(userId, pinnedItem.targetType, pinnedItem.targetId);
+      await storage.unpinContent(userId, pinnedItem.targetType, pinnedItem.targetId, notebookId);
       res.json({ success: true });
     } catch (error) {
       console.error('Error unpinning content:', error);

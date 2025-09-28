@@ -9,14 +9,23 @@ const router = Router();
 // Character generator routes
 router.post("/generate", async (req, res) => {
   try {
+    // Extract userId from authentication headers for security (ignore client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
       gender: z.string().optional(),
       ethnicity: z.string().optional(),
-      userId: z.string().nullable().optional()
+      notebookId: z.string()
     });
     
-    const { genre, gender, ethnicity, userId } = generateRequestSchema.parse(req.body);
+    const { genre, gender, ethnicity, notebookId } = generateRequestSchema.parse(req.body);
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
     
     // Use AI generation instead of archetype system
     const aiCharacter = await generateCharacterWithAI({ genre, gender, ethnicity });
@@ -103,7 +112,8 @@ router.post("/generate", async (req, res) => {
       conditions: aiCharacter.conditions,
       genderUnderstanding: aiCharacter.genderUnderstanding,
       frownedUponViews: aiCharacter.frownedUponViews,
-      userId: userId || null
+      userId,
+      notebookId
     };
 
     // Validate the generated character data before saving
@@ -142,13 +152,21 @@ router.post("/:id/generate-field", async (req, res) => {
         message: `Field name must be one of: ${validFieldNames.join(', ')}`
       }),
       currentFormData: z.record(z.any()).optional(),
-      userId: z.string().nullable().optional()
+      notebookId: z.string()
     });
     
-    const { fieldName, currentFormData, userId } = generateFieldSchema.parse(req.body);
+    // Extract userId from authentication headers for security
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { fieldName, currentFormData, notebookId } = generateFieldSchema.parse(req.body);
+    
+    // Validate user owns the notebook before generating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
     
     // Get the existing character data for context
-    const existingCharacter = await storage.getCharacter(req.params.id);
+    const existingCharacter = await storage.getCharacter(req.params.id, userId, notebookId);
     if (!existingCharacter) {
       return res.status(404).json({ error: 'Character not found' });
     }
@@ -177,10 +195,23 @@ router.post("/", async (req, res) => {
   try {
     // Extract userId from header for security (override client payload)
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const characterData = { ...req.body, userId };
+    const { notebookId, ...characterData } = req.body;
+    
+    // Validate notebookId is provided
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
+    
+    const fullCharacterData = { ...characterData, userId, notebookId };
     
     // Validate the request body using the insert schema
-    const validatedCharacter = insertCharacterSchema.parse(characterData);
+    const validatedCharacter = insertCharacterSchema.parse(fullCharacterData);
     const savedCharacter = await storage.createCharacter(validatedCharacter);
     res.json(savedCharacter);
   } catch (error) {
@@ -196,8 +227,14 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const characters = await storage.getUserCharacters(userId);
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const characters = await storage.getUserCharacters(userId, notebookId);
     
     if (search) {
       // Filter characters by name fields (case-insensitive)
@@ -222,8 +259,15 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const characters = await storage.getUserCharacters(userId);
+    // Extract userId from authentication headers for security (ignore client-supplied userId)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const characters = await storage.getUserCharacters(userId, notebookId);
     res.json(characters);
   } catch (error) {
     console.error('Error fetching characters:', error);
@@ -233,7 +277,14 @@ router.get("/user/:userId?", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const character = await storage.getCharacter(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const character = await storage.getCharacter(req.params.id, userId, notebookId);
     if (!character) {
       return res.status(404).json({ error: 'Character not found' });
     }
@@ -246,8 +297,12 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
-    // Extract userId from header for security (prevent userId manipulation)
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
     
     // Validate the request body against the update schema
     const validatedUpdates = updateCharacterSchema.parse(req.body);
@@ -255,7 +310,7 @@ router.patch("/:id", async (req, res) => {
     // Ensure userId is preserved and not overwritten
     const updatesWithUserId = { ...validatedUpdates, userId };
     
-    const updatedCharacter = await storage.updateCharacter(req.params.id, updatesWithUserId);
+    const updatedCharacter = await storage.updateCharacter(req.params.id, userId, updatesWithUserId, notebookId);
     res.json(updatedCharacter);
   } catch (error) {
     console.error('Error updating character:', error);

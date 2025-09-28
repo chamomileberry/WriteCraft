@@ -7,13 +7,22 @@ const router = Router();
 
 router.post("/generate", async (req, res) => {
   try {
+    // Extract userId from authentication headers for security (ignore client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
     const generateRequestSchema = z.object({
       itemType: z.string().optional(),
       genre: z.string().optional(),
-      userId: z.string().nullable().optional()
+      notebookId: z.string()
     });
     
-    const { itemType, genre, userId } = generateRequestSchema.parse(req.body);
+    const { itemType, genre, notebookId } = generateRequestSchema.parse(req.body);
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
     
     // TODO: Extract generator function from main routes.ts file
     const item = {
@@ -21,7 +30,8 @@ router.post("/generate", async (req, res) => {
       description: `A ${genre || 'mysterious'} ${itemType || 'object'} with special properties`,
       itemType: itemType || 'artifact',
       genre,
-      userId: userId || null
+      userId,
+      notebookId
     };
 
     const validatedItem = insertItemSchema.parse(item);
@@ -39,7 +49,23 @@ router.post("/generate", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const validatedItem = insertItemSchema.parse(req.body);
+    // Extract userId from header for security (override client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { notebookId, ...itemData } = req.body;
+    
+    // Validate notebookId is provided
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
+    
+    const fullItemData = { ...itemData, userId, notebookId };
+    const validatedItem = insertItemSchema.parse(fullItemData);
     const savedItem = await storage.createItem(validatedItem);
     res.json(savedItem);
   } catch (error) {
@@ -53,8 +79,15 @@ router.post("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const items = await storage.getUserItems(userId);
+    // Extract userId from authentication headers for security (ignore client-supplied userId)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const items = await storage.getUserItems(userId, notebookId);
     res.json(items);
   } catch (error) {
     console.error('Error fetching items:', error);
@@ -64,7 +97,14 @@ router.get("/user/:userId?", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const item = await storage.getItem(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const item = await storage.getItem(req.params.id, userId, notebookId);
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }

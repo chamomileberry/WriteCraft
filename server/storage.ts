@@ -104,9 +104,9 @@ export interface IStorage {
   
   // Character methods
   createCharacter(character: InsertCharacter): Promise<Character>;
-  getCharacter(id: string): Promise<Character | undefined>;
-  getUserCharacters(userId: string | null): Promise<Character[]>;
-  updateCharacter(id: string, updates: UpdateCharacter): Promise<Character>;
+  getCharacter(id: string, userId: string, notebookId: string): Promise<Character | undefined>;
+  getUserCharacters(userId: string, notebookId: string): Promise<Character[]>;
+  updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character>;
   
   // Plot methods
   createPlot(plot: InsertPlot): Promise<Plot>;
@@ -121,10 +121,10 @@ export interface IStorage {
   
   // Location methods
   createLocation(location: InsertLocation): Promise<Location>;
-  getLocation(id: string): Promise<Location | undefined>;
-  getUserLocations(userId: string | null): Promise<Location[]>;
-  updateLocation(id: string, updates: Partial<InsertLocation>): Promise<Location>;
-  deleteLocation(id: string): Promise<void>;
+  getLocation(id: string, userId: string, notebookId: string): Promise<Location | undefined>;
+  getUserLocations(userId: string, notebookId: string): Promise<Location[]>;
+  updateLocation(id: string, userId: string, updates: Partial<InsertLocation>, notebookId: string): Promise<Location>;
+  deleteLocation(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Setting methods
   createSetting(setting: InsertSetting): Promise<Setting>;
@@ -133,17 +133,17 @@ export interface IStorage {
 
   // Item methods  
   createItem(item: InsertItem): Promise<Item>;
-  getItem(id: string): Promise<Item | undefined>;
-  getUserItems(userId: string | null): Promise<Item[]>;
-  updateItem(id: string, updates: Partial<InsertItem>): Promise<Item>;
-  deleteItem(id: string): Promise<void>;
+  getItem(id: string, userId: string, notebookId: string): Promise<Item | undefined>;
+  getUserItems(userId: string, notebookId: string): Promise<Item[]>;
+  updateItem(id: string, userId: string, updates: Partial<InsertItem>, notebookId: string): Promise<Item>;
+  deleteItem(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Organization methods
   createOrganization(organization: InsertOrganization): Promise<Organization>;
-  getOrganization(id: string): Promise<Organization | undefined>;
-  getUserOrganizations(userId: string | null): Promise<Organization[]>;
-  updateOrganization(id: string, updates: Partial<InsertOrganization>): Promise<Organization>;
-  deleteOrganization(id: string): Promise<void>;
+  getOrganization(id: string, userId: string, notebookId: string): Promise<Organization | undefined>;
+  getUserOrganizations(userId: string, notebookId: string): Promise<Organization[]>;
+  updateOrganization(id: string, userId: string, updates: Partial<InsertOrganization>, notebookId: string): Promise<Organization>;
+  deleteOrganization(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Creature methods
   createCreature(creature: InsertCreature): Promise<Creature>;
@@ -160,10 +160,10 @@ export interface IStorage {
 
   // Culture methods
   createCulture(culture: InsertCulture): Promise<Culture>;
-  getCulture(id: string): Promise<Culture | undefined>;
-  getUserCultures(userId: string | null): Promise<Culture[]>;
-  updateCulture(id: string, updates: Partial<InsertCulture>): Promise<Culture>;
-  deleteCulture(id: string): Promise<void>;
+  getCulture(id: string, userId: string, notebookId: string): Promise<Culture | undefined>;
+  getUserCultures(userId: string, notebookId: string): Promise<Culture[]>;
+  updateCulture(id: string, userId: string, updates: Partial<InsertCulture>, notebookId: string): Promise<Culture>;
+  deleteCulture(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Magic system methods
   createMagic(): Promise<any>;
@@ -293,10 +293,10 @@ export interface IStorage {
 
   // Faction methods
   createFaction(faction: InsertFaction): Promise<Faction>;
-  getFaction(id: string): Promise<Faction | undefined>;
-  getUserFactions(userId: string | null): Promise<Faction[]>;
-  updateFaction(id: string, updates: Partial<InsertFaction>): Promise<Faction>;
-  deleteFaction(id: string): Promise<void>;
+  getFaction(id: string, userId: string, notebookId: string): Promise<Faction | undefined>;
+  getUserFaction(userId: string, notebookId: string): Promise<Faction[]>;
+  updateFaction(id: string, userId: string, updates: Partial<InsertFaction>, notebookId: string): Promise<Faction>;
+  deleteFaction(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Military Unit methods
   createMilitaryUnit(militaryUnit: InsertMilitaryUnit): Promise<MilitaryUnit>;
@@ -603,27 +603,36 @@ export class DatabaseStorage implements IStorage {
     return newCharacter;
   }
 
-  async getCharacter(id: string): Promise<Character | undefined> {
-    const [character] = await db.select().from(characters).where(eq(characters.id, id));
+  async getCharacter(id: string, userId: string, notebookId: string): Promise<Character | undefined> {
+    const whereClause = and(
+      eq(characters.id, id),
+      eq(characters.userId, userId),
+      eq(characters.notebookId, notebookId)
+    );
+    const [character] = await db.select().from(characters).where(whereClause);
     return character || undefined;
   }
 
-  async getUserCharacters(userId: string | null): Promise<Character[]> {
-    if (userId) {
-      return await db.select().from(characters)
-        .where(eq(characters.userId, userId))
-        .orderBy(desc(characters.createdAt));
-    }
+  async getUserCharacters(userId: string, notebookId: string): Promise<Character[]> {
+    const whereClause = and(
+      eq(characters.userId, userId),
+      eq(characters.notebookId, notebookId)
+    );
     return await db.select().from(characters)
-      .orderBy(desc(characters.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(characters.createdAt));
   }
 
-  async updateCharacter(id: string, updates: UpdateCharacter): Promise<Character> {
+  async updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character> {
+    const whereClause = and(
+      eq(characters.id, id),
+      eq(characters.userId, userId),
+      eq(characters.notebookId, notebookId)
+    );
     const [updatedCharacter] = await db
       .update(characters)
       .set(updates)
-      .where(eq(characters.id, id))
+      .where(whereClause)
       .returning();
     return updatedCharacter;
   }
@@ -693,33 +702,47 @@ export class DatabaseStorage implements IStorage {
     return newLocation;
   }
 
-  async getLocation(id: string): Promise<Location | undefined> {
-    const [location] = await db.select().from(locations).where(eq(locations.id, id));
+  async getLocation(id: string, userId: string, notebookId: string): Promise<Location | undefined> {
+    const whereClause = and(
+      eq(locations.id, id),
+      eq(locations.userId, userId),
+      eq(locations.notebookId, notebookId)
+    );
+    const [location] = await db.select().from(locations).where(whereClause);
     return location || undefined;
   }
 
-  async getUserLocations(userId: string | null): Promise<Location[]> {
-    if (userId) {
-      return await db.select().from(locations)
-        .where(eq(locations.userId, userId))
-        .orderBy(desc(locations.createdAt));
-    }
+  async getUserLocations(userId: string, notebookId: string): Promise<Location[]> {
+    const whereClause = and(
+      eq(locations.userId, userId),
+      eq(locations.notebookId, notebookId)
+    );
     return await db.select().from(locations)
-      .orderBy(desc(locations.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(locations.createdAt));
   }
 
-  async updateLocation(id: string, updates: Partial<InsertLocation>): Promise<Location> {
+  async updateLocation(id: string, userId: string, updates: Partial<InsertLocation>, notebookId: string): Promise<Location> {
+    const whereClause = and(
+      eq(locations.id, id),
+      eq(locations.userId, userId),
+      eq(locations.notebookId, notebookId)
+    );
     const [updatedLocation] = await db
       .update(locations)
       .set(updates)
-      .where(eq(locations.id, id))
+      .where(whereClause)
       .returning();
     return updatedLocation;
   }
 
-  async deleteLocation(id: string): Promise<void> {
-    await db.delete(locations).where(eq(locations.id, id));
+  async deleteLocation(id: string, userId: string, notebookId: string): Promise<void> {
+    const whereClause = and(
+      eq(locations.id, id),
+      eq(locations.userId, userId),
+      eq(locations.notebookId, notebookId)
+    );
+    await db.delete(locations).where(whereClause);
   }
 
   // Setting methods
@@ -756,33 +779,47 @@ export class DatabaseStorage implements IStorage {
     return newItem;
   }
 
-  async getItem(id: string): Promise<Item | undefined> {
-    const [item] = await db.select().from(items).where(eq(items.id, id));
+  async getItem(id: string, userId: string, notebookId: string): Promise<Item | undefined> {
+    const whereClause = and(
+      eq(items.id, id),
+      eq(items.userId, userId),
+      eq(items.notebookId, notebookId)
+    );
+    const [item] = await db.select().from(items).where(whereClause);
     return item || undefined;
   }
 
-  async getUserItems(userId: string | null): Promise<Item[]> {
-    if (userId) {
-      return await db.select().from(items)
-        .where(eq(items.userId, userId))
-        .orderBy(desc(items.createdAt));
-    }
+  async getUserItems(userId: string, notebookId: string): Promise<Item[]> {
+    const whereClause = and(
+      eq(items.userId, userId),
+      eq(items.notebookId, notebookId)
+    );
     return await db.select().from(items)
-      .orderBy(desc(items.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(items.createdAt));
   }
 
-  async updateItem(id: string, updates: Partial<InsertItem>): Promise<Item> {
+  async updateItem(id: string, userId: string, updates: Partial<InsertItem>, notebookId: string): Promise<Item> {
+    const whereClause = and(
+      eq(items.id, id),
+      eq(items.userId, userId),
+      eq(items.notebookId, notebookId)
+    );
     const [updatedItem] = await db
       .update(items)
       .set(updates)
-      .where(eq(items.id, id))
+      .where(whereClause)
       .returning();
     return updatedItem;
   }
 
-  async deleteItem(id: string): Promise<void> {
-    await db.delete(items).where(eq(items.id, id));
+  async deleteItem(id: string, userId: string, notebookId: string): Promise<void> {
+    const whereClause = and(
+      eq(items.id, id),
+      eq(items.userId, userId),
+      eq(items.notebookId, notebookId)
+    );
+    await db.delete(items).where(whereClause);
   }
 
   // Organization methods
@@ -794,33 +831,47 @@ export class DatabaseStorage implements IStorage {
     return newOrganization;
   }
 
-  async getOrganization(id: string): Promise<Organization | undefined> {
-    const [organization] = await db.select().from(organizations).where(eq(organizations.id, id));
+  async getOrganization(id: string, userId: string, notebookId: string): Promise<Organization | undefined> {
+    const whereClause = and(
+      eq(organizations.id, id), 
+      eq(organizations.userId, userId),
+      eq(organizations.notebookId, notebookId)
+    );
+    const [organization] = await db.select().from(organizations).where(whereClause);
     return organization || undefined;
   }
 
-  async getUserOrganizations(userId: string | null): Promise<Organization[]> {
-    if (userId) {
-      return await db.select().from(organizations)
-        .where(eq(organizations.userId, userId))
-        .orderBy(desc(organizations.createdAt));
-    }
+  async getUserOrganizations(userId: string, notebookId: string): Promise<Organization[]> {
+    const whereClause = and(
+      eq(organizations.userId, userId),
+      eq(organizations.notebookId, notebookId)
+    );
     return await db.select().from(organizations)
-      .orderBy(desc(organizations.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(organizations.createdAt));
   }
 
-  async updateOrganization(id: string, updates: Partial<InsertOrganization>): Promise<Organization> {
+  async updateOrganization(id: string, userId: string, updates: Partial<InsertOrganization>, notebookId: string): Promise<Organization> {
+    const whereClause = and(
+      eq(organizations.id, id), 
+      eq(organizations.userId, userId),
+      eq(organizations.notebookId, notebookId)
+    );
     const [updatedOrganization] = await db
       .update(organizations)
       .set(updates)
-      .where(eq(organizations.id, id))
+      .where(whereClause)
       .returning();
     return updatedOrganization;
   }
 
-  async deleteOrganization(id: string): Promise<void> {
-    await db.delete(organizations).where(eq(organizations.id, id));
+  async deleteOrganization(id: string, userId: string, notebookId: string): Promise<void> {
+    const whereClause = and(
+      eq(organizations.id, id), 
+      eq(organizations.userId, userId),
+      eq(organizations.notebookId, notebookId)
+    );
+    await db.delete(organizations).where(whereClause);
   }
 
   // Creature methods
@@ -904,33 +955,47 @@ export class DatabaseStorage implements IStorage {
     return newCulture;
   }
 
-  async getCulture(id: string): Promise<Culture | undefined> {
-    const [culture] = await db.select().from(cultures).where(eq(cultures.id, id));
+  async getCulture(id: string, userId: string, notebookId: string): Promise<Culture | undefined> {
+    const whereClause = and(
+      eq(cultures.id, id), 
+      eq(cultures.userId, userId),
+      eq(cultures.notebookId, notebookId)
+    );
+    const [culture] = await db.select().from(cultures).where(whereClause);
     return culture || undefined;
   }
 
-  async getUserCultures(userId: string | null): Promise<Culture[]> {
-    if (userId) {
-      return await db.select().from(cultures)
-        .where(eq(cultures.userId, userId))
-        .orderBy(desc(cultures.createdAt));
-    }
+  async getUserCultures(userId: string, notebookId: string): Promise<Culture[]> {
+    const whereClause = and(
+      eq(cultures.userId, userId),
+      eq(cultures.notebookId, notebookId)
+    );
     return await db.select().from(cultures)
-      .orderBy(desc(cultures.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(cultures.createdAt));
   }
 
-  async updateCulture(id: string, updates: Partial<InsertCulture>): Promise<Culture> {
+  async updateCulture(id: string, userId: string, updates: Partial<InsertCulture>, notebookId: string): Promise<Culture> {
+    const whereClause = and(
+      eq(cultures.id, id), 
+      eq(cultures.userId, userId),
+      eq(cultures.notebookId, notebookId)
+    );
     const [updatedCulture] = await db
       .update(cultures)
       .set(updates)
-      .where(eq(cultures.id, id))
+      .where(whereClause)
       .returning();
     return updatedCulture;
   }
 
-  async deleteCulture(id: string): Promise<void> {
-    await db.delete(cultures).where(eq(cultures.id, id));
+  async deleteCulture(id: string, userId: string, notebookId: string): Promise<void> {
+    const whereClause = and(
+      eq(cultures.id, id), 
+      eq(cultures.userId, userId),
+      eq(cultures.notebookId, notebookId)
+    );
+    await db.delete(cultures).where(whereClause);
   }
 
   // Magic system methods (not implemented - table doesn't exist)
@@ -1606,33 +1671,47 @@ export class DatabaseStorage implements IStorage {
     return newFaction;
   }
 
-  async getFaction(id: string): Promise<Faction | undefined> {
-    const [faction] = await db.select().from(factions).where(eq(factions.id, id));
+  async getFaction(id: string, userId: string, notebookId: string): Promise<Faction | undefined> {
+    const whereClause = and(
+      eq(factions.id, id), 
+      eq(factions.userId, userId),
+      eq(factions.notebookId, notebookId)
+    );
+    const [faction] = await db.select().from(factions).where(whereClause);
     return faction || undefined;
   }
 
-  async getUserFactions(userId: string | null): Promise<Faction[]> {
-    if (userId) {
-      return await db.select().from(factions)
-        .where(eq(factions.userId, userId))
-        .orderBy(desc(factions.createdAt));
-    }
+  async getUserFaction(userId: string, notebookId: string): Promise<Faction[]> {
+    const whereClause = and(
+      eq(factions.userId, userId),
+      eq(factions.notebookId, notebookId)
+    );
     return await db.select().from(factions)
-      .orderBy(desc(factions.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(factions.createdAt));
   }
 
-  async updateFaction(id: string, updates: Partial<InsertFaction>): Promise<Faction> {
+  async updateFaction(id: string, userId: string, updates: Partial<InsertFaction>, notebookId: string): Promise<Faction> {
+    const whereClause = and(
+      eq(factions.id, id), 
+      eq(factions.userId, userId),
+      eq(factions.notebookId, notebookId)
+    );
     const [updatedFaction] = await db
       .update(factions)
       .set(updates)
-      .where(eq(factions.id, id))
+      .where(whereClause)
       .returning();
     return updatedFaction;
   }
 
-  async deleteFaction(id: string): Promise<void> {
-    await db.delete(factions).where(eq(factions.id, id));
+  async deleteFaction(id: string, userId: string, notebookId: string): Promise<void> {
+    const whereClause = and(
+      eq(factions.id, id), 
+      eq(factions.userId, userId),
+      eq(factions.notebookId, notebookId)
+    );
+    await db.delete(factions).where(whereClause);
   }
 
   // Military Unit methods
@@ -3085,6 +3164,25 @@ export class DatabaseStorage implements IStorage {
   // Pinned content methods
   async pinContent(pin: InsertPinnedContent): Promise<PinnedContent> {
     try {
+      // Validate that the notebookId is provided and user owns the notebook
+      if (!pin.notebookId) {
+        throw new Error('Notebook ID is required for pinning content');
+      }
+      
+      // Verify user owns the notebook
+      const userNotebook = await db
+        .select()
+        .from(notebooks)
+        .where(and(
+          eq(notebooks.id, pin.notebookId),
+          eq(notebooks.userId, pin.userId)
+        ))
+        .limit(1);
+      
+      if (!userNotebook[0]) {
+        throw new Error('Notebook not found or access denied');
+      }
+      
       const [newPin] = await db
         .insert(pinnedContent)
         .values(pin)
@@ -3098,7 +3196,8 @@ export class DatabaseStorage implements IStorage {
           .where(and(
             eq(pinnedContent.userId, pin.userId),
             eq(pinnedContent.targetType, pin.targetType),
-            eq(pinnedContent.targetId, pin.targetId)
+            eq(pinnedContent.targetId, pin.targetId),
+            eq(pinnedContent.notebookId, pin.notebookId!)
           ))
           .limit(1);
         if (existing[0]) return existing[0];
@@ -3107,18 +3206,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async unpinContent(userId: string, targetType: string, targetId: string): Promise<void> {
+  async unpinContent(userId: string, targetType: string, targetId: string, notebookId: string): Promise<void> {
     await db
       .delete(pinnedContent)
       .where(and(
         eq(pinnedContent.userId, userId),
         eq(pinnedContent.targetType, targetType),
-        eq(pinnedContent.targetId, targetId)
+        eq(pinnedContent.targetId, targetId),
+        eq(pinnedContent.notebookId, notebookId)
       ));
   }
 
-  async getUserPinnedContent(userId: string, category?: string): Promise<PinnedContent[]> {
-    const conditions = [eq(pinnedContent.userId, userId)];
+  async getUserPinnedContent(userId: string, notebookId: string, category?: string): Promise<PinnedContent[]> {
+    const conditions = [
+      eq(pinnedContent.userId, userId),
+      eq(pinnedContent.notebookId, notebookId)
+    ];
     
     if (category) {
       conditions.push(eq(pinnedContent.category, category));
@@ -3131,24 +3234,26 @@ export class DatabaseStorage implements IStorage {
       .orderBy(pinnedContent.createdAt);
   }
 
-  async reorderPinnedContent(userId: string, itemId: string, newOrder: number): Promise<void> {
+  async reorderPinnedContent(userId: string, itemId: string, newOrder: number, notebookId: string): Promise<void> {
     await db
       .update(pinnedContent)
       .set({ pinOrder: newOrder })
       .where(and(
         eq(pinnedContent.userId, userId),
-        eq(pinnedContent.id, itemId)
+        eq(pinnedContent.id, itemId),
+        eq(pinnedContent.notebookId, notebookId)
       ));
   }
 
-  async isContentPinned(userId: string, targetType: string, targetId: string): Promise<boolean> {
+  async isContentPinned(userId: string, targetType: string, targetId: string, notebookId: string): Promise<boolean> {
     const [pin] = await db
       .select()
       .from(pinnedContent)
       .where(and(
         eq(pinnedContent.userId, userId),
         eq(pinnedContent.targetType, targetType),
-        eq(pinnedContent.targetId, targetId)
+        eq(pinnedContent.targetId, targetId),
+        eq(pinnedContent.notebookId, notebookId)
       ))
       .limit(1);
     

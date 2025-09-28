@@ -7,7 +7,23 @@ const router = Router();
 
 router.post("/", async (req, res) => {
   try {
-    const validatedFaction = insertFactionSchema.parse(req.body);
+    // Extract userId from header for security (override client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { notebookId, ...factionData } = req.body;
+    
+    // Validate notebookId is provided
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
+    
+    const fullFactionData = { ...factionData, userId, notebookId };
+    const validatedFaction = insertFactionSchema.parse(fullFactionData);
     const savedFaction = await storage.createFaction(validatedFaction);
     res.json(savedFaction);
   } catch (error) {
@@ -21,8 +37,15 @@ router.post("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const factions = await storage.getUserFaction(userId);
+    // Extract userId from authentication headers for security (ignore client-supplied userId)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const factions = await storage.getUserFaction(userId, notebookId);
     res.json(factions);
   } catch (error) {
     console.error('Error fetching factions:', error);
@@ -32,7 +55,14 @@ router.get("/user/:userId?", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const faction = await storage.getFaction(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const faction = await storage.getFaction(req.params.id, userId, notebookId);
     if (!faction) {
       return res.status(404).json({ error: 'Faction not found' });
     }
@@ -45,8 +75,15 @@ router.get("/:id", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
     const validatedUpdates = insertFactionSchema.parse(req.body);
-    const updatedFaction = await storage.updateFaction(req.params.id, validatedUpdates);
+    const updatedFaction = await storage.updateFaction(req.params.id, userId, validatedUpdates, notebookId);
     res.json(updatedFaction);
   } catch (error) {
     console.error('Error updating faction:', error);
@@ -60,7 +97,14 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteFaction(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    await storage.deleteFaction(req.params.id, userId, notebookId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting faction:', error);

@@ -7,13 +7,22 @@ const router = Router();
 
 router.post("/generate", async (req, res) => {
   try {
+    // Extract userId from authentication headers for security (ignore client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
     const generateRequestSchema = z.object({
       locationType: z.string().optional(),
       genre: z.string().optional(),
-      userId: z.string().nullable().optional()
+      notebookId: z.string()
     });
     
-    const { locationType, genre, userId } = generateRequestSchema.parse(req.body);
+    const { locationType, genre, notebookId } = generateRequestSchema.parse(req.body);
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
     
     // TODO: Extract generator function from main routes.ts file
     const location = {
@@ -21,7 +30,8 @@ router.post("/generate", async (req, res) => {
       description: `A ${genre || 'mysterious'} ${locationType || 'place'} with unique characteristics`,
       locationType: locationType || 'city',
       genre,
-      userId: userId || null
+      userId,
+      notebookId
     };
 
     const validatedLocation = insertLocationSchema.parse(location);
@@ -39,7 +49,23 @@ router.post("/generate", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const validatedLocation = insertLocationSchema.parse(req.body);
+    // Extract userId from header for security (override client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { notebookId, ...locationData } = req.body;
+    
+    // Validate notebookId is provided
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
+    
+    const fullLocationData = { ...locationData, userId, notebookId };
+    const validatedLocation = insertLocationSchema.parse(fullLocationData);
     const savedLocation = await storage.createLocation(validatedLocation);
     res.json(savedLocation);
   } catch (error) {
@@ -53,8 +79,15 @@ router.post("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const locations = await storage.getUserLocations(userId);
+    // Extract userId from authentication headers for security (ignore client-supplied userId)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const locations = await storage.getUserLocations(userId, notebookId);
     res.json(locations);
   } catch (error) {
     console.error('Error fetching locations:', error);
@@ -64,7 +97,14 @@ router.get("/user/:userId?", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const location = await storage.getLocation(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const location = await storage.getLocation(req.params.id, userId, notebookId);
     if (!location) {
       return res.status(404).json({ error: 'Location not found' });
     }

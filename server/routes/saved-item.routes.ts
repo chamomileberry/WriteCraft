@@ -7,8 +7,33 @@ const router = Router();
 
 router.post("/", async (req, res) => {
   try {
-    const savedItemData = insertSavedItemSchema.parse(req.body);
-    const savedItem = await storage.createSavedItem(savedItemData);
+    // Extract userId from authentication headers for security (ignore client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { notebookId, itemType, itemId, itemData } = req.body;
+    
+    // Validate required fields
+    if (!itemType || !itemId) {
+      return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
+    }
+    
+    // If notebookId is provided, validate user owns the notebook
+    if (notebookId) {
+      const userNotebook = await storage.getNotebook(notebookId, userId);
+      if (!userNotebook) {
+        return res.status(403).json({ error: 'Notebook not found or access denied' });
+      }
+    }
+    
+    const savedItemData = {
+      userId,
+      notebookId: notebookId || null,
+      itemType,
+      itemId,
+      itemData
+    };
+    
+    const validatedSavedItem = insertSavedItemSchema.parse(savedItemData);
+    const savedItem = await storage.saveItem(validatedSavedItem);
     res.json(savedItem);
   } catch (error) {
     console.error('Error creating saved item:', error);
@@ -22,13 +47,15 @@ router.post("/", async (req, res) => {
 
 router.delete("/", async (req, res) => {
   try {
-    const { userId, itemType, itemId } = req.body;
+    // Extract userId from authentication headers for security (ignore client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { itemType, itemId } = req.body;
     
-    if (!userId || !itemType || !itemId) {
-      return res.status(400).json({ error: 'Missing required fields: userId, itemType, itemId' });
+    if (!itemType || !itemId) {
+      return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
     }
     
-    const deleted = await storage.deleteSavedItem(userId, itemType, itemId);
+    const deleted = await storage.removeSavedItem(userId, itemType, itemId);
     
     if (!deleted) {
       return res.status(404).json({ error: 'Saved item not found' });
@@ -44,8 +71,16 @@ router.delete("/", async (req, res) => {
 
 router.get("/:userId", async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const savedItems = await storage.getSavedItems(userId);
+    // Extract userId from authentication headers for security 
+    const authenticatedUserId = req.headers['x-user-id'] as string || 'demo-user';
+    const requestedUserId = req.params.userId;
+    
+    // Validate that authenticated user can only access their own saved items
+    if (authenticatedUserId !== requestedUserId) {
+      return res.status(403).json({ error: 'Access denied - can only access your own saved items' });
+    }
+    
+    const savedItems = await storage.getUserSavedItems(authenticatedUserId);
     res.json(savedItems);
   } catch (error) {
     console.error('Error fetching saved items:', error);

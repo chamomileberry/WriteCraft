@@ -7,7 +7,23 @@ const router = Router();
 
 router.post("/", async (req, res) => {
   try {
-    const validatedCulture = insertCultureSchema.parse(req.body);
+    // Extract userId from header for security (override client payload)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const { notebookId, ...cultureData } = req.body;
+    
+    // Validate notebookId is provided
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
+    
+    const fullCultureData = { ...cultureData, userId, notebookId };
+    const validatedCulture = insertCultureSchema.parse(fullCultureData);
     const savedCulture = await storage.createCulture(validatedCulture);
     res.json(savedCulture);
   } catch (error) {
@@ -22,8 +38,14 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const cultures = await storage.getUserCultures(userId);
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const cultures = await storage.getUserCultures(userId, notebookId);
     
     if (search) {
       const filtered = cultures.filter(culture =>
@@ -41,8 +63,15 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const cultures = await storage.getUserCultures(userId);
+    // Extract userId from authentication headers for security (ignore client-supplied userId)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const cultures = await storage.getUserCultures(userId, notebookId);
     res.json(cultures);
   } catch (error) {
     console.error('Error fetching cultures:', error);
@@ -52,7 +81,14 @@ router.get("/user/:userId?", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const culture = await storage.getCulture(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const culture = await storage.getCulture(req.params.id, userId, notebookId);
     if (!culture) {
       return res.status(404).json({ error: 'Culture not found' });
     }
@@ -65,8 +101,15 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
     const updates = insertCultureSchema.partial().parse(req.body);
-    const updatedCulture = await storage.updateCulture(req.params.id, updates);
+    const updatedCulture = await storage.updateCulture(req.params.id, userId, updates, notebookId);
     res.json(updatedCulture);
   } catch (error) {
     console.error('Error updating culture:', error);
@@ -79,7 +122,14 @@ router.patch("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteCulture(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    await storage.deleteCulture(req.params.id, userId, notebookId);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting culture:', error);

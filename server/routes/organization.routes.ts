@@ -9,9 +9,21 @@ router.post("/", async (req, res) => {
   try {
     // Extract userId from header for security (override client payload)
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const organizationData = { ...req.body, userId };
+    const { notebookId, ...organizationData } = req.body;
     
-    const validatedOrganization = insertOrganizationSchema.parse(organizationData);
+    // Validate notebookId is provided
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    // Validate user owns the notebook before creating content
+    const userNotebook = await storage.getNotebook(notebookId, userId);
+    if (!userNotebook) {
+      return res.status(403).json({ error: 'Notebook not found or access denied' });
+    }
+    
+    const fullOrganizationData = { ...organizationData, userId, notebookId };
+    const validatedOrganization = insertOrganizationSchema.parse(fullOrganizationData);
     const savedOrganization = await storage.createOrganization(validatedOrganization);
     res.json(savedOrganization);
   } catch (error) {
@@ -26,8 +38,14 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const organizations = await storage.getUserOrganizations(userId);
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const organizations = await storage.getUserOrganizations(userId, notebookId);
     
     if (search) {
       // Filter organizations by name (case-insensitive)
@@ -46,8 +64,15 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const organizations = await storage.getUserOrganizations(userId);
+    // Extract userId from authentication headers for security (ignore client-supplied userId)
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const organizations = await storage.getUserOrganizations(userId, notebookId);
     res.json(organizations);
   } catch (error) {
     console.error('Error fetching organizations:', error);
@@ -57,7 +82,14 @@ router.get("/user/:userId?", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const organization = await storage.getOrganization(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const organization = await storage.getOrganization(req.params.id, userId, notebookId);
     if (!organization) {
       return res.status(404).json({ error: 'Organization not found' });
     }
@@ -70,8 +102,15 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
     const updates = insertOrganizationSchema.partial().parse(req.body);
-    const updatedOrganization = await storage.updateOrganization(req.params.id, updates);
+    const updatedOrganization = await storage.updateOrganization(req.params.id, userId, updates, notebookId);
     res.json(updatedOrganization);
   } catch (error) {
     console.error('Error updating organization:', error);
@@ -84,7 +123,14 @@ router.patch("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteOrganization(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    await storage.deleteOrganization(req.params.id, userId, notebookId);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting organization:', error);
