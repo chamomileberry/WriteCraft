@@ -57,8 +57,6 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         return (
           <WritingAssistantPanel
             panelId={panel.id}
-            onClose={() => removePanel(panel.id)}
-            onPin={() => attachToTabBar(panel.id, 'main')}
           />
         );
       default:

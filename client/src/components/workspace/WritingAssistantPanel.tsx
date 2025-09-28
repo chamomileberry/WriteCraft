@@ -20,14 +20,11 @@ import {
   HelpCircle, 
   Lightbulb,
   Loader2,
-  Copy,
-  Replace
+  Copy
 } from 'lucide-react';
 
 interface WritingAssistantPanelProps {
   panelId: string;
-  onClose?: () => void;
-  onPin?: () => void;
   className?: string;
 }
 
@@ -53,11 +50,10 @@ interface ProofreadResult {
   }>;
 }
 
-export default function WritingAssistantPanel({ panelId, onClose, onPin, className }: WritingAssistantPanelProps) {
+export default function WritingAssistantPanel({ panelId, className }: WritingAssistantPanelProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [selectedText, setSelectedText] = useState('');
   const [analysis, setAnalysis] = useState<TextAnalysis | null>(null);
   const [questions, setQuestions] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -148,21 +144,6 @@ export default function WritingAssistantPanel({ panelId, onClose, onPin, classNa
     },
   });
 
-  // Improve text mutation
-  const improveMutation = useMutation({
-    mutationFn: async ({ text, instruction }: { text: string; instruction: string }) => {
-      const response = await fetch('/api/writing-assistant/improve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, instruction }),
-      });
-      if (!response.ok) throw new Error('Failed to improve text');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      addMessage('assistant', `Improved text: "${data.text}"`);
-    },
-  });
 
   // Conversational chat mutation
   const chatMutation = useMutation({
