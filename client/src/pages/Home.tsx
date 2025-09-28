@@ -56,9 +56,9 @@ export default function Home() {
     console.log('Opening content type modal');
   };
 
-  const handleSelectContentType = (contentType: string) => {
+  const handleSelectContentType = (contentType: string, notebookId?: string) => {
     // Navigate to the appropriate editor based on content type
-    console.log('Selected content type:', contentType);
+    console.log('Selected content type:', contentType, 'for notebook:', notebookId);
     
     // Close the modal first
     setIsContentModalOpen(false);
@@ -66,8 +66,11 @@ export default function Home() {
     // Get the mapping for this content type
     const mapping = getMappingById(contentType);
     if (mapping) {
-      // Navigate to the editor page using URL routing
-      setLocation(`/editor/${mapping.urlSegment}/new`);
+      // Navigate to the editor page using URL routing, include notebookId if provided
+      const url = notebookId 
+        ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
+        : `/editor/${mapping.urlSegment}/new`;
+      setLocation(url);
     } else {
       // Fallback to notebook if content type not found
       console.log(`No mapping found for content type: ${contentType}`);

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -8,20 +8,39 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, BookOpen, AlertCircle } from "lucide-react";
 import { CONTENT_TYPES, type ContentType } from "@/config/content-types";
+import { useNotebookStore } from "@/stores/notebookStore";
 
 // Content types moved to centralized config
 
 interface ContentTypeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectType: (contentType: string) => void;
+  onSelectType: (contentType: string, notebookId?: string) => void;
 }
 
 export default function ContentTypeModal({ isOpen, onClose, onSelectType }: ContentTypeModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedNotebookId, setSelectedNotebookId] = useState<string>("");
+  
+  const { notebooks, activeNotebookId, getActiveNotebook } = useNotebookStore();
+  
+  // Auto-select active notebook when modal opens
+  useEffect(() => {
+    if (isOpen && activeNotebookId) {
+      setSelectedNotebookId(activeNotebookId);
+    }
+  }, [isOpen, activeNotebookId]);
 
   const categories = Array.from(new Set(CONTENT_TYPES.map(type => type.category)));
   
@@ -37,8 +56,13 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
   );
 
   const handleSelectType = (contentType: string) => {
-    onSelectType(contentType);
+    // Pass the selected notebook ID along with the content type
+    onSelectType(contentType, selectedNotebookId || undefined);
     onClose();
+    // Reset form
+    setSelectedNotebookId("");
+    setSearchQuery("");
+    setSelectedCategory(null);
   };
 
   return (
@@ -49,6 +73,48 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Notebook Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="notebook-select" className="text-sm font-medium flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Save to Notebook
+            </Label>
+            {notebooks.length === 0 ? (
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  No notebooks available. Create a notebook first to organize your content.
+                </span>
+              </div>
+            ) : (
+              <Select value={selectedNotebookId} onValueChange={setSelectedNotebookId}>
+                <SelectTrigger data-testid="select-content-notebook">
+                  <SelectValue placeholder="Choose a notebook..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {notebooks.map((notebook) => (
+                    <SelectItem key={notebook.id} value={notebook.id} data-testid={`select-notebook-${notebook.id}`}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{notebook.name}</span>
+                        {notebook.description && (
+                          <span className="text-xs text-muted-foreground">
+                            {notebook.description}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {!selectedNotebookId && notebooks.length > 0 && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <AlertCircle className="h-3 w-3" />
+                <span>Please select a notebook to organize your new content.</span>
+              </div>
+            )}
+          </div>
+
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -94,6 +160,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                   variant="outline"
                   className="h-auto p-4 flex flex-col items-start space-y-2 hover-elevate"
                   onClick={() => handleSelectType(type.id)}
+                  disabled={notebooks.length === 0 || !selectedNotebookId}
                   data-testid={`button-content-type-${type.id}`}
                 >
                   <div className="flex items-center space-x-2 w-full">

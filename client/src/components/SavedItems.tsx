@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Edit, Trash2, Copy, Package } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package, BookOpen } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { getMappingById } from "@shared/contentTypes";
+import { useNotebookStore } from "@/stores/notebookStore";
+import NotebookSwitcher from "./NotebookSwitcher";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
@@ -42,6 +44,7 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
 interface SavedItem {
   id: string;
   userId: string;
+  notebookId?: string;
   itemType?: string;
   contentType?: string;
   itemId?: string;
@@ -75,14 +78,22 @@ export default function SavedItems() {
   const [fetchedItemData, setFetchedItemData] = useState<{ [key: string]: any }>({});
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { activeNotebookId, getActiveNotebook } = useNotebookStore();
 
-  // Fetch saved items
+  // Fetch saved items for the active notebook
   const { data: savedItems = [], isLoading, error } = useQuery({
-    queryKey: ['/api/saved-items', 'guest'],
+    queryKey: ['/api/saved-items', 'guest', activeNotebookId], // Include activeNotebookId in query key
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/saved-items/guest');
-      return response.json() as Promise<SavedItem[]>;
+      const allItems = await response.json() as SavedItem[];
+      // Filter items by active notebook if one is selected
+      if (activeNotebookId) {
+        return allItems.filter(item => item.notebookId === activeNotebookId);
+      }
+      // If no active notebook, show items without notebookId (legacy items)
+      return allItems.filter(item => !item.notebookId);
     },
+    enabled: true // Always enabled, filtering happens in queryFn
   });
 
   // Fetch missing item data for entries that have itemData: null
@@ -126,7 +137,6 @@ export default function SavedItems() {
     mutationFn: async (item: SavedItem) => {
       // Always use itemType/itemId for DELETE requests since that's what the backend expects
       const body = {
-        userId: 'guest',
         itemType: item.itemType || item.contentType || '',
         itemId: item.itemId || item.contentId || item.id
       };
@@ -275,12 +285,17 @@ export default function SavedItems() {
     return acc;
   }, {} as Record<string, number>);
 
+  const activeNotebook = getActiveNotebook();
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Writing Notebook</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <BookOpen className="h-8 w-8 text-primary" />
+            Writing Notebook
+          </h1>
           <p className="text-muted-foreground mt-2">
             Your saved characters, locations, plots, and creative content
           </p>
@@ -293,6 +308,17 @@ export default function SavedItems() {
             </Badge>
           </div>
         </div>
+      </div>
+
+      {/* Notebook Switcher */}
+      <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+        <h2 className="text-lg font-semibold">Active Notebook</h2>
+        <NotebookSwitcher />
+        {!activeNotebookId && (
+          <div className="text-sm text-muted-foreground">
+            💡 Create or select a notebook to organize your content by world or project.
+          </div>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -353,9 +379,14 @@ export default function SavedItems() {
               <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
                 <Package className="w-12 h-12 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">No saved content</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                {activeNotebook ? `No saved content in "${activeNotebook.name}"` : 'No saved content'}
+              </h3>
               <p className="text-muted-foreground mb-4">
-                Start creating and saving content to see it here.
+                {activeNotebook 
+                  ? `Start creating and saving content to "${activeNotebook.name}" to see it here.`
+                  : 'Create a notebook and start saving content to see it here.'
+                }
               </p>
               <Button onClick={() => setLocation('/')} data-testid="button-create-content">
                 Create Content

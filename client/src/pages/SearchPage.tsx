@@ -61,12 +61,16 @@ export default function SearchPage() {
     console.log('Opening content type modal');
   };
 
-  const handleSelectContentType = (contentType: string) => {
-    console.log('Selected content type:', contentType);
+  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+    console.log('Selected content type:', contentType, 'for notebook:', notebookId);
     setIsContentModalOpen(false);
     const mapping = getMappingById(contentType);
     if (mapping) {
-      setLocation(`/editor/${mapping.urlSegment}/new`);
+      // Add notebookId as query parameter if provided
+      const url = notebookId 
+        ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
+        : `/editor/${mapping.urlSegment}/new`;
+      setLocation(url);
     } else {
       console.log(`No mapping found for content type: ${contentType}`);
       setLocation('/notebook');
