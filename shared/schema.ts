@@ -1319,11 +1319,19 @@ export const folders = pgTable("folders", {
   color: text("color"), // Optional color for visual organization
   type: text("type").notNull(), // 'manuscript' or 'guide'
   parentId: varchar("parent_id"), // Self-reference handled via relations to avoid circular dependency
+  manuscriptId: varchar("manuscript_id").references(() => manuscripts.id, { onDelete: 'cascade' }), // Link to parent manuscript
+  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   sortOrder: integer("sort_order").default(0), // For custom ordering
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  // Ensure folder has proper parent relationship when type is specified
+  parentCheck: sql`CHECK (
+    (${table.type} = 'manuscript' AND ${table.manuscriptId} IS NOT NULL AND ${table.guideId} IS NULL) OR
+    (${table.type} = 'guide' AND ${table.guideId} IS NOT NULL AND ${table.manuscriptId} IS NULL)
+  )`
+}));
 
 // Notes - Sub-documents within folders (scenes for manuscripts, individual guides for guide folders)
 export const notes = pgTable("notes", {
