@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, BookOpen, FileText, Users, Map, Scroll, Clock, ExternalLink } from "lucide-react";
-import { Link } from "wouter";
+import { Search, BookOpen, FileText, Users, Map, Scroll, ExternalLink } from "lucide-react";
 import ContentTypeModal from "@/components/ContentTypeModal";
 import { getMappingById } from "@shared/contentTypes";
 
