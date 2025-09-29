@@ -1,7 +1,13 @@
 import { Editor } from '@tiptap/react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import {
   Bold,
   Italic,
@@ -31,6 +37,7 @@ import {
   AlignRight,
   AlignJustify,
   Link,
+  ChevronDown,
 } from 'lucide-react';
 
 interface EditorToolbarProps {
@@ -39,6 +46,22 @@ interface EditorToolbarProps {
 }
 
 export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps) {
+  const { toast } = useToast();
+  
+  // Dialog states
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [footnoteDialogOpen, setFootnoteDialogOpen] = useState(false);
+  const [specialCharDialogOpen, setSpecialCharDialogOpen] = useState(false);
+  
+  // Input states
+  const [linkUrl, setLinkUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [footnoteText, setFootnoteText] = useState('');
+  const [selectedSpecialChar, setSelectedSpecialChar] = useState('');
+
   // Toolbar functions
   const toggleBold = () => {
     editor?.chain().focus().toggleBold().run();
@@ -49,9 +72,18 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
   };
 
   const addLink = () => {
-    const url = prompt('Enter URL:');
-    if (url) {
-      editor?.chain().focus().setLink({ href: url }).run();
+    setLinkDialogOpen(true);
+  };
+
+  const handleLinkSubmit = () => {
+    if (linkUrl.trim()) {
+      editor?.chain().focus().setLink({ href: linkUrl.trim() }).run();
+      setLinkUrl('');
+      setLinkDialogOpen(false);
+      toast({
+        title: "Link added",
+        description: "The link has been successfully inserted."
+      });
     }
   };
 
@@ -92,6 +124,131 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
       editor?.chain().focus().unsetFontFamily().run();
     } else {
       editor?.chain().focus().setFontFamily(fontFamily).run();
+    }
+  };
+
+  const handleImageSubmit = () => {
+    if (imageUrl.trim()) {
+      editor?.chain().focus().setImage({ src: imageUrl.trim() }).run();
+      setImageUrl('');
+      setImageDialogOpen(false);
+      toast({
+        title: "Image added",
+        description: "The image has been successfully inserted."
+      });
+    }
+  };
+
+  const handleVideoSubmit = () => {
+    if (videoUrl.trim()) {
+      editor?.chain().focus().setYoutubeVideo({
+        src: videoUrl.trim(),
+        width: 640,
+        height: 480,
+      }).run();
+      setVideoUrl('');
+      setVideoDialogOpen(false);
+      toast({
+        title: "Video added",
+        description: "The YouTube video has been successfully inserted."
+      });
+    }
+  };
+
+  const handleFootnoteSubmit = () => {
+    if (footnoteText.trim()) {
+      const footnoteId = Date.now();
+      const footnoteRef = `<sup><a href="#footnote-${footnoteId}" id="ref-${footnoteId}">${footnoteId}</a></sup>`;
+      const footnote = `<div id="footnote-${footnoteId}" class="footnote" style="border-top: 1px solid #ccc; margin-top: 2rem; padding-top: 1rem; font-size: 0.875rem;"><p><a href="#ref-${footnoteId}">${footnoteId}.</a> ${footnoteText.trim()}</p></div>`;
+      editor?.chain().focus().insertContent(footnoteRef).run();
+      editor?.commands.insertContentAt(editor.state.doc.content.size, footnote);
+      setFootnoteText('');
+      setFootnoteDialogOpen(false);
+      toast({
+        title: "Footnote added",
+        description: "The footnote has been successfully inserted."
+      });
+    }
+  };
+
+  const handleSpecialCharSubmit = () => {
+    if (selectedSpecialChar.trim()) {
+      const specialChars = ['©', '®', '™', '§', '¶', '†', '‡', '•', '…', '"', '"', "'", "'", '—', '–', '½', '¼', '¾', '±', '×', '÷', '°', 'α', 'β', 'γ', 'δ', 'π', 'Σ', '∞'];
+      const charIndex = parseInt(selectedSpecialChar) - 1;
+      const charToInsert = (!isNaN(charIndex) && specialChars[charIndex]) ? specialChars[charIndex] : selectedSpecialChar;
+      editor?.chain().focus().insertContent(charToInsert).run();
+      setSelectedSpecialChar('');
+      setSpecialCharDialogOpen(false);
+      toast({
+        title: "Character inserted",
+        description: "The special character has been successfully inserted."
+      });
+    }
+  };
+
+  const handleExport = (option: string) => {
+    const content = editor?.getHTML() || '';
+    const guideTitle = title || 'Untitled';
+    
+    switch(option) {
+      case 'html':
+        const htmlFile = new Blob([content], { type: 'text/html' });
+        const htmlLink = document.createElement('a');
+        htmlLink.href = URL.createObjectURL(htmlFile);
+        htmlLink.download = `${guideTitle}.html`;
+        htmlLink.click();
+        toast({
+          title: "Export complete",
+          description: "Your document has been exported as HTML."
+        });
+        break;
+        
+      case 'pdf':
+        toast({
+          title: "PDF Export",
+          description: "Opening print dialog - select 'Save as PDF' to export."
+        });
+        setTimeout(() => window.print(), 500);
+        break;
+        
+      case 'docx':
+        try {
+          const textContent = editor?.getText() || '';
+          const docxBlob = new Blob([`${guideTitle}\n\n${textContent}`], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+          const docxLink = document.createElement('a');
+          docxLink.href = URL.createObjectURL(docxBlob);
+          docxLink.download = `${guideTitle}.docx`;
+          docxLink.click();
+          toast({
+            title: "Export complete",
+            description: "Your document has been exported as DOCX (text format)."
+          });
+        } catch (error) {
+          const textBlob = new Blob([editor?.getText() || ''], { type: 'text/plain' });
+          const textLink = document.createElement('a');
+          textLink.href = URL.createObjectURL(textBlob);
+          textLink.download = `${guideTitle}.txt`;
+          textLink.click();
+          toast({
+            title: "Export fallback",
+            description: "Exported as text file instead of DOCX."
+          });
+        }
+        break;
+        
+      case 'email':
+        toast({
+          title: "Coming soon",
+          description: "Email export feature is in development."
+        });
+        break;
+        
+      case 'collaboration':
+        toast({
+          title: "Coming soon",
+          description: "Collaboration sharing feature is in development."
+        });
+        break;
     }
   };
 
@@ -292,12 +449,7 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            const url = prompt('Enter image URL:');
-            if (url) {
-              editor?.chain().focus().setImage({ src: url }).run();
-            }
-          }}
+          onClick={() => setImageDialogOpen(true)}
           data-testid="button-insert-image"
           title="Insert Image"
         >
@@ -339,16 +491,7 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            const url = prompt('Enter YouTube URL:');
-            if (url) {
-              editor?.chain().focus().setYoutubeVideo({
-                src: url,
-                width: 640,
-                height: 480,
-              }).run();
-            }
-          }}
+          onClick={() => setVideoDialogOpen(true)}
           data-testid="button-insert-video"
           title="Insert YouTube Video"
         >
@@ -357,16 +500,7 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            const footnoteText = prompt('Enter footnote text:');
-            if (footnoteText) {
-              const footnoteId = Date.now();
-              const footnoteRef = `<sup><a href="#footnote-${footnoteId}" id="ref-${footnoteId}">${footnoteId}</a></sup>`;
-              const footnote = `<div id="footnote-${footnoteId}" class="footnote" style="border-top: 1px solid #ccc; margin-top: 2rem; padding-top: 1rem; font-size: 0.875rem;"><p><a href="#ref-${footnoteId}">${footnoteId}.</a> ${footnoteText}</p></div>`;
-              editor?.chain().focus().insertContent(footnoteRef).run();
-              editor?.commands.insertContentAt(editor.state.doc.content.size, footnote);
-            }
-          }}
+          onClick={() => setFootnoteDialogOpen(true)}
           data-testid="button-insert-footnote"
           title="Insert Footnote"
         >
@@ -375,15 +509,7 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            const specialChars = ['©', '®', '™', '§', '¶', '†', '‡', '•', '…', '"', '"', "'", "'", '—', '–', '½', '¼', '¾', '±', '×', '÷', '°', 'α', 'β', 'γ', 'δ', 'π', 'Σ', '∞'];
-            const selectedChar = prompt('Select special character:\n' + specialChars.map((char, i) => (i + 1) + '. ' + char).join(' ') + '\n\nEnter character number or the character directly:');
-            if (selectedChar) {
-              const charIndex = parseInt(selectedChar) - 1;
-              const charToInsert = (!isNaN(charIndex) && specialChars[charIndex]) ? specialChars[charIndex] : selectedChar;
-              editor?.chain().focus().insertContent(charToInsert).run();
-            }
-          }}
+          onClick={() => setSpecialCharDialogOpen(true)}
           data-testid="button-special-chars"
           title="Insert Special Characters"
         >
@@ -508,76 +634,178 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
         >
           <FocusIcon className="h-4 w-4" />
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const exportOptions = [
-              '1. Export as HTML',
-              '2. Export as PDF (Preview)',
-              '3. Export as DOCX (Preview)', 
-              '4. Send via Email (Coming Soon)',
-              '5. Share for Collaboration (Coming Soon)'
-            ].join('\n');
-            
-            const choice = prompt(`Choose export option:\n\n${exportOptions}\n\nEnter option number (1-5):`);
-            const content = editor?.getHTML() || '';
-            const guideTitle = title || 'Untitled';
-            
-            switch(choice) {
-              case '1':
-                // HTML Export
-                const htmlFile = new Blob([content], { type: 'text/html' });
-                const htmlLink = document.createElement('a');
-                htmlLink.href = URL.createObjectURL(htmlFile);
-                htmlLink.download = `${guideTitle}.html`;
-                htmlLink.click();
-                break;
-                
-              case '2':
-                // PDF Export (Preview)
-                alert('PDF Export: This feature uses browser print-to-PDF.\nClick OK to open print dialog, then select "Save as PDF".');
-                setTimeout(() => window.print(), 500);
-                break;
-                
-              case '3':
-                // DOCX Export (Preview)
-                try {
-                  const textContent = editor?.getText() || '';
-                  const docxBlob = new Blob([`${guideTitle}\n\n${textContent}`], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-                  const docxLink = document.createElement('a');
-                  docxLink.href = URL.createObjectURL(docxBlob);
-                  docxLink.download = `${guideTitle}.docx`;
-                  docxLink.click();
-                } catch (error) {
-                  alert('DOCX Export: Feature in development. Using text export for now.');
-                  const textBlob = new Blob([editor?.getText() || ''], { type: 'text/plain' });
-                  const textLink = document.createElement('a');
-                  textLink.href = URL.createObjectURL(textBlob);
-                  textLink.download = `${guideTitle}.txt`;
-                  textLink.click();
-                }
-                break;
-                
-              case '4':
-                alert('Email Export: Coming soon! This will allow you to email your guide directly to recipients.');
-                break;
-                
-              case '5':
-                alert('Collaboration Sharing: Coming soon! This will generate shareable links for collaborative editing.');
-                break;
-                
-              default:
-                if (choice) alert('Invalid option selected. Please choose 1-5.');
-                break;
-            }
-          }}
-          data-testid="button-export"
-          title="Export & Share Document"
-        >
-          <Download className="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="button-export"
+              title="Export & Share Document"
+            >
+              <Download className="h-4 w-4" />
+              <ChevronDown className="h-3 w-3 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => handleExport('html')}>
+              Export as HTML
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('pdf')}>
+              Export as PDF (Print)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('docx')}>
+              Export as DOCX (Text)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('email')} disabled>
+              Send via Email (Coming Soon)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('collaboration')} disabled>
+              Share for Collaboration (Coming Soon)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      {/* Link Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert Link</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="link-url">URL</Label>
+              <Input
+                id="link-url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://example.com"
+                onKeyDown={(e) => e.key === 'Enter' && handleLinkSubmit()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleLinkSubmit}>Insert Link</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Dialog */}
+      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert Image</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="image-url">Image URL</Label>
+              <Input
+                id="image-url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                onKeyDown={(e) => e.key === 'Enter' && handleImageSubmit()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImageDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleImageSubmit}>Insert Image</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Dialog */}
+      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert YouTube Video</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="video-url">YouTube URL</Label>
+              <Input
+                id="video-url"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                onKeyDown={(e) => e.key === 'Enter' && handleVideoSubmit()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVideoDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleVideoSubmit}>Insert Video</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Footnote Dialog */}
+      <Dialog open={footnoteDialogOpen} onOpenChange={setFootnoteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert Footnote</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="footnote-text">Footnote Text</Label>
+              <Input
+                id="footnote-text"
+                value={footnoteText}
+                onChange={(e) => setFootnoteText(e.target.value)}
+                placeholder="Enter footnote text..."
+                onKeyDown={(e) => e.key === 'Enter' && handleFootnoteSubmit()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFootnoteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleFootnoteSubmit}>Insert Footnote</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Special Character Dialog */}
+      <Dialog open={specialCharDialogOpen} onOpenChange={setSpecialCharDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert Special Character</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="special-char">Character or Number</Label>
+              <Input
+                id="special-char"
+                value={selectedSpecialChar}
+                onChange={(e) => setSelectedSpecialChar(e.target.value)}
+                placeholder="Enter character or number (1-29)"
+                onKeyDown={(e) => e.key === 'Enter' && handleSpecialCharSubmit()}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>Available characters:</p>
+              <p>1. © 2. ® 3. ™ 4. § 5. ¶ 6. † 7. ‡ 8. • 9. … 10. " 11. " 12. ' 13. ' 14. — 15. –</p>
+              <p>16. ½ 17. ¼ 18. ¾ 19. ± 20. × 21. ÷ 22. ° 23. α 24. β 25. γ 26. δ 27. π 28. Σ 29. ∞</p>
+              <p>Enter the number (1-29) or type the character directly.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSpecialCharDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSpecialCharSubmit}>Insert Character</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
