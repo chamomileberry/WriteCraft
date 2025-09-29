@@ -85,7 +85,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'folder' | 'note'; parentId?: string } | null>(null);
   const [dragOverItem, setDragOverItem] = useState<{ id: string; type: 'folder' | 'note' } | null>(null);
   const queryClient = useQueryClient();
-  const { openPanel } = useWorkspaceStore();
+  const { addPanel } = useWorkspaceStore();
 
   // Normalize type: 'project' is treated as 'manuscript'
   const normalizedType = type === 'project' ? 'manuscript' : type;
@@ -186,8 +186,9 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const navigateToDocument = (docId: string, docType: 'manuscript' | 'guide' | 'note') => {
     if (type === 'project' && docType === 'note') {
       // For projects, open scenes as tabs in the workspace
-      openPanel({
-        type: 'note',
+      addPanel({
+        id: `note-${docId}`,
+        type: 'notes',
         entityId: docId,
         title: 'Scene', // Will be updated when note loads
         mode: 'tabbed',
