@@ -130,6 +130,7 @@ export interface IStorage {
   createSetting(setting: InsertSetting): Promise<Setting>;
   getSetting(id: string): Promise<Setting | undefined>;
   getUserSettings(userId: string | null): Promise<Setting[]>;
+  updateSetting(id: string, updates: Partial<InsertSetting>): Promise<Setting>;
 
   // Item methods  
   createItem(item: InsertItem): Promise<Item>;
@@ -454,6 +455,7 @@ export interface IStorage {
   createTheme(theme: InsertTheme): Promise<Theme>;
   getTheme(id: string): Promise<Theme | undefined>;
   getUserThemes(userId: string | null): Promise<Theme[]>;
+  updateTheme(id: string, updates: Partial<InsertTheme>): Promise<Theme>;
 
   // Mood methods
   createMood(mood: InsertMood): Promise<Mood>;
@@ -464,6 +466,7 @@ export interface IStorage {
   createConflict(conflict: InsertConflict): Promise<Conflict>;
   getConflict(id: string): Promise<Conflict | undefined>;
   getUserConflicts(userId: string | null): Promise<Conflict[]>;
+  updateConflict(id: string, updates: Partial<InsertConflict>): Promise<Conflict>;
 
   // Guide methods
   createGuide(guide: InsertGuide): Promise<Guide>;
@@ -770,6 +773,15 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(settings)
       .orderBy(desc(settings.createdAt))
       .limit(10);
+  }
+
+  async updateSetting(id: string, updates: Partial<InsertSetting>): Promise<Setting> {
+    const [updatedSetting] = await db
+      .update(settings)
+      .set(updates)
+      .where(eq(settings.id, id))
+      .returning();
+    return updatedSetting;
   }
 
   // Item methods
@@ -1437,10 +1449,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Armor methods
-  async createArmor(armor: InsertArmor): Promise<Armor> {
+  async createArmor(armorData: InsertArmor): Promise<Armor> {
     const [newArmor] = await db
       .insert(armor)
-      .values(armor)
+      .values(armorData)
       .returning();
     return newArmor;
   }
@@ -1513,10 +1525,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Clothing methods
-  async createClothing(clothing: InsertClothing): Promise<Clothing> {
+  async createClothing(clothingData: InsertClothing): Promise<Clothing> {
     const [newClothing] = await db
       .insert(clothing)
-      .values(clothing)
+      .values(clothingData)
       .returning();
     return newClothing;
   }
@@ -2021,10 +2033,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Transportation methods
-  async createTransportation(transportation: InsertTransportation): Promise<Transportation> {
+  async createTransportation(transportationData: InsertTransportation): Promise<Transportation> {
     const [newTransportation] = await db
       .insert(transportation)
-      .values(transportation)
+      .values(transportationData)
       .returning();
     return newTransportation;
   }
@@ -2325,10 +2337,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Music methods
-  async createMusic(music: InsertMusic): Promise<Music> {
+  async createMusic(musicData: InsertMusic): Promise<Music> {
     const [newMusic] = await db
       .insert(music)
-      .values(music)
+      .values(musicData)
       .returning();
     return newMusic;
   }
@@ -2564,6 +2576,15 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
+  async updateTheme(id: string, updates: Partial<InsertTheme>): Promise<Theme> {
+    const [updatedTheme] = await db
+      .update(themes)
+      .set(updates)
+      .where(eq(themes.id, id))
+      .returning();
+    return updatedTheme;
+  }
+
   // Mood methods
   async createMood(mood: InsertMood): Promise<Mood> {
     const [newMood] = await db
@@ -2612,6 +2633,15 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(conflicts)
       .orderBy(desc(conflicts.createdAt))
       .limit(10);
+  }
+
+  async updateConflict(id: string, updates: Partial<InsertConflict>): Promise<Conflict> {
+    const [updatedConflict] = await db
+      .update(conflicts)
+      .set(updates)
+      .where(eq(conflicts.id, id))
+      .returning();
+    return updatedConflict;
   }
 
   // Guide methods
