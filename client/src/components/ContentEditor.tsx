@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Save, Loader2, Edit, ArrowLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Save, Loader2, Edit, ArrowLeft, FileText, Database, Wand2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +14,7 @@ import { useNotebookStore } from "@/stores/notebookStore";
 import { getMappingById } from "@shared/contentTypes";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
+import ArticleEditor from "@/components/ArticleEditor";
 import { getContentTypeConfig } from "@/configs/content-types";
 import type { ContentTypeFormConfig } from "@/components/forms/types";
 
@@ -25,6 +27,7 @@ interface ContentEditorProps {
 export default function ContentEditor({ contentType, contentId, onBack }: ContentEditorProps) {
   const [editingData, setEditingData] = useState<any>({}); // For generic fallback form only
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
+  const [viewMode, setViewMode] = useState<'structured' | 'article'>('structured'); // Mode switching
   const [formConfig, setFormConfig] = useState<ContentTypeFormConfig | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -74,6 +77,42 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
     hasContentData: !!contentData,
     isLoading,
     error: !!error
+  });
+
+  // Generate article from structured data mutation
+  const generateArticleMutation = useMutation({
+    mutationFn: async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlNotebookId = urlParams.get('notebookId');
+      const notebookId = urlNotebookId || activeNotebookId;
+      
+      if (!notebookId) {
+        throw new Error('No notebook selected. Cannot generate article.');
+      }
+      
+      const response = await apiRequest('POST', `${apiBase}/${currentItemId}/generate-article?notebookId=${notebookId}`);
+      return response.json();
+    },
+    onSuccess: (updatedContent) => {
+      // Optimistically update the cache with new articleContent immediately
+      queryClient.setQueryData([apiBase, currentItemId, activeNotebookId], updatedContent);
+      
+      // Now switch to article mode - the tab will be enabled because articleContent exists
+      setViewMode('article');
+      
+      toast({
+        title: 'Article generated',
+        description: 'Article has been generated from your structured data.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error generating article:', error);
+      toast({
+        title: 'Error generating article',
+        description: 'Failed to generate article. Please try again.',
+        variant: 'destructive',
+      });
+    },
   });
 
   // Create/Update mutation
@@ -360,11 +399,29 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           </div>
         </div>
         <div className="flex gap-2">
-          {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)} data-testid="button-start-editing">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
+          {!isEditing && !isCreating ? (
+            <>
+              <Button onClick={() => setIsEditing(true)} data-testid="button-start-editing">
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+              {/* Generate Article button - only show if we don't have article content yet */}
+              {viewMode === 'structured' && !contentData?.articleContent && (
+                <Button 
+                  onClick={() => generateArticleMutation.mutate()}
+                  disabled={generateArticleMutation.isPending}
+                  variant="outline"
+                  data-testid="button-generate-article"
+                >
+                  {generateArticleMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="mr-2 h-4 w-4" />
+                  )}
+                  Generate Article
+                </Button>
+              )}
+            </>
           ) : (
             <>
               {/* Only show header save buttons for generic fallback forms, not dynamic forms */}
@@ -392,9 +449,47 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         </div>
       </div>
 
-      {/* Dynamic Form System or Generic Fallback */}
+      {/* Mode Switching Tabs - only show when not editing and not creating */}
+      {!isEditing && !isCreating && (
+        <div className="mb-6">
+          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'structured' | 'article')} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="structured" data-testid="tab-structured-view">
+                <Database className="mr-2 h-4 w-4" />
+                Structured Data
+              </TabsTrigger>
+              <TabsTrigger value="article" disabled={!contentData?.articleContent} data-testid="tab-article-view">
+                <FileText className="mr-2 h-4 w-4" />
+                Article View
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
+
+      {/* Content Rendering - Mode-based */}
       {(() => {
+        // Article Mode - show ArticleEditor
+        if (viewMode === 'article' && !isEditing && !isCreating) {
+          return (
+            <ArticleEditor
+              contentType={contentType}
+              contentId={contentId}
+              initialContent={contentData?.articleContent || ''}
+              title={`${contentType.charAt(0).toUpperCase() + contentType.slice(1)} Article`}
+              onContentChange={(content) => {
+                // Handle content changes if needed
+                console.log('Article content changed:', content.length, 'characters');
+              }}
+              onSave={(content) => {
+                // Handle save completion if needed
+                console.log('Article saved:', content.length, 'characters');
+              }}
+            />
+          );
+        }
         
+        // Structured Mode - existing form logic
         if (formConfig && (isEditing || isCreating)) {
           // Use character sidebar editor for characters specifically
           if (contentType === 'character') {
@@ -420,7 +515,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             />
           );
         } else {
-          // Fallback to generic form (for non-configured types)
+          // Fallback to generic form (for non-configured types) or structured view mode
           return (
             <Card>
               <CardHeader>
