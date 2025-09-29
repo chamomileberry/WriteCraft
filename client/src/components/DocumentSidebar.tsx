@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import {
   Sidebar,
   SidebarContent,
@@ -51,6 +52,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const [, setLocation] = useLocation();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
+  const { openPanel } = useWorkspaceStore();
 
   // Normalize type: 'project' is treated as 'manuscript'
   const normalizedType = type === 'project' ? 'manuscript' : type;
@@ -149,7 +151,16 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   };
 
   const navigateToDocument = (docId: string, docType: 'manuscript' | 'guide' | 'note') => {
-    if (docType === 'manuscript') {
+    if (type === 'project' && docType === 'note') {
+      // For projects, open scenes as tabs in the workspace
+      openPanel({
+        type: 'note',
+        entityId: docId,
+        title: 'Scene', // Will be updated when note loads
+        mode: 'tabbed',
+        regionId: 'main'
+      });
+    } else if (docType === 'manuscript') {
       setLocation(`/projects/${docId}/edit`);
     } else if (docType === 'guide') {
       setLocation(`/guides/${docId}/edit`);
