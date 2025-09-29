@@ -153,9 +153,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/religions",
     displayFields: {
       title: "name",
-      subtitle: "religionType",
+      subtitle: "hierarchy",
       description: "beliefs",
-      badges: ["pantheon", "domain"]
+      badges: ["influence", "genre"]
     }
   },
   language: {
@@ -275,7 +275,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "title",
       subtitle: "documentType",
       description: "content",
-      badges: ["author", "era"]
+      badges: ["author", "language"]
     }
   },
   settlement: {
@@ -311,7 +311,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "factionType", 
       description: "goals",
-      badges: ["influence", "alignment"]
+      badges: ["influence", "genre"]
     }
   },
   militaryunit: {
@@ -395,7 +395,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "title",
       subtitle: "legendType",
       description: "summary",
-      badges: ["hero", "era"]
+      badges: ["timeframe", "genre"]
     }
   },
   tradition: {
@@ -577,7 +577,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "danceType",
       description: "description",
-      badges: ["formation", "difficulty"]
+      badges: ["difficulty", "genre"]
     }
   },
   law: {
