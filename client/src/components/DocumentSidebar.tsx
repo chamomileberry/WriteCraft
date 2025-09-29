@@ -304,9 +304,9 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarContent>
+      <SidebarContent className="pt-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2">
+          <SidebarGroupLabel className="flex items-center gap-2 px-3 py-2">
             {normalizedType === 'manuscript' ? <BookOpen className="h-4 w-4" /> : <Library className="h-4 w-4" />}
             {normalizedType === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
             <div className="ml-auto flex items-center gap-1">
