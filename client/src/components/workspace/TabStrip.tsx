@@ -1,5 +1,5 @@
 import { DragEvent, useState, useRef, useEffect } from 'react';
-import { X, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink, Pin } from 'lucide-react';
+import { X, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink, Pin, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,9 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
     detachToFloating,
     assignToSplit,
     reorderTabs,
-    attachToTabBar
+    attachToTabBar,
+    minimizePanel,
+    isInManuscriptEditor
   } = useWorkspaceStore();
   
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; panelId: string } | null>(null);
@@ -254,12 +256,20 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
             className="h-4 w-4 p-0 opacity-30 group-hover:opacity-100 hover:bg-primary/20"
             onClick={(e) => {
               e.stopPropagation();
-              handleDetachTab(tab.id);
+              if ((tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant') {
+                minimizePanel(tab.id);
+              } else {
+                handleDetachTab(tab.id);
+              }
             }}
-            data-testid={`button-pin-tab-${tab.id}`}
-            title="Pin to floating window"
+            data-testid={`button-${(tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant' ? 'minimize' : 'pin'}-tab-${tab.id}`}
+            title={(tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant' ? "Minimize" : "Pin to floating window"}
           >
-            <Pin className="h-3 w-3" />
+            {(tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant' ? (
+              <Minimize2 className="h-3 w-3" />
+            ) : (
+              <Pin className="h-3 w-3" />
+            )}
           </Button>
           
           <span className="truncate text-sm font-medium">
