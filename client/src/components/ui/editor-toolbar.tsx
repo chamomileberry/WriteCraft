@@ -43,9 +43,20 @@ import {
 interface EditorToolbarProps {
   editor: Editor | null;
   title?: string;
+  isFocusMode?: boolean;
+  onFocusModeToggle?: () => void;
+  zoomLevel?: number;
+  onZoomChange?: (zoom: number) => void;
 }
 
-export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps) {
+export function EditorToolbar({ 
+  editor, 
+  title = 'Untitled',
+  isFocusMode = false,
+  onFocusModeToggle,
+  zoomLevel = 1,
+  onZoomChange
+}: EditorToolbarProps) {
   const { toast } = useToast();
   
   // Dialog states
@@ -599,13 +610,9 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
           className="px-2 py-1 text-sm border rounded-md bg-background min-w-20"
           onChange={(e) => {
             const zoom = parseInt(e.target.value) / 100;
-            const editorElement = document.querySelector('.ProseMirror');
-            if (editorElement) {
-              (editorElement as HTMLElement).style.transform = `scale(${zoom})`;
-              (editorElement as HTMLElement).style.transformOrigin = 'top left';
-            }
+            onZoomChange?.(zoom);
           }}
-          defaultValue="100"
+          value={(zoomLevel * 100).toString()}
           data-testid="select-zoom"
           title="Zoom Level"
         >
@@ -617,18 +624,9 @@ export function EditorToolbar({ editor, title = 'Untitled' }: EditorToolbarProps
           <option value="200">200%</option>
         </select>
         <Button
-          variant="outline"
+          variant={isFocusMode ? "default" : "outline"}
           size="sm"
-          onClick={() => {
-            const toolbar = document.querySelector('.border-t.bg-muted\\/20');
-            const sidebar = document.querySelector('[data-sidebar]');
-            if (toolbar) {
-              toolbar.classList.toggle('hidden');
-            }
-            if (sidebar) {
-              sidebar.classList.toggle('hidden');
-            }
-          }}
+          onClick={() => onFocusModeToggle?.()}
           data-testid="button-focus-mode"
           title="Focus Mode"
         >

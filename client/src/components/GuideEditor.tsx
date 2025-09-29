@@ -227,6 +227,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const queryClient = useQueryClient();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Focus Mode and Zoom state
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
   // Fetch guide data
   const { data: guide, isLoading: isLoadingGuide } = useQuery<Guide>({
     queryKey: ['/api/guides', currentGuideId],
@@ -632,7 +636,14 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         <CardHeader>
           <CardTitle>Content</CardTitle>
           
-          <EditorToolbar editor={editor} title={title} />
+          <EditorToolbar 
+            editor={editor} 
+            title={title}
+            isFocusMode={isFocusMode}
+            onFocusModeToggle={() => setIsFocusMode(!isFocusMode)}
+            zoomLevel={zoomLevel}
+            onZoomChange={setZoomLevel}
+          />
           
           {/* Word Count */}
           {editor && (
@@ -736,7 +747,14 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         
         <CardContent>
           <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring">
-            <EditorContent editor={editor} data-testid="editor-content" />
+            <div 
+              style={{ 
+                transform: `scale(${zoomLevel})`, 
+                transformOrigin: 'top left' 
+              }}
+            >
+              <EditorContent editor={editor} data-testid="editor-content" />
+            </div>
           </div>
         </CardContent>
       </Card>
