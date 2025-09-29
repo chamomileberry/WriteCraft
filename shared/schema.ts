@@ -1414,7 +1414,7 @@ export const folders = pgTable("folders", {
   color: text("color"), // Optional color for visual organization
   type: text("type").notNull(), // 'project' or 'guide'
   parentId: varchar("parent_id"), // Self-reference handled via relations to avoid circular dependency
-  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Link to parent project
+  projectId: varchar("project_id"), // Link to parent project
   guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   sortOrder: integer("sort_order").default(0), // For custom ordering
@@ -1436,7 +1436,7 @@ export const notes = pgTable("notes", {
   excerpt: text("excerpt"), // Auto-generated excerpt for previews
   type: text("type").notNull(), // 'project_note', 'guide_note', or 'quick_note'
   folderId: varchar("folder_id").references(() => folders.id, { onDelete: 'cascade' }),
-  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Link to parent project
+  projectId: varchar("project_id"), // Link to parent project
   guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
   sortOrder: integer("sort_order").default(0), // For custom ordering within folder
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -1463,7 +1463,7 @@ export const projects = pgTable("projects", {
   tags: text("tags").array(), // User-defined tags
   status: text("status").notNull().default('draft'), // 'draft', 'published', 'archived'
   searchVector: tsvector("search_vector"),
-  folderId: varchar("folder_id").references(() => folders.id, { onDelete: 'set null' }), // Optional folder organization
+  folderId: varchar("folder_id"), // Optional folder organization
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

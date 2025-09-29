@@ -124,13 +124,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   subtitle = organization.organizationType || '';
                 }
                 break;
-            case 'manuscript':
-              const manuscript = await storage.getManuscript(pin.targetId, userId);
-              if (manuscript) {
-                title = manuscript.title;
-                subtitle = manuscript.status || '';
-              }
-              break;
           }
         }
         } catch (error) {
@@ -203,55 +196,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Manuscript Links endpoints
-  app.get("/api/manuscripts/:id/links", async (req, res) => {
-    try {
-      const manuscriptId = req.params.id;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      
-      const links = await storage.getManuscriptLinks(manuscriptId, userId);
-      res.json(links);
-    } catch (error) {
-      console.error('Error fetching manuscript links:', error);
-      res.status(500).json({ error: 'Failed to fetch manuscript links' });
-    }
-  });
-
-  app.post("/api/manuscripts/:id/links", async (req, res) => {
-    try {
-      const manuscriptId = req.params.id;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      
-      // Validate the request body
-      const validatedData = insertManuscriptLinkSchema.parse({
-        ...req.body,
-        sourceId: manuscriptId,
-        userId
-      });
-      
-      const newLink = await storage.createManuscriptLink(validatedData);
-      res.json(newLink);
-    } catch (error) {
-      console.error('Error creating manuscript link:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid link data', details: error.errors });
-      }
-      res.status(500).json({ error: 'Failed to create manuscript link' });
-    }
-  });
-
-  app.delete("/api/manuscript-links/:id", async (req, res) => {
-    try {
-      const linkId = req.params.id;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-      
-      await storage.deleteManuscriptLink(linkId, userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting manuscript link:', error);
-      res.status(500).json({ error: 'Failed to delete manuscript link' });
-    }
-  });
 
 
 
