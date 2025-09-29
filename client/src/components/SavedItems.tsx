@@ -251,7 +251,7 @@ export default function SavedItems() {
     return (
       <div className="space-y-4">
         <div className="h-8 bg-muted animate-pulse rounded" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader className="space-y-2">
@@ -414,7 +414,7 @@ export default function SavedItems() {
                     </h2>
                   </div>
                   
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {items.map((item) => (
                       <Card key={item.id} className="group hover-elevate" data-testid={`card-content-${item.id}`}>
                         <CardHeader className="pb-3">
@@ -441,7 +441,7 @@ export default function SavedItems() {
                             <span className="text-xs text-muted-foreground">
                               Created {new Date(item.createdAt).toLocaleDateString()}
                             </span>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -485,7 +485,7 @@ export default function SavedItems() {
               <p className="text-muted-foreground">No recent items found.</p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredItems.slice(0, 12).map((item) => {
                 const type = item.contentType || item.itemType || 'unknown';
                 const mapping = getMappingById(type);
