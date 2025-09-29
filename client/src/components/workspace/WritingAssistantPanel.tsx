@@ -67,6 +67,7 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const historyDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { getEditorContext, executeEditorAction } = useWorkspaceStore();
 
@@ -117,6 +118,20 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isLoadingHistory]);
+
+  // Close history dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (historyDropdownRef.current && !historyDropdownRef.current.contains(e.target as Node)) {
+        setShowHistoryDropdown(false);
+      }
+    };
+    
+    if (showHistoryDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showHistoryDropdown]);
 
   // AI analysis mutation
   const analyzeMutation = useMutation({
@@ -599,6 +614,34 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
             })()}
           </div>
         </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => clearChatMutation.mutate()}
+            disabled={clearChatMutation.isPending || messages.length === 0}
+            className="h-7 px-2"
+            data-testid="button-new-chat"
+            title="Start new conversation"
+          >
+            <MessageSquarePlus className="h-3 w-3 mr-1" />
+            New Chat
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
+            className="h-7 px-2"
+            data-testid="button-chat-history"
+            title="View chat history"
+          >
+            <History className="h-3 w-3 mr-1" />
+            History
+          </Button>
+          {clearChatMutation.isPending && (
+            <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -625,30 +668,6 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0">
-            {/* Chat Controls */}
-            <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => clearChatMutation.mutate()}
-                  disabled={clearChatMutation.isPending || messages.length === 0}
-                  className="h-7 px-2"
-                  data-testid="button-new-chat"
-                  title="Start new conversation"
-                >
-                  <MessageSquarePlus className="h-3 w-3 mr-1" />
-                  New Chat
-                </Button>
-                {clearChatMutation.isPending && (
-                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                )}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {messages.length} message{messages.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-            
             <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
               <div className="space-y-3 p-3 pb-6">
                 {messages.length === 0 && (
@@ -926,6 +945,82 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Chat History Dropdown */}
+      {showHistoryDropdown && (
+        <div
+          ref={historyDropdownRef}
+          className="absolute top-16 right-3 bg-popover border rounded-md shadow-lg py-2 z-50 w-80"
+          data-testid="chat-history-dropdown"
+        >
+          <div className="px-3 pb-2 border-b">
+            <h3 className="font-medium text-sm">Chat History</h3>
+            <p className="text-xs text-muted-foreground">
+              {messages.length} message{messages.length !== 1 ? 's' : ''} in current conversation
+            </p>
+          </div>
+          
+          <div className="max-h-64 overflow-y-auto">
+            {messages.length > 0 ? (
+              <div className="p-3">
+                <div className="text-sm font-medium mb-2">Current Conversation</div>
+                <div className="space-y-2">
+                  {messages.slice(0, 5).map((message, index) => (
+                    <div
+                      key={message.id}
+                      className="p-2 bg-muted/30 rounded text-xs cursor-pointer hover:bg-muted/50"
+                      onClick={() => {
+                        // Auto-scroll to this message in the chat
+                        setShowHistoryDropdown(false);
+                        setActiveTab('chat');
+                      }}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {message.type === 'user' ? (
+                          <User className="w-3 h-3 text-muted-foreground" />
+                        ) : (
+                          <Bot className="w-3 h-3 text-primary" />
+                        )}
+                        <span className="font-medium capitalize">{message.type}</span>
+                        <span className="text-muted-foreground">
+                          {message.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className="truncate">{message.content}</p>
+                    </div>
+                  ))}
+                  {messages.length > 5 && (
+                    <div className="text-xs text-muted-foreground text-center py-2">
+                      ... and {messages.length - 5} more messages
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="px-3 py-4 text-center text-muted-foreground text-sm">
+                No messages in current conversation
+              </div>
+            )}
+          </div>
+          
+          <div className="px-3 pt-2 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                clearChatMutation.mutate();
+                setShowHistoryDropdown(false);
+              }}
+              disabled={clearChatMutation.isPending || messages.length === 0}
+              className="w-full h-7"
+              data-testid="button-clear-from-history"
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Clear Current Chat
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
