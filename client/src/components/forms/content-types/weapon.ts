@@ -1,9 +1,6 @@
-import { ContentTypeFormConfig } from '../types';
-import { 
-  createRarityField,
-  createValueField,
-  createMaterialsField
-} from '@/lib/field-definitions';
+import { ContentTypeFormConfig } from '../../components/forms/types';
+import { WEAPON_TYPES } from '@/lib/field-options';  // <-- NEW: Import type options
+import * as Fields from '@/lib/field-definitions';  // <-- CHANGED: Import all as Fields
 
 export const weaponConfig: ContentTypeFormConfig = {
   title: "Weapon Editor",
@@ -15,11 +12,10 @@ export const weaponConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Sword",
       fields: [
-        // Using original custom text to preserve exact UX
-        { name: "name", label: "Weapon Name", type: "text", placeholder: "Enter weapon name..." },
-        { name: "weaponType", label: "Weapon Type", type: "select", options: ["Sword", "Bow", "Staff", "Dagger", "Axe", "Mace", "Spear", "Crossbow", "Wand", "Other"] },
-        { name: "description", label: "Description", type: "textarea", placeholder: "Detailed description of the weapon...", description: "What does this weapon look like and how does it function?" },
-        { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Steampunk", "Other"] }
+        Fields.createNameField("weapon"),                    // <-- Replace manual name field
+        Fields.createTypeField("weapon", WEAPON_TYPES),      // <-- Replace manual type field
+        Fields.createDescriptionField("weapon"),             // <-- Replace manual description
+        Fields.createGenreField()                            // <-- Replace manual genre field
       ]
     },
     {
@@ -29,7 +25,7 @@ export const weaponConfig: ContentTypeFormConfig = {
       fields: [
         { name: "damage", label: "Damage", type: "text", placeholder: "Damage rating or dice (e.g., 1d8+2)" },
         { name: "range", label: "Range", type: "text", placeholder: "Melee, 100 feet, etc." },
-        { name: "weight", label: "Weight", type: "text", placeholder: "3 lbs, heavy, light, etc." },
+        Fields.createWeightField(),                          // <-- Replace manual weight field
         { name: "requirements", label: "Requirements", type: "text", placeholder: "Strength needed, training required, etc." },
         { name: "maintenance", label: "Maintenance", type: "textarea", placeholder: "How to care for and maintain this weapon..." }
       ]
@@ -39,15 +35,12 @@ export const weaponConfig: ContentTypeFormConfig = {
       label: "Crafting & Lore",
       icon: "Wrench",
       fields: [
-        // Using shared field where text exactly matches original
-        createMaterialsField(),
+        Fields.createMaterialsField(),                       // <-- Already using this!
         { name: "craftsmanship", label: "Craftsmanship", type: "text", placeholder: "Masterwork, crude, ornate, etc." },
         { name: "enchantments", label: "Enchantments", type: "tags", placeholder: "fire damage, glowing, etc.", description: "Magical properties (comma-separated)" },
-        // Using original custom text to preserve exact UX
-        { name: "history", label: "History", type: "textarea", placeholder: "The weapon's origin story and past owners..." },
-        // Using shared fields where text exactly matches original
-        createRarityField(),
-        createValueField()
+        Fields.createHistoryField("weapon"),                 // <-- Replace manual history field
+        Fields.createRarityField(),                          // <-- Changed from createRarityField()
+        Fields.createValueField()                            // <-- Changed from createValueField()
       ]
     }
   ]
