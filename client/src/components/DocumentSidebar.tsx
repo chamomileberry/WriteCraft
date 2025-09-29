@@ -340,6 +340,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                   <div className="p-4 text-center text-muted-foreground">
                     Loading document structure...
                   </div>
+                ) : hierarchicalFolders.length === 0 && orphanedNotes.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    No {normalizedType === 'manuscript' ? 'chapters or scenes' : 'categories or guides'} yet.
+                    <br />
+                    Click the icons above to get started.
+                  </div>
                 ) : (
                   <>
                     {/* Render hierarchical folders */}
