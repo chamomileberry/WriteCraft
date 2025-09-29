@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface DocumentSidebarProps {
-  type: "manuscript" | "guide";
+  type: "manuscript" | "guide" | "project";
   currentDocumentId?: string;
   userId: string;
 }
@@ -52,6 +52,9 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
+  // Normalize type: 'project' is treated as 'manuscript'
+  const normalizedType = type === 'project' ? 'manuscript' : type;
+
   // Deterministic indentation mapping to avoid dynamic Tailwind class issues
   const getIndentationClass = (level: number): string => {
     const indentationMap: Record<number, string> = {
@@ -67,15 +70,15 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   // Fetch folders for the specific document
   const { data: folders = [], isLoading: foldersLoading } = useQuery({
-    queryKey: ['/api/folders', userId, type, currentDocumentId],
+    queryKey: ['/api/folders', userId, normalizedType, currentDocumentId],
     queryFn: () => {
       if (currentDocumentId) {
         // Use document-specific endpoint for manuscript or guide folders
-        const param = type === 'manuscript' ? 'manuscriptId' : 'guideId';
+        const param = normalizedType === 'manuscript' ? 'manuscriptId' : 'guideId';
         return fetch(`/api/folders?userId=${userId}&${param}=${currentDocumentId}`).then(res => res.json());
       } else {
         // Fallback to type-based folders (for backwards compatibility)
-        return fetch(`/api/folders?userId=${userId}&type=${type}`).then(res => res.json());
+        return fetch(`/api/folders?userId=${userId}&type=${normalizedType}`).then(res => res.json());
       }
     },
     enabled: !!userId,
@@ -83,8 +86,8 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   // Fetch notes for the document type and specific document
   const { data: notes = [], isLoading: notesLoading } = useQuery({
-    queryKey: ['/api/notes', userId, `${type}_note`, currentDocumentId],
-    queryFn: () => fetch(`/api/notes?userId=${userId}&type=${type}_note&documentId=${currentDocumentId}`).then(res => res.json()),
+    queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId],
+    queryFn: () => fetch(`/api/notes?userId=${userId}&type=${normalizedType}_note&documentId=${currentDocumentId}`).then(res => res.json()),
     enabled: !!userId && !!currentDocumentId,
   });
 
@@ -155,13 +158,13 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const createNewFolder = async () => {
     try {
       const newFolder = {
-        name: type === 'manuscript' ? 'New Chapter' : 'New Category',
-        type: type,
+        name: normalizedType === 'manuscript' ? 'New Chapter' : 'New Category',
+        type: normalizedType,
         userId: userId,
         sortOrder: folders.length,
         // Link the folder to the specific document
-        ...(type === 'manuscript' && currentDocumentId ? { manuscriptId: currentDocumentId } : {}),
-        ...(type === 'guide' && currentDocumentId ? { guideId: currentDocumentId } : {}),
+        ...(normalizedType === 'manuscript' && currentDocumentId ? { manuscriptId: currentDocumentId } : {}),
+        ...(normalizedType === 'guide' && currentDocumentId ? { guideId: currentDocumentId } : {}),
       };
       
       const response = await fetch('/api/folders', {
@@ -172,7 +175,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       
       if (response.ok) {
         // Invalidate queries to refresh folder list without hard reload
-        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, normalizedType, currentDocumentId] });
         queryClient.invalidateQueries({ queryKey: ['/api/folders', userId] });
       }
     } catch (error) {
@@ -183,12 +186,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const createNewNote = async (folderId?: string) => {
     try {
       const newNote = {
-        title: type === 'manuscript' ? 'New Scene' : 'New Guide',
+        title: normalizedType === 'manuscript' ? 'New Scene' : 'New Guide',
         content: '',
-        type: `${type}_note`,
+        type: `${normalizedType}_note`,
         folderId: folderId || null,
-        manuscriptId: type === 'manuscript' ? currentDocumentId : null,
-        guideId: type === 'guide' ? currentDocumentId : null,
+        manuscriptId: normalizedType === 'manuscript' ? currentDocumentId : null,
+        guideId: normalizedType === 'guide' ? currentDocumentId : null,
         userId: userId,
         sortOrder: notes.filter((n: { folderId?: string }) => n.folderId === folderId).length,
       };
@@ -202,7 +205,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       if (response.ok) {
         const createdNote = await response.json();
         // Invalidate queries to refresh notes list so new item appears immediately
-        queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${type}_note`] });
+        queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`] });
         navigateToDocument(createdNote.id, 'note');
       }
     } catch (error) {
@@ -278,7 +281,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 data-testid={`add-note-${folder.id}`}
               >
                 <FileText className="h-4 w-4" />
-                <span>Add {type === 'manuscript' ? 'Scene' : 'Guide'}</span>
+                <span>Add {normalizedType === 'manuscript' ? 'Scene' : 'Guide'}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </>
@@ -304,8 +307,8 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2">
-            {type === 'manuscript' ? <BookOpen className="h-4 w-4" /> : <Library className="h-4 w-4" />}
-            {type === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
+            {normalizedType === 'manuscript' ? <BookOpen className="h-4 w-4" /> : <Library className="h-4 w-4" />}
+            {normalizedType === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
             <div className="ml-auto flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -313,7 +316,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 onClick={createNewFolder}
                 className="h-6 w-6"
                 data-testid="add-folder"
-                title={`Add ${type === 'manuscript' ? 'Chapter' : 'Category'}`}
+                title={`Add ${normalizedType === 'manuscript' ? 'Chapter' : 'Category'}`}
               >
                 <Folder className="h-4 w-4" />
               </Button>
@@ -323,7 +326,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 onClick={() => createNewNote()}
                 className="h-6 w-6"
                 data-testid="add-note"
-                title={`Add ${type === 'manuscript' ? 'Scene' : 'Guide'}`}
+                title={`Add ${normalizedType === 'manuscript' ? 'Scene' : 'Guide'}`}
               >
                 <FileText className="h-4 w-4" />
               </Button>
