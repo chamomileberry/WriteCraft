@@ -17,7 +17,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Folder,
   FileText,
-  Plus,
   ChevronRight,
   ChevronDown,
   BookOpen,
@@ -278,7 +277,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 )}
                 data-testid={`add-note-${folder.id}`}
               >
-                <Plus className="h-4 w-4" />
+                <FileText className="h-4 w-4" />
                 <span>Add {type === 'manuscript' ? 'Scene' : 'Guide'}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -307,6 +306,28 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
           <SidebarGroupLabel className="flex items-center gap-2">
             {type === 'manuscript' ? <BookOpen className="h-4 w-4" /> : <Library className="h-4 w-4" />}
             {type === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={createNewFolder}
+                className="h-6 w-6"
+                data-testid="add-folder"
+                title={`Add ${type === 'manuscript' ? 'Chapter' : 'Category'}`}
+              >
+                <Folder className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => createNewNote()}
+                className="h-6 w-6"
+                data-testid="add-note"
+                title={`Add ${type === 'manuscript' ? 'Scene' : 'Guide'}`}
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+            </div>
           </SidebarGroupLabel>
           
           <SidebarGroupContent>
@@ -337,31 +358,6 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
-
-                    {/* Add buttons */}
-                    <div className="border-t pt-2 mt-2">
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={createNewFolder}
-                          className="w-full justify-start text-muted-foreground hover:text-foreground"
-                          data-testid="add-folder"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>Add {type === 'manuscript' ? 'Chapter' : 'Category'}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={() => createNewNote()}
-                          className="w-full justify-start text-muted-foreground hover:text-foreground"
-                          data-testid="add-note"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>Add {type === 'manuscript' ? 'Scene' : 'Guide'}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </div>
                   </>
                 )}
               </SidebarMenu>
