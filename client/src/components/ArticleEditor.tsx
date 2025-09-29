@@ -123,6 +123,10 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { activeNotebookId } = useNotebookStore();
+
+  // Focus Mode and Zoom state
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
   
   // Get the correct API base for consistent cache keys with ContentEditor
   const mapping = getMappingById(contentType);
@@ -382,11 +386,25 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
         
         <CardContent>
           {/* Editor Toolbar */}
-          <EditorToolbar editor={editor} title={title} />
+          <EditorToolbar 
+            editor={editor} 
+            title={title}
+            isFocusMode={isFocusMode}
+            onFocusModeToggle={() => setIsFocusMode(!isFocusMode)}
+            zoomLevel={zoomLevel}
+            onZoomChange={setZoomLevel}
+          />
           
           {/* Editor Content */}
           <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring mt-4">
-            <EditorContent editor={editor} data-testid="article-editor-content" />
+            <div 
+              style={{ 
+                transform: `scale(${zoomLevel})`, 
+                transformOrigin: 'top left' 
+              }}
+            >
+              <EditorContent editor={editor} data-testid="article-editor-content" />
+            </div>
           </div>
         </CardContent>
       </Card>

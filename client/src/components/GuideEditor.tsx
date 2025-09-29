@@ -29,6 +29,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { 
@@ -36,6 +37,8 @@ import {
   ArrowLeft,
   Loader2,
   Clock,
+  AlignJustify,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -653,96 +656,6 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
           )}
 
 
-
-              <Button
-                variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTextAlign('justify')}
-                data-testid="button-align-justify"
-                title="Justify"
-              >
-                <AlignJustify className="h-4 w-4" />
-              </Button>
-
-              <Separator orientation="vertical" className="mx-1 h-6" />
-
-              {/* Font Size */}
-              <Select
-                onValueChange={setFontSize}
-                value={editor?.getAttributes('textStyle').fontSize || '12pt'}
-              >
-                <SelectTrigger className="w-20 h-8" data-testid="select-font-size">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="8pt">8pt</SelectItem>
-                  <SelectItem value="10pt">10pt</SelectItem>
-                  <SelectItem value="12pt">12pt</SelectItem>
-                  <SelectItem value="14pt">14pt</SelectItem>
-                  <SelectItem value="16pt">16pt</SelectItem>
-                  <SelectItem value="18pt">18pt</SelectItem>
-                  <SelectItem value="20pt">20pt</SelectItem>
-                  <SelectItem value="24pt">24pt</SelectItem>
-                  <SelectItem value="28pt">28pt</SelectItem>
-                  <SelectItem value="32pt">32pt</SelectItem>
-                  <SelectItem value="36pt">36pt</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Font Family */}
-              <Select
-                onValueChange={setFontFamily}
-                value={editor?.getAttributes('textStyle').fontFamily || 'default'}
-              >
-                <SelectTrigger className="w-32 h-8" data-testid="select-font-family">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="Inter">Inter</SelectItem>
-                  <SelectItem value="serif">Times New Roman</SelectItem>
-                  <SelectItem value="Georgia">Georgia</SelectItem>
-                  <SelectItem value="Arial">Arial</SelectItem>
-                  <SelectItem value="Helvetica">Helvetica</SelectItem>
-                  <SelectItem value="monospace">Monospace</SelectItem>
-                  <SelectItem value="cursive">Cursive</SelectItem>
-                  <SelectItem value="unset">Reset Font</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Text Color */}
-              <input
-                type="color"
-                className="w-8 h-8 border rounded cursor-pointer"
-                onChange={(e) => setColor(e.target.value)}
-                value={editor?.getAttributes('textStyle').color || '#000000'}
-                data-testid="input-text-color"
-                title="Text Color"
-              />
-
-              {/* Highlight Color */}
-              <input
-                type="color"
-                className="w-8 h-8 border rounded cursor-pointer bg-yellow-200"
-                onChange={(e) => setHighlightColor(e.target.value)}
-                value={editor?.getAttributes('highlight').color || '#ffff00'}
-                data-testid="input-highlight-color"
-                title="Highlight Color"
-              />
-
-              {/* Link */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addLink}
-                data-testid="button-link"
-                title="Add Link"
-              >
-                <LinkIcon className="h-4 w-4" />
-              </Button>
-
-              <Separator orientation="vertical" className="mx-1 h-6" />
-              
         </CardHeader>
         
         <CardContent>
