@@ -22,8 +22,27 @@ import {
   ChevronDown,
   BookOpen,
   Library,
+  MoreVertical,
+  Trash2,
+  Edit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface DocumentSidebarProps {
   type: "manuscript" | "guide" | "project";
@@ -51,6 +70,18 @@ interface FolderWithNotes {
 export default function DocumentSidebar({ type, currentDocumentId, userId }: DocumentSidebarProps) {
   const [, setLocation] = useLocation();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [renameDialog, setRenameDialog] = useState<{ open: boolean; id: string; name: string; type: 'folder' | 'note' }>({ 
+    open: false, 
+    id: '', 
+    name: '', 
+    type: 'folder' 
+  });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; name: string; type: 'folder' | 'note' }>({ 
+    open: false, 
+    id: '', 
+    name: '', 
+    type: 'folder' 
+  });
   const queryClient = useQueryClient();
   const { openPanel } = useWorkspaceStore();
 
@@ -232,6 +263,46 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     }
   };
 
+  const handleRename = async () => {
+    try {
+      const endpoint = renameDialog.type === 'folder' ? '/api/folders' : '/api/notes';
+      const response = await fetch(`${endpoint}/${renameDialog.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          renameDialog.type === 'folder' 
+            ? { name: renameDialog.name }
+            : { title: renameDialog.name }
+        ),
+      });
+      
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId] });
+        setRenameDialog({ open: false, id: '', name: '', type: 'folder' });
+      }
+    } catch (error) {
+      console.error('Failed to rename:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const endpoint = deleteDialog.type === 'folder' ? '/api/folders' : '/api/notes';
+      const response = await fetch(`${endpoint}/${deleteDialog.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId] });
+        setDeleteDialog({ open: false, id: '', name: '', type: 'folder' });
+      }
+    } catch (error) {
+      console.error('Failed to delete:', error);
+    }
+  };
+
   const renderFolder = (folder: FolderWithNotes, level: number = 0) => {
     const isExpanded = expandedFolders.has(folder.id);
     const hasChildren = folder.children && folder.children.length > 0;
@@ -240,30 +311,68 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     return (
       <div key={folder.id}>
         <SidebarMenuItem>
-          <SidebarMenuButton
-            onClick={() => toggleFolder(folder.id)}
-            className={cn(
-              "w-full justify-start",
-              getIndentationClass(level)
-            )}
-            data-testid={`folder-${folder.id}`}
-          >
-            <div className="flex items-center gap-2 flex-1">
-              {(hasChildren || hasNotes) && (
-                isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
+          <div className="flex items-center group">
+            <SidebarMenuButton
+              onClick={() => toggleFolder(folder.id)}
+              className={cn(
+                "flex-1 justify-start",
+                getIndentationClass(level)
               )}
-              <Folder 
-                className={cn("h-4 w-4", folder.color && `text-${folder.color}`)} 
-                style={{ color: folder.color }}
-              />
-              <span className="truncate">{folder.name}</span>
-              {hasNotes && (
-                <Badge variant="secondary" className="ml-auto">
-                  {folder.notes?.length}
-                </Badge>
-              )}
-            </div>
-          </SidebarMenuButton>
+              data-testid={`folder-${folder.id}`}
+            >
+              <div className="flex items-center gap-2 flex-1">
+                {(hasChildren || hasNotes) && (
+                  isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
+                )}
+                <Folder 
+                  className={cn("h-4 w-4", folder.color && `text-${folder.color}`)} 
+                  style={{ color: folder.color }}
+                />
+                <span className="truncate">{folder.name}</span>
+                {hasNotes && (
+                  <Badge variant="secondary" className="ml-auto">
+                    {folder.notes?.length}
+                  </Badge>
+                )}
+              </div>
+            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                  onClick={(e) => e.stopPropagation()}
+                  data-testid={`folder-menu-${folder.id}`}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRenameDialog({ open: true, id: folder.id, name: folder.name, type: 'folder' });
+                  }}
+                  data-testid={`rename-folder-${folder.id}`}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteDialog({ open: true, id: folder.id, name: folder.name, type: 'folder' });
+                  }}
+                  className="text-destructive"
+                  data-testid={`delete-folder-${folder.id}`}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </SidebarMenuItem>
 
         {isExpanded && (
@@ -274,18 +383,56 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
             {/* Render notes in this folder */}
             {folder.notes?.map(note => (
               <SidebarMenuItem key={note.id}>
-                <SidebarMenuButton
-                  onClick={() => navigateToDocument(note.id, 'note')}
-                  className={cn(
-                    "w-full justify-start",
-                    getIndentationClass(level + 1),
-                    currentDocumentId === note.id && "bg-sidebar-accent text-sidebar-accent-foreground"
-                  )}
-                  data-testid={`note-${note.id}`}
-                >
-                  <FileText className="h-4 w-4" />
-                  <span className="truncate">{note.title}</span>
-                </SidebarMenuButton>
+                <div className="flex items-center group">
+                  <SidebarMenuButton
+                    onClick={() => navigateToDocument(note.id, 'note')}
+                    className={cn(
+                      "flex-1 justify-start",
+                      getIndentationClass(level + 1),
+                      currentDocumentId === note.id && "bg-sidebar-accent text-sidebar-accent-foreground"
+                    )}
+                    data-testid={`note-${note.id}`}
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span className="truncate">{note.title}</span>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => e.stopPropagation()}
+                        data-testid={`note-menu-${note.id}`}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenameDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                        }}
+                        data-testid={`rename-note-${note.id}`}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                        }}
+                        className="text-destructive"
+                        data-testid={`delete-note-${note.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </SidebarMenuItem>
             ))}
 
@@ -375,17 +522,55 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                     {/* Render orphaned notes */}
                     {orphanedNotes.map((note: any) => (
                       <SidebarMenuItem key={note.id}>
-                        <SidebarMenuButton
-                          onClick={() => navigateToDocument(note.id, 'note')}
-                          className={cn(
-                            "w-full justify-start",
-                            currentDocumentId === note.id && "bg-sidebar-accent text-sidebar-accent-foreground"
-                          )}
-                          data-testid={`orphan-note-${note.id}`}
-                        >
-                          <FileText className="h-4 w-4" />
-                          <span className="truncate">{note.title}</span>
-                        </SidebarMenuButton>
+                        <div className="flex items-center group">
+                          <SidebarMenuButton
+                            onClick={() => navigateToDocument(note.id, 'note')}
+                            className={cn(
+                              "flex-1 justify-start",
+                              currentDocumentId === note.id && "bg-sidebar-accent text-sidebar-accent-foreground"
+                            )}
+                            data-testid={`orphan-note-${note.id}`}
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span className="truncate">{note.title}</span>
+                          </SidebarMenuButton>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid={`orphan-note-menu-${note.id}`}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRenameDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                                }}
+                                data-testid={`rename-orphan-note-${note.id}`}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                                }}
+                                className="text-destructive"
+                                data-testid={`delete-orphan-note-${note.id}`}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </SidebarMenuItem>
                     ))}
                   </>
@@ -395,6 +580,71 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Rename Dialog */}
+      <Dialog open={renameDialog.open} onOpenChange={(open) => !open && setRenameDialog({ open: false, id: '', name: '', type: 'folder' })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename {renameDialog.type === 'folder' ? (normalizedType === 'manuscript' ? 'Chapter' : 'Category') : (normalizedType === 'manuscript' ? 'Scene' : 'Guide')}</DialogTitle>
+            <DialogDescription>
+              Enter a new name for this {renameDialog.type === 'folder' ? (normalizedType === 'manuscript' ? 'chapter' : 'category') : (normalizedType === 'manuscript' ? 'scene' : 'guide')}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="rename-input">Name</Label>
+            <Input
+              id="rename-input"
+              value={renameDialog.name}
+              onChange={(e) => setRenameDialog({ ...renameDialog, name: e.target.value })}
+              onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              data-testid="input-rename"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRenameDialog({ open: false, id: '', name: '', type: 'folder' })}
+              data-testid="button-cancel-rename"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRename}
+              data-testid="button-confirm-rename"
+            >
+              Rename
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, id: '', name: '', type: 'folder' })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {deleteDialog.type === 'folder' ? (normalizedType === 'manuscript' ? 'Chapter' : 'Category') : (normalizedType === 'manuscript' ? 'Scene' : 'Guide')}</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deleteDialog.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialog({ open: false, id: '', name: '', type: 'folder' })}
+              data-testid="button-cancel-delete"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              data-testid="button-confirm-delete"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sidebar>
   );
 }
