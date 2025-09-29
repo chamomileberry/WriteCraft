@@ -86,6 +86,8 @@ function Router() {
       <Route path="/guides/:id/edit-basic" component={GuideEditPage} />
       <Route path="/notes/:id/edit" component={NoteEditPage} />
       <Route path="/characters" component={CharacterPage} />
+      <Route path="/characters/new" component={(props: any) => <EditorPage params={{ type: "characters", id: "new" }} />} />
+      <Route path="/characters/:id" component={({ params }: { params: { id: string } }) => <EditorPage params={{ type: "characters", id: params.id }} />} />
       <Route path="/characters/:id/edit" component={CharacterEditPageWithSidebar} />
       <Route path="/characters/:id/edit-sidebar" component={CharacterEditPageWithSidebar} />
       <Route path="/settings" component={SettingPage} />

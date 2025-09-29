@@ -256,7 +256,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
   const saveMutation = useMutation({
     mutationFn: async (content: string) => {
       const url = `${apiBase}/${contentId}?notebookId=${activeNotebookId}`;
-      const response = await apiRequest('PUT', url, { 
+      const response = await apiRequest('PATCH', url, { 
         articleContent: content 
       });
       return response.json();
