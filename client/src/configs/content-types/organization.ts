@@ -1,4 +1,6 @@
 import { ContentTypeFormConfig } from '../../components/forms/types';
+import { ORGANIZATION_TYPES } from '@/lib/field-options';
+import * as Fields from '@/lib/field-definitions';
 
 export const organizationConfig: ContentTypeFormConfig = {
   title: "Organization Creator",
@@ -10,10 +12,10 @@ export const organizationConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Users",
       fields: [
-        { name: "name", label: "Organization Name", type: "text", placeholder: "Enter organization name...", description: "The name of this organization" },
-        { name: "organizationType", label: "Organization Type", type: "select", options: ["Guild", "Corporation", "Government", "Military", "Religious", "Academic", "Criminal", "Secret Society", "Tribe", "Clan", "Other"], description: "What type of organization is this?" },
-        { name: "purpose", label: "Purpose", type: "text", placeholder: "What is their main purpose?", description: "Primary purpose or mission of the organization" },
-        { name: "description", label: "Description", type: "textarea", placeholder: "Describe this organization...", description: "General description of the organization" }
+        Fields.createNameField("organization"),
+        Fields.createTypeField("organization", ORGANIZATION_TYPES),
+        Fields.createPurposeField(),
+        Fields.createDescriptionField("organization")
       ]
     },
     {
@@ -35,7 +37,7 @@ export const organizationConfig: ContentTypeFormConfig = {
         { name: "influence", label: "Influence", type: "text", placeholder: "How much influence do they have?", description: "Scope and level of influence" },
         { name: "resources", label: "Resources", type: "text", placeholder: "What resources do they control?", description: "Financial, material, and other resources" },
         { name: "goals", label: "Goals", type: "text", placeholder: "What are their goals?", description: "Short-term and long-term objectives" },
-        { name: "history", label: "History", type: "textarea", placeholder: "Historical background...", description: "Formation and historical development" },
+        Fields.createHistoryField("organization"),
         { name: "allies", label: "Allies", type: "tags", placeholder: "Add allied organizations", description: "Allied organizations and positive relationships" },
         { name: "enemies", label: "Enemies", type: "tags", placeholder: "Add enemy organizations", description: "Enemy organizations and conflicts" }
       ]
