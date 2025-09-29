@@ -1,4 +1,6 @@
 import { ContentTypeFormConfig } from '../../components/forms/types';
+import { BUILDING_TYPES } from '@/lib/field-options';
+import * as Fields from '@/lib/field-definitions';
 
 export const buildingConfig: ContentTypeFormConfig = {
   title: "Building Editor", 
@@ -10,9 +12,9 @@ export const buildingConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Building",
       fields: [
-        { name: "name", label: "Building Name", type: "text", placeholder: "Enter building name..." },
-        { name: "buildingType", label: "Building Type", type: "select", options: ["House", "Castle", "Temple", "Shop", "Tavern", "Library", "Prison", "Tower", "Mansion", "Barracks", "Other"] },
-        { name: "description", label: "Description", type: "textarea", placeholder: "Detailed description of the building...", description: "What does this building look like from the outside?" },
+        Fields.createNameField("building"),
+        Fields.createTypeField("building", BUILDING_TYPES),
+        Fields.createDescriptionField("building"),
         { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Steampunk", "Other"] }
       ]
     },
@@ -22,7 +24,7 @@ export const buildingConfig: ContentTypeFormConfig = {
       icon: "Hammer",
       fields: [
         { name: "architecture", label: "Architecture", type: "text", placeholder: "Gothic, Roman, modern, etc." },
-        { name: "materials", label: "Materials", type: "tags", placeholder: "stone, wood, metal...", description: "Construction materials (comma-separated)" },
+        Fields.createMaterialsField(),
         { name: "capacity", label: "Capacity", type: "text", placeholder: "Number of people it can hold" },
         { name: "defenses", label: "Defenses", type: "text", placeholder: "Walls, guards, magical wards, etc." },
         { name: "currentCondition", label: "Current Condition", type: "text", placeholder: "Excellent, worn, ruins, etc." }
@@ -33,8 +35,8 @@ export const buildingConfig: ContentTypeFormConfig = {
       label: "Purpose & Lore",
       icon: "Scroll",
       fields: [
-        { name: "purpose", label: "Purpose", type: "textarea", placeholder: "What is this building used for?..." },
-        { name: "history", label: "History", type: "textarea", placeholder: "The building's construction and past..." },
+        Fields.createPurposeField(),
+        Fields.createHistoryField("building"),
         { name: "location", label: "Location", type: "text", placeholder: "Where in the world is it located?" },
         { name: "owner", label: "Owner", type: "text", placeholder: "Who owns or controls this building?" },
         { name: "significance", label: "Significance", type: "textarea", placeholder: "Why is this building important?..." },
