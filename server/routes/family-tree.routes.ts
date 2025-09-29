@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
 router.get("/user/:userId?", async (req, res) => {
   try {
     const userId = req.params.userId || null;
-    const familyTrees = await storage.getUserFamilyTree(userId);
+    const familyTrees = await storage.getUserFamilyTrees(userId);
     res.json(familyTrees);
   } catch (error) {
     console.error('Error fetching family trees:', error);
