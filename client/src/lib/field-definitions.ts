@@ -3,7 +3,13 @@ import { FormField } from "@/components/forms/types";
 /**
  * Common field definitions library for content type forms
  * This eliminates duplication and ensures consistency across all forms
+ * 
+ * ENHANCED VERSION - Includes all commonly repeated fields
  */
+
+// ============================================================================
+// OPTION CONSTANTS
+// ============================================================================
 
 // Genre options array - reused across many content types
 export const GENRE_OPTIONS = [
@@ -29,9 +35,39 @@ export const DIFFICULTY_OPTIONS = [
   "Beginner", "Intermediate", "Advanced", "Expert"
 ];
 
-/**
- * Common field factories - these generate field definitions with consistent patterns
- */
+// Extended difficulty options for brewing, crafting, etc.
+export const EXTENDED_DIFFICULTY_OPTIONS = [
+  "Trivial", "Easy", "Moderate", "Hard", "Extreme", "Legendary"
+];
+
+// Social status options
+export const SOCIAL_STATUS_OPTIONS = [
+  "Low", "Middle", "High", "Nobility"
+];
+
+// Demand/intensity level options
+export const DEMAND_LEVEL_OPTIONS = [
+  "Low", "Moderate", "High", "Extreme"
+];
+
+// Status/condition options
+export const STATUS_OPTIONS = [
+  "Living", "Dead", "Constructed", "Evolving", "Extinct", "Revived"
+];
+
+// Physical condition options
+export const CONDITION_OPTIONS = [
+  "Pristine", "Good", "Fair", "Poor", "Damaged", "Fragmentary", "Ruins"
+];
+
+// Size options
+export const SIZE_OPTIONS = [
+  "Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"
+];
+
+// ============================================================================
+// CORE FIELD CREATORS
+// ============================================================================
 
 /**
  * Creates a standard name field
@@ -48,6 +84,22 @@ export function createNameField(
     type: "text",
     placeholder: `Enter ${contentType} name...`,
     description: `The name of this ${contentType}`,
+    required: true,
+    ...options
+  };
+}
+
+/**
+ * Creates a standard title field (alternative to name)
+ * @param options - Optional overrides
+ */
+export function createTitleField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "title",
+    label: "Title",
+    type: "text",
+    placeholder: "Enter title...",
+    description: "The title of this item",
     required: true,
     ...options
   };
@@ -106,6 +158,284 @@ export function createHistoryField(
     ...options
   };
 }
+
+// ============================================================================
+// NEW: COMMONLY REPEATED FIELDS
+// ============================================================================
+
+/**
+ * Creates a standard origin field
+ * @param options - Optional overrides
+ */
+export function createOriginField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "origin",
+    label: "Origin",
+    type: "text",
+    placeholder: "Where does it come from?",
+    description: "Geographic or cultural origin",
+    ...options
+  };
+}
+
+/**
+ * Creates a standard purpose field
+ * @param options - Optional overrides
+ */
+export function createPurposeField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "purpose",
+    label: "Purpose",
+    type: "textarea",
+    placeholder: "What is its purpose?",
+    description: "Primary purpose or function",
+    ...options
+  };
+}
+
+/**
+ * Creates a standard abilities field (tags)
+ * @param options - Optional overrides
+ */
+export function createAbilitiesField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "abilities",
+    label: "Abilities",
+    type: "tags",
+    placeholder: "Add special abilities",
+    description: "Special abilities, powers, or skills",
+    ...options
+  };
+}
+
+/**
+ * Creates a cultural significance field
+ * @param options - Optional overrides
+ */
+export function createCulturalSignificanceField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "culturalSignificance",
+    label: "Cultural Significance",
+    type: "textarea",
+    placeholder: "Cultural importance and role in society...",
+    description: "Role in culture and society",
+    ...options
+  };
+}
+
+/**
+ * Creates a symbolism field
+ * @param options - Optional overrides
+ */
+export function createSymbolismField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "symbolism",
+    label: "Symbolism",
+    type: "textarea",
+    placeholder: "What does this symbolize?",
+    description: "Symbolic meaning and significance",
+    ...options
+  };
+}
+
+/**
+ * Creates a climate field
+ * @param options - Optional overrides
+ */
+export function createClimateField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "climate",
+    label: "Climate",
+    type: "text",
+    placeholder: "Weather and climate patterns",
+    description: "Climate and weather conditions",
+    ...options
+  };
+}
+
+/**
+ * Creates a habitat field
+ * @param options - Optional overrides
+ */
+export function createHabitatField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "habitat",
+    label: "Habitat",
+    type: "text",
+    placeholder: "Where does it live?",
+    description: "Natural environment and habitat",
+    ...options
+  };
+}
+
+/**
+ * Creates a weight field
+ * @param options - Optional overrides
+ */
+export function createWeightField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "weight",
+    label: "Weight",
+    type: "text",
+    placeholder: "3 lbs, heavy, light, etc.",
+    description: "Physical weight",
+    ...options
+  };
+}
+
+/**
+ * Creates a cost field (distinct from value - ongoing vs purchase)
+ * @param options - Optional overrides
+ */
+export function createCostField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "cost",
+    label: "Cost",
+    type: "text",
+    placeholder: "How expensive is it?",
+    description: "Economic cost and affordability",
+    ...options
+  };
+}
+
+/**
+ * Creates a properties field (tags)
+ * @param options - Optional overrides
+ */
+export function createPropertiesField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "properties",
+    label: "Properties",
+    type: "tags",
+    placeholder: "Add properties",
+    description: "Special properties and characteristics",
+    ...options
+  };
+}
+
+/**
+ * Creates an appearance field
+ * @param options - Optional overrides
+ */
+export function createAppearanceField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "appearance",
+    label: "Appearance",
+    type: "text",
+    placeholder: "What does it look like?",
+    description: "Visual appearance and characteristics",
+    ...options
+  };
+}
+
+/**
+ * Creates a behavior field
+ * @param options - Optional overrides
+ */
+export function createBehaviorField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "behavior",
+    label: "Behavior",
+    type: "textarea",
+    placeholder: "How does it behave?",
+    description: "Behavioral patterns and temperament",
+    ...options
+  };
+}
+
+/**
+ * Creates a duration field
+ * @param options - Optional overrides
+ */
+export function createDurationField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "duration",
+    label: "Duration",
+    type: "text",
+    placeholder: "How long does it last?",
+    description: "Length of time or duration",
+    ...options
+  };
+}
+
+/**
+ * Creates an effect field
+ * @param options - Optional overrides
+ */
+export function createEffectField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "effect",
+    label: "Effect",
+    type: "textarea",
+    placeholder: "What effect does it have?",
+    description: "Primary effect or outcome",
+    ...options
+  };
+}
+
+/**
+ * Creates a population field
+ * @param options - Optional overrides
+ */
+export function createPopulationField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "population",
+    label: "Population",
+    type: "text",
+    placeholder: "Who lives here?",
+    description: "Population size and demographics",
+    ...options
+  };
+}
+
+/**
+ * Creates a government field
+ * @param options - Optional overrides
+ */
+export function createGovernmentField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "government",
+    label: "Government",
+    type: "text",
+    placeholder: "How is it governed?",
+    description: "Political structure and leadership",
+    ...options
+  };
+}
+
+/**
+ * Creates an economy field
+ * @param options - Optional overrides
+ */
+export function createEconomyField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "economy",
+    label: "Economy",
+    type: "text",
+    placeholder: "Economic activities...",
+    description: "Economic system and primary industries",
+    ...options
+  };
+}
+
+/**
+ * Creates a culture field
+ * @param options - Optional overrides
+ */
+export function createCultureField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "culture",
+    label: "Culture",
+    type: "text",
+    placeholder: "Cultural characteristics...",
+    description: "Cultural practices and traditions",
+    ...options
+  };
+}
+
+// ============================================================================
+// EXISTING FIELD CREATORS
+// ============================================================================
 
 /**
  * Creates a standard rarity field
@@ -175,9 +505,9 @@ export function createTypeField(
   };
 }
 
-/**
- * Commonly used field sets - pre-defined groups of related fields
- */
+// ============================================================================
+// FIELD GROUPS - Pre-defined sets of related fields
+// ============================================================================
 
 /**
  * Basic info fields common to most content types
@@ -219,13 +549,7 @@ export function createPhysicalFields(contentType: string): FormField[] {
       placeholder: "Masterwork, crude, ornate, etc.",
       description: "The quality and style of construction"
     },
-    {
-      name: "weight",
-      label: "Weight",
-      type: "text", 
-      placeholder: "3 lbs, heavy, light, etc.",
-      description: "How much this weighs"
-    }
+    createWeightField()
   ];
 }
 
@@ -260,3 +584,268 @@ export function createRelationshipFields(): FormField[] {
     }
   ];
 }
+
+/**
+ * Geographic/location fields
+ */
+export function createGeographicFields(): FormField[] {
+  return [
+    createClimateField(),
+    {
+      name: "geography",
+      label: "Geography",
+      type: "text",
+      placeholder: "Geographic features...",
+      description: "Physical geographic characteristics"
+    },
+    {
+      name: "terrain",
+      label: "Terrain",
+      type: "tags",
+      placeholder: "Add terrain types",
+      description: "Types of terrain in this area"
+    }
+  ];
+}
+
+/**
+ * Society and culture fields
+ */
+export function createSocietyFields(): FormField[] {
+  return [
+    createPopulationField(),
+    createGovernmentField(),
+    createEconomyField(),
+    createCultureField()
+  ];
+}
+
+/**
+ * Biology and lifecycle fields
+ */
+export function createBiologyFields(): FormField[] {
+  return [
+    createBehaviorField(),
+    {
+      name: "diet",
+      label: "Diet",
+      type: "text",
+      placeholder: "What does it eat?",
+      description: "Dietary habits and food sources"
+    },
+    {
+      name: "lifespan",
+      label: "Lifespan",
+      type: "text",
+      placeholder: "How long does it live?",
+      description: "Average lifespan and lifecycle"
+    },
+    {
+      name: "reproduction",
+      label: "Reproduction",
+      type: "text",
+      placeholder: "How does it reproduce?",
+      description: "Reproductive methods and behaviors"
+    }
+  ];
+}
+
+/**
+ * Notable features field
+ */
+export function createNotableFeaturesField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "notableFeatures",
+    label: "Notable Features",
+    type: "tags",
+    placeholder: "Add notable features",
+    description: "Distinctive landmarks or characteristics",
+    ...options
+  };
+}
+
+/**
+ * Landmarks field
+ */
+export function createLandmarksField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "landmarks",
+    label: "Landmarks",
+    type: "tags",
+    placeholder: "Add landmarks",
+    description: "Important landmarks and points of interest",
+    ...options
+  };
+}
+
+/**
+ * Resources field
+ */
+export function createResourcesField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "resources",
+    label: "Resources",
+    type: "tags",
+    placeholder: "Add available resources",
+    description: "Natural resources and materials available",
+    ...options
+  };
+}
+
+/**
+ * Threats field
+ */
+export function createThreatsField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "threats",
+    label: "Threats",
+    type: "tags",
+    placeholder: "Add potential dangers",
+    description: "Dangers or threats that exist here",
+    ...options
+  };
+}
+
+// ============================================================================
+// COMPLETE TAB CREATORS (NEW)
+// ============================================================================
+
+/**
+ * Creates a complete basic info tab
+ */
+export function createBasicInfoTab(
+  contentType: string,
+  icon: string = "Package",
+  typeOptions?: string[]
+): {
+  id: string;
+  label: string;
+  icon: string;
+  fields: FormField[];
+} {
+  return {
+    id: "basic",
+    label: "Basic Info",
+    icon: icon,
+    fields: createBasicInfoFields(contentType, typeOptions)
+  };
+}
+
+/**
+ * Creates a lore/history tab
+ */
+export function createLoreTab(
+  contentType: string,
+  icon: string = "BookOpen"
+): {
+  id: string;
+  label: string;
+  icon: string;
+  fields: FormField[];
+} {
+  return {
+    id: "lore",
+    label: "Lore & History",
+    icon: icon,
+    fields: [
+      createHistoryField(contentType),
+      createOriginField(),
+      createCulturalSignificanceField()
+    ]
+  };
+}
+
+/**
+ * Creates a features tab for locations
+ */
+export function createFeaturesTab(
+  icon: string = "Star"
+): {
+  id: string;
+  label: string;
+  icon: string;
+  fields: FormField[];
+} {
+  return {
+    id: "features",
+    label: "Features & History",
+    icon: icon,
+    fields: [
+      createHistoryField("location"),
+      createNotableFeaturesField(),
+      createLandmarksField(),
+      createThreatsField(),
+      createResourcesField()
+    ]
+  };
+}
+
+// ============================================================================
+// EXPORT ALL
+// ============================================================================
+
+export default {
+  // Constants
+  GENRE_OPTIONS,
+  RARITY_OPTIONS,
+  DIFFICULTY_OPTIONS,
+  EXTENDED_DIFFICULTY_OPTIONS,
+  SOCIAL_STATUS_OPTIONS,
+  DEMAND_LEVEL_OPTIONS,
+  STATUS_OPTIONS,
+  CONDITION_OPTIONS,
+  SIZE_OPTIONS,
+  
+  // Core fields
+  createNameField,
+  createTitleField,
+  createDescriptionField,
+  createGenreField,
+  createHistoryField,
+  
+  // Common fields
+  createOriginField,
+  createPurposeField,
+  createAbilitiesField,
+  createCulturalSignificanceField,
+  createSymbolismField,
+  createClimateField,
+  createHabitatField,
+  createWeightField,
+  createCostField,
+  createPropertiesField,
+  createAppearanceField,
+  createBehaviorField,
+  createDurationField,
+  createEffectField,
+  createPopulationField,
+  createGovernmentField,
+  createEconomyField,
+  createCultureField,
+  
+  // Value fields
+  createRarityField,
+  createValueField,
+  createMaterialsField,
+  createTypeField,
+  
+  // Field groups
+  createBasicInfoFields,
+  createValueFields,
+  createPhysicalFields,
+  createRelationshipFields,
+  createGeographicFields,
+  createSocietyFields,
+  createBiologyFields,
+  
+  // Individual feature fields
+  createNotableFeaturesField,
+  createLandmarksField,
+  createResourcesField,
+  createThreatsField,
+  
+  // Tab creators
+  createBasicInfoTab,
+  createLoreTab,
+  createFeaturesTab
+};
