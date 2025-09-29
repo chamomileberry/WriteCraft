@@ -5,10 +5,22 @@ import { z } from "zod";
 
 const router = Router();
 
+// POST - Create weapon
 router.post("/", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.body.notebookId; // Get from body
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
     const validatedWeapon = insertWeaponSchema.parse(req.body);
-    const savedWeapon = await storage.createWeapon(validatedWeapon);
+    const savedWeapon = await storage.createWeapon({
+      ...validatedWeapon,
+      userId,
+      notebookId
+    });
     res.json(savedWeapon);
   } catch (error) {
     console.error('Error saving weapon:', error);
@@ -19,11 +31,18 @@ router.post("/", async (req, res) => {
   }
 });
 
+// GET - List weapons (with notebookId filter)
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const weapons = await storage.getUserWeapons(userId);
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    const weapons = await storage.getUserWeapons(userId, notebookId);
     
     if (search) {
       const filtered = weapons.filter(weapon =>
@@ -39,20 +58,17 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
-  try {
-    const userId = req.params.userId || null;
-    const weapons = await storage.getUserWeapons(userId);
-    res.json(weapons);
-  } catch (error) {
-    console.error('Error fetching weapons:', error);
-    res.status(500).json({ error: 'Failed to fetch weapons' });
-  }
-});
-
+// GET - Single weapon
 router.get("/:id", async (req, res) => {
   try {
-    const weapon = await storage.getWeapon(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    const weapon = await storage.getWeapon(req.params.id, userId, notebookId);
     if (!weapon) {
       return res.status(404).json({ error: 'Weapon not found' });
     }
@@ -63,10 +79,18 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+// PUT - Update weapon
+router.put("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
     const updates = insertWeaponSchema.partial().parse(req.body);
-    const updatedWeapon = await storage.updateWeapon(req.params.id, updates);
+    const updatedWeapon = await storage.updateWeapon(req.params.id, userId, notebookId, updates);
     res.json(updatedWeapon);
   } catch (error) {
     console.error('Error updating weapon:', error);
@@ -77,9 +101,17 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
+// DELETE
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteWeapon(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    await storage.deleteWeapon(req.params.id, userId, notebookId);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting weapon:', error);
