@@ -150,10 +150,12 @@ export default function DynamicContentForm({
   onSubmit, 
   onGenerate, 
   isLoading,
-  isCreating 
+  isCreating
 }: DynamicContentFormProps) {
   const [activeTab, setActiveTab] = useState((config.tabs || [])[0]?.id || "basic");
   
+  // Generate form validation schema from config
+  // This ensures validation matches the actual form fields, not the full database schema
   const schema = useMemo(() => generateSchema(config), [config]);
   const defaultValues = useMemo(() => getDefaultValues(config, initialData), [config, initialData]);
   

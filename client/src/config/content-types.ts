@@ -3,7 +3,7 @@ import {
   Star, Globe, Users, Flag, Crown, Target, Scroll, Lightbulb, Package, Home, Palette, 
   PaintBucket, Car, Calculator, Feather, Sparkles, Circle, GitBranch, Clock, Camera, 
   Music, PersonStanding, Scale, FileText as Policy, FlaskConical, Briefcase, TreePine, 
-  Mountain, StickyNote 
+  Mountain, StickyNote, Theater, Smile, Hash, Pencil, FilePlus
 } from "lucide-react";
 
 /**
@@ -31,17 +31,20 @@ export const CONTENT_TYPES: ContentType[] = [
   { id: "location", name: "Location", description: "Design memorable places and settings", category: "Places", icon: MapPin },
   { id: "settlement", name: "Settlement", description: "Create towns, cities, and communities", category: "Places", icon: Building },
   { id: "building", name: "Building", description: "Design structures and architecture", category: "Places", icon: Home },
+  { id: "setting", name: "Setting", description: "Design complete world settings", category: "Places", icon: Mountain },
   { id: "map", name: "Map", description: "Create detailed geographical maps", category: "Places", icon: Camera },
   
   // Organizations & Groups
   { id: "organization", name: "Organization", description: "Create guilds, companies, and institutions", category: "Groups", icon: Building },
   { id: "society", name: "Society", description: "Build complex social structures", category: "Groups", icon: Users },
   { id: "faction", name: "Faction", description: "Design competing groups and alliances", category: "Groups", icon: Flag },
-  { id: "militaryunit", name: "Military Unit", description: "Create armies, guards, and military forces", category: "Groups", icon: Crown },
+  { id: "militaryUnit", name: "Military Unit", description: "Create armies, guards, and military forces", category: "Groups", icon: Crown },
   
   // Creatures & Life
   { id: "species", name: "Species", description: "Design unique sapient species", category: "Life", icon: Star },
+  { id: "creature", name: "Creature", description: "Create monsters and fantastical beings", category: "Life", icon: Star },
   { id: "animal", name: "Animal", description: "Create fauna for your world", category: "Life", icon: Circle },
+  { id: "plant", name: "Plant", description: "Design flora and vegetation", category: "Life", icon: TreePine },
   
   // Items & Objects
   { id: "item", name: "Item", description: "Create unique objects and artifacts", category: "Items", icon: Package },
@@ -72,6 +75,15 @@ export const CONTENT_TYPES: ContentType[] = [
   { id: "law", name: "Law", description: "Create legal codes and regulations", category: "Knowledge", icon: Scale },
   { id: "policy", name: "Policy", description: "Design governance and administrative policies", category: "Knowledge", icon: Policy },
   
+  // Story Elements
+  { id: "plot", name: "Plot", description: "Create story structures and narratives", category: "Story", icon: Theater },
+  { id: "conflict", name: "Conflict", description: "Design dramatic tensions and challenges", category: "Story", icon: Target },
+  { id: "theme", name: "Theme", description: "Develop central ideas and messages", category: "Story", icon: Lightbulb },
+  { id: "mood", name: "Mood", description: "Create atmospheric tones", category: "Story", icon: Smile },
+  { id: "prompt", name: "Prompt", description: "Generate writing prompts", category: "Story", icon: Pencil },
+  { id: "name", name: "Name", description: "Generate character and place names", category: "Story", icon: Hash },
+  { id: "description", name: "Description", description: "Create vivid descriptions", category: "Story", icon: FilePlus },
+  
   // Events & Time
   { id: "event", name: "Event", description: "Design significant happenings", category: "Events", icon: Target },
   { id: "timeline", name: "Timeline", description: "Create chronological sequences of events", category: "Events", icon: Clock },
@@ -79,7 +91,7 @@ export const CONTENT_TYPES: ContentType[] = [
   // Magic & Technology
   { id: "technology", name: "Technology", description: "Create innovations and inventions", category: "Science", icon: Lightbulb },
   { id: "spell", name: "Spell", description: "Design magical effects", category: "Science", icon: Zap },
-  { id: "naturallaw", name: "Natural Law", description: "Define world physics and rules", category: "Science", icon: Calculator },
+  { id: "naturalLaw", name: "Natural Law", description: "Define world physics and rules", category: "Science", icon: Calculator },
 ];
 
 // Content type icon mapping for saved items and other components
@@ -109,7 +121,7 @@ export const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ classNam
   organization: Building,
   society: Users,
   faction: Flag,
-  militaryunit: Crown,
+  militaryUnit: Crown,
   
   // Creatures & Life
   species: Star,
@@ -149,20 +161,28 @@ export const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ classNam
   // Nature & Environment
   plant: TreePine,
   condition: Package,
-  naturallaw: Package,
+  naturalLaw: Calculator,
   
   // Technology & Magic
   technology: Calculator,
   spell: Sparkles,
   
   // Story Elements
-  plot: Package,
-  conflict: Package,
+  plot: Theater,
+  conflict: Target,
+  theme: Lightbulb,
+  mood: Smile,
+  prompt: Pencil,
+  name: Hash,
+  description: FilePlus,
+  setting: Mountain,
+  
+  // Resources
   potion: FlaskConical,
 };
 
 // Content categories for organization
 export const CONTENT_CATEGORIES = [
   "People", "Places", "Groups", "Life", "Items", "Resources", 
-  "Knowledge", "Events", "Science"
+  "Knowledge", "Story", "Events", "Science"
 ];

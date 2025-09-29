@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, ApiError } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -14,6 +14,8 @@ interface ApiMutationConfig<TData = any, TVariables = any> {
   onError?: (error: Error, variables: TVariables) => void;
   transformPayload?: (variables: TVariables) => any;
   transformResponse?: (response: Response) => Promise<TData>;
+  retry?: boolean | number; // Enable retry: true for 3 retries, or specify number
+  retryDelay?: number; // Delay between retries in ms (default: 1000)
 }
 
 export function useApiMutation<TData = any, TVariables = any>(
@@ -24,6 +26,8 @@ export function useApiMutation<TData = any, TVariables = any>(
   const queryClient = useQueryClient();
 
   const mutation = useMutation<TData, Error, TVariables>({
+    retry: config.retry === true ? 3 : (config.retry || false),
+    retryDelay: config.retryDelay || 1000,
     mutationFn: async (variables: TVariables) => {
       const endpoint = typeof config.endpoint === 'function' 
         ? config.endpoint(variables) 
@@ -69,19 +73,81 @@ export function useApiMutation<TData = any, TVariables = any>(
       config.onSuccess?.(data, variables);
     },
     onError: (error: Error, variables: TVariables) => {
-      // Show error toast
-      const errorMessage = config.errorMessage || "Operation failed. Please try again.";
+      // Enhanced error message based on error type
+      let errorTitle = "Error";
+      let errorDescription = config.errorMessage || "Operation failed. Please try again.";
+      
+      // Parse API error response for better messages
+      if (error instanceof ApiError) {
+        // Handle different HTTP status codes
+        switch (error.status) {
+          case 400:
+            errorTitle = "Invalid Request";
+            errorDescription = "Please check your input and try again.";
+            break;
+          case 401:
+            errorTitle = "Unauthorized";
+            errorDescription = "Please log in to continue.";
+            break;
+          case 403:
+            errorTitle = "Forbidden";
+            errorDescription = "You don't have permission to perform this action.";
+            break;
+          case 404:
+            errorTitle = "Not Found";
+            errorDescription = "The requested resource could not be found.";
+            break;
+          case 409:
+            errorTitle = "Conflict";
+            errorDescription = "This item already exists or conflicts with existing data.";
+            break;
+          case 422:
+            errorTitle = "Validation Error";
+            errorDescription = "Please check your input for errors.";
+            break;
+          case 429:
+            errorTitle = "Too Many Requests";
+            errorDescription = "Please wait a moment before trying again.";
+            break;
+          case 500:
+            errorTitle = "Server Error";
+            errorDescription = "Something went wrong on our end. Please try again later.";
+            break;
+          case 503:
+            errorTitle = "Service Unavailable";
+            errorDescription = "The service is temporarily unavailable. Please try again later.";
+            break;
+        }
+      }
+      
+      // Handle network errors
+      if (error.message.includes('fetch') || error.message.includes('network')) {
+        errorTitle = "Network Error";
+        errorDescription = "Please check your internet connection and try again.";
+      }
+      
+      // Use custom error message if provided
+      if (config.errorMessage) {
+        errorDescription = config.errorMessage;
+      }
+      
+      // Show error toast with enhanced messaging
       toast({
-        title: "Error",
-        description: errorMessage,
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
 
       // Execute custom onError callback
       config.onError?.(error, variables);
       
-      // Log error for debugging
-      console.error('API Mutation Error:', error);
+      // Log error for debugging with more context
+      console.error('API Mutation Error:', {
+        error,
+        endpoint: typeof config.endpoint === 'function' ? config.endpoint(variables) : config.endpoint,
+        method: config.method,
+        variables,
+      });
     },
     ...options,
   });
