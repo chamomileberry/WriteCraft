@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useMobileWorkspaceMenu } from "@/components/workspace/WorkspaceShell";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -20,6 +21,9 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   
   // Quick note functionality
   const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel } = useWorkspaceStore();
+  
+  // Mobile workspace menu functionality
+  const { isMobile, hasPanels, MobileMenuButton } = useMobileWorkspaceMenu();
   
   // Writing Assistant functionality
   const openWritingAssistant = () => {
@@ -199,6 +203,9 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
+
+            {/* Mobile Workspace Menu Button - Only show if there are docked panels */}
+            {isMobile && hasPanels && <MobileMenuButton />}
 
             <Button 
               variant="ghost" 
