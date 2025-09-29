@@ -500,14 +500,14 @@ export interface IStorage {
   getProjectLinks(projectId: string, userId: string): Promise<ProjectLink[]>;
   getProjectLinksForUser(userId: string): Promise<ProjectLink[]>;
   deleteProjectLink(id: string, userId: string): Promise<void>;
-  findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ProjectLink[]>;
+  // findLinksToContent method commented out due to manuscript link dependencies
 
   // Pinned content methods
   pinContent(pin: InsertPinnedContent): Promise<PinnedContent>;
-  unpinContent(userId: string, itemType: string, itemId: string): Promise<void>;
-  getUserPinnedContent(userId: string, category?: string): Promise<PinnedContent[]>;
-  reorderPinnedContent(userId: string, itemId: string, newOrder: number): Promise<void>;
-  isContentPinned(userId: string, itemType: string, itemId: string): Promise<boolean>;
+  unpinContent(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void>;
+  getUserPinnedContent(userId: string, notebookId: string, category?: string): Promise<PinnedContent[]>;
+  reorderPinnedContent(userId: string, itemId: string, newOrder: number, notebookId: string): Promise<void>;
+  isContentPinned(userId: string, itemType: string, itemId: string, notebookId: string): Promise<boolean>;
 
   // Folder methods
   createFolder(folder: InsertFolder): Promise<Folder>;
@@ -2826,11 +2826,11 @@ export class DatabaseStorage implements IStorage {
 
   // Project methods
   async createProject(project: InsertProject): Promise<Project> {
-    const [newProject] = await db
+    const result = await db
       .insert(projects)
       .values(project)
       .returning();
-    return newProject;
+    return result[0];
   }
 
   async getProject(id: string, userId: string): Promise<Project | undefined> {
@@ -2855,11 +2855,11 @@ export class DatabaseStorage implements IStorage {
   async updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project> {
     // Count words if content is being updated
     if (updates.content) {
-      const plainText = updates.content
+      const plainText = (updates.content as string)
         .replace(/<[^>]*>/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
-      const words = plainText.split(/\s+/).filter(word => word.length > 0);
+      const words = plainText.split(/\s+/).filter((word: string) => word.length > 0);
       updates.wordCount = words.length;
       
       // Generate excerpt if not provided
@@ -3141,97 +3141,97 @@ export class DatabaseStorage implements IStorage {
     return uniqueResults.slice(0, 20);
   }
 
-  // Manuscript links methods
-  async createManuscriptLink(link: InsertManuscriptLink): Promise<ManuscriptLink> {
-    const [newLink] = await db
-      .insert(manuscriptLinks)
-      .values(link)
-      .returning();
-    return newLink;
-  }
+  // Manuscript links methods - TODO: Implement when manuscript types are available
+  // async createManuscriptLink(link: InsertManuscriptLink): Promise<ManuscriptLink> {
+  //   const [newLink] = await db
+  //     .insert(manuscriptLinks)
+  //     .values(link)
+  //     .returning();
+  //   return newLink;
+  // }
 
-  async getManuscriptLinks(manuscriptId: string, userId: string): Promise<ManuscriptLink[]> {
-    return await db
-      .select()
-      .from(manuscriptLinks)
-      .where(and(
-        eq(manuscriptLinks.sourceId, manuscriptId),
-        eq(manuscriptLinks.userId, userId)
-      ))
-      .orderBy(manuscriptLinks.position);
-  }
+  // async getManuscriptLinks(manuscriptId: string, userId: string): Promise<ManuscriptLink[]> {
+  //   return await db
+  //     .select()
+  //     .from(manuscriptLinks)
+  //     .where(and(
+  //       eq(manuscriptLinks.sourceId, manuscriptId),
+  //       eq(manuscriptLinks.userId, userId)
+  //     ))
+  //     .orderBy(manuscriptLinks.position);
+  // }
 
-  async updateManuscriptLink(linkId: string, updates: Partial<InsertManuscriptLink>, userId: string): Promise<ManuscriptLink> {
-    const [updatedLink] = await db
-      .update(manuscriptLinks)
-      .set(updates)
-      .where(and(
-        eq(manuscriptLinks.id, linkId),
-        eq(manuscriptLinks.userId, userId)
-      ))
-      .returning();
-    
-    if (!updatedLink) {
-      throw new Error('Manuscript link not found or access denied');
-    }
-    
-    return updatedLink;
-  }
+  // async updateManuscriptLink(linkId: string, updates: Partial<InsertManuscriptLink>, userId: string): Promise<ManuscriptLink> {
+  //   const [updatedLink] = await db
+  //     .update(manuscriptLinks)
+  //     .set(updates)
+  //     .where(and(
+  //       eq(manuscriptLinks.id, linkId),
+  //       eq(manuscriptLinks.userId, userId)
+  //     ))
+  //     .returning();
+  //   
+  //   if (!updatedLink) {
+  //     throw new Error('Manuscript link not found or access denied');
+  //   }
+  //   
+  //   return updatedLink;
+  // }
 
-  async deleteManuscriptLink(linkId: string, userId: string): Promise<void> {
-    const result = await db
-      .delete(manuscriptLinks)
-      .where(and(
-        eq(manuscriptLinks.id, linkId),
-        eq(manuscriptLinks.userId, userId)
-      ));
-    
-    if (result.rowCount === 0) {
-      throw new Error('Manuscript link not found or access denied');
-    }
-  }
+  // async deleteManuscriptLink(linkId: string, userId: string): Promise<void> {
+  //   const result = await db
+  //     .delete(manuscriptLinks)
+  //     .where(and(
+  //       eq(manuscriptLinks.id, linkId),
+  //       eq(manuscriptLinks.userId, userId)
+  //     ));
+  //   
+  //   if (result.rowCount === 0) {
+  //     throw new Error('Manuscript link not found or access denied');
+  //   }
+  // }
 
-  async getBacklinks(targetType: string, targetId: string, userId: string): Promise<Array<ManuscriptLink & { manuscriptTitle: string }>> {
-    const backlinks = await db
-      .select({
-        id: manuscriptLinks.id,
-        sourceId: manuscriptLinks.sourceId,
-        targetType: manuscriptLinks.targetType,
-        targetId: manuscriptLinks.targetId,
-        contextText: manuscriptLinks.contextText,
-        linkText: manuscriptLinks.linkText,
-        position: manuscriptLinks.position,
-        userId: manuscriptLinks.userId,
-        createdAt: manuscriptLinks.createdAt,
-        manuscriptTitle: manuscripts.title
-      })
-      .from(manuscriptLinks)
-      .innerJoin(manuscripts, eq(manuscriptLinks.sourceId, manuscripts.id))
-      .where(and(
-        eq(manuscriptLinks.targetType, targetType),
-        eq(manuscriptLinks.targetId, targetId),
-        eq(manuscriptLinks.userId, userId)
-      ))
-      .orderBy(manuscriptLinks.createdAt);
-    
-    return backlinks;
-  }
+  // async getBacklinks(targetType: string, targetId: string, userId: string): Promise<Array<ManuscriptLink & { manuscriptTitle: string }>> {
+  //   const backlinks = await db
+  //     .select({
+  //       id: manuscriptLinks.id,
+  //       sourceId: manuscriptLinks.sourceId,
+  //       targetType: manuscriptLinks.targetType,
+  //       targetId: manuscriptLinks.targetId,
+  //       contextText: manuscriptLinks.contextText,
+  //       linkText: manuscriptLinks.linkText,
+  //       position: manuscriptLinks.position,
+  //       userId: manuscriptLinks.userId,
+  //       createdAt: manuscriptLinks.createdAt,
+  //       manuscriptTitle: manuscripts.title
+  //     })
+  //     .from(manuscriptLinks)
+  //     .innerJoin(manuscripts, eq(manuscriptLinks.sourceId, manuscripts.id))
+  //     .where(and(
+  //       eq(manuscriptLinks.targetType, targetType),
+  //       eq(manuscriptLinks.targetId, targetId),
+  //       eq(manuscriptLinks.userId, userId)
+  //     ))
+  //     .orderBy(manuscriptLinks.createdAt);
+  //   
+  //   return backlinks;
+  // }
 
-  async getManuscriptLinksForUser(userId: string): Promise<ManuscriptLink[]> {
-    return await db.select().from(manuscriptLinks)
-      .where(eq(manuscriptLinks.userId, userId))
-      .orderBy(desc(manuscriptLinks.createdAt))
-      .limit(100);
-  }
+  // async getManuscriptLinksForUser(userId: string): Promise<ManuscriptLink[]> {
+  //   return await db.select().from(manuscriptLinks)
+  //     .where(eq(manuscriptLinks.userId, userId))
+  //     .orderBy(desc(manuscriptLinks.createdAt))
+  //     .limit(100);
+  // }
 
-  async findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ManuscriptLink[]> {
-    return await db.select().from(manuscriptLinks)
-      .where(and(
-        eq(manuscriptLinks.targetType, targetType),
-        eq(manuscriptLinks.targetId, targetId),
-        eq(manuscriptLinks.userId, userId)
-      ));
-  }
+  // async findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ManuscriptLink[]> {
+  //   return await db.select().from(manuscriptLinks)
+  //     .where(and(
+  //       eq(manuscriptLinks.targetType, targetType),
+  //       eq(manuscriptLinks.targetId, targetId),
+  //       eq(manuscriptLinks.userId, userId)
+  //     ));
+  // }
 
   // Pinned content methods
   async pinContent(pin: InsertPinnedContent): Promise<PinnedContent> {
@@ -3334,11 +3334,11 @@ export class DatabaseStorage implements IStorage {
 
   // Folder methods
   async createFolder(folder: InsertFolder): Promise<Folder> {
-    const [newFolder] = await db
+    const result = await db
       .insert(folders)
       .values(folder)
       .returning();
-    return newFolder;
+    return result[0];
   }
 
   async getFolder(id: string): Promise<Folder | undefined> {
@@ -3364,22 +3364,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocumentFolders(documentId: string, userId: string): Promise<Folder[]> {
-    // With the new schema, folders have direct links to manuscripts/guides
+    // With the new schema, folders have direct links to guides
     return await db
       .select()
       .from(folders)
       .where(and(
         eq(folders.userId, userId),
-        or(
-          eq(folders.manuscriptId, documentId),
-          eq(folders.guideId, documentId)
-        )
+        eq(folders.guideId, documentId)
       ))
       .orderBy(folders.sortOrder, folders.createdAt);
   }
 
   async updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder> {
-    const [updatedFolder] = await db
+    const result = await db
       .update(folders)
       .set({ ...updates, updatedAt: new Date() })
       .where(and(
@@ -3388,6 +3385,7 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     
+    const updatedFolder = result[0];
     if (!updatedFolder) {
       throw new Error("Folder not found or unauthorized");
     }
