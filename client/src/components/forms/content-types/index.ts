@@ -9,6 +9,16 @@ import { armorConfig } from '../../../configs/content-types/armor';
 import { spellConfig } from '../../../configs/content-types/spell';
 import { factionConfig } from '../../../configs/content-types/faction';
 import { plotConfig } from '../../../configs/content-types/plot';
+import { religionConfig } from '../../../configs/content-types/religion';
+import { languageConfig } from '../../../configs/content-types/language';
+import { cultureConfig } from '../../../configs/content-types/culture';
+import { speciesConfig } from '../../../configs/content-types/species';
+import { traditionConfig } from '../../../configs/content-types/tradition';
+import { ritualConfig } from '../../../configs/content-types/ritual';
+import { foodConfig } from '../../../configs/content-types/food';
+import { drinkConfig } from '../../../configs/content-types/drink';
+import { settlementConfig } from '../../../configs/content-types/settlement';
+import { societyConfig } from '../../../configs/content-types/society';
 
 // Import remaining configs from the original file (temporary until all are split)
 import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormConfig';
@@ -21,9 +31,23 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   spell: spellConfig,
   faction: factionConfig,
   plot: plotConfig,
+  religion: religionConfig,
+  language: languageConfig,
+  culture: cultureConfig,
+  species: speciesConfig,
+  tradition: traditionConfig,
+  ritual: ritualConfig,
+  food: foodConfig,
+  drink: drinkConfig,
+  settlement: settlementConfig,
+  society: societyConfig,
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
-    Object.entries(originalConfigs).filter(([key]) => !['character', 'weapon', 'armor', 'spell', 'faction', 'plot'].includes(key))
+    Object.entries(originalConfigs).filter(([key]) => ![
+      'character', 'weapon', 'armor', 'spell', 'faction', 'plot',
+      'religion', 'language', 'culture', 'species', 'tradition', 'ritual',
+      'food', 'drink', 'settlement', 'society'
+    ].includes(key))
   ),
 };
 
@@ -124,3 +148,13 @@ export { armorConfig } from '../../../configs/content-types/armor';
 export { spellConfig } from '../../../configs/content-types/spell';
 export { factionConfig } from '../../../configs/content-types/faction';
 export { plotConfig } from '../../../configs/content-types/plot';
+export { religionConfig } from '../../../configs/content-types/religion';
+export { languageConfig } from '../../../configs/content-types/language';
+export { cultureConfig } from '../../../configs/content-types/culture';
+export { speciesConfig } from '../../../configs/content-types/species';
+export { traditionConfig } from '../../../configs/content-types/tradition';
+export { ritualConfig } from '../../../configs/content-types/ritual';
+export { foodConfig } from '../../../configs/content-types/food';
+export { drinkConfig } from '../../../configs/content-types/drink';
+export { settlementConfig } from '../../../configs/content-types/settlement';
+export { societyConfig } from '../../../configs/content-types/society';
