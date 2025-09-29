@@ -194,6 +194,10 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <span className="text-sm font-medium truncate">{panel.title}</span>
                 </div>
                 <div className="flex items-center gap-1 relative z-10">
+                  {/* Debug info - make it more visible */}
+                  <span className="text-xs bg-red-500 text-white px-1 rounded mr-2">
+                    {panel.type}
+                  </span>
                   {panel.type === 'quickNote' && (
                     <Button
                       variant="ghost"
@@ -289,9 +293,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                             clearChatFunction();
                           }
                         }}
-                        className="h-6 w-6 p-0"
+                        className="h-6 w-6 p-0 hover:bg-primary/20"
                         data-testid={`button-new-chat-${panel.id}`}
-                        title="Start new conversation"
+                        title="New Chat"
                       >
                         <MessageSquarePlus className="h-3 w-3" />
                       </Button>
@@ -304,9 +308,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                             toggleHistoryFunction();
                           }
                         }}
-                        className="h-6 w-6 p-0"
+                        className="h-6 w-6 p-0 hover:bg-primary/20"
                         data-testid={`button-chat-history-${panel.id}`}
-                        title="View chat history"
+                        title="History"
                       >
                         <History className="h-3 w-3" />
                       </Button>
@@ -316,7 +320,10 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
-                      if ((panel.type === 'quickNote' && !isInManuscriptEditor()) || panel.type === 'writingAssistant') {
+                      if (panel.type === 'writingAssistant') {
+                        // Minimize the panel instead of pinning
+                        minimizePanel(panel.id);
+                      } else if (panel.type === 'quickNote' && !isInManuscriptEditor()) {
                         // Minimize the panel instead of pinning
                         minimizePanel(panel.id);
                       } else {
@@ -325,9 +332,11 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     }}
                     className="h-6 w-6 p-0"
                     data-testid={`button-dock-${panel.id}`}
-                    title={(panel.type === 'quickNote' && !isInManuscriptEditor()) || panel.type === 'writingAssistant' ? "Minimize" : "Pin to tab bar"}
+                    title={panel.type === 'writingAssistant' ? "Minimize" : (panel.type === 'quickNote' && !isInManuscriptEditor()) ? "Minimize" : "Pin to tab bar"}
                   >
-                    {(panel.type === 'quickNote' && !isInManuscriptEditor()) || panel.type === 'writingAssistant' ? (
+                    {panel.type === 'writingAssistant' ? (
+                      <Minimize2 className="h-3 w-3" />
+                    ) : (panel.type === 'quickNote' && !isInManuscriptEditor()) ? (
                       <Minimize2 className="h-3 w-3" />
                     ) : (
                       <Pin className="h-3 w-3" />
