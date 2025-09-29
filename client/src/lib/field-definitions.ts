@@ -505,6 +505,25 @@ export function createTypeField(
   };
 }
 
+/**
+ * Creates a notebook field for content association
+ * @param options - Optional overrides
+ */
+export function createNotebookField(options: Partial<FormField> = {}): FormField {
+  return {
+    name: "notebookId",
+    label: "Notebook",
+    type: "autocomplete",
+    endpoint: "/api/notebooks",
+    labelField: "title",
+    valueField: "id",
+    multiple: false,
+    placeholder: "Search or select a notebook...",
+    description: "Which notebook should this be saved in?",
+    ...options
+  };
+}
+
 // ============================================================================
 // FIELD GROUPS - Pre-defined sets of related fields
 // ============================================================================
@@ -828,6 +847,7 @@ export default {
   createValueField,
   createMaterialsField,
   createTypeField,
+  createNotebookField,
   
   // Field groups
   createBasicInfoFields,

@@ -13,6 +13,7 @@ export const locationConfig: ContentTypeFormConfig = {
       icon: "MapPin",
       fields: [
         Fields.createNameField("location"),
+        Fields.createNotebookField(),
         Fields.createTypeField("location", LOCATION_TYPES),
         Fields.createDescriptionField("location"),
         ...Fields.createGeographicFields()
