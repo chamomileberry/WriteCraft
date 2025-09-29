@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { insertCharacterSchema, updateCharacterSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateCharacterFieldWithAI } from "../ai-generation";
+import { generateArticleForContent } from "../article-generation";
 
 const router = Router();
 
@@ -317,6 +318,32 @@ router.patch("/:id", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Generate article from structured character data
+router.post("/:id/generate-article", async (req, res) => {
+  try {
+    const notebookId = req.query.notebookId as string;
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    // Use centralized secure article generation service
+    const updatedCharacter = await generateArticleForContent(
+      'characters',
+      req.params.id,
+      userId,
+      notebookId
+    );
+    
+    res.json(updatedCharacter);
+  } catch (error) {
+    console.error('Error generating character article:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
   }

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertLocationSchema } from "@shared/schema";
 import { z } from "zod";
+import { generateArticleForContent } from "../article-generation";
 
 const router = Router();
 
@@ -112,6 +113,32 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.error('Error fetching location:', error);
     res.status(500).json({ error: 'Failed to fetch location' });
+  }
+});
+
+// Generate article from structured location data
+router.post("/:id/generate-article", async (req, res) => {
+  try {
+    const notebookId = req.query.notebookId as string;
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    // Use centralized secure article generation service
+    const updatedLocation = await generateArticleForContent(
+      'locations',
+      req.params.id,
+      userId,
+      notebookId
+    );
+    
+    res.json(updatedLocation);
+  } catch (error) {
+    console.error('Error generating location article:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
   }
 });
 
