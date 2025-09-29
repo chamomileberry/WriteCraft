@@ -3462,7 +3462,7 @@ export class DatabaseStorage implements IStorage {
       .from(notes)
       .where(and(
         or(
-          eq(notes.manuscriptId, documentId),
+          eq(notes.projectId, documentId),
           eq(notes.guideId, documentId)
         ),
         eq(notes.userId, userId)
@@ -3507,7 +3507,7 @@ export class DatabaseStorage implements IStorage {
         userId,
         // Quick notes don't have parent relationships
         folderId: null,
-        manuscriptId: null,
+        projectId: null,
         guideId: null,
       })
       .returning();
@@ -3568,16 +3568,16 @@ export class DatabaseStorage implements IStorage {
     let whereCondition = eq(chatMessages.userId, userId);
     
     if (projectId) {
-      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId));
+      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId))!;
     } else if (guideId) {
-      whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId));
+      whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId))!;
     } else {
       // Get general chat messages (not associated with any specific document)
       whereCondition = and(
         whereCondition, 
         isNull(chatMessages.projectId), 
         isNull(chatMessages.guideId)
-      );
+      )!;
     }
 
     const messages = await db
@@ -3594,16 +3594,16 @@ export class DatabaseStorage implements IStorage {
     let whereCondition = eq(chatMessages.userId, userId);
     
     if (projectId) {
-      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId));
+      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId))!;
     } else if (guideId) {
-      whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId));
+      whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId))!;
     } else {
       // Delete general chat messages (not associated with any specific document)
       whereCondition = and(
         whereCondition, 
         isNull(chatMessages.projectId), 
         isNull(chatMessages.guideId)
-      );
+      )!;
     }
 
     await db
