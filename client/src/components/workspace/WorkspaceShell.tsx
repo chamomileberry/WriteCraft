@@ -123,15 +123,59 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     <h3 className="text-sm font-medium">{panel.title}</h3>
                   </div>
                   <div className="flex items-center space-x-1">
+                    {panel.type === 'writingAssistant' && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const clearChatFunction = writingAssistantClearChatFunctions.current[panel.id];
+                            if (clearChatFunction) {
+                              clearChatFunction();
+                            }
+                          }}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-new-chat-${panel.id}`}
+                          title="New Chat"
+                        >
+                          <MessageSquarePlus className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const toggleHistoryFunction = writingAssistantToggleHistoryFunctions.current[panel.id];
+                            if (toggleHistoryFunction) {
+                              toggleHistoryFunction();
+                            }
+                          }}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-chat-history-${panel.id}`}
+                          title="History"
+                        >
+                          <History className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => attachToTabBar(panel.id, 'main')}
+                      onClick={() => {
+                        if (panel.type === 'writingAssistant') {
+                          minimizePanel(panel.id);
+                        } else {
+                          attachToTabBar(panel.id, 'main');
+                        }
+                      }}
                       className="h-6 w-6 p-0"
                       data-testid={`button-undock-${panel.id}`}
-                      title="Convert to Tab"
+                      title={panel.type === 'writingAssistant' ? "Minimize" : "Convert to Tab"}
                     >
-                      <Pin className="h-3 w-3" />
+                      {panel.type === 'writingAssistant' ? (
+                        <Minimize2 className="h-3 w-3" />
+                      ) : (
+                        <Pin className="h-3 w-3" />
+                      )}
                     </Button>
                     <Button
                       variant="ghost"
@@ -194,10 +238,6 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   <span className="text-sm font-medium truncate">{panel.title}</span>
                 </div>
                 <div className="flex items-center gap-1 relative z-10">
-                  {/* Debug info - make it more visible */}
-                  <span className="text-xs bg-red-500 text-white px-1 rounded mr-2">
-                    {panel.type}
-                  </span>
                   {panel.type === 'quickNote' && (
                     <Button
                       variant="ghost"
