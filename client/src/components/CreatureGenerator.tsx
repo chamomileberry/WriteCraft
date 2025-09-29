@@ -9,6 +9,7 @@ import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Brain, Globe 
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useNotebookStore } from "@/stores/notebookStore";
 import type { Creature } from "@shared/schema";
 import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "../../../server/genres";
 
@@ -19,12 +20,14 @@ export default function CreatureGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedCreatureType, setSelectedCreatureType] = useState<string>("");
   const { toast } = useToast();
+  const { activeNotebookId } = useNotebookStore();
 
   const generateMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', '/api/creatures/generate', {
         genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
-        creatureType: selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : undefined
+        creatureType: selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : undefined,
+        notebookId: activeNotebookId || null
       });
       return await res.json() as Creature;
     },
@@ -70,6 +73,14 @@ export default function CreatureGenerator() {
   });
 
   const handleGenerate = () => {
+    if (!activeNotebookId) {
+      toast({
+        title: "No Notebook Selected",
+        description: "Please create or select a notebook before generating creatures.",
+        variant: "destructive"
+      });
+      return;
+    }
     generateMutation.mutate();
   };
 

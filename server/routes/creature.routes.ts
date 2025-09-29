@@ -12,10 +12,11 @@ router.post("/generate", async (req, res) => {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
       creatureType: z.string().optional(),
-      userId: z.string().nullable().optional()
+      userId: z.string().nullable().optional(),
+      notebookId: z.string().nullable().optional()
     });
     
-    const { genre, creatureType, userId } = generateRequestSchema.parse(req.body);
+    const { genre, creatureType, userId, notebookId } = generateRequestSchema.parse(req.body);
     
     // Use AI generation for creatures
     const aiCreature = await generateCreatureWithAI({ genre, creatureType });
@@ -29,6 +30,7 @@ router.post("/generate", async (req, res) => {
       physicalDescription: aiCreature.physicalDescription,
       culturalSignificance: aiCreature.culturalSignificance,
       userId: userId || null
+      // Temporarily exclude notebookId until database migration completes
     };
 
     // Validate the generated creature data before saving

@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { FormField as FormFieldComponent, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
+import { TagsInput } from "@/components/ui/tags-input";
 import { 
   ChevronRight, ChevronDown, Menu, X 
 } from "lucide-react";
@@ -189,15 +190,13 @@ export default function CharacterEditorWithSidebar({
               <FormItem>
                 <FormLabel>{field.label} {field.required && "*"}</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder={field.placeholder}
-                    value={Array.isArray(formField.value) ? formField.value.join(", ") : (formField.value || "")}
-                    onChange={(e) => {
-                      const stringValue = e.target.value;
-                      const arrayValue = stringValue ? stringValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-                      formField.onChange(arrayValue);
-                    }}
-                    data-testid={`input-${field.name}`}
+                  <TagsInput 
+                    value={Array.isArray(formField.value) ? formField.value : []}
+                    onChange={(value) => formField.onChange(value || [])}
+                    onBlur={formField.onBlur}
+                    placeholder={field.placeholder || `Add ${field.label.toLowerCase()}...`}
+                    maxTags={field.maxTags}
+                    data-testid={`tags-input-${field.name}`}
                   />
                 </FormControl>
                 {field.description && (

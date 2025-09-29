@@ -54,6 +54,8 @@ export interface FormField {
   valueField?: string;
   // Properties for select fields
   customizable?: boolean;
+  // Properties for tags fields
+  maxTags?: number;
 }
 
 export interface FormTabConfig {
