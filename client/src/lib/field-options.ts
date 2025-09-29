@@ -470,8 +470,3 @@ export default {
   getTypeOptions,
   hasTypeOptions
 };
-];
-
-export const LEGEND_TYPES = [
-  "Historical", "Supernatural", "Heroic", "Tragic", "Romantic", 
-  "Adventure", "Mystery", "Folk", "Urban",
