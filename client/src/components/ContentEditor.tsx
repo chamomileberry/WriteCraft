@@ -25,7 +25,6 @@ interface ContentEditorProps {
 }
 
 export default function ContentEditor({ contentType, contentId, onBack }: ContentEditorProps) {
-  const [editingData, setEditingData] = useState<any>({}); // For generic fallback form only
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
   const [viewMode, setViewMode] = useState<'structured' | 'article'>('structured'); // Mode switching
   const [formConfig, setFormConfig] = useState<ContentTypeFormConfig | null>(null);
@@ -228,17 +227,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
     }
   });
 
-  // Initialize editing data when content loads (for generic fallback form only)
-  useEffect(() => {
-    if (contentData) {
-      setEditingData(contentData);
-    }
-  }, [contentData]);
 
-  // Handle generic fallback form submission
-  const handleSave = () => {
-    saveMutation.mutate(editingData);
-  };
 
   // Handle dynamic form submission
   const handleFormSubmit = (data: any) => {
@@ -267,27 +256,15 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   };
 
   const handleCancel = () => {
-    if (!formConfig) {
-      // Reset fallback form data
-      setEditingData(contentData);
-    }
     setIsEditing(false);
   };
 
-  const handleFieldChange = (field: string, value: any) => {
-    setEditingData((prev: any) => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // Render field for generic fallback form (editable when no formConfig and in editing mode)
+  // Render field for generic fallback form (display-only)
   const renderField = (key: string, value: any) => {
     if (key === 'id' || key === 'createdAt' || key === 'updatedAt') {
       return null; // Skip system fields
     }
 
-    const isEditable = isEditing && !formConfig; // Only editable in generic fallback form
     const displayValue = Array.isArray(value) ? value.join(', ') : value?.toString() || '';
 
     if (key.includes('description') || key.includes('backstory') || key.includes('content')) {
@@ -297,18 +274,9 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           <label className="text-sm font-medium capitalize">
             {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
           </label>
-          {isEditable ? (
-            <Textarea
-              value={editingData[key] || ''}
-              onChange={(e) => handleFieldChange(key, e.target.value)}
-              className="min-h-[100px]"
-              data-testid={`input-edit-${key}`}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {displayValue}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+            {displayValue}
+          </p>
         </div>
       );
     } else if (Array.isArray(value)) {
@@ -318,20 +286,11 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           <label className="text-sm font-medium capitalize">
             {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
           </label>
-          {isEditable ? (
-            <Input
-              value={Array.isArray(editingData[key]) ? editingData[key].join(', ') : editingData[key] || ''}
-              onChange={(e) => handleFieldChange(key, e.target.value.split(',').map((s: string) => s.trim()))}
-              placeholder="Separate items with commas"
-              data-testid={`input-edit-${key}`}
-            />
-          ) : (
-            <div className="flex flex-wrap gap-1">
-              {value.map((item: any, index: number) => (
-                <Badge key={index} variant="secondary">{item}</Badge>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-1">
+            {value.map((item: any, index: number) => (
+              <Badge key={index} variant="secondary">{item}</Badge>
+            ))}
+          </div>
         </div>
       );
     } else {
@@ -341,17 +300,9 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           <label className="text-sm font-medium capitalize">
             {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
           </label>
-          {isEditable ? (
-            <Input
-              value={editingData[key] || ''}
-              onChange={(e) => handleFieldChange(key, e.target.value)}
-              data-testid={`input-edit-${key}`}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {displayValue}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            {displayValue}
+          </p>
         </div>
       );
     }
@@ -401,7 +352,11 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         <div className="flex gap-2">
           {!isEditing && !isCreating ? (
             <>
-              <Button onClick={() => setIsEditing(true)} data-testid="button-start-editing">
+              <Button 
+                onClick={() => setIsEditing(true)} 
+                disabled={!formConfig}
+                data-testid="button-start-editing"
+              >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>
@@ -423,28 +378,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
               )}
             </>
           ) : (
-            <>
-              {/* Only show header save buttons for generic fallback forms, not dynamic forms */}
-              {!formConfig && (
-                <>
-                  <Button variant="outline" onClick={handleCancel} data-testid="button-cancel-editing">
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={saveMutation.isPending}
-                    data-testid="button-save-changes"
-                  >
-                    {saveMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Save className="mr-2 h-4 w-4" />
-                    )}
-                    {isCreating ? 'Create' : 'Save Changes'}
-                  </Button>
-                </>
-              )}
-            </>
+            <></>
           )}
         </div>
       </div>
@@ -524,7 +458,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
                   Content Details
                 </CardTitle>
                 <CardDescription>
-                  {isEditing ? 'Edit the fields below to update this content.' : 'View the details of this content item.'}
+                  View the details of this content item. {!formConfig && 'This content type is read-only.'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
