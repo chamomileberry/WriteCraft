@@ -29,8 +29,8 @@ router.post("/generate", async (req, res) => {
       abilities: aiCreature.abilities,
       physicalDescription: aiCreature.physicalDescription,
       culturalSignificance: aiCreature.culturalSignificance,
-      userId: userId || null
-      // Temporarily exclude notebookId until database migration completes
+      userId: userId || null,
+      notebookId: notebookId || null
     };
 
     // Validate the generated creature data before saving
