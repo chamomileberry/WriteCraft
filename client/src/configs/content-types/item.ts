@@ -13,7 +13,6 @@ export const itemConfig: ContentTypeFormConfig = {
       icon: "Package",
       fields: [
         Fields.createNameField("item"),
-        Fields.createNotebookField(),
         Fields.createTypeField("item", ITEM_TYPES),
         Fields.createDescriptionField("item"),
         Fields.createRarityField()

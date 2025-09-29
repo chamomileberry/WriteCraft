@@ -13,7 +13,6 @@ export const organizationConfig: ContentTypeFormConfig = {
       icon: "Users",
       fields: [
         Fields.createNameField("organization"),
-        Fields.createNotebookField(),
         Fields.createTypeField("organization", ORGANIZATION_TYPES),
         Fields.createPurposeField(),
         Fields.createDescriptionField("organization")

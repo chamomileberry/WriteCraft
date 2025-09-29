@@ -13,7 +13,6 @@ export const buildingConfig: ContentTypeFormConfig = {
       icon: "Building",
       fields: [
         Fields.createNameField("building"),
-        Fields.createNotebookField(),
         Fields.createTypeField("building", BUILDING_TYPES),
         Fields.createDescriptionField("building"),
         { name: "genre", label: "Genre", type: "select", options: ["Fantasy", "Sci-Fi", "Modern", "Historical", "Steampunk", "Other"] }
