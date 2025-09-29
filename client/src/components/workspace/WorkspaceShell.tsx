@@ -4,7 +4,7 @@ import { useWorkspaceStore, type PanelDescriptor } from '@/stores/workspaceStore
 import CharacterDetailPanel from './CharacterDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
 import WritingAssistantPanel from './WritingAssistantPanel';
-import { X, GripHorizontal, Pin, Save, Minimize2 } from 'lucide-react';
+import { X, GripHorizontal, Pin, Save, Minimize2, MessageSquarePlus, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -23,6 +23,10 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   // Store save and clear functions for quick note panels
   const quickNoteSaveFunctions = useRef<{ [panelId: string]: () => Promise<{ content: string; id: string }> }>({});
   const quickNoteClearFunctions = useRef<{ [panelId: string]: () => void }>({});
+  
+  // Store functions for writing assistant panels
+  const writingAssistantClearChatFunctions = useRef<{ [panelId: string]: () => void }>({});
+  const writingAssistantToggleHistoryFunctions = useRef<{ [panelId: string]: () => void }>({});
   
   // Only render floating panels that are not minimized (tabbed panels are rendered in tab bars)
   const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating' && !panel.minimized);
@@ -55,6 +59,12 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         return (
           <WritingAssistantPanel
             panelId={panel.id}
+            onRegisterClearChatFunction={(fn) => {
+              writingAssistantClearChatFunctions.current[panel.id] = fn;
+            }}
+            onRegisterToggleHistoryFunction={(fn) => {
+              writingAssistantToggleHistoryFunctions.current[panel.id] = fn;
+            }}
           />
         );
       default:
@@ -267,6 +277,40 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     >
                       <Save className="h-3 w-3" />
                     </Button>
+                  )}
+                  {panel.type === 'writingAssistant' && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const clearChatFunction = writingAssistantClearChatFunctions.current[panel.id];
+                          if (clearChatFunction) {
+                            clearChatFunction();
+                          }
+                        }}
+                        className="h-6 w-6 p-0"
+                        data-testid={`button-new-chat-${panel.id}`}
+                        title="Start new conversation"
+                      >
+                        <MessageSquarePlus className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const toggleHistoryFunction = writingAssistantToggleHistoryFunctions.current[panel.id];
+                          if (toggleHistoryFunction) {
+                            toggleHistoryFunction();
+                          }
+                        }}
+                        className="h-6 w-6 p-0"
+                        data-testid={`button-chat-history-${panel.id}`}
+                        title="View chat history"
+                      >
+                        <History className="h-3 w-3" />
+                      </Button>
+                    </>
                   )}
                   <Button
                     variant="ghost"

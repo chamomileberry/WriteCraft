@@ -33,6 +33,8 @@ import {
 interface WritingAssistantPanelProps {
   panelId: string;
   className?: string;
+  onRegisterClearChatFunction?: (fn: () => void) => void;
+  onRegisterToggleHistoryFunction?: (fn: () => void) => void;
 }
 
 interface Message {
@@ -57,7 +59,12 @@ interface ProofreadResult {
   }>;
 }
 
-export default function WritingAssistantPanel({ panelId, className }: WritingAssistantPanelProps) {
+export default function WritingAssistantPanel({ 
+  panelId, 
+  className, 
+  onRegisterClearChatFunction, 
+  onRegisterToggleHistoryFunction 
+}: WritingAssistantPanelProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -316,6 +323,20 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
       });
     },
   });
+
+  // Register functions for header buttons
+  useEffect(() => {
+    if (onRegisterClearChatFunction) {
+      onRegisterClearChatFunction(() => {
+        clearChatMutation.mutate();
+      });
+    }
+    if (onRegisterToggleHistoryFunction) {
+      onRegisterToggleHistoryFunction(() => {
+        setShowHistoryDropdown(prev => !prev);
+      });
+    }
+  }, [onRegisterClearChatFunction, onRegisterToggleHistoryFunction, clearChatMutation]);
 
   // Get editor content from workspace context
   const getEditorText = () => {
@@ -613,34 +634,6 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
               );
             })()}
           </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => clearChatMutation.mutate()}
-            disabled={clearChatMutation.isPending || messages.length === 0}
-            className="h-7 px-2"
-            data-testid="button-new-chat"
-            title="Start new conversation"
-          >
-            <MessageSquarePlus className="h-3 w-3 mr-1" />
-            New Chat
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowHistoryDropdown(!showHistoryDropdown)}
-            className="h-7 px-2"
-            data-testid="button-chat-history"
-            title="View chat history"
-          >
-            <History className="h-3 w-3 mr-1" />
-            History
-          </Button>
-          {clearChatMutation.isPending && (
-            <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-          )}
         </div>
       </div>
 
