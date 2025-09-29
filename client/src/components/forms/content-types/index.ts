@@ -4,6 +4,12 @@ import { ContentTypeFormConfig } from '../types';
 import { characterConfig } from './character';
 import { weaponConfig } from './weapon';
 
+// Import the extracted configs from our new individual files
+import { armorConfig } from '../../../configs/content-types/armor';
+import { spellConfig } from '../../../configs/content-types/spell';
+import { factionConfig } from '../../../configs/content-types/faction';
+import { plotConfig } from '../../../configs/content-types/plot';
+
 // Import remaining configs from the original file (temporary until all are split)
 import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormConfig';
 
@@ -11,9 +17,13 @@ import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormCon
 const staticConfigs: Record<string, ContentTypeFormConfig> = {
   character: characterConfig,
   weapon: weaponConfig,
+  armor: armorConfig,
+  spell: spellConfig,
+  faction: factionConfig,
+  plot: plotConfig,
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
-    Object.entries(originalConfigs).filter(([key]) => !['character', 'weapon'].includes(key))
+    Object.entries(originalConfigs).filter(([key]) => !['character', 'weapon', 'armor', 'spell', 'faction', 'plot'].includes(key))
   ),
 };
 
@@ -110,3 +120,7 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
 // Re-export individual configs for direct imports if needed
 export { characterConfig } from './character';
 export { weaponConfig } from './weapon';
+export { armorConfig } from '../../../configs/content-types/armor';
+export { spellConfig } from '../../../configs/content-types/spell';
+export { factionConfig } from '../../../configs/content-types/faction';
+export { plotConfig } from '../../../configs/content-types/plot';
