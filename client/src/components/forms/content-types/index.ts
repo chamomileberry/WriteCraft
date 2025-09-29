@@ -19,6 +19,43 @@ import { foodConfig } from '../../../configs/content-types/food';
 import { drinkConfig } from '../../../configs/content-types/drink';
 import { settlementConfig } from '../../../configs/content-types/settlement';
 import { societyConfig } from '../../../configs/content-types/society';
+import { technologyConfig } from '../../../configs/content-types/technology';
+import { animalConfig } from '../../../configs/content-types/animal';
+import { plantConfig } from '../../../configs/content-types/plant';
+import { resourceConfig } from '../../../configs/content-types/resource';
+import { ethnicityConfig } from '../../../configs/content-types/ethnicity';
+import { accessoryConfig } from '../../../configs/content-types/accessory';
+import { clothingConfig } from '../../../configs/content-types/clothing';
+import { materialConfig } from '../../../configs/content-types/material';
+import { militaryUnitConfig } from '../../../configs/content-types/militaryUnit';
+import { transportationConfig } from '../../../configs/content-types/transportation';
+import { naturalLawConfig } from '../../../configs/content-types/naturalLaw';
+import { mythConfig } from '../../../configs/content-types/myth';
+import { legendConfig } from '../../../configs/content-types/legend';
+import { eventConfig } from '../../../configs/content-types/event';
+import { familyTreeConfig } from '../../../configs/content-types/familyTree';
+import { timelineConfig } from '../../../configs/content-types/timeline';
+import { ceremonyConfig } from '../../../configs/content-types/ceremony';
+import { musicConfig } from '../../../configs/content-types/music';
+import { danceConfig } from '../../../configs/content-types/dance';
+import { lawConfig } from '../../../configs/content-types/law';
+import { policyConfig } from '../../../configs/content-types/policy';
+import { potionConfig } from '../../../configs/content-types/potion';
+import { promptConfig } from '../../../configs/content-types/prompt';
+import { professionConfig } from '../../../configs/content-types/profession';
+import { documentConfig } from '../../../configs/content-types/document';
+import { mapConfig } from '../../../configs/content-types/map';
+import { settingConfig } from '../../../configs/content-types/setting';
+import { nameConfig } from '../../../configs/content-types/name';
+import { conflictConfig } from '../../../configs/content-types/conflict';
+import { themeConfig } from '../../../configs/content-types/theme';
+import { moodConfig } from '../../../configs/content-types/mood';
+import { descriptionConfig } from '../../../configs/content-types/description';
+import { buildingConfig } from '../../../configs/content-types/building';
+import { creatureConfig } from '../../../configs/content-types/creature';
+import { itemConfig } from '../../../configs/content-types/item';
+import { locationConfig } from '../../../configs/content-types/location';
+import { organizationConfig } from '../../../configs/content-types/organization';
 
 // Import remaining configs from the original file (temporary until all are split)
 import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormConfig';
@@ -41,12 +78,55 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   drink: drinkConfig,
   settlement: settlementConfig,
   society: societyConfig,
+  technology: technologyConfig,
+  animal: animalConfig,
+  plant: plantConfig,
+  resource: resourceConfig,
+  ethnicity: ethnicityConfig,
+  accessory: accessoryConfig,
+  clothing: clothingConfig,
+  material: materialConfig,
+  militaryUnit: militaryUnitConfig,
+  transportation: transportationConfig,
+  naturalLaw: naturalLawConfig,
+  myth: mythConfig,
+  legend: legendConfig,
+  event: eventConfig,
+  familyTree: familyTreeConfig,
+  timeline: timelineConfig,
+  ceremony: ceremonyConfig,
+  music: musicConfig,
+  dance: danceConfig,
+  law: lawConfig,
+  policy: policyConfig,
+  potion: potionConfig,
+  prompt: promptConfig,
+  profession: professionConfig,
+  document: documentConfig,
+  map: mapConfig,
+  setting: settingConfig,
+  name: nameConfig,
+  conflict: conflictConfig,
+  theme: themeConfig,
+  mood: moodConfig,
+  description: descriptionConfig,
+  building: buildingConfig,
+  creature: creatureConfig,
+  item: itemConfig,
+  location: locationConfig,
+  organization: organizationConfig,
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
     Object.entries(originalConfigs).filter(([key]) => ![
       'character', 'weapon', 'armor', 'spell', 'faction', 'plot',
       'religion', 'language', 'culture', 'species', 'tradition', 'ritual',
-      'food', 'drink', 'settlement', 'society'
+      'food', 'drink', 'settlement', 'society', 'technology', 'animal',
+      'plant', 'resource', 'ethnicity', 'accessory', 'clothing', 'material',
+      'militaryUnit', 'transportation', 'naturalLaw', 'myth', 'legend',
+      'event', 'familyTree', 'timeline', 'ceremony', 'music', 'dance', 'law',
+      'policy', 'potion', 'prompt', 'profession', 'document', 'map',
+      'setting', 'name', 'conflict', 'theme', 'mood', 'description',
+      'building', 'creature', 'item', 'location', 'organization'
     ].includes(key))
   ),
 };
@@ -158,3 +238,40 @@ export { foodConfig } from '../../../configs/content-types/food';
 export { drinkConfig } from '../../../configs/content-types/drink';
 export { settlementConfig } from '../../../configs/content-types/settlement';
 export { societyConfig } from '../../../configs/content-types/society';
+export { technologyConfig } from '../../../configs/content-types/technology';
+export { animalConfig } from '../../../configs/content-types/animal';
+export { plantConfig } from '../../../configs/content-types/plant';
+export { resourceConfig } from '../../../configs/content-types/resource';
+export { ethnicityConfig } from '../../../configs/content-types/ethnicity';
+export { accessoryConfig } from '../../../configs/content-types/accessory';
+export { clothingConfig } from '../../../configs/content-types/clothing';
+export { materialConfig } from '../../../configs/content-types/material';
+export { militaryUnitConfig } from '../../../configs/content-types/militaryUnit';
+export { transportationConfig } from '../../../configs/content-types/transportation';
+export { naturalLawConfig } from '../../../configs/content-types/naturalLaw';
+export { mythConfig } from '../../../configs/content-types/myth';
+export { legendConfig } from '../../../configs/content-types/legend';
+export { eventConfig } from '../../../configs/content-types/event';
+export { familyTreeConfig } from '../../../configs/content-types/familyTree';
+export { timelineConfig } from '../../../configs/content-types/timeline';
+export { ceremonyConfig } from '../../../configs/content-types/ceremony';
+export { musicConfig } from '../../../configs/content-types/music';
+export { danceConfig } from '../../../configs/content-types/dance';
+export { lawConfig } from '../../../configs/content-types/law';
+export { policyConfig } from '../../../configs/content-types/policy';
+export { potionConfig } from '../../../configs/content-types/potion';
+export { promptConfig } from '../../../configs/content-types/prompt';
+export { professionConfig } from '../../../configs/content-types/profession';
+export { documentConfig } from '../../../configs/content-types/document';
+export { mapConfig } from '../../../configs/content-types/map';
+export { settingConfig } from '../../../configs/content-types/setting';
+export { nameConfig } from '../../../configs/content-types/name';
+export { conflictConfig } from '../../../configs/content-types/conflict';
+export { themeConfig } from '../../../configs/content-types/theme';
+export { moodConfig } from '../../../configs/content-types/mood';
+export { descriptionConfig } from '../../../configs/content-types/description';
+export { buildingConfig } from '../../../configs/content-types/building';
+export { creatureConfig } from '../../../configs/content-types/creature';
+export { itemConfig } from '../../../configs/content-types/item';
+export { locationConfig } from '../../../configs/content-types/location';
+export { organizationConfig } from '../../../configs/content-types/organization';
