@@ -308,7 +308,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2">
             {normalizedType === 'manuscript' ? <BookOpen className="h-4 w-4" /> : <Library className="h-4 w-4" />}
-            {normalizedType === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
+            {type === 'project' ? 'Project Outline' : normalizedType === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
           </SidebarGroupLabel>
           
           {/* Action buttons - visible and accessible */}
