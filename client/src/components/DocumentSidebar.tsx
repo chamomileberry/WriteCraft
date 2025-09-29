@@ -290,13 +290,13 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   // Get orphaned notes (notes without folders) - memoized for performance
   const orphanedNotes = useMemo(() => 
-    notes.filter((note: { folderId?: string }) => !note.folderId),
+    (Array.isArray(notes) ? notes : []).filter((note: { folderId?: string }) => !note.folderId),
     [notes]
   );
 
   // Build hierarchical folder structure - memoized for performance
   const hierarchicalFolders = useMemo(() => 
-    buildFolderHierarchy(folders, notes),
+    buildFolderHierarchy(Array.isArray(folders) ? folders : [], Array.isArray(notes) ? notes : []),
     [folders, notes]
   );
 

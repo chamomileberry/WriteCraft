@@ -82,18 +82,15 @@ export default function SavedItems() {
 
   // Fetch saved items for the active notebook
   const { data: savedItems = [], isLoading, error } = useQuery({
-    queryKey: ['/api/saved-items', 'guest', activeNotebookId], // Include activeNotebookId in query key
+    queryKey: ['/api/saved-items', 'demo-user', activeNotebookId], // Include activeNotebookId in query key
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/saved-items/guest');
-      const allItems = await response.json() as SavedItem[];
-      // Filter items by active notebook if one is selected
-      if (activeNotebookId) {
-        return allItems.filter(item => item.notebookId === activeNotebookId);
+      if (!activeNotebookId) {
+        throw new Error('No active notebook selected');
       }
-      // If no active notebook, show items without notebookId (legacy items)
-      return allItems.filter(item => !item.notebookId);
+      const response = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${activeNotebookId}`);
+      return response.json() as SavedItem[];
     },
-    enabled: true // Always enabled, filtering happens in queryFn
+    enabled: !!activeNotebookId // Only enabled when there's an active notebook
   });
 
   // Fetch missing item data for entries that have itemData: null
@@ -105,9 +102,13 @@ export default function SavedItems() {
       try {
         let endpoint = '';
         if (item.itemType === 'character') {
-          endpoint = `/api/characters/${item.itemId}`;
+          // Include notebookId when fetching character data
+          const notebookIdParam = item.notebookId || activeNotebookId;
+          endpoint = `/api/characters/${item.itemId}?notebookId=${notebookIdParam}`;
         } else if (item.itemType === 'profession') {
-          endpoint = `/api/professions/${item.itemId}`;
+          // Include notebookId when fetching profession data
+          const notebookIdParam = item.notebookId || activeNotebookId;
+          endpoint = `/api/professions/${item.itemId}?notebookId=${notebookIdParam}`;
         }
         
         if (endpoint) {
@@ -135,10 +136,11 @@ export default function SavedItems() {
   // Unsave mutation
   const unsaveMutation = useMutation({
     mutationFn: async (item: SavedItem) => {
-      // Always use itemType/itemId for DELETE requests since that's what the backend expects
+      // Include notebookId to prevent cross-notebook deletions
       const body = {
         itemType: item.itemType || item.contentType || '',
-        itemId: item.itemId || item.contentId || item.id
+        itemId: item.itemId || item.contentId || item.id,
+        notebookId: item.notebookId || activeNotebookId
       };
       
       const response = await apiRequest('DELETE', '/api/saved-items', body);
@@ -149,7 +151,8 @@ export default function SavedItems() {
         title: "Item removed",
         description: "Item has been removed from your notebook.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
+      // Invalidate all saved-items queries for this user (covers all notebooks)
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
     },
     onError: () => {
       toast({
@@ -195,11 +198,16 @@ export default function SavedItems() {
     const type = item.itemType || item.contentType || '';
     const id = item.itemId || item.contentId || '';
     const mapping = getMappingById(type);
+    
+    // Include notebookId query parameter for API endpoints that require it
+    const notebookIdParam = item.notebookId || activeNotebookId;
+    const queryParam = notebookIdParam ? `?notebookId=${notebookIdParam}` : '';
+    
     if (mapping) {
-      setLocation(`/${mapping.urlSegment}/${id}/edit`);
+      setLocation(`/${mapping.urlSegment}/${id}/edit${queryParam}`);
     } else {
       // Fallback for unmapped content types
-      setLocation(`/editor/${type}/${id}`);
+      setLocation(`/editor/${type}/${id}${queryParam}`);
     }
   };
 

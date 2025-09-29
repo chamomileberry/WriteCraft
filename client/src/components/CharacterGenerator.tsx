@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "../../../server/genres";
 import { type Character } from "@shared/schema";
+import { useNotebookStore } from "@/stores/notebookStore";
 
 // Now using backend data - imported from server/genres.ts
 
@@ -22,6 +23,7 @@ export default function CharacterGenerator() {
   const [ethnicity, setEthnicity] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeNotebookId } = useNotebookStore();
 
   const generateCharacterMutation = useMutation({
     mutationFn: async () => {
@@ -29,7 +31,8 @@ export default function CharacterGenerator() {
         genre: genre || undefined,
         gender: gender || undefined,
         ethnicity: ethnicity || undefined,
-        userId: null // For now, no user authentication
+        userId: null, // For now, no user authentication
+        notebookId: activeNotebookId
       });
       return response.json();
     },
@@ -51,12 +54,17 @@ export default function CharacterGenerator() {
     mutationFn: async () => {
       if (!character?.id) return;
       
+      if (!activeNotebookId) {
+        throw new Error('No active notebook selected');
+      }
+      
       console.log('Saving character:', character);
       
       const response = await apiRequest('POST', '/api/saved-items', {
-        userId: 'guest', // Use guest user for consistency with Notebook
+        userId: 'demo-user', // Use demo-user for consistency
         itemType: 'character',
         itemId: character.id,
+        notebookId: activeNotebookId,
         itemData: {
           givenName: character.givenName || '',
           familyName: character.familyName || '',
@@ -77,19 +85,29 @@ export default function CharacterGenerator() {
         title: "Character saved!",
         description: "Character has been saved to your collection.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
+      // Invalidate all saved-items queries for this user (covers all notebooks)
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
     },
     onError: (error) => {
       console.error('Error saving character:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save character. Please try again.';
       toast({
         title: "Error",
-        description: "Failed to save character. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
   });
 
   const generateCharacter = () => {
+    if (!activeNotebookId) {
+      toast({
+        title: "No Notebook Selected",
+        description: "Please create or select a notebook before generating characters.",
+        variant: "destructive"
+      });
+      return;
+    }
     generateCharacterMutation.mutate();
   };
 

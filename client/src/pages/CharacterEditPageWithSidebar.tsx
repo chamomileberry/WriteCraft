@@ -7,23 +7,40 @@ import { characterConfig } from "@/components/forms/content-types";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useNotebookStore } from "@/stores/notebookStore";
 
 export default function CharacterEditPageWithSidebar() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeNotebookId } = useNotebookStore();
 
-  // Fetch character data
-  const { data: character, isLoading } = useQuery<Character>({
-    queryKey: ['/api/characters', id],
-    enabled: !!id,
+  // Extract notebookId from query parameters, fallback to active notebook
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryNotebookId = urlParams.get('notebookId');
+  const notebookId = queryNotebookId || activeNotebookId;
+
+  // Fetch character data - include notebookId in query parameters
+  const { data: character, isLoading, error } = useQuery<Character>({
+    queryKey: ['/api/characters', id, notebookId],
+    queryFn: async () => {
+      if (!notebookId) {
+        throw new Error('No active notebook selected. Please create or select a notebook first.');
+      }
+      const response = await apiRequest('GET', `/api/characters/${id}?notebookId=${notebookId}`);
+      return response.json();
+    },
+    enabled: !!id && !!notebookId,
   });
 
   // Update character mutation
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateCharacter) => {
-      const response = await fetch(`/api/characters/${id}`, {
+      if (!notebookId) {
+        throw new Error('No notebook ID available for update');
+      }
+      const response = await fetch(`/api/characters/${id}?notebookId=${notebookId}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
         headers: {
@@ -39,9 +56,10 @@ export default function CharacterEditPageWithSidebar() {
       // Automatically save character to collection when edited
       try {
         await apiRequest('POST', '/api/saved-items', {
-          userId: 'guest', // Use guest user for consistency with Notebook
+          userId: 'demo-user', // Use demo-user for consistency
           itemType: 'character',
-          itemId: id
+          itemId: id,
+          notebookId: notebookId
         });
       } catch (error) {
         // Ignore error if already saved (duplicate key error is expected)
@@ -53,7 +71,8 @@ export default function CharacterEditPageWithSidebar() {
         description: "Your character has been successfully updated and saved to your collection!",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
+      // Invalidate all saved-items queries for this user (covers all notebooks)
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
     },
     onError: (error) => {
       console.error('Error updating character:', error);
@@ -91,6 +110,21 @@ export default function CharacterEditPageWithSidebar() {
     });
   };
 
+  // Handle missing notebook gracefully
+  if (!notebookId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">No active notebook selected. Please create or select a notebook first.</p>
+          <Button onClick={() => setLocation('/notebook')} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go to Notebooks
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -102,14 +136,28 @@ export default function CharacterEditPageWithSidebar() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">{error instanceof Error ? error.message : 'Failed to load character.'}</p>
+          <Button onClick={() => setLocation('/notebook')} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Notebook
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!character) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Character not found.</p>
-          <Button onClick={() => setLocation('/')} variant="outline">
+          <Button onClick={() => setLocation('/notebook')} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            Back to Notebook
           </Button>
         </div>
       </div>

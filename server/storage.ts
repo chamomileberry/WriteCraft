@@ -476,7 +476,9 @@ export interface IStorage {
   // Saved item methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
   unsaveItem(userId: string, itemType: string, itemId: string): Promise<void>;
+  unsaveItemFromNotebook(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void>;
   getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]>;
+  getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]>;
   isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
 
   // Project methods
@@ -2750,6 +2752,46 @@ export class DatabaseStorage implements IStorage {
       .where(and(...conditions))
       .limit(1);
     return !!saved;
+  }
+
+  async unsaveItemFromNotebook(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void> {
+    const conditions = [];
+    
+    // Handle null userId for guest users  
+    if (userId === 'null' || !userId) {
+      conditions.push(isNull(savedItems.userId));
+    } else {
+      conditions.push(eq(savedItems.userId, userId));
+    }
+    
+    conditions.push(eq(savedItems.itemType, itemType));
+    conditions.push(eq(savedItems.itemId, itemId));
+    conditions.push(eq(savedItems.notebookId, notebookId));
+    
+    await db.delete(savedItems).where(and(...conditions));
+  }
+
+  async getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]> {
+    const conditions = [];
+    
+    // Handle null userId for guest users
+    if (userId === 'null') {
+      conditions.push(isNull(savedItems.userId));
+    } else {
+      conditions.push(eq(savedItems.userId, userId));
+    }
+    
+    conditions.push(eq(savedItems.notebookId, notebookId));
+    
+    if (itemType) {
+      conditions.push(eq(savedItems.itemType, itemType));
+    }
+    
+    const savedItemsData = await db.select().from(savedItems)
+      .where(and(...conditions))
+      .orderBy(desc(savedItems.createdAt));
+    
+    return savedItemsData;
   }
 
   // Project methods

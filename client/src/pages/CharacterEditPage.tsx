@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
 import { 
   ArrowLeft, 
   Save, 
@@ -36,11 +37,24 @@ export default function CharacterEditPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeNotebookId } = useNotebookStore();
 
-  // Fetch character data
-  const { data: character, isLoading } = useQuery({
-    queryKey: ['/api/characters', id],
-    enabled: !!id,
+  // Extract notebookId from query parameters, fallback to active notebook
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryNotebookId = urlParams.get('notebookId');
+  const notebookId = queryNotebookId || activeNotebookId;
+
+  // Fetch character data - include notebookId in query parameters
+  const { data: character, isLoading, error } = useQuery({
+    queryKey: ['/api/characters', id, notebookId],
+    queryFn: async () => {
+      if (!notebookId) {
+        throw new Error('No active notebook selected. Please create or select a notebook first.');
+      }
+      const response = await apiRequest('GET', `/api/characters/${id}?notebookId=${notebookId}`);
+      return response.json();
+    },
+    enabled: !!id && !!notebookId,
   });
 
   // Create form-specific partial schema to handle tab-based fields
@@ -140,7 +154,10 @@ export default function CharacterEditPage() {
   // Update character mutation
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateCharacter) => {
-      const response = await fetch(`/api/characters/${id}`, {
+      if (!notebookId) {
+        throw new Error('No notebook ID available for update');
+      }
+      const response = await fetch(`/api/characters/${id}?notebookId=${notebookId}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
         headers: {
@@ -189,6 +206,25 @@ export default function CharacterEditPage() {
     updateMutation.mutate(cleanedData);
   };
 
+  // Handle missing notebook gracefully
+  if (!notebookId) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground mb-4">No active notebook selected. Please create or select a notebook first.</p>
+            <div className="flex justify-center">
+              <Button onClick={() => setLocation('/notebook')} variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Go to Notebooks
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -200,16 +236,34 @@ export default function CharacterEditPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground mb-4">{error instanceof Error ? error.message : 'Failed to load character.'}</p>
+            <div className="flex justify-center">
+              <Button onClick={() => setLocation('/notebook')} variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Notebook
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!character) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Character not found.</p>
-            <div className="flex justify-center mt-4">
-              <Button onClick={() => setLocation('/')} variant="outline">
+            <p className="text-center text-muted-foreground mb-4">Character not found.</p>
+            <div className="flex justify-center">
+              <Button onClick={() => setLocation('/notebook')} variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
+                Back to Notebook
               </Button>
             </div>
           </CardContent>

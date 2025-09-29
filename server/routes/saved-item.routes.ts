@@ -49,16 +49,24 @@ router.delete("/", async (req, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const { itemType, itemId } = req.body;
+    const { itemType, itemId, notebookId } = req.body;
     
     if (!itemType || !itemId) {
       return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
     }
     
-    const deleted = await storage.removeSavedItem(userId, itemType, itemId);
-    
-    if (!deleted) {
-      return res.status(404).json({ error: 'Saved item not found' });
+    // If notebookId is provided, validate user owns the notebook
+    if (notebookId) {
+      const userNotebook = await storage.getNotebook(notebookId, userId);
+      if (!userNotebook) {
+        return res.status(403).json({ error: 'Notebook not found or access denied' });
+      }
+      
+      // Delete with notebook validation to prevent cross-notebook deletions
+      await storage.unsaveItemFromNotebook(userId, itemType, itemId, notebookId);
+    } else {
+      // Legacy delete without notebook scoping
+      await storage.unsaveItem(userId, itemType, itemId);
     }
     
     res.json({ success: true });
@@ -74,14 +82,28 @@ router.get("/:userId", async (req, res) => {
     // Extract userId from authentication headers for security 
     const authenticatedUserId = req.headers['x-user-id'] as string || 'demo-user';
     const requestedUserId = req.params.userId;
+    const notebookId = req.query.notebookId as string;
     
     // Validate that authenticated user can only access their own saved items
     if (authenticatedUserId !== requestedUserId) {
       return res.status(403).json({ error: 'Access denied - can only access your own saved items' });
     }
     
-    const savedItems = await storage.getUserSavedItems(authenticatedUserId);
-    res.json(savedItems);
+    // If notebookId is provided, validate user owns the notebook
+    if (notebookId) {
+      const userNotebook = await storage.getNotebook(notebookId, authenticatedUserId);
+      if (!userNotebook) {
+        return res.status(403).json({ error: 'Notebook not found or access denied' });
+      }
+      
+      // Get saved items for specific notebook
+      const savedItems = await storage.getUserSavedItemsByNotebook(authenticatedUserId, notebookId);
+      res.json(savedItems);
+    } else {
+      // Get all saved items (legacy support)
+      const savedItems = await storage.getUserSavedItems(authenticatedUserId);
+      res.json(savedItems);
+    }
   } catch (error) {
     console.error('Error fetching saved items:', error);
     res.status(500).json({ error: 'Failed to fetch saved items' });

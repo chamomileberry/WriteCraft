@@ -9,6 +9,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useNotebookStore } from "@/stores/notebookStore";
 import { getMappingById } from "@shared/contentTypes";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
@@ -27,6 +28,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const [formConfig, setFormConfig] = useState<ContentTypeFormConfig | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { activeNotebookId } = useNotebookStore();
 
   // Load content type configuration
   useEffect(() => {
@@ -45,13 +47,23 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
 
   // Fetch the content data (only if not creating new content)
   const { data: contentData, isLoading, error } = useQuery({
-    queryKey: [apiBase, currentItemId],
+    queryKey: [apiBase, currentItemId, activeNotebookId],
     queryFn: async () => {
       if (isCreating) return null; // Don't fetch for new content
-      const response = await apiRequest('GET', `${apiBase}/${currentItemId}`);
+      
+      // Get notebookId from URL query parameters, fallback to active notebook
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlNotebookId = urlParams.get('notebookId');
+      const notebookId = urlNotebookId || activeNotebookId;
+      
+      if (!notebookId) {
+        throw new Error('No notebook selected. Cannot fetch content.');
+      }
+      
+      const response = await apiRequest('GET', `${apiBase}/${currentItemId}?notebookId=${notebookId}`);
       return response.json();
     },
-    enabled: !isCreating, // Only run query if not creating new content
+    enabled: !isCreating && !!activeNotebookId, // Only run query if not creating new content and notebook is selected
   });
 
   // Debug logging (after contentData is declared)
@@ -72,9 +84,20 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
       console.log('Save mutation starting:', { isMutationCreating, apiBase, data });
       
       if (isMutationCreating) {
-        // Create new content
-        console.log('Making POST request to:', apiBase, 'with data:', data);
-        const response = await apiRequest('POST', apiBase, data);
+        // Create new content - get notebookId from URL or active notebook
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlNotebookId = urlParams.get('notebookId');
+        const notebookId = urlNotebookId || activeNotebookId;
+        
+        if (!notebookId) {
+          throw new Error('No notebook selected. Cannot create content.');
+        }
+        
+        // Include notebookId in the request payload
+        const createData = { ...data, notebookId };
+        
+        console.log('Making POST request to:', apiBase, 'with data:', createData);
+        const response = await apiRequest('POST', apiBase, createData);
         console.log('POST response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
@@ -85,9 +108,17 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         console.log('POST response parsed:', result);
         return result;
       } else {
-        // Update existing content
-        console.log('Making PUT request to:', `${apiBase}/${currentItemId}`, 'with data:', data);
-        const response = await apiRequest('PUT', `${apiBase}/${currentItemId}`, data);
+        // Update existing content - get notebookId from URL or active notebook
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlNotebookId = urlParams.get('notebookId');
+        const notebookId = urlNotebookId || activeNotebookId;
+        
+        if (!notebookId) {
+          throw new Error('No notebook selected. Cannot update content.');
+        }
+        
+        console.log('Making PUT request to:', `${apiBase}/${currentItemId}`, 'with data:', data, 'notebookId:', notebookId);
+        const response = await apiRequest('PUT', `${apiBase}/${currentItemId}?notebookId=${notebookId}`, data);
         console.log('PUT response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
@@ -109,25 +140,42 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
       });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: [apiBase] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
+      // Invalidate all saved-items queries for this user (covers all notebooks)
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
       
       if (wasCreating && result?.id) {
+        // Get notebookId from URL query parameters, fallback to active notebook
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlNotebookId = urlParams.get('notebookId');
+        const notebookId = urlNotebookId || activeNotebookId;
+        
+        if (!notebookId) {
+          toast({
+            title: "Warning",
+            description: "Content created but could not be saved to collection. Please select a notebook.",
+            variant: "destructive"
+          });
+          setLocation('/notebook');
+          return;
+        }
+        
         // Automatically save the newly created item to saved-items
         try {
           await apiRequest('POST', '/api/saved-items', {
-            userId: 'guest', // Use guest user for consistency with Notebook
+            userId: 'demo-user', // Use demo-user for consistency with authentication
             itemType: contentType,
             itemId: result.id,
-            itemData: result // Include the complete data from the successful creation
+            itemData: result, // Include the complete data from the successful creation
+            notebookId: notebookId // Include notebookId from URL or active notebook
           });
-          console.log('Successfully saved item to saved-items:', { contentType, itemId: result.id });
+          console.log('Successfully saved item to saved-items:', { contentType, itemId: result.id, notebookId });
         } catch (error) {
           console.error('Failed to save item to saved-items:', error);
           // Don't show error to user as the main content was created successfully
         }
         
-        // Navigate to the newly created content's edit page using router
-        setLocation(`/content-editor/${contentType}/${result.id}`);
+        // Navigate back to notebook to see the saved item
+        setLocation('/notebook');
       } else {
         queryClient.invalidateQueries({ queryKey: [apiBase, currentItemId] });
       }
@@ -155,7 +203,28 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
 
   // Handle dynamic form submission
   const handleFormSubmit = (data: any) => {
-    saveMutation.mutate(data);
+    // Get notebookId from URL query parameters, fallback to active notebook if creating new content
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlNotebookId = urlParams.get('notebookId');
+    const notebookId = urlNotebookId || activeNotebookId;
+    
+    // Block creation if no notebook is selected
+    if (isCreating && !notebookId) {
+      toast({
+        title: "No Notebook Selected",
+        description: "Please create or select a notebook before creating new content.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Include notebookId in the data if we're creating new content
+    const submitData = isCreating && notebookId 
+      ? { ...data, notebookId } 
+      : data;
+    
+    console.log('ContentEditor - handleFormSubmit:', { isCreating, notebookId, originalData: data, submitData });
+    saveMutation.mutate(submitData);
   };
 
   const handleCancel = () => {
