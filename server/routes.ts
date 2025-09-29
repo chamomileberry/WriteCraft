@@ -572,8 +572,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract userId from header for security (override client payload)
       const userId = req.headers['x-user-id'] as string || 'demo-user';
       
-      const { manuscriptId, guideId, type, content, metadata } = z.object({
-        manuscriptId: z.string().optional(),
+      const { projectId, guideId, type, content, metadata } = z.object({
+        projectId: z.string().optional(),
         guideId: z.string().optional(),
         type: z.enum(['user', 'assistant']),
         content: z.string(),
@@ -582,7 +582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const chatMessage = await storage.createChatMessage({
         userId,
-        manuscriptId: manuscriptId || null,
+        projectId: projectId || null,
         guideId: guideId || null,
         type,
         content,
@@ -605,13 +605,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract userId from header for security
       const userId = req.headers['x-user-id'] as string || 'demo-user';
       
-      const { manuscriptId, guideId, limit } = z.object({
-        manuscriptId: z.string().optional(),
+      const { projectId, guideId, limit } = z.object({
+        projectId: z.string().optional(),
         guideId: z.string().optional(),
         limit: z.coerce.number().optional().default(50)
       }).parse(req.query);
 
-      const messages = await storage.getChatMessages(userId, manuscriptId, guideId, limit);
+      const messages = await storage.getChatMessages(userId, projectId, guideId, limit);
       res.json(messages);
     } catch (error) {
       console.error('Error fetching chat messages:', error);
@@ -628,12 +628,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract userId from header for security
       const userId = req.headers['x-user-id'] as string || 'demo-user';
       
-      const { manuscriptId, guideId } = z.object({
-        manuscriptId: z.string().optional(),
+      const { projectId, guideId } = z.object({
+        projectId: z.string().optional(),
         guideId: z.string().optional()
       }).parse(req.query);
 
-      await storage.deleteChatHistory(userId, manuscriptId, guideId);
+      await storage.deleteChatHistory(userId, projectId, guideId);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting chat history:', error);

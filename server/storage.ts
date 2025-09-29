@@ -3564,18 +3564,18 @@ export class DatabaseStorage implements IStorage {
     return newMessage;
   }
 
-  async getChatMessages(userId: string, manuscriptId?: string, guideId?: string, limit = 50): Promise<ChatMessage[]> {
+  async getChatMessages(userId: string, projectId?: string, guideId?: string, limit = 50): Promise<ChatMessage[]> {
     let whereCondition = eq(chatMessages.userId, userId);
     
-    if (manuscriptId) {
-      whereCondition = and(whereCondition, eq(chatMessages.manuscriptId, manuscriptId));
+    if (projectId) {
+      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId));
     } else if (guideId) {
       whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId));
     } else {
       // Get general chat messages (not associated with any specific document)
       whereCondition = and(
         whereCondition, 
-        isNull(chatMessages.manuscriptId), 
+        isNull(chatMessages.projectId), 
         isNull(chatMessages.guideId)
       );
     }
@@ -3590,18 +3590,18 @@ export class DatabaseStorage implements IStorage {
     return messages.reverse(); // Return in chronological order
   }
 
-  async deleteChatHistory(userId: string, manuscriptId?: string, guideId?: string): Promise<void> {
+  async deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void> {
     let whereCondition = eq(chatMessages.userId, userId);
     
-    if (manuscriptId) {
-      whereCondition = and(whereCondition, eq(chatMessages.manuscriptId, manuscriptId));
+    if (projectId) {
+      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId));
     } else if (guideId) {
       whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId));
     } else {
       // Delete general chat messages (not associated with any specific document)
       whereCondition = and(
         whereCondition, 
-        isNull(chatMessages.manuscriptId), 
+        isNull(chatMessages.projectId), 
         isNull(chatMessages.guideId)
       );
     }

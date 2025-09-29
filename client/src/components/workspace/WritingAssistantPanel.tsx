@@ -24,7 +24,10 @@ import {
   Copy,
   ArrowRightToLine,
   User,
-  Bot
+  Bot,
+  MessageSquarePlus,
+  History,
+  Trash2
 } from 'lucide-react';
 
 interface WritingAssistantPanelProps {
@@ -61,6 +64,7 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
   const [analysis, setAnalysis] = useState<TextAnalysis | null>(null);
   const [questions, setQuestions] = useState<string[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -76,7 +80,7 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
         // Build query parameters for fetching messages
         const params = new URLSearchParams();
         if (editorContext.type === 'manuscript' && editorContext.entityId) {
-          params.append('manuscriptId', editorContext.entityId);
+          params.append('projectId', editorContext.entityId);
         } else if (editorContext.type === 'guide' && editorContext.entityId) {
           params.append('guideId', editorContext.entityId);
         }
@@ -261,6 +265,43 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
     },
   });
 
+  // Clear chat history mutation
+  const clearChatMutation = useMutation({
+    mutationFn: async () => {
+      const editorContext = getEditorContext();
+      
+      // Build query parameters for clearing messages
+      const params = new URLSearchParams();
+      if (editorContext.type === 'manuscript' && editorContext.entityId) {
+        params.append('projectId', editorContext.entityId);
+      } else if (editorContext.type === 'guide' && editorContext.entityId) {
+        params.append('guideId', editorContext.entityId);
+      }
+      
+      const response = await fetch(`/api/chat-messages?${params.toString()}`, {
+        method: 'DELETE',
+        headers: {
+          'x-user-id': 'demo-user' // TODO: Replace with actual user ID
+        }
+      });
+      if (!response.ok) throw new Error('Failed to clear chat history');
+    },
+    onSuccess: () => {
+      setMessages([]);
+      toast({
+        title: 'Chat cleared',
+        description: 'Started a new conversation.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Clear failed',
+        description: 'Could not clear chat history. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Get editor content from workspace context
   const getEditorText = () => {
     const editorContext = getEditorContext();
@@ -362,7 +403,7 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
         body: JSON.stringify({
           type,
           content,
-          manuscriptId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
+          projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
           guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
           metadata
         })
@@ -584,6 +625,30 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0">
+            {/* Chat Controls */}
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => clearChatMutation.mutate()}
+                  disabled={clearChatMutation.isPending || messages.length === 0}
+                  className="h-7 px-2"
+                  data-testid="button-new-chat"
+                  title="Start new conversation"
+                >
+                  <MessageSquarePlus className="h-3 w-3 mr-1" />
+                  New Chat
+                </Button>
+                {clearChatMutation.isPending && (
+                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {messages.length} message{messages.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+            
             <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
               <div className="space-y-3 p-3 pb-6">
                 {messages.length === 0 && (
