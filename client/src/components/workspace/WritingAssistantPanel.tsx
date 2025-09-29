@@ -479,12 +479,11 @@ export default function WritingAssistantPanel({ panelId, className }: WritingAss
                 : 'bg-muted'
             }`}
           >
-            <ReactMarkdown 
-              remarkPlugins={[remarkGfm]}
-              className="prose prose-sm dark:prose-invert max-w-none"
-            >
-              {message.content}
-            </ReactMarkdown>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content}
+              </ReactMarkdown>
+            </div>
           </div>
           
           <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
