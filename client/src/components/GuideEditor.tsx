@@ -40,8 +40,9 @@ import {
   AlignJustify,
   Link as LinkIcon,
 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useAutosave } from '@/hooks/useAutosave';
 import { useToast } from '@/hooks/use-toast';
 import type { Guide } from '@shared/schema';
 
@@ -61,8 +62,6 @@ const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
 // Guide editor state management
 interface GuideEditorState {
   currentGuideId: string;
-  saveStatus: 'saved' | 'saving' | 'unsaved';
-  lastSaveTime: Date | null;
   title: string;
   description: string;
   category: string;
@@ -76,8 +75,6 @@ interface GuideEditorState {
 
 type GuideEditorAction =
   | { type: 'SET_CURRENT_GUIDE_ID'; payload: string }
-  | { type: 'SET_SAVE_STATUS'; payload: 'saved' | 'saving' | 'unsaved' }
-  | { type: 'SET_LAST_SAVE_TIME'; payload: Date | null }
   | { type: 'SET_TITLE'; payload: string }
   | { type: 'SET_DESCRIPTION'; payload: string }
   | { type: 'SET_CATEGORY'; payload: string }
@@ -94,10 +91,6 @@ function guideEditorReducer(state: GuideEditorState, action: GuideEditorAction):
   switch (action.type) {
     case 'SET_CURRENT_GUIDE_ID':
       return { ...state, currentGuideId: action.payload };
-    case 'SET_SAVE_STATUS':
-      return { ...state, saveStatus: action.payload };
-    case 'SET_LAST_SAVE_TIME':
-      return { ...state, lastSaveTime: action.payload };
     case 'SET_TITLE':
       return { ...state, title: action.payload };
     case 'SET_DESCRIPTION':
@@ -198,8 +191,6 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Centralized state management with useReducer
   const [guideState, dispatch] = useReducer(guideEditorReducer, {
     currentGuideId: initialGuideId,
-    saveStatus: 'saved' as const,
-    lastSaveTime: null,
     title: '',
     description: '',
     category: '',
@@ -214,8 +205,6 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Destructure state for easier access
   const {
     currentGuideId,
-    saveStatus,
-    lastSaveTime,
     title,
     description,
     category,
@@ -226,9 +215,8 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     hasBeenSavedOnce,
     wordCount,
   } = guideState;
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { toast } = useToast();
 
   // Focus Mode and Zoom state
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -333,25 +321,79 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         style: 'font-size: 12pt;', // Set default font size to 12pt
       },
     },
-    onUpdate: ({ editor }) => {
-      dispatch({ type: 'SET_SAVE_STATUS', payload: 'unsaved' });
+  });
+
+  // Setup autosave hook
+  const autosave = useAutosave({
+    editor,
+    saveDataFunction: () => {
+      if (!editor || !isFormValid()) return null;
       
+      const content = editor.getHTML();
+      const wordCount = editor.storage.characterCount.words();
+      const calculatedReadTime = Math.max(1, Math.round(wordCount / 200));
+
+      return {
+        title: title.trim(),
+        description: description.trim(),
+        content,
+        excerpt: description.trim() || content.substring(0, 200).replace(/<[^>]+>/g, ''),
+        category: category || 'Writing Craft',
+        readTime: calculatedReadTime,
+        difficulty: difficulty || 'Beginner',
+        author: author.trim() || 'Anonymous',
+        tags: tags.filter(tag => tag.trim()),
+        published: true,
+      };
+    },
+    mutationFunction: async (data: any) => {
+      if (currentGuideId === 'new') {
+        const response = await apiRequest('POST', '/api/guides', data);
+        return response.json();
+      } else {
+        const response = await apiRequest('PUT', `/api/guides/${currentGuideId}`, data);
+        return response.json();
+      }
+    },
+    onSuccess: (savedGuide) => {
+      // If this was a new guide, update the current guide ID
+      if (currentGuideId === 'new' && savedGuide.id) {
+        dispatch({ type: 'SET_CURRENT_GUIDE_ID', payload: savedGuide.id });
+        dispatch({ type: 'SET_HAS_BEEN_SAVED_ONCE', payload: true });
+        onGuideCreated?.(savedGuide.id);
+      }
+      
+      // Invalidate all guide-related queries (including filtered ones)
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return Array.isArray(query.queryKey) && query.queryKey[0] === '/api/guides';
+        }
+      });
+    },
+    autoSaveCondition: () => hasBeenSavedOnce && isFormValid(),
+    successMessage: 'Your guide has been saved successfully.',
+    errorMessage: 'Failed to save the guide. Please try again.',
+  });
+
+  // Set up the onUpdate handler using useEffect to avoid circular dependency
+  useEffect(() => {
+    if (!editor) return;
+    
+    const handleUpdate = ({ editor }) => {
       // Update word count
       const currentWordCount = editor.storage.characterCount.words();
       dispatch({ type: 'SET_WORD_COUNT', payload: currentWordCount });
       
-      // Debounced autosave
-      if (autosaveTimeoutRef.current) {
-        clearTimeout(autosaveTimeoutRef.current);
-      }
-      
-      autosaveTimeoutRef.current = setTimeout(() => {
-        if (hasBeenSavedOnce && isFormValid()) {
-          handleAutoSave();
-        }
-      }, 2000);
-    },
-  });
+      // Trigger autosave using the hook
+      autosave.setupAutosave();
+    };
+    
+    editor.on('update', handleUpdate);
+    
+    return () => {
+      editor.off('update', handleUpdate);
+    };
+  }, [editor, autosave]);
 
   // Load guide data into form
   useEffect(() => {
@@ -381,80 +423,8 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     }
   }, [editor]);
 
-  // Save mutation
-  const saveMutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (currentGuideId === 'new') {
-        const response = await apiRequest('POST', '/api/guides', data);
-        return response.json();
-      } else {
-        const response = await apiRequest('PUT', `/api/guides/${currentGuideId}`, data);
-        return response.json();
-      }
-    },
-    onSuccess: (savedGuide) => {
-      // If this was a new guide, update the current guide ID
-      if (currentGuideId === 'new' && savedGuide.id) {
-        dispatch({ type: 'SET_CURRENT_GUIDE_ID', payload: savedGuide.id });
-        dispatch({ type: 'SET_HAS_BEEN_SAVED_ONCE', payload: true });
-        onGuideCreated?.(savedGuide.id);
-      }
-      
-      dispatch({ type: 'SET_SAVE_STATUS', payload: 'saved' });
-      dispatch({ type: 'SET_LAST_SAVE_TIME', payload: new Date() });
-      // Invalidate all guide-related queries (including filtered ones)
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
-          return Array.isArray(query.queryKey) && query.queryKey[0] === '/api/guides';
-        }
-      });
-      toast({
-        title: 'Guide saved',
-        description: 'Your guide has been saved successfully.',
-      });
-    },
-    onError: (error: any) => {
-      console.error('Error saving guide:', error);
-      dispatch({ type: 'SET_SAVE_STATUS', payload: 'unsaved' });
-      toast({
-        title: 'Error saving guide',
-        description: 'Failed to save the guide. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
   const isFormValid = () => {
     return !!editor && !!title.trim() && !!category && !!difficulty;
-  };
-
-  const buildGuideData = () => {
-    const content = editor!.getHTML();
-    const wordCount = editor!.storage.characterCount.words();
-    const calculatedReadTime = Math.max(1, Math.round(wordCount / 200));
-
-    return {
-      title: title.trim(),
-      description: description.trim(),
-      content,
-      excerpt: description.trim() || content.substring(0, 200).replace(/<[^>]+>/g, ''),
-      category: category || 'Writing Craft',
-      readTime: calculatedReadTime,
-      difficulty: difficulty || 'Beginner',
-      author: author.trim() || 'Anonymous',
-      tags: tags.filter(tag => tag.trim()),
-      published: true,
-    };
-  };
-
-  const handleAutoSave = async () => {
-    if (!isFormValid()) {
-      return;
-    }
-    
-    dispatch({ type: 'SET_SAVE_STATUS', payload: 'saving' });
-    const guideData = buildGuideData();
-    await saveMutation.mutateAsync(guideData);
   };
 
   const handleSave = async () => {
@@ -467,9 +437,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       return;
     }
 
-    dispatch({ type: 'SET_SAVE_STATUS', payload: 'saving' });
-    const guideData = buildGuideData();
-    await saveMutation.mutateAsync(guideData);
+    await autosave.handleSave();
   };
 
   useImperativeHandle(ref, () => ({
@@ -512,19 +480,19 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {saveStatus === 'saving' && <Loader2 className="h-4 w-4 animate-spin" />}
-            {saveStatus === 'saved' && <Clock className="h-4 w-4" />}
+            {autosave.saveStatus === 'saving' && <Loader2 className="h-4 w-4 animate-spin" />}
+            {autosave.saveStatus === 'saved' && <Clock className="h-4 w-4" />}
             <span>
-              {saveStatus === 'saved' && lastSaveTime 
-                ? `Saved ${lastSaveTime.toLocaleTimeString()}`
-                : saveStatus === 'saving'
+              {autosave.saveStatus === 'saved' && autosave.lastSaveTime 
+                ? `Saved ${autosave.formatSaveTime(autosave.lastSaveTime)}`
+                : autosave.saveStatus === 'saving'
                 ? 'Saving...'
                 : 'Unsaved changes'
               }
             </span>
           </div>
           
-          <Button onClick={handleSave} disabled={saveMutation.isPending} data-testid="button-save">
+          <Button onClick={handleSave} disabled={autosave.isSaving} data-testid="button-save">
             <Save className="h-4 w-4 mr-2" />
             Save Guide
           </Button>

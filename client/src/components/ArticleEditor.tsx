@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -30,10 +30,10 @@ import {
   Save,
   Loader2,
   Clock,
+  AlertCircle,
 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useAutosave } from '@/hooks/useAutosave';
 import { useNotebookStore } from '@/stores/notebookStore';
 import { getMappingById } from '@shared/contentTypes';
 
@@ -116,12 +116,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
   onContentChange,
   onSave
 }, ref) => {
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
-  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [wordCount, setWordCount] = useState(0);
-  const [isManualSave, setIsManualSave] = useState(false);
-  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { toast } = useToast();
   const { activeNotebookId } = useNotebookStore();
 
   // Focus Mode and Zoom state
@@ -219,9 +214,32 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
         style: 'font-size: 12pt;',
       },
     },
-    onUpdate: ({ editor }) => {
-      setSaveStatus('unsaved');
-      
+  });
+
+  // Setup autosave hook
+  const autosave = useAutosave({
+    editor,
+    saveDataFunction: () => {
+      if (!editor) return '';
+      return editor.getHTML();
+    },
+    mutationFunction: async (content: string) => {
+      const url = `${apiBase}/${contentId}?notebookId=${activeNotebookId}`;
+      const response = await apiRequest('PATCH', url, { 
+        articleContent: content 
+      });
+      return response.json();
+    },
+    successMessage: 'Your article has been saved successfully.',
+    errorMessage: 'Failed to save the article. Please try again.',
+    invalidateQueries: [[apiBase, contentId, activeNotebookId]],
+  });
+
+  // Set up the onUpdate handler using useEffect to avoid circular dependency
+  useEffect(() => {
+    if (!editor) return;
+    
+    const handleUpdate = ({ editor }) => {
       // Update word count
       const currentWordCount = editor.storage.characterCount.words();
       setWordCount(currentWordCount);
@@ -230,16 +248,16 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
       const content = editor.getHTML();
       onContentChange?.(content);
       
-      // Debounced autosave
-      if (autosaveTimeoutRef.current) {
-        clearTimeout(autosaveTimeoutRef.current);
-      }
-      
-      autosaveTimeoutRef.current = setTimeout(() => {
-        handleAutoSave();
-      }, 2000);
-    },
-  });
+      // Trigger autosave using the hook
+      autosave.setupAutosave();
+    };
+    
+    editor.on('update', handleUpdate);
+    
+    return () => {
+      editor.off('update', handleUpdate);
+    };
+  }, [editor, autosave, onContentChange]);
 
   // Set initial content when editor is ready
   useEffect(() => {
@@ -256,77 +274,18 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
     }
   }, [editor]);
 
-  // Save mutation for updating articleContent
-  const saveMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const url = `${apiBase}/${contentId}?notebookId=${activeNotebookId}`;
-      const response = await apiRequest('PATCH', url, { 
-        articleContent: content 
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      setSaveStatus('saved');
-      setLastSaveTime(new Date());
-      // Invalidate the content cache using the same key as ContentEditor
-      queryClient.invalidateQueries({ 
-        queryKey: [apiBase, contentId, activeNotebookId] 
-      });
-      
-      // Only show toast for manual saves, not autosaves
-      if (isManualSave) {
-        toast({
-          title: 'Article saved',
-          description: 'Your article has been saved successfully.',
-        });
-        setIsManualSave(false); // Reset the flag
-      }
-    },
-    onError: (error: any) => {
-      console.error('Error saving article:', error);
-      setSaveStatus('unsaved');
-      
-      // Show error toast for both manual and auto saves since errors need user attention
-      toast({
-        title: 'Error saving article',
-        description: 'Failed to save the article. Please try again.',
-        variant: 'destructive',
-      });
-      
-      if (isManualSave) {
-        setIsManualSave(false); // Reset the flag
-      }
-    },
-  });
-
   const handleSave = async () => {
     if (!editor) return;
     
-    setIsManualSave(true); // Mark this as a manual save
-    setSaveStatus('saving');
+    await autosave.handleSave();
     const content = editor.getHTML();
-    await saveMutation.mutateAsync(content);
     onSave?.(content);
-  };
-
-  const handleAutoSave = async () => {
-    if (!editor || saveStatus === 'saving') return;
-    
-    // Don't set isManualSave for autosaves (keeps it false)
-    const content = editor.getHTML();
-    await saveMutation.mutateAsync(content);
   };
 
   // Expose save function via ref
   useImperativeHandle(ref, () => ({
     saveContent: handleSave,
   }));
-
-  // Format save time
-  const formatSaveTime = (date: Date | null) => {
-    if (!date) return '';
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
   if (!editor) {
     return (
@@ -350,30 +309,33 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
               
               {/* Save Status */}
               <div className="flex items-center text-sm">
-                {saveStatus === 'saving' && (
+                {autosave.saveStatus === 'saving' && (
                   <div className="flex items-center text-blue-600">
                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                     <span>Saving...</span>
                   </div>
                 )}
-                {saveStatus === 'saved' && (
+                {autosave.saveStatus === 'saved' && (
                   <div className="flex items-center text-green-600">
                     <Clock className="w-3 h-3 mr-1" />
-                    <span>Saved {formatSaveTime(lastSaveTime)}</span>
+                    <span>Saved {autosave.formatSaveTime(autosave.lastSaveTime)}</span>
                   </div>
                 )}
-                {saveStatus === 'unsaved' && (
-                  <span className="text-orange-600">Unsaved changes</span>
+                {autosave.saveStatus === 'unsaved' && (
+                  <div className="flex items-center text-orange-600">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    <span>Unsaved changes</span>
+                  </div>
                 )}
               </div>
               
               <Button 
                 onClick={handleSave}
-                disabled={saveStatus === 'saving' || saveStatus === 'saved'}
+                disabled={autosave.saveStatus === 'saving' || autosave.saveStatus === 'saved'}
                 size="sm"
                 data-testid="button-save-article"
               >
-                {saveStatus === 'saving' ? (
+                {autosave.saveStatus === 'saving' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Save className="w-4 h-4" />

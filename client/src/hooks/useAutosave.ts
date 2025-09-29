@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 import type { Editor } from '@tiptap/react';
 
 export interface UseAutosaveOptions {
@@ -72,7 +73,6 @@ export function useAutosave({
       
       // Invalidate specified queries
       if (invalidateQueries.length > 0) {
-        const { queryClient } = require('@/lib/queryClient');
         invalidateQueries.forEach(queryKey => {
           queryClient.invalidateQueries({ queryKey });
         });
@@ -117,6 +117,14 @@ export function useAutosave({
     setIsManualSave(true);
     setSaveStatus('saving');
     const data = saveDataFunction();
+    
+    // Check if saveDataFunction returned null (validation failed)
+    if (data === null) {
+      setSaveStatus('unsaved');
+      setIsManualSave(false);
+      return;
+    }
+    
     await saveMutation.mutateAsync(data);
   }, [editor, saveDataFunction, saveMutation]);
 
@@ -124,9 +132,15 @@ export function useAutosave({
   const handleAutoSave = useCallback(async () => {
     if (!editor || saveStatus === 'saving') return;
     
+    const data = saveDataFunction();
+    
+    // Check if saveDataFunction returned null (validation failed)
+    if (data === null) {
+      return; // Don't change status for failed autosave validation
+    }
+    
     // Don't set isManualSave for autosaves (keeps it false)
     setSaveStatus('saving');
-    const data = saveDataFunction();
     await saveMutation.mutateAsync(data);
   }, [editor, saveDataFunction, saveMutation, saveStatus]);
 
