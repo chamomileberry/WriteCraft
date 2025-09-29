@@ -52,6 +52,9 @@ interface WorkspaceState {
     icon?: string;
   }>;
   
+  // Mobile drawer state
+  isMobileDrawerOpen: boolean;
+  
   // Editor context for AI Writing Assistant
   editorContext: {
     content: string; // Current editor content as plain text
@@ -109,6 +112,11 @@ interface WorkspaceState {
   // Editor actions for cross-component communication
   registerEditorActions: (actions: EditorActions) => void;
   executeEditorAction: (action: string, ...args: any[]) => boolean;
+  
+  // Mobile drawer actions
+  toggleMobileDrawer: () => void;
+  openMobileDrawer: () => void;
+  closeMobileDrawer: () => void;
 }
 
 const defaultLayout: WorkspaceLayout = {
@@ -161,6 +169,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     (set, get) => ({
       currentLayout: defaultLayout,
       panelRegistry: defaultPanelRegistry,
+      isMobileDrawerOpen: false,
       editorContext: {
         content: '',
         htmlContent: '',
@@ -694,6 +703,21 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           console.warn(`Unknown editor action: ${action}`);
           return false;
         }
+      },
+
+      // Mobile drawer actions
+      toggleMobileDrawer: () => {
+        set((state) => ({
+          isMobileDrawerOpen: !state.isMobileDrawerOpen
+        }));
+      },
+
+      openMobileDrawer: () => {
+        set({ isMobileDrawerOpen: true });
+      },
+
+      closeMobileDrawer: () => {
+        set({ isMobileDrawerOpen: false });
       }
     }),
     {

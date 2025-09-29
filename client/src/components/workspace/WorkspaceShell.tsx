@@ -19,19 +19,16 @@ interface WorkspaceShellProps {
 // Mobile menu hook for external components
 export const useMobileWorkspaceMenu = () => {
   const { isMobile } = useMobileDetection();
-  const { currentLayout } = useWorkspaceStore();
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const { currentLayout, isMobileDrawerOpen, toggleMobileDrawer } = useWorkspaceStore();
   
   const dockedPanels = currentLayout.panels.filter(panel => panel.mode === 'docked' && !panel.minimized);
   const hasPanels = dockedPanels.length > 0;
-  
-  const toggleDrawer = () => setIsMobileDrawerOpen(!isMobileDrawerOpen);
   
   const MobileMenuButton = () => (
     <Button
       variant="ghost"
       size="icon"
-      onClick={toggleDrawer}
+      onClick={toggleMobileDrawer}
       className="md:hidden"
       data-testid="mobile-menu-button"
       title="Open menu"
@@ -44,18 +41,25 @@ export const useMobileWorkspaceMenu = () => {
     isMobile,
     hasPanels,
     isDrawerOpen: isMobileDrawerOpen,
-    setDrawerOpen: setIsMobileDrawerOpen,
     MobileMenuButton
   };
 };
 
 const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
-  const { currentLayout, removePanel, updatePanel, attachToTabBar, minimizePanel, isInManuscriptEditor } = useWorkspaceStore();
+  const { 
+    currentLayout, 
+    removePanel, 
+    updatePanel, 
+    attachToTabBar, 
+    minimizePanel, 
+    isInManuscriptEditor, 
+    isMobileDrawerOpen, 
+    closeMobileDrawer 
+  } = useWorkspaceStore();
   const workspaceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isMobile } = useMobileDetection();
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   
   // Store save and clear functions for quick note panels
   const quickNoteSaveFunctions = useRef<{ [panelId: string]: () => Promise<{ content: string; id: string }> }>({});
@@ -195,7 +199,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   }
                   // Close mobile drawer after action
                   if (isMobile) {
-                    setIsMobileDrawerOpen(false);
+                    closeMobileDrawer();
                   }
                 }}
                 className="h-6 w-6 p-0"
@@ -215,7 +219,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                   removePanel(panel.id);
                   // Close mobile drawer after action
                   if (isMobile) {
-                    setIsMobileDrawerOpen(false);
+                    closeMobileDrawer();
                   }
                 }}
                 className="h-6 w-6 p-0"
@@ -250,7 +254,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           {dockedPanels.length > 0 && (
             <SidebarDrawer
               isOpen={isMobileDrawerOpen}
-              onClose={() => setIsMobileDrawerOpen(false)}
+              onClose={closeMobileDrawer}
               title="Writing Tools"
             >
               {renderSidebarContent()}
