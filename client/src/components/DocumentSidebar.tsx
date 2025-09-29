@@ -82,6 +82,8 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     name: '', 
     type: 'folder' 
   });
+  const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'folder' | 'note'; parentId?: string } | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<{ id: string; type: 'folder' | 'note' } | null>(null);
   const queryClient = useQueryClient();
   const { openPanel } = useWorkspaceStore();
 
@@ -303,6 +305,91 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, id: string, itemType: 'folder' | 'note', parentId?: string) => {
+    setDraggedItem({ id, type: itemType, parentId });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', id);
+  };
+
+  const handleDragOver = (e: React.DragEvent, id: string, itemType: 'folder' | 'note') => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverItem({ id, type: itemType });
+  };
+
+  const handleDragLeave = () => {
+    setDragOverItem(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string, targetType: 'folder' | 'note', targetParentId?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!draggedItem || draggedItem.id === targetId) {
+      setDraggedItem(null);
+      setDragOverItem(null);
+      return;
+    }
+
+    // Can only reorder items of same type in same parent
+    if (draggedItem.type !== targetType || draggedItem.parentId !== targetParentId) {
+      setDraggedItem(null);
+      setDragOverItem(null);
+      return;
+    }
+
+    try {
+      // Get the list of items sorted by current sortOrder
+      const items = draggedItem.type === 'folder' 
+        ? (Array.isArray(folders) ? folders : [])
+            .filter((f: any) => f.parentId === draggedItem.parentId)
+            .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+        : (Array.isArray(notes) ? notes : [])
+            .filter((n: any) => n.folderId === draggedItem.parentId)
+            .sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+
+      const draggedIndex = items.findIndex((item: any) => item.id === draggedItem.id);
+      const targetIndex = items.findIndex((item: any) => item.id === targetId);
+
+      if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+        setDraggedItem(null);
+        setDragOverItem(null);
+        return;
+      }
+
+      // Create new order array by removing dragged item and inserting at target position
+      const reorderedItems = [...items];
+      const [draggedItemData] = reorderedItems.splice(draggedIndex, 1);
+      
+      // Adjust insert index when moving down (array shrinks after removal)
+      const insertIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+      reorderedItems.splice(insertIndex, 0, draggedItemData);
+
+      // Update all items with new sequential sort orders
+      const endpoint = draggedItem.type === 'folder' ? '/api/folders' : '/api/notes';
+      
+      // Update each item's sortOrder
+      await Promise.all(
+        reorderedItems.map((item: any, index: number) =>
+          fetch(`${endpoint}/${item.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sortOrder: index }),
+          })
+        )
+      );
+
+      // Invalidate queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId] });
+    } catch (error) {
+      console.error('Failed to reorder:', error);
+    } finally {
+      setDraggedItem(null);
+      setDragOverItem(null);
+    }
+  };
+
   const renderFolder = (folder: FolderWithNotes, level: number = 0) => {
     const isExpanded = expandedFolders.has(folder.id);
     const hasChildren = folder.children && folder.children.length > 0;
@@ -310,7 +397,17 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
     return (
       <div key={folder.id}>
-        <SidebarMenuItem>
+        <SidebarMenuItem
+          draggable
+          onDragStart={(e) => handleDragStart(e, folder.id, 'folder', folder.parentId)}
+          onDragOver={(e) => handleDragOver(e, folder.id, 'folder')}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, folder.id, 'folder', folder.parentId)}
+          className={cn(
+            "cursor-move",
+            dragOverItem?.id === folder.id && dragOverItem?.type === 'folder' && "border-t-2 border-primary"
+          )}
+        >
           <div className="flex items-center group">
             <SidebarMenuButton
               onClick={() => toggleFolder(folder.id)}
@@ -382,7 +479,18 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
             
             {/* Render notes in this folder */}
             {folder.notes?.map(note => (
-              <SidebarMenuItem key={note.id}>
+              <SidebarMenuItem 
+                key={note.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, note.id, 'note', folder.id)}
+                onDragOver={(e) => handleDragOver(e, note.id, 'note')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, note.id, 'note', folder.id)}
+                className={cn(
+                  "cursor-move",
+                  dragOverItem?.id === note.id && dragOverItem?.type === 'note' && "border-t-2 border-primary"
+                )}
+              >
                 <div className="flex items-center group">
                   <SidebarMenuButton
                     onClick={() => navigateToDocument(note.id, 'note')}
@@ -521,7 +629,18 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
                     {/* Render orphaned notes */}
                     {orphanedNotes.map((note: any) => (
-                      <SidebarMenuItem key={note.id}>
+                      <SidebarMenuItem 
+                        key={note.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, note.id, 'note', undefined)}
+                        onDragOver={(e) => handleDragOver(e, note.id, 'note')}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, note.id, 'note', undefined)}
+                        className={cn(
+                          "cursor-move",
+                          dragOverItem?.id === note.id && dragOverItem?.type === 'note' && "border-t-2 border-primary"
+                        )}
+                      >
                         <div className="flex items-center group">
                           <SidebarMenuButton
                             onClick={() => navigateToDocument(note.id, 'note')}
