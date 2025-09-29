@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNotebookStore } from "@/stores/notebookStore";
 import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,7 @@ export function AutocompleteField({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const queryClient = useQueryClient();
+  const { activeNotebookId } = useNotebookStore();
 
   // Convert value to array for consistent handling
   const currentValues = multiple 
@@ -220,6 +222,11 @@ export function AutocompleteField({
           break;
         default:
           payload = { ...payload, description: `Auto-created ${contentType}: ${name}` };
+      }
+      
+      // Add notebookId to payload - required for all content creation
+      if (activeNotebookId) {
+        payload.notebookId = activeNotebookId;
       }
       
       // Add user context header for proper scoping

@@ -35,6 +35,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useNotebookStore } from '@/stores/notebookStore';
+import { getMappingById } from '@shared/contentTypes';
 
 // Custom FontSize extension - same as GuideEditor
 declare module '@tiptap/core' {
@@ -122,6 +123,10 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { activeNotebookId } = useNotebookStore();
+  
+  // Get the correct API base for consistent cache keys with ContentEditor
+  const mapping = getMappingById(contentType);
+  const apiBase = mapping?.apiBase || `/api/${contentType}`;
 
   // Initialize TipTap editor - same configuration as GuideEditor
   const lowlight = createLowlight();
@@ -250,7 +255,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
   // Save mutation for updating articleContent
   const saveMutation = useMutation({
     mutationFn: async (content: string) => {
-      const url = `/api/${contentType}/${contentId}?notebookId=${activeNotebookId}`;
+      const url = `${apiBase}/${contentId}?notebookId=${activeNotebookId}`;
       const response = await apiRequest('PUT', url, { 
         articleContent: content 
       });
@@ -259,9 +264,9 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
     onSuccess: () => {
       setSaveStatus('saved');
       setLastSaveTime(new Date());
-      // Invalidate the content cache
+      // Invalidate the content cache using the same key as ContentEditor
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/${contentType}`, contentId, activeNotebookId] 
+        queryKey: [apiBase, contentId, activeNotebookId] 
       });
       
       // Only show toast for manual saves, not autosaves

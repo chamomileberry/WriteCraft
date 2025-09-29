@@ -8,7 +8,20 @@ const router = Router();
 router.post("/", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const validatedProfession = insertProfessionSchema.parse({ ...req.body, userId });
+    
+    // Extract notebookId from request body - it's required for professions
+    const { notebookId, ...professionData } = req.body;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId is required' });
+    }
+    
+    const validatedProfession = insertProfessionSchema.parse({ 
+      ...professionData, 
+      userId, 
+      notebookId 
+    });
+    
     const savedProfession = await storage.createProfession(validatedProfession);
     res.json(savedProfession);
   } catch (error) {
