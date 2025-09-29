@@ -304,34 +304,36 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarContent className="pt-2">
+      <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2 px-3 py-2">
+          <SidebarGroupLabel className="flex items-center gap-2">
             {normalizedType === 'manuscript' ? <BookOpen className="h-4 w-4" /> : <Library className="h-4 w-4" />}
             {normalizedType === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
-            <div className="ml-auto flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={createNewFolder}
-                className="h-6 w-6"
-                data-testid="add-folder"
-                title={`Add ${normalizedType === 'manuscript' ? 'Chapter' : 'Category'}`}
-              >
-                <Folder className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => createNewNote()}
-                className="h-6 w-6"
-                data-testid="add-note"
-                title={`Add ${normalizedType === 'manuscript' ? 'Scene' : 'Guide'}`}
-              >
-                <FileText className="h-4 w-4" />
-              </Button>
-            </div>
           </SidebarGroupLabel>
+          
+          {/* Action buttons - visible and accessible */}
+          <div className="flex items-center gap-2 px-3 py-2 border-b">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={createNewFolder}
+              className="flex-1"
+              data-testid="add-folder"
+            >
+              <Folder className="h-4 w-4 mr-2" />
+              {normalizedType === 'manuscript' ? 'Chapter' : 'Category'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => createNewNote()}
+              className="flex-1"
+              data-testid="add-note"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              {normalizedType === 'manuscript' ? 'Scene' : 'Guide'}
+            </Button>
+          </div>
           
           <SidebarGroupContent>
             <ScrollArea className="h-[calc(100vh-200px)]">
