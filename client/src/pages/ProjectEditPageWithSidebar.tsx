@@ -61,7 +61,7 @@ export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWi
         onCreateNew={handleCreateNew}
       />
       
-      <SidebarProvider style={style as React.CSSProperties}>
+      <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
         <div className="flex h-[calc(100vh-4rem)] w-full">
           {/* Document Tree Sidebar */}
           <DocumentSidebar 
