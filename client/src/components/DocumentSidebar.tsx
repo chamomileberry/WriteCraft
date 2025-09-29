@@ -70,11 +70,11 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   // Fetch folders for the specific document
   const { data: folders = [], isLoading: foldersLoading } = useQuery({
-    queryKey: ['/api/folders', userId, normalizedType, currentDocumentId],
+    queryKey: ['/api/folders', userId, type, currentDocumentId],
     queryFn: () => {
       if (currentDocumentId) {
-        // Use document-specific endpoint for manuscript or guide folders
-        const param = normalizedType === 'manuscript' ? 'manuscriptId' : 'guideId';
+        // Use document-specific endpoint for project, manuscript, or guide folders
+        const param = type === 'project' ? 'projectId' : normalizedType === 'manuscript' ? 'manuscriptId' : 'guideId';
         return fetch(`/api/folders?userId=${userId}&${param}=${currentDocumentId}`).then(res => res.json());
       } else {
         // Fallback to type-based folders (for backwards compatibility)
@@ -87,7 +87,10 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   // Fetch notes for the document type and specific document
   const { data: notes = [], isLoading: notesLoading } = useQuery({
     queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId],
-    queryFn: () => fetch(`/api/notes?userId=${userId}&type=${normalizedType}_note&documentId=${currentDocumentId}`).then(res => res.json()),
+    queryFn: () => {
+      const docParam = type === 'project' ? 'projectId' : 'documentId';
+      return fetch(`/api/notes?userId=${userId}&type=${normalizedType}_note&${docParam}=${currentDocumentId}`).then(res => res.json());
+    },
     enabled: !!userId && !!currentDocumentId,
   });
 
@@ -163,7 +166,8 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
         userId: userId,
         sortOrder: folders.length,
         // Link the folder to the specific document
-        ...(normalizedType === 'manuscript' && currentDocumentId ? { manuscriptId: currentDocumentId } : {}),
+        ...(type === 'project' && currentDocumentId ? { projectId: currentDocumentId } : {}),
+        ...(normalizedType === 'manuscript' && type !== 'project' && currentDocumentId ? { manuscriptId: currentDocumentId } : {}),
         ...(normalizedType === 'guide' && currentDocumentId ? { guideId: currentDocumentId } : {}),
       };
       
@@ -175,7 +179,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       
       if (response.ok) {
         // Invalidate queries to refresh folder list without hard reload
-        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, normalizedType, currentDocumentId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
         queryClient.invalidateQueries({ queryKey: ['/api/folders', userId] });
       }
     } catch (error) {
@@ -190,7 +194,8 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
         content: '',
         type: `${normalizedType}_note`,
         folderId: folderId || null,
-        manuscriptId: normalizedType === 'manuscript' ? currentDocumentId : null,
+        projectId: type === 'project' ? currentDocumentId : null,
+        manuscriptId: normalizedType === 'manuscript' && type !== 'project' ? currentDocumentId : null,
         guideId: normalizedType === 'guide' ? currentDocumentId : null,
         userId: userId,
         sortOrder: notes.filter((n: { folderId?: string }) => n.folderId === folderId).length,
@@ -206,7 +211,10 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
         const createdNote = await response.json();
         // Invalidate queries to refresh notes list so new item appears immediately
         queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`] });
-        navigateToDocument(createdNote.id, 'note');
+        // Only navigate away for guides, for projects/manuscripts stay on the current page
+        if (type !== 'project') {
+          navigateToDocument(createdNote.id, 'note');
+        }
       }
     } catch (error) {
       console.error('Failed to create note:', error);
