@@ -12,6 +12,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMobileDetection } from '@/hooks/useMobileDetection';
 import { SidebarDrawer } from '@/components/ui/sidebar-drawer';
+import { FloatingLayer } from './FloatingLayer';
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
@@ -252,12 +253,12 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   );
 
   return (
-    <div ref={workspaceRef} className="relative w-full h-screen bg-background">
+    <div ref={workspaceRef} className="relative w-full min-h-screen bg-background">
       {isMobile ? (
         /* Mobile Layout - Full screen with drawer */
         <>
           {/* Full-width main content for mobile */}
-          <div className="w-full h-screen">
+          <div className="w-full min-h-screen">
             {children}
           </div>
           
@@ -274,9 +275,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </>
       ) : (
         /* Desktop Layout - Side-by-side */
-        <div className="flex w-full h-screen">
+        <div className="flex w-full min-h-screen">
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0 h-full">
+          <div className="flex-1 min-w-0">
             {children}
           </div>
           
@@ -292,8 +293,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </div>
       )}
 
-      {/* Floating Panels are now exclusively rendered by FloatingLayer in WorkspaceLayout */}
-      {/* Floating panel rendering code has been removed to prevent duplicate windows */}
+      {/* Floating Layer - renders globally for ALL pages */}
+      <FloatingLayer />
     </div>
   );
 };
