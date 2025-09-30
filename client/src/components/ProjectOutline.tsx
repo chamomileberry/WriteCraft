@@ -46,8 +46,25 @@ export function ProjectOutline({
       const response = await apiRequest('POST', `/api/projects/${projectId}/sections`, data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newSection, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+      
+      // If a page was created inside a folder, expand that folder and select the new page
+      if (variables.parentId) {
+        setExpandedIds(prev => {
+          const next = new Set(prev);
+          next.add(variables.parentId!);
+          return next;
+        });
+      }
+      
+      // If a page was created, select it after sections refresh
+      if (variables.type === 'page' && newSection) {
+        // Wait for query invalidation to complete, then select the new page
+        setTimeout(() => {
+          onSectionClick(newSection as ProjectSectionWithChildren);
+        }, 100);
+      }
     },
   });
 
