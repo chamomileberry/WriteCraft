@@ -381,40 +381,75 @@ export function ProjectOutline({
       return;
     }
 
-    // Get flat list for easier manipulation
+    // Find source and target in the full tree
     const flatList = flattenTree(sections);
-    const oldIndex = flatList.findIndex(f => f.section.id === active.id);
-    const newIndex = flatList.findIndex(f => f.section.id === over.id);
+    const sourceItem = flatList.find(f => f.section.id === active.id);
+    const targetItem = flatList.find(f => f.section.id === over.id);
 
-    if (oldIndex === -1 || newIndex === -1) {
+    if (!sourceItem || !targetItem) {
       return;
     }
 
-    // Create new order
-    const reordered = [...flatList];
-    const [movedItem] = reordered.splice(oldIndex, 1);
-    reordered.splice(newIndex, 0, movedItem);
-
-    // Determine new parent based on drop position
-    let newParentId: string | null = null;
+    // Determine new parent and position
+    let newParentId: string | null;
     
-    // If dropping on a folder, make it a child
-    const targetSection = flatList[newIndex].section;
-    if (targetSection.type === 'folder' && targetSection.id !== movedItem.section.id) {
-      newParentId = targetSection.id;
+    // If dropping onto a folder, make it the first child of that folder
+    if (targetItem.section.type === 'folder') {
+      newParentId = targetItem.section.id;
       // Auto-expand the folder
-      setExpandedIds(prev => new Set(prev).add(targetSection.id));
+      setExpandedIds(prev => new Set(prev).add(targetItem.section.id));
     } else {
-      // Otherwise, use the same parent as the target
-      newParentId = flatList[newIndex].parentId;
+      // If dropping onto a page, use the same parent as the target
+      newParentId = targetItem.parentId;
     }
 
-    // Build reorder payload
-    const reorders = reordered.map((item, index) => ({
-      id: item.section.id,
-      parentId: item.section.id === movedItem.section.id ? newParentId : item.parentId,
-      position: index,
-    }));
+    // Get all siblings at the new location (items with same parent)
+    const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
+    
+    // Find the target's position among its siblings
+    let newPosition = 0;
+    if (targetItem.section.type === 'folder' && newParentId === targetItem.section.id) {
+      // Dropping into folder - make it first child
+      newPosition = 0;
+    } else {
+      // Dropping near a sibling - find position relative to target
+      const targetIndex = siblings.findIndex(f => f.section.id === targetItem.section.id);
+      newPosition = targetIndex >= 0 ? targetIndex + 1 : siblings.length;
+    }
+
+    // Build the reorder payload - only update items at the new parent level
+    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
+    
+    // Insert moved item at new position
+    siblings.splice(newPosition, 0, sourceItem);
+    
+    // Update positions for all siblings in the new parent
+    siblings.forEach((item, index) => {
+      reorders.push({
+        id: item.section.id,
+        parentId: newParentId,
+        position: index,
+      });
+    });
+
+    // If the source was from a different parent, also reorder the old parent's children
+    if (sourceItem.parentId !== newParentId) {
+      const oldSiblings = flatList.filter(f => 
+        f.parentId === sourceItem.parentId && 
+        f.section.id !== sourceItem.section.id
+      );
+      
+      oldSiblings.forEach((item, index) => {
+        // Only update if not already in reorders
+        if (!reorders.find(r => r.id === item.section.id)) {
+          reorders.push({
+            id: item.section.id,
+            parentId: sourceItem.parentId,
+            position: index,
+          });
+        }
+      });
+    }
 
     reorderMutation.mutate(reorders);
   };
