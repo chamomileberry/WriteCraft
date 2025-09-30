@@ -232,7 +232,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     // Use a stable identifier: JSON stringify the item IDs to detect actual changes
   }, [JSON.stringify(allItems.map(item => item.id || item.itemId)), activeNotebookId]);
 
-  // Unsave mutation
+  // Unsave mutation with optimistic updates
   const unsaveMutation = useMutation({
     mutationFn: async (item: SavedItem) => {
       // Include notebookId to prevent cross-notebook deletions
@@ -245,20 +245,41 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       const response = await apiRequest('DELETE', '/api/saved-items', body);
       return response.json();
     },
+    onMutate: async (deletedItem) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/saved-items', 'demo-user', activeNotebookId] });
+
+      // Snapshot the previous value
+      const previousItems = queryClient.getQueryData(['/api/saved-items', 'demo-user', activeNotebookId]);
+
+      // Optimistically update to remove the item
+      queryClient.setQueryData(['/api/saved-items', 'demo-user', activeNotebookId], (old: SavedItem[] = []) => {
+        return old.filter(item => item.id !== deletedItem.id);
+      });
+
+      // Return context with the previous value
+      return { previousItems };
+    },
     onSuccess: () => {
       toast({
         title: "Item removed",
         description: "Item has been removed from your notebook.",
       });
-      // Invalidate all saved-items queries for this user (covers all notebooks)
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
     },
-    onError: () => {
+    onError: (error, deletedItem, context) => {
+      // Rollback to previous value on error
+      if (context?.previousItems) {
+        queryClient.setQueryData(['/api/saved-items', 'demo-user', activeNotebookId], context.previousItems);
+      }
       toast({
         title: "Error",
         description: "Failed to remove item.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we're in sync
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
     },
   });
 
