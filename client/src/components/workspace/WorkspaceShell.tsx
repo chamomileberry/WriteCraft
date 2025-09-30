@@ -82,6 +82,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           <CharacterDetailPanel
             characterId={panel.entityId!}
             panelId={panel.id}
+            notebookId={panel.notebookId}
           />
         );
       case 'quickNote':

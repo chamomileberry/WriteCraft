@@ -52,7 +52,7 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
   const renderPanelContent = () => {
     switch (panel.type) {
       case 'characterDetail':
-        return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} />;
+        return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} notebookId={panel.notebookId} />;
       case 'quickNote':
         return <QuickNotePanel panelId={panel.id} />;
       // Add other panel types here as needed

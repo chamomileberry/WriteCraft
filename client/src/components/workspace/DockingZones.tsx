@@ -24,6 +24,7 @@ export const DockingZone = ({ slot, className = '' }: DockingZoneProps) => {
           <CharacterDetailPanel
             characterId={panel.entityId!}
             panelId={panel.id}
+            notebookId={panel.notebookId}
             isCompact={true}
           />
         );

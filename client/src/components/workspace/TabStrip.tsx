@@ -138,6 +138,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
     const itemType = item.type;
     const itemId = item.id;
     const itemTitle = item.title;
+    const itemNotebookId = item.notebookId;  // Extract notebookId from search result
     
     // Create new panel based on content type
     if (itemType === 'character') {
@@ -146,6 +147,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
         type: 'characterDetail',
         title: itemTitle || 'Character Details',
         entityId: itemId,
+        notebookId: itemNotebookId,  // Pass notebookId to panel
         mode: 'tabbed',
         regionId: regionId
       });

@@ -21,6 +21,7 @@ import type { Character } from '@shared/schema';
 interface CharacterDetailPanelProps {
   characterId: string;
   panelId: string;
+  notebookId?: string;  // Pass notebookId from panel data
   onClose?: () => void;
   isCompact?: boolean;
 }
@@ -69,22 +70,21 @@ function isUUID(str: string): boolean {
   return uuidRegex.test(str);
 }
 
-const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false }: CharacterDetailPanelProps) => {
+const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCompact = false }: CharacterDetailPanelProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const removePanel = useWorkspaceStore(state => state.removePanel);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const { data: character, isLoading, error } = useQuery<Character>({
-    queryKey: ['/api/characters', characterId],
+    queryKey: ['/api/characters', characterId, notebookId],
     queryFn: async () => {
-      // Use a default notebook ID for now - ideally this would come from context
-      // Characters don't have a notebookId in their ID, so we need to pass one
-      const defaultNotebookId = 'main-notebook'; // This should match what's used in character creation
-      const response = await apiRequest('GET', `/api/characters/${characterId}?notebookId=${defaultNotebookId}`);
+      // Use notebookId from panel data, or fall back to default
+      const nbId = notebookId || 'main-notebook';
+      const response = await apiRequest('GET', `/api/characters/${characterId}?notebookId=${nbId}`);
       return response.json();
     },
-    enabled: !!characterId
+    enabled: !!characterId && !!notebookId
   });
 
   // Query to resolve profession UUID to name if occupation contains a UUID
@@ -219,8 +219,9 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
         workHistory: data.workHistory || null,
       };
       
-      const defaultNotebookId = 'main-notebook';
-      return apiRequest('PATCH', `/api/characters/${characterId}?notebookId=${defaultNotebookId}`, updateData);
+      // Use notebookId from panel data, or fall back to default
+      const nbId = notebookId || 'main-notebook';
+      return apiRequest('PATCH', `/api/characters/${characterId}?notebookId=${nbId}`, updateData);
     },
     onSuccess: () => {
       toast({ title: 'Character updated successfully' });

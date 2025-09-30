@@ -15,6 +15,7 @@ export interface PanelDescriptor {
   type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript' | 'quickNote' | 'writingAssistant';
   title: string;
   entityId?: string;
+  notebookId?: string;  // For characters and other notebook-scoped entities
   data?: any;
   // Tab system
   mode: 'tabbed' | 'floating' | 'split' | 'docked';

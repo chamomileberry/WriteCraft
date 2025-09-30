@@ -50,7 +50,7 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
 
     switch (panel.type) {
       case 'characterDetail':
-        return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} />;
+        return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} notebookId={panel.notebookId} />;
       case 'manuscript':
       case 'manuscriptOutline':
         // Manuscript content should not be rendered as tabs - they are filtered out in TabStrip

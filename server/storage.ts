@@ -3085,7 +3085,8 @@ export class DatabaseStorage implements IStorage {
           title: fullName,
           type: 'character',
           subtitle: professionName,
-          description: character.backstory?.substring(0, 100) + '...' || 'No description available'
+          description: character.backstory?.substring(0, 100) + '...' || 'No description available',
+          notebookId: character.notebookId  // Include notebookId for character panels
         });
       }
 
