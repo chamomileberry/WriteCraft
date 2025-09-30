@@ -197,7 +197,7 @@ export const characters = pgTable("characters", {
   investments: text("investments"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -269,7 +269,7 @@ export const settings = pgTable("settings", {
   settingType: text("setting_type"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -299,7 +299,7 @@ export const conflicts = pgTable("conflicts", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -317,7 +317,7 @@ export const themes = pgTable("themes", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -370,7 +370,7 @@ export const plants = pgTable("plants", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -407,7 +407,7 @@ export const locations = pgTable("locations", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -430,7 +430,7 @@ export const items = pgTable("items", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -455,7 +455,7 @@ export const organizations = pgTable("organizations", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -479,7 +479,7 @@ export const species = pgTable("species", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -502,7 +502,7 @@ export const ethnicities = pgTable("ethnicities", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -527,7 +527,7 @@ export const cultures = pgTable("cultures", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -550,7 +550,7 @@ export const documents = pgTable("documents", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -574,7 +574,7 @@ export const foods = pgTable("foods", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -598,7 +598,7 @@ export const drinks = pgTable("drinks", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -621,7 +621,7 @@ export const weapons = pgTable("weapons", {
   requirements: text("requirements"),
   maintenance: text("maintenance"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -644,7 +644,7 @@ export const armor = pgTable("armor", {
   value: text("value"),
   maintenance: text("maintenance"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -667,7 +667,7 @@ export const religions = pgTable("religions", {
   afterlife: text("afterlife"),
   influence: text("influence"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -690,7 +690,7 @@ export const languages = pgTable("languages", {
   difficulty: text("difficulty"),
   status: text("status"), // living, dead, constructed, etc.
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -710,7 +710,7 @@ export const accessories = pgTable("accessories", {
   appearance: text("appearance"),
   functionality: text("functionality"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -731,7 +731,7 @@ export const clothing = pgTable("clothing", {
   cost: text("cost"),
   durability: text("durability"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -752,7 +752,7 @@ export const materials = pgTable("materials", {
   appearance: text("appearance"),
   weight: text("weight"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -776,7 +776,7 @@ export const settlements = pgTable("settlements", {
   landmarks: text("landmarks").array(),
   districts: text("districts").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -800,7 +800,7 @@ export const societies = pgTable("societies", {
   arts: text("arts"),
   history: text("history"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -824,7 +824,7 @@ export const factions = pgTable("factions", {
   history: text("history"),
   secrets: text("secrets"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -847,7 +847,7 @@ export const militaryUnits = pgTable("military_units", {
   battleRecord: text("battle_record"),
   currentStatus: text("current_status"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -868,7 +868,7 @@ export const myths = pgTable("myths", {
   modernRelevance: text("modern_relevance"),
   relatedMyths: text("related_myths").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -889,7 +889,7 @@ export const legends = pgTable("legends", {
   culturalImpact: text("cultural_impact"),
   modernAdaptations: text("modern_adaptations").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -912,7 +912,7 @@ export const events = pgTable("events", {
   conflictingAccounts: text("conflicting_accounts"),
   legacy: text("legacy"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -934,7 +934,7 @@ export const technologies = pgTable("technologies", {
   risks: text("risks"),
   evolution: text("evolution"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -957,7 +957,7 @@ export const spells = pgTable("spells", {
   variations: text("variations").array(),
   risks: text("risks"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -981,7 +981,7 @@ export const resources = pgTable("resources", {
   controlledBy: text("controlled_by"),
   conflicts: text("conflicts"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1004,7 +1004,7 @@ export const buildings = pgTable("buildings", {
   significance: text("significance"),
   secrets: text("secrets"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1027,7 +1027,7 @@ export const animals = pgTable("animals", {
   culturalRole: text("cultural_role"),
   threats: text("threats"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1050,7 +1050,7 @@ export const transportation = pgTable("transportation", {
   disadvantages: text("disadvantages").array(),
   culturalSignificance: text("cultural_significance"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1072,7 +1072,7 @@ export const naturalLaws = pgTable("natural_laws", {
   controversies: text("controversies"),
   evidence: text("evidence"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1095,7 +1095,7 @@ export const traditions = pgTable("traditions", {
   variations: text("variations").array(),
   relatedTraditions: text("related_traditions").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1118,7 +1118,7 @@ export const rituals = pgTable("rituals", {
   risks: text("risks"),
   variations: text("variations").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1141,7 +1141,7 @@ export const familyTrees = pgTable("family_trees", {
   ancestralHome: text("ancestral_home"),
   currentStatus: text("current_status"), // thriving, declining, extinct, etc.
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1165,7 +1165,7 @@ export const timelines = pgTable("timelines", {
   technologicalAdvances: text("technological_advances").array(),
   scope: text("scope"), // global, regional, local, personal, etc.
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1194,7 +1194,7 @@ export const ceremonies = pgTable("ceremonies", {
   restrictions: text("restrictions").array(),
   variations: text("variations"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1220,7 +1220,7 @@ export const maps = pgTable("maps", {
   accuracy: text("accuracy"), // precise, rough, outdated, etc.
   legends: text("legends").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1274,7 +1274,7 @@ export const dances = pgTable("dances", {
   variations: text("variations").array(),
   teachingMethods: text("teaching_methods"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1300,7 +1300,7 @@ export const laws = pgTable("laws", {
   historicalContext: text("historical_context"),
   effectiveness: text("effectiveness"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1327,7 +1327,7 @@ export const policies = pgTable("policies", {
   relatedPolicies: text("related_policies").array(),
   effectiveness: text("effectiveness"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1359,7 +1359,7 @@ export const potions = pgTable("potions", {
   creator: text("creator"),
   legality: text("legality"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1388,7 +1388,7 @@ export const professions = pgTable("professions", {
   historicalContext: text("historical_context"),
   culturalSignificance: text("cultural_significance"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -1400,7 +1400,7 @@ export const savedItems = pgTable("saved_items", {
   itemType: text("item_type").notNull(), // 'character', 'location', 'item', 'organization', etc.
   itemId: varchar("item_id").notNull(),
   itemData: jsonb("item_data"), // Stores the actual item content (character names, profession details, etc.)
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
@@ -1469,6 +1469,22 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   searchIdx: index("project_search_idx").using("gin", table.searchVector),
+}));
+
+// Project Sections - Hierarchical structure for projects (folders and pages)
+export const projectSections = pgTable("project_sections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  parentId: varchar("parent_id"), // Self-reference handled at database level
+  title: text("title").notNull(),
+  content: text("content"), // HTML content for pages
+  type: text("type").notNull(), // 'folder' or 'page'
+  position: integer("position").notNull(), // For ordering within parent
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  projectIdx: index("idx_project_sections_project").on(table.projectId),
+  parentIdx: index("idx_project_sections_parent").on(table.parentId),
 }));
 
 // Project Links - Bidirectional links between projects and content
@@ -2585,6 +2601,12 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   updatedAt: true,
 });
 
+export const insertProjectSectionSchema = createInsertSchema(projectSections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertFolderSchema = createInsertSchema(folders).omit({
   id: true,
   createdAt: true,
@@ -2647,6 +2669,8 @@ export type InsertSavedItem = z.infer<typeof insertSavedItemSchema>;
 export type SavedItem = typeof savedItems.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
+export type InsertProjectSection = z.infer<typeof insertProjectSectionSchema>;
+export type ProjectSection = typeof projectSections.$inferSelect;
 export type InsertFolder = z.infer<typeof insertFolderSchema>;
 export type Folder = typeof folders.$inferSelect;
 export type InsertNote = z.infer<typeof insertNoteSchema>;
