@@ -2,6 +2,7 @@ import { DragEvent } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { TabStrip } from './TabStrip';
+import { FloatingLayer } from './FloatingLayer';
 import CharacterDetailPanel from './CharacterDetailPanel';
 import { ContentDetailPanel } from './ContentDetailPanel';
 import { cn } from '@/lib/utils';
@@ -192,6 +193,9 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
           </div>
         </div>
       )}
+
+      {/* Floating windows layer */}
+      <FloatingLayer />
     </div>
   );
 }
