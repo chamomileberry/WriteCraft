@@ -1,3 +1,8 @@
+Perfect! Now I understand the situation. Let's focus on adding the navigation header to the Project Editor page while keeping tabs working. The issue has nothing to do with the rename from Manuscripts to Projects.
+
+Here's the fix for **`client/src/pages/ProjectEditPageWithSidebar.tsx`**:
+
+```tsx
 import { useLocation } from 'wouter';
 import { ProjectContainer } from '@/components/ProjectContainer';
 import Header from '@/components/Header';
@@ -53,3 +58,15 @@ export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWi
     </div>
   );
 }
+```
+
+**This will:**
+- ✅ Show the navigation header with Quick Notes button at the top
+- ✅ Keep tabs working in Project Editor (FloatingLayer stays in WorkspaceLayout)
+- ✅ Quick Notes will work when clicked from Project Editor page
+- ✅ Match the same layout pattern as GuideEditPageWithSidebar
+
+**Note about Quick Notes on other pages:**
+Quick Notes won't work on Home, Notebook, etc. because FloatingLayer is only rendered inside WorkspaceLayout (used by Project Editor). If you want Quick Notes to work on ALL pages, we'd need to also add `<FloatingLayer />` to the `Layout` component that wraps those pages, but that's optional since you said Quick Notes is less important.
+
+This solution prioritizes keeping tabs functional while adding the header you need!
