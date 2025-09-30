@@ -499,7 +499,7 @@ export interface IStorage {
   getProjectSections(projectId: string): Promise<ProjectSection[]>;
   updateProjectSection(id: string, projectId: string, updates: Partial<InsertProjectSection>): Promise<ProjectSection>;
   deleteProjectSection(id: string, projectId: string): Promise<void>;
-  reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number }[]): Promise<void>;
+  reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number; parentId?: string | null }[]): Promise<void>;
   
   // Universal search method
   searchAllContent(userId: string, query: string): Promise<any[]>;
@@ -2999,12 +2999,19 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  async reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number }[]): Promise<void> {
-    // Update positions for each section
-    for (const { id, position } of sectionOrders) {
+  async reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number; parentId?: string | null }[]): Promise<void> {
+    // Update positions (and optionally parentId) for each section
+    for (const { id, position, parentId } of sectionOrders) {
+      const updates: any = { position, updatedAt: new Date() };
+      
+      // Only update parentId if it's explicitly provided
+      if (parentId !== undefined) {
+        updates.parentId = parentId;
+      }
+      
       await db
         .update(projectSections)
-        .set({ position, updatedAt: new Date() })
+        .set(updates)
         .where(and(
           eq(projectSections.id, id),
           eq(projectSections.projectId, projectId)

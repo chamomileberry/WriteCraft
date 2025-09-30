@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import type { ProjectSectionWithChildren } from '@shared/schema';
+import type { ProjectSection } from '@/types/project';
 import {
   DndContext,
   closestCenter,
@@ -45,20 +45,19 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface ProjectOutlineProps {
   projectId: string;
-  sections: ProjectSectionWithChildren[];
+  sections: ProjectSection[];
   activeSectionId: string | null;
-  onSectionClick: (section: ProjectSectionWithChildren) => void;
-  onClose?: () => void;
+  onSectionClick: (section: ProjectSection) => void;
 }
 
 interface FlatSection {
-  section: ProjectSectionWithChildren;
+  section: ProjectSection;
   depth: number;
   parentId: string | null;
 }
 
 // Flatten tree for drag-and-drop
-function flattenTree(sections: ProjectSectionWithChildren[], depth = 0, parentId: string | null = null): FlatSection[] {
+function flattenTree(sections: ProjectSection[], depth = 0, parentId: string | null = null): FlatSection[] {
   const result: FlatSection[] = [];
   
   for (const section of sections) {
@@ -70,6 +69,34 @@ function flattenTree(sections: ProjectSectionWithChildren[], depth = 0, parentId
   }
   
   return result;
+}
+
+// Rebuild tree from flat list
+function buildTreeFromFlat(flatSections: FlatSection[]): ProjectSection[] {
+  const map = new Map<string, ProjectSection>();
+  const roots: ProjectSection[] = [];
+  
+  // First pass: create nodes
+  flatSections.forEach(({ section }) => {
+    map.set(section.id, { ...section, children: [] });
+  });
+  
+  // Second pass: build tree
+  flatSections.forEach(({ section, parentId }) => {
+    const node = map.get(section.id)!;
+    if (parentId) {
+      const parent = map.get(parentId);
+      if (parent) {
+        parent.children!.push(node);
+      } else {
+        roots.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+  
+  return roots;
 }
 
 interface SortableItemProps {
@@ -121,11 +148,13 @@ function SortableItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const hasChildren = section.children && section.children.length > 0;
+
   return (
     <div ref={setNodeRef} style={style}>
       <div
         className={cn(
-          'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors',
+          'group flex items-center gap-1 py-1.5 px-2 rounded-md hover:bg-accent cursor-pointer transition-colors',
           isActive && 'bg-accent',
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
@@ -135,7 +164,6 @@ function SortableItem({
           className="p-0.5 cursor-grab active:cursor-grabbing hover:bg-accent-foreground/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
           {...attributes}
           {...listeners}
-          data-testid={`button-drag-${section.id}`}
         >
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </button>
@@ -148,7 +176,6 @@ function SortableItem({
               onToggleExpanded();
             }}
             className="p-0.5 hover:bg-accent-foreground/10 rounded"
-            data-testid={`button-toggle-${section.id}`}
           >
             {isExpanded ? (
               <ChevronDown className="h-4 w-4" />
@@ -184,13 +211,11 @@ function SortableItem({
             className="h-6 text-sm flex-1"
             autoFocus
             onClick={(e) => e.stopPropagation()}
-            data-testid={`input-edit-section-${section.id}`}
           />
         ) : (
           <span
             onClick={onSectionClick}
             className="flex-1 text-sm truncate"
-            data-testid={`text-section-${section.id}`}
           >
             {section.title}
           </span>
@@ -204,23 +229,22 @@ function SortableItem({
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                data-testid={`button-section-menu-${section.id}`}
               >
                 <MoreHorizontal className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onStartEdit} data-testid={`button-rename-${section.id}`}>
+              <DropdownMenuItem onClick={onStartEdit}>
                 <Edit2 className="h-4 w-4 mr-2" />
                 Rename
               </DropdownMenuItem>
               {section.type === 'folder' && (
                 <>
-                  <DropdownMenuItem onClick={onCreateFolder} data-testid={`button-add-subfolder-${section.id}`}>
+                  <DropdownMenuItem onClick={onCreateFolder}>
                     <Folder className="h-4 w-4 mr-2" />
                     Add Subfolder
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onCreatePage} data-testid={`button-add-page-${section.id}`}>
+                  <DropdownMenuItem onClick={onCreatePage}>
                     <FileText className="h-4 w-4 mr-2" />
                     Add Page
                   </DropdownMenuItem>
@@ -229,7 +253,6 @@ function SortableItem({
               <DropdownMenuItem
                 onClick={onDelete}
                 className="text-destructive"
-                data-testid={`button-delete-${section.id}`}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -246,8 +269,7 @@ export function ProjectOutline({
   projectId, 
   sections, 
   activeSectionId, 
-  onSectionClick,
-  onClose
+  onSectionClick 
 }: ProjectOutlineProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -263,29 +285,12 @@ export function ProjectOutline({
   );
 
   const createMutation = useMutation({
-    mutationFn: async (data: { parentId: string | null; title: string; type: 'folder' | 'page'; position: number }) => {
+    mutationFn: async (data: { parentId: string | null; title: string; type: 'folder' | 'page' }) => {
       const response = await apiRequest('POST', `/api/projects/${projectId}/sections`, data);
       return response.json();
     },
-    onSuccess: (newSection, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
-      
-      // If a page was created inside a folder, expand that folder and select the new page
-      if (variables.parentId) {
-        setExpandedIds(prev => {
-          const next = new Set(prev);
-          next.add(variables.parentId!);
-          return next;
-        });
-      }
-      
-      // If a page was created, select it after sections refresh
-      if (variables.type === 'page' && newSection) {
-        // Wait for query invalidation to complete, then select the new page
-        setTimeout(() => {
-          onSectionClick(newSection as ProjectSectionWithChildren);
-        }, 100);
-      }
     },
   });
 
@@ -313,9 +318,7 @@ export function ProjectOutline({
 
   const reorderMutation = useMutation({
     mutationFn: async (reorders: Array<{ id: string; parentId: string | null; position: number }>) => {
-      const response = await apiRequest('POST', `/api/projects/${projectId}/sections/reorder`, {
-        sectionOrders: reorders
-      });
+      const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/reorder`, reorders);
       return response.json();
     },
     onSuccess: () => {
@@ -336,16 +339,16 @@ export function ProjectOutline({
   };
 
   const handleCreateFolder = (parentId: string | null = null) => {
-    const title = 'New Folder';
-    createMutation.mutate({ parentId, title, type: 'folder', position: 0 });
+    const title = 'New Chapter';
+    createMutation.mutate({ parentId, title, type: 'folder' });
   };
 
   const handleCreatePage = (parentId: string | null = null) => {
-    const title = 'New Page';
-    createMutation.mutate({ parentId, title, type: 'page', position: 0 });
+    const title = 'New Scene';
+    createMutation.mutate({ parentId, title, type: 'page' });
   };
 
-  const handleStartEdit = (section: ProjectSectionWithChildren) => {
+  const handleStartEdit = (section: ProjectSection) => {
     setEditingId(section.id);
     setEditingTitle(section.title);
   };
@@ -420,7 +423,7 @@ export function ProjectOutline({
   };
 
   // Filter sections based on expanded state for rendering
-  const getVisibleSections = (sectionList: ProjectSectionWithChildren[], depth = 0, parentId: string | null = null): FlatSection[] => {
+  const getVisibleSections = (sectionList: ProjectSection[], depth = 0, parentId: string | null = null): FlatSection[] => {
     const result: FlatSection[] = [];
     
     for (const section of sectionList) {
@@ -449,7 +452,6 @@ export function ProjectOutline({
             size="sm"
             variant="outline"
             onClick={() => handleCreateFolder(null)}
-            data-testid="button-create-folder-empty"
           >
             <Folder className="h-4 w-4 mr-2" />
             New Folder
@@ -458,7 +460,6 @@ export function ProjectOutline({
             size="sm"
             variant="outline"
             onClick={() => handleCreatePage(null)}
-            data-testid="button-create-page-empty"
           >
             <FileText className="h-4 w-4 mr-2" />
             New Page
@@ -472,34 +473,20 @@ export function ProjectOutline({
     <div className="flex flex-col h-full">
       {/* Header with add buttons */}
       <div className="flex items-center justify-between p-2 border-b">
-        <div className="flex items-center gap-2">
-          {onClose && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 p-0"
-              onClick={onClose}
-              data-testid="button-toggle-outline"
-              title="Hide outline"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          )}
-          <h3 className="text-sm font-semibold">Outline</h3>
-        </div>
+        <h3 className="text-sm font-semibold">Outline</h3>
         <div className="flex gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" data-testid="button-add-section">
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
                 <Plus className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleCreateFolder(null)} data-testid="button-create-folder">
+              <DropdownMenuItem onClick={() => handleCreateFolder(null)}>
                 <Folder className="h-4 w-4 mr-2" />
                 New Folder
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleCreatePage(null)} data-testid="button-create-page">
+              <DropdownMenuItem onClick={() => handleCreatePage(null)}>
                 <FileText className="h-4 w-4 mr-2" />
                 New Page
               </DropdownMenuItem>
