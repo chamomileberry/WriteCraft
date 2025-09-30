@@ -168,56 +168,24 @@ export default function ProjectPage() {
   // Render view/edit modes
   if (viewMode === 'view' && selectedProjectId) {
     return (
-      <>
-        <div className="h-full flex flex-col">
-          <Header 
-            onSearch={handleSearch}
-            searchQuery={searchQuery}
-            onNavigate={handleNavigate}
-            onCreateNew={handleCreateNew}
-          />
-          <div className="flex-1 overflow-hidden">
-            <ProjectViewer
-              projectId={selectedProjectId}
-              onBack={handleBack}
-              onEdit={handleStartEditing}
-            />
-          </div>
-        </div>
-        
-        <ContentTypeModal
-          isOpen={isContentModalOpen}
-          onClose={() => setIsContentModalOpen(false)}
-          onSelectType={handleSelectContentType}
+      <div className="h-screen">
+        <ProjectViewer
+          projectId={selectedProjectId}
+          onBack={handleBack}
+          onEdit={handleStartEditing}
         />
-      </>
+      </div>
     );
   }
 
   if (viewMode === 'edit' && selectedProjectId) {
     return (
-      <>
-        <div className="h-full flex flex-col">
-          <Header 
-            onSearch={handleSearch}
-            searchQuery={searchQuery}
-            onNavigate={handleNavigate}
-            onCreateNew={handleCreateNew}
-          />
-          <div className="flex-1 overflow-hidden">
-            <ProjectContainer
-              projectId={selectedProjectId}
-              onBack={handleBack}
-            />
-          </div>
-        </div>
-        
-        <ContentTypeModal
-          isOpen={isContentModalOpen}
-          onClose={() => setIsContentModalOpen(false)}
-          onSelectType={handleSelectContentType}
+      <div className="h-screen">
+        <ProjectContainer
+          projectId={selectedProjectId}
+          onBack={handleBack}
         />
-      </>
+      </div>
     );
   }
 
