@@ -5,6 +5,7 @@ import CharacterDetailPanel from './CharacterDetailPanel';
 import { ContentDetailPanel } from './ContentDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
 import WritingAssistantPanel from './WritingAssistantPanel';
+import { FloatingLayer } from './FloatingLayer';
 import { X, GripHorizontal, Pin, Save, Minimize2, MessageSquarePlus, History, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -292,8 +293,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </div>
       )}
 
-      {/* Floating Panels are now exclusively rendered by FloatingLayer in WorkspaceLayout */}
-      {/* Floating panel rendering code has been removed to prevent duplicate windows */}
+      {/* Floating Layer - renders globally for all pages */}
+      <FloatingLayer />
     </div>
   );
 };
