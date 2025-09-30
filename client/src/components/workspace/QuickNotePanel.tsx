@@ -2,6 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useNotebookStore } from '@/stores/notebookStore';
+import { Button } from '@/components/ui/button';
+import { Save, BookmarkPlus } from 'lucide-react';
 
 interface QuickNotePanelProps {
   panelId: string;
@@ -18,6 +21,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const isSavingOnUnmount = useRef(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeNotebookId } = useNotebookStore();
 
   // Using guest user for consistency with other components in this demo app
   const userId = 'guest'; 
@@ -138,6 +142,104 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     triggerAutosave();
   };
 
+  // Manual save handler
+  const handleManualSave = async () => {
+    if (!content.trim()) {
+      toast({
+        title: 'Nothing to save',
+        description: 'Quick note is empty.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Clear any pending autosave
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+    }
+    
+    await handleAutoSave();
+  };
+
+  // Save to notebook mutation
+  const saveToNotebookMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeNotebookId) {
+        throw new Error('No active notebook selected');
+      }
+      
+      // First, ensure the quick note is saved
+      await saveMutation.mutateAsync({ content: contentRef.current });
+      
+      // Generate a unique ID for this saved note (not reusing quick note ID)
+      const uniqueItemId = `saved-note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Then save it to the notebook as a saved item
+      const response = await apiRequest('POST', '/api/saved-items', {
+        userId: 'demo-user',
+        notebookId: activeNotebookId,
+        itemType: 'quickNote',
+        itemId: uniqueItemId,
+        itemData: {
+          title: 'Quick Note',
+          content: contentRef.current
+        }
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      // Clear the quick note after saving to notebook
+      setContent('');
+      contentRef.current = '';
+      setSaveStatus('saved');
+      
+      // Update cache to reflect cleared content
+      queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
+        if (oldData) {
+          return { ...oldData, content: '' };
+        }
+        return oldData;
+      });
+      
+      // Invalidate saved items to show the new note in the notebook
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      
+      toast({
+        title: 'Saved to Notebook',
+        description: 'Your note has been saved and the quick note is ready for new content.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to save',
+        description: error instanceof Error ? error.message : 'Could not save to notebook.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleSaveToNotebook = () => {
+    if (!content.trim()) {
+      toast({
+        title: 'Nothing to save',
+        description: 'Quick note is empty.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (!activeNotebookId) {
+      toast({
+        title: 'No notebook selected',
+        description: 'Please select a notebook first.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    saveToNotebookMutation.mutate();
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -253,14 +355,44 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         data-testid={`textarea-content-${panelId}`}
       />
 
-      {/* Minimal status indicator */}
-      <div className="px-4 pb-2 flex items-center justify-between">
-        <span className="text-xs text-purple-700/70">
-          {getSaveStatusIndicator()}
-        </span>
-        <span className="text-xs text-purple-700/50">
-          {content.length} characters
-        </span>
+      {/* Footer with status and action buttons */}
+      <div className="px-4 pb-3 space-y-2">
+        {/* Status row */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-purple-700/70">
+            {getSaveStatusIndicator()}
+          </span>
+          <span className="text-xs text-purple-700/50">
+            {content.length} characters
+          </span>
+        </div>
+        
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleManualSave}
+            disabled={saveMutation.isPending || !content.trim()}
+            className="flex-1 bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
+            data-testid="button-save-now"
+          >
+            <Save className="w-3 h-3 mr-1" />
+            Save Now
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="default"
+            onClick={handleSaveToNotebook}
+            disabled={saveToNotebookMutation.isPending || !content.trim() || !activeNotebookId}
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+            data-testid="button-save-to-notebook"
+          >
+            <BookmarkPlus className="w-3 h-3 mr-1" />
+            Save to Notebook
+          </Button>
+        </div>
       </div>
     </div>
   );
