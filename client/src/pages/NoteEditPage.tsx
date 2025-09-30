@@ -1,6 +1,6 @@
 import { useLocation } from 'wouter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import ContentEditor from '@/components/ContentEditor';
+import NoteEditor from '@/components/NoteEditor';
 import Layout from '@/components/Layout';
 
 interface NoteEditPageProps {
@@ -11,7 +11,7 @@ export default function NoteEditPage({ params }: NoteEditPageProps) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
-  // Fetch the note to determine its parent context (manuscript or guide)
+  // Fetch the note to determine its parent context (manuscript, guide, or project)
   const { data: note } = useQuery({
     queryKey: ['/api/notes', params.id],
     queryFn: () => fetch(`/api/notes/${params.id}`).then(res => res.json()),
@@ -26,7 +26,9 @@ export default function NoteEditPage({ params }: NoteEditPageProps) {
     }
 
     // Navigate back to the appropriate editor based on the note's parent context
-    if (note?.manuscriptId) {
+    if (note?.projectId) {
+      setLocation(`/projects/${note.projectId}/edit`);
+    } else if (note?.manuscriptId) {
       setLocation(`/manuscripts/${note.manuscriptId}/edit`);
     } else if (note?.guideId) {
       setLocation(`/guides/${note.guideId}/edit`);
@@ -39,9 +41,8 @@ export default function NoteEditPage({ params }: NoteEditPageProps) {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ContentEditor 
-          contentType="notes"
-          contentId={params.id}
+        <NoteEditor 
+          noteId={params.id}
           onBack={handleBack}
         />
       </div>

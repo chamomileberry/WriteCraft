@@ -49,10 +49,9 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const noteData = { ...req.body, userId };
     
-    const validatedUpdates = insertNoteSchema.partial().parse(noteData);
-    const updatedNote = await storage.updateNote(req.params.id, validatedUpdates);
+    const validatedUpdates = insertNoteSchema.partial().parse(req.body);
+    const updatedNote = await storage.updateNote(req.params.id, userId, validatedUpdates);
     
     if (!updatedNote) {
       return res.status(404).json({ error: 'Note not found' });
@@ -70,12 +69,8 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    const deleted = await storage.deleteNote(req.params.id);
-    
-    if (!deleted) {
-      return res.status(404).json({ error: 'Note not found' });
-    }
-    
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteNote(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting note:', error);
