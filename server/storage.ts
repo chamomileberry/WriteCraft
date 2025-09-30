@@ -3033,301 +3033,67 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
-      // Search characters - include all user characters
-      // First, search for professions that match the query
-      const matchingProfessions = await db.select().from(professions)
-        .where(
-          and(
-            eq(professions.userId, userId),
-            ilike(professions.name, `%${trimmedQuery}%`)
-          )
-        )
-        .limit(10);
+      // Search saved items - this includes all content saved to notebooks
+      // Search within the JSONB item_data field for the query string
+      const savedItemResults = await db.select().from(savedItems)
+        .where(and(
+          eq(savedItems.userId, userId),
+          sql`${savedItems.itemData}::text ILIKE ${'%' + trimmedQuery + '%'}`
+        ))
+        .limit(50);
       
-      const professionIds = matchingProfessions.map(p => p.id);
+      // Process saved items into search results
+      for (const savedItem of savedItemResults) {
+        const itemData = savedItem.itemData as any;
+        let title = 'Untitled';
+        let subtitle = savedItem.itemType;
+        let description = '';
 
-      // Search characters by name AND by profession UUIDs
-      const characterResults = await db.select().from(characters)
-        .where(
-          and(
-            eq(characters.userId, userId),
-            or(
-              ilike(characters.givenName, `%${trimmedQuery}%`),
-              ilike(characters.familyName, `%${trimmedQuery}%`),
-              ilike(characters.occupation, `%${trimmedQuery}%`),
-              // Also search for characters whose occupation matches any of the matching profession IDs
-              ...(professionIds.length > 0 ? professionIds.map(profId => eq(characters.occupation, profId)) : [])
-            )
-          )
-        )
-        .limit(20);
-      
-      for (const character of characterResults) {
-        
-        const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ').trim() || 'Untitled Character';
-        
-        // Try to fetch linked profession if occupation looks like an ID
-        let professionName = character.occupation || 'Character';
-        if (character.occupation && character.occupation.match(/^[a-f0-9-]{36}$/)) {
-          // Looks like a UUID, try to fetch the profession
-          try {
-            const profession = await this.getProfession(character.occupation);
-            if (profession) {
-              professionName = profession.name;
-            }
-          } catch (error) {
-            console.error('Failed to fetch profession:', error);
-          }
+        // Extract title and description based on item type
+        if (itemData.name) {
+          title = itemData.name;
+        } else if (itemData.givenName || itemData.familyName) {
+          title = [itemData.givenName, itemData.familyName].filter(Boolean).join(' ') || 'Untitled Character';
+        } else if (itemData.title) {
+          title = itemData.title;
         }
-        
+
+        // Get subtitle and description based on type
+        switch (savedItem.itemType) {
+          case 'character':
+            subtitle = itemData.occupation || 'Character';
+            description = itemData.backstory?.substring(0, 100) || '';
+            break;
+          case 'location':
+            subtitle = itemData.locationType || 'Location';
+            description = itemData.description?.substring(0, 100) || '';
+            break;
+          case 'weapon':
+            subtitle = itemData.weaponType || 'Weapon';
+            description = itemData.description?.substring(0, 100) || '';
+            break;
+          case 'organization':
+            subtitle = itemData.organizationType || 'Organization';
+            description = itemData.purpose?.substring(0, 100) || '';
+            break;
+          case 'species':
+            subtitle = itemData.classification || 'Species';
+            description = itemData.physicalDescription?.substring(0, 100) || '';
+            break;
+          default:
+            subtitle = savedItem.itemType;
+            description = itemData.description?.substring(0, 100) || '';
+        }
+
         results.push({
-          id: character.id,
-          title: fullName,
-          type: 'character',
-          subtitle: professionName,
-          description: character.backstory?.substring(0, 100) + '...' || 'No description available',
-          notebookId: character.notebookId  // Include notebookId for character panels
+          id: savedItem.itemId,
+          title: title,
+          type: savedItem.itemType,
+          subtitle: subtitle,
+          description: description + (description ? '...' : ''),
+          notebookId: savedItem.notebookId
         });
       }
-
-      // Search professions - include all user professions
-      const professionResults = await db.select().from(professions)
-        .where(
-          and(
-            eq(professions.userId, userId),
-            or(
-              ilike(professions.name, `%${trimmedQuery}%`),
-              ilike(professions.description, `%${trimmedQuery}%`)
-            )
-          )
-        )
-        .limit(10);
-      
-      for (const profession of professionResults) {
-        
-        results.push({
-          id: profession.id,
-          title: profession.name,
-          type: 'profession',
-          subtitle: profession.professionType || 'Profession',
-          description: profession.description?.substring(0, 100) + '...',
-          notebookId: profession.notebookId  // Include notebookId for reference panels
-        });
-      }
-
-      // Search locations - include all user locations
-      const locationResults = await db.select().from(locations)
-        .where(and(
-          eq(locations.userId, userId),
-          sql`${locations.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      locationResults.forEach(item => {
-        
-        results.push({
-          id: item.id,
-          title: item.name,
-          type: 'location',
-          subtitle: item.locationType,
-          description: item.description?.substring(0, 100) + '...',
-          notebookId: item.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search organizations - include all user organizations
-      const organizationResults = await db.select().from(organizations)
-        .where(and(
-          eq(organizations.userId, userId),
-          sql`${organizations.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      organizationResults.forEach(item => {
-        
-        results.push({
-          id: item.id,
-          title: item.name,
-          type: 'organization',
-          subtitle: item.organizationType,
-          description: item.purpose?.substring(0, 100) + '...',
-          notebookId: item.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search species - include all user species
-      const speciesResults = await db.select().from(species)
-        .where(and(
-          eq(species.userId, userId),
-          sql`${species.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      speciesResults.forEach(item => {
-        
-        results.push({
-          id: item.id,
-          title: item.name,
-          type: 'species',
-          subtitle: item.classification,
-          description: item.physicalDescription?.substring(0, 100) + '...',
-          notebookId: item.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search cultures - include all user cultures
-      const cultureResults = await db.select().from(cultures)
-        .where(and(
-          eq(cultures.userId, userId),
-          sql`${cultures.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      cultureResults.forEach(item => {
-        
-        results.push({
-          id: item.id,
-          title: item.name,
-          type: 'culture',
-          subtitle: item.governance,
-          description: item.description?.substring(0, 100) + '...',
-          notebookId: item.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search items - include all user items
-      const itemResults = await db.select().from(items)
-        .where(and(
-          eq(items.userId, userId),
-          sql`${items.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      itemResults.forEach(item => {
-        
-        results.push({
-          id: item.id,
-          title: item.name,
-          type: 'item',
-          subtitle: item.itemType,
-          description: item.description?.substring(0, 100) + '...',
-          notebookId: item.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search weapons - include all user weapons
-      const weaponResults = await db.select().from(weapons)
-        .where(and(
-          eq(weapons.userId, userId),
-          sql`${weapons.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      weaponResults.forEach(weapon => {
-        results.push({
-          id: weapon.id,
-          title: weapon.name,
-          type: 'weapon',
-          subtitle: weapon.weaponType || 'Weapon',
-          description: weapon.description?.substring(0, 100) + '...',
-          notebookId: weapon.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search foods - include all user foods
-      const foodResults = await db.select().from(foods)
-        .where(and(
-          eq(foods.userId, userId),
-          sql`${foods.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      foodResults.forEach(food => {
-        results.push({
-          id: food.id,
-          title: food.name,
-          type: 'food',
-          subtitle: food.foodType || 'Food',
-          description: food.description?.substring(0, 100) + '...',
-          notebookId: food.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search religions - include all user religions
-      const religionResults = await db.select().from(religions)
-        .where(and(
-          eq(religions.userId, userId),
-          sql`${religions.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      religionResults.forEach(religion => {
-        results.push({
-          id: religion.id,
-          title: religion.name,
-          type: 'religion',
-          subtitle: religion.hierarchy || 'Religion',
-          description: religion.beliefs?.join(', ').substring(0, 100) + '...',
-          notebookId: religion.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search languages - include all user languages
-      const languageResults = await db.select().from(languages)
-        .where(and(
-          eq(languages.userId, userId),
-          sql`${languages.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      languageResults.forEach(language => {
-        results.push({
-          id: language.id,
-          title: language.name,
-          type: 'language',
-          subtitle: language.family || 'Language',
-          description: language.grammar?.substring(0, 100) + '...',
-          notebookId: language.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search technologies - include all user technologies
-      const technologyResults = await db.select().from(technologies)
-        .where(and(
-          eq(technologies.userId, userId),
-          sql`${technologies.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      technologyResults.forEach(tech => {
-        results.push({
-          id: tech.id,
-          title: tech.name,
-          type: 'technology',
-          subtitle: tech.technologyType || 'Technology',
-          description: tech.description?.substring(0, 100) + '...',
-          notebookId: tech.notebookId  // Include notebookId for reference panels
-        });
-      });
-
-      // Search plants - include all user plants
-      const plantResults = await db.select().from(plants)
-        .where(and(
-          eq(plants.userId, userId),
-          sql`${plants.name} ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
-        .limit(10);
-      
-      plantResults.forEach(plant => {
-        results.push({
-          id: plant.id,
-          title: plant.name,
-          type: 'plant',
-          subtitle: plant.type || 'Plant',
-          description: plant.description?.substring(0, 100) + '...',
-          notebookId: plant.notebookId  // Include notebookId for reference panels
-        });
-      });
 
     } catch (error) {
       console.error('Error in universal search:', error);
