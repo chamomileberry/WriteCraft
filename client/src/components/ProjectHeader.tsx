@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Loader2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, ChevronRight, Menu } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { Project } from '@shared/schema';
 
@@ -13,6 +13,8 @@ interface ProjectHeaderProps {
   onBack: () => void;
   onManualSave: () => void;
   isSaving: boolean;
+  sidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export function ProjectHeader({
@@ -24,12 +26,28 @@ export function ProjectHeader({
   onBack,
   onManualSave,
   isSaving,
+  sidebarOpen = true,
+  onToggleSidebar,
 }: ProjectHeaderProps) {
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center justify-between px-4 py-3">
         {/* Left: Back button and breadcrumb */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Hamburger menu button (only shown when sidebar is closed) */}
+          {!sidebarOpen && onToggleSidebar && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleSidebar}
+              className="flex-shrink-0 h-8 w-8"
+              data-testid="button-show-outline"
+              title="Show outline"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          )}
+          
           <Button
             variant="ghost"
             size="sm"

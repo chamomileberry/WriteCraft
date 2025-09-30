@@ -28,13 +28,15 @@ interface ProjectOutlineProps {
   sections: ProjectSectionWithChildren[];
   activeSectionId: string | null;
   onSectionClick: (section: ProjectSectionWithChildren) => void;
+  onClose?: () => void;
 }
 
 export function ProjectOutline({ 
   projectId, 
   sections, 
   activeSectionId, 
-  onSectionClick 
+  onSectionClick,
+  onClose
 }: ProjectOutlineProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -295,7 +297,21 @@ export function ProjectOutline({
     <div className="flex flex-col h-full">
       {/* Header with add buttons */}
       <div className="flex items-center justify-between p-2 border-b">
-        <h3 className="text-sm font-semibold">Outline</h3>
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 p-0"
+              onClick={onClose}
+              data-testid="button-toggle-outline"
+              title="Hide outline"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
+          <h3 className="text-sm font-semibold">Outline</h3>
+        </div>
         <div className="flex gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

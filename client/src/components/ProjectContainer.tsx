@@ -349,50 +349,22 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
             onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
           }}
         >
-          <div className="flex h-full bg-background relative">
-            {/* Hamburger Menu Button */}
-            {!isSidebarOpen && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 left-2 z-50"
-                onClick={() => setIsSidebarOpen(true)}
-                data-testid="button-toggle-outline"
-                title="Show outline"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            )}
-            
+          <div className="flex h-full bg-background">            
             {/* Left Sidebar - Outline (collapsible) */}
             <div 
               className={cn(
-                "border-r flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
+                "border-r flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out relative",
                 isSidebarOpen ? "w-64" : "w-0"
               )}
             >
               {isSidebarOpen && (
-                <div className="w-64 h-full relative">
-                  {/* Close button */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => setIsSidebarOpen(false)}
-                      data-testid="button-close-outline"
-                      title="Hide outline"
-                    >
-                      <Menu className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <ProjectOutline
-                    projectId={projectId}
-                    sections={sections}
-                    activeSectionId={activeSectionId}
-                    onSectionClick={handleSectionClick}
-                  />
-                </div>
+                <ProjectOutline
+                  projectId={projectId}
+                  sections={sections}
+                  activeSectionId={activeSectionId}
+                  onSectionClick={handleSectionClick}
+                  onClose={() => setIsSidebarOpen(false)}
+                />
               )}
             </div>
 
@@ -408,6 +380,8 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                 onBack={onBack}
                 onManualSave={handleManualSave}
                 isSaving={saveStatus === 'saving'}
+                sidebarOpen={isSidebarOpen}
+                onToggleSidebar={() => setIsSidebarOpen(true)}
               />
 
               {/* Editor or Empty State */}
