@@ -77,14 +77,14 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
   const { toast } = useToast();
 
   const { data: character, isLoading, error } = useQuery<Character>({
-    queryKey: ['/api/characters', characterId, notebookId],
+    queryKey: ['/api/characters', characterId, notebookId || 'main-notebook'],
     queryFn: async () => {
       // Use notebookId from panel data, or fall back to default
       const nbId = notebookId || 'main-notebook';
       const response = await apiRequest('GET', `/api/characters/${characterId}?notebookId=${nbId}`);
       return response.json();
     },
-    enabled: !!characterId && !!notebookId
+    enabled: !!characterId  // Remove notebookId requirement - use fallback if missing
   });
 
   // Query to resolve profession UUID to name if occupation contains a UUID
