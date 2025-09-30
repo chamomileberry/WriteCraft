@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ProjectHeader } from './ProjectHeader';
-import { ProjectTabBar } from './ProjectTabBar';
 import { ProjectOutline } from './ProjectOutline';
 import { SectionEditor } from './SectionEditor';
 import { Loader2 } from 'lucide-react';
@@ -27,6 +26,27 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const queryClient = useQueryClient();
   const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(null);
   const { addPanel, isPanelOpen, focusPanel } = useWorkspaceStore();
+
+  // Project rename mutation
+  const renameProjectMutation = useMutation({
+    mutationFn: async (newTitle: string) => {
+      await apiRequest('PUT', `/api/projects/${projectId}`, { title: newTitle });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
+      toast({
+        title: 'Project renamed',
+        description: 'Your project title has been updated.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Update failed',
+        description: 'Could not update project title.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Fetch project data
   const { data: project, isLoading: isLoadingProject } = useQuery({
@@ -167,22 +187,22 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const showEditor = activeSectionId && activeSection?.type === 'page';
 
   return (
-    <WorkspaceLayout showTabStrip={false}>
+    <WorkspaceLayout
+      projectInfo={{
+        id: projectId,
+        title: project?.title || 'Untitled Project',
+        onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
+      }}
+    >
       <div className="flex h-full bg-background">
-        {/* Left Sidebar - Tabs & Outline */}
-        <div className="w-64 border-r flex-shrink-0 overflow-hidden flex flex-col">
-          <ProjectTabBar 
-            projectId={projectId} 
-            projectTitle={project?.title || 'Untitled Project'} 
+        {/* Left Sidebar - Outline only */}
+        <div className="w-64 border-r flex-shrink-0 overflow-hidden">
+          <ProjectOutline
+            projectId={projectId}
+            sections={sections}
+            activeSectionId={activeSectionId}
+            onSectionClick={handleSectionClick}
           />
-          <div className="flex-1 overflow-hidden">
-            <ProjectOutline
-              projectId={projectId}
-              sections={sections}
-              activeSectionId={activeSectionId}
-              onSectionClick={handleSectionClick}
-            />
-          </div>
         </div>
 
         {/* Main Content Area */}

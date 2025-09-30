@@ -9,10 +9,14 @@ import { cn } from '@/lib/utils';
 interface WorkspaceLayoutProps {
   children: React.ReactNode; // The main manuscript editor content
   className?: string;
-  showTabStrip?: boolean; // Whether to show the tab strip above content (default true)
+  projectInfo?: {
+    id: string;
+    title: string;
+    onRename?: (newTitle: string) => void;
+  };
 }
 
-export function WorkspaceLayout({ children, className, showTabStrip = true }: WorkspaceLayoutProps) {
+export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceLayoutProps) {
   const { 
     currentLayout, 
     getActiveTab, 
@@ -115,15 +119,14 @@ export function WorkspaceLayout({ children, className, showTabStrip = true }: Wo
           {/* Main Region */}
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              {showTabStrip && (
-                <div>
-                  <TabStrip 
-                    regionId="main" 
-                    onDrop={(e) => handleTabBarDrop(e, 'main')}
-                    onDragOver={handleTabBarDragOver}
-                  />
-                </div>
-              )}
+              <div>
+                <TabStrip 
+                  regionId="main" 
+                  onDrop={(e) => handleTabBarDrop(e, 'main')}
+                  onDragOver={handleTabBarDragOver}
+                  projectInfo={projectInfo}
+                />
+              </div>
               
               <div className="flex-1 overflow-hidden">
                 {mainActiveTab ? (
@@ -165,15 +168,14 @@ export function WorkspaceLayout({ children, className, showTabStrip = true }: Wo
       ) : (
         // Single region layout
         <div className="flex-1 flex flex-col">
-          {showTabStrip && (
-            <div>
-              <TabStrip 
-                regionId="main" 
-                onDrop={(e) => handleTabBarDrop(e, 'main')}
-                onDragOver={handleTabBarDragOver}
-              />
-            </div>
-          )}
+          <div>
+            <TabStrip 
+              regionId="main" 
+              onDrop={(e) => handleTabBarDrop(e, 'main')}
+              onDragOver={handleTabBarDragOver}
+              projectInfo={projectInfo}
+            />
+          </div>
           
           <div className="flex-1 overflow-hidden">
             {mainActiveTab ? (

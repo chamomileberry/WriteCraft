@@ -1,5 +1,5 @@
 import { DragEvent, useState, useRef, useEffect } from 'react';
-import { X, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink, Pin, Minimize2 } from 'lucide-react';
+import { X, Copy, SplitSquareHorizontal, Plus, Search, ExternalLink, Pin, Minimize2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -13,9 +13,14 @@ interface TabStripProps {
   className?: string;
   onDrop?: (e: DragEvent<HTMLDivElement>) => void;
   onDragOver?: (e: DragEvent<HTMLDivElement>) => void;
+  projectInfo?: {
+    id: string;
+    title: string;
+    onRename?: (newTitle: string) => void;
+  };
 }
 
-export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripProps) {
+export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo }: TabStripProps) {
   const { 
     getTabsInRegion, 
     getActiveTab, 
@@ -33,6 +38,8 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isEditingProject, setIsEditingProject] = useState(false);
+  const [editProjectTitle, setEditProjectTitle] = useState('');
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const { addPanel } = useWorkspaceStore();
@@ -216,6 +223,23 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
 
   // No longer show manuscript tabs - only secondary reference panels
 
+  const handleStartProjectEdit = () => {
+    setIsEditingProject(true);
+    setEditProjectTitle(projectInfo?.title || '');
+  };
+
+  const handleSaveProjectTitle = () => {
+    if (editProjectTitle.trim() && editProjectTitle !== projectInfo?.title) {
+      projectInfo?.onRename?.(editProjectTitle.trim());
+    }
+    setIsEditingProject(false);
+  };
+
+  const handleCancelProjectEdit = () => {
+    setIsEditingProject(false);
+    setEditProjectTitle('');
+  };
+
   return (
     <div 
       className={cn("h-10 border-b bg-muted/20 flex items-center", className)}
@@ -228,6 +252,41 @@ export function TabStrip({ regionId, className, onDrop, onDragOver }: TabStripPr
         onDragOver?.(e);
       }}
     >
+      {/* Project Tab (if in project mode) */}
+      {projectInfo && (
+        <div
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 border-r cursor-pointer",
+            "min-w-0 max-w-48",
+            !activeTab 
+              ? "bg-background text-foreground border-b-2 border-b-primary" 
+              : "bg-muted/40 text-muted-foreground hover-elevate"
+          )}
+          onClick={() => !isEditingProject && !activeTab ? handleStartProjectEdit() : !isEditingProject && setActiveTab('', 'main')}
+          data-testid="tab-project"
+        >
+          <FileText className="h-3.5 w-3.5 flex-shrink-0" />
+          {isEditingProject && !activeTab ? (
+            <Input
+              value={editProjectTitle}
+              onChange={(e) => setEditProjectTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveProjectTitle();
+                if (e.key === 'Escape') handleCancelProjectEdit();
+              }}
+              onBlur={handleSaveProjectTitle}
+              className="h-6 text-sm px-1 min-w-[120px]"
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+              data-testid="input-edit-project-title"
+            />
+          ) : (
+            <span className="truncate text-sm font-medium" data-testid="text-project-title">
+              {projectInfo.title}
+            </span>
+          )}
+        </div>
+      )}
       
       {tabs.map((tab, index) => (
         <div
