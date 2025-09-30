@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { getMappingById } from "@shared/contentTypes";
 import { useNotebookStore } from "@/stores/notebookStore";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import NotebookSwitcher from "./NotebookSwitcher";
 
 // Helper function to get display name for different content types
@@ -83,6 +84,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { activeNotebookId, getActiveNotebook } = useNotebookStore();
+  const { openQuickNote } = useWorkspaceStore();
 
   // Fetch saved items for the active notebook
   const { data: savedItems = [], isLoading, error } = useQuery({
@@ -229,13 +231,9 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   };
 
   const handleEdit = (item: SavedItem) => {
-    // Quick notes don't have edit functionality
+    // Open Quick Note panel for editing
     if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-      const noteContent = item.itemData?.content || item.content || '';
-      toast({
-        title: "Quick Note",
-        description: noteContent,
-      });
+      openQuickNote();
       return;
     }
     
