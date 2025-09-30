@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [fetchedItemData, setFetchedItemData] = useState<{ [key: string]: any }>({});
+  const fetchedItemsRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { activeNotebookId, getActiveNotebook } = useNotebookStore();
@@ -141,10 +142,21 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
 
   // Fetch missing item data for entries that have itemData: null
   const fetchMissingItemData = async (items: SavedItem[]) => {
-    const missingDataItems = items.filter(item => !item.itemData);
+    // Filter items that haven't been fetched yet
+    const missingDataItems = items.filter(item => {
+      const itemKey = item.itemId || item.id;
+      return !item.itemData && itemKey && !fetchedItemsRef.current.has(itemKey);
+    });
+    
+    if (missingDataItems.length === 0) return;
+    
     const newFetchedData: { [key: string]: any } = {};
 
     for (const item of missingDataItems) {
+      const itemKey = item.itemId || item.id;
+      // Mark as fetched to prevent duplicate fetches
+      fetchedItemsRef.current.add(itemKey);
+      
       try {
         let endpoint = '';
         if (item.itemType === 'character') {
@@ -169,15 +181,25 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       }
     }
 
-    setFetchedItemData(prev => ({ ...prev, ...newFetchedData }));
+    if (Object.keys(newFetchedData).length > 0) {
+      setFetchedItemData(prev => ({ ...prev, ...newFetchedData }));
+    }
   };
 
   // Fetch missing data when items change
   useEffect(() => {
+    // Reset fetched items ref when notebook changes
+    if (activeNotebookId) {
+      fetchedItemsRef.current.clear();
+    }
+  }, [activeNotebookId]);
+
+  useEffect(() => {
     if (allItems.length > 0) {
       fetchMissingItemData(allItems);
     }
-  }, [allItems, activeNotebookId]);
+    // Use a stable identifier: JSON stringify the item IDs to detect actual changes
+  }, [JSON.stringify(allItems.map(item => item.id || item.itemId)), activeNotebookId]);
 
   // Unsave mutation
   const unsaveMutation = useMutation({

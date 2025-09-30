@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Loader2, ChevronRight, Menu } from 'lucide-react';
+import { Save, Loader2, ChevronRight, Menu } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { Project } from '@shared/schema';
 
@@ -32,7 +32,7 @@ export function ProjectHeader({
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center justify-between px-4 py-3">
-        {/* Left: Back button and breadcrumb */}
+        {/* Left: Breadcrumb navigation */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Hamburger menu button (only shown when sidebar is closed) */}
           {!sidebarOpen && onToggleSidebar && (
@@ -47,17 +47,6 @@ export function ProjectHeader({
               <Menu className="h-4 w-4" />
             </Button>
           )}
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="flex-shrink-0"
-            data-testid="button-back"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
 
           <div className="flex items-center gap-2 min-w-0 text-sm">
             {/* Project title */}
