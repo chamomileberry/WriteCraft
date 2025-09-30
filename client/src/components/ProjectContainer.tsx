@@ -195,80 +195,61 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
         onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
       }}
     >
-      <div className="flex flex-col h-full bg-background">
-        {/* Add navigation header here */}
-        <div className="border-b bg-background/95 backdrop-blur flex-shrink-0">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={onBack} data-testid="button-back-to-projects">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Projects
-              </Button>
-              <div className="h-4 w-px bg-border" />
-              <h1 className="text-lg font-semibold">
-                {project?.title || 'Untitled Project'}
-              </h1>
-            </div>
-          </div>
+      <div className="flex h-full bg-background">
+        {/* Left Sidebar - Outline only */}
+        <div className="w-64 border-r flex-shrink-0 overflow-hidden">
+          <ProjectOutline
+            projectId={projectId}
+            sections={sections}
+            activeSectionId={activeSectionId}
+            onSectionClick={handleSectionClick}
+          />
         </div>
 
-        {/* Original content */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left Sidebar - Outline only */}
-          <div className="w-64 border-r flex-shrink-0 overflow-hidden">
-            <ProjectOutline
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <ProjectHeader
+            project={project}
+            breadcrumb={breadcrumb}
+            wordCount={wordCount}
+            saveStatus={saveStatus}
+            lastSaveTime={lastSaveTime}
+            onBack={onBack}
+            onManualSave={handleManualSave}
+            isSaving={saveStatus === 'saving'}
+          />
+
+          {/* Editor or Empty State */}
+          {showEditor ? (
+            <SectionEditor
+              ref={sectionEditorRef}
               projectId={projectId}
-              sections={sections}
-              activeSectionId={activeSectionId}
-              onSectionClick={handleSectionClick}
+              section={activeSection}
+              onContentChange={(changes) => {
+                setHasUnsavedChanges(changes);
+                if (!changes) {
+                  setSaveStatus('saved');
+                }
+              }}
+              onSaveStatusChange={setSaveStatus}
+              onLastSaveTimeChange={setLastSaveTime}
+              onWordCountChange={setWordCount}
             />
-          </div>
-
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* ProjectHeader stays here */}
-            <ProjectHeader
-              project={project}
-              breadcrumb={breadcrumb}
-              wordCount={wordCount}
-              saveStatus={saveStatus}
-              lastSaveTime={lastSaveTime}
-              onBack={onBack}
-              onManualSave={handleManualSave}
-              isSaving={saveStatus === 'saving'}
-            />
-
-            {/* Editor or Empty State */}
-            {showEditor ? (
-              <SectionEditor
-                ref={sectionEditorRef}
-                projectId={projectId}
-                section={activeSection}
-                onContentChange={(changes) => {
-                  setHasUnsavedChanges(changes);
-                  if (!changes) {
-                    setSaveStatus('saved');
-                  }
-                }}
-                onSaveStatusChange={setSaveStatus}
-                onLastSaveTimeChange={setLastSaveTime}
-                onWordCountChange={setWordCount}
-              />
-            ) : showEmptyState ? (
-              <div className="flex-1 flex items-center justify-center text-center p-8">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">No page selected</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Select a page from the outline to start writing, or create a new page.
-                  </p>
-                </div>
+          ) : showEmptyState ? (
+            <div className="flex-1 flex items-center justify-center text-center p-8">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">No page selected</h3>
+                <p className="text-sm text-muted-foreground">
+                  Select a page from the outline to start writing, or create a new page.
+                </p>
               </div>
-            ) : isLoadingSection ? (
-              <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : null}
-          </div>
+            </div>
+          ) : isLoadingSection ? (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : null}
         </div>
       </div>
     </WorkspaceLayout>
