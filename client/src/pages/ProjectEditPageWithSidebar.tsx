@@ -1,7 +1,7 @@
 import { useLocation } from 'wouter';
 import { useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import ProjectEditor from '@/components/ProjectEditor';
+import { ProjectContainer } from '@/components/ProjectContainer';
 import DocumentSidebar from '@/components/DocumentSidebar';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -90,7 +90,7 @@ export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWi
             
             {/* Editor Content */}
             <main className="flex-1 overflow-hidden">
-              <ProjectEditor 
+              <ProjectContainer 
                 projectId={params.id}
                 onBack={handleBack}
               />

@@ -84,11 +84,6 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
 
   // Handle section navigation with unsaved changes check
   const handleSectionClick = async (section: ProjectSectionWithChildren) => {
-    // Can't navigate to folders, only pages
-    if (section.type === 'folder') {
-      return;
-    }
-
     // If clicking the same section, do nothing
     if (section.id === activeSectionId) {
       return;
@@ -109,7 +104,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
       }
     }
 
-    // Navigate to new section
+    // Navigate to new section (folders will show empty state, pages will show editor)
     setActiveSectionId(section.id);
   };
 

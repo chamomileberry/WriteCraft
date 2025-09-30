@@ -1,0 +1,81 @@
+Hierarchical Project Implementation Guide
+Overview
+This guide shows how to wire up all the components to create a fully functional hierarchical project system.
+
+Step 1: Database Setup
+
+Run the migration SQL to create the project_sections table
+Optionally run the migration script to convert existing projects
+Test the database with a simple query:
+
+sql   SELECT * FROM project_sections LIMIT 1;
+
+Step 2: Backend API Routes
+
+Add the sections API routes to your Express/Node server
+Update your route imports:
+
+typescript   import sectionsRouter from './routes/sections';
+   app.use(sectionsRouter);
+
+Test the endpoints with curl or Postman:
+
+bash   # List sections
+   GET /api/projects/{projectId}/sections
+   
+   # Create section
+   POST /api/projects/{projectId}/sections
+   Body: { "title": "Chapter 1", "type": "folder", "parentId": null }
+   
+   # Update section
+   PUT /api/projects/{projectId}/sections/{sectionId}
+   Body: { "content": "<p>Updated content</p>" }
+
+Step 3: Frontend Type Definitions
+
+Create types/project.ts with the ProjectSection interfaces
+Update your existing Project type to include sections
+Import types where needed:
+
+typescript   import type { ProjectSection, ProjectSectionCreate } from '@/types/project';
+
+Step 4: Component Integration
+Replace ProjectEditor with ProjectContainer
+In your main routing file (e.g., App.tsx or ProjectsPage.tsx):
+typescript// OLD
+import ProjectEditor from './ProjectEditor';
+
+// NEW
+import { ProjectContainer } from './ProjectContainer';
+
+// Usage
+<ProjectContainer projectId={projectId} onBack={handleBack} />
+File structure:
+components/
+├── ProjectContainer.tsx      # Main orchestrator (NEW)
+├── ProjectOutline.tsx         # Sidebar tree (NEW)
+├── SectionEditor.tsx          # Individual section editor (NEW)
+├── ProjectHeader.tsx          # Updated header with breadcrumbs (UPDATED)
+└── workspace/
+    └── WorkspaceLayout.tsx    # Existing - no changes needed
+
+Step 5: Test the Flow
+Happy Path Testing:
+
+✅ Open a project
+✅ Create a new folder (chapter)
+✅ Create a page inside that folder (scene)
+✅ Click the page to open it
+✅ Type some content
+✅ Watch auto-save indicator (2 seconds)
+✅ Click another page
+✅ Verify content saved
+✅ Check breadcrumb shows: Project > Chapter > Scene
+
+Edge Cases:
+
+Empty project (no sections)
+Clicking a folder (should not open editor)
+Rapid section switching
+Deleting a section while it's open
+Creating nested folders

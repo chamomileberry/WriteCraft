@@ -243,12 +243,12 @@ export default function ProjectPage() {
                       >
                         {project.status}
                       </Badge>
-                      {project.tags.slice(0, 2).map((tag, index) => (
+                      {project.tags && project.tags.slice(0, 2).map((tag, index) => (
                         <Badge key={index} variant="outline" className="text-xs" data-testid={`badge-tag-${project.id}-${index}`}>
                           {tag}
                         </Badge>
                       ))}
-                      {project.tags.length > 2 && (
+                      {project.tags && project.tags.length > 2 && (
                         <Badge variant="outline" className="text-xs">
                           +{project.tags.length - 2}
                         </Badge>
