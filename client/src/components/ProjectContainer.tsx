@@ -8,7 +8,8 @@ import { ProjectHeader } from './ProjectHeader';
 import { ProjectOutline } from './ProjectOutline';
 import { SectionEditor } from './SectionEditor';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, BookOpen, Moon, Sun, StickyNote, Sparkles } from 'lucide-react';
+import { Loader2, ArrowLeft, BookOpen, Moon, Sun, StickyNote, Sparkles, Menu } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { ProjectSectionWithChildren } from '@shared/schema';
 
 interface ProjectContainerProps {
@@ -22,6 +23,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [wordCount, setWordCount] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   // Theme toggle state - must be at top level before any conditional returns
   const [isDark, setIsDark] = useState(() => {
@@ -36,7 +38,15 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(null);
-  const { addPanel, isPanelOpen, focusPanel, toggleQuickNote, isQuickNoteOpen, findPanel, updatePanel } = useWorkspaceStore();
+  const { addPanel, isPanelOpen, focusPanel, toggleQuickNote, isQuickNoteOpen, findPanel, updatePanel, currentLayout } = useWorkspaceStore();
+  
+  // Auto-collapse sidebar when reference tabs are present
+  useEffect(() => {
+    const hasReferenceTabs = currentLayout.regions.main.length > 0 || currentLayout.regions.split.length > 0;
+    if (hasReferenceTabs) {
+      setIsSidebarOpen(false);
+    }
+  }, [currentLayout.regions.main.length, currentLayout.regions.split.length]);
 
   // Project rename mutation
   const renameProjectMutation = useMutation({
@@ -339,15 +349,51 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
             onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
           }}
         >
-          <div className="flex h-full bg-background">
-            {/* Left Sidebar - Outline only */}
-            <div className="w-64 border-r flex-shrink-0 overflow-hidden">
-              <ProjectOutline
-                projectId={projectId}
-                sections={sections}
-                activeSectionId={activeSectionId}
-                onSectionClick={handleSectionClick}
-              />
+          <div className="flex h-full bg-background relative">
+            {/* Hamburger Menu Button */}
+            {!isSidebarOpen && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 left-2 z-50"
+                onClick={() => setIsSidebarOpen(true)}
+                data-testid="button-toggle-outline"
+                title="Show outline"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {/* Left Sidebar - Outline (collapsible) */}
+            <div 
+              className={cn(
+                "border-r flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out",
+                isSidebarOpen ? "w-64" : "w-0"
+              )}
+            >
+              {isSidebarOpen && (
+                <div className="w-64 h-full relative">
+                  {/* Close button */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => setIsSidebarOpen(false)}
+                      data-testid="button-close-outline"
+                      title="Hide outline"
+                    >
+                      <Menu className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <ProjectOutline
+                    projectId={projectId}
+                    sections={sections}
+                    activeSectionId={activeSectionId}
+                    onSectionClick={handleSectionClick}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Main Content Area */}

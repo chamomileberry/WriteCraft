@@ -260,7 +260,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
       {projectInfo && (
         <div
           className={cn(
-            "flex items-center gap-2 px-3 py-2 border-r cursor-pointer relative",
+            "flex items-center gap-2 px-3 py-1.5 border-r cursor-pointer relative",
             "min-w-0 max-w-48",
             !activeTab 
               ? "bg-background text-foreground" 
@@ -306,7 +306,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
           onDragLeave={handleTabDragLeave}
           onDrop={(e) => handleTabDropOnTab(e, index)}
           className={cn(
-            "flex items-center gap-1 px-3 py-2 border-r cursor-pointer select-none hover-elevate",
+            "flex items-center gap-1 px-3 py-1.5 border-r cursor-pointer select-none hover-elevate",
             "min-w-0 max-w-48 group relative",
             activeTab?.id === tab.id 
               ? "bg-background text-foreground" 

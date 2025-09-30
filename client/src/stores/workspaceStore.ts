@@ -551,6 +551,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           
           get().addPanel(quickNotePanel);
         } else {
+          // If minimized, restore it first
+          if (existingQuickNote.minimized) {
+            get().restorePanel(existingQuickNote.id);
+          }
           // Focus existing panel
           get().focusPanel(existingQuickNote.id);
         }
