@@ -21,6 +21,11 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
       source: 'floating'
     }));
     e.dataTransfer.effectAllowed = 'move';
+    
+    // Hide the drag ghost image to prevent visual duplication
+    const img = new Image();
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    e.dataTransfer.setDragImage(img, 0, 0);
   };
 
   const handleDragStop = (_e: any, data: { x: number; y: number }) => {
@@ -73,6 +78,8 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
       dragHandleClassName="drag-handle"
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
+      enableUserSelectHack={false}
+      disableDragging={false}
       className="z-50"
       data-testid={`floating-window-${panel.id}`}
     >
