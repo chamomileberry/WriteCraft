@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
 import {
   Sidebar,
   SidebarContent,
@@ -85,7 +84,6 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'folder' | 'note'; parentId?: string } | null>(null);
   const [dragOverItem, setDragOverItem] = useState<{ id: string; type: 'folder' | 'note' } | null>(null);
   const queryClient = useQueryClient();
-  const { addPanel } = useWorkspaceStore();
 
   // Normalize type: 'project' is treated as 'manuscript'
   const normalizedType = type === 'project' ? 'manuscript' : type;
@@ -184,17 +182,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   };
 
   const navigateToDocument = (docId: string, docType: 'manuscript' | 'guide' | 'note') => {
-    if (type === 'project' && docType === 'note') {
-      // For projects, open scenes as tabs in the workspace
-      addPanel({
-        id: `note-${docId}`,
-        type: 'notes',
-        entityId: docId,
-        title: 'Scene', // Will be updated when note loads
-        mode: 'tabbed',
-        regionId: 'main'
-      });
-    } else if (docType === 'manuscript') {
+    if (docType === 'manuscript') {
       setLocation(`/projects/${docId}/edit`);
     } else if (docType === 'guide') {
       setLocation(`/guides/${docId}/edit`);
@@ -256,10 +244,8 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
         const createdNote = await response.json();
         // Invalidate queries to refresh notes list so new item appears immediately
         queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`] });
-        // Only navigate away for guides, for projects/manuscripts stay on the current page
-        if (type !== 'project') {
-          navigateToDocument(createdNote.id, 'note');
-        }
+        // Navigate to the newly created note
+        navigateToDocument(createdNote.id, 'note');
       }
     } catch (error) {
       console.error('Failed to create note:', error);
