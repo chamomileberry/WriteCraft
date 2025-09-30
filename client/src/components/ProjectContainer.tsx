@@ -8,7 +8,7 @@ import { ProjectHeader } from './ProjectHeader';
 import { ProjectOutline } from './ProjectOutline';
 import { SectionEditor } from './SectionEditor';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, BookOpen, Moon, Sun } from 'lucide-react';
+import { Loader2, ArrowLeft, BookOpen, Moon, Sun, StickyNote, Sparkles } from 'lucide-react';
 import type { ProjectSectionWithChildren } from '@shared/schema';
 
 interface ProjectContainerProps {
@@ -36,7 +36,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(null);
-  const { addPanel, isPanelOpen, focusPanel } = useWorkspaceStore();
+  const { addPanel, isPanelOpen, focusPanel, toggleQuickNote, isQuickNoteOpen, findPanel, updatePanel } = useWorkspaceStore();
 
   // Project rename mutation
   const renameProjectMutation = useMutation({
@@ -204,6 +204,39 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
     document.documentElement.classList.toggle('dark', newTheme);
   };
 
+  // Writing Assistant functionality
+  const openWritingAssistant = () => {
+    // Check if there's already an existing writing assistant panel
+    const existingPanel = findPanel('writingAssistant', 'writing-assistant');
+    
+    if (existingPanel) {
+      // If it's already docked, focus it
+      if (existingPanel.mode === 'docked') {
+        focusPanel(existingPanel.id);
+        return;
+      }
+      // If it exists as a tab or floating, convert it to docked mode
+      if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
+        updatePanel(existingPanel.id, { 
+          mode: 'docked',
+          regionId: 'docked'
+        });
+        return;
+      }
+    }
+    
+    // Create new docked panel if none exists
+    addPanel({
+      id: `writing-assistant-${Date.now()}`,
+      type: 'writingAssistant' as const,
+      title: 'Writing Assistant',
+      mode: 'docked' as const,
+      regionId: 'docked' as const,
+      size: { width: 400, height: 600 },
+      entityId: 'writing-assistant', // Stable entityId for proper duplicate detection
+    });
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Global Navigation Header */}
@@ -254,6 +287,36 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* Quick Note Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleQuickNote}
+                className={`${isQuickNoteOpen() ? 'bg-primary/10 text-primary' : ''}`}
+                data-testid="button-quick-note"
+                title="Quick Note"
+                aria-label="Quick Note"
+              >
+                <StickyNote className="h-4 w-4" />
+              </Button>
+              
+              {/* Writing Assistant Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={openWritingAssistant}
+                className="hover:bg-primary/10 hover:text-primary"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)',
+                  color: 'white'
+                }}
+                data-testid="button-writing-assistant"
+                title="Writing Assistant"
+                aria-label="Writing Assistant"
+              >
+                <Sparkles className="h-4 w-4" />
+              </Button>
+
               <Button
                 variant="ghost"
                 size="icon"
