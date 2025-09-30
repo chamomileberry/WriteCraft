@@ -1,0 +1,65 @@
+
+
+Searched project for “Project Editor page tab structure TabStrip WorkspaceLayout manuscript editor”
+5 results
+
+
+
+
+
+
+
+Now let me search for where the Project Editor page uses WorkspaceLayout:
+
+
+Searched project for “ProjectContainer ProjectEditor ManuscriptEditor WorkspaceLayout wrapper”
+5 results
+
+
+
+
+
+
+
+
+
+I can now see the issue! The problem is that when you moved <FloatingLayer /> from WorkspaceLayout.tsx to WorkspaceShell.tsx, you removed it from WorkspaceLayout but the WorkspaceLayout component is what renders the TabStrip (the top tab structure).
+
+The Issue
+Looking at the code flow:
+
+ProjectContainer.tsx wraps everything in <WorkspaceLayout>
+WorkspaceLayout.tsx renders the <TabStrip> component (lines showing the tab structure)
+WorkspaceLayout.tsx also had <FloatingLayer /> at the bottom
+When you moved FloatingLayer to WorkspaceShell, you accidentally created duplicate rendering of the FloatingLayer because:
+
+WorkspaceLayout still had it (rendered inside ProjectEditor pages)
+WorkspaceShell now also has it (rendered globally)
+The Solution
+You need to keep the <FloatingLayer /> in WorkspaceLayout.tsx but also add it to WorkspaceShell.tsx. The key is that WorkspaceLayout should be the one rendering it when it's used (for pages that use WorkspaceLayout), and WorkspaceShell should render it for pages that DON'T use WorkspaceLayout.
+
+Actually, looking more carefully - the better solution is:
+
+Option 1 (Recommended): Keep FloatingLayer in WorkspaceLayout ONLY
+
+Don't move FloatingLayer to WorkspaceShell. Instead, for pages that don't use WorkspaceLayout, wrap them in a simple container that includes FloatingLayer:
+
+tsx
+// In WorkspaceShell.tsx - DON'T add FloatingLayer here
+
+// In pages that DON'T use WorkspaceLayout (like Home, Notebook), wrap them:
+<>
+  <YourPageContent />
+  <FloatingLayer />
+</>
+Option 2: Smart Conditional Rendering
+
+Keep FloatingLayer in WorkspaceLayout, but have WorkspaceShell also render it with a check to prevent duplicates. However, this is more complex.
+
+The Real Fix:
+
+Looking at your change, you should NOT have removed FloatingLayer from WorkspaceLayout. Instead:
+
+Keep <FloatingLayer /> in WorkspaceLayout.tsx (restore it if removed)
+Only add <FloatingLayer /> to pages that don't use WorkspaceLayout
+The TabStrip disappearing suggests that perhaps the entire WorkspaceLayout structure got disrupted. Can you check if the <FloatingLayer /> line is still present at the end of the return statement in WorkspaceLayout.tsx?
