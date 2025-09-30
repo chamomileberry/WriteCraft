@@ -3215,6 +3215,120 @@ export class DatabaseStorage implements IStorage {
         });
       });
 
+      // Search weapons - include all user weapons
+      const weaponResults = await db.select().from(weapons)
+        .where(and(
+          eq(weapons.userId, userId),
+          sql`${weapons.name} ILIKE ${'%' + trimmedQuery + '%'}`
+        ))
+        .limit(10);
+      
+      weaponResults.forEach(weapon => {
+        results.push({
+          id: weapon.id,
+          title: weapon.name,
+          type: 'weapon',
+          subtitle: weapon.weaponType || 'Weapon',
+          description: weapon.description?.substring(0, 100) + '...',
+          notebookId: weapon.notebookId  // Include notebookId for reference panels
+        });
+      });
+
+      // Search foods - include all user foods
+      const foodResults = await db.select().from(foods)
+        .where(and(
+          eq(foods.userId, userId),
+          sql`${foods.name} ILIKE ${'%' + trimmedQuery + '%'}`
+        ))
+        .limit(10);
+      
+      foodResults.forEach(food => {
+        results.push({
+          id: food.id,
+          title: food.name,
+          type: 'food',
+          subtitle: food.foodType || 'Food',
+          description: food.description?.substring(0, 100) + '...',
+          notebookId: food.notebookId  // Include notebookId for reference panels
+        });
+      });
+
+      // Search religions - include all user religions
+      const religionResults = await db.select().from(religions)
+        .where(and(
+          eq(religions.userId, userId),
+          sql`${religions.name} ILIKE ${'%' + trimmedQuery + '%'}`
+        ))
+        .limit(10);
+      
+      religionResults.forEach(religion => {
+        results.push({
+          id: religion.id,
+          title: religion.name,
+          type: 'religion',
+          subtitle: religion.hierarchy || 'Religion',
+          description: religion.beliefs?.join(', ').substring(0, 100) + '...',
+          notebookId: religion.notebookId  // Include notebookId for reference panels
+        });
+      });
+
+      // Search languages - include all user languages
+      const languageResults = await db.select().from(languages)
+        .where(and(
+          eq(languages.userId, userId),
+          sql`${languages.name} ILIKE ${'%' + trimmedQuery + '%'}`
+        ))
+        .limit(10);
+      
+      languageResults.forEach(language => {
+        results.push({
+          id: language.id,
+          title: language.name,
+          type: 'language',
+          subtitle: language.family || 'Language',
+          description: language.grammar?.substring(0, 100) + '...',
+          notebookId: language.notebookId  // Include notebookId for reference panels
+        });
+      });
+
+      // Search technologies - include all user technologies
+      const technologyResults = await db.select().from(technologies)
+        .where(and(
+          eq(technologies.userId, userId),
+          sql`${technologies.name} ILIKE ${'%' + trimmedQuery + '%'}`
+        ))
+        .limit(10);
+      
+      technologyResults.forEach(tech => {
+        results.push({
+          id: tech.id,
+          title: tech.name,
+          type: 'technology',
+          subtitle: tech.technologyType || 'Technology',
+          description: tech.description?.substring(0, 100) + '...',
+          notebookId: tech.notebookId  // Include notebookId for reference panels
+        });
+      });
+
+      // Search plants - include all user plants
+      const plantResults = await db.select().from(plants)
+        .where(and(
+          eq(plants.userId, userId),
+          sql`${plants.name} ILIKE ${'%' + trimmedQuery + '%'}`
+        ))
+        .limit(10);
+      
+      plantResults.forEach(plant => {
+        results.push({
+          id: plant.id,
+          title: plant.name,
+          type: 'plant',
+          subtitle: plant.type || 'Plant',
+          description: plant.description?.substring(0, 100) + '...',
+          notebookId: plant.notebookId  // Include notebookId for reference panels
+        });
+      });
+
     } catch (error) {
       console.error('Error in universal search:', error);
     }
