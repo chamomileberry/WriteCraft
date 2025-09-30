@@ -260,15 +260,19 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
       {projectInfo && (
         <div
           className={cn(
-            "flex items-center gap-2 px-3 py-2 border-r cursor-pointer",
+            "flex items-center gap-2 px-3 py-2 border-r cursor-pointer relative",
             "min-w-0 max-w-48",
             !activeTab 
-              ? "bg-background text-foreground border-b-2 border-b-primary" 
+              ? "bg-background text-foreground" 
               : "bg-muted/40 text-muted-foreground hover-elevate"
           )}
           onClick={() => !isEditingProject && !activeTab ? handleStartProjectEdit() : !isEditingProject && setActiveTab('', 'main')}
           data-testid="tab-project"
         >
+          {/* Active tab indicator - absolute positioned to not affect layout */}
+          {!activeTab && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+          )}
           <FileText className="h-3.5 w-3.5 flex-shrink-0" />
           {isEditingProject && !activeTab ? (
             <Input
@@ -305,7 +309,7 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
             "flex items-center gap-1 px-3 py-2 border-r cursor-pointer select-none hover-elevate",
             "min-w-0 max-w-48 group relative",
             activeTab?.id === tab.id 
-              ? "bg-background text-foreground border-b-2 border-b-primary" 
+              ? "bg-background text-foreground" 
               : "bg-muted/40 text-muted-foreground hover:bg-muted/60",
             dragOverIndex === index && "border-l-2 border-l-primary"
           )}
@@ -313,6 +317,10 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
           onContextMenu={(e) => handleContextMenu(e, tab.id)}
           data-testid={`tab-${tab.id}`}
         >
+          {/* Active tab indicator - absolute positioned to not affect layout */}
+          {activeTab?.id === tab.id && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+          )}
           <Button
             variant="ghost"
             size="sm"
