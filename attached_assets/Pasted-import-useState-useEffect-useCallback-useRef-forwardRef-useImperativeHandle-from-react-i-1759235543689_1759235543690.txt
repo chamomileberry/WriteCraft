@@ -54,7 +54,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore, EditorActions } from '@/stores/workspaceStore';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
-import type { ProjectSection } from '@shared/schema';
+import type { ProjectSection } from '@/types/project';
 
 // Custom HorizontalRule extension
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -167,10 +167,10 @@ const FontSize = Extension.create({
 interface SectionEditorProps {
   projectId: string;
   section: ProjectSection;
-  onContentChange?: (hasChanges: boolean) => void;
-  onSaveStatusChange?: (status: 'saved' | 'saving' | 'unsaved') => void;
-  onLastSaveTimeChange?: (time: Date) => void;
-  onWordCountChange?: (count: number) => void;
+  onContentChange: (hasChanges: boolean) => void;
+  onSaveStatusChange: (status: 'saved' | 'saving' | 'unsaved') => void;
+  onLastSaveTimeChange: (time: Date) => void;
+  onWordCountChange: (count: number) => void;
 }
 
 export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, SectionEditorProps>(
@@ -198,13 +198,13 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         return response.json();
       },
       onSuccess: () => {
-        onSaveStatusChange?.('saved');
-        onLastSaveTimeChange?.(new Date());
-        onContentChange?.(false);
+        onSaveStatusChange('saved');
+        onLastSaveTimeChange(new Date());
+        onContentChange(false);
         queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections', section.id] });
       },
       onError: (error: any) => {
-        onSaveStatusChange?.('unsaved');
+        onSaveStatusChange('unsaved');
         toast({
           title: "Save failed",
           description: error.message || "Failed to save section. Please try again.",
@@ -276,12 +276,12 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         },
       },
       onUpdate: ({ editor }) => {
-        onSaveStatusChange?.('unsaved');
-        onContentChange?.(true);
+        onSaveStatusChange('unsaved');
+        onContentChange(true);
         
         // Update word count
         const words = editor.storage.characterCount?.words() || 0;
-        onWordCountChange?.(words);
+        onWordCountChange(words);
         
         // Update editor context for AI
         updateEditorContext({
@@ -310,7 +310,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         
         // Update word count immediately
         const words = editor.storage.characterCount?.words() || 0;
-        onWordCountChange?.(words);
+        onWordCountChange(words);
       }
     }, [section?.id, editor]);
 
@@ -349,7 +349,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
     // Save content function
     const saveContent = useCallback(async () => {
       if (editor) {
-        onSaveStatusChange?.('saving');
+        onSaveStatusChange('saving');
         const content = editor.getHTML();
         await saveMutation.mutateAsync(content);
       }
@@ -441,7 +441,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
             <div className="flex items-center gap-2">
               <Dialog open={isInsertImageDialogOpen} onOpenChange={setIsInsertImageDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-insert-image">
+                  <Button variant="outline" size="sm">
                     <ImageIcon className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
@@ -457,13 +457,12 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
                     onChange={(e) => setInsertImageUrl(e.target.value)}
                     placeholder="https://example.com/image.jpg"
                     onKeyDown={(e) => e.key === 'Enter' && handleInsertImage()}
-                    data-testid="input-image-url"
                   />
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsInsertImageDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleInsertImage} disabled={!insertImageUrl.trim()} data-testid="button-confirm-insert-image">
+                    <Button onClick={handleInsertImage} disabled={!insertImageUrl.trim()}>
                       Insert
                     </Button>
                   </DialogFooter>
@@ -472,7 +471,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
 
               <Dialog open={isInsertVideoDialogOpen} onOpenChange={setIsInsertVideoDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-insert-video">
+                  <Button variant="outline" size="sm">
                     <Video className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
@@ -488,13 +487,12 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
                     onChange={(e) => setInsertVideoUrl(e.target.value)}
                     placeholder="https://www.youtube.com/watch?v=..."
                     onKeyDown={(e) => e.key === 'Enter' && handleInsertVideo()}
-                    data-testid="input-video-url"
                   />
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsInsertVideoDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleInsertVideo} disabled={!insertVideoUrl.trim()} data-testid="button-confirm-insert-video">
+                    <Button onClick={handleInsertVideo} disabled={!insertVideoUrl.trim()}>
                       Insert
                     </Button>
                   </DialogFooter>
@@ -503,7 +501,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
 
               <Dialog open={isInsertLinkDialogOpen} onOpenChange={setIsInsertLinkDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-insert-link">
+                  <Button variant="outline" size="sm">
                     <LinkIcon className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
@@ -519,13 +517,12 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
                     onChange={(e) => setInsertLinkUrl(e.target.value)}
                     placeholder="https://example.com"
                     onKeyDown={(e) => e.key === 'Enter' && handleInsertLink()}
-                    data-testid="input-link-url"
                   />
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsInsertLinkDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleInsertLink} disabled={!insertLinkUrl.trim()} data-testid="button-confirm-insert-link">
+                    <Button onClick={handleInsertLink} disabled={!insertLinkUrl.trim()}>
                       Insert
                     </Button>
                   </DialogFooter>
@@ -534,18 +531,18 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-export">
+                  <Button variant="outline" size="sm">
                     <Download className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleExport('html')} data-testid="button-export-html">
+                  <DropdownMenuItem onClick={() => handleExport('html')}>
                     Export as HTML
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('pdf')} data-testid="button-export-pdf">
+                  <DropdownMenuItem onClick={() => handleExport('pdf')}>
                     Export as PDF
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('docx')} data-testid="button-export-docx">
+                  <DropdownMenuItem onClick={() => handleExport('docx')}>
                     Export as DOCX
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -556,7 +553,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
 
         {/* Editor */}
         <div className="flex-1 overflow-auto">
-          <EditorContent editor={editor} data-testid="editor-content" />
+          <EditorContent editor={editor} />
         </div>
       </div>
     );
