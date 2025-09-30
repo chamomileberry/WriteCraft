@@ -77,6 +77,13 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
 
   const { data: character, isLoading, error } = useQuery<Character>({
     queryKey: ['/api/characters', characterId],
+    queryFn: async () => {
+      // Use a default notebook ID for now - ideally this would come from context
+      // Characters don't have a notebookId in their ID, so we need to pass one
+      const defaultNotebookId = 'main-notebook'; // This should match what's used in character creation
+      const response = await apiRequest('GET', `/api/characters/${characterId}?notebookId=${defaultNotebookId}`);
+      return response.json();
+    },
     enabled: !!characterId
   });
 
@@ -212,7 +219,8 @@ const CharacterDetailPanel = ({ characterId, panelId, onClose, isCompact = false
         workHistory: data.workHistory || null,
       };
       
-      return apiRequest('PATCH', `/api/characters/${characterId}`, updateData);
+      const defaultNotebookId = 'main-notebook';
+      return apiRequest('PATCH', `/api/characters/${characterId}?notebookId=${defaultNotebookId}`, updateData);
     },
     onSuccess: () => {
       toast({ title: 'Character updated successfully' });
