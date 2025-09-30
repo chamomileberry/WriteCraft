@@ -81,7 +81,7 @@ export default function GuideEditPageWithSidebar({ params }: GuideEditPageWithSi
             </header>
             
             {/* Editor Content */}
-            <main className="flex-1 overflow-hidden">
+            <main className="flex-1 overflow-y-auto">
               <GuideEditor 
                 guideId={params.id}
                 onBack={handleBack}
