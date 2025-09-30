@@ -125,7 +125,14 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
         throw new Error('No active notebook selected');
       }
       console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
-      const response = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${activeNotebookId}`);
+      // Use fetch directly with cache: 'no-cache' to force fresh data
+      const response = await fetch(`/api/saved-items/demo-user?notebookId=${activeNotebookId}`, {
+        credentials: 'include',
+        cache: 'no-cache' // Force bypass of HTTP cache
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch saved items: ${response.status}`);
+      }
       return await response.json() as SavedItem[];
     },
     enabled: !!activeNotebookId // Only enabled when there's an active notebook
@@ -278,8 +285,11 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       });
     },
     onSettled: () => {
-      // Always refetch after error or success to ensure we're in sync
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
+      // Force a fresh refetch (not from cache) to ensure we get the updated list
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/saved-items', 'demo-user', activeNotebookId],
+        type: 'active'
+      });
     },
   });
 
