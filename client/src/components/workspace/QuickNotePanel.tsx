@@ -15,6 +15,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasBeenSavedOnce = useRef(false);
+  const isSavingOnUnmount = useRef(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -48,10 +49,27 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         content: data.content,
       });
     },
-    onSuccess: () => {
+    onSuccess: async (response, variables) => {
       setSaveStatus('saved');
       hasBeenSavedOnce.current = true;
-      // Don't invalidate query here to avoid overwriting user input
+      
+      // Parse the response to get the complete saved note
+      const savedNote = await response.json();
+      
+      // Update the local cache immediately with the saved content to prevent stale data overwrites
+      queryClient.setQueryData(['/api/quick-note', userId], () => {
+        return {
+          id: savedNote.id || quickNote?.id || `quick-note-${userId}`,
+          userId: userId,
+          title: savedNote.title || 'Quick Note',
+          content: savedNote.content || variables.content,
+          createdAt: savedNote.createdAt || quickNote?.createdAt || new Date().toISOString(),
+          updatedAt: savedNote.updatedAt || new Date().toISOString()
+        };
+      });
+      
+      // Then invalidate to trigger refetch for other consumers (like SavedItems)
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-note'], exact: false });
     },
     onError: (error) => {
       setSaveStatus('unsaved');
@@ -64,18 +82,21 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     },
   });
 
-  // Load quick note data only once when data is available
+  // Load quick note data when available or when it changes (after save invalidation)
   useEffect(() => {
-    if (quickNote && !hasInitialized.current && !isLoading) {
+    if (quickNote && !isLoading) {
       const serverContent = quickNote.content || '';
-      console.log('[QuickNote] Loading content from server:', serverContent);
-      // Always set the content from the server
-      setContent(serverContent);
-      contentRef.current = serverContent; // Also update ref immediately
-      hasBeenSavedOnce.current = true;
-      hasInitialized.current = true;
+      // Only update if content differs from server and we're not currently editing
+      // (saveStatus 'saved' means no active edits)
+      if (!hasInitialized.current || (saveStatus === 'saved' && content !== serverContent)) {
+        console.log('[QuickNote] Loading content from server:', serverContent);
+        setContent(serverContent);
+        contentRef.current = serverContent;
+        hasBeenSavedOnce.current = true;
+        hasInitialized.current = true;
+      }
     }
-  }, [quickNote, isLoading]);
+  }, [quickNote, isLoading, saveStatus]);
 
   // Autosave functionality
   const triggerAutosave = () => {
@@ -93,13 +114,19 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   };
 
   const handleAutoSave = async () => {
-    if (saveMutation.isPending) return;
+    if (saveMutation.isPending) {
+      console.log('[QuickNote] Skip autosave - mutation already pending');
+      return;
+    }
     
-    console.log('[QuickNote] Auto-saving content:', content);
+    const contentToSave = contentRef.current; // Use ref to get most current value
+    console.log('[QuickNote] Auto-saving content:', contentToSave);
     setSaveStatus('saving');
     try {
-      await saveMutation.mutateAsync({ content });
+      await saveMutation.mutateAsync({ content: contentToSave });
+      console.log('[QuickNote] Auto-save successful');
     } catch (error) {
+      console.error('[QuickNote] Auto-save failed:', error);
       // Error handling is done in mutation onError
     }
   };
@@ -114,10 +141,16 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (isSavingOnUnmount.current) {
+        console.log('[QuickNote] Already saving on unmount, skipping duplicate save');
+        return;
+      }
+      
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
         // Save any pending content before unmounting
         if (contentRef.current && contentRef.current.trim() && !saveMutation.isPending) {
+          isSavingOnUnmount.current = true;
           console.log('[QuickNote] Saving on unmount:', contentRef.current);
           saveMutation.mutate({ content: contentRef.current });
         }

@@ -91,17 +91,26 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   const { data: fetchedNotebooks } = useQuery({
     queryKey: ['/api/notebooks'],
     queryFn: async () => {
+      console.log('[SavedItems] Fetching notebooks list');
       const response = await apiRequest('GET', '/api/notebooks');
-      return await response.json();
+      const notebooks = await response.json();
+      console.log('[SavedItems] Fetched notebooks:', notebooks);
+      return notebooks;
     }
   });
 
   // Initialize notebooks in store and select first one if none is active
   useEffect(() => {
     if (fetchedNotebooks && fetchedNotebooks.length > 0) {
+      console.log('[SavedItems] Initializing notebooks, current activeNotebookId:', activeNotebookId);
       setNotebooks(fetchedNotebooks);
-      // If no active notebook, select the first one
-      if (!activeNotebookId) {
+      
+      // Check if current activeNotebookId is valid
+      const isValidNotebook = fetchedNotebooks.some((nb: any) => nb.id === activeNotebookId);
+      
+      // If no active notebook or invalid notebook, select the first one
+      if (!activeNotebookId || !isValidNotebook) {
+        console.log('[SavedItems] Setting active notebook to first one:', fetchedNotebooks[0].id);
         setActiveNotebook(fetchedNotebooks[0].id);
       }
     }
@@ -112,8 +121,10 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     queryKey: ['/api/saved-items', 'demo-user', activeNotebookId], // Include activeNotebookId in query key
     queryFn: async () => {
       if (!activeNotebookId) {
+        console.error('[SavedItems] No active notebook selected');
         throw new Error('No active notebook selected');
       }
+      console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
       const response = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${activeNotebookId}`);
       return await response.json() as SavedItem[];
     },
@@ -273,10 +284,8 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   };
 
   const handleEdit = (item: SavedItem) => {
-    console.log('[SavedItems] handleEdit called for item:', item.itemType, item.contentType);
     // Open Quick Note panel for editing
     if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-      console.log('[SavedItems] Opening Quick Note panel');
       openQuickNote();
       return;
     }
