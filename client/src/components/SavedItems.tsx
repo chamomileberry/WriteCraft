@@ -249,8 +249,15 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
         notebookId: item.notebookId || activeNotebookId
       };
       
+      console.log('[SavedItems] Deleting item:', {
+        itemFromState: item,
+        deleteBody: body
+      });
+      
       const response = await apiRequest('DELETE', '/api/saved-items', body);
-      return response.json();
+      const result = await response.json();
+      console.log('[SavedItems] Delete response:', result);
+      return result;
     },
     onMutate: async (deletedItem) => {
       // Cancel any outgoing refetches
