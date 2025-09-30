@@ -5,6 +5,7 @@ import CharacterDetailPanel from './CharacterDetailPanel';
 import { ContentDetailPanel } from './ContentDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
 import WritingAssistantPanel from './WritingAssistantPanel';
+import { FloatingLayer } from './FloatingLayer';
 import { X, GripHorizontal, Pin, Save, Minimize2, MessageSquarePlus, History, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +13,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMobileDetection } from '@/hooks/useMobileDetection';
 import { SidebarDrawer } from '@/components/ui/sidebar-drawer';
-import { FloatingLayer } from './FloatingLayer';
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
@@ -253,12 +253,12 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   );
 
   return (
-    <div ref={workspaceRef} className="relative w-full min-h-screen bg-background">
+    <div ref={workspaceRef} className="relative w-full h-screen bg-background">
       {isMobile ? (
         /* Mobile Layout - Full screen with drawer */
         <>
           {/* Full-width main content for mobile */}
-          <div className="w-full min-h-screen">
+          <div className="w-full h-screen">
             {children}
           </div>
           
@@ -275,9 +275,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </>
       ) : (
         /* Desktop Layout - Side-by-side */
-        <div className="flex w-full min-h-screen">
+        <div className="flex w-full h-screen">
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 h-full">
             {children}
           </div>
           
@@ -293,7 +293,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </div>
       )}
 
-      {/* Floating Layer - renders globally for ALL pages */}
+      {/* Floating Layer - renders globally for all pages */}
       <FloatingLayer />
     </div>
   );

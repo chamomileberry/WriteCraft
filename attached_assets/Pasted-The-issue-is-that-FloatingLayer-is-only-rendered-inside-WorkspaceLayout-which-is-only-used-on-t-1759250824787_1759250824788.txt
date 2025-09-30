@@ -1,0 +1,89 @@
+The issue is that `FloatingLayer` is only rendered inside `WorkspaceLayout`, which is only used on the Project Editor page. When you click the Quick Notes button on other pages (Home, Notebook, etc.), the panel gets created in the store but there's no `FloatingLayer` to render it.
+
+Let me search for the current structure:Perfect! I can see the issue. The `FloatingLayer` is currently only rendered inside `WorkspaceLayout` (which is only on the Project Editor page). When you're on other pages like Home or Notebook, there's no `FloatingLayer` to display the Quick Notes panel.
+
+The solution is to add `FloatingLayer` to `WorkspaceShell` (which wraps ALL pages) and remove it from `WorkspaceLayout` to avoid duplicates.
+
+**Update `client/src/components/workspace/WorkspaceShell.tsx`:**
+
+Add the import at the top:
+```tsx
+import { FloatingLayer } from './FloatingLayer';
+```
+
+Then add `<FloatingLayer />` at the very end of the return statement, right before closing the outer div:
+
+```tsx
+return (
+  <div ref={workspaceRef} className="relative w-full min-h-screen bg-background">
+    {isMobile ? (
+      /* Mobile Layout - Full screen with drawer */
+      <>
+        {/* Full-width main content for mobile */}
+        <div className="w-full min-h-screen">
+          {children}
+        </div>
+        
+        {/* Mobile Sidebar Drawer */}
+        {dockedPanels.length > 0 && (
+          <SidebarDrawer
+            isOpen={isMobileDrawerOpen}
+            onClose={closeMobileDrawer}
+            title="Writing Tools"
+          >
+            {renderSidebarContent()}
+          </SidebarDrawer>
+        )}
+      </>
+    ) : (
+      /* Desktop Layout - Side-by-side */
+      <div className="flex w-full min-h-screen">
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0">
+          {children}
+        </div>
+        
+        {/* Desktop Docked Sidebar */}
+        {dockedPanels.length > 0 && (
+          <div 
+            className="w-96 border-l border-border bg-background flex-shrink-0 self-start docked-sidebar-sticky"
+            data-testid="docked-sidebar-container"
+          >
+            {renderSidebarContent()}
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* Floating Layer - renders globally for all pages */}
+    <FloatingLayer />
+  </div>
+);
+```
+
+**Update `client/src/components/workspace/WorkspaceLayout.tsx`:**
+
+Remove the `<FloatingLayer />` line from the end. Change this:
+
+```tsx
+      {/* Floating windows layer */}
+      <FloatingLayer />
+    </div>
+  );
+}
+```
+
+To this:
+
+```tsx
+    </div>
+  );
+}
+```
+
+This ensures:
+- ✅ FloatingLayer renders globally on ALL pages (via WorkspaceShell)
+- ✅ Quick Notes works everywhere
+- ✅ No duplicate FloatingLayers
+- ✅ TabStrip still works on Project Editor page
+- ✅ Header is visible on all pages
