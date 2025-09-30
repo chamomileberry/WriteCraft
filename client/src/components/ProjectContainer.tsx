@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ProjectHeader } from './ProjectHeader';
+import { ProjectTabBar } from './ProjectTabBar';
 import { ProjectOutline } from './ProjectOutline';
 import { SectionEditor } from './SectionEditor';
 import { Loader2 } from 'lucide-react';
@@ -166,16 +167,22 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const showEditor = activeSectionId && activeSection?.type === 'page';
 
   return (
-    <WorkspaceLayout>
+    <WorkspaceLayout showTabStrip={false}>
       <div className="flex h-full bg-background">
-        {/* Left Sidebar - Outline */}
-        <div className="w-64 border-r flex-shrink-0 overflow-hidden">
-          <ProjectOutline
-            projectId={projectId}
-            sections={sections}
-            activeSectionId={activeSectionId}
-            onSectionClick={handleSectionClick}
+        {/* Left Sidebar - Tabs & Outline */}
+        <div className="w-64 border-r flex-shrink-0 overflow-hidden flex flex-col">
+          <ProjectTabBar 
+            projectId={projectId} 
+            projectTitle={project?.title || 'Untitled Project'} 
           />
+          <div className="flex-1 overflow-hidden">
+            <ProjectOutline
+              projectId={projectId}
+              sections={sections}
+              activeSectionId={activeSectionId}
+              onSectionClick={handleSectionClick}
+            />
+          </div>
         </div>
 
         {/* Main Content Area */}
