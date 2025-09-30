@@ -194,7 +194,7 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
         </div>
       )}
 
-      {/* Floating windows layer - also rendered here for pages using WorkspaceLayout */}
+      {/* Floating windows layer */}
       <FloatingLayer />
     </div>
   );
