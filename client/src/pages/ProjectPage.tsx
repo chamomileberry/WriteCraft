@@ -11,6 +11,8 @@ import { useWorkspaceStore, type PanelDescriptor } from "@/stores/workspaceStore
 import { ProjectViewer } from "@/components/ProjectViewer";
 import { ProjectContainer } from "@/components/ProjectContainer";
 import Header from "@/components/Header";
+import ContentTypeModal from "@/components/ContentTypeModal";
+import { getMappingById } from "@shared/contentTypes";
 
 interface Project {
   id: string;
@@ -31,6 +33,7 @@ export default function ProjectPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
@@ -51,7 +54,20 @@ export default function ProjectPage() {
   };
 
   const handleCreateNew = () => {
-    handleNewProject();
+    setIsContentModalOpen(true);
+  };
+
+  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+    setIsContentModalOpen(false);
+    const mapping = getMappingById(contentType);
+    if (mapping) {
+      const url = notebookId 
+        ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
+        : `/editor/${mapping.urlSegment}/new`;
+      navigate(url);
+    } else {
+      navigate('/notebook');
+    }
   };
 
   // Fetch projects
@@ -325,6 +341,12 @@ export default function ProjectPage() {
           </div>
         )}
       </div>
+      
+      <ContentTypeModal
+        isOpen={isContentModalOpen}
+        onClose={() => setIsContentModalOpen(false)}
+        onSelectType={handleSelectContentType}
+      />
     </div>
   );
 }

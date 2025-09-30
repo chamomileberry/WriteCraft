@@ -5,9 +5,10 @@ import { useLocation } from "wouter";
 interface LayoutProps {
   children: ReactNode;
   hideNavigation?: boolean;
+  onCreateNew?: () => void;
 }
 
-export default function Layout({ children, hideNavigation = false }: LayoutProps) {
+export default function Layout({ children, hideNavigation = false, onCreateNew }: LayoutProps) {
   const [, setLocation] = useLocation();
   
   const handleSearch = (query: string) => {
@@ -29,8 +30,12 @@ export default function Layout({ children, hideNavigation = false }: LayoutProps
   };
   
   const handleCreateNew = () => {
-    // Navigate to home and trigger create modal
-    setLocation('/?create=true');
+    if (onCreateNew) {
+      onCreateNew();
+    } else {
+      // Fallback: Navigate to home and trigger create modal
+      setLocation('/?create=true');
+    }
   };
   
   return (

@@ -23,15 +23,36 @@ import NoteEditPage from "@/pages/NoteEditPage";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
-import { getMappingByUrlSegment } from "@shared/contentTypes";
+import ContentTypeModal from "@/components/ContentTypeModal";
+import { getMappingByUrlSegment, getMappingById } from "@shared/contentTypes";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
 // Notebook page component
 function NotebookPage() {
   const [, setLocation] = useLocation();
+  const [isContentModalOpen, setIsContentModalOpen] = useState(false);
+
+  const handleCreateNew = () => {
+    setIsContentModalOpen(true);
+  };
+
+  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+    setIsContentModalOpen(false);
+    const mapping = getMappingById(contentType);
+    if (mapping) {
+      const url = notebookId 
+        ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
+        : `/editor/${mapping.urlSegment}/new`;
+      setLocation(url);
+    } else {
+      setLocation('/notebook');
+    }
+  };
+
   return (
-    <Layout>
+    <Layout onCreateNew={handleCreateNew}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button 
           variant="ghost" 
@@ -42,8 +63,14 @@ function NotebookPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Home
         </Button>
-        <SavedItems />
+        <SavedItems onCreateNew={handleCreateNew} />
       </div>
+      
+      <ContentTypeModal
+        isOpen={isContentModalOpen}
+        onClose={() => setIsContentModalOpen(false)}
+        onSelectType={handleSelectContentType}
+      />
     </Layout>
   );
 }
