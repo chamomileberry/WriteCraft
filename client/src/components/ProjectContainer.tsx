@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectOutline } from './ProjectOutline';
 import { SectionEditor } from './SectionEditor';
 import { Loader2 } from 'lucide-react';
-import type { ProjectSectionWithChildren, Project } from '@shared/schema';
+import type { ProjectSectionWithChildren } from '@shared/schema';
 
 interface ProjectContainerProps {
   projectId: string;
@@ -16,23 +17,34 @@ interface ProjectContainerProps {
 
 export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleInput, setTitleInput] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [wordCount, setWordCount] = useState(0);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(null);
+  const { addPanel, isPanelOpen, focusPanel } = useWorkspaceStore();
 
   // Fetch project data
-  const { data: project, isLoading: isLoadingProject } = useQuery<Project>({
+  const { data: project, isLoading: isLoadingProject } = useQuery({
     queryKey: ['/api/projects', projectId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/projects/${projectId}`);
+      return response.json();
+    },
+    enabled: !!projectId,
   });
 
   // Fetch project sections (tree structure)
-  const { data: sections = [], isLoading: isLoadingSections } = useQuery<ProjectSectionWithChildren[]>({
+  const { data: sections = [], isLoading: isLoadingSections } = useQuery({
     queryKey: ['/api/projects', projectId, 'sections'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/projects/${projectId}/sections`);
+      return response.json();
+    },
+    enabled: !!projectId,
   });
 
   // Fetch active section content
@@ -70,8 +82,8 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
     }
   }, [sections, activeSectionId]);
 
-  // Handle section navigation
-  const handleSectionClick = (section: ProjectSectionWithChildren) => {
+  // Handle section navigation with unsaved changes check
+  const handleSectionClick = async (section: ProjectSectionWithChildren) => {
     // Can't navigate to folders, only pages
     if (section.type === 'folder') {
       return;
@@ -82,75 +94,73 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
       return;
     }
 
+    // If there are unsaved changes, save first
+    if (hasUnsavedChanges && sectionEditorRef.current) {
+      try {
+        await sectionEditorRef.current.saveContent();
+        setHasUnsavedChanges(false);
+      } catch (error) {
+        toast({
+          title: 'Save failed',
+          description: 'Could not save changes. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     // Navigate to new section
     setActiveSectionId(section.id);
   };
 
-  // Title editing handlers
-  const handleTitleClick = () => {
-    if (project) {
-      setTitleInput(project.title);
-      setIsEditingTitle(true);
+  // Handle manual save
+  const handleManualSave = async () => {
+    if (sectionEditorRef.current) {
+      try {
+        await sectionEditorRef.current.saveContent();
+      } catch (error) {
+        toast({
+          title: 'Save failed',
+          description: 'Could not save changes. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
-  const handleTitleChange = (value: string) => {
-    setTitleInput(value);
+  // Get breadcrumb path for current section
+  const getBreadcrumb = (): string[] => {
+    if (!activeSectionId || !sections) return [];
+    
+    const findPath = (
+      sectionList: ProjectSectionWithChildren[], 
+      targetId: string, 
+      path: string[] = []
+    ): string[] | null => {
+      for (const section of sectionList) {
+        const currentPath = [...path, section.title];
+        
+        if (section.id === targetId) {
+          return currentPath;
+        }
+        
+        if (section.children && section.children.length > 0) {
+          const childPath = findPath(section.children, targetId, currentPath);
+          if (childPath) return childPath;
+        }
+      }
+      return null;
+    };
+    
+    return findPath(sections, activeSectionId) || [];
   };
 
-  const updateProjectMutation = useMutation({
-    mutationFn: async (title: string) => {
-      const response = await apiRequest('PUT', `/api/projects/${projectId}`, { title });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
-      toast({
-        title: 'Updated',
-        description: 'Project title has been updated.',
-      });
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to update project title.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const handleTitleSave = () => {
-    if (titleInput.trim() && titleInput !== project?.title) {
-      updateProjectMutation.mutate(titleInput.trim());
-    }
-    setIsEditingTitle(false);
-  };
-
-  const handleTitleCancel = () => {
-    setIsEditingTitle(false);
-    setTitleInput('');
-  };
-
-  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleTitleSave();
-    } else if (e.key === 'Escape') {
-      handleTitleCancel();
-    }
-  };
-
-  const handleManualSave = () => {
-    // Manual save is handled by SectionEditor auto-save
-    toast({
-      title: 'Saved',
-      description: 'All changes have been saved.',
-    });
-  };
+  const breadcrumb = getBreadcrumb();
 
   // Loading state
   if (isLoadingProject || isLoadingSections) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]" data-testid="loader-project">
+      <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -164,7 +174,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
     <WorkspaceLayout>
       <div className="flex h-full bg-background">
         {/* Left Sidebar - Outline */}
-        <div className="w-64 border-r flex-shrink-0 overflow-hidden" data-testid="container-outline">
+        <div className="w-64 border-r flex-shrink-0 overflow-hidden">
           <ProjectOutline
             projectId={projectId}
             sections={sections}
@@ -179,17 +189,32 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
           <ProjectHeader
             project={project}
             breadcrumb={breadcrumb}
+            wordCount={wordCount}
+            saveStatus={saveStatus}
+            lastSaveTime={lastSaveTime}
             onBack={onBack}
+            onManualSave={handleManualSave}
+            isSaving={saveStatus === 'saving'}
           />
 
           {/* Editor or Empty State */}
           {showEditor ? (
             <SectionEditor
+              ref={sectionEditorRef}
               projectId={projectId}
               section={activeSection}
+              onContentChange={(changes) => {
+                setHasUnsavedChanges(changes);
+                if (!changes) {
+                  setSaveStatus('saved');
+                }
+              }}
+              onSaveStatusChange={setSaveStatus}
+              onLastSaveTimeChange={setLastSaveTime}
+              onWordCountChange={setWordCount}
             />
           ) : showEmptyState ? (
-            <div className="flex-1 flex items-center justify-center text-center p-8" data-testid="container-empty-state">
+            <div className="flex-1 flex items-center justify-center text-center p-8">
               <div>
                 <h3 className="text-lg font-semibold mb-2">No page selected</h3>
                 <p className="text-sm text-muted-foreground">
@@ -198,7 +223,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
               </div>
             </div>
           ) : isLoadingSection ? (
-            <div className="flex-1 flex items-center justify-center" data-testid="loader-section">
+            <div className="flex-1 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : null}

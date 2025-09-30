@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
@@ -143,180 +143,203 @@ const FontSize = Extension.create({
 interface SectionEditorProps {
   projectId: string;
   section: ProjectSection;
+  onContentChange?: (hasChanges: boolean) => void;
+  onSaveStatusChange?: (status: 'saved' | 'saving' | 'unsaved') => void;
+  onLastSaveTimeChange?: (time: Date | null) => void;
+  onWordCountChange?: (count: number) => void;
 }
 
-export function SectionEditor({ projectId, section }: SectionEditorProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+export interface SectionEditorRef {
+  saveContent: () => Promise<void>;
+}
 
-  const lowlight = createLowlight();
+export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
+  ({ projectId, section, onContentChange, onSaveStatusChange, onLastSaveTimeChange, onWordCountChange }, ref) => {
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const [pendingSave, setPendingSave] = useState<NodeJS.Timeout | null>(null);
+    const lowlight = createLowlight();
 
-  const updateMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/${section.id}`, {
-        content,
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
-      setLastSaved(new Date());
-      setIsSaving(false);
-      toast({
-        title: 'Saved',
-        description: 'Section content has been saved successfully.',
-      });
-    },
-    onError: (error) => {
-      setIsSaving(false);
-      toast({
-        title: 'Error',
-        description: 'Failed to save section content.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        horizontalRule: false,
-        bulletList: false,
-        orderedList: false,
-        listItem: false,
-      }),
-      CustomHorizontalRule,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline cursor-pointer',
-        },
-      }),
-      Mention.configure({
-        HTMLAttributes: {
-          class: 'mention bg-accent text-accent-foreground px-1 py-0.5 rounded',
-        },
-        suggestion,
-      }),
-      CharacterCount,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      TextStyle,
-      Color,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      FontFamily,
-      FontSize,
-      BulletList,
-      OrderedList,
-      ListItem,
-      Image.configure({
-        HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg',
-        },
-      }),
-      TiptapTable.configure({
-        resizable: true,
-        HTMLAttributes: {
-          class: 'border-collapse table-auto w-full my-4',
-        },
-      }),
-      TableRow,
-      TableHeader.configure({
-        HTMLAttributes: {
-          class: 'border border-border bg-muted font-bold p-2',
-        },
-      }),
-      TableCell.configure({
-        HTMLAttributes: {
-          class: 'border border-border p-2',
-        },
-      }),
-      CodeBlockLowlight.configure({
-        lowlight,
-        HTMLAttributes: {
-          class: 'bg-muted p-4 rounded-md my-2 overflow-x-auto',
-        },
-      }),
-      Youtube.configure({
-        width: 640,
-        height: 360,
-        HTMLAttributes: {
-          class: 'rounded-lg my-4',
-        },
-      }),
-      Focus.configure({
-        className: 'has-focus',
-        mode: 'all',
-      }),
-      Typography,
-    ],
-    content: section.content || '',
-    editorProps: {
-      attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-8',
+    const updateMutation = useMutation({
+      mutationFn: async (content: string) => {
+        const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/${section.id}`, {
+          content,
+        });
+        return response.json();
       },
-    },
-    onUpdate: ({ editor }) => {
-      // Auto-save debounced
-      if (!isSaving) {
-        setIsSaving(true);
-        const content = editor.getHTML();
-        setTimeout(() => {
+      onMutate: () => {
+        onSaveStatusChange?.('saving');
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+        onSaveStatusChange?.('saved');
+        onLastSaveTimeChange?.(new Date());
+        onContentChange?.(false);
+      },
+      onError: (error) => {
+        onSaveStatusChange?.('unsaved');
+        toast({
+          title: 'Error',
+          description: 'Failed to save section content.',
+          variant: 'destructive',
+        });
+      },
+    });
+
+    const editor = useEditor({
+      extensions: [
+        StarterKit.configure({
+          horizontalRule: false,
+          bulletList: false,
+          orderedList: false,
+          listItem: false,
+        }),
+        CustomHorizontalRule,
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: {
+            class: 'text-primary underline cursor-pointer',
+          },
+        }),
+        Mention.configure({
+          HTMLAttributes: {
+            class: 'mention bg-accent text-accent-foreground px-1 py-0.5 rounded',
+          },
+          suggestion,
+        }),
+        CharacterCount,
+        TextAlign.configure({
+          types: ['heading', 'paragraph'],
+        }),
+        TextStyle,
+        Color,
+        Highlight.configure({
+          multicolor: true,
+        }),
+        FontFamily,
+        FontSize,
+        BulletList,
+        OrderedList,
+        ListItem,
+        Image.configure({
+          HTMLAttributes: {
+            class: 'max-w-full h-auto rounded-lg',
+          },
+        }),
+        TiptapTable.configure({
+          resizable: true,
+          HTMLAttributes: {
+            class: 'border-collapse table-auto w-full my-4',
+          },
+        }),
+        TableRow,
+        TableHeader.configure({
+          HTMLAttributes: {
+            class: 'border border-border bg-muted font-bold p-2',
+          },
+        }),
+        TableCell.configure({
+          HTMLAttributes: {
+            class: 'border border-border p-2',
+          },
+        }),
+        CodeBlockLowlight.configure({
+          lowlight,
+          HTMLAttributes: {
+            class: 'bg-muted p-4 rounded-md my-2 overflow-x-auto',
+          },
+        }),
+        Youtube.configure({
+          width: 640,
+          height: 360,
+          HTMLAttributes: {
+            class: 'rounded-lg my-4',
+          },
+        }),
+        Focus.configure({
+          className: 'has-focus',
+          mode: 'all',
+        }),
+        Typography,
+      ],
+      content: section.content || '',
+      editorProps: {
+        attributes: {
+          class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-8',
+        },
+      },
+      onUpdate: ({ editor }) => {
+        // Mark as unsaved and trigger auto-save
+        onContentChange?.(true);
+        onSaveStatusChange?.('unsaved');
+        
+        // Update word count
+        const words = editor.storage.characterCount.words();
+        onWordCountChange?.(words);
+        
+        // Debounced auto-save
+        if (pendingSave) {
+          clearTimeout(pendingSave);
+        }
+        
+        const timeout = setTimeout(() => {
+          const content = editor.getHTML();
           updateMutation.mutate(content);
         }, 1000);
+        
+        setPendingSave(timeout);
+      },
+    });
+
+    // Update editor content when section changes
+    useEffect(() => {
+      if (editor && section.content !== editor.getHTML()) {
+        editor.commands.setContent(section.content || '');
+        // Update word count on section change
+        const words = editor.storage.characterCount.words();
+        onWordCountChange?.(words);
       }
-    },
-  });
+    }, [section.id, section.content, editor, onWordCountChange]);
 
-  // Update editor content when section changes
-  useEffect(() => {
-    if (editor && section.content !== editor.getHTML()) {
-      editor.commands.setContent(section.content || '');
+    // Expose saveContent method via ref
+    useImperativeHandle(ref, () => ({
+      saveContent: async () => {
+        if (editor) {
+          const content = editor.getHTML();
+          await updateMutation.mutateAsync(content);
+        }
+      },
+    }));
+
+    // Cleanup pending save on unmount
+    useEffect(() => {
+      return () => {
+        if (pendingSave) {
+          clearTimeout(pendingSave);
+        }
+      };
+    }, [pendingSave]);
+
+    if (!editor) {
+      return null;
     }
-  }, [section.id, section.content, editor]);
 
-  if (!editor) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col h-full">
-      <EditorToolbar 
-        editor={editor} 
-        title={section.title}
-      />
-      
-      <div className="flex-1 overflow-y-auto">
-        <EditorContent 
+    return (
+      <div className="flex flex-col h-full">
+        <EditorToolbar 
           editor={editor} 
-          data-testid="editor-content"
+          title={section.title}
         />
+        
+        <div className="flex-1 overflow-y-auto">
+          <EditorContent 
+            editor={editor} 
+            data-testid="editor-content"
+          />
+        </div>
       </div>
+    );
+  }
+);
 
-      {/* Status bar */}
-      <div className="border-t p-2 flex items-center justify-between text-xs text-muted-foreground">
-        <div className="flex items-center gap-4">
-          <span data-testid="text-word-count">
-            {editor.storage.characterCount.words()} words
-          </span>
-          <span data-testid="text-char-count">
-            {editor.storage.characterCount.characters()} characters
-          </span>
-        </div>
-        <div>
-          {isSaving && <span data-testid="text-saving">Saving...</span>}
-          {lastSaved && !isSaving && (
-            <span data-testid="text-last-saved">
-              Last saved at {lastSaved.toLocaleTimeString()}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+SectionEditor.displayName = 'SectionEditor';

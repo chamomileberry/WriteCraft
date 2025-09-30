@@ -1,40 +1,25 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import type { Project } from '@shared/schema';
 
 interface ProjectHeaderProps {
-  project?: {
-    title?: string;
-  };
+  project?: Project;
+  breadcrumb: string[];
   wordCount: number;
   saveStatus: 'saved' | 'saving' | 'unsaved';
   lastSaveTime: Date | null;
-  isEditingTitle: boolean;
-  titleInput: string;
   onBack: () => void;
-  onTitleClick: () => void;
-  onTitleChange: (value: string) => void;
-  onTitleSave: () => void;
-  onTitleCancel: () => void;
-  onTitleKeyDown: (e: React.KeyboardEvent) => void;
   onManualSave: () => void;
   isSaving: boolean;
 }
 
 export function ProjectHeader({
   project,
+  breadcrumb,
   wordCount,
   saveStatus,
   lastSaveTime,
-  isEditingTitle,
-  titleInput,
   onBack,
-  onTitleClick,
-  onTitleChange,
-  onTitleSave,
-  onTitleCancel,
-  onTitleKeyDown,
   onManualSave,
   isSaving,
 }: ProjectHeaderProps) {
@@ -64,52 +49,46 @@ export function ProjectHeader({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            {isEditingTitle ? (
-              <Input
-                value={titleInput}
-                onChange={(e) => onTitleChange(e.target.value)}
-                onKeyDown={onTitleKeyDown}
-                onBlur={onTitleSave}
-                className="text-xl font-semibold h-8 px-2 -ml-2"
-                data-testid="input-project-title"
-                autoFocus
-                placeholder="Project title..."
-              />
-            ) : (
-              <h1 
-                className="text-xl font-semibold cursor-pointer hover:text-primary transition-colors"
-                onClick={onTitleClick}
-                data-testid="text-project-title"
-              >
-                {project?.title || 'Untitled Project'}
-              </h1>
+            <h1 className="text-xl font-semibold" data-testid="text-project-title">
+              {project?.title || 'Untitled Project'}
+            </h1>
+            {breadcrumb.length > 0 && (
+              <p className="text-sm text-muted-foreground" data-testid="text-breadcrumb">
+                {breadcrumb.join(' / ')}
+              </p>
             )}
           </div>
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            {wordCount} words
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <span data-testid="text-word-count-header">
+              {wordCount.toLocaleString()} words
+            </span>
+            <span data-testid="text-save-status">
+              {getSaveStatusText()}
+            </span>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {getSaveStatusText()}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onManualSave}
-              disabled={isSaving || saveStatus === 'saving'}
-              data-testid="button-manual-save"
-            >
-              {isSaving || saveStatus === 'saving' ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
+          
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onManualSave}
+            disabled={isSaving || saveStatus === 'saved'}
+            data-testid="button-manual-save"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
                 <Save className="h-4 w-4 mr-2" />
-              )}
-              Save
-            </Button>
-          </div>
+                Save
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>
