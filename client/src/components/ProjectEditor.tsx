@@ -617,6 +617,22 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   return (
     <WorkspaceLayout>
       <div className="flex h-full bg-background flex-col">
+        {/* Navigation Header with Back button and Project Title */}
+        <div className="border-b bg-background/95 backdrop-blur flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={onBack} data-testid="button-back-to-projects">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Projects
+              </Button>
+              <div className="h-4 w-px bg-border" />
+              <h1 className="text-lg font-semibold">
+                {project?.title || 'Untitled Project'}
+              </h1>
+            </div>
+          </div>
+        </div>
+
         {/* Header */}
         <ProjectHeader
           project={project}
