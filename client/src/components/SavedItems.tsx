@@ -92,7 +92,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
         throw new Error('No active notebook selected');
       }
       const response = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${activeNotebookId}`);
-      return response.json() as SavedItem[];
+      return await response.json() as SavedItem[];
     },
     enabled: !!activeNotebookId // Only enabled when there's an active notebook
   });
