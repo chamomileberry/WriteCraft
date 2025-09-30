@@ -24,10 +24,35 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
     }));
     e.dataTransfer.effectAllowed = 'move';
     
-    // Hide the drag ghost image to prevent visual duplication
-    const img = new Image();
-    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    e.dataTransfer.setDragImage(img, 0, 0);
+    // Create a custom drag preview that looks like a tab
+    const dragPreview = document.createElement('div');
+    dragPreview.style.cssText = `
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      padding: 8px 16px;
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      white-space: nowrap;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    `;
+    dragPreview.textContent = panel.title;
+    document.body.appendChild(dragPreview);
+    
+    // Set the custom preview
+    e.dataTransfer.setDragImage(dragPreview, 100, 20);
+    
+    // Clean up after a short delay
+    setTimeout(() => {
+      document.body.removeChild(dragPreview);
+    }, 0);
   };
 
   const handleDragStop = (_e: any, data: { x: number; y: number }) => {
@@ -88,8 +113,8 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
       className="z-50"
       data-testid={`floating-window-${panel.id}`}
     >
-      <Card className="w-full h-full shadow-lg border-2 hover:border-primary/20">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card className="w-full h-full shadow-lg border-2 hover:border-primary/20 flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {/* Window drag handle - for moving the floating window */}
             <div 
@@ -104,7 +129,7 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
               className="text-sm font-medium truncate cursor-pointer hover:bg-accent/50 px-2 py-1 rounded transition-colors"
               draggable
               onDragStart={handleDragStart}
-              title="Drag to create tab"
+              title="Drag to tab bar to dock"
             >
               {panel.title}
             </span>
@@ -135,7 +160,7 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
           </div>
         </CardHeader>
         
-        <CardContent className="p-0 flex-1 overflow-hidden">
+        <CardContent className="p-0 flex-1 overflow-hidden min-h-0">
           {renderPanelContent()}
         </CardContent>
       </Card>
