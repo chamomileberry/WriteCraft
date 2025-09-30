@@ -2671,6 +2671,35 @@ export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProjectSection = z.infer<typeof insertProjectSectionSchema>;
 export type ProjectSection = typeof projectSections.$inferSelect;
+
+// Extended types for hierarchical project structure
+export interface ProjectSectionWithChildren extends ProjectSection {
+  children?: ProjectSectionWithChildren[];
+}
+
+export interface ProjectSectionUpdate {
+  title?: string;
+  content?: string;
+  position?: number;
+  parentId?: string | null;
+}
+
+export interface ProjectSectionReorder {
+  id: string;
+  parentId: string | null;
+  position: number;
+}
+
+export interface ProjectWithSections extends Project {
+  sections?: ProjectSectionWithChildren[];
+}
+
+export interface FlatProjectSection extends ProjectSection {
+  depth: number;
+  hasChildren: boolean;
+  isExpanded?: boolean;
+}
+
 export type InsertFolder = z.infer<typeof insertFolderSchema>;
 export type Folder = typeof folders.$inferSelect;
 export type InsertNote = z.infer<typeof insertNoteSchema>;
