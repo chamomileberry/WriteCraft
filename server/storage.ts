@@ -24,6 +24,7 @@ import {
   type Conflict, type InsertConflict,
   type InsertGuide, type Guide,
   type Project, type InsertProject,
+  type ProjectSection, type InsertProjectSection,
   type ProjectLink, type InsertProjectLink,
   type Folder, type InsertFolder,
   type Note, type InsertNote,
@@ -66,7 +67,7 @@ import {
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
   languages, religions, technologies, weapons, professions,
-  savedItems, names, themes, moods, conflicts, guides, projects, projectLinks,
+  savedItems, names, themes, moods, conflicts, guides, projects, projectSections, projectLinks,
   folders, notes, notebooks,
   // Missing content types - Import tables
   plants, descriptions, ethnicities, drinks, armor, accessories, clothing, materials,
@@ -491,6 +492,14 @@ export interface IStorage {
   updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project>;
   deleteProject(id: string, userId: string): Promise<void>;
   searchProjects(userId: string, query: string): Promise<Project[]>;
+  
+  // Project Section methods
+  createProjectSection(section: InsertProjectSection): Promise<ProjectSection>;
+  getProjectSection(id: string, projectId: string): Promise<ProjectSection | undefined>;
+  getProjectSections(projectId: string): Promise<ProjectSection[]>;
+  updateProjectSection(id: string, projectId: string, updates: Partial<InsertProjectSection>): Promise<ProjectSection>;
+  deleteProjectSection(id: string, projectId: string): Promise<void>;
+  reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number }[]): Promise<void>;
   
   // Universal search method
   searchAllContent(userId: string, query: string): Promise<any[]>;
@@ -2931,6 +2940,76 @@ export class DatabaseStorage implements IStorage {
       )
     )
     .orderBy(desc(sql`ts_rank(${projects.searchVector}, ${searchQuery})`));
+  }
+
+  // Project Section methods
+  async createProjectSection(section: InsertProjectSection): Promise<ProjectSection> {
+    const [result] = await db
+      .insert(projectSections)
+      .values(section)
+      .returning();
+    return result;
+  }
+
+  async getProjectSection(id: string, projectId: string): Promise<ProjectSection | undefined> {
+    const [section] = await db
+      .select()
+      .from(projectSections)
+      .where(and(
+        eq(projectSections.id, id),
+        eq(projectSections.projectId, projectId)
+      ));
+    return section || undefined;
+  }
+
+  async getProjectSections(projectId: string): Promise<ProjectSection[]> {
+    return await db
+      .select()
+      .from(projectSections)
+      .where(eq(projectSections.projectId, projectId))
+      .orderBy(projectSections.position);
+  }
+
+  async updateProjectSection(id: string, projectId: string, updates: Partial<InsertProjectSection>): Promise<ProjectSection> {
+    const [updatedSection] = await db
+      .update(projectSections)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(projectSections.id, id),
+        eq(projectSections.projectId, projectId)
+      ))
+      .returning();
+      
+    if (!updatedSection) {
+      throw new Error('Section not found');
+    }
+    
+    return updatedSection;
+  }
+
+  async deleteProjectSection(id: string, projectId: string): Promise<void> {
+    await db
+      .delete(projectSections)
+      .where(and(
+        eq(projectSections.id, id),
+        eq(projectSections.projectId, projectId)
+      ));
+  }
+
+  async reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number }[]): Promise<void> {
+    // Update positions for each section
+    for (const { id, position } of sectionOrders) {
+      await db
+        .update(projectSections)
+        .set({ position, updatedAt: new Date() })
+        .where(and(
+          eq(projectSections.id, id),
+          eq(projectSections.projectId, projectId)
+        ));
+    }
   }
 
   async searchAllContent(userId: string, query: string): Promise<any[]> {
