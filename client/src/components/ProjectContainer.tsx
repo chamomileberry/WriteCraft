@@ -23,6 +23,16 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [wordCount, setWordCount] = useState(0);
   
+  // Theme toggle state - must be at top level before any conditional returns
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return savedTheme === 'dark' || (!savedTheme && systemDark);
+    }
+    return false;
+  });
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(null);
@@ -187,16 +197,6 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const showEmptyState = !activeSectionId || activeSection?.type === 'folder';
   const showEditor = activeSectionId && activeSection?.type === 'page';
 
-  // Theme toggle state
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme');
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return savedTheme === 'dark' || (!savedTheme && systemDark);
-    }
-    return false;
-  });
-
   const toggleTheme = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
@@ -208,30 +208,61 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
     <div className="h-full flex flex-col">
       {/* Global Navigation Header */}
       <div className="border-b bg-background flex-shrink-0">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
+        <div className="max-w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
             <button 
               onClick={onBack}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
               data-testid="button-logo-home"
             >
-              <BookOpen className="h-6 w-6 text-primary" />
-              <span className="text-lg font-serif font-bold text-foreground">WriteCraft</span>
+              <BookOpen className="h-8 w-8 text-primary" />
+              <h1 className="text-xl font-serif font-bold text-foreground">WriteCraft</h1>
             </button>
-            <div className="h-6 w-px bg-border" />
-            <h1 className="text-lg font-semibold">
-              {project?.title || 'Untitled Project'}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              data-testid="button-theme-toggle"
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <button 
+                onClick={() => window.location.href = '/generators'}
+                className="text-foreground hover:text-primary transition-colors" 
+                data-testid="link-generators"
+              >
+                Generators
+              </button>
+              <button 
+                onClick={() => window.location.href = '/guides'}
+                className="text-foreground hover:text-primary transition-colors" 
+                data-testid="link-guides"
+              >
+                Guides
+              </button>
+              <button 
+                onClick={() => window.location.href = '/notebook'}
+                className="text-foreground hover:text-primary transition-colors" 
+                data-testid="link-notebook"
+              >
+                Notebook
+              </button>
+              <button 
+                onClick={() => window.location.href = '/projects'}
+                className="text-foreground hover:text-primary transition-colors" 
+                data-testid="link-projects"
+              >
+                Projects
+              </button>
+            </nav>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                data-testid="button-theme-toggle"
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
