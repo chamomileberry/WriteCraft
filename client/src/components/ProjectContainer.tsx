@@ -8,7 +8,7 @@ import { ProjectHeader } from './ProjectHeader';
 import { ProjectOutline } from './ProjectOutline';
 import { SectionEditor } from './SectionEditor';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, BookOpen, Moon, Sun } from 'lucide-react';
 import type { ProjectSectionWithChildren } from '@shared/schema';
 
 interface ProjectContainerProps {
@@ -187,71 +187,123 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const showEmptyState = !activeSectionId || activeSection?.type === 'folder';
   const showEditor = activeSectionId && activeSection?.type === 'page';
 
+  // Theme toggle state
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return savedTheme === 'dark' || (!savedTheme && systemDark);
+    }
+    return false;
+  });
+
+  const toggleTheme = () => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', newTheme);
+  };
+
   return (
-    <WorkspaceLayout
-      projectInfo={{
-        id: projectId,
-        title: project?.title || 'Untitled Project',
-        onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
-      }}
-    >
-      <div className="flex h-full bg-background">
-        {/* Left Sidebar - Outline only */}
-        <div className="w-64 border-r flex-shrink-0 overflow-hidden">
-          <ProjectOutline
-            projectId={projectId}
-            sections={sections}
-            activeSectionId={activeSectionId}
-            onSectionClick={handleSectionClick}
-          />
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <ProjectHeader
-            project={project}
-            breadcrumb={breadcrumb}
-            wordCount={wordCount}
-            saveStatus={saveStatus}
-            lastSaveTime={lastSaveTime}
-            onBack={onBack}
-            onManualSave={handleManualSave}
-            isSaving={saveStatus === 'saving'}
-          />
-
-          {/* Editor or Empty State */}
-          {showEditor ? (
-            <SectionEditor
-              ref={sectionEditorRef}
-              projectId={projectId}
-              section={activeSection}
-              onContentChange={(changes) => {
-                setHasUnsavedChanges(changes);
-                if (!changes) {
-                  setSaveStatus('saved');
-                }
-              }}
-              onSaveStatusChange={setSaveStatus}
-              onLastSaveTimeChange={setLastSaveTime}
-              onWordCountChange={setWordCount}
-            />
-          ) : showEmptyState ? (
-            <div className="flex-1 flex items-center justify-center text-center p-8">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">No page selected</h3>
-                <p className="text-sm text-muted-foreground">
-                  Select a page from the outline to start writing, or create a new page.
-                </p>
-              </div>
-            </div>
-          ) : isLoadingSection ? (
-            <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : null}
+    <div className="h-full flex flex-col">
+      {/* Global Navigation Header */}
+      <div className="border-b bg-background flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={onBack}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              data-testid="button-logo-home"
+            >
+              <BookOpen className="h-6 w-6 text-primary" />
+              <span className="text-lg font-serif font-bold text-foreground">WriteCraft</span>
+            </button>
+            <div className="h-6 w-px bg-border" />
+            <h1 className="text-lg font-semibold">
+              {project?.title || 'Untitled Project'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              data-testid="button-theme-toggle"
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </div>
-    </WorkspaceLayout>
+
+      {/* Workspace Layout with Tabs */}
+      <div className="flex-1 min-h-0">
+        <WorkspaceLayout
+          projectInfo={{
+            id: projectId,
+            title: project?.title || 'Untitled Project',
+            onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
+          }}
+        >
+          <div className="flex h-full bg-background">
+            {/* Left Sidebar - Outline only */}
+            <div className="w-64 border-r flex-shrink-0 overflow-hidden">
+              <ProjectOutline
+                projectId={projectId}
+                sections={sections}
+                activeSectionId={activeSectionId}
+                onSectionClick={handleSectionClick}
+              />
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Header */}
+              <ProjectHeader
+                project={project}
+                breadcrumb={breadcrumb}
+                wordCount={wordCount}
+                saveStatus={saveStatus}
+                lastSaveTime={lastSaveTime}
+                onBack={onBack}
+                onManualSave={handleManualSave}
+                isSaving={saveStatus === 'saving'}
+              />
+
+              {/* Editor or Empty State */}
+              {showEditor ? (
+                <SectionEditor
+                  ref={sectionEditorRef}
+                  projectId={projectId}
+                  section={activeSection}
+                  onContentChange={(changes) => {
+                    setHasUnsavedChanges(changes);
+                    if (!changes) {
+                      setSaveStatus('saved');
+                    }
+                  }}
+                  onSaveStatusChange={setSaveStatus}
+                  onLastSaveTimeChange={setLastSaveTime}
+                  onWordCountChange={setWordCount}
+                />
+              ) : showEmptyState ? (
+                <div className="flex-1 flex items-center justify-center text-center p-8">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">No page selected</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Select a page from the outline to start writing, or create a new page.
+                    </p>
+                  </div>
+                </div>
+              ) : isLoadingSection ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </WorkspaceLayout>
+      </div>
+    </div>
   );
 }
