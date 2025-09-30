@@ -3110,7 +3110,8 @@ export class DatabaseStorage implements IStorage {
           title: profession.name,
           type: 'profession',
           subtitle: profession.professionType || 'Profession',
-          description: profession.description?.substring(0, 100) + '...'
+          description: profession.description?.substring(0, 100) + '...',
+          notebookId: profession.notebookId  // Include notebookId for reference panels
         });
       }
 
@@ -3129,7 +3130,8 @@ export class DatabaseStorage implements IStorage {
           title: item.name,
           type: 'location',
           subtitle: item.locationType,
-          description: item.description?.substring(0, 100) + '...'
+          description: item.description?.substring(0, 100) + '...',
+          notebookId: item.notebookId  // Include notebookId for reference panels
         });
       });
 
@@ -3148,7 +3150,8 @@ export class DatabaseStorage implements IStorage {
           title: item.name,
           type: 'organization',
           subtitle: item.organizationType,
-          description: item.purpose?.substring(0, 100) + '...'
+          description: item.purpose?.substring(0, 100) + '...',
+          notebookId: item.notebookId  // Include notebookId for reference panels
         });
       });
 
@@ -3167,7 +3170,8 @@ export class DatabaseStorage implements IStorage {
           title: item.name,
           type: 'species',
           subtitle: item.classification,
-          description: item.physicalDescription?.substring(0, 100) + '...'
+          description: item.physicalDescription?.substring(0, 100) + '...',
+          notebookId: item.notebookId  // Include notebookId for reference panels
         });
       });
 
@@ -3186,7 +3190,8 @@ export class DatabaseStorage implements IStorage {
           title: item.name,
           type: 'culture',
           subtitle: item.governance,
-          description: item.description?.substring(0, 100) + '...'
+          description: item.description?.substring(0, 100) + '...',
+          notebookId: item.notebookId  // Include notebookId for reference panels
         });
       });
 
@@ -3205,7 +3210,8 @@ export class DatabaseStorage implements IStorage {
           title: item.name,
           type: 'item',
           subtitle: item.itemType,
-          description: item.description?.substring(0, 100) + '...'
+          description: item.description?.substring(0, 100) + '...',
+          notebookId: item.notebookId  // Include notebookId for reference panels
         });
       });
 
