@@ -52,14 +52,14 @@ export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWi
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-full flex flex-col">
       <Header
         onSearch={handleSearch}
         searchQuery={searchQuery}
         onNavigate={handleNavigate}
         onCreateNew={handleCreateNew}
       />
-      <div className="h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <ProjectContainer 
           projectId={params.id}
           onBack={handleBack}
