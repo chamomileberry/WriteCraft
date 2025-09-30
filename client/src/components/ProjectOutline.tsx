@@ -410,12 +410,6 @@ export function ProjectOutline({
       console.log('[DND] Dropping next to page, using parent:', newParentId);
     }
 
-    // Check if this is a no-op (same parent and would be same position)
-    if (sourceItem.parentId === newParentId && targetItem.section.type === 'folder') {
-      console.log('[DND] Already in this folder, ignoring drop');
-      return;
-    }
-
     // Get all siblings at the new location (items with same parent)
     const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
     
@@ -430,6 +424,18 @@ export function ProjectOutline({
       const targetIndex = siblings.findIndex(f => f.section.id === targetItem.section.id);
       newPosition = targetIndex >= 0 ? targetIndex + 1 : siblings.length;
       console.log('[DND] Will place at position:', newPosition, 'after', targetItem.section.title);
+    }
+
+    // Check if this is truly a no-op (same parent AND same position)
+    if (sourceItem.parentId === newParentId) {
+      // Get current position among siblings
+      const currentSiblings = flatList.filter(f => f.parentId === sourceItem.parentId);
+      const currentPosition = currentSiblings.findIndex(f => f.section.id === sourceItem.section.id);
+      
+      if (currentPosition === newPosition) {
+        console.log('[DND] No change needed - already at this position');
+        return;
+      }
     }
 
     // Build the reorder payload - only update items at the new parent level
