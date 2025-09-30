@@ -390,17 +390,30 @@ export function ProjectOutline({
       return;
     }
 
+    console.log('[DND] Drag ended:', {
+      source: { id: sourceItem.section.id, title: sourceItem.section.title, parentId: sourceItem.parentId },
+      target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId }
+    });
+
     // Determine new parent and position
     let newParentId: string | null;
     
     // If dropping onto a folder, make it the first child of that folder
     if (targetItem.section.type === 'folder') {
       newParentId = targetItem.section.id;
+      console.log('[DND] Dropping into folder:', targetItem.section.title);
       // Auto-expand the folder
       setExpandedIds(prev => new Set(prev).add(targetItem.section.id));
     } else {
       // If dropping onto a page, use the same parent as the target
       newParentId = targetItem.parentId;
+      console.log('[DND] Dropping next to page, using parent:', newParentId);
+    }
+
+    // Check if this is a no-op (same parent and would be same position)
+    if (sourceItem.parentId === newParentId && targetItem.section.type === 'folder') {
+      console.log('[DND] Already in this folder, ignoring drop');
+      return;
     }
 
     // Get all siblings at the new location (items with same parent)
@@ -411,10 +424,12 @@ export function ProjectOutline({
     if (targetItem.section.type === 'folder' && newParentId === targetItem.section.id) {
       // Dropping into folder - make it first child
       newPosition = 0;
+      console.log('[DND] Will place as first child');
     } else {
       // Dropping near a sibling - find position relative to target
       const targetIndex = siblings.findIndex(f => f.section.id === targetItem.section.id);
       newPosition = targetIndex >= 0 ? targetIndex + 1 : siblings.length;
+      console.log('[DND] Will place at position:', newPosition, 'after', targetItem.section.title);
     }
 
     // Build the reorder payload - only update items at the new parent level
@@ -451,6 +466,7 @@ export function ProjectOutline({
       });
     }
 
+    console.log('[DND] Reorder payload:', reorders);
     reorderMutation.mutate(reorders);
   };
 
