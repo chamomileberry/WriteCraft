@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { insertProjectSchema } from "@shared/schema";
+import { insertProjectSchema, insertProjectSectionSchema } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
@@ -95,6 +95,149 @@ router.delete("/:id", async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting project:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Project Section routes
+router.get("/:projectId/sections", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const { projectId } = req.params;
+    
+    // Verify user owns the project
+    const project = await storage.getProject(projectId, userId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const sections = await storage.getProjectSections(projectId);
+    res.json(sections);
+  } catch (error) {
+    console.error('Error fetching project sections:', error);
+    res.status(500).json({ error: 'Failed to fetch project sections' });
+  }
+});
+
+router.post("/:projectId/sections", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const { projectId } = req.params;
+    
+    // Verify user owns the project
+    const project = await storage.getProject(projectId, userId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const sectionData = { ...req.body, projectId };
+    const validatedSection = insertProjectSectionSchema.parse(sectionData);
+    const savedSection = await storage.createProjectSection(validatedSection);
+    res.json(savedSection);
+  } catch (error) {
+    console.error('Error creating project section:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid section data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+router.get("/:projectId/sections/:sectionId", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const { projectId, sectionId } = req.params;
+    
+    // Verify user owns the project
+    const project = await storage.getProject(projectId, userId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const section = await storage.getProjectSection(sectionId, projectId);
+    if (!section) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
+    
+    res.json(section);
+  } catch (error) {
+    console.error('Error fetching project section:', error);
+    res.status(500).json({ error: 'Failed to fetch project section' });
+  }
+});
+
+router.put("/:projectId/sections/:sectionId", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const { projectId, sectionId } = req.params;
+    
+    // Verify user owns the project
+    const project = await storage.getProject(projectId, userId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const validatedUpdates = insertProjectSectionSchema.partial().parse(req.body);
+    const updatedSection = await storage.updateProjectSection(sectionId, projectId, validatedUpdates);
+    
+    if (!updatedSection) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
+    
+    res.json(updatedSection);
+  } catch (error) {
+    console.error('Error updating project section:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid section data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+router.delete("/:projectId/sections/:sectionId", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const { projectId, sectionId } = req.params;
+    
+    // Verify user owns the project
+    const project = await storage.getProject(projectId, userId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    await storage.deleteProjectSection(sectionId, projectId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting project section:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+router.post("/:projectId/sections/reorder", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const { projectId } = req.params;
+    
+    // Verify user owns the project
+    const project = await storage.getProject(projectId, userId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const { sectionOrders } = req.body;
+    
+    if (!Array.isArray(sectionOrders)) {
+      return res.status(400).json({ error: 'sectionOrders must be an array' });
+    }
+    
+    await storage.reorderProjectSections(projectId, sectionOrders);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error reordering project sections:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
   }
