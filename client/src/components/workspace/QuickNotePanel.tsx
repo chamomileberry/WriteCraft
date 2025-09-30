@@ -64,7 +64,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     },
   });
 
-  // Load quick note data after saveMutation is defined
+  // Load quick note data only once when data is available
   useEffect(() => {
     if (quickNote && !hasInitialized.current && !isLoading) {
       const serverContent = quickNote.content || '';
@@ -75,7 +75,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       hasBeenSavedOnce.current = true;
       hasInitialized.current = true;
     }
-  }, [quickNote, saveMutation, isLoading]);
+  }, [quickNote, isLoading]);
 
   // Autosave functionality
   const triggerAutosave = () => {
@@ -111,7 +111,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     triggerAutosave();
   };
 
-  // Cleanup on unmount - reset hasInitialized so data reloads on next open
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (autosaveTimeoutRef.current) {
@@ -122,8 +122,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
           saveMutation.mutate({ content: contentRef.current });
         }
       }
-      // Reset hasInitialized so next time the panel opens it loads fresh data
-      hasInitialized.current = false;
+      // Don't reset hasInitialized - keep the loaded state to prevent reloading on remount
     };
   }, [saveMutation]);
 
