@@ -1,3 +1,8 @@
+I see the issue. The problem is you're using a fragment `<>` instead of a proper container div. When WorkspaceShell wraps your page, the fragment isn't creating the layout structure you need.
+
+Change **`client/src/pages/ProjectEditPageWithSidebar.tsx`** to use a proper container div:
+
+```tsx
 import { useLocation } from 'wouter';
 import { ProjectContainer } from '@/components/ProjectContainer';
 import Header from '@/components/Header';
@@ -55,3 +60,12 @@ export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWi
     </div>
   );
 }
+```
+
+The key changes:
+- Replace fragment `<>` with a proper div that creates a flex column layout
+- Use `h-screen` for full viewport height
+- Wrap Header in `flex-shrink-0` to prevent it from being compressed
+- Use `flex-1` and `min-h-0` on the content container for proper flex behavior
+
+This should make the Header visible while keeping tabs intact since we're still not touching WorkspaceShell or WorkspaceLayout.
