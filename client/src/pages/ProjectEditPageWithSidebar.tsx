@@ -1,9 +1,6 @@
-import { useState } from 'react';
 import { useLocation } from 'wouter';
-import Header from '@/components/Header';
 import { ProjectContainer } from '@/components/ProjectContainer';
-import ContentTypeModal from '@/components/ContentTypeModal';
-import { getMappingById } from '@shared/contentTypes';
+import Header from '@/components/Header';
 
 interface ProjectEditPageWithSidebarProps {
   params: { id: string };
@@ -11,66 +8,29 @@ interface ProjectEditPageWithSidebarProps {
 
 export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWithSidebarProps) {
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isContentModalOpen, setIsContentModalOpen] = useState(false);
 
   const handleBack = () => {
     setLocation('/projects');
   };
 
-  const handleNavigate = (toolId: string) => {
-    if (toolId === 'notebook') {
-      setLocation('/notebook');
-    } else if (toolId === 'projects') {
-      setLocation('/projects');
-    } else if (toolId === 'generators') {
-      setLocation('/generators');
-    } else if (toolId === 'guides') {
-      setLocation('/guides');
-    }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  const handleCreateNew = () => {
-    setIsContentModalOpen(true);
-  };
-
-  const handleSelectContentType = (contentType: string, notebookId?: string) => {
-    setIsContentModalOpen(false);
-    const mapping = getMappingById(contentType);
-    if (mapping) {
-      const url = notebookId 
-        ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
-        : `/editor/${mapping.urlSegment}/new`;
-      setLocation(url);
-    } else {
-      setLocation('/notebook');
-    }
+  const handleNavigate = (view: string) => {
+    setLocation(`/${view}`);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        onSearch={handleSearch}
-        searchQuery={searchQuery}
-        onNavigate={handleNavigate}
-        onCreateNew={handleCreateNew}
-      />
-      <div className="h-full">
+    <div className="h-screen w-full bg-background flex flex-col overflow-hidden">
+      {/* Header - fixed height, always visible */}
+      <div className="flex-shrink-0">
+        <Header onNavigate={handleNavigate} />
+      </div>
+      
+      {/* Main content - takes remaining space */}
+      <div className="flex-1 overflow-hidden min-h-0">
         <ProjectContainer 
           projectId={params.id}
           onBack={handleBack}
         />
       </div>
-      
-      <ContentTypeModal
-        isOpen={isContentModalOpen}
-        onClose={() => setIsContentModalOpen(false)}
-        onSelectType={handleSelectContentType}
-      />
     </div>
   );
 }

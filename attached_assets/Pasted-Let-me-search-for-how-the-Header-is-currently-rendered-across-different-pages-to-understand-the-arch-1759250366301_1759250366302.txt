@@ -1,0 +1,79 @@
+Let me search for how the Header is currently rendered across different pages to understand the architecture:Let me search for the Layout component to understand how it renders the Header:Let me check the basic ProjectEditPage that might not have the Header:Based on my analysis, here's the **systematic solution** to ensure the Header appears on the Project Editor page without breaking anything:
+
+## Current Architecture
+
+I can see there are **two routes** for project editing:
+1. `/projects/:id/edit` → **ProjectEditPageWithSidebar** (already has Header)
+2. `/projects/:id/edit-basic` → **ProjectEditPage** (wrapped in Layout with Header)
+
+The ProjectEditPageWithSidebar structure is:
+```
+WorkspaceShell (global wrapper)
+└─ ProjectEditPageWithSidebar
+   ├─ Header (navigation bar) ← Should be here
+   └─ ProjectContainer
+      └─ WorkspaceLayout
+         ├─ TabStrip (reference tabs) ← Should be here
+         └─ Content (editor + sidebar)
+```
+
+## The Fix
+
+**The ProjectEditPageWithSidebar already has the Header component!** If you can't see it, there's likely a CSS/layout issue. Here's the corrected version:
+
+**In `client/src/pages/ProjectEditPageWithSidebar.tsx`:**
+
+```tsx
+import { useLocation } from 'wouter';
+import { ProjectContainer } from '@/components/ProjectContainer';
+import Header from '@/components/Header';
+
+interface ProjectEditPageWithSidebarProps {
+  params: { id: string };
+}
+
+export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWithSidebarProps) {
+  const [, setLocation] = useLocation();
+
+  const handleBack = () => {
+    setLocation('/projects');
+  };
+
+  const handleNavigate = (view: string) => {
+    setLocation(`/${view}`);
+  };
+
+  return (
+    // CRITICAL: h-screen makes this full viewport height
+    <div className="h-screen w-full bg-background flex flex-col overflow-hidden">
+      {/* Header - fixed height, always visible */}
+      <div className="flex-shrink-0">
+        <Header onNavigate={handleNavigate} />
+      </div>
+      
+      {/* Main content - takes remaining space */}
+      <div className="flex-1 overflow-hidden min-h-0">
+        <ProjectContainer 
+          projectId={params.id}
+          onBack={handleBack}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+**Key changes:**
+- Added `w-full` and `overflow-hidden` to the container
+- Wrapped Header in a `flex-shrink-0` div to prevent it from being compressed
+- Added `min-h-0` to the content container to allow proper flex shrinking
+
+This ensures:
+- ✅ **Header is always visible** at the top
+- ✅ **TabStrip (in WorkspaceLayout)** renders below the Header
+- ✅ **Quick Notes button works** (it's in the Header)
+- ✅ **Content scrolls properly** (WorkspaceLayout handles its own scrolling)
+- ✅ **No duplicate headers** (only one Header per page)
+- ✅ **Floating panels work** (rendered by FloatingLayer in WorkspaceLayout)
+
+The architecture is clean: Header → WorkspaceLayout → TabStrip → Content, with each layer handling its own concerns.
