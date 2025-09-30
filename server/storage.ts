@@ -3042,14 +3042,31 @@ export class DatabaseStorage implements IStorage {
         ))
         .limit(50);
       
+      // Batch fetch all notebooks for better performance
+      const notebookIds = Array.from(new Set(savedItemResults.map(item => item.notebookId).filter((id): id is string => Boolean(id))));
+      const notebooksMap = new Map<string, string>();
+      
+      if (notebookIds.length > 0) {
+        const notebooksData = await db.select()
+          .from(notebooks)
+          .where(and(
+            eq(notebooks.userId, userId),
+            inArray(notebooks.id, notebookIds)
+          ));
+        
+        notebooksData.forEach(notebook => {
+          notebooksMap.set(notebook.id, notebook.name);
+        });
+      }
+
       // Process saved items into search results
       for (const savedItem of savedItemResults) {
         const itemData = savedItem.itemData as any;
         let title = 'Untitled';
-        let subtitle = savedItem.itemType;
+        let subtitle = '';
         let description = '';
 
-        // Extract title and description based on item type
+        // Extract title based on item type
         if (itemData.name) {
           title = itemData.name;
         } else if (itemData.givenName || itemData.familyName) {
@@ -3058,31 +3075,46 @@ export class DatabaseStorage implements IStorage {
           title = itemData.title;
         }
 
-        // Get subtitle and description based on type
+        // Get notebook name for subtitle
+        subtitle = (savedItem.notebookId ? notebooksMap.get(savedItem.notebookId) : null) || 'Unknown Notebook';
+
+        // Get description based on type with fallbacks
         switch (savedItem.itemType) {
           case 'character':
-            subtitle = itemData.occupation || 'Character';
-            description = itemData.backstory?.substring(0, 100) || '';
+            description = itemData.occupation || 'Character';
+            if (itemData.backstory) {
+              description += ' • ' + itemData.backstory.substring(0, 80);
+            }
             break;
           case 'location':
-            subtitle = itemData.locationType || 'Location';
-            description = itemData.description?.substring(0, 100) || '';
+            description = itemData.locationType || 'Location';
+            if (itemData.description) {
+              description += ' • ' + itemData.description.substring(0, 80);
+            }
             break;
           case 'weapon':
-            subtitle = itemData.weaponType || 'Weapon';
-            description = itemData.description?.substring(0, 100) || '';
+            description = itemData.weaponType || 'Weapon';
+            if (itemData.description) {
+              description += ' • ' + itemData.description.substring(0, 80);
+            }
             break;
           case 'organization':
-            subtitle = itemData.organizationType || 'Organization';
-            description = itemData.purpose?.substring(0, 100) || '';
+            description = itemData.organizationType || 'Organization';
+            if (itemData.purpose) {
+              description += ' • ' + itemData.purpose.substring(0, 80);
+            }
             break;
           case 'species':
-            subtitle = itemData.classification || 'Species';
-            description = itemData.physicalDescription?.substring(0, 100) || '';
+            description = itemData.classification || 'Species';
+            if (itemData.physicalDescription) {
+              description += ' • ' + itemData.physicalDescription.substring(0, 80);
+            }
             break;
           default:
-            subtitle = savedItem.itemType;
-            description = itemData.description?.substring(0, 100) || '';
+            description = savedItem.itemType.charAt(0).toUpperCase() + savedItem.itemType.slice(1);
+            if (itemData.description) {
+              description += ' • ' + itemData.description.substring(0, 80);
+            }
         }
 
         results.push({
@@ -3090,7 +3122,7 @@ export class DatabaseStorage implements IStorage {
           title: title,
           type: savedItem.itemType,
           subtitle: subtitle,
-          description: description + (description ? '...' : ''),
+          description: description + (description && description.includes('•') ? '...' : ''),
           notebookId: savedItem.notebookId
         });
       }
