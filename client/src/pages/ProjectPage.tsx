@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useWorkspaceStore, type PanelDescriptor } from "@/stores/workspaceStore";
 import { ProjectViewer } from "@/components/ProjectViewer";
 import { ProjectContainer } from "@/components/ProjectContainer";
+import Header from "@/components/Header";
 
 interface Project {
   id: string;
@@ -32,6 +33,26 @@ export default function ProjectPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+
+  // Header handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleNavigate = (toolId: string) => {
+    if (toolId === 'notebook') {
+      navigate('/notebook');
+    } else if (toolId === 'projects') {
+      // Already on projects page
+      return;
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleCreateNew = () => {
+    handleNewProject();
+  };
 
   // Fetch projects
   const { data: projects = [], isLoading } = useQuery({
@@ -155,6 +176,12 @@ export default function ProjectPage() {
   // Default list view
   return (
     <div className="min-h-screen bg-background">
+      <Header 
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+        onCreateNew={handleCreateNew}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
