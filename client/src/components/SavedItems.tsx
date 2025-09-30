@@ -157,26 +157,12 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     },
   });
 
-  // Merge quick note with saved items (memoized to prevent continuous re-renders)
+  // Use saved items directly - don't merge the scratch pad quick note
+  // The scratch pad Quick Note is temporary and shouldn't appear in the Notebook
+  // Only items saved via "Save to Notebook" button should appear here
   const allItems = useMemo(() => {
-    const items = [...savedItems];
-    if (quickNote && quickNote.content && quickNote.content.trim()) {
-      // Add quick note as a saved item
-      items.unshift({
-        id: quickNote.id,
-        userId: quickNote.userId,
-        notebookId: activeNotebookId,
-        itemType: 'quickNote',
-        contentType: 'quickNote',
-        itemId: quickNote.id,
-        title: quickNote.title || 'Quick Note',
-        content: quickNote.content,
-        itemData: { title: quickNote.title, content: quickNote.content },
-        createdAt: quickNote.createdAt || new Date().toISOString(),
-      } as SavedItem);
-    }
-    return items;
-  }, [savedItems, quickNote?.id, quickNote?.content, activeNotebookId]);
+    return [...savedItems];
+  }, [savedItems]);
 
   // Fetch missing item data for entries that have itemData: null
   const fetchMissingItemData = async (items: SavedItem[]) => {
