@@ -1,0 +1,56 @@
+– Migration: Add project_sections table for hierarchical project structure
+– This replaces the flat content model with a proper folder/page hierarchy
+
+CREATE TABLE IF NOT EXISTS project_sections (
+id TEXT PRIMARY KEY,
+project_id TEXT NOT NULL,
+parent_id TEXT, – NULL for root-level chapters, set for scenes under chapters
+title TEXT NOT NULL,
+content TEXT DEFAULT ‘’, – HTML content for this section
+type TEXT NOT NULL CHECK(type IN (‘folder’, ‘page’)), – ‘folder’ = chapter, ‘page’ = scene
+position INTEGER NOT NULL DEFAULT 0, – For ordering within parent
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+FOREIGN KEY (parent_id) REFERENCES project_sections(id) ON DELETE CASCADE
+);
+
+– Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_project_sections_project ON project_sections(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_sections_parent ON project_sections(parent_id);
+CREATE INDEX IF NOT EXISTS idx_project_sections_position ON project_sections(project_id, parent_id, position);
+
+– Migration script to convert existing projects
+– This will create a single “Chapter 1” folder with a “Scene 1” page for each existing project
+– Run this after creating the table if you want to preserve existing project content
+
+– Uncomment below to run migration:
+/*
+INSERT INTO project_sections (id, project_id, parent_id, title, content, type, position)
+SELECT
+‘chapter_’ || id AS id,
+id AS project_id,
+NULL AS parent_id,
+‘Chapter 1’ AS title,
+‘’ AS content,
+‘folder’ AS type,
+0 AS position
+FROM projects
+WHERE content IS NOT NULL AND content != ‘’;
+
+INSERT INTO project_sections (id, project_id, parent_id, title, content, type, position)
+SELECT
+‘scene_’ || p.id AS id,
+p.id AS project_id,
+‘chapter_’ || p.id AS parent_id,
+‘Scene 1’ AS title,
+p.content AS content,
+‘page’ AS type,
+0 AS position
+FROM projects p
+WHERE p.content IS NOT NULL AND p.content != ‘’;
+
+– Optional: Clear the old content field after migration
+– UPDATE projects SET content = NULL;
+*/
