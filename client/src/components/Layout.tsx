@@ -1,6 +1,4 @@
 import { ReactNode } from "react";
-import Header from "./Header";
-import { useLocation } from "wouter";
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,44 +7,11 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, hideNavigation = false, onCreateNew }: LayoutProps) {
-  const [, setLocation] = useLocation();
-  
-  const handleSearch = (query: string) => {
-    // Navigate to home with search query
-    setLocation(`/?search=${encodeURIComponent(query)}`);
-  };
-  
-  const handleNavigate = (view: string) => {
-    switch (view) {
-      case 'notebook':
-        setLocation('/notebook');
-        break;
-      case 'projects':
-        setLocation('/projects');
-        break;
-      default:
-        setLocation('/');
-    }
-  };
-  
-  const handleCreateNew = () => {
-    if (onCreateNew) {
-      onCreateNew();
-    } else {
-      // Fallback: Navigate to home and trigger create modal
-      setLocation('/?create=true');
-    }
-  };
+  // Header is now rendered at the App.tsx level for site-wide consistency
+  // Layout component now just provides the container structure
   
   return (
     <div className="min-h-screen bg-background">
-      {!hideNavigation && (
-        <Header 
-          onSearch={handleSearch}
-          onNavigate={handleNavigate}
-          onCreateNew={handleCreateNew}
-        />
-      )}
       {children}
     </div>
   );
