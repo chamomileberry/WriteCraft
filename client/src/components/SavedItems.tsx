@@ -71,7 +71,11 @@ const CONTENT_CATEGORIES: { [key: string]: string[] } = {
   "World": ["condition", "naturallaw", "technology", "spell", "transportation", "cuisine", "familytree"]
 };
 
-export default function SavedItems() {
+interface SavedItemsProps {
+  onCreateNew?: () => void;
+}
+
+export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -396,7 +400,7 @@ export default function SavedItems() {
                   : 'Create a notebook and start saving content to see it here.'
                 }
               </p>
-              <Button onClick={() => setLocation('/')} data-testid="button-create-content">
+              <Button onClick={() => onCreateNew?.()} data-testid="button-create-content">
                 Create Content
               </Button>
             </div>

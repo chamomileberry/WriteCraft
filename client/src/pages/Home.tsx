@@ -110,7 +110,7 @@ export default function Home() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>
-            <SavedItems />
+            <SavedItems onCreateNew={handleCreateNew} />
           </div>
         </div>
       );
@@ -149,7 +149,7 @@ export default function Home() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Home
               </Button>
-              <SavedItems />
+              <SavedItems onCreateNew={handleCreateNew} />
             </div>
           </div>
         );
