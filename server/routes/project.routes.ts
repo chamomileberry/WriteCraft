@@ -1,9 +1,48 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { insertProjectSchema, insertProjectSectionSchema } from "@shared/schema";
+import { insertProjectSchema, insertProjectSectionSchema, type ProjectSection, type ProjectSectionWithChildren } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
+
+// Helper to build tree structure from flat list
+function buildTree(sections: ProjectSection[]): ProjectSectionWithChildren[] {
+  const map = new Map<string, ProjectSectionWithChildren>();
+  const roots: ProjectSectionWithChildren[] = [];
+  
+  // First pass: create map
+  sections.forEach(section => {
+    map.set(section.id, { ...section, children: [] });
+  });
+  
+  // Second pass: build tree
+  sections.forEach(section => {
+    const node = map.get(section.id)!;
+    if (section.parentId) {
+      const parent = map.get(section.parentId);
+      if (parent) {
+        parent.children!.push(node);
+      } else {
+        roots.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+  
+  // Sort by position
+  const sortByPosition = (nodes: ProjectSectionWithChildren[]) => {
+    nodes.sort((a, b) => a.position - b.position);
+    nodes.forEach(node => {
+      if (node.children && node.children.length > 0) {
+        sortByPosition(node.children);
+      }
+    });
+  };
+  
+  sortByPosition(roots);
+  return roots;
+}
 
 router.get("/", async (req, res) => {
   try {
@@ -105,6 +144,7 @@ router.get("/:projectId/sections", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId } = req.params;
+    const { flat } = req.query;
     
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
@@ -113,7 +153,14 @@ router.get("/:projectId/sections", async (req, res) => {
     }
     
     const sections = await storage.getProjectSections(projectId);
-    res.json(sections);
+    
+    // Return tree structure by default, flat list if ?flat=true
+    if (flat === 'true') {
+      res.json(sections);
+    } else {
+      const tree = buildTree(sections);
+      res.json(tree);
+    }
   } catch (error) {
     console.error('Error fetching project sections:', error);
     res.status(500).json({ error: 'Failed to fetch project sections' });
@@ -124,11 +171,25 @@ router.post("/:projectId/sections", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId } = req.params;
+    const { parentId, type } = req.body;
     
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Validate type
+    if (type !== 'folder' && type !== 'page') {
+      return res.status(400).json({ error: 'Type must be folder or page' });
+    }
+    
+    // Validate nesting: pages cannot have children
+    if (parentId) {
+      const parent = await storage.getProjectSection(parentId, projectId);
+      if (parent && parent.type === 'page') {
+        return res.status(400).json({ error: 'Cannot nest sections under a page' });
+      }
     }
     
     const sectionData = { ...req.body, projectId };

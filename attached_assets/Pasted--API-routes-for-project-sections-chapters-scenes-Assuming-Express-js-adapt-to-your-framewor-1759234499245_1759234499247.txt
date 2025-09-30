@@ -1,0 +1,248 @@
+// API routes for project sections (chapters/scenes)
+// Assuming Express.js - adapt to your framework
+
+import { Router } from 'express';
+import { nanoid } from 'nanoid';
+import type { ProjectSection, ProjectSectionCreate, ProjectSectionUpdate, ProjectSectionReorder } from '../types/project';
+
+const router = Router();
+
+// Helper to build tree structure from flat list
+function buildTree(sections: ProjectSection[]): ProjectSection[] {
+  const map = new Map<string, ProjectSection>();
+  const roots: ProjectSection[] = [];
+  
+  // First pass: create map
+  sections.forEach(section => {
+    map.set(section.id, { ...section, children: [] });
+  });
+  
+  // Second pass: build tree
+  sections.forEach(section => {
+    const node = map.get(section.id)!;
+    if (section.parentId) {
+      const parent = map.get(section.parentId);
+      if (parent) {
+        parent.children!.push(node);
+      } else {
+        roots.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+  
+  // Sort by position
+  const sortByPosition = (nodes: ProjectSection[]) => {
+    nodes.sort((a, b) => a.position - b.position);
+    nodes.forEach(node => {
+      if (node.children && node.children.length > 0) {
+        sortByPosition(node.children);
+      }
+    });
+  };
+  
+  sortByPosition(roots);
+  return roots;
+}
+
+// GET /api/projects/:projectId/sections - List all sections for a project
+router.get('/api/projects/:projectId/sections', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { flat } = req.query; // ?flat=true returns flat list instead of tree
+    
+    // Your DB query here - example using sqlite
+    const sections = await db.query<ProjectSection>(
+      `SELECT * FROM project_sections WHERE project_id = ? ORDER BY position`,
+      [projectId]
+    );
+    
+    if (flat === 'true') {
+      res.json(sections);
+    } else {
+      const tree = buildTree(sections);
+      res.json(tree);
+    }
+  } catch (error) {
+    console.error('Error fetching sections:', error);
+    res.status(500).json({ error: 'Failed to fetch sections' });
+  }
+});
+
+// GET /api/projects/:projectId/sections/:id - Get single section
+router.get('/api/projects/:projectId/sections/:id', async (req, res) => {
+  try {
+    const { projectId, id } = req.params;
+    
+    const section = await db.queryOne<ProjectSection>(
+      `SELECT * FROM project_sections WHERE id = ? AND project_id = ?`,
+      [id, projectId]
+    );
+    
+    if (!section) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
+    
+    res.json(section);
+  } catch (error) {
+    console.error('Error fetching section:', error);
+    res.status(500).json({ error: 'Failed to fetch section' });
+  }
+});
+
+// POST /api/projects/:projectId/sections - Create new section
+router.post('/api/projects/:projectId/sections', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { parentId, title, type } = req.body as ProjectSectionCreate;
+    
+    // Validate
+    if (!title || !type) {
+      return res.status(400).json({ error: 'Title and type are required' });
+    }
+    
+    if (type !== 'folder' && type !== 'page') {
+      return res.status(400).json({ error: 'Type must be folder or page' });
+    }
+    
+    // Validate nesting: pages cannot have children
+    if (parentId) {
+      const parent = await db.queryOne<ProjectSection>(
+        `SELECT type FROM project_sections WHERE id = ? AND project_id = ?`,
+        [parentId, projectId]
+      );
+      
+      if (parent && parent.type === 'page') {
+        return res.status(400).json({ error: 'Cannot nest sections under a page' });
+      }
+    }
+    
+    // Get next position
+    const maxPosition = await db.queryOne<{ max: number }>(
+      `SELECT COALESCE(MAX(position), -1) as max FROM project_sections 
+       WHERE project_id = ? AND parent_id ${parentId ? '= ?' : 'IS NULL'}`,
+      parentId ? [projectId, parentId] : [projectId]
+    );
+    
+    const position = (maxPosition?.max ?? -1) + 1;
+    
+    const newSection: ProjectSection = {
+      id: nanoid(),
+      projectId,
+      parentId: parentId || null,
+      title,
+      content: '',
+      type,
+      position,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    await db.run(
+      `INSERT INTO project_sections (id, project_id, parent_id, title, content, type, position, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newSection.id, newSection.projectId, newSection.parentId, newSection.title, 
+       newSection.content, newSection.type, newSection.position, newSection.createdAt, newSection.updatedAt]
+    );
+    
+    res.status(201).json(newSection);
+  } catch (error) {
+    console.error('Error creating section:', error);
+    res.status(500).json({ error: 'Failed to create section' });
+  }
+});
+
+// PUT /api/projects/:projectId/sections/:id - Update section
+router.put('/api/projects/:projectId/sections/:id', async (req, res) => {
+  try {
+    const { projectId, id } = req.params;
+    const updates = req.body as ProjectSectionUpdate;
+    
+    const section = await db.queryOne<ProjectSection>(
+      `SELECT * FROM project_sections WHERE id = ? AND project_id = ?`,
+      [id, projectId]
+    );
+    
+    if (!section) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
+    
+    const updatedSection = {
+      ...section,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    await db.run(
+      `UPDATE project_sections 
+       SET title = ?, content = ?, parent_id = ?, position = ?, updated_at = ?
+       WHERE id = ?`,
+      [updatedSection.title, updatedSection.content, updatedSection.parentId, 
+       updatedSection.position, updatedSection.updatedAt, id]
+    );
+    
+    res.json(updatedSection);
+  } catch (error) {
+    console.error('Error updating section:', error);
+    res.status(500).json({ error: 'Failed to update section' });
+  }
+});
+
+// DELETE /api/projects/:projectId/sections/:id - Delete section
+router.delete('/api/projects/:projectId/sections/:id', async (req, res) => {
+  try {
+    const { projectId, id } = req.params;
+    
+    // Check if section exists
+    const section = await db.queryOne<ProjectSection>(
+      `SELECT * FROM project_sections WHERE id = ? AND project_id = ?`,
+      [id, projectId]
+    );
+    
+    if (!section) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
+    
+    // Delete will cascade to children due to FK constraint
+    await db.run(`DELETE FROM project_sections WHERE id = ?`, [id]);
+    
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting section:', error);
+    res.status(500).json({ error: 'Failed to delete section' });
+  }
+});
+
+// PUT /api/projects/:projectId/sections/reorder - Bulk reorder sections
+router.put('/api/projects/:projectId/sections/reorder', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const reorders = req.body as ProjectSectionReorder[];
+    
+    // Start transaction
+    await db.run('BEGIN TRANSACTION');
+    
+    try {
+      for (const { id, parentId, position } of reorders) {
+        await db.run(
+          `UPDATE project_sections 
+           SET parent_id = ?, position = ?, updated_at = ?
+           WHERE id = ? AND project_id = ?`,
+          [parentId, position, new Date().toISOString(), id, projectId]
+        );
+      }
+      
+      await db.run('COMMIT');
+      res.json({ success: true });
+    } catch (error) {
+      await db.run('ROLLBACK');
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error reordering sections:', error);
+    res.status(500).json({ error: 'Failed to reorder sections' });
+  }
+});
+
+export default router;
