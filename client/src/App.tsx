@@ -156,11 +156,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="h-screen flex flex-col">
-          <WorkspaceShell>
-            <Router />
-          </WorkspaceShell>
-        </div>
+        <WorkspaceShell>
+          <Router />
+        </WorkspaceShell>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

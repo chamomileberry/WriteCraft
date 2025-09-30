@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
-import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectOutline } from './ProjectOutline';
 import { SectionEditor } from './SectionEditor';
@@ -187,70 +186,62 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const showEditor = activeSectionId && activeSection?.type === 'page';
 
   return (
-    <WorkspaceLayout
-      projectInfo={{
-        id: projectId,
-        title: project?.title || 'Untitled Project',
-        onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
-      }}
-    >
-      <div className="flex h-full bg-background">
-        {/* Left Sidebar - Outline only */}
-        <div className="w-64 border-r flex-shrink-0 overflow-hidden">
-          <ProjectOutline
-            projectId={projectId}
-            sections={sections}
-            activeSectionId={activeSectionId}
-            onSectionClick={handleSectionClick}
-          />
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <ProjectHeader
-            project={project}
-            breadcrumb={breadcrumb}
-            wordCount={wordCount}
-            saveStatus={saveStatus}
-            lastSaveTime={lastSaveTime}
-            onBack={onBack}
-            onManualSave={handleManualSave}
-            isSaving={saveStatus === 'saving'}
-          />
-
-          {/* Editor or Empty State */}
-          {showEditor ? (
-            <SectionEditor
-              ref={sectionEditorRef}
-              projectId={projectId}
-              section={activeSection}
-              onContentChange={(changes) => {
-                setHasUnsavedChanges(changes);
-                if (!changes) {
-                  setSaveStatus('saved');
-                }
-              }}
-              onSaveStatusChange={setSaveStatus}
-              onLastSaveTimeChange={setLastSaveTime}
-              onWordCountChange={setWordCount}
-            />
-          ) : showEmptyState ? (
-            <div className="flex-1 flex items-center justify-center text-center p-8">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">No page selected</h3>
-                <p className="text-sm text-muted-foreground">
-                  Select a page from the outline to start writing, or create a new page.
-                </p>
-              </div>
-            </div>
-          ) : isLoadingSection ? (
-            <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : null}
-        </div>
+    <div className="flex h-full bg-background">
+      {/* Left Sidebar - Outline only */}
+      <div className="w-64 border-r flex-shrink-0 overflow-hidden">
+        <ProjectOutline
+          projectId={projectId}
+          sections={sections}
+          activeSectionId={activeSectionId}
+          onSectionClick={handleSectionClick}
+        />
       </div>
-    </WorkspaceLayout>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <ProjectHeader
+          project={project}
+          breadcrumb={breadcrumb}
+          wordCount={wordCount}
+          saveStatus={saveStatus}
+          lastSaveTime={lastSaveTime}
+          onBack={onBack}
+          onManualSave={handleManualSave}
+          isSaving={saveStatus === 'saving'}
+        />
+
+        {/* Editor or Empty State */}
+        {showEditor ? (
+          <SectionEditor
+            ref={sectionEditorRef}
+            projectId={projectId}
+            section={activeSection}
+            onContentChange={(changes) => {
+              setHasUnsavedChanges(changes);
+              if (!changes) {
+                setSaveStatus('saved');
+              }
+            }}
+            onSaveStatusChange={setSaveStatus}
+            onLastSaveTimeChange={setLastSaveTime}
+            onWordCountChange={setWordCount}
+          />
+        ) : showEmptyState ? (
+          <div className="flex-1 flex items-center justify-center text-center p-8">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">No page selected</h3>
+              <p className="text-sm text-muted-foreground">
+                Select a page from the outline to start writing, or create a new page.
+              </p>
+            </div>
+          </div>
+        ) : isLoadingSection ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }

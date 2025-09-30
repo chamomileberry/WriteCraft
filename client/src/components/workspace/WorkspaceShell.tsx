@@ -252,12 +252,12 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   );
 
   return (
-    <div ref={workspaceRef} className="relative w-full min-h-screen bg-background">
+    <div ref={workspaceRef} className="relative w-full h-screen bg-background">
       {isMobile ? (
         /* Mobile Layout - Full screen with drawer */
         <>
           {/* Full-width main content for mobile */}
-          <div className="w-full min-h-screen">
+          <div className="w-full h-screen">
             {children}
           </div>
           
@@ -274,9 +274,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </>
       ) : (
         /* Desktop Layout - Side-by-side */
-        <div className="flex w-full min-h-screen">
+        <div className="flex w-full h-screen">
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 h-full">
             {children}
           </div>
           
