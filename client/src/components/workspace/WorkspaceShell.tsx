@@ -282,8 +282,9 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </div>
       )}
 
-      {/* Floating Panels Only */}
-      {floatingPanels.map((panel, index) => {
+      {/* Floating Panels are now rendered by FloatingLayer in WorkspaceLayout */}
+      {/* Removed duplicate floating panel rendering to prevent double windows */}
+      {false && floatingPanels.map((panel, index) => {
         const defaultSize = getDefaultPanelSize(panel.type);
         const defaultPos = getDefaultPosition(index);
         
