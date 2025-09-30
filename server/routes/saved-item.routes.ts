@@ -51,6 +51,14 @@ router.delete("/", async (req, res) => {
     const userId = req.headers['x-user-id'] as string || 'demo-user';
     const { itemType, itemId, notebookId } = req.body;
     
+    console.log('[DELETE] Attempting to delete saved item:', {
+      userId,
+      itemType,
+      itemId,
+      notebookId,
+      fullBody: req.body
+    });
+    
     if (!itemType || !itemId) {
       return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
     }
@@ -63,10 +71,14 @@ router.delete("/", async (req, res) => {
       }
       
       // Delete with notebook validation to prevent cross-notebook deletions
+      console.log('[DELETE] Calling unsaveItemFromNotebook with:', { userId, itemType, itemId, notebookId });
       await storage.unsaveItemFromNotebook(userId, itemType, itemId, notebookId);
+      console.log('[DELETE] Delete completed successfully');
     } else {
       // Legacy delete without notebook scoping
+      console.log('[DELETE] Calling unsaveItem with:', { userId, itemType, itemId });
       await storage.unsaveItem(userId, itemType, itemId);
+      console.log('[DELETE] Delete completed successfully');
     }
     
     res.json({ success: true });
