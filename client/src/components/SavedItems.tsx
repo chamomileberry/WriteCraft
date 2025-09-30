@@ -84,8 +84,28 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   const fetchedItemsRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { activeNotebookId, getActiveNotebook } = useNotebookStore();
+  const { activeNotebookId, getActiveNotebook, setActiveNotebook, notebooks, setNotebooks } = useNotebookStore();
   const { openQuickNote } = useWorkspaceStore();
+
+  // Fetch notebooks to ensure we have a list
+  const { data: fetchedNotebooks } = useQuery({
+    queryKey: ['/api/notebooks'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/notebooks');
+      return await response.json();
+    }
+  });
+
+  // Initialize notebooks in store and select first one if none is active
+  useEffect(() => {
+    if (fetchedNotebooks && fetchedNotebooks.length > 0) {
+      setNotebooks(fetchedNotebooks);
+      // If no active notebook, select the first one
+      if (!activeNotebookId) {
+        setActiveNotebook(fetchedNotebooks[0].id);
+      }
+    }
+  }, [fetchedNotebooks, activeNotebookId, setNotebooks, setActiveNotebook]);
 
   // Fetch saved items for the active notebook
   const { data: savedItems = [], isLoading, error } = useQuery({
@@ -253,8 +273,10 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   };
 
   const handleEdit = (item: SavedItem) => {
+    console.log('[SavedItems] handleEdit called for item:', item.itemType, item.contentType);
     // Open Quick Note panel for editing
     if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
+      console.log('[SavedItems] Opening Quick Note panel');
       openQuickNote();
       return;
     }
