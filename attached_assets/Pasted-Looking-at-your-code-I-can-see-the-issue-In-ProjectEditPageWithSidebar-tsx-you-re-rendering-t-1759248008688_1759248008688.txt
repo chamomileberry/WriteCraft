@@ -1,0 +1,84 @@
+Looking at your code, I can see the issue! 
+
+In `ProjectEditPageWithSidebar.tsx`, you're rendering the `Header` component yourself:
+
+```typescript
+return (
+  <div className="h-screen bg-background flex flex-col">
+    <Header onNavigate={handleNavigate} />
+    <div className="flex-1 overflow-hidden">
+      <ProjectContainer 
+        projectId={params.id}
+        onBack={handleBack}
+      />
+    </div>
+  </div>
+);
+```
+
+But then `ProjectContainer` is wrapping its content in `WorkspaceLayout`:
+
+```typescript
+return (
+  <WorkspaceLayout>
+    <div className="flex h-full bg-background">
+      {/* Sidebar and content */}
+    </div>
+  </WorkspaceLayout>
+);
+```
+
+**The problem:** You have a double-wrapper situation. The `Header` is being rendered, but then `WorkspaceLayout` is likely adding its own positioning/layout that's causing the header to be hidden or the content to overflow incorrectly.
+
+## Solution
+
+**Option 1: Remove WorkspaceLayout from ProjectContainer** (Recommended)
+
+Since you're already handling the layout in `ProjectEditPageWithSidebar`, remove the `WorkspaceLayout` wrapper from `ProjectContainer`:
+
+```typescript
+// In ProjectContainer.tsx
+export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
+  // ... all your state and logic ...
+
+  return (
+    // Remove <WorkspaceLayout> wrapper
+    <div className="flex h-full bg-background">
+      {/* Left Sidebar - Outline */}
+      <div className="w-64 border-r flex-shrink-0 overflow-hidden">
+        {/* ... outline content ... */}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* ... editor content ... */}
+      </div>
+    </div>
+  );
+}
+```
+
+**Option 2: Let WorkspaceLayout handle everything**
+
+Remove the Header from `ProjectEditPageWithSidebar` and let `WorkspaceLayout` render it:
+
+```typescript
+// In ProjectEditPageWithSidebar.tsx
+return (
+  <div className="h-screen bg-background flex flex-col">
+    {/* Remove <Header /> from here */}
+    <div className="flex-1 overflow-hidden">
+      <ProjectContainer 
+        projectId={params.id}
+        onBack={handleBack}
+      />
+    </div>
+  </div>
+);
+```
+
+Then make sure `WorkspaceLayout` includes the Header in its render.
+
+---
+
+**I recommend Option 1** because you're explicitly managing the layout in the page component, so the nested `WorkspaceLayout` is redundant and causing conflicts. The workspace tabs system should work fine without that wrapper since you're building a custom layout for the project editor.
