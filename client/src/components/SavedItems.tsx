@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -97,6 +97,46 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     enabled: !!activeNotebookId // Only enabled when there's an active notebook
   });
 
+  // Fetch quick note separately
+  const { data: quickNote } = useQuery({
+    queryKey: ['/api/quick-note', 'guest'],
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/quick-note?userId=guest`, {
+          credentials: 'include'
+        });
+        if (response.status === 404) {
+          return null;
+        }
+        if (!response.ok) return null;
+        return response.json();
+      } catch {
+        return null;
+      }
+    },
+  });
+
+  // Merge quick note with saved items (memoized to prevent continuous re-renders)
+  const allItems = useMemo(() => {
+    const items = [...savedItems];
+    if (quickNote && quickNote.content && quickNote.content.trim()) {
+      // Add quick note as a saved item
+      items.unshift({
+        id: quickNote.id,
+        userId: quickNote.userId,
+        notebookId: activeNotebookId,
+        itemType: 'quickNote',
+        contentType: 'quickNote',
+        itemId: quickNote.id,
+        title: quickNote.title || 'Quick Note',
+        content: quickNote.content,
+        itemData: { title: quickNote.title, content: quickNote.content },
+        createdAt: quickNote.createdAt || new Date().toISOString(),
+      } as SavedItem);
+    }
+    return items;
+  }, [savedItems, quickNote?.id, quickNote?.content, activeNotebookId]);
+
   // Fetch missing item data for entries that have itemData: null
   const fetchMissingItemData = async (items: SavedItem[]) => {
     const missingDataItems = items.filter(item => !item.itemData);
@@ -130,12 +170,12 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     setFetchedItemData(prev => ({ ...prev, ...newFetchedData }));
   };
 
-  // Fetch missing data when saved items change
+  // Fetch missing data when items change
   useEffect(() => {
-    if (savedItems.length > 0) {
-      fetchMissingItemData(savedItems);
+    if (allItems.length > 0) {
+      fetchMissingItemData(allItems);
     }
-  }, [savedItems]);
+  }, [allItems, activeNotebookId]);
 
   // Unsave mutation
   const unsaveMutation = useMutation({
@@ -225,8 +265,8 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     return null;
   };
 
-  // Filter saved items
-  const filteredItems = savedItems.filter(item => {
+  // Filter all items (saved items + quick note)
+  const filteredItems = allItems.filter(item => {
     const type = item.contentType || item.itemType || 'unknown';
     const displayName = getDisplayName(item, fetchedItemData[item.itemId || item.contentId || '']);
     const matchesSearch = !searchQuery || 
@@ -285,12 +325,12 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   }
 
   // Calculate statistics
-  const totalItems = savedItems.length;
-  const recentItems = savedItems.filter(item => 
+  const totalItems = allItems.length;
+  const recentItems = allItems.filter(item => 
     new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   ).length;
   const categoryStats = Object.keys(CONTENT_CATEGORIES).reduce((acc, category) => {
-    acc[category] = savedItems.filter(item => {
+    acc[category] = allItems.filter(item => {
       const type = item.contentType || item.itemType || '';
       return CONTENT_CATEGORIES[category].includes(type);
     }).length;

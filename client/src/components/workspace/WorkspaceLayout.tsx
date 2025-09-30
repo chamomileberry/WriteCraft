@@ -5,6 +5,7 @@ import { TabStrip } from './TabStrip';
 import { FloatingLayer } from './FloatingLayer';
 import CharacterDetailPanel from './CharacterDetailPanel';
 import { ContentDetailPanel } from './ContentDetailPanel';
+import QuickNotePanel from './QuickNotePanel';
 import { cn } from '@/lib/utils';
 
 interface WorkspaceLayoutProps {
@@ -58,6 +59,8 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
       case 'manuscriptOutline':
         // Manuscript content should not be rendered as tabs - they are filtered out in TabStrip
         return null;
+      case 'quickNote':
+        return <QuickNotePanel panelId={panel.id} />;
       case 'notes':
         return (
           <div className="h-full p-4 bg-background overflow-y-auto">

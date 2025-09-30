@@ -319,14 +319,17 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
             className="h-4 w-4 p-0 opacity-30 group-hover:opacity-100 hover:bg-primary/20"
             onClick={(e) => {
               e.stopPropagation();
-              if ((tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant') {
+              if (tab.type === 'quickNote' && !isInManuscriptEditor()) {
+                // Convert Quick Note to floating window
+                handleDetachTab(tab.id);
+              } else if (tab.type === 'writingAssistant') {
                 minimizePanel(tab.id);
               } else {
                 handleDetachTab(tab.id);
               }
             }}
-            data-testid={`button-${(tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant' ? 'minimize' : 'pin'}-tab-${tab.id}`}
-            title={(tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant' ? "Minimize" : "Pin to floating window"}
+            data-testid={`button-${(tab.type === 'quickNote' && !isInManuscriptEditor()) ? 'float' : tab.type === 'writingAssistant' ? 'minimize' : 'pin'}-tab-${tab.id}`}
+            title={(tab.type === 'quickNote' && !isInManuscriptEditor()) ? "Pop out to floating window" : tab.type === 'writingAssistant' ? "Minimize" : "Pin to floating window"}
           >
             {(tab.type === 'quickNote' && !isInManuscriptEditor()) || tab.type === 'writingAssistant' ? (
               <Minimize2 className="h-3 w-3" />
