@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { useWorkspaceStore, type PanelDescriptor } from '@/stores/workspaceStore';
 import CharacterDetailPanel from './CharacterDetailPanel';
+import { ContentDetailPanel } from './ContentDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
 import WritingAssistantPanel from './WritingAssistantPanel';
 import { X, GripHorizontal, Pin, Save, Minimize2, MessageSquarePlus, History, Menu } from 'lucide-react';
@@ -81,6 +82,15 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         return (
           <CharacterDetailPanel
             characterId={panel.entityId!}
+            panelId={panel.id}
+            notebookId={panel.notebookId}
+          />
+        );
+      case 'contentDetail':
+        return (
+          <ContentDetailPanel
+            contentType={panel.contentType!}
+            entityId={panel.entityId!}
             panelId={panel.id}
             notebookId={panel.notebookId}
           />
@@ -282,211 +292,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         </div>
       )}
 
-      {/* Floating Panels are now rendered by FloatingLayer in WorkspaceLayout */}
-      {/* Removed duplicate floating panel rendering to prevent double windows */}
-      {false && floatingPanels.map((panel, index) => {
-        const defaultSize = getDefaultPanelSize(panel.type);
-        const defaultPos = getDefaultPosition(index);
-        
-        return (
-          <Rnd
-            key={panel.id}
-            default={{
-              x: panel.position?.x || defaultPos.x,
-              y: panel.position?.y || defaultPos.y,
-              width: panel.size?.width || defaultSize.width,
-              height: panel.size?.height || defaultSize.height,
-            }}
-            minWidth={250}
-            minHeight={200}
-            bounds="parent"
-            dragHandleClassName="panel-drag-handle"
-            className="z-50"
-            data-testid={`panel-${panel.type}-${panel.entityId || panel.id}`}
-            onDragStop={(e, d) => {
-              updatePanel(panel.id, { position: { x: d.x, y: d.y } });
-            }}
-            onResizeStop={(e, direction, ref, delta, position) => {
-              updatePanel(panel.id, {
-                size: { width: parseInt(ref.style.width), height: parseInt(ref.style.height) },
-                position
-              });
-            }}
-          >
-            <div className="w-full h-full bg-background border border-border rounded-lg shadow-lg flex flex-col">
-              {/* Panel Header */}
-              <div className="flex items-center justify-between p-2 border-b bg-muted/50 rounded-t-lg">
-                <div className="flex items-center gap-2 flex-1 panel-drag-handle cursor-move">
-                  <GripHorizontal className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium truncate">{panel.title}</span>
-                </div>
-                <div className="flex items-center gap-1 relative z-10">
-                  {panel.type === 'quickNote' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={async (e) => {
-                        // Save quick note to notebook
-                        const saveFunction = quickNoteSaveFunctions.current[panel.id];
-                        if (!saveFunction) {
-                          toast({
-                            title: 'Error',
-                            description: 'Quick note panel not ready.',
-                            variant: 'destructive',
-                          });
-                          return;
-                        }
-
-                        try {
-                          // Get the current content after forcing a save
-                          const quickNoteData = await saveFunction();
-                          
-                          if (quickNoteData && quickNoteData.content) {
-                            try {
-                              // Save to saved items as a quick note
-                              await apiRequest('POST', '/api/saved-items', {
-                                userId: 'guest',
-                                itemType: 'quickNote',
-                                itemId: quickNoteData.id,
-                                itemData: {
-                                  title: 'Quick Note',
-                                  content: quickNoteData.content,
-                                  savedAt: new Date().toISOString()
-                                }
-                              });
-                              
-                              toast({
-                                title: 'Quick Note saved',
-                                description: 'Your note has been saved to your Notebook.',
-                              });
-                              
-                              // Clear the quick note after saving
-                              await apiRequest('POST', '/api/quick-note', {
-                                userId: 'guest',
-                                title: 'Quick Note',
-                                content: '',
-                              });
-                              
-                              // Clear the UI content directly using the registered clear function
-                              const clearFunction = quickNoteClearFunctions.current[panel.id];
-                              if (clearFunction) {
-                                clearFunction();
-                              }
-                              
-                              // Only invalidate saved-items
-                              queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
-                            } catch (error) {
-                              toast({
-                                title: 'Save failed',
-                                description: 'Could not save to Notebook.',
-                                variant: 'destructive',
-                              });
-                            }
-                          } else {
-                            toast({
-                              title: 'Nothing to save',
-                              description: 'Write something in your Quick Note first.',
-                              variant: 'destructive',
-                            });
-                          }
-                        } catch (error) {
-                          console.error('Error saving quick note:', error);
-                          toast({
-                            title: 'Error',
-                            description: 'Could not save quick note.',
-                            variant: 'destructive',
-                          });
-                        }
-                      }}
-                      className="h-6 w-6 p-0"
-                      data-testid={`button-save-${panel.id}`}
-                      title="Save to Notebook"
-                    >
-                      <Save className="h-3 w-3" />
-                    </Button>
-                  )}
-                  {panel.type === 'writingAssistant' && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const clearChatFunction = writingAssistantClearChatFunctions.current[panel.id];
-                          if (clearChatFunction) {
-                            clearChatFunction();
-                          }
-                        }}
-                        className="h-6 w-6 p-0 hover:bg-primary/20"
-                        data-testid={`button-new-chat-${panel.id}`}
-                        title="New Chat"
-                      >
-                        <MessageSquarePlus className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const toggleHistoryFunction = writingAssistantToggleHistoryFunctions.current[panel.id];
-                          if (toggleHistoryFunction) {
-                            toggleHistoryFunction();
-                          }
-                        }}
-                        className="h-6 w-6 p-0 hover:bg-primary/20"
-                        data-testid={`button-chat-history-${panel.id}`}
-                        title="History"
-                      >
-                        <History className="h-3 w-3" />
-                      </Button>
-                    </>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      if (panel.type === 'writingAssistant') {
-                        // Minimize the panel instead of pinning
-                        minimizePanel(panel.id);
-                      } else if (panel.type === 'quickNote' && !isInManuscriptEditor()) {
-                        // Minimize the panel instead of pinning
-                        minimizePanel(panel.id);
-                      } else {
-                        attachToTabBar(panel.id, 'main');
-                      }
-                    }}
-                    className="h-6 w-6 p-0"
-                    data-testid={`button-dock-${panel.id}`}
-                    title={panel.type === 'writingAssistant' ? "Minimize" : (panel.type === 'quickNote' && !isInManuscriptEditor()) ? "Minimize" : "Pin to tab bar"}
-                  >
-                    {panel.type === 'writingAssistant' ? (
-                      <Minimize2 className="h-3 w-3" />
-                    ) : (panel.type === 'quickNote' && !isInManuscriptEditor()) ? (
-                      <Minimize2 className="h-3 w-3" />
-                    ) : (
-                      <Pin className="h-3 w-3" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      removePanel(panel.id);
-                    }}
-                    className="h-6 w-6 p-0 hover:bg-destructive/10"
-                    data-testid={`button-close-${panel.type}-${panel.entityId || panel.id}`}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Panel Content */}
-              <div className="flex-1 overflow-hidden">
-                {renderPanelContent(panel)}
-              </div>
-            </div>
-          </Rnd>
-        );
-      })}
+      {/* Floating Panels are now exclusively rendered by FloatingLayer in WorkspaceLayout */}
+      {/* Floating panel rendering code has been removed to prevent duplicate windows */}
     </div>
   );
 };
