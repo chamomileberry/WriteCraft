@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -240,9 +241,27 @@ export function AutocompleteField({
       });
       return await response.json();
     },
-    onSuccess: (newItem) => {
+    onSuccess: async (newItem) => {
       // Invalidate queries to refresh the search results
       queryClient.invalidateQueries({ queryKey: [`/api/${apiEndpoint}`] });
+      
+      // Save the newly created item to the notebook's saved_items
+      if (activeNotebookId && newItem.id) {
+        try {
+          await apiRequest('POST', '/api/saved-items', {
+            itemType: contentType,
+            itemId: newItem.id,
+            notebookId: activeNotebookId,
+            itemData: newItem
+          });
+          
+          // Invalidate saved items queries so notebook view refreshes
+          queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+        } catch (error) {
+          console.warn('Failed to save new item to notebook:', error);
+          // Don't block the user flow if saving fails
+        }
+      }
       
       // Add the new item to current selection
       const newValue = multiple 
