@@ -124,8 +124,10 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
               data-testid="input-content-search"
+              autoFocus
             />
           </div>
+
 
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2">

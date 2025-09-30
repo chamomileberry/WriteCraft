@@ -154,9 +154,11 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
     } else {
       addPanel({
         id: nanoid(),
-        type: 'notes',
+        type: 'contentDetail',  // Changed from 'notes' to 'contentDetail'
         title: itemTitle || `${itemType} Details`,
         entityId: itemId,
+        contentType: itemType,  // Pass the actual content type
+        notebookId: itemNotebookId,
         mode: 'tabbed',
         regionId: regionId
       });

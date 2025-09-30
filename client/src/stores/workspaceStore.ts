@@ -12,9 +12,10 @@ export interface EditorActions {
 
 export interface PanelDescriptor {
   id: string;
-  type: 'characterDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript' | 'quickNote' | 'writingAssistant';
+  type: 'characterDetail' | 'contentDetail' | 'searchResults' | 'manuscriptOutline' | 'notes' | 'manuscript' | 'quickNote' | 'writingAssistant';
   title: string;
   entityId?: string;
+  contentType?: string;  // For generic content detail panels (weapons, locations, etc.)
   notebookId?: string;  // For characters and other notebook-scoped entities
   data?: any;
   // Tab system

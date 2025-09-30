@@ -4,6 +4,7 @@ import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { TabStrip } from './TabStrip';
 import { FloatingLayer } from './FloatingLayer';
 import CharacterDetailPanel from './CharacterDetailPanel';
+import { ContentDetailPanel } from './ContentDetailPanel';
 import { cn } from '@/lib/utils';
 
 interface WorkspaceLayoutProps {
@@ -51,6 +52,8 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
     switch (panel.type) {
       case 'characterDetail':
         return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} notebookId={panel.notebookId} />;
+      case 'contentDetail':
+        return <ContentDetailPanel panelId={panel.id} contentType={panel.contentType!} entityId={panel.entityId!} notebookId={panel.notebookId} />;
       case 'manuscript':
       case 'manuscriptOutline':
         // Manuscript content should not be rendered as tabs - they are filtered out in TabStrip
