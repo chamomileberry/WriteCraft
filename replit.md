@@ -41,7 +41,15 @@ Preferred communication style: Simple, everyday language.
 - **Writing Guides**: Structured educational content with categories, difficulty levels, and comprehensive search
 - **User Collections**: System for saving and organizing generated content and favorite guides
 - **Enhanced Character Editor**: Responsive sidebar navigation system with 6 logical sections (Identity, Appearance, Mind & Personality, Skills & Powers, Life & Background, Prompts) that replaces cramped multi-row tab layouts with clean, organized navigation for both desktop and mobile users
-- **Hierarchical Document Management**: Complete Google Docs/Obsidian-style document organization system with collapsible sidebar displaying tree structure for manuscripts (folders as chapters/acts, notes as scenes) and guides (folders as categories for organizing content), featuring real-time updates, smart navigation, and preservation of all existing rich text editing capabilities
+- **Hierarchical Project System**: Complete hierarchical project management with folders and pages (replacing the old manuscript system):
+  - **View/Edit Modes**: Projects can be viewed in read-only mode or edited with full functionality
+  - **Tree Structure**: Unlimited folder nesting with pages as leaf nodes containing content
+  - **ProjectContainer**: Main orchestrator managing active sections, auto-save, and navigation
+  - **ProjectOutline**: Collapsible tree sidebar with expand/collapse, highlighting, and CRUD operations
+  - **SectionEditor**: Full TipTap rich text editor with 2-second auto-save, media insertion (images, videos, links), and export (HTML/PDF/DOCX)
+  - **Smart Navigation**: Auto-saves before section switching, shows empty state for folders, editor for pages
+  - **Visual Feedback**: Badge system for save status (unsaved/saving/saved with timestamps), breadcrumb trail with chevron separators, real-time word count
+  - **API**: RESTful endpoints for section CRUD, tree retrieval, and reordering
 
 ## External Dependencies
 

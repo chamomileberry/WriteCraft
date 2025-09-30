@@ -8,6 +8,8 @@ import { ArrowLeft, Plus, Search, Edit, Calendar, FileText, Trash2 } from "lucid
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useWorkspaceStore, type PanelDescriptor } from "@/stores/workspaceStore";
+import { ProjectViewer } from "@/components/ProjectViewer";
+import { ProjectContainer } from "@/components/ProjectContainer";
 
 interface Project {
   id: string;
@@ -22,8 +24,12 @@ interface Project {
   updatedAt: string;
 }
 
+type ViewMode = 'list' | 'view' | 'edit';
+
 export default function ProjectPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
@@ -77,21 +83,27 @@ export default function ProjectPage() {
     }
   });
 
-  const { addPanel } = useWorkspaceStore();
+  // Handle clicking a project card (not the edit button) - goes to view mode
+  const handleProjectClick = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setViewMode('view');
+  };
 
-  const openProjectInWorkspace = (project: Project) => {
-    const panelDescriptor: PanelDescriptor = {
-      id: `project-${project.id}`,
-      type: 'project',
-      title: project.title,
-      subtitle: `${project.status} • ${project.wordCount} words`,
-      icon: 'FileText',
-      data: project,
-      regionId: 'main'
-    };
-    
-    addPanel(panelDescriptor);
-    navigate('/');
+  // Handle clicking the edit button on a project card - goes straight to edit mode
+  const handleProjectEdit = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setViewMode('edit');
+  };
+
+  // Handle clicking "Edit Project" button in viewer
+  const handleStartEditing = () => {
+    setViewMode('edit');
+  };
+
+  // Handle back navigation
+  const handleBack = () => {
+    setSelectedProjectId(null);
+    setViewMode('list');
   };
 
   const displayedProjects = searchQuery.trim().length > 0 ? searchResults : projects;
@@ -116,6 +128,31 @@ export default function ProjectPage() {
     }
   };
 
+  // Render view/edit modes
+  if (viewMode === 'view' && selectedProjectId) {
+    return (
+      <div className="h-screen">
+        <ProjectViewer
+          projectId={selectedProjectId}
+          onBack={handleBack}
+          onEdit={handleStartEditing}
+        />
+      </div>
+    );
+  }
+
+  if (viewMode === 'edit' && selectedProjectId) {
+    return (
+      <div className="h-screen">
+        <ProjectContainer
+          projectId={selectedProjectId}
+          onBack={handleBack}
+        />
+      </div>
+    );
+  }
+
+  // Default list view
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -189,7 +226,7 @@ export default function ProjectPage() {
               <Card 
                 key={project.id} 
                 className="hover-elevate cursor-pointer transition-colors group"
-                onClick={() => openProjectInWorkspace(project)}
+                onClick={() => handleProjectClick(project.id)}
                 data-testid={`card-project-${project.id}`}
               >
                 <CardHeader className="pb-3">
@@ -201,14 +238,14 @@ export default function ProjectPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        asChild
                         className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          handleProjectEdit(project.id);
+                        }}
                         data-testid={`button-edit-project-${project.id}`}
                       >
-                        <Link href={`/projects/${project.id}/edit`}>
-                          <Edit className="h-4 w-4" />
-                        </Link>
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
