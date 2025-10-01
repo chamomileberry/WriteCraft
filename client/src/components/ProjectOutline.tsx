@@ -280,6 +280,7 @@ export function ProjectOutline({
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
   const [dropPosition, setDropPosition] = useState<'above' | 'below' | 'inside' | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
@@ -409,12 +410,28 @@ export function ProjectOutline({
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
+    
+    // Start tracking mouse position
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    
+    // Clean up on drag end
+    const cleanup = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      setMousePosition(null);
+    };
+    
+    // Store cleanup function to call later
+    (window as any).__dragCleanup = cleanup;
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     
-    if (!over) {
+    if (!over || !mousePosition) {
       setOverId(null);
       setDropPosition(null);
       return;
@@ -432,16 +449,6 @@ export function ProjectOutline({
 
     setOverId(over.id);
 
-    // Get current mouse position using the dragged element's current position
-    const activeRect = active.rect.current.translated;
-    if (!activeRect) {
-      setDropPosition(null);
-      return;
-    }
-    
-    // The mouse is at the center of the dragged element during drag
-    const mouseY = activeRect.top + (activeRect.height / 2);
-
     // Get the target element rect - always use fresh DOM query for accurate positioning
     const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
     if (!overElement) {
@@ -450,13 +457,16 @@ export function ProjectOutline({
     }
     const rect = overElement.getBoundingClientRect();
 
+    // Use the real mouse position
+    const mouseY = mousePosition.y;
+
     const elementTop = rect.top;
     const elementBottom = rect.bottom;
     const elementHeight = rect.height;
 
     // Use smaller thresholds for more immediate response
-    const topThreshold = elementTop + (elementHeight * 0.2);
-    const bottomThreshold = elementBottom - (elementHeight * 0.2);
+    const topThreshold = elementTop + (elementHeight * 0.25);
+    const bottomThreshold = elementBottom - (elementHeight * 0.25);
 
     if (targetItem.section.type === 'folder') {
       if (mouseY < topThreshold) {
@@ -481,6 +491,12 @@ export function ProjectOutline({
     setActiveId(null);
     setOverId(null);
     setDropPosition(null);
+    
+    // Clean up mouse tracking
+    if ((window as any).__dragCleanup) {
+      (window as any).__dragCleanup();
+      (window as any).__dragCleanup = null;
+    }
 
     if (!over || active.id === over.id) {
       return;
