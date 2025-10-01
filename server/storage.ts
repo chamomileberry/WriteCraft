@@ -225,10 +225,10 @@ export interface IStorage {
 
   // Plant methods
   createPlant(plant: InsertPlant): Promise<Plant>;
-  getPlant(id: string): Promise<Plant | undefined>;
-  getUserPlants(userId: string | null): Promise<Plant[]>;
-  updatePlant(id: string, updates: Partial<InsertPlant>): Promise<Plant>;
-  deletePlant(id: string): Promise<void>;
+  getPlant(id: string, userId: string, notebookId: string): Promise<Plant | undefined>;
+  getUserPlants(userId: string, notebookId: string): Promise<Plant[]>;
+  updatePlant(id: string, userId: string, updates: Partial<InsertPlant>, notebookId: string): Promise<Plant>;
+  deletePlant(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Description methods
   createDescription(description: InsertDescription): Promise<Description>;
@@ -1314,33 +1314,47 @@ export class DatabaseStorage implements IStorage {
     return newPlant;
   }
 
-  async getPlant(id: string): Promise<Plant | undefined> {
-    const [plant] = await db.select().from(plants).where(eq(plants.id, id));
+  async getPlant(id: string, userId: string, notebookId: string): Promise<Plant | undefined> {
+    const whereClause = and(
+      eq(plants.id, id),
+      eq(plants.userId, userId),
+      eq(plants.notebookId, notebookId)
+    );
+    const [plant] = await db.select().from(plants).where(whereClause);
     return plant || undefined;
   }
 
-  async getUserPlants(userId: string | null): Promise<Plant[]> {
-    if (userId) {
-      return await db.select().from(plants)
-        .where(eq(plants.userId, userId))
-        .orderBy(desc(plants.createdAt));
-    }
+  async getUserPlants(userId: string, notebookId: string): Promise<Plant[]> {
+    const whereClause = and(
+      eq(plants.userId, userId),
+      eq(plants.notebookId, notebookId)
+    );
     return await db.select().from(plants)
-      .orderBy(desc(plants.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(plants.createdAt));
   }
 
-  async updatePlant(id: string, updates: Partial<InsertPlant>): Promise<Plant> {
+  async updatePlant(id: string, userId: string, updates: Partial<InsertPlant>, notebookId: string): Promise<Plant> {
+    const whereClause = and(
+      eq(plants.id, id),
+      eq(plants.userId, userId),
+      eq(plants.notebookId, notebookId)
+    );
     const [updatedPlant] = await db
       .update(plants)
       .set(updates)
-      .where(eq(plants.id, id))
+      .where(whereClause)
       .returning();
     return updatedPlant;
   }
 
-  async deletePlant(id: string): Promise<void> {
-    await db.delete(plants).where(eq(plants.id, id));
+  async deletePlant(id: string, userId: string, notebookId: string): Promise<void> {
+    const whereClause = and(
+      eq(plants.id, id),
+      eq(plants.userId, userId),
+      eq(plants.notebookId, notebookId)
+    );
+    await db.delete(plants).where(whereClause);
   }
 
   // Description methods

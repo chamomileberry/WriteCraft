@@ -80,7 +80,14 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deletePlant(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    await storage.deletePlant(req.params.id, userId, notebookId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting plant:', error);
