@@ -1,0 +1,97 @@
+diff --git a/client/src/components/DocumentSidebar.tsx b/client/src/components/DocumentSidebar.tsx
+index 7af6b7a55dec850cfe4765b91d03833a2db0bd5e..aec22ba1bdcf8cfa76bbdc0832e91a2accf03c0f 100644
+--- a/client/src/components/DocumentSidebar.tsx
++++ b/client/src/components/DocumentSidebar.tsx
+@@ -289,57 +289,91 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
+       }
+     } catch (error) {
+       console.error('Failed to delete:', error);
+     }
+   };
+ 
+   const handleDragStart = (e: React.DragEvent, id: string, itemType: 'folder' | 'note', parentId?: string) => {
+     setDraggedItem({ id, type: itemType, parentId });
+     e.dataTransfer.effectAllowed = 'move';
+     e.dataTransfer.setData('text/plain', id);
+   };
+ 
+   const handleDragOver = (e: React.DragEvent, id: string, itemType: 'folder' | 'note') => {
+     e.preventDefault();
+     e.dataTransfer.dropEffect = 'move';
+     setDragOverItem({ id, type: itemType });
+   };
+ 
+   const handleDragLeave = () => {
+     setDragOverItem(null);
+   };
+ 
+   const handleDrop = async (e: React.DragEvent, targetId: string, targetType: 'folder' | 'note', targetParentId?: string) => {
+     e.preventDefault();
+     e.stopPropagation();
+-    
++
+     if (!draggedItem || draggedItem.id === targetId) {
+       setDraggedItem(null);
+       setDragOverItem(null);
+       return;
+     }
+ 
++    // Handle moving notes directly into a folder when dropped on the folder header
++    if (draggedItem.type === 'note' && targetType === 'folder') {
++      setDraggedItem(null);
++      setDragOverItem(null);
++
++      if (draggedItem.parentId === targetId) {
++        return;
++      }
++
++      try {
++        const targetFolderNotes = (Array.isArray(notes) ? notes : [])
++          .filter((n: any) => n.folderId === targetId)
++          .sort((a: any, b: any) => a.sortOrder - b.sortOrder);
++
++        await fetch(`/api/notes/${draggedItem.id}`, {
++          method: 'PATCH',
++          headers: { 'Content-Type': 'application/json' },
++          body: JSON.stringify({
++            folderId: targetId,
++            sortOrder: targetFolderNotes.length,
++          }),
++        });
++
++        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
++        queryClient.invalidateQueries({
++          queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId],
++        });
++      } catch (error) {
++        console.error('Failed to move note:', error);
++      }
++
++      return;
++    }
++
+     // Can only reorder items of same type in same parent
+     if (draggedItem.type !== targetType || draggedItem.parentId !== targetParentId) {
+       setDraggedItem(null);
+       setDragOverItem(null);
+       return;
+     }
+ 
+     try {
+       // Get the list of items sorted by current sortOrder
+       const items = draggedItem.type === 'folder' 
+         ? (Array.isArray(folders) ? folders : [])
+             .filter((f: any) => f.parentId === draggedItem.parentId)
+             .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+         : (Array.isArray(notes) ? notes : [])
+             .filter((n: any) => n.folderId === draggedItem.parentId)
+             .sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+ 
+       const draggedIndex = items.findIndex((item: any) => item.id === draggedItem.id);
+       const targetIndex = items.findIndex((item: any) => item.id === targetId);
+ 
+       if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+         setDraggedItem(null);
+         setDragOverItem(null);
+         return;
+       }
