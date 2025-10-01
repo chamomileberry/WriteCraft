@@ -285,7 +285,7 @@ export function ProjectOutline({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3, // Reduced from 8 to 3 for more immediate drag activation
       },
     }),
     useSensor(KeyboardSensor, {
@@ -293,33 +293,19 @@ export function ProjectOutline({
     })
   );
 
-  // Custom collision detection for more responsive feedback
+  // Optimized collision detection for immediate response
   const customCollisionDetection = (args: any) => {
-    // Always prioritize pointer-based detection for immediate feedback
+    // Use pointer detection exclusively for immediate feedback
     const pointerIntersections = pointerWithin(args);
     
     if (pointerIntersections.length > 0) {
-      // Sort by proximity to pointer for most accurate detection
-      const sortedIntersections = pointerIntersections.sort((a: any, b: any) => {
-        const aRect = a.data?.current?.sortable?.rect?.current;
-        const bRect = b.data?.current?.sortable?.rect?.current;
-        
-        if (!aRect || !bRect) return 0;
-        
-        const pointer = args.pointerCoordinates;
-        if (!pointer) return 0;
-        
-        const aDistance = Math.abs((aRect.top + aRect.height / 2) - pointer.y);
-        const bDistance = Math.abs((bRect.top + bRect.height / 2) - pointer.y);
-        
-        return aDistance - bDistance;
-      });
-      
-      return sortedIntersections;
+      // Return the closest item immediately without complex sorting
+      return [pointerIntersections[0]];
     }
 
-    // If no pointer intersections, fall back to rectangle intersections
-    return rectIntersection(args);
+    // Fallback to rectangle intersections only if pointer detection fails
+    const rectIntersections = rectIntersection(args);
+    return rectIntersections.length > 0 ? [rectIntersections[0]] : [];
   };
 
   const createMutation = useMutation({
@@ -454,33 +440,53 @@ export function ProjectOutline({
 
     setOverId(over.id);
 
-    // Get fresh element rect for accurate positioning
-    const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
-    if (!overElement) {
-      setDropPosition(null);
-      return;
-    }
-
-    // Get current mouse position from the drag event
-    // Use the translated rect which gives us the current position during drag
-    const activeRect = active.rect.current.translated;
-    if (!activeRect) {
-      setDropPosition(null);
-      return;
-    }
+    // Get mouse coordinates directly from the event if available
+    let mouseY: number;
     
-    // The mouse is at the center of the dragged element during drag
-    const mouseY = activeRect.top + (activeRect.height / 2);
+    // First try to get mouse position from the sensor's event data
+    if (event.activatorEvent && 'clientY' in event.activatorEvent) {
+      // For initial drag start, use activator event
+      mouseY = event.activatorEvent.clientY;
+    } else if (event.delta) {
+      // Calculate current mouse position using delta from start
+      const activatorY = event.activatorEvent && 'clientY' in event.activatorEvent 
+        ? event.activatorEvent.clientY 
+        : 0;
+      mouseY = activatorY + event.delta.y;
+    } else {
+      // Fallback to active rect center
+      const activeRect = active.rect.current.translated;
+      if (!activeRect) {
+        setDropPosition(null);
+        return;
+      }
+      mouseY = activeRect.top + (activeRect.height / 2);
+    }
 
-    // Get fresh bounding rect for the target element
-    const rect = overElement.getBoundingClientRect();
+    // Get the target element rect - use cached rect if available
+    const overData = over.data.current;
+    let rect: DOMRect;
+    
+    if (overData?.sortable?.rect?.current) {
+      // Use cached rect from sortable for better performance
+      rect = overData.sortable.rect.current;
+    } else {
+      // Fallback to DOM query
+      const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
+      if (!overElement) {
+        setDropPosition(null);
+        return;
+      }
+      rect = overElement.getBoundingClientRect();
+    }
+
     const elementTop = rect.top;
     const elementBottom = rect.bottom;
     const elementHeight = rect.height;
 
-    // Use smaller threshold zones for more responsive feedback
-    const topThreshold = elementTop + (elementHeight * 0.2);
-    const bottomThreshold = elementBottom - (elementHeight * 0.2);
+    // Use more aggressive thresholds for immediate feedback
+    const topThreshold = elementTop + (elementHeight * 0.25);
+    const bottomThreshold = elementBottom - (elementHeight * 0.25);
 
     if (targetItem.section.type === 'folder') {
       if (mouseY < topThreshold) {
@@ -491,7 +497,7 @@ export function ProjectOutline({
         setDropPosition('inside');
       }
     } else {
-      // For pages, only allow above/below with more precise detection
+      // For pages, only allow above/below
       if (mouseY < elementTop + (elementHeight / 2)) {
         setDropPosition('above');
       } else {
