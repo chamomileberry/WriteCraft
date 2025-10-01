@@ -26,29 +26,6 @@ import Youtube from '@tiptap/extension-youtube';
 import Focus from '@tiptap/extension-focus';
 import Typography from '@tiptap/extension-typography';
 import { createLowlight } from 'lowlight';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { 
-  ImageIcon,
-  Video,
-  LinkIcon,
-  Download,
-} from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -175,13 +152,6 @@ interface SectionEditorProps {
 
 export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, SectionEditorProps>(
   ({ projectId, section, onContentChange, onSaveStatusChange, onLastSaveTimeChange, onWordCountChange }, ref) => {
-    const [isInsertImageDialogOpen, setIsInsertImageDialogOpen] = useState(false);
-    const [isInsertVideoDialogOpen, setIsInsertVideoDialogOpen] = useState(false);
-    const [isInsertLinkDialogOpen, setIsInsertLinkDialogOpen] = useState(false);
-    const [insertImageUrl, setInsertImageUrl] = useState('');
-    const [insertVideoUrl, setInsertVideoUrl] = useState('');
-    const [insertLinkUrl, setInsertLinkUrl] = useState('');
-    
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -360,70 +330,6 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
       saveContent,
     }));
 
-    // Media insertion handlers
-    const handleInsertImage = () => {
-      if (insertImageUrl.trim()) {
-        editor?.chain().focus().setImage({ src: insertImageUrl.trim() }).run();
-        setInsertImageUrl('');
-        setIsInsertImageDialogOpen(false);
-      }
-    };
-
-    const handleInsertVideo = () => {
-      if (insertVideoUrl.trim()) {
-        editor?.commands.setYoutubeVideo({
-          src: insertVideoUrl.trim(),
-          width: 640,
-          height: 480,
-        });
-        setInsertVideoUrl('');
-        setIsInsertVideoDialogOpen(false);
-      }
-    };
-
-    const handleInsertLink = () => {
-      if (insertLinkUrl.trim()) {
-        editor?.chain().focus().setLink({ href: insertLinkUrl.trim() }).run();
-        setInsertLinkUrl('');
-        setIsInsertLinkDialogOpen(false);
-      }
-    };
-
-    // Export functionality
-    const handleExport = (format: string) => {
-      const content = editor?.getHTML() || '';
-      const title = section?.title || 'Untitled';
-      
-      switch(format) {
-        case 'html':
-          const htmlFile = new Blob([content], { type: 'text/html' });
-          const htmlLink = document.createElement('a');
-          htmlLink.href = URL.createObjectURL(htmlFile);
-          htmlLink.download = `${title}.html`;
-          htmlLink.click();
-          break;
-          
-        case 'pdf':
-          toast({
-            title: "PDF Export",
-            description: "Opening print dialog. Select 'Save as PDF' from the destination dropdown.",
-          });
-          setTimeout(() => window.print(), 500);
-          break;
-          
-        case 'docx':
-          const textContent = editor?.getText() || '';
-          const docxBlob = new Blob([`${title}\n\n${textContent}`], { 
-            type: 'text/plain' 
-          });
-          const docxLink = document.createElement('a');
-          docxLink.href = URL.createObjectURL(docxBlob);
-          docxLink.download = `${title}.txt`;
-          docxLink.click();
-          break;
-      }
-    };
-
     if (!editor) {
       return null;
     }
@@ -431,127 +337,8 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Toolbar */}
-        <div className="border-b bg-background/95 backdrop-blur">
-          <div className="flex items-center justify-between gap-2 p-4">
-            <div className="flex-1">
-              <EditorToolbar editor={editor} title={section.title} />
-            </div>
-            
-            {/* Media buttons */}
-            <div className="flex items-center gap-2">
-              <Dialog open={isInsertImageDialogOpen} onOpenChange={setIsInsertImageDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-insert-image">
-                    <ImageIcon className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Insert Image</DialogTitle>
-                    <DialogDescription>
-                      Enter the URL of the image you want to insert.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Input
-                    value={insertImageUrl}
-                    onChange={(e) => setInsertImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    onKeyDown={(e) => e.key === 'Enter' && handleInsertImage()}
-                    data-testid="input-image-url"
-                  />
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsInsertImageDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleInsertImage} disabled={!insertImageUrl.trim()} data-testid="button-confirm-insert-image">
-                      Insert
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog open={isInsertVideoDialogOpen} onOpenChange={setIsInsertVideoDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-insert-video">
-                    <Video className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Insert Video</DialogTitle>
-                    <DialogDescription>
-                      Enter the YouTube URL of the video you want to insert.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Input
-                    value={insertVideoUrl}
-                    onChange={(e) => setInsertVideoUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    onKeyDown={(e) => e.key === 'Enter' && handleInsertVideo()}
-                    data-testid="input-video-url"
-                  />
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsInsertVideoDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleInsertVideo} disabled={!insertVideoUrl.trim()} data-testid="button-confirm-insert-video">
-                      Insert
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog open={isInsertLinkDialogOpen} onOpenChange={setIsInsertLinkDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-insert-link">
-                    <LinkIcon className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Insert Link</DialogTitle>
-                    <DialogDescription>
-                      Enter the URL you want to link to.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Input
-                    value={insertLinkUrl}
-                    onChange={(e) => setInsertLinkUrl(e.target.value)}
-                    placeholder="https://example.com"
-                    onKeyDown={(e) => e.key === 'Enter' && handleInsertLink()}
-                    data-testid="input-link-url"
-                  />
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsInsertLinkDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleInsertLink} disabled={!insertLinkUrl.trim()} data-testid="button-confirm-insert-link">
-                      Insert
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-export">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleExport('html')} data-testid="button-export-html">
-                    Export as HTML
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('pdf')} data-testid="button-export-pdf">
-                    Export as PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport('docx')} data-testid="button-export-docx">
-                    Export as DOCX
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+        <div className="border-b bg-muted/20 p-2">
+          <EditorToolbar editor={editor} title={section.title} />
         </div>
 
         {/* Editor */}
