@@ -15,9 +15,10 @@ import NotebookManager from "./NotebookManager";
 
 interface NotebookSwitcherProps {
   className?: string;
+  showActiveInfo?: boolean;
 }
 
-export default function NotebookSwitcher({ className }: NotebookSwitcherProps) {
+export default function NotebookSwitcher({ className, showActiveInfo = true }: NotebookSwitcherProps) {
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const { 
     activeNotebookId, 
@@ -124,7 +125,7 @@ export default function NotebookSwitcher({ className }: NotebookSwitcherProps) {
       </div>
 
       {/* Active Notebook Info */}
-      {activeNotebook && (
+      {showActiveInfo && activeNotebook && (
         <div className="text-sm text-muted-foreground">
           Working in: <span className="font-medium">{activeNotebook.name}</span>
           {activeNotebook.description && (

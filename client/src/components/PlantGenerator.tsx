@@ -48,9 +48,28 @@ export default function PlantGenerator() {
   const [plantType, setPlantType] = useState<string>("");
   const [genreOpen, setGenreOpen] = useState<boolean>(false);
   const [plantTypeOpen, setPlantTypeOpen] = useState<boolean>(false);
+  const [genreSearch, setGenreSearch] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
+
+  // Helper function to capitalize words
+  const capitalizeWords = (str: string): string => {
+    return str.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
+  // Filter genre categories based on search
+  const filteredGenreCategories = Object.entries(GENRE_CATEGORIES).reduce((acc, [category, genres]) => {
+    const filteredGenres = genres.filter(g => 
+      g.toLowerCase().includes(genreSearch.toLowerCase())
+    );
+    if (filteredGenres.length > 0) {
+      acc[category] = filteredGenres;
+    }
+    return acc;
+  }, {} as Record<string, string[]>);
 
   const generatePlantMutation = useMutation({
     mutationFn: async () => {
@@ -167,7 +186,7 @@ ${currentPlant.description}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="pb-4 border-b">
-            <NotebookSwitcher />
+            <NotebookSwitcher showActiveInfo={false} />
           </div>
           <div className="grid md:grid-cols-3 gap-4">
             <Popover open={genreOpen} onOpenChange={setGenreOpen}>
@@ -187,7 +206,11 @@ ${currentPlant.description}
               </PopoverTrigger>
               <PopoverContent className="w-full p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="Search genres..." />
+                  <CommandInput 
+                    placeholder="Search genres..." 
+                    value={genreSearch}
+                    onValueChange={setGenreSearch}
+                  />
                   <CommandList>
                     <CommandEmpty>No genre found.</CommandEmpty>
                     <CommandGroup>
@@ -196,6 +219,7 @@ ${currentPlant.description}
                         onSelect={() => {
                           setGenre("");
                           setGenreOpen(false);
+                          setGenreSearch("");
                         }}
                       >
                         <Check
@@ -203,7 +227,7 @@ ${currentPlant.description}
                         />
                         Any Genre
                       </CommandItem>
-                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
+                      {Object.entries(filteredGenreCategories).map(([category, genres]) => (
                         <div key={category}>
                           <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                             {category}
@@ -215,6 +239,7 @@ ${currentPlant.description}
                               onSelect={(currentValue) => {
                                 setGenre(currentValue === genre ? "" : currentValue);
                                 setGenreOpen(false);
+                                setGenreSearch("");
                               }}
                             >
                               <Check
@@ -241,7 +266,7 @@ ${currentPlant.description}
                   data-testid="select-plant-type"
                 >
                   {plantType
-                    ? PLANT_TYPES.find((t) => t === plantType) || plantType
+                    ? capitalizeWords(PLANT_TYPES.find((t) => t === plantType) || plantType)
                     : "Any plant type"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -276,7 +301,7 @@ ${currentPlant.description}
                           <Check
                             className={`mr-2 h-4 w-4 ${plantType === typeOption ? "opacity-100" : "opacity-0"}`}
                           />
-                          {typeOption}
+                          {capitalizeWords(typeOption)}
                         </CommandItem>
                       ))}
                     </CommandGroup>
