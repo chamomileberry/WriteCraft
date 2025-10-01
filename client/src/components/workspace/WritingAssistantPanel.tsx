@@ -662,7 +662,7 @@ export default function WritingAssistantPanel({
           </TabsList>
 
           {/* Chat Tab */}
-          <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0">
+          <TabsContent value="chat" className="flex-1 flex flex-col mt-0 overflow-hidden">
             <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
               <div className="space-y-3 p-3 pb-6">
                 {messages.length === 0 && (
@@ -711,7 +711,7 @@ export default function WritingAssistantPanel({
           </TabsContent>
 
           {/* Analysis Tab */}
-          <TabsContent value="analysis" className="flex-1 mt-0 min-h-0">
+          <TabsContent value="analysis" className="flex-1 mt-0 overflow-hidden">
             <ScrollArea className="h-full p-3">
               {analysis ? (
                 <div className="space-y-4">
@@ -788,7 +788,7 @@ export default function WritingAssistantPanel({
           </TabsContent>
 
           {/* Actions Tab */}
-          <TabsContent value="actions" className="flex-1 mt-0 min-h-0">
+          <TabsContent value="actions" className="flex-1 mt-0 overflow-hidden">
             <ScrollArea className="h-full p-3">
               <div className="space-y-4">
                 <div className="grid gap-2">
@@ -904,7 +904,7 @@ export default function WritingAssistantPanel({
           </TabsContent>
 
           {/* Questions Tab */}
-          <TabsContent value="questions" className="flex-1 mt-0 min-h-0">
+          <TabsContent value="questions" className="flex-1 mt-0 overflow-hidden">
             <ScrollArea className="h-full p-3">
               {questions.length > 0 ? (
                 <div className="space-y-3">
