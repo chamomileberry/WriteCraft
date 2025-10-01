@@ -22,7 +22,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { ProjectSectionWithChildren } from '@shared/schema';
-import { ReactSortable } from 'react-sortablejs';
+import Tree, {
+  mutateTree,
+  moveItemOnTree,
+  RenderItemParams,
+  TreeItem,
+  TreeData,
+  ItemId,
+} from '@atlaskit/tree';
 
 interface ProjectOutlineProps {
   projectId: string;
@@ -32,304 +39,10 @@ interface ProjectOutlineProps {
   onClose?: () => void;
 }
 
-interface SortableSection extends ProjectSectionWithChildren {
-  id: string;
-  chosen?: boolean;
-  selected?: boolean;
-}
-
-interface SortableItemProps {
-  section: SortableSection;
-  depth: number;
-  isActive: boolean;
-  isExpanded: boolean;
-  isEditing: boolean;
-  editingTitle: string;
-  onToggleExpanded: () => void;
-  onSectionClick: () => void;
-  onStartEdit: () => void;
-  onSaveEdit: () => void;
-  onCancelEdit: () => void;
-  onTitleChange: (value: string) => void;
-  onCreateFolder: () => void;
-  onCreatePage: () => void;
-  onDelete: () => void;
-  onChildrenChange: (newChildren: SortableSection[]) => void;
-}
-
-function SortableItem({
-  section,
-  depth,
-  isActive,
-  isExpanded,
-  isEditing,
-  editingTitle,
-  onToggleExpanded,
-  onSectionClick,
-  onStartEdit,
-  onSaveEdit,
-  onCancelEdit,
-  onTitleChange,
-  onCreateFolder,
-  onCreatePage,
-  onDelete,
-  onChildrenChange,
-}: SortableItemProps) {
-  return (
-    <div className="relative">
-      <div
-        className={cn(
-          'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors relative',
-          isActive && 'bg-accent',
-          section.chosen && 'opacity-50'
-        )}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        data-testid={`section-item-${section.id}`}
-      >
-        {/* Expand/collapse button */}
-        {section.type === 'folder' && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              onToggleExpanded();
-            }}
-            className="p-0.5 hover:bg-accent-foreground/10 rounded z-20 relative"
-            data-testid={`button-toggle-${section.id}`}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </button>
-        )}
-
-        {section.type === 'page' && <div className="w-5" />}
-
-        {/* Icon */}
-        {section.type === 'folder' ? (
-          isExpanded ? (
-            <FolderOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          ) : (
-            <Folder className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          )
-        ) : (
-          <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        )}
-
-        {/* Title or edit input */}
-        {isEditing ? (
-          <Input
-            value={editingTitle}
-            onChange={(e) => onTitleChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onSaveEdit();
-              if (e.key === 'Escape') onCancelEdit();
-            }}
-            onBlur={onSaveEdit}
-            className="h-6 text-sm flex-1"
-            autoFocus
-            onClick={(e) => e.stopPropagation()}
-            data-testid={`input-edit-section-${section.id}`}
-          />
-        ) : (
-          <span
-            onClick={(e) => {
-              e.stopPropagation();
-              onSectionClick();
-            }}
-            className="flex-1 text-sm truncate"
-            data-testid={`text-section-${section.id}`}
-          >
-            {section.title}
-          </span>
-        )}
-
-        {/* Actions menu */}
-        {!isEditing && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 z-20 relative"
-                data-testid={`button-section-menu-${section.id}`}
-              >
-                <MoreHorizontal className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onStartEdit} data-testid={`button-rename-${section.id}`}>
-                <Edit2 className="h-4 w-4 mr-2" />
-                Rename
-              </DropdownMenuItem>
-              {section.type === 'folder' && (
-                <>
-                  <DropdownMenuItem onClick={onCreateFolder} data-testid={`button-add-subfolder-${section.id}`}>
-                    <Folder className="h-4 w-4 mr-2" />
-                    Add Subfolder
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onCreatePage} data-testid={`button-add-page-${section.id}`}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Add Page
-                  </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="text-destructive"
-                data-testid={`button-delete-${section.id}`}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
-
-      
-    </div>
-  );
-}
-
-// Wrapper component to handle individual section logic
-function SortableItemWrapper({
-  section,
-  depth,
-  projectId,
-  activeSectionId,
-  onSectionClick,
-  expandedIds,
-  setExpandedIds,
-  editingId,
-  editingTitle,
-  setEditingId,
-  setEditingTitle,
-  handleCreateFolder,
-  handleCreatePage,
-  handleStartEdit,
-  handleSaveEdit,
-  handleCancelEdit,
-  handleDelete,
-  updateChildrenInParent,
-  queryClient,
-}: {
-  section: SortableSection;
-  depth: number;
-  projectId: string;
-  activeSectionId: string | null;
-  onSectionClick: (section: ProjectSectionWithChildren) => void;
-  expandedIds: Set<string>;
-  setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
-  editingId: string | null;
-  editingTitle: string;
-  setEditingId: React.Dispatch<React.SetStateAction<string | null>>;
-  setEditingTitle: React.Dispatch<React.SetStateAction<string>>;
-  handleCreateFolder: (parentId: string | null) => void;
-  handleCreatePage: (parentId: string | null) => void;
-  handleStartEdit: (section: ProjectSectionWithChildren) => void;
-  handleSaveEdit: () => void;
-  handleCancelEdit: () => void;
-  handleDelete: (id: string) => void;
-  updateChildrenInParent: (sectionId: string, newChildren: SortableSection[]) => void;
-  queryClient: any;
-}) {
-  const isActive = section.id === activeSectionId;
-  const isExpanded = expandedIds.has(section.id);
-  const isEditing = editingId === section.id;
-
-  const toggleExpanded = () => {
-    setExpandedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(section.id)) {
-        next.delete(section.id);
-      } else {
-        next.add(section.id);
-      }
-      return next;
-    });
-  };
-
-  const handleChildrenChange = (newChildren: SortableSection[]) => {
-    updateChildrenInParent(section.id, newChildren);
-  };
-
-  return (
-    <div>
-      <SortableItem
-        section={section}
-        depth={depth}
-        isActive={isActive}
-        isExpanded={isExpanded}
-        isEditing={isEditing}
-        editingTitle={editingTitle}
-        onToggleExpanded={toggleExpanded}
-        onSectionClick={() => onSectionClick(section)}
-        onStartEdit={() => handleStartEdit(section)}
-        onSaveEdit={handleSaveEdit}
-        onCancelEdit={handleCancelEdit}
-        onTitleChange={setEditingTitle}
-        onCreateFolder={() => handleCreateFolder(section.id)}
-        onCreatePage={() => handleCreatePage(section.id)}
-        onDelete={() => handleDelete(section.id)}
-        onChildrenChange={handleChildrenChange}
-      />
-      
-      {/* Render nested children only when expanded */}
-      {section.type === 'folder' && isExpanded && section.children && section.children.length > 0 && (
-        <div className="ml-4">
-          <ReactSortable
-            list={section.children as SortableSection[]}
-            setList={handleChildrenChange}
-            group={{
-              name: "nested",
-              pull: true,
-              put: true
-            }}
-            animation={150}
-            fallbackOnBody={true}
-            swapThreshold={0.65}
-            ghostClass="opacity-30"
-            chosenClass="bg-primary/10"
-            dragClass="rotate-3"
-            onEnd={() => {
-              // Force refresh of sections after drag ends
-              setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
-              }, 100);
-            }}
-          >
-            {section.children.map((child) => (
-              <SortableItemWrapper
-                key={child.id}
-                section={child as SortableSection}
-                depth={depth + 1}
-                projectId={projectId}
-                activeSectionId={activeSectionId}
-                onSectionClick={onSectionClick}
-                expandedIds={expandedIds}
-                setExpandedIds={setExpandedIds}
-                editingId={editingId}
-                editingTitle={editingTitle}
-                setEditingId={setEditingId}
-                setEditingTitle={setEditingTitle}
-                handleCreateFolder={handleCreateFolder}
-                handleCreatePage={handleCreatePage}
-                handleStartEdit={handleStartEdit}
-                handleSaveEdit={handleSaveEdit}
-                handleCancelEdit={handleCancelEdit}
-                handleDelete={handleDelete}
-                updateChildrenInParent={updateChildrenInParent}
-                queryClient={queryClient}
-              />
-            ))}
-          </ReactSortable>
-        </div>
-      )}
-    </div>
-  );
+interface TreeItemData extends ProjectSectionWithChildren {
+  isExpanded?: boolean;
+  isEditing?: boolean;
+  editingTitle?: string;
 }
 
 export function ProjectOutline({
@@ -339,22 +52,47 @@ export function ProjectOutline({
   onSectionClick,
   onClose
 }: ProjectOutlineProps) {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [treeData, setTreeData] = useState<TreeData>({ rootId: 'root', items: {} });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
-  const [sortableSections, setSortableSections] = useState<SortableSection[]>([]);
 
   const queryClient = useQueryClient();
 
-  // Convert sections to sortable format and update when sections change
+  // Convert sections to tree data structure
   useEffect(() => {
-    const convertToSortable = (sections: ProjectSectionWithChildren[]): SortableSection[] => {
-      return sections.map(section => ({
-        ...section,
-        children: section.children ? convertToSortable(section.children) : undefined,
-      }));
+    const convertToTreeData = (sections: ProjectSectionWithChildren[]): TreeData => {
+      const items: { [key: string]: TreeItem } = {
+        'root': {
+          id: 'root',
+          children: sections.map(s => s.id),
+          data: { title: 'Root' },
+          isExpanded: true,
+        }
+      };
+
+      const processSection = (section: ProjectSectionWithChildren) => {
+        items[section.id] = {
+          id: section.id,
+          children: section.children?.map(child => child.id) || [],
+          data: {
+            ...section,
+            isExpanded: section.type === 'folder',
+          },
+          isExpanded: section.type === 'folder',
+        };
+
+        // Process children recursively
+        if (section.children) {
+          section.children.forEach(processSection);
+        }
+      };
+
+      sections.forEach(processSection);
+
+      return { rootId: 'root', items };
     };
-    setSortableSections(convertToSortable(sections));
+
+    setTreeData(convertToTreeData(sections));
   }, [sections]);
 
   const createMutation = useMutation({
@@ -364,14 +102,6 @@ export function ProjectOutline({
     },
     onSuccess: (newSection, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
-
-      if (variables.parentId) {
-        setExpandedIds(prev => {
-          const next = new Set(prev);
-          next.add(variables.parentId!);
-          return next;
-        });
-      }
 
       if (variables.type === 'page' && newSection) {
         setTimeout(() => {
@@ -416,16 +146,18 @@ export function ProjectOutline({
   });
 
   const handleCreateFolder = (parentId: string | null = null) => {
+    const actualParentId = parentId === 'root' ? null : parentId;
     const title = 'New Folder';
-    createMutation.mutate({ parentId, title, type: 'folder', position: 0 });
+    createMutation.mutate({ parentId: actualParentId, title, type: 'folder', position: 0 });
   };
 
   const handleCreatePage = (parentId: string | null = null) => {
+    const actualParentId = parentId === 'root' ? null : parentId;
     const title = 'New Page';
-    createMutation.mutate({ parentId, title, type: 'page', position: 0 });
+    createMutation.mutate({ parentId: actualParentId, title, type: 'page', position: 0 });
   };
 
-  const handleStartEdit = (section: ProjectSectionWithChildren) => {
+  const handleStartEdit = (section: TreeItemData) => {
     setEditingId(section.id);
     setEditingTitle(section.title);
   };
@@ -449,40 +181,170 @@ export function ProjectOutline({
     }
   };
 
-  const handleSortChange = (newSections: SortableSection[]) => {
-    // Don't update local state immediately - let the server response handle it
-    // Convert the new structure to reorder payload - only for root level changes
-    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
-    
-    newSections.forEach((section, index) => {
-      reorders.push({
-        id: section.id,
-        parentId: null,
-        position: index,
-      });
-    });
-
-    console.log('[SortableJS] Root level reorder payload:', reorders);
-    reorderMutation.mutate(reorders);
+  const onExpand = (itemId: ItemId) => {
+    setTreeData(mutateTree(treeData, itemId, { isExpanded: true }));
   };
 
-  const updateChildrenInParent = (sectionId: string, newChildren: SortableSection[]) => {
-    // Don't update local state immediately - let the server response handle it
-    // Only generate reorder payload for the specific parent's children
-    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
-    
-    newChildren.forEach((child, index) => {
-      reorders.push({
-        id: child.id,
-        parentId: sectionId,
-        position: index,
-      });
-    });
+  const onCollapse = (itemId: ItemId) => {
+    setTreeData(mutateTree(treeData, itemId, { isExpanded: false }));
+  };
 
-    console.log('[SortableJS] Nested reorder payload:', reorders);
-    if (reorders.length > 0) {
+  const onDragEnd = (source: any, destination?: any) => {
+    if (!destination) return;
+
+    // Calculate new tree structure
+    const newTree = moveItemOnTree(treeData, source, destination);
+    setTreeData(newTree);
+
+    // Generate reorder payload
+    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
+
+    // Get the moved item's new parent and position
+    const movedItem = newTree.items[source.draggableId];
+    const parentItem = newTree.items[destination.parentId];
+
+    if (parentItem && parentItem.children) {
+      // Find the position of the moved item in its new parent
+      const position = parentItem.children.indexOf(source.draggableId);
+      const actualParentId = destination.parentId === 'root' ? null : destination.parentId;
+
+      reorders.push({
+        id: source.draggableId,
+        parentId: actualParentId,
+        position: position,
+      });
+
+      console.log('[Tree] Reorder payload:', reorders);
       reorderMutation.mutate(reorders);
     }
+  };
+
+  const renderItem = ({ item, onExpand, onCollapse, provided, snapshot }: RenderItemParams) => {
+    const section = item.data as TreeItemData;
+    const isActive = section.id === activeSectionId;
+    const isEditing = editingId === section.id;
+    const hasChildren = item.children && item.children.length > 0;
+
+    return (
+      <div
+        ref={provided.innerRef}
+        {...provided.draggableProps}
+        className={cn(
+          'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors relative',
+          isActive && 'bg-accent',
+          snapshot.isDragging && 'opacity-50'
+        )}
+        data-testid={`section-item-${section.id}`}
+      >
+        <div {...provided.dragHandleProps} className="flex items-center gap-1 flex-1">
+          {/* Expand/collapse button */}
+          {section.type === 'folder' && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (item.isExpanded) {
+                  onCollapse(item.id);
+                } else {
+                  onExpand(item.id);
+                }
+              }}
+              className="p-0.5 hover:bg-accent-foreground/10 rounded z-20 relative"
+              data-testid={`button-toggle-${section.id}`}
+            >
+              {item.isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+          )}
+
+          {section.type === 'page' && <div className="w-5" />}
+
+          {/* Icon */}
+          {section.type === 'folder' ? (
+            item.isExpanded ? (
+              <FolderOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            ) : (
+              <Folder className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            )
+          ) : (
+            <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          )}
+
+          {/* Title or edit input */}
+          {isEditing ? (
+            <Input
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveEdit();
+                if (e.key === 'Escape') handleCancelEdit();
+              }}
+              onBlur={handleSaveEdit}
+              className="h-6 text-sm flex-1"
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+              data-testid={`input-edit-section-${section.id}`}
+            />
+          ) : (
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                onSectionClick(section);
+              }}
+              className="flex-1 text-sm truncate"
+              data-testid={`text-section-${section.id}`}
+            >
+              {section.title}
+            </span>
+          )}
+        </div>
+
+        {/* Actions menu */}
+        {!isEditing && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 z-20 relative"
+                data-testid={`button-section-menu-${section.id}`}
+              >
+                <MoreHorizontal className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleStartEdit(section)} data-testid={`button-rename-${section.id}`}>
+                <Edit2 className="h-4 w-4 mr-2" />
+                Rename
+              </DropdownMenuItem>
+              {section.type === 'folder' && (
+                <>
+                  <DropdownMenuItem onClick={() => handleCreateFolder(section.id)} data-testid={`button-add-subfolder-${section.id}`}>
+                    <Folder className="h-4 w-4 mr-2" />
+                    Add Subfolder
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleCreatePage(section.id)} data-testid={`button-add-page-${section.id}`}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Add Page
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuItem
+                onClick={() => handleDelete(section.id)}
+                className="text-destructive"
+                data-testid={`button-delete-${section.id}`}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+    );
   };
 
   // Empty state
@@ -558,52 +420,16 @@ export function ProjectOutline({
 
       {/* Tree with drag and drop */}
       <div className="flex-1 overflow-y-auto p-2">
-        <ReactSortable
-          list={sortableSections}
-          setList={handleSortChange}
-          group={{
-            name: "nested",
-            pull: true,
-            put: true
-          }}
-          animation={150}
-          fallbackOnBody={true}
-          swapThreshold={0.65}
-          ghostClass="opacity-30"
-          chosenClass="bg-primary/10"
-          dragClass="rotate-3"
-          onEnd={() => {
-            // Force refresh of sections after drag ends
-            setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
-            }, 100);
-          }}
-        >
-          {sortableSections.map((section) => (
-            <SortableItemWrapper
-              key={section.id}
-              section={section}
-              depth={0}
-              projectId={projectId}
-              activeSectionId={activeSectionId}
-              onSectionClick={onSectionClick}
-              expandedIds={expandedIds}
-              setExpandedIds={setExpandedIds}
-              editingId={editingId}
-              editingTitle={editingTitle}
-              setEditingId={setEditingId}
-              setEditingTitle={setEditingTitle}
-              handleCreateFolder={handleCreateFolder}
-              handleCreatePage={handleCreatePage}
-              handleStartEdit={handleStartEdit}
-              handleSaveEdit={handleSaveEdit}
-              handleCancelEdit={handleCancelEdit}
-              handleDelete={handleDelete}
-              updateChildrenInParent={updateChildrenInParent}
-              queryClient={queryClient}
-            />
-          ))}
-        </ReactSortable>
+        <Tree
+          tree={treeData}
+          renderItem={renderItem}
+          onExpand={onExpand}
+          onCollapse={onCollapse}
+          onDragEnd={onDragEnd}
+          offsetPerLevel={16}
+          isDragEnabled
+          isNestingEnabled
+        />
       </div>
     </div>
   );
