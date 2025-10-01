@@ -9,12 +9,12 @@ const router = Router();
 function buildTree(sections: ProjectSection[]): ProjectSectionWithChildren[] {
   const map = new Map<string, ProjectSectionWithChildren>();
   const roots: ProjectSectionWithChildren[] = [];
-  
+
   // First pass: create map
   sections.forEach(section => {
     map.set(section.id, { ...section, children: [] });
   });
-  
+
   // Second pass: build tree
   sections.forEach(section => {
     const node = map.get(section.id)!;
@@ -29,7 +29,7 @@ function buildTree(sections: ProjectSection[]): ProjectSectionWithChildren[] {
       roots.push(node);
     }
   });
-  
+
   // Sort by position
   const sortByPosition = (nodes: ProjectSectionWithChildren[]) => {
     nodes.sort((a, b) => a.position - b.position);
@@ -39,7 +39,7 @@ function buildTree(sections: ProjectSection[]): ProjectSectionWithChildren[] {
       }
     });
   };
-  
+
   sortByPosition(roots);
   return roots;
 }
@@ -59,7 +59,7 @@ router.post("/", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const projectData = { ...req.body, userId };
-    
+
     const validatedProject = insertProjectSchema.parse(projectData);
     const savedProject = await storage.createProject(validatedProject);
     res.json(savedProject);
@@ -77,11 +77,11 @@ router.get("/search", async (req, res) => {
   try {
     const query = req.query.q as string;
     const userId = req.headers['x-user-id'] as string || 'guest';
-    
+
     if (!query) {
       return res.status(400).json({ error: 'Search query is required' });
     }
-    
+
     const results = await storage.searchProjects(userId, query);
     res.json(results);
   } catch (error) {
@@ -108,14 +108,14 @@ router.put("/:id", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const updateData = { ...req.body, userId };
-    
+
     const validatedUpdates = insertProjectSchema.partial().parse(updateData);
     const updatedProject = await storage.updateProject(req.params.id, userId, validatedUpdates);
-    
+
     if (!updatedProject) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     res.json(updatedProject);
   } catch (error) {
     console.error('Error updating project:', error);
@@ -145,15 +145,15 @@ router.get("/:projectId/sections", async (req, res) => {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId } = req.params;
     const { flat } = req.query;
-    
+
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     const sections = await storage.getProjectSections(projectId);
-    
+
     // Return tree structure by default, flat list if ?flat=true
     if (flat === 'true') {
       res.json(sections);
@@ -172,18 +172,18 @@ router.post("/:projectId/sections", async (req, res) => {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId } = req.params;
     const { parentId, type } = req.body;
-    
+
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     // Validate type
     if (type !== 'folder' && type !== 'page') {
       return res.status(400).json({ error: 'Type must be folder or page' });
     }
-    
+
     // Validate nesting: pages cannot have children
     if (parentId) {
       const parent = await storage.getProjectSection(parentId, projectId);
@@ -191,7 +191,7 @@ router.post("/:projectId/sections", async (req, res) => {
         return res.status(400).json({ error: 'Cannot nest sections under a page' });
       }
     }
-    
+
     const sectionData = { ...req.body, projectId };
     const validatedSection = insertProjectSectionSchema.parse(sectionData);
     const savedSection = await storage.createProjectSection(validatedSection);
@@ -210,18 +210,18 @@ router.get("/:projectId/sections/:sectionId", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId, sectionId } = req.params;
-    
+
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     const section = await storage.getProjectSection(sectionId, projectId);
     if (!section) {
       return res.status(404).json({ error: 'Section not found' });
     }
-    
+
     res.json(section);
   } catch (error) {
     console.error('Error fetching project section:', error);
@@ -233,20 +233,20 @@ router.put("/:projectId/sections/:sectionId", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId, sectionId } = req.params;
-    
+
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     const validatedUpdates = insertProjectSectionSchema.partial().parse(req.body);
     const updatedSection = await storage.updateProjectSection(sectionId, projectId, validatedUpdates);
-    
+
     if (!updatedSection) {
       return res.status(404).json({ error: 'Section not found' });
     }
-    
+
     res.json(updatedSection);
   } catch (error) {
     console.error('Error updating project section:', error);
@@ -262,13 +262,13 @@ router.delete("/:projectId/sections/:sectionId", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId, sectionId } = req.params;
-    
+
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     await storage.deleteProjectSection(sectionId, projectId);
     res.json({ success: true });
   } catch (error) {
@@ -282,19 +282,19 @@ router.post("/:projectId/sections/reorder", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const { projectId } = req.params;
-    
+
     // Verify user owns the project
     const project = await storage.getProject(projectId, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     const { sectionOrders } = req.body;
-    
+
     if (!Array.isArray(sectionOrders)) {
       return res.status(400).json({ error: 'sectionOrders must be an array' });
     }
-    
+
     await storage.reorderProjectSections(projectId, sectionOrders);
     res.json({ success: true });
   } catch (error) {

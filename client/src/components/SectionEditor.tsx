@@ -244,6 +244,36 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         attributes: {
           class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] px-6 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
         },
+        handleKeyDown: (view, event) => {
+          if (event.key === 'Tab') {
+            event.preventDefault();
+            const { state, dispatch } = view;
+            const { from, to } = state.selection;
+            
+            if (event.shiftKey) {
+              // Shift+Tab: Remove indent (remove up to 2 spaces at start of line)
+              const line = state.doc.textBetween(from, to);
+              const beforeCursor = state.doc.textBetween(Math.max(0, from - 20), from);
+              const lineStart = beforeCursor.lastIndexOf('\n') + 1;
+              const actualLineStart = from - (beforeCursor.length - lineStart);
+              
+              if (actualLineStart >= 0) {
+                const lineContent = state.doc.textBetween(actualLineStart, from);
+                if (lineContent.startsWith('  ')) {
+                  const tr = state.tr.delete(actualLineStart, actualLineStart + 2);
+                  dispatch(tr);
+                  return true;
+                }
+              }
+            } else {
+              // Tab: Add indent (2 spaces)
+              const tr = state.tr.insertText('  ', from, to);
+              dispatch(tr);
+              return true;
+            }
+          }
+          return false;
+        },
       },
       onUpdate: ({ editor }) => {
         onSaveStatusChange?.('unsaved');
