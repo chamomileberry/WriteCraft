@@ -26,6 +26,7 @@ import type { ProjectSectionWithChildren } from '@shared/schema';
 import {
   DndContext,
   closestCenter,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -395,53 +396,62 @@ export function ProjectOutline({
       target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId }
     });
 
-    // Determine new parent and position
+    // Determine new parent and position with improved logic
     let newParentId: string | null;
+    let newPosition = 0;
     
-    // If dropping onto a folder, make it the first child of that folder
+    // Enhanced folder detection: if target is a folder, we'll nest inside it
     if (targetItem.section.type === 'folder') {
       newParentId = targetItem.section.id;
       console.log('[DND] Dropping into folder:', targetItem.section.title);
+      
       // Auto-expand the folder
       setExpandedIds(prev => new Set(prev).add(targetItem.section.id));
+      
+      // Get existing children of the folder
+      const existingChildren = flatList.filter(f => f.parentId === targetItem.section.id && f.section.id !== sourceItem.section.id);
+      newPosition = 0; // Always place at the beginning for folder drops
+      
+      console.log('[DND] Will place as first child in folder');
     } else {
-      // If dropping onto a page, use the same parent as the target
+      // If dropping onto a page, determine if we're placing before or after
       newParentId = targetItem.parentId;
-      console.log('[DND] Dropping next to page, using parent:', newParentId);
-    }
-
-    // Get all siblings at the new location (items with same parent)
-    const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
-    
-    // Find the target's position among its siblings
-    let newPosition = 0;
-    if (targetItem.section.type === 'folder' && newParentId === targetItem.section.id) {
-      // Dropping into folder - make it first child
-      newPosition = 0;
-      console.log('[DND] Will place as first child');
-    } else {
-      // Dropping near a sibling - find position relative to target
+      
+      // Get all siblings at the target level
+      const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
       const targetIndex = siblings.findIndex(f => f.section.id === targetItem.section.id);
+      
+      // Place after the target
       newPosition = targetIndex >= 0 ? targetIndex + 1 : siblings.length;
-      console.log('[DND] Will place at position:', newPosition, 'after', targetItem.section.title);
+      
+      console.log('[DND] Dropping next to page, using parent:', newParentId, 'position:', newPosition);
     }
 
     // Check if this is truly a no-op (same parent AND same position)
     if (sourceItem.parentId === newParentId) {
-      // Get current position among siblings
       const currentSiblings = flatList.filter(f => f.parentId === sourceItem.parentId);
       const currentPosition = currentSiblings.findIndex(f => f.section.id === sourceItem.section.id);
       
-      if (currentPosition === newPosition) {
+      // For folder drops, we need to check if it's already the first child
+      if (targetItem.section.type === 'folder' && currentPosition === 0) {
+        console.log('[DND] No change needed - already at this position');
+        return;
+      }
+      
+      // For sibling drops, check exact position
+      if (targetItem.section.type !== 'folder' && currentPosition === newPosition) {
         console.log('[DND] No change needed - already at this position');
         return;
       }
     }
 
-    // Build the reorder payload - only update items at the new parent level
+    // Build the reorder payload
     const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
     
-    // Insert moved item at new position
+    // Get all siblings at the new location (excluding the source item)
+    const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
+    
+    // Insert the moved item at the new position
     siblings.splice(newPosition, 0, sourceItem);
     
     // Update positions for all siblings in the new parent
@@ -453,7 +463,7 @@ export function ProjectOutline({
       });
     });
 
-    // If the source was from a different parent, also reorder the old parent's children
+    // If moving between different parents, also reorder the old parent's children
     if (sourceItem.parentId !== newParentId) {
       const oldSiblings = flatList.filter(f => 
         f.parentId === sourceItem.parentId && 
@@ -569,7 +579,7 @@ export function ProjectOutline({
       <div className="flex-1 overflow-y-auto p-2">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={pointerWithin}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
