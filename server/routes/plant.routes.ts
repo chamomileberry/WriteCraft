@@ -70,21 +70,39 @@ router.delete("/:id", async (req, res) => {
 
 router.post("/:id/generate-article", async (req, res) => {
   try {
+    console.log('Plant article generation request:', {
+      plantId: req.params.id,
+      userId: req.headers['x-user-id'],
+      notebookId: req.query.notebookId
+    });
+
     const userId = req.headers['x-user-id'] as string || 'guest';
     const notebookId = req.query.notebookId as string;
     const plantId = req.params.id;
     
     if (!notebookId) {
+      console.error('Missing notebookId in plant article generation');
       return res.status(400).json({ error: 'Notebook ID is required' });
     }
 
+    if (!plantId) {
+      console.error('Missing plantId in plant article generation');
+      return res.status(400).json({ error: 'Plant ID is required' });
+    }
+
+    console.log('Importing article generation module...');
     const { generateArticleForContent } = await import('../article-generation');
+    
+    console.log('Calling generateArticleForContent for plants...');
     const updatedPlant = await generateArticleForContent('plants', plantId, userId, notebookId);
     
+    console.log('Plant article generated successfully');
     res.json(updatedPlant);
   } catch (error) {
     console.error('Error generating plant article:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error stack:', errorStack);
     res.status(500).json({ error: `Failed to generate article: ${errorMessage}` });
   }
 });

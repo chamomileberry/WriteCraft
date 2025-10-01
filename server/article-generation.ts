@@ -421,7 +421,7 @@ function generateCreatureArticle(creature: Creature): string {
 /**
  * Generate article content for plants
  */
-function generatePlantArticle(plant: Plant): string {
+function generatePlantArticle(plant: any): string {
   const sections: string[] = [];
 
   // Header
@@ -442,7 +442,7 @@ function generatePlantArticle(plant: Plant): string {
   }
 
   // Characteristics
-  if (plant.characteristics && plant.characteristics.length > 0) {
+  if (plant.characteristics && Array.isArray(plant.characteristics) && plant.characteristics.length > 0) {
     sections.push(`<h2>Characteristics</h2>`);
     sections.push(createSafeList(plant.characteristics));
   }
@@ -462,6 +462,12 @@ function generatePlantArticle(plant: Plant): string {
   if (plant.careInstructions) {
     sections.push(`<h2>Care Instructions</h2>`);
     sections.push(createSafeParagraph(null, plant.careInstructions));
+  }
+
+  // If no content was generated, provide a fallback
+  if (sections.length === 0) {
+    sections.push(`<h1>Plant Information</h1>`);
+    sections.push(`<p>No detailed information available for this plant.</p>`);
   }
 
   return sections.join('\n\n');
