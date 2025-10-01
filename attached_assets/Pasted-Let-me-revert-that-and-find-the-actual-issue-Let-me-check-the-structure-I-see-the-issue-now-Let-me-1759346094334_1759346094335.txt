@@ -1,0 +1,62 @@
+Let me revert that and find the actual issue. Let me check the structure:I see the issue now! Let me revert the fixed positioning and implement the correct solution. The problem is in `WorkspaceShell.tsx` - the sidebar is in the same flex row as the main content, causing the main content (and therefore the navigation) to shrink.
+
+**The real fix**: Make the sidebar an overlay using absolute positioning instead of inline flex layout.
+
+Here's the corrected code for `WorkspaceShell.tsx`:
+
+```tsx
+return (
+  <div ref={workspaceRef} className="relative w-full min-h-screen bg-background">
+    {isMobile ? (
+      /* Mobile Layout - Full screen with drawer */
+      <>
+        {/* Full-width main content for mobile */}
+        <div className="w-full min-h-screen">
+          {children}
+        </div>
+        
+        {/* Mobile Sidebar Drawer */}
+        {dockedPanels.length > 0 && (
+          <SidebarDrawer
+            isOpen={isMobileDrawerOpen}
+            onClose={closeMobileDrawer}
+            title="Writing Tools"
+          >
+            {renderSidebarContent()}
+          </SidebarDrawer>
+        )}
+      </>
+    ) : (
+      /* Desktop Layout - Full width main content with overlay sidebar */
+      <>
+        {/* Main Content Area - Always full width */}
+        <div className="w-full min-h-screen">
+          {children}
+        </div>
+        
+        {/* Desktop Docked Sidebar - Absolute positioned overlay */}
+        {dockedPanels.length > 0 && (
+          <div 
+            className="fixed top-0 right-0 w-96 h-screen border-l border-border bg-background z-40 overflow-y-auto shadow-lg"
+            data-testid="docked-sidebar-container"
+          >
+            {renderSidebarContent()}
+          </div>
+        )}
+      </>
+    )}
+
+    {/* Floating Panels */}
+    <FloatingLayer />
+  </div>
+);
+```
+
+This way:
+1. The main content always takes 100% width
+2. The navigation header stays full width
+3. The sidebar overlays on top of the content (fixed positioned to the right)
+4. The sidebar has `z-40` to stay above content but below modals
+5. It has `overflow-y-auto` so it can scroll if the content is tall
+
+This is a cleaner UX pattern - the sidebar acts as a persistent right panel that doesn't affect the main layout.
