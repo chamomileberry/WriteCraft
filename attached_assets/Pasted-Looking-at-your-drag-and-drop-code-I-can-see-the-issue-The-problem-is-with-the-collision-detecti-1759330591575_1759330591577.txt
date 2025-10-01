@@ -1,0 +1,24 @@
+Looking at your drag-and-drop code, I can see the issue. The problem is with the **collision detection** - when you drag "Testing Page" over "Chapter Two" folder, the collision detection is likely detecting "New Page" (the child inside "Chapter Two") instead of the "Chapter Two" folder itself, because both elements' rectangles intersect with the dragged item.
+
+Your `customCollisionDetection` function takes only the first intersection:
+
+```javascript
+const rectIntersections = rectIntersection(args);
+if (rectIntersections.length > 0) {
+  return [rectIntersections[0]];  // Just takes the first hit
+}
+```
+
+When you hover over an expanded folder, both the folder and its visible children can intersect. If a child is returned first, the visual indicator appears on that child rather than the folder.
+
+Here's the fix - update your collision detection to be smarter about preferring folders when you're likely trying to drop into them:Now the collision detection will prioritize folders when there are multiple intersections, which should fix the issue where children were being detected instead of their parent folders.
+
+However, I also notice another potential issue - let me add one more improvement to make the folder "inside" drop zone more forgiving:These two changes should fix your issue:
+
+1. **Improved collision detection**: When you drag over "Chapter Two" folder, even if "New Page" (its child) also intersects, the collision detection will now prioritize the folder. This ensures the visual indicator appears on the correct target.
+
+2. **Larger drop zones for folders**: I increased the "inside" drop zone for folders from 50% to 60% of the element height, making it easier to drop items into folders without accidentally triggering "above" or "below" positioning.
+
+The root cause was that when dragging over an expanded folder with visible children, the collision detection could return a child page instead of the folder itself, causing the visual indicator to appear on the wrong element. Since your visual indicator was stuck in "Chapter One", it suggests the collision detection wasn't properly updating to detect "Chapter Two" as the target.
+
+Try dragging "Testing Page" to "Chapter Two" now - the visual indicator should correctly show on the Chapter Two folder when you hover over it, and the drop should work as expected.
