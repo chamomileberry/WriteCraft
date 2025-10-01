@@ -28,6 +28,7 @@ import {
   Minus,
   Video,
   Hash,
+  Type,
   Type as SpecialChar,
   Printer,
   Focus as FocusIcon,
@@ -42,7 +43,6 @@ import {
   ChevronDown,
   MoreHorizontal,
   Plus,
-  Palette,
   Heading,
 } from 'lucide-react';
 
@@ -619,6 +619,144 @@ export function EditorToolbar({
         // Desktop Layout: Streamlined toolbar with grouped controls
         <TooltipProvider>
           <div className="flex items-center gap-1 flex-nowrap overflow-x-auto">
+            {/* Format Menu - Groups alignment and styling */}
+            <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="button-format"
+                    >
+                      <Type className="h-4 w-4" />
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Text Formatting</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="start" className="w-64">
+                {/* Text Alignment */}
+                <div className="px-2 py-1.5">
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Text Alignment</div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('left'))}
+                      className="flex-1"
+                    >
+                      <AlignLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('center'))}
+                      className="flex-1"
+                    >
+                      <AlignCenter className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('right'))}
+                      className="flex-1"
+                    >
+                      <AlignRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('justify'))}
+                      className="flex-1"
+                    >
+                      <AlignJustify className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                
+                {/* Font Controls */}
+                <div className="px-2 py-1.5 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Font Size</div>
+                  <select
+                    className="w-full px-2 py-1 text-sm border rounded-md bg-background"
+                    onChange={(e) => {
+                      const size = e.target.value;
+                      restoreSelectionAndExecute(() => setFontSize(size));
+                    }}
+                    value={editor?.getAttributes('textStyle').fontSize || '16px'}
+                    data-testid="select-font-size"
+                  >
+                    <option value="12px">12px</option>
+                    <option value="14px">14px</option>
+                    <option value="16px">16px</option>
+                    <option value="18px">18px</option>
+                    <option value="20px">20px</option>
+                    <option value="24px">24px</option>
+                    <option value="28px">28px</option>
+                    <option value="32px">32px</option>
+                    <option value="36px">36px</option>
+                    <option value="48px">48px</option>
+                  </select>
+                </div>
+
+                <div className="px-2 py-1.5 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Font Family</div>
+                  <select
+                    className="w-full px-2 py-1 text-sm border rounded-md bg-background"
+                    onChange={(e) => {
+                      const family = e.target.value;
+                      restoreSelectionAndExecute(() => setFontFamily(family));
+                    }}
+                    value={editor?.getAttributes('textStyle').fontFamily || 'unset'}
+                    data-testid="select-font-family"
+                  >
+                    <option value="unset">Default</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Lato">Lato</option>
+                    <option value="Montserrat">Montserrat</option>
+                  </select>
+                </div>
+                <DropdownMenuSeparator />
+
+                {/* Colors */}
+                <div className="px-2 py-1.5 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Colors</div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs flex-shrink-0">Text:</Label>
+                    <input
+                      type="color"
+                      className="w-full h-8 border rounded cursor-pointer"
+                      onChange={(e) => restoreSelectionAndExecute(() => setColor(e.target.value))}
+                      value={editor?.getAttributes('textStyle').color || '#000000'}
+                      data-testid="input-text-color"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs flex-shrink-0">Highlight:</Label>
+                    <input
+                      type="color"
+                      className="w-full h-8 border rounded cursor-pointer"
+                      onChange={(e) => restoreSelectionAndExecute(() => setHighlightColor(e.target.value))}
+                      value={editor?.getAttributes('highlight').color || '#ffff00'}
+                      data-testid="input-highlight-color"
+                    />
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
             {/* Headings Dropdown */}
             <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
               <Tooltip>
@@ -842,142 +980,7 @@ export function EditorToolbar({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Format Menu - Groups alignment and styling */}
-            <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      data-testid="button-format"
-                    >
-                      <Palette className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>Format</TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="start" className="w-64">
-                {/* Text Alignment */}
-                <div className="px-2 py-1.5">
-                  <div className="text-xs font-medium text-muted-foreground mb-2">Text Alignment</div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('left'))}
-                      className="flex-1"
-                    >
-                      <AlignLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('center'))}
-                      className="flex-1"
-                    >
-                      <AlignCenter className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('right'))}
-                      className="flex-1"
-                    >
-                      <AlignRight className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('justify'))}
-                      className="flex-1"
-                    >
-                      <AlignJustify className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                
-                {/* Font Controls */}
-                <div className="px-2 py-1.5 space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Font Size</div>
-                  <select
-                    className="w-full px-2 py-1 text-sm border rounded-md bg-background"
-                    onChange={(e) => {
-                      const size = e.target.value;
-                      restoreSelectionAndExecute(() => setFontSize(size));
-                    }}
-                    value={editor?.getAttributes('textStyle').fontSize || '16px'}
-                    data-testid="select-font-size"
-                  >
-                    <option value="12px">12px</option>
-                    <option value="14px">14px</option>
-                    <option value="16px">16px</option>
-                    <option value="18px">18px</option>
-                    <option value="20px">20px</option>
-                    <option value="24px">24px</option>
-                    <option value="28px">28px</option>
-                    <option value="32px">32px</option>
-                    <option value="36px">36px</option>
-                    <option value="48px">48px</option>
-                  </select>
-                </div>
-
-                <div className="px-2 py-1.5 space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Font Family</div>
-                  <select
-                    className="w-full px-2 py-1 text-sm border rounded-md bg-background"
-                    onChange={(e) => {
-                      const family = e.target.value;
-                      restoreSelectionAndExecute(() => setFontFamily(family));
-                    }}
-                    value={editor?.getAttributes('textStyle').fontFamily || 'unset'}
-                    data-testid="select-font-family"
-                  >
-                    <option value="unset">Default</option>
-                    <option value="Arial">Arial</option>
-                    <option value="Helvetica">Helvetica</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Courier New">Courier New</option>
-                    <option value="Verdana">Verdana</option>
-                    <option value="Roboto">Roboto</option>
-                    <option value="Open Sans">Open Sans</option>
-                    <option value="Lato">Lato</option>
-                    <option value="Montserrat">Montserrat</option>
-                  </select>
-                </div>
-                <DropdownMenuSeparator />
-
-                {/* Colors */}
-                <div className="px-2 py-1.5 space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Colors</div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs flex-shrink-0">Text:</Label>
-                    <input
-                      type="color"
-                      className="w-full h-8 border rounded cursor-pointer"
-                      onChange={(e) => restoreSelectionAndExecute(() => setColor(e.target.value))}
-                      value={editor?.getAttributes('textStyle').color || '#000000'}
-                      data-testid="input-text-color"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs flex-shrink-0">Highlight:</Label>
-                    <input
-                      type="color"
-                      className="w-full h-8 border rounded cursor-pointer"
-                      onChange={(e) => restoreSelectionAndExecute(() => setHighlightColor(e.target.value))}
-                      value={editor?.getAttributes('highlight').color || '#ffff00'}
-                      data-testid="input-highlight-color"
-                    />
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Separator orientation="vertical" className="mx-1 h-6" />
+            
 
             {/* Export Menu */}
             <DropdownMenu>
