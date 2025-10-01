@@ -32,7 +32,6 @@ import {
   useSensors,
   DragEndEvent,
   DragOverEvent,
-  DragOverlay,
   DragStartEvent,
   UniqueIdentifier,
 } from '@dnd-kit/core';
@@ -73,6 +72,8 @@ function flattenTree(sections: ProjectSectionWithChildren[], depth = 0, parentId
   return result;
 }
 
+type DropPosition = 'above' | 'below' | 'inside';
+
 interface SortableItemProps {
   flatSection: FlatSection;
   isActive: boolean;
@@ -80,7 +81,7 @@ interface SortableItemProps {
   isEditing: boolean;
   editingTitle: string;
   isDragOver: boolean;
-  dropPosition: 'above' | 'below' | 'inside' | null;
+  dropPosition: DropPosition | null;
   onToggleExpanded: () => void;
   onSectionClick: () => void;
   onStartEdit: () => void;
@@ -270,7 +271,7 @@ function SortableItem({
   );
 }
 
-export function ProjectOutline({ 
+export function ProjectOutline({
   projectId, 
   sections, 
   activeSectionId, 
@@ -282,6 +283,10 @@ export function ProjectOutline({
   const [editingTitle, setEditingTitle] = useState('');
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [lastOverId, setLastOverId] = useState<UniqueIdentifier | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{
+    id: UniqueIdentifier;
+    position: DropPosition;
+  } | null>(null);
   
   const queryClient = useQueryClient();
 
@@ -402,22 +407,59 @@ export function ProjectOutline({
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
     setLastOverId(null);
+    setDropIndicator(null);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
 
     if (!over || over.id === active.id) {
+      setDropIndicator(null);
       return;
     }
 
     setLastOverId(over.id);
+
+    const overData = over.data.current as
+      | {
+          section: ProjectSectionWithChildren;
+        }
+      | undefined;
+    const overSection = overData?.section;
+    const isFolder = overSection?.type === 'folder';
+
+    const overRect = over.rect;
+    const activeRect = event.active.rect.current.translated ?? event.active.rect.current.initial;
+
+    if (!overRect || !activeRect) {
+      setDropIndicator(null);
+      return;
+    }
+
+    const pointerY = activeRect.top + activeRect.height / 2;
+    const topBoundary = overRect.top + overRect.height * 0.25;
+    const bottomBoundary = overRect.bottom - overRect.height * 0.25;
+
+    let position: DropPosition;
+
+    if (pointerY < topBoundary) {
+      position = 'above';
+    } else if (pointerY > bottomBoundary) {
+      position = 'below';
+    } else if (isFolder) {
+      position = 'inside';
+    } else {
+      position = pointerY < overRect.top + overRect.height / 2 ? 'above' : 'below';
+    }
+
+    setDropIndicator({ id: over.id, position });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
     setLastOverId(null);
+    setDropIndicator(null);
 
     let overId: UniqueIdentifier | null = over?.id ?? null;
 
@@ -443,37 +485,41 @@ export function ProjectOutline({
       target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId }
     });
 
-    // Determine new parent and desired ordering
-    let newParentId: string | null;
+    const indicatorPosition = dropIndicator && dropIndicator.id === overId ? dropIndicator.position : null;
 
-    // If dropping onto a folder, make it a child of that folder
-    if (targetItem.section.type === 'folder') {
+    // Determine new parent and desired ordering
+    let newParentId: string | null = targetItem.parentId;
+    let dropPosition: DropPosition = indicatorPosition ?? (targetItem.section.type === 'folder' ? 'inside' : 'below');
+
+    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
       newParentId = targetItem.section.id;
       console.log('[DND] Dropping into folder:', targetItem.section.title);
       // Auto-expand the folder
       setExpandedIds(prev => new Set(prev).add(targetItem.section.id));
     } else {
-      // If dropping onto a page, use the same parent as the target
       newParentId = targetItem.parentId;
-      console.log('[DND] Dropping next to page, using parent:', newParentId);
+      console.log('[DND] Dropping next to item, using parent:', newParentId, 'position:', dropPosition);
+      if (dropPosition === 'inside') {
+        dropPosition = 'below';
+      }
     }
 
     // Check if this is truly a no-op (same parent AND same position)
-    if (sourceItem.parentId === newParentId && targetItem.section.type === 'folder') {
+    if (sourceItem.parentId === newParentId && dropPosition === 'inside') {
       // When dropping on a folder that's already the parent, check if there are siblings to reorder
       const currentSiblings = flatList.filter(
         f => f.parentId === newParentId && f.section.id !== sourceItem.section.id
       );
-      
+
       // Only skip if dropping on the exact same item
       if (targetItem.section.id === sourceItem.section.id) {
         console.log('[DND] No change needed - dropping on self');
         return;
       }
-      
+
       // If there are other items in the folder, allow reordering to the end
       console.log('[DND] Dropping into same parent folder - will reorder to end');
-    } else if (sourceItem.parentId === newParentId && targetItem.section.type === 'page') {
+    } else if (sourceItem.parentId === newParentId && dropPosition !== 'inside') {
       // For same parent page drops, only skip if dropping on the exact same item
       if (targetItem.section.id === sourceItem.section.id) {
         console.log('[DND] No change needed - dropping on self');
@@ -489,7 +535,7 @@ export function ProjectOutline({
 
     let orderedIds: string[] = [];
 
-    if (targetItem.section.type === 'folder') {
+    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
       // When dropping directly on a folder, append the moved item to the end of that folder
       orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
       console.log(`[DND] Will place as ${siblings.length === 0 ? 'first' : 'last'} child in folder`);
@@ -501,12 +547,13 @@ export function ProjectOutline({
         orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
         console.log('[DND] Target not found, placing at end');
       } else {
+        const insertIndex = dropPosition === 'below' ? targetIndex + 1 : targetIndex;
         orderedIds = [
-          ...siblings.slice(0, targetIndex).map(item => item.section.id),
+          ...siblings.slice(0, insertIndex).map(item => item.section.id),
           sourceItem.section.id,
-          ...siblings.slice(targetIndex).map(item => item.section.id),
+          ...siblings.slice(insertIndex).map(item => item.section.id),
         ];
-        console.log(`[DND] Inserting before target at position ${targetIndex}`);
+        console.log(`[DND] Inserting ${dropPosition === 'below' ? 'after' : 'before'} target at position ${insertIndex}`);
       }
     }
 
@@ -516,8 +563,26 @@ export function ProjectOutline({
       position: index,
     }));
 
+    if (sourceItem.parentId !== newParentId) {
+      const sourceSiblings = flatList
+        .filter(f => f.parentId === sourceItem.parentId && f.section.id !== sourceItem.section.id)
+        .map((item, index) => ({
+          id: item.section.id,
+          parentId: sourceItem.parentId,
+          position: index,
+        }));
+
+      reorders.push(...sourceSiblings);
+    }
+
     console.log('[DND] Reorder payload:', reorders);
     reorderMutation.mutate(reorders);
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+    setLastOverId(null);
+    setDropIndicator(null);
   };
 
   // Filter sections based on expanded state for rendering
@@ -617,6 +682,7 @@ export function ProjectOutline({
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
           <SortableContext
             items={visibleSections.map(f => f.section.id)}
@@ -630,8 +696,8 @@ export function ProjectOutline({
                 isExpanded={expandedIds.has(flatSection.section.id)}
                 isEditing={editingId === flatSection.section.id}
                 editingTitle={editingTitle}
-                isDragOver={false}
-                dropPosition={null}
+                isDragOver={dropIndicator?.id === flatSection.section.id}
+                dropPosition={dropIndicator?.id === flatSection.section.id ? dropIndicator.position : null}
                 onToggleExpanded={() => toggleExpanded(flatSection.section.id)}
                 onSectionClick={() => onSectionClick(flatSection.section)}
                 onStartEdit={() => handleStartEdit(flatSection.section)}
