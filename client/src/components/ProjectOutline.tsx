@@ -346,8 +346,8 @@ export function ProjectOutline({
 
   const queryClient = useQueryClient();
 
-  // Convert sections to sortable format
-  useState(() => {
+  // Convert sections to sortable format and update when sections change
+  useEffect(() => {
     const convertToSortable = (sections: ProjectSectionWithChildren[]): SortableSection[] => {
       return sections.map(section => ({
         ...section,
@@ -450,8 +450,7 @@ export function ProjectOutline({
   };
 
   const handleSortChange = (newSections: SortableSection[]) => {
-    setSortableSections(newSections);
-
+    // Don't update local state immediately - let the server response handle it
     // Convert the new structure to reorder payload - only for root level changes
     const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
     
@@ -468,22 +467,8 @@ export function ProjectOutline({
   };
 
   const updateChildrenInParent = (sectionId: string, newChildren: SortableSection[]) => {
-    const updateSectionChildren = (sections: SortableSection[]): SortableSection[] => {
-      return sections.map(section => {
-        if (section.id === sectionId) {
-          return { ...section, children: newChildren };
-        }
-        if (section.children) {
-          return { ...section, children: updateSectionChildren(section.children) };
-        }
-        return section;
-      });
-    };
-
-    const updatedSections = updateSectionChildren(sortableSections);
-    setSortableSections(updatedSections);
-
-    // Only generate reorder payload for the specific parent's children to avoid race conditions
+    // Don't update local state immediately - let the server response handle it
+    // Only generate reorder payload for the specific parent's children
     const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
     
     newChildren.forEach((child, index) => {
@@ -494,7 +479,7 @@ export function ProjectOutline({
       });
     });
 
-    // Debounce the reorder mutation to prevent multiple rapid calls
+    console.log('[SortableJS] Nested reorder payload:', reorders);
     if (reorders.length > 0) {
       reorderMutation.mutate(reorders);
     }
