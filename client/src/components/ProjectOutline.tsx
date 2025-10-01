@@ -152,8 +152,6 @@ function SortableItem({
           isDragOver && dropPosition === 'inside' && section.type === 'folder' && 'bg-primary/10'
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        {...attributes}
-        {...listeners}
         data-testid={`section-item-${section.id}`}
       >
         {/* Expand/collapse button */}
@@ -161,7 +159,11 @@ function SortableItem({
           <button
             onClick={(e) => {
               e.stopPropagation();
+              e.preventDefault();
               onToggleExpanded();
+            }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
             }}
             className="p-0.5 hover:bg-accent-foreground/10 rounded z-20 relative"
             data-testid={`button-toggle-${section.id}`}
@@ -175,6 +177,15 @@ function SortableItem({
         )}
         
         {section.type === 'page' && <div className="w-5" />}
+
+        {/* Drag handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-accent-foreground/10 rounded cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
 
         {/* Icon */}
         {section.type === 'folder' ? (
