@@ -32,6 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore, EditorActions } from '@/stores/workspaceStore';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import type { ProjectSection } from '@shared/schema';
+import AIBubbleMenu from '@/components/AIBubbleMenu';
+import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 
 // Custom HorizontalRule extension
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -238,6 +240,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
           mode: 'all',
         }),
         Typography,
+        AISuggestionsExtension,
       ],
       content: section?.content || '',
       editorProps: {
@@ -374,6 +377,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         {/* Editor */}
         <div className="flex-1 overflow-auto">
           <EditorContent editor={editor} data-testid="editor-content" />
+          <AIBubbleMenu editor={editor} />
         </div>
       </div>
     );
