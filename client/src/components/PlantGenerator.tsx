@@ -116,7 +116,7 @@ export default function PlantGenerator() {
     onSuccess: () => {
       toast({
         title: "Plant saved!",
-        description: "Plant has been saved to your collection.",
+        description: "Plant has been saved to your notebook.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
@@ -361,19 +361,6 @@ ${currentPlant.description}
                 </Button>
                 <Button variant="outline" size="sm" onClick={copyPlant} data-testid="button-copy-plant">
                   <Copy className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={savePlant}
-                  disabled={savePlantMutation.isPending || !currentPlant?.id}
-                  data-testid="button-save-plant"
-                >
-                  {savePlantMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
                 </Button>
               </div>
             </div>
