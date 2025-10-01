@@ -1,0 +1,57 @@
+Found it! The issue is with the layout hierarchy. Here's what's happening:
+
+**The Problem:**
+1. In `App.tsx`, you have a flex container with `h-screen flex flex-col`
+2. `WorkspaceShell` creates a flex layout with the main content and sidebar side-by-side
+3. When the sidebar appears (384px wide), the main content area shrinks from full width to `calc(100vw - 384px)`
+4. The navigation header inside `ProjectContainer` has `max-w-full`, which means it only takes up the width of its shrinking parent container
+5. This causes the navigation to "shrink" - it's actually staying the correct width relative to its parent, but the parent itself is narrower
+
+**The Solution:**
+
+You need to ensure the navigation header spans the full viewport width even when the sidebar is present. Here's the fix:
+
+**Option 1: Make the navigation fixed position (Recommended)**
+
+In `ProjectContainer.tsx`, change the navigation header to use fixed positioning:
+
+```tsx
+{/* Global Navigation Header */}
+<div className="fixed top-0 left-0 right-0 z-50 border-b bg-background flex-shrink-0">
+  <div className="max-w-full px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-between h-16">
+      {/* Navigation content */}
+    </div>
+  </div>
+</div>
+
+{/* Add padding-top to compensate for fixed header */}
+<div className="pt-16 flex-1 min-h-0">
+  <WorkspaceLayout ...>
+```
+
+**Option 2: Restructure to use absolute positioning for the sidebar**
+
+Alternatively, modify `WorkspaceShell.tsx` to use absolute positioning for the sidebar:
+
+```tsx
+/* Desktop Layout - With absolute sidebar */
+<div className="relative w-full min-h-screen">
+  {/* Main Content Area - Full width */}
+  <div className="w-full">
+    {children}
+  </div>
+  
+  {/* Desktop Docked Sidebar - Absolute positioned */}
+  {dockedPanels.length > 0 && (
+    <div 
+      className="fixed top-0 right-0 w-96 h-screen border-l border-border bg-background z-40 overflow-y-auto"
+      data-testid="docked-sidebar-container"
+    >
+      {renderSidebarContent()}
+    </div>
+  )}
+</div>
+```
+
+**Option 1 is cleaner** because it keeps the navigation header fixed at the top of the viewport, which is a common UX pattern. The navigation stays in place while scrolling, and it always spans the full width regardless of the sidebar state.

@@ -370,7 +370,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Header */}
+              {/* Fixed Header */}
               <ProjectHeader
                 project={project}
                 breadcrumb={breadcrumb}
@@ -384,7 +384,8 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                 onToggleSidebar={() => setIsSidebarOpen(true)}
               />
 
-              {/* Editor or Empty State */}
+              {/* Editor or Empty State - with padding-top to account for fixed header */}
+              <div className="pt-16">
               {showEditor ? (
                 <SectionEditor
                   ref={sectionEditorRef}
@@ -414,6 +415,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               ) : null}
+              </div>
             </div>
           </div>
         </WorkspaceLayout>
