@@ -57,6 +57,7 @@ import danceRoutes from "./dance.routes";
 import lawRoutes from "./law.routes";
 import policyRoutes from "./policy.routes";
 import potionRoutes from "./potion.routes";
+import plantRoutes from "./plant.routes";
 import notebookRoutes from "./notebook.routes";
 
 export function registerDomainRoutes(app: Express) {
