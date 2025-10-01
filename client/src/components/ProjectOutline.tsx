@@ -443,10 +443,10 @@ export function ProjectOutline({
       target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId }
     });
 
-    // Determine new parent and position
+    // Determine new parent and desired ordering
     let newParentId: string | null;
-    
-    // If dropping onto a folder, make it the first child of that folder
+
+    // If dropping onto a folder, make it a child of that folder
     if (targetItem.section.type === 'folder') {
       newParentId = targetItem.section.id;
       console.log('[DND] Dropping into folder:', targetItem.section.title);
@@ -464,27 +464,36 @@ export function ProjectOutline({
       return;
     }
 
-    // Build the reorder payload - just move the item to the beginning of its new parent
-    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
-    
-    // Get all current children of the target parent
-    const targetChildren = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
-    
-    // Add the moved item as the first child
-    reorders.push({
-      id: sourceItem.section.id,
+    // Build the reorder payload keeping the relative ordering of the target parent's children
+    const siblings = flatList.filter(
+      f => f.parentId === newParentId && f.section.id !== sourceItem.section.id
+    );
+
+    let orderedIds: string[] = [];
+
+    if (targetItem.section.type === 'folder') {
+      // When dropping directly on a folder, append the moved item to the end of that folder
+      orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
+    } else {
+      // When dropping on a page, insert before the target page (matching the visual cue)
+      const targetIndex = siblings.findIndex(item => item.section.id === targetItem.section.id);
+
+      if (targetIndex === -1) {
+        orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
+      } else {
+        orderedIds = [
+          ...siblings.slice(0, targetIndex).map(item => item.section.id),
+          sourceItem.section.id,
+          ...siblings.slice(targetIndex).map(item => item.section.id),
+        ];
+      }
+    }
+
+    const reorders: Array<{ id: string; parentId: string | null; position: number }> = orderedIds.map((id, index) => ({
+      id,
       parentId: newParentId,
-      position: 0,
-    });
-    
-    // Reposition existing children
-    targetChildren.forEach((item, index) => {
-      reorders.push({
-        id: item.section.id,
-        parentId: newParentId,
-        position: index + 1,
-      });
-    });
+      position: index,
+    }));
 
     console.log('[DND] Reorder payload:', reorders);
     reorderMutation.mutate(reorders);
