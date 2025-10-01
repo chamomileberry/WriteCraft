@@ -1125,7 +1125,7 @@ export async function generateArticleForContent(
       content = await storage.getCreature(contentId);
       break;
     case 'plants':
-      content = await storage.getPlant(contentId);
+      content = await storage.getPlant(contentId, userId, notebookId);
       break;
     case 'items':
       content = await storage.getItem(contentId, userId, notebookId);
@@ -1185,7 +1185,7 @@ export async function generateArticleForContent(
       updatedContent = await storage.updateCreature(contentId, { articleContent });
       break;
     case 'plants':
-      updatedContent = await storage.updatePlant(contentId, { articleContent });
+      updatedContent = await storage.updatePlant(contentId, userId, { articleContent }, notebookId);
       break;
     case 'items':
       updatedContent = await storage.updateItem(contentId, userId, { articleContent }, notebookId);
