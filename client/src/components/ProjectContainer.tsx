@@ -40,10 +40,10 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(null);
   const { addPanel, isPanelOpen, focusPanel, toggleQuickNote, isQuickNoteOpen, findPanel, updatePanel, currentLayout } = useWorkspaceStore();
   
-  // Auto-collapse sidebar when reference tabs are present
+  // Auto-collapse sidebar when multiple reference tabs are present (keep open for single tabs or when empty)
   useEffect(() => {
-    const hasReferenceTabs = currentLayout.regions.main.length > 0 || currentLayout.regions.split.length > 0;
-    if (hasReferenceTabs) {
+    const totalReferenceTabs = currentLayout.regions.main.length + currentLayout.regions.split.length;
+    if (totalReferenceTabs > 1) {
       setIsSidebarOpen(false);
     }
   }, [currentLayout.regions.main.length, currentLayout.regions.split.length]);
