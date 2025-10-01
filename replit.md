@@ -56,7 +56,7 @@ Preferred communication style: Simple, everyday language.
   - **Inline Suggestions**: ProseMirror-based suggestion system showing deletions (strikethrough) and additions (green highlight) with accept/reject buttons
   - **Real-time Feedback**: Visual decorations show AI suggestions inline without disrupting the writing flow
   - **Claude Integration**: Backend uses Anthropic's Claude 3.5 Sonnet for high-quality text improvements
-  - **Universal Integration**: Available in ArticleEditor, GuideEditor, and ProjectEditor components
+  - **Universal Integration**: Available in all editors (ArticleEditor, GuideEditor, ProjectEditor, and SectionEditor)
 
 ## External Dependencies
 
