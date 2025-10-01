@@ -411,16 +411,19 @@ export function ProjectOutline({
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
     
-    // Start tracking mouse position
+    // Start tracking mouse position with high frequency updates
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     
-    document.addEventListener('mousemove', handleMouseMove);
+    // Use passive listeners for better performance
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.addEventListener('pointermove', handleMouseMove, { passive: true });
     
     // Clean up on drag end
     const cleanup = () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('pointermove', handleMouseMove);
       setMousePosition(null);
     };
     
@@ -431,7 +434,7 @@ export function ProjectOutline({
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     
-    if (!over || !mousePosition) {
+    if (!over) {
       setOverId(null);
       setDropPosition(null);
       return;
@@ -457,16 +460,28 @@ export function ProjectOutline({
     }
     const rect = overElement.getBoundingClientRect();
 
-    // Use the real mouse position
-    const mouseY = mousePosition.y;
+    // Get mouse position - use event coordinates if mousePosition state is not available
+    let mouseY = 0;
+    if (mousePosition) {
+      mouseY = mousePosition.y;
+    } else {
+      // Fallback to drag event coordinates
+      const dragRect = active.rect.current.translated;
+      if (dragRect) {
+        mouseY = dragRect.top + (dragRect.height / 2);
+      } else {
+        // Last resort - use middle of target element
+        mouseY = rect.top + (rect.height / 2);
+      }
+    }
 
     const elementTop = rect.top;
     const elementBottom = rect.bottom;
     const elementHeight = rect.height;
 
     // Use smaller thresholds for more immediate response
-    const topThreshold = elementTop + (elementHeight * 0.25);
-    const bottomThreshold = elementBottom - (elementHeight * 0.25);
+    const topThreshold = elementTop + (elementHeight * 0.3);
+    const bottomThreshold = elementBottom - (elementHeight * 0.3);
 
     if (targetItem.section.type === 'folder') {
       if (mouseY < topThreshold) {
@@ -488,15 +503,17 @@ export function ProjectOutline({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveId(null);
-    setOverId(null);
-    setDropPosition(null);
     
-    // Clean up mouse tracking
+    // Clean up mouse tracking first
     if ((window as any).__dragCleanup) {
       (window as any).__dragCleanup();
       (window as any).__dragCleanup = null;
     }
+    
+    // Clear drag state
+    setActiveId(null);
+    setOverId(null);
+    setDropPosition(null);
 
     if (!over || active.id === over.id) {
       return;
@@ -707,6 +724,16 @@ export function ProjectOutline({
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
+          onDragCancel={() => {
+            // Clean up on drag cancel
+            setActiveId(null);
+            setOverId(null);
+            setDropPosition(null);
+            if ((window as any).__dragCleanup) {
+              (window as any).__dragCleanup();
+              (window as any).__dragCleanup = null;
+            }
+          }}
         >
           <SortableContext
             items={visibleSections.map(f => f.section.id)}
