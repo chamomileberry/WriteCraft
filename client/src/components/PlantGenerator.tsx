@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Leaf, Copy, Save, Shuffle, Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -346,22 +347,41 @@ ${currentPlant.description}
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={generatePlant}
-                  disabled={generatePlantMutation.isPending}
-                  data-testid="button-refresh-plant"
-                >
-                  {generatePlantMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Shuffle className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button variant="outline" size="sm" onClick={copyPlant} data-testid="button-copy-plant">
-                  <Copy className="h-4 w-4" />
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={generatePlant}
+                        disabled={generatePlantMutation.isPending}
+                        data-testid="button-refresh-plant"
+                      >
+                        {generatePlantMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Shuffle className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Generate new plant</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={copyPlant} data-testid="button-copy-plant">
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy to clipboard</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </CardHeader>
@@ -379,7 +399,7 @@ ${currentPlant.description}
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {currentPlant.characteristics.map((char, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge key={index} variant="outline" className="text-xs max-w-full break-words">
                           {char}
                         </Badge>
                       ))}
