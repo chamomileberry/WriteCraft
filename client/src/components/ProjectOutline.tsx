@@ -440,21 +440,14 @@ export function ProjectOutline({
 
     setOverId(over.id);
 
-    // Get mouse coordinates directly from the event if available
+    // Get current mouse position - use the activator event coordinates plus delta
     let mouseY: number;
     
-    // First try to get mouse position from the sensor's event data
-    if (event.activatorEvent && 'clientY' in event.activatorEvent) {
-      // For initial drag start, use activator event
-      mouseY = event.activatorEvent.clientY;
-    } else if (event.delta) {
-      // Calculate current mouse position using delta from start
-      const activatorY = event.activatorEvent && 'clientY' in event.activatorEvent 
-        ? event.activatorEvent.clientY 
-        : 0;
-      mouseY = activatorY + event.delta.y;
+    if (event.activatorEvent && 'clientY' in event.activatorEvent && event.delta) {
+      // Calculate current mouse position using initial position + movement delta
+      mouseY = event.activatorEvent.clientY + event.delta.y;
     } else {
-      // Fallback to active rect center
+      // Fallback to active rect center if we can't get precise mouse position
       const activeRect = active.rect.current.translated;
       if (!activeRect) {
         setDropPosition(null);
@@ -463,30 +456,21 @@ export function ProjectOutline({
       mouseY = activeRect.top + (activeRect.height / 2);
     }
 
-    // Get the target element rect - use cached rect if available
-    const overData = over.data.current;
-    let rect: DOMRect;
-    
-    if (overData?.sortable?.rect?.current) {
-      // Use cached rect from sortable for better performance
-      rect = overData.sortable.rect.current;
-    } else {
-      // Fallback to DOM query
-      const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
-      if (!overElement) {
-        setDropPosition(null);
-        return;
-      }
-      rect = overElement.getBoundingClientRect();
+    // Get the target element rect - always use fresh DOM query for accurate positioning
+    const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
+    if (!overElement) {
+      setDropPosition(null);
+      return;
     }
+    const rect = overElement.getBoundingClientRect();
 
     const elementTop = rect.top;
     const elementBottom = rect.bottom;
     const elementHeight = rect.height;
 
-    // Use more aggressive thresholds for immediate feedback
-    const topThreshold = elementTop + (elementHeight * 0.25);
-    const bottomThreshold = elementBottom - (elementHeight * 0.25);
+    // Use precise thresholds for accurate drop zone detection
+    const topThreshold = elementTop + (elementHeight * 0.3);
+    const bottomThreshold = elementBottom - (elementHeight * 0.3);
 
     if (targetItem.section.type === 'folder') {
       if (mouseY < topThreshold) {
