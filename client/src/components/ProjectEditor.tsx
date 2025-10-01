@@ -324,7 +324,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
     content: project?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert mx-auto focus:outline-none min-h-[500px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
+        class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] px-6 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
       },
     },
     onUpdate: ({ editor }) => {
@@ -778,9 +778,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
 
           {/* **REFINED**: Main editor area with focus mode support */}
           <div className="flex-1 overflow-auto">
-            <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80">
-              <EditorContent editor={editor} />
-            </div>
+            <EditorContent editor={editor} />
           </div>
         </div>
       </div>

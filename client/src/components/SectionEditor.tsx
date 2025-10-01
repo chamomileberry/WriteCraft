@@ -242,7 +242,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
       content: section?.content || '',
       editorProps: {
         attributes: {
-          class: 'prose dark:prose-invert mx-auto focus:outline-none min-h-[500px] p-4',
+          class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] px-6 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
         },
       },
       onUpdate: ({ editor }) => {
