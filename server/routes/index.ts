@@ -25,7 +25,6 @@ import religionRoutes from "./religion.routes";
 import languageRoutes from "./language.routes";
 import technologyRoutes from "./technology.routes";
 import professionRoutes from "./profession.routes";
-import plantRoutes from "./plant.routes";
 import descriptionRoutes from "./description.routes";
 import ethnicityRoutes from "./ethnicity.routes";
 import drinkRoutes from "./drink.routes";
@@ -57,8 +56,8 @@ import danceRoutes from "./dance.routes";
 import lawRoutes from "./law.routes";
 import policyRoutes from "./policy.routes";
 import potionRoutes from "./potion.routes";
-import plantRoutes from "./plant.routes";
 import notebookRoutes from "./notebook.routes";
+import { storage } from "../storage/storage"; // Assuming storage is imported from here
 
 export function registerDomainRoutes(app: Express) {
   // Register all domain-specific routes
@@ -121,5 +120,27 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/laws", lawRoutes);
   app.use("/api/policies", policyRoutes);
   app.use("/api/potions", potionRoutes);
-  app.use("/api/plants", plantRoutes);
+  // Plant generation route (separate from CRUD operations)
+  app.post('/api/plants/generate', async (req, res) => {
+    try {
+      const { genre, type } = req.body;
+      const userId = req.headers['x-user-id'] as string || 'demo-user';
+
+      const { generatePlantWithAI } = await import('../ai-generation');
+      const plantData = await generatePlantWithAI({ genre, type });
+
+      // Save the generated plant
+      const savedPlant = await storage.createPlant({
+        ...plantData,
+        userId,
+        notebookId: req.body.notebookId || null
+      });
+
+      res.json(savedPlant);
+    } catch (error) {
+      console.error('Error generating plant:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({ error: `Failed to generate plant: ${errorMessage}` });
+    }
+  });
 }

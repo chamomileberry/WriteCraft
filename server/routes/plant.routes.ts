@@ -5,6 +5,29 @@ import { z } from "zod";
 
 const router = Router();
 
+router.post("/generate", async (req, res) => {
+  try {
+    const { genre, type } = req.body;
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    
+    const { generatePlantWithAI } = await import('../ai-generation');
+    const plantData = await generatePlantWithAI({ genre, type });
+    
+    // Save the generated plant
+    const savedPlant = await storage.createPlant({
+      ...plantData,
+      userId,
+      notebookId: req.body.notebookId || null
+    });
+    
+    res.json(savedPlant);
+  } catch (error) {
+    console.error('Error generating plant:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: `Failed to generate plant: ${errorMessage}` });
+  }
+});
+
 router.post("/", async (req, res) => {
   try {
     const validatedPlant = insertPlantSchema.parse(req.body);
