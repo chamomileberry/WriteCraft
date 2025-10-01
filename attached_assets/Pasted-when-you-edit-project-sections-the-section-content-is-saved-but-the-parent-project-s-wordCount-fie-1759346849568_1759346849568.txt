@@ -1,0 +1,56 @@
+when you edit project sections, the section content is saved, but the parent project's wordCount field in the database is never recalculated.
+The Problem:
+
+In ProjectPage.tsx, it displays project.wordCount from the database (which defaults to 0)
+When sections are saved, only the section is updated - the parent project's wordCount is never recalculated
+The ProjectViewer calculates word count dynamically on the fly, but the database field remains at 0
+
+The Solution:
+You need to add a function to recalculate and update the project's total word count whenever a section is saved. Here's the fix:
+In server/routes/project.routes.ts, update the PUT endpoint for sections:
+typescriptrouter.put("/:projectId/sections/:sectionId", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const { projectId, sectionId } = req.params;
+
+    // Verify user owns the project
+    const project = await storage.getProject(projectId, userId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const validatedUpdates = insertProjectSectionSchema.partial().parse(req.body);
+    const updatedSection = await storage.updateProjectSection(sectionId, projectId, validatedUpdates);
+
+    if (!updatedSection) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
+
+    // **NEW: Recalculate project word count after section update**
+    const allSections = await storage.getProjectSections(projectId);
+    const totalWords = calculateTotalWords(allSections);
+    await storage.updateProject(projectId, userId, { wordCount: totalWords });
+
+    res.json(updatedSection);
+  } catch (error) {
+    console.error('Error updating project section:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid section data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// **NEW: Add helper function to calculate total words**
+function calculateTotalWords(sections: any[]): number {
+  let total = 0;
+  for (const section of sections) {
+    if (section.type === 'page' && section.content) {
+      const text = section.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      total += text.split(' ').filter((w: string) => w.length > 0).length;
+    }
+  }
+  return total;
+}
+This will ensure that whenever a section is updated, the parent project's wordCount field is recalculated based on all section content, and the correct count will appear on ProjectPage.tsx.
