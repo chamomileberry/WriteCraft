@@ -281,13 +281,23 @@ function SortableItemWrapper({
           <ReactSortable
             list={section.children as SortableSection[]}
             setList={handleChildrenChange}
-            group="nested"
+            group={{
+              name: "nested",
+              pull: true,
+              put: true
+            }}
             animation={150}
             fallbackOnBody={true}
             swapThreshold={0.65}
             ghostClass="opacity-30"
             chosenClass="bg-primary/10"
             dragClass="rotate-3"
+            onEnd={() => {
+              // Force refresh of sections after drag ends
+              setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+              }, 100);
+            }}
           >
             {section.children.map((child) => (
               <SortableItemWrapper
@@ -439,27 +449,18 @@ export function ProjectOutline({
   const handleSortChange = (newSections: SortableSection[]) => {
     setSortableSections(newSections);
 
-    // Convert the new structure to reorder payload
-    const generateReorders = (sections: SortableSection[], parentId: string | null = null): Array<{ id: string; parentId: string | null; position: number }> => {
-      const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
-
-      sections.forEach((section, index) => {
-        reorders.push({
-          id: section.id,
-          parentId,
-          position: index,
-        });
-
-        if (section.children && section.children.length > 0) {
-          reorders.push(...generateReorders(section.children, section.id));
-        }
+    // Convert the new structure to reorder payload - only for root level changes
+    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
+    
+    newSections.forEach((section, index) => {
+      reorders.push({
+        id: section.id,
+        parentId: null,
+        position: index,
       });
+    });
 
-      return reorders;
-    };
-
-    const reorders = generateReorders(newSections);
-    console.log('[SortableJS] Reorder payload:', reorders);
+    console.log('[SortableJS] Root level reorder payload:', reorders);
     reorderMutation.mutate(reorders);
   };
 
@@ -479,27 +480,21 @@ export function ProjectOutline({
     const updatedSections = updateSectionChildren(sortableSections);
     setSortableSections(updatedSections);
 
-    // Generate reorder payload for just this branch
-    const generateReorders = (sections: SortableSection[], parentId: string | null = null): Array<{ id: string; parentId: string | null; position: number }> => {
-      const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
-
-      sections.forEach((section, index) => {
-        reorders.push({
-          id: section.id,
-          parentId,
-          position: index,
-        });
-
-        if (section.children && section.children.length > 0) {
-          reorders.push(...generateReorders(section.children, section.id));
-        }
+    // Only generate reorder payload for the specific parent's children to avoid race conditions
+    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
+    
+    newChildren.forEach((child, index) => {
+      reorders.push({
+        id: child.id,
+        parentId: sectionId,
+        position: index,
       });
+    });
 
-      return reorders;
-    };
-
-    const reorders = generateReorders(updatedSections);
-    reorderMutation.mutate(reorders);
+    // Debounce the reorder mutation to prevent multiple rapid calls
+    if (reorders.length > 0) {
+      reorderMutation.mutate(reorders);
+    }
   };
 
   // Empty state
@@ -578,13 +573,23 @@ export function ProjectOutline({
         <ReactSortable
           list={sortableSections}
           setList={handleSortChange}
-          group="nested"
+          group={{
+            name: "nested",
+            pull: true,
+            put: true
+          }}
           animation={150}
           fallbackOnBody={true}
           swapThreshold={0.65}
           ghostClass="opacity-30"
           chosenClass="bg-primary/10"
           dragClass="rotate-3"
+          onEnd={() => {
+            // Force refresh of sections after drag ends
+            setTimeout(() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+            }, 100);
+          }}
         >
           {sortableSections.map((section) => (
             <SortableItemWrapper
