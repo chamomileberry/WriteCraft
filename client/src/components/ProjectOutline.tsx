@@ -459,19 +459,27 @@ export function ProjectOutline({
     }
 
     // Check if this is truly a no-op (same parent AND same position)
-    if (sourceItem.parentId === newParentId) {
-      // For same parent, only skip if dropping on the exact same item
+    if (sourceItem.parentId === newParentId && targetItem.section.type === 'folder') {
+      // When dropping on a folder that's already the parent, check if there are siblings to reorder
+      const currentSiblings = flatList.filter(
+        f => f.parentId === newParentId && f.section.id !== sourceItem.section.id
+      );
+      
+      // Only skip if dropping on the exact same item
       if (targetItem.section.id === sourceItem.section.id) {
         console.log('[DND] No change needed - dropping on self');
         return;
       }
       
-      // If dropping on a folder (even if it's the same parent), allow it to reorder
-      if (targetItem.section.type === 'folder') {
-        console.log('[DND] Dropping into folder within same parent - proceeding');
-      } else {
-        console.log('[DND] Reordering within same parent');
+      // If there are other items in the folder, allow reordering to the end
+      console.log('[DND] Dropping into same parent folder - will reorder to end');
+    } else if (sourceItem.parentId === newParentId && targetItem.section.type === 'page') {
+      // For same parent page drops, only skip if dropping on the exact same item
+      if (targetItem.section.id === sourceItem.section.id) {
+        console.log('[DND] No change needed - dropping on self');
+        return;
       }
+      console.log('[DND] Reordering within same parent');
     }
 
     // Build the reorder payload keeping the relative ordering of the target parent's children
