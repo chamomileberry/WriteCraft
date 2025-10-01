@@ -293,19 +293,11 @@ export function ProjectOutline({
     })
   );
 
-  // Optimized collision detection for immediate response
+  // Simplified collision detection for maximum responsiveness
   const customCollisionDetection = (args: any) => {
-    // Use pointer detection exclusively for immediate feedback
+    // Use pointer detection first for immediate feedback
     const pointerIntersections = pointerWithin(args);
-    
-    if (pointerIntersections.length > 0) {
-      // Return the closest item immediately without complex sorting
-      return [pointerIntersections[0]];
-    }
-
-    // Fallback to rectangle intersections only if pointer detection fails
-    const rectIntersections = rectIntersection(args);
-    return rectIntersections.length > 0 ? [rectIntersections[0]] : [];
+    return pointerIntersections.length > 0 ? [pointerIntersections[0]] : [];
   };
 
   const createMutation = useMutation({
@@ -440,21 +432,15 @@ export function ProjectOutline({
 
     setOverId(over.id);
 
-    // Get current mouse position - use the activator event coordinates plus delta
-    let mouseY: number;
-    
-    if (event.activatorEvent && 'clientY' in event.activatorEvent && event.delta) {
-      // Calculate current mouse position using initial position + movement delta
-      mouseY = event.activatorEvent.clientY + event.delta.y;
-    } else {
-      // Fallback to active rect center if we can't get precise mouse position
-      const activeRect = active.rect.current.translated;
-      if (!activeRect) {
-        setDropPosition(null);
-        return;
-      }
-      mouseY = activeRect.top + (activeRect.height / 2);
+    // Get current mouse position using the dragged element's current position
+    const activeRect = active.rect.current.translated;
+    if (!activeRect) {
+      setDropPosition(null);
+      return;
     }
+    
+    // The mouse is at the center of the dragged element during drag
+    const mouseY = activeRect.top + (activeRect.height / 2);
 
     // Get the target element rect - always use fresh DOM query for accurate positioning
     const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
@@ -468,9 +454,9 @@ export function ProjectOutline({
     const elementBottom = rect.bottom;
     const elementHeight = rect.height;
 
-    // Use precise thresholds for accurate drop zone detection
-    const topThreshold = elementTop + (elementHeight * 0.3);
-    const bottomThreshold = elementBottom - (elementHeight * 0.3);
+    // Use smaller thresholds for more immediate response
+    const topThreshold = elementTop + (elementHeight * 0.2);
+    const bottomThreshold = elementBottom - (elementHeight * 0.2);
 
     if (targetItem.section.type === 'folder') {
       if (mouseY < topThreshold) {
