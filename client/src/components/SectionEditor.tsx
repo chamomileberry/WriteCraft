@@ -337,10 +337,8 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Toolbar */}
-        <div className="border-b bg-background/95 backdrop-blur">
-          <div className="p-2">
-            <EditorToolbar editor={editor} title={section.title} />
-          </div>
+        <div className="border-b bg-muted/20 p-2">
+          <EditorToolbar editor={editor} title={section.title} />
         </div>
 
         {/* Editor */}

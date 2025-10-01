@@ -305,7 +305,7 @@ export function EditorToolbar({
   };
 
   return (
-    <div className="border-t bg-muted/20 p-2">
+    <>
       {isMobile ? (
         // Mobile Layout: Essential tools + More Options dropdown
         <div className="flex items-center gap-1">
@@ -618,7 +618,7 @@ export function EditorToolbar({
       ) : (
         // Desktop Layout: Streamlined toolbar with grouped controls
         <TooltipProvider>
-          <div className="flex items-center gap-1 flex-wrap">
+          <div className="flex items-center gap-1 flex-nowrap overflow-x-auto">
             {/* Headings Dropdown */}
             <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
               <Tooltip>
@@ -1205,6 +1205,6 @@ export function EditorToolbar({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
