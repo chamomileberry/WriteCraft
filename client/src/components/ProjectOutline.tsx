@@ -25,16 +25,15 @@ import { cn } from '@/lib/utils';
 import type { ProjectSectionWithChildren } from '@shared/schema';
 import {
   DndContext,
-  pointerWithin,
-  rectIntersection,
+  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
-  DragOverEvent,
   UniqueIdentifier,
 } from '@dnd-kit/core';
 import {
@@ -278,44 +277,16 @@ export function ProjectOutline({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
-  const [dropPosition, setDropPosition] = useState<'above' | 'below' | 'inside' | null>(null);
+  const [lastOverId, setLastOverId] = useState<UniqueIdentifier | null>(null);
   
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3, // Reduced from 8 to 3 for more immediate drag activation
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  // Use rectangle intersection for more reliable collision detection
-  const customCollisionDetection = (args: any) => {
-    // Use rectIntersection for accurate collision detection
-    const rectIntersections = rectIntersection(args);
-    
-    if (rectIntersections.length > 0) {
-      // If multiple intersections, prefer folders over pages
-      // This helps when dragging over an expanded folder with children
-      const folderIntersection = rectIntersections.find(collision => {
-        const flatList = flattenTree(sections);
-        const item = flatList.find(f => f.section.id === collision.id);
-        return item?.section.type === 'folder';
-      });
-      
-      // Return folder if found, otherwise return first intersection
-      return [folderIntersection || rectIntersections[0]];
-    }
-    
-    // Fallback to pointer detection
-    const pointerIntersections = pointerWithin(args);
-    return pointerIntersections.length > 0 ? [pointerIntersections[0]] : [];
-  };
 
   const createMutation = useMutation({
     mutationFn: async (data: { parentId: string | null; title: string; type: 'folder' | 'page'; position: number }) => {
@@ -426,89 +397,38 @@ export function ProjectOutline({
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
+    setLastOverId(null);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    
-    if (!over) {
-      setOverId(null);
-      setDropPosition(null);
+
+    if (!over || over.id === active.id) {
       return;
     }
 
-    // Find the target section
-    const flatList = flattenTree(sections);
-    const targetItem = flatList.find(f => f.section.id === over.id);
-    
-    if (!targetItem) {
-      setOverId(null);
-      setDropPosition(null);
-      return;
-    }
-
-    setOverId(over.id);
-
-    // Get the target element rect
-    const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
-    if (!overElement) {
-      setDropPosition(null);
-      return;
-    }
-    const rect = overElement.getBoundingClientRect();
-
-    // Get the current drag position from the active element
-    const dragRect = active.rect.current.translated;
-    if (!dragRect) {
-      setDropPosition(null);
-      return;
-    }
-
-    // Use the center of the dragged item as the reference point
-    const dragCenterY = dragRect.top + (dragRect.height / 2);
-
-    const elementTop = rect.top;
-    const elementBottom = rect.bottom;
-    const elementHeight = rect.height;
-
-    // Use clear thresholds for drop zones
-    const topThreshold = elementTop + (elementHeight * 0.25);
-    const bottomThreshold = elementBottom - (elementHeight * 0.25);
-
-    if (targetItem.section.type === 'folder') {
-      if (dragCenterY < topThreshold) {
-        setDropPosition('above');
-      } else if (dragCenterY > bottomThreshold) {
-        setDropPosition('below');
-      } else {
-        setDropPosition('inside');
-      }
-    } else {
-      // For pages, only allow above/below
-      if (dragCenterY < elementTop + (elementHeight / 2)) {
-        setDropPosition('above');
-      } else {
-        setDropPosition('below');
-      }
-    }
+    setLastOverId(over.id);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    // Clear drag state
     setActiveId(null);
-    setOverId(null);
-    setDropPosition(null);
+    setLastOverId(null);
 
-    if (!over || active.id === over.id) {
-      return;
+    let overId: UniqueIdentifier | null = over?.id ?? null;
+
+    if (!overId || overId === active.id) {
+      if (lastOverId && lastOverId !== active.id) {
+        overId = lastOverId;
+      } else {
+        return;
+      }
     }
 
     // Find source and target in the full tree
     const flatList = flattenTree(sections);
     const sourceItem = flatList.find(f => f.section.id === active.id);
-    const targetItem = flatList.find(f => f.section.id === over.id);
+    const targetItem = flatList.find(f => f.section.id === overId);
 
     if (!sourceItem || !targetItem) {
       return;
@@ -516,98 +436,51 @@ export function ProjectOutline({
 
     console.log('[DND] Drag ended:', {
       source: { id: sourceItem.section.id, title: sourceItem.section.title, parentId: sourceItem.parentId },
-      target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId },
-      dropPosition
+      target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId }
     });
 
-    // Determine new parent and position based on drop position
+    // Determine new parent and position
     let newParentId: string | null;
-    let newPosition = 0;
     
-    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
-      // Dropping inside a folder
+    // If dropping onto a folder, make it the first child of that folder
+    if (targetItem.section.type === 'folder') {
       newParentId = targetItem.section.id;
       console.log('[DND] Dropping into folder:', targetItem.section.title);
-      
       // Auto-expand the folder
       setExpandedIds(prev => new Set(prev).add(targetItem.section.id));
-      
-      // Get existing children of the folder
-      const existingChildren = flatList.filter(f => f.parentId === targetItem.section.id && f.section.id !== sourceItem.section.id);
-      newPosition = 0; // Always place at the beginning for folder drops
-      
-      console.log('[DND] Will place as first child in folder');
     } else {
-      // Dropping above or below an item - place as sibling
+      // If dropping onto a page, use the same parent as the target
       newParentId = targetItem.parentId;
-      
-      // Get all siblings at the target level
-      const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
-      const targetIndex = siblings.findIndex(f => f.section.id === targetItem.section.id);
-      
-      if (dropPosition === 'above') {
-        newPosition = targetIndex >= 0 ? targetIndex : 0;
-      } else {
-        newPosition = targetIndex >= 0 ? targetIndex + 1 : siblings.length;
-      }
-      
-      console.log('[DND] Dropping', dropPosition, 'item, using parent:', newParentId, 'position:', newPosition);
+      console.log('[DND] Dropping next to page, using parent:', newParentId);
     }
 
-    // Check if this is truly a no-op (same parent AND same position)
+    // Check if this is truly a no-op
     if (sourceItem.parentId === newParentId) {
-      const currentSiblings = flatList.filter(f => f.parentId === sourceItem.parentId);
-      const currentPosition = currentSiblings.findIndex(f => f.section.id === sourceItem.section.id);
-      
-      // For folder drops, we need to check if it's already the first child
-      if (dropPosition === 'inside' && targetItem.section.type === 'folder' && currentPosition === 0) {
-        console.log('[DND] No change needed - already at this position');
-        return;
-      }
-      
-      // For sibling drops, check exact position
-      if (dropPosition !== 'inside' && currentPosition === newPosition) {
-        console.log('[DND] No change needed - already at this position');
-        return;
-      }
+      console.log('[DND] No change needed - already in the same parent');
+      return;
     }
 
-    // Build the reorder payload
+    // Build the reorder payload - just move the item to the beginning of its new parent
     const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
     
-    // Get all siblings at the new location (excluding the source item)
-    const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
+    // Get all current children of the target parent
+    const targetChildren = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
     
-    // Insert the moved item at the new position
-    siblings.splice(newPosition, 0, sourceItem);
+    // Add the moved item as the first child
+    reorders.push({
+      id: sourceItem.section.id,
+      parentId: newParentId,
+      position: 0,
+    });
     
-    // Update positions for all siblings in the new parent
-    siblings.forEach((item, index) => {
+    // Reposition existing children
+    targetChildren.forEach((item, index) => {
       reorders.push({
         id: item.section.id,
         parentId: newParentId,
-        position: index,
+        position: index + 1,
       });
     });
-
-    // If moving between different parents, also reorder the old parent's children
-    if (sourceItem.parentId !== newParentId) {
-      const oldSiblings = flatList.filter(f => 
-        f.parentId === sourceItem.parentId && 
-        f.section.id !== sourceItem.section.id
-      );
-      
-      oldSiblings.forEach((item, index) => {
-        // Only update if not already in reorders
-        if (!reorders.find(r => r.id === item.section.id)) {
-          reorders.push({
-            id: item.section.id,
-            parentId: sourceItem.parentId,
-            position: index,
-          });
-        }
-      });
-    }
 
     console.log('[DND] Reorder payload:', reorders);
     reorderMutation.mutate(reorders);
@@ -706,16 +579,10 @@ export function ProjectOutline({
       <div className="flex-1 overflow-y-auto p-2">
         <DndContext
           sensors={sensors}
-          collisionDetection={customCollisionDetection}
+          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
-          onDragCancel={() => {
-            // Clean up on drag cancel
-            setActiveId(null);
-            setOverId(null);
-            setDropPosition(null);
-          }}
         >
           <SortableContext
             items={visibleSections.map(f => f.section.id)}
@@ -729,8 +596,8 @@ export function ProjectOutline({
                 isExpanded={expandedIds.has(flatSection.section.id)}
                 isEditing={editingId === flatSection.section.id}
                 editingTitle={editingTitle}
-                isDragOver={overId === flatSection.section.id}
-                dropPosition={overId === flatSection.section.id ? dropPosition : null}
+                isDragOver={false}
+                dropPosition={null}
                 onToggleExpanded={() => toggleExpanded(flatSection.section.id)}
                 onSectionClick={() => onSectionClick(flatSection.section)}
                 onStartEdit={() => handleStartEdit(flatSection.section)}
