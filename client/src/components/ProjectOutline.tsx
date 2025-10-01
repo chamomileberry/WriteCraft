@@ -465,7 +465,13 @@ export function ProjectOutline({
         console.log('[DND] No change needed - dropping on self');
         return;
       }
-      console.log('[DND] Reordering within same parent');
+      
+      // If dropping on a folder (even if it's the same parent), allow it to reorder
+      if (targetItem.section.type === 'folder') {
+        console.log('[DND] Dropping into folder within same parent - proceeding');
+      } else {
+        console.log('[DND] Reordering within same parent');
+      }
     }
 
     // Build the reorder payload keeping the relative ordering of the target parent's children
@@ -478,7 +484,7 @@ export function ProjectOutline({
     if (targetItem.section.type === 'folder') {
       // When dropping directly on a folder, append the moved item to the end of that folder
       orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
-      console.log('[DND] Will place as last child in folder');
+      console.log(`[DND] Will place as ${siblings.length === 0 ? 'first' : 'last'} child in folder`);
     } else {
       // When dropping on a page, insert before the target page (matching the visual cue)
       const targetIndex = siblings.findIndex(item => item.section.id === targetItem.section.id);
