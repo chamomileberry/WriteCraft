@@ -461,21 +461,16 @@ export function ProjectOutline({
       return;
     }
 
-    // Get current mouse position from the pointer sensor
-    const pointerCoords = event.activatorEvent;
-    let mouseY: number;
-    
-    if (pointerCoords && 'clientY' in pointerCoords) {
-      mouseY = pointerCoords.clientY;
-    } else {
-      // Fallback to active rect center if pointer coords unavailable
-      const activeRect = active.rect.current.translated;
-      if (!activeRect) {
-        setDropPosition(null);
-        return;
-      }
-      mouseY = activeRect.top + (activeRect.height / 2);
+    // Get current mouse position from the drag event
+    // Use the translated rect which gives us the current position during drag
+    const activeRect = active.rect.current.translated;
+    if (!activeRect) {
+      setDropPosition(null);
+      return;
     }
+    
+    // The mouse is at the center of the dragged element during drag
+    const mouseY = activeRect.top + (activeRect.height / 2);
 
     // Get fresh bounding rect for the target element
     const rect = overElement.getBoundingClientRect();
