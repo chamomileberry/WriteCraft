@@ -20,7 +20,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [, setLocation] = useLocation();
   
   // Quick note functionality
-  const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel } = useWorkspaceStore();
+  const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel } = useWorkspaceStore();
   
   // Mobile workspace menu functionality
   const { isMobile, hasPanels, MobileMenuButton } = useMobileWorkspaceMenu();
@@ -33,15 +33,28 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     if (existingPanel) {
       // If it's already docked, focus it
       if (existingPanel.mode === 'docked') {
+        // Restore if minimized to ensure it's visible
+        if (existingPanel.minimized) {
+          restorePanel(existingPanel.id);
+        }
         focusPanel(existingPanel.id);
+        // On mobile, open the drawer to show the panel
+        if (isMobile) {
+          openMobileDrawer();
+        }
         return;
       }
       // If it exists as a tab or floating, convert it to docked mode
       if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
         updatePanel(existingPanel.id, { 
           mode: 'docked',
-          regionId: 'docked'
+          regionId: 'docked',
+          minimized: false
         });
+        // On mobile, open the drawer to show the panel
+        if (isMobile) {
+          openMobileDrawer();
+        }
         return;
       }
     }
@@ -56,6 +69,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       size: { width: 400, height: 600 },
       entityId: 'writing-assistant', // Stable entityId for proper duplicate detection
     });
+    
+    // On mobile, open the drawer to show the newly created panel
+    if (isMobile) {
+      openMobileDrawer();
+    }
   };
 
   useEffect(() => {
