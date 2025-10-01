@@ -31,6 +31,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   UniqueIdentifier,
@@ -253,6 +254,7 @@ export function ProjectOutline({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [lastOverId, setLastOverId] = useState<UniqueIdentifier | null>(null);
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
@@ -371,20 +373,38 @@ export function ProjectOutline({
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
+    setLastOverId(null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+
+    if (!over || over.id === active.id) {
+      return;
+    }
+
+    setLastOverId(over.id);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    setLastOverId(null);
 
-    if (!over || active.id === over.id) {
-      return;
+    let overId: UniqueIdentifier | null = over?.id ?? null;
+
+    if (!overId || overId === active.id) {
+      if (lastOverId && lastOverId !== active.id) {
+        overId = lastOverId;
+      } else {
+        return;
+      }
     }
 
     // Find source and target in the full tree
     const flatList = flattenTree(sections);
     const sourceItem = flatList.find(f => f.section.id === active.id);
-    const targetItem = flatList.find(f => f.section.id === over.id);
+    const targetItem = flatList.find(f => f.section.id === overId);
 
     if (!sourceItem || !targetItem) {
       return;
@@ -571,6 +591,7 @@ export function ProjectOutline({
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
