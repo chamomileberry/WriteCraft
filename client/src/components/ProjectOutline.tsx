@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -13,7 +14,6 @@ import {
   MoreHorizontal,
   Trash2,
   Edit2,
-  GripVertical,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -25,7 +25,6 @@ import { cn } from '@/lib/utils';
 import type { ProjectSectionWithChildren } from '@shared/schema';
 import {
   DndContext,
-  closestCenter,
   pointerWithin,
   rectIntersection,
   KeyboardSensor,
@@ -81,25 +80,8 @@ interface SortableItemProps {
   isExpanded: boolean;
   isEditing: boolean;
   editingTitle: string;
-  onToggleExpanded: () => void;
-  onSectionClick: () => void;
-  onStartEdit: () => void;
-  onSaveEdit: () => void;
-  onCancelEdit: () => void;
-  onTitleChange: (value: string) => void;
-  onCreateFolder: () => void;
-  onCreatePage: () => void;
-  onDelete: () => void;
-}
-
-interface SortableItemProps {
-  flatSection: FlatSection;
-  isActive: boolean;
-  isExpanded: boolean;
-  isEditing: boolean;
-  editingTitle: string;
-  isOver: boolean;
-  dropIndicator: { id: string; position: 'above' | 'below' | 'inside' } | null;
+  isDragOver: boolean;
+  dropPosition: 'above' | 'below' | 'inside' | null;
   onToggleExpanded: () => void;
   onSectionClick: () => void;
   onStartEdit: () => void;
@@ -117,8 +99,8 @@ function SortableItem({
   isExpanded,
   isEditing,
   editingTitle,
-  isOver,
-  dropIndicator,
+  isDragOver,
+  dropPosition,
   onToggleExpanded,
   onSectionClick,
   onStartEdit,
@@ -137,7 +119,14 @@ function SortableItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: section.id });
+  } = useSortable({ 
+    id: section.id,
+    data: {
+      type: section.type,
+      parentId: flatSection.parentId,
+      section: section
+    }
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -145,40 +134,29 @@ function SortableItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const showDropIndicator = dropIndicator?.id === section.id;
-  const dropPosition = dropIndicator?.position;
-
   return (
-    <div ref={setNodeRef} style={style}>
-      {/* Drop indicator above */}
-      {showDropIndicator && dropPosition === 'above' && (
-        <div className="h-0.5 bg-primary rounded-full mx-2 mb-1" />
+    <div ref={setNodeRef} style={style} className="relative">
+      {/* Drop indicator line above */}
+      {isDragOver && dropPosition === 'above' && (
+        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-primary z-10" />
+      )}
+      
+      {/* Drop indicator for folder highlighting */}
+      {isDragOver && dropPosition === 'inside' && section.type === 'folder' && (
+        <div className="absolute inset-0 bg-primary/20 border-2 border-primary border-dashed rounded-md z-10" />
       )}
       
       <div
         className={cn(
           'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors relative',
           isActive && 'bg-accent',
-          isOver && section.type === 'folder' && 'bg-primary/10 border border-primary/20',
-          isDragging && 'opacity-50',
+          isDragOver && dropPosition === 'inside' && section.type === 'folder' && 'bg-primary/10'
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
         {...attributes}
         {...listeners}
+        data-testid={`section-item-${section.id}`}
       >
-        {/* Folder drop indicator overlay */}
-        {showDropIndicator && dropPosition === 'inside' && (
-          <div className="absolute inset-0 bg-primary/5 border-2 border-primary/30 border-dashed rounded-md pointer-events-none" />
-        )}
-
-        {/* Drag handle - now just visual, whole item is draggable */}
-        <div
-          className="p-0.5 cursor-grab active:cursor-grabbing hover:bg-accent-foreground/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-          data-testid={`button-drag-${section.id}`}
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </div>
-
         {/* Expand/collapse button */}
         {section.type === 'folder' && (
           <button
@@ -186,7 +164,7 @@ function SortableItem({
               e.stopPropagation();
               onToggleExpanded();
             }}
-            className="p-0.5 hover:bg-accent-foreground/10 rounded"
+            className="p-0.5 hover:bg-accent-foreground/10 rounded z-20 relative"
             data-testid={`button-toggle-${section.id}`}
           >
             {isExpanded ? (
@@ -245,7 +223,7 @@ function SortableItem({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 z-20 relative"
                 data-testid={`button-section-menu-${section.id}`}
               >
                 <MoreHorizontal className="h-3 w-3" />
@@ -281,9 +259,9 @@ function SortableItem({
         )}
       </div>
       
-      {/* Drop indicator below */}
-      {showDropIndicator && dropPosition === 'below' && (
-        <div className="h-0.5 bg-primary rounded-full mx-2 mt-1" />
+      {/* Drop indicator line below */}
+      {isDragOver && dropPosition === 'below' && (
+        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary z-10" />
       )}
     </div>
   );
@@ -301,15 +279,32 @@ export function ProjectOutline({
   const [editingTitle, setEditingTitle] = useState('');
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
-  const [dropIndicator, setDropIndicator] = useState<{ id: string; position: 'above' | 'below' | 'inside' } | null>(null);
+  const [dropPosition, setDropPosition] = useState<'above' | 'below' | 'inside' | null>(null);
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Custom collision detection
+  const customCollisionDetection = (args: any) => {
+    // First, let's see if there are any collisions with the pointer
+    const pointerIntersections = pointerWithin(args);
+    
+    if (pointerIntersections.length > 0) {
+      return pointerIntersections;
+    }
+
+    // If no pointer intersections, fall back to rectangle intersections
+    return rectIntersection(args);
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: { parentId: string | null; title: string; type: 'folder' | 'page'; position: number }) => {
@@ -425,29 +420,64 @@ export function ProjectOutline({
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     
-    if (!over || active.id === over.id) {
-      setDropIndicator(null);
+    if (!over) {
       setOverId(null);
+      setDropPosition(null);
       return;
     }
 
     setOverId(over.id);
+
+    // Get the mouse position relative to the over element
+    const overRect = over.rect;
+    const activeRect = active.rect.current.translated;
     
-    // Find the target item
+    if (!overRect || !activeRect) {
+      setDropPosition(null);
+      return;
+    }
+
+    // Find the target section
     const flatList = flattenTree(sections);
     const targetItem = flatList.find(f => f.section.id === over.id);
     
     if (!targetItem) {
-      setDropIndicator(null);
+      setDropPosition(null);
       return;
     }
 
-    // If target is a folder, show "inside" indicator
+    // Calculate drop position based on mouse position
+    const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
+    if (!overElement) {
+      setDropPosition(null);
+      return;
+    }
+
+    const rect = overElement.getBoundingClientRect();
+    const mouseY = activeRect.top + (activeRect.height / 2);
+    const elementTop = rect.top;
+    const elementBottom = rect.bottom;
+    const elementHeight = rect.height;
+
+    // Define zones for drop position
+    const topThreshold = elementTop + (elementHeight * 0.25);
+    const bottomThreshold = elementBottom - (elementHeight * 0.25);
+
     if (targetItem.section.type === 'folder') {
-      setDropIndicator({ id: over.id as string, position: 'inside' });
+      if (mouseY < topThreshold) {
+        setDropPosition('above');
+      } else if (mouseY > bottomThreshold) {
+        setDropPosition('below');
+      } else {
+        setDropPosition('inside');
+      }
     } else {
-      // For pages, show "below" indicator (will be placed after)
-      setDropIndicator({ id: over.id as string, position: 'below' });
+      // For pages, only allow above/below
+      if (mouseY < elementTop + (elementHeight / 2)) {
+        setDropPosition('above');
+      } else {
+        setDropPosition('below');
+      }
     }
   };
 
@@ -455,7 +485,7 @@ export function ProjectOutline({
     const { active, over } = event;
     setActiveId(null);
     setOverId(null);
-    setDropIndicator(null);
+    setDropPosition(null);
 
     if (!over || active.id === over.id) {
       return;
@@ -472,15 +502,16 @@ export function ProjectOutline({
 
     console.log('[DND] Drag ended:', {
       source: { id: sourceItem.section.id, title: sourceItem.section.title, parentId: sourceItem.parentId },
-      target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId }
+      target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId },
+      dropPosition
     });
 
-    // Determine new parent and position with improved logic
+    // Determine new parent and position based on drop position
     let newParentId: string | null;
     let newPosition = 0;
     
-    // Enhanced folder detection: if target is a folder, we'll nest inside it
-    if (targetItem.section.type === 'folder') {
+    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
+      // Dropping inside a folder
       newParentId = targetItem.section.id;
       console.log('[DND] Dropping into folder:', targetItem.section.title);
       
@@ -493,17 +524,20 @@ export function ProjectOutline({
       
       console.log('[DND] Will place as first child in folder');
     } else {
-      // If dropping onto a page, determine if we're placing before or after
+      // Dropping above or below an item - place as sibling
       newParentId = targetItem.parentId;
       
       // Get all siblings at the target level
       const siblings = flatList.filter(f => f.parentId === newParentId && f.section.id !== sourceItem.section.id);
       const targetIndex = siblings.findIndex(f => f.section.id === targetItem.section.id);
       
-      // Place after the target
-      newPosition = targetIndex >= 0 ? targetIndex + 1 : siblings.length;
+      if (dropPosition === 'above') {
+        newPosition = targetIndex >= 0 ? targetIndex : 0;
+      } else {
+        newPosition = targetIndex >= 0 ? targetIndex + 1 : siblings.length;
+      }
       
-      console.log('[DND] Dropping next to page, using parent:', newParentId, 'position:', newPosition);
+      console.log('[DND] Dropping', dropPosition, 'item, using parent:', newParentId, 'position:', newPosition);
     }
 
     // Check if this is truly a no-op (same parent AND same position)
@@ -512,13 +546,13 @@ export function ProjectOutline({
       const currentPosition = currentSiblings.findIndex(f => f.section.id === sourceItem.section.id);
       
       // For folder drops, we need to check if it's already the first child
-      if (targetItem.section.type === 'folder' && currentPosition === 0) {
+      if (dropPosition === 'inside' && targetItem.section.type === 'folder' && currentPosition === 0) {
         console.log('[DND] No change needed - already at this position');
         return;
       }
       
       // For sibling drops, check exact position
-      if (targetItem.section.type !== 'folder' && currentPosition === newPosition) {
+      if (dropPosition !== 'inside' && currentPosition === newPosition) {
         console.log('[DND] No change needed - already at this position');
         return;
       }
@@ -658,7 +692,7 @@ export function ProjectOutline({
       <div className="flex-1 overflow-y-auto p-2">
         <DndContext
           sensors={sensors}
-          collisionDetection={rectIntersection}
+          collisionDetection={customCollisionDetection}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
@@ -675,8 +709,8 @@ export function ProjectOutline({
                 isExpanded={expandedIds.has(flatSection.section.id)}
                 isEditing={editingId === flatSection.section.id}
                 editingTitle={editingTitle}
-                isOver={overId === flatSection.section.id}
-                dropIndicator={dropIndicator}
+                isDragOver={overId === flatSection.section.id}
+                dropPosition={overId === flatSection.section.id ? dropPosition : null}
                 onToggleExpanded={() => toggleExpanded(flatSection.section.id)}
                 onSectionClick={() => onSectionClick(flatSection.section)}
                 onStartEdit={() => handleStartEdit(flatSection.section)}
@@ -693,7 +727,7 @@ export function ProjectOutline({
           {/* Drag overlay */}
           <DragOverlay>
             {activeDragSection ? (
-              <div className="bg-accent rounded-md p-2 shadow-lg flex items-center gap-2">
+              <div className="bg-accent rounded-md p-2 shadow-lg flex items-center gap-2 border border-border">
                 {activeDragSection.section.type === 'folder' ? (
                   <Folder className="h-4 w-4" />
                 ) : (
