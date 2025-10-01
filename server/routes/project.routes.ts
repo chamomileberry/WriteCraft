@@ -60,6 +60,24 @@ router.post("/", async (req, res) => {
     const userId = req.headers['x-user-id'] as string || 'guest';
     const projectData = { ...req.body, userId };
 
+    // Calculate word count if content is provided
+    if (projectData.content) {
+      const plainText = (projectData.content as string)
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const words = plainText.split(/\s+/).filter((word: string) => word.length > 0);
+      projectData.wordCount = words.length;
+      
+      // Generate excerpt if not provided
+      if (!projectData.excerpt && plainText.length > 0) {
+        projectData.excerpt = plainText.substring(0, 150) + (plainText.length > 150 ? '...' : '');
+      }
+    } else {
+      // Set default word count for empty projects
+      projectData.wordCount = 0;
+    }
+
     const validatedProject = insertProjectSchema.parse(projectData);
     const savedProject = await storage.createProject(validatedProject);
     res.json(savedProject);

@@ -2854,11 +2854,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserProjects(userId: string): Promise<Project[]> {
-    return await db
+    const userProjects = await db
       .select()
       .from(projects)
       .where(eq(projects.userId, userId))
       .orderBy(desc(projects.updatedAt));
+    
+    // Ensure word count is calculated for projects that don't have it
+    const updatedProjects = userProjects.map(project => {
+      if (project.wordCount === null || project.wordCount === undefined) {
+        if (project.content) {
+          const plainText = (project.content as string)
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          const words = plainText.split(/\s+/).filter((word: string) => word.length > 0);
+          return { ...project, wordCount: words.length };
+        } else {
+          return { ...project, wordCount: 0 };
+        }
+      }
+      return project;
+    });
+    
+    return updatedProjects;
   }
 
   async updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project> {

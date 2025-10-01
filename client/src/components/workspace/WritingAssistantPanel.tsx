@@ -663,7 +663,7 @@ export default function WritingAssistantPanel({
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0">
-            <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
+            <ScrollArea className="flex-1 min-h-0">
               <div className="space-y-3 p-3 pb-6">
                 {messages.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
