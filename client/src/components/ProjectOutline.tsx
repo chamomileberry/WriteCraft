@@ -280,7 +280,7 @@ export function ProjectOutline({
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
   const [dropPosition, setDropPosition] = useState<'above' | 'below' | 'inside' | null>(null);
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+  
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
@@ -294,9 +294,15 @@ export function ProjectOutline({
     })
   );
 
-  // Simplified collision detection for maximum responsiveness
+  // Use rectangle intersection for more reliable collision detection
   const customCollisionDetection = (args: any) => {
-    // Use pointer detection first for immediate feedback
+    // Use rectIntersection for accurate collision detection
+    const rectIntersections = rectIntersection(args);
+    if (rectIntersections.length > 0) {
+      return [rectIntersections[0]];
+    }
+    
+    // Fallback to pointer detection
     const pointerIntersections = pointerWithin(args);
     return pointerIntersections.length > 0 ? [pointerIntersections[0]] : [];
   };
@@ -410,25 +416,6 @@ export function ProjectOutline({
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
-    
-    // Start tracking mouse position with high frequency updates
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    
-    // Use passive listeners for better performance
-    document.addEventListener('mousemove', handleMouseMove, { passive: true });
-    document.addEventListener('pointermove', handleMouseMove, { passive: true });
-    
-    // Clean up on drag end
-    const cleanup = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('pointermove', handleMouseMove);
-      setMousePosition(null);
-    };
-    
-    // Store cleanup function to call later
-    (window as any).__dragCleanup = cleanup;
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -452,7 +439,7 @@ export function ProjectOutline({
 
     setOverId(over.id);
 
-    // Get the target element rect - always use fresh DOM query for accurate positioning
+    // Get the target element rect
     const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
     if (!overElement) {
       setDropPosition(null);
@@ -460,40 +447,35 @@ export function ProjectOutline({
     }
     const rect = overElement.getBoundingClientRect();
 
-    // Get mouse position - use event coordinates if mousePosition state is not available
-    let mouseY = 0;
-    if (mousePosition) {
-      mouseY = mousePosition.y;
-    } else {
-      // Fallback to drag event coordinates
-      const dragRect = active.rect.current.translated;
-      if (dragRect) {
-        mouseY = dragRect.top + (dragRect.height / 2);
-      } else {
-        // Last resort - use middle of target element
-        mouseY = rect.top + (rect.height / 2);
-      }
+    // Get the current drag position from the active element
+    const dragRect = active.rect.current.translated;
+    if (!dragRect) {
+      setDropPosition(null);
+      return;
     }
+
+    // Use the center of the dragged item as the reference point
+    const dragCenterY = dragRect.top + (dragRect.height / 2);
 
     const elementTop = rect.top;
     const elementBottom = rect.bottom;
     const elementHeight = rect.height;
 
-    // Use smaller thresholds for more immediate response
-    const topThreshold = elementTop + (elementHeight * 0.3);
-    const bottomThreshold = elementBottom - (elementHeight * 0.3);
+    // Use clear thresholds for drop zones
+    const topThreshold = elementTop + (elementHeight * 0.25);
+    const bottomThreshold = elementBottom - (elementHeight * 0.25);
 
     if (targetItem.section.type === 'folder') {
-      if (mouseY < topThreshold) {
+      if (dragCenterY < topThreshold) {
         setDropPosition('above');
-      } else if (mouseY > bottomThreshold) {
+      } else if (dragCenterY > bottomThreshold) {
         setDropPosition('below');
       } else {
         setDropPosition('inside');
       }
     } else {
       // For pages, only allow above/below
-      if (mouseY < elementTop + (elementHeight / 2)) {
+      if (dragCenterY < elementTop + (elementHeight / 2)) {
         setDropPosition('above');
       } else {
         setDropPosition('below');
@@ -503,12 +485,6 @@ export function ProjectOutline({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    // Clean up mouse tracking first
-    if ((window as any).__dragCleanup) {
-      (window as any).__dragCleanup();
-      (window as any).__dragCleanup = null;
-    }
     
     // Clear drag state
     setActiveId(null);
@@ -729,10 +705,6 @@ export function ProjectOutline({
             setActiveId(null);
             setOverId(null);
             setDropPosition(null);
-            if ((window as any).__dragCleanup) {
-              (window as any).__dragCleanup();
-              (window as any).__dragCleanup = null;
-            }
           }}
         >
           <SortableContext
