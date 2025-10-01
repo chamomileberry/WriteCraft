@@ -49,8 +49,13 @@ if (typeof document !== 'undefined' && !document.getElementById('ai-suggestion-s
 
     .ai-canvas-popup {
       position: absolute;
-      z-index: 1000;
+      z-index: 9999;
       animation: aiPopupFadeIn 0.3s ease-out;
+      pointer-events: none;
+    }
+
+    .ai-canvas-popup-card {
+      pointer-events: auto;
     }
 
     .dark .ai-canvas-popup-card {
@@ -123,7 +128,8 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
     border-radius: 12px;
     padding: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
-    z-index: 1000;
+    z-index: 9999;
+    pointer-events: auto;
     animation: aiPopupFadeIn 0.3s ease-out;
   `.replace(/\s+/g, ' ').trim();
 
