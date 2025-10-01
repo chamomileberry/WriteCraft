@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: z.string(),
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),
-        documentType: z.enum(['manuscript', 'guide']).optional()
+        documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
       }).parse(req.body);
       const analysis = await analyzeText(text, editorContent, documentTitle, documentType);
       res.json(analysis);
@@ -387,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         style: z.string(),
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),
-        documentType: z.enum(['manuscript', 'guide']).optional()
+        documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
       }).parse(req.body);
       const rephrased = await rephraseText(text, style, editorContent, documentTitle, documentType);
       res.json({ text: rephrased });
@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: z.string(),
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),
-        documentType: z.enum(['manuscript', 'guide']).optional()
+        documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
       }).parse(req.body);
       const result = await proofreadText(text, editorContent, documentTitle, documentType);
       res.json(result);
@@ -457,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: z.string(),
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),
-        documentType: z.enum(['manuscript', 'guide']).optional()
+        documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
       }).parse(req.body);
       const questions = await generateQuestions(text, editorContent, documentTitle, documentType);
       res.json({ questions });
@@ -499,7 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })).optional(),
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),
-        documentType: z.enum(['manuscript', 'guide']).optional()
+        documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
       }).parse(req.body);
       
       const response = await conversationalChat(message, conversationHistory, editorContent, documentTitle, documentType);

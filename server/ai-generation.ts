@@ -1011,7 +1011,7 @@ export async function analyzeText(
   text: string,
   editorContent?: string,
   documentTitle?: string,
-  documentType?: 'manuscript' | 'guide'
+  documentType?: 'manuscript' | 'guide' | 'project' | 'section'
 ): Promise<{
   suggestions: string[];
   readabilityScore: number;
@@ -1036,7 +1036,10 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   let userMessage = `Analyze this text: "${text}"`;
   
   if (editorContent && documentTitle) {
-    const contextInfo = documentType === 'manuscript' ? 'manuscript chapter/scene' : 'writing guide section';
+    const contextInfo = documentType === 'manuscript' ? 'manuscript chapter/scene' 
+      : documentType === 'guide' ? 'writing guide section'
+      : documentType === 'section' ? 'project section'
+      : 'writing project';
     userMessage = `I'm working on a ${contextInfo} titled "${documentTitle}". Here's the full context:
 
 FULL DOCUMENT CONTENT:
@@ -1086,7 +1089,7 @@ export async function rephraseText(
   style: string,
   editorContent?: string,
   documentTitle?: string,
-  documentType?: 'manuscript' | 'guide'
+  documentType?: 'manuscript' | 'guide' | 'project' | 'section'
 ): Promise<string> {
   const systemPrompt = `You are a professional writing assistant specialized in rephrasing text while maintaining the original meaning. Adapt the tone and style as requested while preserving all key information.
 
@@ -1126,7 +1129,7 @@ export async function proofreadText(
   text: string,
   editorContent?: string,
   documentTitle?: string,
-  documentType?: 'manuscript' | 'guide'
+  documentType?: 'manuscript' | 'guide' | 'project' | 'section'
 ): Promise<{
   correctedText: string;
   corrections: { original: string; corrected: string; reason: string }[];
@@ -1246,7 +1249,7 @@ export async function generateQuestions(
   text: string,
   editorContent?: string,
   documentTitle?: string,
-  documentType?: 'manuscript' | 'guide'
+  documentType?: 'manuscript' | 'guide' | 'project' | 'section'
 ): Promise<string[]> {
   const systemPrompt = `You are a critical thinking assistant. Generate thoughtful questions that readers might ask about the provided text. These questions should help identify areas where the writing could be expanded, clarified, or improved.
 
@@ -1610,7 +1613,7 @@ export async function conversationalChat(
   conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>,
   editorContent?: string,
   documentTitle?: string,
-  documentType?: 'manuscript' | 'guide'
+  documentType?: 'manuscript' | 'guide' | 'project' | 'section'
 ): Promise<string> {
   /*
   <important_code_snippet_instructions>
@@ -1667,7 +1670,10 @@ You should feel like a knowledgeable writing mentor who genuinely cares about he
 
   // Add context if editor content is available
   if (editorContent && documentTitle) {
-    const contextInfo = documentType === 'manuscript' ? 'manuscript chapter/scene' : 'writing guide section';
+    const contextInfo = documentType === 'manuscript' ? 'manuscript chapter/scene'
+      : documentType === 'guide' ? 'writing guide section'
+      : documentType === 'section' ? 'project section'
+      : 'writing project';
     systemPrompt += `
 
 CURRENT CONTEXT: The writer is currently working on a ${contextInfo} titled "${documentTitle}". Here's the current content they're working with:
