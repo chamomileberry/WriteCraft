@@ -144,7 +144,7 @@ function SortableItem({
       
       {/* Drop indicator for folder highlighting */}
       {isDragOver && dropPosition === 'inside' && section.type === 'folder' && (
-        <div className="absolute inset-0 bg-primary/20 border-2 border-primary border-dashed rounded-md z-10" />
+        <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-md z-10" />
       )}
       
       <div
@@ -438,8 +438,10 @@ export function ProjectOutline({
     }
 
     const pointerY = activeRect.top + activeRect.height / 2;
-    const topBoundary = overRect.top + overRect.height * 0.25;
-    const bottomBoundary = overRect.bottom - overRect.height * 0.25;
+    
+    // For folders, make the "inside" zone larger to make it easier to drop into them
+    const topBoundary = isFolder ? overRect.top + overRect.height * 0.2 : overRect.top + overRect.height * 0.25;
+    const bottomBoundary = isFolder ? overRect.bottom - overRect.height * 0.2 : overRect.bottom - overRect.height * 0.25;
 
     let position: DropPosition;
 
@@ -505,28 +507,15 @@ export function ProjectOutline({
       }
     }
 
-    // Check if this is truly a no-op (same parent AND same position)
+    // Check if this is truly a no-op
+    if (sourceItem.parentId === newParentId && targetItem.section.id === sourceItem.section.id) {
+      console.log('[DND] No change needed - dropping on self');
+      return;
+    }
+
+    // Allow moving into the same folder (reordering) or different folders
     if (sourceItem.parentId === newParentId && dropPosition === 'inside') {
-      // When dropping on a folder that's already the parent, check if there are siblings to reorder
-      const currentSiblings = flatList.filter(
-        f => f.parentId === newParentId && f.section.id !== sourceItem.section.id
-      );
-
-      // Only skip if dropping on the exact same item
-      if (targetItem.section.id === sourceItem.section.id) {
-        console.log('[DND] No change needed - dropping on self');
-        return;
-      }
-
-      // If there are other items in the folder, allow reordering to the end
-      console.log('[DND] Dropping into same parent folder - will reorder to end');
-    } else if (sourceItem.parentId === newParentId && dropPosition !== 'inside') {
-      // For same parent page drops, only skip if dropping on the exact same item
-      if (targetItem.section.id === sourceItem.section.id) {
-        console.log('[DND] No change needed - dropping on self');
-        return;
-      }
-      console.log('[DND] Reordering within same parent');
+      console.log('[DND] Reordering within same folder');
     }
 
     // Build the reorder payload keeping the relative ordering of the target parent's children
