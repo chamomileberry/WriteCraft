@@ -34,6 +34,7 @@ import {
   DragOverEvent,
   DragStartEvent,
   UniqueIdentifier,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   SortableContext,
