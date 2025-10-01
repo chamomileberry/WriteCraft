@@ -113,28 +113,28 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           <nav className="hidden md:flex items-center gap-4 flex-shrink-0">
             <button 
               onClick={() => setLocation('/generators')}
-              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-generators"
             >
               Generators
             </button>
             <button 
               onClick={() => setLocation('/guides')}
-              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-guides"
             >
               Guides
             </button>
             <button 
               onClick={() => onNavigate?.('notebook')}
-              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-notebook"
             >
               Notebook
             </button>
             <button 
               onClick={() => onNavigate?.('projects')}
-              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-projects"
             >
               Projects
