@@ -7,7 +7,7 @@ const router = Router();
 
 router.post("/generate", async (req, res) => {
   try {
-    const { genre, type } = req.body;
+    const { genre, type, notebookId } = req.body;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
     
     const { generatePlantWithAI } = await import('../ai-generation');
@@ -17,8 +17,19 @@ router.post("/generate", async (req, res) => {
     const savedPlant = await storage.createPlant({
       ...plantData,
       userId,
-      notebookId: req.body.notebookId || null
+      notebookId: notebookId || null
     });
+    
+    // Create a saved item entry for the notebook
+    if (notebookId) {
+      await storage.saveItem({
+        userId,
+        notebookId,
+        itemType: 'plant',
+        itemId: savedPlant.id,
+        itemData: savedPlant
+      });
+    }
     
     res.json(savedPlant);
   } catch (error) {

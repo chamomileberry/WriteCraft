@@ -121,27 +121,4 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/laws", lawRoutes);
   app.use("/api/policies", policyRoutes);
   app.use("/api/potions", potionRoutes);
-  // Plant generation route (separate from CRUD operations)
-  app.post('/api/plants/generate', async (req, res) => {
-    try {
-      const { genre, type } = req.body;
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
-
-      const { generatePlantWithAI } = await import('../ai-generation');
-      const plantData = await generatePlantWithAI({ genre, type });
-
-      // Save the generated plant
-      const savedPlant = await storage.createPlant({
-        ...plantData,
-        userId,
-        notebookId: req.body.notebookId || null
-      });
-
-      res.json(savedPlant);
-    } catch (error) {
-      console.error('Error generating plant:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      res.status(500).json({ error: `Failed to generate plant: ${errorMessage}` });
-    }
-  });
 }

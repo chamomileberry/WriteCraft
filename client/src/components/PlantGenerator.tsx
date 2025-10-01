@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { GENRE_CATEGORIES } from "../../../server/genres";
+import { useNotebookStore } from "@/stores/notebookStore";
+import NotebookSwitcher from "./NotebookSwitcher";
 
 interface Plant {
   id?: string;
@@ -48,19 +50,26 @@ export default function PlantGenerator() {
   const [plantTypeOpen, setPlantTypeOpen] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeNotebookId } = useNotebookStore();
 
   const generatePlantMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/plants/generate', {
         genre: (genre && genre !== 'any') ? genre : undefined,
         type: (plantType && plantType !== 'any') ? plantType : undefined,
-        userId: null // For now, no user authentication
+        notebookId: activeNotebookId
       });
       return response.json();
     },
     onSuccess: (data) => {
       setCurrentPlant(data);
       console.log('Generated plant:', data);
+      toast({
+        title: "Plant generated!",
+        description: "Your plant has been created and saved to your notebook.",
+      });
+      // Invalidate saved items to refresh the notebook
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
     onError: (error) => {
       console.error('Error generating plant:', error);
@@ -74,13 +83,14 @@ export default function PlantGenerator() {
 
   const savePlantMutation = useMutation({
     mutationFn: async () => {
-      if (!currentPlant?.id) return;
+      if (!currentPlant?.id || !activeNotebookId) return;
       
       const response = await apiRequest('POST', '/api/saved-items', {
-        userId: 'guest', // For now, using guest user
+        userId: 'demo-user',
+        notebookId: activeNotebookId,
         itemType: 'plant',
         itemId: currentPlant.id,
-        itemData: currentPlant // Include the complete plant data
+        itemData: currentPlant
       });
       return response.json();
     },
@@ -156,6 +166,9 @@ ${currentPlant.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="pb-4 border-b">
+            <NotebookSwitcher />
+          </div>
           <div className="grid md:grid-cols-3 gap-4">
             <Popover open={genreOpen} onOpenChange={setGenreOpen}>
               <PopoverTrigger asChild>
