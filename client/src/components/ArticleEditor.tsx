@@ -210,7 +210,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
     content: initialContent,
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] px-3 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
+        class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[400px] px-6 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
         style: 'font-size: 12pt;',
       },
     },
