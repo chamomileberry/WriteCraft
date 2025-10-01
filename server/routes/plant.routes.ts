@@ -21,8 +21,14 @@ router.post("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const plants = await storage.getUserPlants(userId);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const plants = await storage.getUserPlants(userId, notebookId);
     res.json(plants);
   } catch (error) {
     console.error('Error fetching plants:', error);
@@ -32,7 +38,14 @@ router.get("/user/:userId?", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const plant = await storage.getPlant(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const plant = await storage.getPlant(req.params.id, userId, notebookId);
     if (!plant) {
       return res.status(404).json({ error: 'Plant not found' });
     }
@@ -45,8 +58,15 @@ router.get("/:id", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
     const validatedUpdates = insertPlantSchema.parse(req.body);
-    const updatedPlant = await storage.updatePlant(req.params.id, validatedUpdates);
+    const updatedPlant = await storage.updatePlant(req.params.id, userId, validatedUpdates, notebookId);
     res.json(updatedPlant);
   } catch (error) {
     console.error('Error updating plant:', error);
