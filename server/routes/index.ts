@@ -57,7 +57,8 @@ import lawRoutes from "./law.routes";
 import policyRoutes from "./policy.routes";
 import potionRoutes from "./potion.routes";
 import notebookRoutes from "./notebook.routes";
-import { storage } from "../storage/storage"; // Assuming storage is imported from here
+import plantRoutes from "./plant.routes";
+import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
   // Register all domain-specific routes
