@@ -274,17 +274,17 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           )}
         </>
       ) : (
-        /* Desktop Layout - Main content with fixed sidebar */
-        <div className="relative w-full min-h-screen">
-          {/* Main Content Area - Full width with padding when sidebar is present */}
-          <div className={`w-full min-h-screen ${dockedPanels.length > 0 ? 'pr-96' : ''}`}>
+        /* Desktop Layout - Side-by-side */
+        <div className="flex w-full min-h-screen">
+          {/* Main Content Area */}
+          <div className="flex-1 min-w-0">
             {children}
           </div>
           
-          {/* Desktop Docked Sidebar - Fixed position */}
+          {/* Desktop Docked Sidebar */}
           {dockedPanels.length > 0 && (
             <div 
-              className="fixed top-0 right-0 w-96 h-screen border-l border-border bg-background z-40 docked-sidebar-sticky"
+              className="w-96 border-l border-border bg-background flex-shrink-0 self-start docked-sidebar-sticky"
               data-testid="docked-sidebar-container"
             >
               {renderSidebarContent()}

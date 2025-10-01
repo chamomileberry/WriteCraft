@@ -19,39 +19,30 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
   
-  // Quick note functionality
   const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel, isInManuscriptEditor } = useWorkspaceStore();
   
-  // Mobile workspace menu functionality
   const { isMobile, hasPanels, MobileMenuButton } = useMobileWorkspaceMenu();
   
-  // Writing Assistant functionality
   const openWritingAssistant = () => {
-    // Check if there's already an existing writing assistant panel
     const existingPanel = findPanel('writingAssistant', 'writing-assistant');
     
     if (existingPanel) {
-      // If it's already docked, focus it
       if (existingPanel.mode === 'docked') {
-        // Restore if minimized to ensure it's visible
         if (existingPanel.minimized) {
           restorePanel(existingPanel.id);
         }
         focusPanel(existingPanel.id);
-        // On mobile, open the drawer to show the panel
         if (isMobile) {
           openMobileDrawer();
         }
         return;
       }
-      // If it exists as a tab or floating, convert it to docked mode
       if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
         updatePanel(existingPanel.id, { 
           mode: 'docked',
           regionId: 'docked',
           minimized: false
         });
-        // On mobile, open the drawer to show the panel
         if (isMobile) {
           openMobileDrawer();
         }
@@ -59,7 +50,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       }
     }
     
-    // Create new docked panel if none exists
     addPanel({
       id: `writing-assistant-${Date.now()}`,
       type: 'writingAssistant' as const,
@@ -67,10 +57,9 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       mode: 'docked' as const,
       regionId: 'docked' as const,
       size: { width: 400, height: 600 },
-      entityId: 'writing-assistant', // Stable entityId for proper duplicate detection
+      entityId: 'writing-assistant',
     });
     
-    // On mobile, open the drawer to show the newly created panel
     if (isMobile) {
       openMobileDrawer();
     }
@@ -85,7 +74,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     document.documentElement.classList.toggle('dark', isDarkMode);
   }, []);
 
-  // Sync search input with searchQuery prop when it changes
   useEffect(() => {
     setSearchValue(searchQuery);
   }, [searchQuery]);
@@ -111,52 +99,49 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4 h-16">
-          {/* Logo */}
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-2 h-16">
           <button 
             onClick={() => setLocation('/')} 
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
             data-testid="button-logo-home"
           >
-            <BookOpen className="h-8 w-8 text-primary" />
+            <BookOpen className="h-8 w-8 text-primary flex-shrink-0" />
             <h1 className="text-xl font-serif font-bold text-foreground whitespace-nowrap">WriteCraft</h1>
           </button>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 flex-shrink-0">
+          <nav className="hidden lg:flex items-center gap-6 flex-shrink-0">
             <button 
               onClick={() => setLocation('/generators')}
-              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-generators"
             >
               Generators
             </button>
             <button 
               onClick={() => setLocation('/guides')}
-              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-guides"
             >
               Guides
             </button>
             <button 
               onClick={() => onNavigate?.('notebook')}
-              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-notebook"
             >
               Notebook
             </button>
             <button 
               onClick={() => onNavigate?.('projects')}
-              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-projects"
             >
               Projects
             </button>
           </nav>
 
-          {/* Search and Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <form onSubmit={handleSearch} className="hidden sm:flex items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -165,13 +150,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   placeholder="Search tools and guides..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10 w-64"
+                  className="pl-10 w-48"
                   data-testid="input-search"
                 />
               </div>
             </form>
             
-            {/* Create New Button - Visible on all screen sizes */}
             <Button
               variant="default"
               size="default"
@@ -183,7 +167,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               <span className="hidden sm:inline">Create</span>
             </Button>
             
-            {/* Quick Note Button - Visible on all screen sizes */}
             <Button
               variant="ghost"
               size="icon"
@@ -196,7 +179,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               <StickyNote className="h-4 w-4" />
             </Button>
             
-            {/* Writing Assistant Button - Visible on all screen sizes */}
             <Button
               variant="ghost"
               size="icon"
@@ -222,7 +204,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
 
-            {/* Mobile Workspace Menu Button - Only show if in manuscript editor and there are docked panels */}
             {isMobile && hasPanels && isInManuscriptEditor() && <MobileMenuButton />}
 
             <Button 
@@ -238,7 +219,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
         </div>
       </div>
       
-      {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-b border-border">
           <div className="px-4 py-4 space-y-4">
