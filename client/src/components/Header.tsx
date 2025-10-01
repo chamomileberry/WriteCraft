@@ -110,7 +110,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             <h1 className="text-lg lg:text-xl font-serif font-bold text-foreground whitespace-nowrap">WriteCraft</h1>
           </button>
 
-          <nav className="hidden md:flex items-center gap-4 flex-shrink-0">
+          <nav className="hidden md:flex items-center gap-6 flex-shrink-0">
             <button 
               onClick={() => setLocation('/generators')}
               className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
