@@ -27,6 +27,7 @@ import {
   DndContext,
   closestCenter,
   pointerWithin,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -34,6 +35,7 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  DragOverEvent,
   UniqueIdentifier,
 } from '@dnd-kit/core';
 import {
@@ -90,12 +92,33 @@ interface SortableItemProps {
   onDelete: () => void;
 }
 
+interface SortableItemProps {
+  flatSection: FlatSection;
+  isActive: boolean;
+  isExpanded: boolean;
+  isEditing: boolean;
+  editingTitle: string;
+  isOver: boolean;
+  dropIndicator: { id: string; position: 'above' | 'below' | 'inside' } | null;
+  onToggleExpanded: () => void;
+  onSectionClick: () => void;
+  onStartEdit: () => void;
+  onSaveEdit: () => void;
+  onCancelEdit: () => void;
+  onTitleChange: (value: string) => void;
+  onCreateFolder: () => void;
+  onCreatePage: () => void;
+  onDelete: () => void;
+}
+
 function SortableItem({
   flatSection,
   isActive,
   isExpanded,
   isEditing,
   editingTitle,
+  isOver,
+  dropIndicator,
   onToggleExpanded,
   onSectionClick,
   onStartEdit,
@@ -122,24 +145,39 @@ function SortableItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const showDropIndicator = dropIndicator?.id === section.id;
+  const dropPosition = dropIndicator?.position;
+
   return (
     <div ref={setNodeRef} style={style}>
+      {/* Drop indicator above */}
+      {showDropIndicator && dropPosition === 'above' && (
+        <div className="h-0.5 bg-primary rounded-full mx-2 mb-1" />
+      )}
+      
       <div
         className={cn(
-          'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors',
+          'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors relative',
           isActive && 'bg-accent',
+          isOver && section.type === 'folder' && 'bg-primary/10 border border-primary/20',
+          isDragging && 'opacity-50',
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        {...attributes}
+        {...listeners}
       >
-        {/* Drag handle */}
-        <button
+        {/* Folder drop indicator overlay */}
+        {showDropIndicator && dropPosition === 'inside' && (
+          <div className="absolute inset-0 bg-primary/5 border-2 border-primary/30 border-dashed rounded-md pointer-events-none" />
+        )}
+
+        {/* Drag handle - now just visual, whole item is draggable */}
+        <div
           className="p-0.5 cursor-grab active:cursor-grabbing hover:bg-accent-foreground/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-          {...attributes}
-          {...listeners}
           data-testid={`button-drag-${section.id}`}
         >
           <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </button>
+        </div>
 
         {/* Expand/collapse button */}
         {section.type === 'folder' && (
@@ -189,7 +227,10 @@ function SortableItem({
           />
         ) : (
           <span
-            onClick={onSectionClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSectionClick();
+            }}
             className="flex-1 text-sm truncate"
             data-testid={`text-section-${section.id}`}
           >
@@ -239,6 +280,11 @@ function SortableItem({
           </DropdownMenu>
         )}
       </div>
+      
+      {/* Drop indicator below */}
+      {showDropIndicator && dropPosition === 'below' && (
+        <div className="h-0.5 bg-primary rounded-full mx-2 mt-1" />
+      )}
     </div>
   );
 }
@@ -254,6 +300,8 @@ export function ProjectOutline({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{ id: string; position: 'above' | 'below' | 'inside' } | null>(null);
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
@@ -374,9 +422,40 @@ export function ProjectOutline({
     setActiveId(event.active.id);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) {
+      setDropIndicator(null);
+      setOverId(null);
+      return;
+    }
+
+    setOverId(over.id);
+    
+    // Find the target item
+    const flatList = flattenTree(sections);
+    const targetItem = flatList.find(f => f.section.id === over.id);
+    
+    if (!targetItem) {
+      setDropIndicator(null);
+      return;
+    }
+
+    // If target is a folder, show "inside" indicator
+    if (targetItem.section.type === 'folder') {
+      setDropIndicator({ id: over.id as string, position: 'inside' });
+    } else {
+      // For pages, show "below" indicator (will be placed after)
+      setDropIndicator({ id: over.id as string, position: 'below' });
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    setOverId(null);
+    setDropIndicator(null);
 
     if (!over || active.id === over.id) {
       return;
@@ -579,8 +658,9 @@ export function ProjectOutline({
       <div className="flex-1 overflow-y-auto p-2">
         <DndContext
           sensors={sensors}
-          collisionDetection={pointerWithin}
+          collisionDetection={rectIntersection}
           onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -595,6 +675,8 @@ export function ProjectOutline({
                 isExpanded={expandedIds.has(flatSection.section.id)}
                 isEditing={editingId === flatSection.section.id}
                 editingTitle={editingTitle}
+                isOver={overId === flatSection.section.id}
+                dropIndicator={dropIndicator}
                 onToggleExpanded={() => toggleExpanded(flatSection.section.id)}
                 onSectionClick={() => onSectionClick(flatSection.section)}
                 onStartEdit={() => handleStartEdit(flatSection.section)}
