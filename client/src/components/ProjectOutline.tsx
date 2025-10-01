@@ -298,8 +298,18 @@ export function ProjectOutline({
   const customCollisionDetection = (args: any) => {
     // Use rectIntersection for accurate collision detection
     const rectIntersections = rectIntersection(args);
+    
     if (rectIntersections.length > 0) {
-      return [rectIntersections[0]];
+      // If multiple intersections, prefer folders over pages
+      // This helps when dragging over an expanded folder with children
+      const folderIntersection = rectIntersections.find(collision => {
+        const flatList = flattenTree(sections);
+        const item = flatList.find(f => f.section.id === collision.id);
+        return item?.section.type === 'folder';
+      });
+      
+      // Return folder if found, otherwise return first intersection
+      return [folderIntersection || rectIntersections[0]];
     }
     
     // Fallback to pointer detection
