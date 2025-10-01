@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -23,26 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { ProjectSectionWithChildren } from '@shared/schema';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragOverEvent,
-  DragStartEvent,
-  UniqueIdentifier,
-  DragOverlay,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { ReactSortable } from 'react-sortablejs';
 
 interface ProjectOutlineProps {
   projectId: string;
@@ -52,37 +32,19 @@ interface ProjectOutlineProps {
   onClose?: () => void;
 }
 
-interface FlatSection {
-  section: ProjectSectionWithChildren;
-  depth: number;
-  parentId: string | null;
+interface SortableSection extends ProjectSectionWithChildren {
+  id: string;
+  chosen?: boolean;
+  selected?: boolean;
 }
-
-// Flatten tree for drag-and-drop
-function flattenTree(sections: ProjectSectionWithChildren[], depth = 0, parentId: string | null = null): FlatSection[] {
-  const result: FlatSection[] = [];
-  
-  for (const section of sections) {
-    result.push({ section, depth, parentId });
-    
-    if (section.children && section.children.length > 0) {
-      result.push(...flattenTree(section.children, depth + 1, section.id));
-    }
-  }
-  
-  return result;
-}
-
-type DropPosition = 'above' | 'below' | 'inside';
 
 interface SortableItemProps {
-  flatSection: FlatSection;
+  section: SortableSection;
+  depth: number;
   isActive: boolean;
   isExpanded: boolean;
   isEditing: boolean;
   editingTitle: string;
-  isDragOver: boolean;
-  dropPosition: DropPosition | null;
   onToggleExpanded: () => void;
   onSectionClick: () => void;
   onStartEdit: () => void;
@@ -92,16 +54,16 @@ interface SortableItemProps {
   onCreateFolder: () => void;
   onCreatePage: () => void;
   onDelete: () => void;
+  onChildrenChange: (newChildren: SortableSection[]) => void;
 }
 
 function SortableItem({
-  flatSection,
+  section,
+  depth,
   isActive,
   isExpanded,
   isEditing,
   editingTitle,
-  isDragOver,
-  dropPosition,
   onToggleExpanded,
   onSectionClick,
   onStartEdit,
@@ -111,51 +73,17 @@ function SortableItem({
   onCreateFolder,
   onCreatePage,
   onDelete,
+  onChildrenChange,
 }: SortableItemProps) {
-  const { section, depth } = flatSection;
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ 
-    id: section.id,
-    data: {
-      type: section.type,
-      parentId: flatSection.parentId,
-      section: section
-    }
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
   return (
-    <div ref={setNodeRef} style={style} className="relative">
-      {/* Drop indicator line above */}
-      {isDragOver && dropPosition === 'above' && (
-        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-primary z-10" />
-      )}
-      
-      {/* Drop indicator for folder highlighting */}
-      {isDragOver && dropPosition === 'inside' && section.type === 'folder' && (
-        <div className="absolute inset-0 bg-primary/20 border-2 border-primary border-dashed rounded-md z-10 pointer-events-none" />
-      )}
-      
+    <div className="relative">
       <div
         className={cn(
           'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors relative',
           isActive && 'bg-accent',
-          isDragOver && dropPosition === 'inside' && section.type === 'folder' && 'bg-primary/10'
+          section.chosen && 'opacity-50'
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        {...attributes}
-        {...listeners}
         data-testid={`section-item-${section.id}`}
       >
         {/* Expand/collapse button */}
@@ -165,9 +93,6 @@ function SortableItem({
               e.stopPropagation();
               e.preventDefault();
               onToggleExpanded();
-            }}
-            onPointerDown={(e) => {
-              e.stopPropagation();
             }}
             className="p-0.5 hover:bg-accent-foreground/10 rounded z-20 relative"
             data-testid={`button-toggle-${section.id}`}
@@ -179,7 +104,7 @@ function SortableItem({
             )}
           </button>
         )}
-        
+
         {section.type === 'page' && <div className="w-5" />}
 
         {/* Icon */}
@@ -263,12 +188,130 @@ function SortableItem({
           </DropdownMenu>
         )}
       </div>
-      
-      {/* Drop indicator line below */}
-      {isDragOver && dropPosition === 'below' && (
-        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary z-10" />
+
+      {/* Nested children for folders */}
+      {section.type === 'folder' && isExpanded && section.children && section.children.length > 0 && (
+        <div className="ml-4">
+          <ReactSortable
+            list={section.children as SortableSection[]}
+            setList={onChildrenChange}
+            group="nested"
+            animation={150}
+            fallbackOnBody={true}
+            swapThreshold={0.65}
+            ghostClass="opacity-30"
+            chosenClass="bg-primary/10"
+            dragClass="rotate-3"
+          >
+            {section.children.map((child) => (
+              <SortableItemWrapper
+                key={child.id}
+                section={child as SortableSection}
+                depth={depth + 1}
+                projectId={section.id}
+                activeSectionId={isActive ? section.id : null}
+                onSectionClick={onSectionClick}
+                expandedIds={new Set()}
+                setExpandedIds={() => {}}
+                editingId={null}
+                editingTitle=""
+                setEditingId={() => {}}
+                setEditingTitle={() => {}}
+                handleCreateFolder={onCreateFolder}
+                handleCreatePage={onCreatePage}
+                handleStartEdit={onStartEdit}
+                handleSaveEdit={onSaveEdit}
+                handleCancelEdit={onCancelEdit}
+                handleDelete={onDelete}
+                updateChildrenInParent={() => {}}
+              />
+            ))}
+          </ReactSortable>
+        </div>
       )}
     </div>
+  );
+}
+
+// Wrapper component to handle individual section logic
+function SortableItemWrapper({
+  section,
+  depth,
+  projectId,
+  activeSectionId,
+  onSectionClick,
+  expandedIds,
+  setExpandedIds,
+  editingId,
+  editingTitle,
+  setEditingId,
+  setEditingTitle,
+  handleCreateFolder,
+  handleCreatePage,
+  handleStartEdit,
+  handleSaveEdit,
+  handleCancelEdit,
+  handleDelete,
+  updateChildrenInParent,
+}: {
+  section: SortableSection;
+  depth: number;
+  projectId: string;
+  activeSectionId: string | null;
+  onSectionClick: (section: ProjectSectionWithChildren) => void;
+  expandedIds: Set<string>;
+  setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+  editingId: string | null;
+  editingTitle: string;
+  setEditingId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditingTitle: React.Dispatch<React.SetStateAction<string>>;
+  handleCreateFolder: (parentId: string | null) => void;
+  handleCreatePage: (parentId: string | null) => void;
+  handleStartEdit: (section: ProjectSectionWithChildren) => void;
+  handleSaveEdit: () => void;
+  handleCancelEdit: () => void;
+  handleDelete: (id: string) => void;
+  updateChildrenInParent: (sectionId: string, newChildren: SortableSection[]) => void;
+}) {
+  const isActive = section.id === activeSectionId;
+  const isExpanded = expandedIds.has(section.id);
+  const isEditing = editingId === section.id;
+
+  const toggleExpanded = () => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(section.id)) {
+        next.delete(section.id);
+      } else {
+        next.add(section.id);
+      }
+      return next;
+    });
+  };
+
+  const handleChildrenChange = (newChildren: SortableSection[]) => {
+    updateChildrenInParent(section.id, newChildren);
+  };
+
+  return (
+    <SortableItem
+      section={section}
+      depth={depth}
+      isActive={isActive}
+      isExpanded={isExpanded}
+      isEditing={isEditing}
+      editingTitle={editingTitle}
+      onToggleExpanded={toggleExpanded}
+      onSectionClick={() => onSectionClick(section)}
+      onStartEdit={() => handleStartEdit(section)}
+      onSaveEdit={handleSaveEdit}
+      onCancelEdit={handleCancelEdit}
+      onTitleChange={setEditingTitle}
+      onCreateFolder={() => handleCreateFolder(section.id)}
+      onCreatePage={() => handleCreatePage(section.id)}
+      onDelete={() => handleDelete(section.id)}
+      onChildrenChange={handleChildrenChange}
+    />
   );
 }
 
@@ -282,21 +325,20 @@ export function ProjectOutline({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const [lastOverId, setLastOverId] = useState<UniqueIdentifier | null>(null);
-  const [dropIndicator, setDropIndicator] = useState<{
-    id: UniqueIdentifier;
-    position: DropPosition;
-  } | null>(null);
-  
+  const [sortableSections, setSortableSections] = useState<SortableSection[]>([]);
+
   const queryClient = useQueryClient();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  // Convert sections to sortable format
+  useState(() => {
+    const convertToSortable = (sections: ProjectSectionWithChildren[]): SortableSection[] => {
+      return sections.map(section => ({
+        ...section,
+        children: section.children ? convertToSortable(section.children) : undefined,
+      }));
+    };
+    setSortableSections(convertToSortable(sections));
+  }, [sections]);
 
   const createMutation = useMutation({
     mutationFn: async (data: { parentId: string | null; title: string; type: 'folder' | 'page'; position: number }) => {
@@ -305,8 +347,7 @@ export function ProjectOutline({
     },
     onSuccess: (newSection, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
-      
-      // If a page was created inside a folder, expand that folder and select the new page
+
       if (variables.parentId) {
         setExpandedIds(prev => {
           const next = new Set(prev);
@@ -314,10 +355,8 @@ export function ProjectOutline({
           return next;
         });
       }
-      
-      // If a page was created, select it after sections refresh
+
       if (variables.type === 'page' && newSection) {
-        // Wait for query invalidation to complete, then select the new page
         setTimeout(() => {
           onSectionClick(newSection as ProjectSectionWithChildren);
         }, 100);
@@ -359,18 +398,6 @@ export function ProjectOutline({
     },
   });
 
-  const toggleExpanded = (id: string) => {
-    setExpandedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
   const handleCreateFolder = (parentId: string | null = null) => {
     const title = 'New Folder';
     createMutation.mutate({ parentId, title, type: 'folder', position: 0 });
@@ -405,256 +432,71 @@ export function ProjectOutline({
     }
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id);
-    setLastOverId(null);
-    setDropIndicator(null);
-  };
+  const handleSortChange = (newSections: SortableSection[]) => {
+    setSortableSections(newSections);
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
+    // Convert the new structure to reorder payload
+    const generateReorders = (sections: SortableSection[], parentId: string | null = null): Array<{ id: string; parentId: string | null; position: number }> => {
+      const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
 
-    if (!over || over.id === active.id) {
-      setDropIndicator(null);
-      return;
-    }
-
-    setLastOverId(over.id);
-
-    const activeData = active.data.current as { section: ProjectSectionWithChildren } | undefined;
-    const overData = over.data.current as { section: ProjectSectionWithChildren } | undefined;
-    
-    const activeSection = activeData?.section;
-    const overSection = overData?.section;
-    
-    if (!activeSection || !overSection) {
-      setDropIndicator(null);
-      return;
-    }
-
-    // Prevent dropping a folder into its own children (infinite recursion check)
-    if (activeSection.type === 'folder') {
-      const flatList = flattenTree(sections);
-      const isDescendant = (ancestorId: string, descendantId: string): boolean => {
-        const descendant = flatList.find(f => f.section.id === descendantId);
-        if (!descendant || !descendant.parentId) return false;
-        if (descendant.parentId === ancestorId) return true;
-        return isDescendant(ancestorId, descendant.parentId);
-      };
-      
-      if (isDescendant(activeSection.id, overSection.id)) {
-        setDropIndicator(null);
-        return;
-      }
-    }
-
-    const isFolder = overSection?.type === 'folder';
-    const overRect = over.rect;
-    const activeRect = event.active.rect.current.translated ?? event.active.rect.current.initial;
-
-    if (!overRect || !activeRect) {
-      setDropIndicator(null);
-      return;
-    }
-
-    // Get the mouse/pointer position relative to the drop target
-    const clientY = event.active.rect.current.translated?.top ?? event.active.rect.current.initial?.top ?? 0;
-    const pointerY = clientY + (activeRect.height / 2);
-    
-    // For folders, create more precise drop zones
-    const topBoundary = isFolder ? overRect.top + overRect.height * 0.25 : overRect.top + overRect.height * 0.33;
-    const bottomBoundary = isFolder ? overRect.bottom - overRect.height * 0.25 : overRect.bottom - overRect.height * 0.33;
-
-    let position: DropPosition;
-
-    // Determine drop position based on pointer location
-    if (pointerY < topBoundary) {
-      position = 'above';
-    } else if (pointerY > bottomBoundary) {
-      position = 'below';
-    } else {
-      // In the middle zone
-      if (isFolder) {
-        position = 'inside';
-      } else {
-        // For pages, prefer 'above' when in the middle
-        position = 'above';
-      }
-    }
-
-    setDropIndicator({ id: over.id, position });
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    setLastOverId(null);
-    setDropIndicator(null);
-
-    let overId: UniqueIdentifier | null = over?.id ?? null;
-
-    if (!overId || overId === active.id) {
-      if (lastOverId && lastOverId !== active.id) {
-        overId = lastOverId;
-      } else {
-        return;
-      }
-    }
-
-    // Find source and target in the full tree
-    const flatList = flattenTree(sections);
-    const sourceItem = flatList.find(f => f.section.id === active.id);
-    const targetItem = flatList.find(f => f.section.id === overId);
-
-    if (!sourceItem || !targetItem) {
-      return;
-    }
-
-    console.log('[DND] Drag ended:', {
-      source: { id: sourceItem.section.id, title: sourceItem.section.title, parentId: sourceItem.parentId },
-      target: { id: targetItem.section.id, title: targetItem.section.title, type: targetItem.section.type, parentId: targetItem.parentId }
-    });
-
-    const indicatorPosition = dropIndicator && dropIndicator.id === overId ? dropIndicator.position : null;
-
-    // Determine new parent and desired ordering
-    let newParentId: string | null = targetItem.parentId;
-    let dropPosition: DropPosition = indicatorPosition ?? (targetItem.section.type === 'folder' ? 'inside' : 'below');
-
-    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
-      newParentId = targetItem.section.id;
-      console.log('[DND] Dropping into folder:', targetItem.section.title);
-      // Auto-expand the folder
-      setExpandedIds(prev => new Set(prev).add(targetItem.section.id));
-    } else {
-      newParentId = targetItem.parentId;
-      console.log('[DND] Dropping next to item, using parent:', newParentId, 'position:', dropPosition);
-      if (dropPosition === 'inside') {
-        dropPosition = 'below';
-      }
-    }
-
-    // Check if this is truly a no-op (same item, same position)
-    if (sourceItem.parentId === newParentId && targetItem.section.id === sourceItem.section.id && dropPosition !== 'inside') {
-      console.log('[DND] No change needed - dropping on self');
-      return;
-    }
-
-    // Prevent moving folders into their own descendants (circular reference check)
-    if (sourceItem.section.type === 'folder' && newParentId) {
-      const isDescendant = (ancestorId: string, potentialDescendantId: string): boolean => {
-        const descendant = flatList.find(f => f.section.id === potentialDescendantId);
-        if (!descendant || !descendant.parentId) return false;
-        if (descendant.parentId === ancestorId) return true;
-        return isDescendant(ancestorId, descendant.parentId);
-      };
-      
-      if (isDescendant(sourceItem.section.id, newParentId)) {
-        console.log('[DND] Cannot move folder into its own descendant');
-        return;
-      }
-    }
-
-    // Special handling for dropping into folders
-    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
-      // If already in this folder, check if we need to reorder to the end
-      if (sourceItem.parentId === newParentId) {
-        const siblings = flatList.filter(
-          f => f.parentId === newParentId && f.section.id !== sourceItem.section.id
-        );
-        
-        // If this item is already the last in the folder, it's a no-op
-        const sourceIndex = flatList.findIndex(f => f.section.id === sourceItem.section.id);
-        const lastSiblingIndex = siblings.length > 0 ? Math.max(...siblings.map(s => 
-          flatList.findIndex(f => f.section.id === s.section.id)
-        )) : -1;
-        
-        if (siblings.length === 0 || sourceIndex > lastSiblingIndex) {
-          console.log('[DND] Already in correct position at end of folder');
-          return;
-        }
-        
-        console.log('[DND] Reordering to end of same folder');
-      } else {
-        console.log('[DND] Moving to different folder');
-      }
-    }
-
-    // Build the reorder payload keeping the relative ordering of the target parent's children
-    const siblings = flatList.filter(
-      f => f.parentId === newParentId && f.section.id !== sourceItem.section.id
-    );
-
-    let orderedIds: string[] = [];
-
-    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
-      // When dropping directly on a folder, append the moved item to the end of that folder
-      orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
-      console.log(`[DND] Will place as ${siblings.length === 0 ? 'first' : 'last'} child in folder ${targetItem.section.title}`);
-    } else {
-      // When dropping above/below an item, respect the visual positioning
-      const targetIndex = siblings.findIndex(item => item.section.id === targetItem.section.id);
-
-      if (targetIndex === -1) {
-        // Target not in siblings list, place at end
-        orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
-        console.log('[DND] Target not found in siblings, placing at end');
-      } else {
-        const insertIndex = dropPosition === 'below' ? targetIndex + 1 : targetIndex;
-        orderedIds = [
-          ...siblings.slice(0, insertIndex).map(item => item.section.id),
-          sourceItem.section.id,
-          ...siblings.slice(insertIndex).map(item => item.section.id),
-        ];
-        console.log(`[DND] Inserting ${dropPosition === 'below' ? 'after' : 'before'} ${targetItem.section.title} at position ${insertIndex}`);
-      }
-    }
-
-    const reorders: Array<{ id: string; parentId: string | null; position: number }> = orderedIds.map((id, index) => ({
-      id,
-      parentId: newParentId,
-      position: index,
-    }));
-
-    if (sourceItem.parentId !== newParentId) {
-      const sourceSiblings = flatList
-        .filter(f => f.parentId === sourceItem.parentId && f.section.id !== sourceItem.section.id)
-        .map((item, index) => ({
-          id: item.section.id,
-          parentId: sourceItem.parentId,
+      sections.forEach((section, index) => {
+        reorders.push({
+          id: section.id,
+          parentId,
           position: index,
-        }));
+        });
 
-      reorders.push(...sourceSiblings);
-    }
+        if (section.children && section.children.length > 0) {
+          reorders.push(...generateReorders(section.children, section.id));
+        }
+      });
 
-    console.log('[DND] Reorder payload:', reorders);
+      return reorders;
+    };
+
+    const reorders = generateReorders(newSections);
+    console.log('[SortableJS] Reorder payload:', reorders);
     reorderMutation.mutate(reorders);
   };
 
-  const handleDragCancel = () => {
-    setActiveId(null);
-    setLastOverId(null);
-    setDropIndicator(null);
-  };
+  const updateChildrenInParent = (sectionId: string, newChildren: SortableSection[]) => {
+    const updateSectionChildren = (sections: SortableSection[]): SortableSection[] => {
+      return sections.map(section => {
+        if (section.id === sectionId) {
+          return { ...section, children: newChildren };
+        }
+        if (section.children) {
+          return { ...section, children: updateSectionChildren(section.children) };
+        }
+        return section;
+      });
+    };
 
-  // Filter sections based on expanded state for rendering
-  const getVisibleSections = (sectionList: ProjectSectionWithChildren[], depth = 0, parentId: string | null = null): FlatSection[] => {
-    const result: FlatSection[] = [];
-    
-    for (const section of sectionList) {
-      result.push({ section, depth, parentId });
-      
-      if (section.type === 'folder' && expandedIds.has(section.id) && section.children && section.children.length > 0) {
-        result.push(...getVisibleSections(section.children, depth + 1, section.id));
-      }
-    }
-    
-    return result;
-  };
+    const updatedSections = updateSectionChildren(sortableSections);
+    setSortableSections(updatedSections);
 
-  const visibleSections = getVisibleSections(sections);
-  const activeDragSection = visibleSections.find(f => f.section.id === activeId);
+    // Generate reorder payload for just this branch
+    const generateReorders = (sections: SortableSection[], parentId: string | null = null): Array<{ id: string; parentId: string | null; position: number }> => {
+      const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
+
+      sections.forEach((section, index) => {
+        reorders.push({
+          id: section.id,
+          parentId,
+          position: index,
+        });
+
+        if (section.children && section.children.length > 0) {
+          reorders.push(...generateReorders(section.children, section.id));
+        }
+      });
+
+      return reorders;
+    };
+
+    const reorders = generateReorders(updatedSections);
+    reorderMutation.mutate(reorders);
+  };
 
   // Empty state
   if (!sections || sections.length === 0) {
@@ -729,55 +571,41 @@ export function ProjectOutline({
 
       {/* Tree with drag and drop */}
       <div className="flex-1 overflow-y-auto p-2">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
+        <ReactSortable
+          list={sortableSections}
+          setList={handleSortChange}
+          group="nested"
+          animation={150}
+          fallbackOnBody={true}
+          swapThreshold={0.65}
+          ghostClass="opacity-30"
+          chosenClass="bg-primary/10"
+          dragClass="rotate-3"
         >
-          <SortableContext
-            items={visibleSections.map(f => f.section.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {visibleSections.map((flatSection) => (
-              <SortableItem
-                key={flatSection.section.id}
-                flatSection={flatSection}
-                isActive={flatSection.section.id === activeSectionId}
-                isExpanded={expandedIds.has(flatSection.section.id)}
-                isEditing={editingId === flatSection.section.id}
-                editingTitle={editingTitle}
-                isDragOver={dropIndicator?.id === flatSection.section.id}
-                dropPosition={dropIndicator?.id === flatSection.section.id ? dropIndicator.position : null}
-                onToggleExpanded={() => toggleExpanded(flatSection.section.id)}
-                onSectionClick={() => onSectionClick(flatSection.section)}
-                onStartEdit={() => handleStartEdit(flatSection.section)}
-                onSaveEdit={handleSaveEdit}
-                onCancelEdit={handleCancelEdit}
-                onTitleChange={setEditingTitle}
-                onCreateFolder={() => handleCreateFolder(flatSection.section.id)}
-                onCreatePage={() => handleCreatePage(flatSection.section.id)}
-                onDelete={() => handleDelete(flatSection.section.id)}
-              />
-            ))}
-          </SortableContext>
-          
-          {/* Drag overlay */}
-          <DragOverlay>
-            {activeDragSection ? (
-              <div className="bg-accent rounded-md p-2 shadow-lg flex items-center gap-2 border border-border">
-                {activeDragSection.section.type === 'folder' ? (
-                  <Folder className="h-4 w-4" />
-                ) : (
-                  <FileText className="h-4 w-4" />
-                )}
-                <span className="text-sm font-medium">{activeDragSection.section.title}</span>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+          {sortableSections.map((section) => (
+            <SortableItemWrapper
+              key={section.id}
+              section={section}
+              depth={0}
+              projectId={projectId}
+              activeSectionId={activeSectionId}
+              onSectionClick={onSectionClick}
+              expandedIds={expandedIds}
+              setExpandedIds={setExpandedIds}
+              editingId={editingId}
+              editingTitle={editingTitle}
+              setEditingId={setEditingId}
+              setEditingTitle={setEditingTitle}
+              handleCreateFolder={handleCreateFolder}
+              handleCreatePage={handleCreatePage}
+              handleStartEdit={handleStartEdit}
+              handleSaveEdit={handleSaveEdit}
+              handleCancelEdit={handleCancelEdit}
+              handleDelete={handleDelete}
+              updateChildrenInParent={updateChildrenInParent}
+            />
+          ))}
+        </ReactSortable>
       </div>
     </div>
   );
