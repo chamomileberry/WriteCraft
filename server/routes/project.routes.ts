@@ -247,6 +247,11 @@ router.put("/:projectId/sections/:sectionId", async (req, res) => {
       return res.status(404).json({ error: 'Section not found' });
     }
 
+    // Recalculate project word count after section update
+    const allSections = await storage.getProjectSections(projectId);
+    const totalWords = calculateTotalWords(allSections);
+    await storage.updateProject(projectId, userId, { wordCount: totalWords });
+
     res.json(updatedSection);
   } catch (error) {
     console.error('Error updating project section:', error);
@@ -303,5 +308,17 @@ router.post("/:projectId/sections/reorder", async (req, res) => {
     res.status(500).json({ error: errorMessage });
   }
 });
+
+// Helper function to calculate total words from all sections
+function calculateTotalWords(sections: any[]): number {
+  let total = 0;
+  for (const section of sections) {
+    if (section.type === 'page' && section.content) {
+      const text = section.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      total += text.split(' ').filter((w: string) => w.length > 0).length;
+    }
+  }
+  return total;
+}
 
 export default router;
