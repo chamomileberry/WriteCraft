@@ -68,4 +68,25 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.post("/:id/generate-article", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'guest';
+    const notebookId = req.query.notebookId as string;
+    const plantId = req.params.id;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+
+    const { generateArticleForContent } = await import('../article-generation');
+    const updatedPlant = await generateArticleForContent('plants', plantId, userId, notebookId);
+    
+    res.json(updatedPlant);
+  } catch (error) {
+    console.error('Error generating plant article:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: `Failed to generate article: ${errorMessage}` });
+  }
+});
+
 export default router;
