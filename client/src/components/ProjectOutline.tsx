@@ -421,14 +421,34 @@ export function ProjectOutline({
 
     setLastOverId(over.id);
 
-    const overData = over.data.current as
-      | {
-          section: ProjectSectionWithChildren;
-        }
-      | undefined;
+    const activeData = active.data.current as { section: ProjectSectionWithChildren } | undefined;
+    const overData = over.data.current as { section: ProjectSectionWithChildren } | undefined;
+    
+    const activeSection = activeData?.section;
     const overSection = overData?.section;
-    const isFolder = overSection?.type === 'folder';
+    
+    if (!activeSection || !overSection) {
+      setDropIndicator(null);
+      return;
+    }
 
+    // Prevent dropping a folder into its own children (infinite recursion check)
+    if (activeSection.type === 'folder') {
+      const flatList = flattenTree(sections);
+      const isDescendant = (ancestorId: string, descendantId: string): boolean => {
+        const descendant = flatList.find(f => f.section.id === descendantId);
+        if (!descendant || !descendant.parentId) return false;
+        if (descendant.parentId === ancestorId) return true;
+        return isDescendant(ancestorId, descendant.parentId);
+      };
+      
+      if (isDescendant(activeSection.id, overSection.id)) {
+        setDropIndicator(null);
+        return;
+      }
+    }
+
+    const isFolder = overSection?.type === 'folder';
     const overRect = over.rect;
     const activeRect = event.active.rect.current.translated ?? event.active.rect.current.initial;
 
@@ -441,9 +461,9 @@ export function ProjectOutline({
     const clientY = event.active.rect.current.translated?.top ?? event.active.rect.current.initial?.top ?? 0;
     const pointerY = clientY + (activeRect.height / 2);
     
-    // For folders, create larger drop zones to make it easier to drop into them
-    const topBoundary = isFolder ? overRect.top + overRect.height * 0.15 : overRect.top + overRect.height * 0.33;
-    const bottomBoundary = isFolder ? overRect.bottom - overRect.height * 0.15 : overRect.bottom - overRect.height * 0.33;
+    // For folders, create more precise drop zones
+    const topBoundary = isFolder ? overRect.top + overRect.height * 0.25 : overRect.top + overRect.height * 0.33;
+    const bottomBoundary = isFolder ? overRect.bottom - overRect.height * 0.25 : overRect.bottom - overRect.height * 0.33;
 
     let position: DropPosition;
 
@@ -520,6 +540,21 @@ export function ProjectOutline({
       return;
     }
 
+    // Prevent moving folders into their own descendants (circular reference check)
+    if (sourceItem.section.type === 'folder' && newParentId) {
+      const isDescendant = (ancestorId: string, potentialDescendantId: string): boolean => {
+        const descendant = flatList.find(f => f.section.id === potentialDescendantId);
+        if (!descendant || !descendant.parentId) return false;
+        if (descendant.parentId === ancestorId) return true;
+        return isDescendant(ancestorId, descendant.parentId);
+      };
+      
+      if (isDescendant(sourceItem.section.id, newParentId)) {
+        console.log('[DND] Cannot move folder into its own descendant');
+        return;
+      }
+    }
+
     // Special handling for dropping into folders
     if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
       // If already in this folder, check if we need to reorder to the end
@@ -530,9 +565,9 @@ export function ProjectOutline({
         
         // If this item is already the last in the folder, it's a no-op
         const sourceIndex = flatList.findIndex(f => f.section.id === sourceItem.section.id);
-        const lastSiblingIndex = Math.max(...siblings.map(s => 
+        const lastSiblingIndex = siblings.length > 0 ? Math.max(...siblings.map(s => 
           flatList.findIndex(f => f.section.id === s.section.id)
-        ));
+        )) : -1;
         
         if (siblings.length === 0 || sourceIndex > lastSiblingIndex) {
           console.log('[DND] Already in correct position at end of folder');
@@ -555,14 +590,15 @@ export function ProjectOutline({
     if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
       // When dropping directly on a folder, append the moved item to the end of that folder
       orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
-      console.log(`[DND] Will place as ${siblings.length === 0 ? 'first' : 'last'} child in folder`);
+      console.log(`[DND] Will place as ${siblings.length === 0 ? 'first' : 'last'} child in folder ${targetItem.section.title}`);
     } else {
-      // When dropping on a page, insert before the target page (matching the visual cue)
+      // When dropping above/below an item, respect the visual positioning
       const targetIndex = siblings.findIndex(item => item.section.id === targetItem.section.id);
 
       if (targetIndex === -1) {
+        // Target not in siblings list, place at end
         orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
-        console.log('[DND] Target not found, placing at end');
+        console.log('[DND] Target not found in siblings, placing at end');
       } else {
         const insertIndex = dropPosition === 'below' ? targetIndex + 1 : targetIndex;
         orderedIds = [
@@ -570,7 +606,7 @@ export function ProjectOutline({
           sourceItem.section.id,
           ...siblings.slice(insertIndex).map(item => item.section.id),
         ];
-        console.log(`[DND] Inserting ${dropPosition === 'below' ? 'after' : 'before'} target at position ${insertIndex}`);
+        console.log(`[DND] Inserting ${dropPosition === 'below' ? 'after' : 'before'} ${targetItem.section.title} at position ${insertIndex}`);
       }
     }
 
