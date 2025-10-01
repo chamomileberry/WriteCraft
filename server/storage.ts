@@ -2860,29 +2860,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(projects.userId, userId))
       .orderBy(desc(projects.updatedAt));
     
-    // Calculate word count for each project by summing section word counts
-    const updatedProjects = await Promise.all(userProjects.map(async (project) => {
-      // Get all sections for this project
-      const allSections = await db
-        .select()
-        .from(projectSections)
-        .where(eq(projectSections.projectId, project.id));
-      
-      // Calculate total word count from all sections
-      let totalWordCount = 0;
-      for (const section of allSections) {
-        if (section.content) {
-          const plainText = (section.content as string)
+    // Ensure word count is calculated for projects that don't have it
+    const updatedProjects = userProjects.map(project => {
+      if (project.wordCount === null || project.wordCount === undefined) {
+        if (project.content) {
+          const plainText = (project.content as string)
             .replace(/<[^>]*>/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
           const words = plainText.split(/\s+/).filter((word: string) => word.length > 0);
-          totalWordCount += words.length;
+          return { ...project, wordCount: words.length };
+        } else {
+          return { ...project, wordCount: 0 };
         }
       }
-      
-      return { ...project, wordCount: totalWordCount };
-    }));
+      return project;
+    });
     
     return updatedProjects;
   }

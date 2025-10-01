@@ -663,26 +663,24 @@ export default function WritingAssistantPanel({
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0">
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="space-y-3 p-3 pb-6">
-                  {messages.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Ask me anything about your writing!</p>
-                      <p className="text-xs mt-1">I can analyze, proofread, rephrase, and suggest improvements.</p>
-                    </div>
-                  )}
-                  
-                  {messages.map((message) => (
-                    <MessageWithApplyButtons key={message.id} message={message} />
-                  ))}
-                  
-                  {/* Scroll target for auto-scrolling */}
-                  <div ref={messagesEndRef} />
-                </div>
-              </ScrollArea>
-            </div>
+            <ScrollArea className="flex-1 min-h-0">
+              <div className="space-y-3 p-3 pb-6">
+                {messages.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Ask me anything about your writing!</p>
+                    <p className="text-xs mt-1">I can analyze, proofread, rephrase, and suggest improvements.</p>
+                  </div>
+                )}
+                
+                {messages.map((message) => (
+                  <MessageWithApplyButtons key={message.id} message={message} />
+                ))}
+                
+                {/* Scroll target for auto-scrolling */}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
             
             <div className="p-3 border-t flex-shrink-0">
               <div className="flex gap-2">
