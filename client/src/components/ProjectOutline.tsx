@@ -293,13 +293,29 @@ export function ProjectOutline({
     })
   );
 
-  // Custom collision detection
+  // Custom collision detection for more responsive feedback
   const customCollisionDetection = (args: any) => {
-    // First, let's see if there are any collisions with the pointer
+    // Always prioritize pointer-based detection for immediate feedback
     const pointerIntersections = pointerWithin(args);
     
     if (pointerIntersections.length > 0) {
-      return pointerIntersections;
+      // Sort by proximity to pointer for most accurate detection
+      const sortedIntersections = pointerIntersections.sort((a: any, b: any) => {
+        const aRect = a.data?.current?.sortable?.rect?.current;
+        const bRect = b.data?.current?.sortable?.rect?.current;
+        
+        if (!aRect || !bRect) return 0;
+        
+        const pointer = args.pointerCoordinates;
+        if (!pointer) return 0;
+        
+        const aDistance = Math.abs((aRect.top + aRect.height / 2) - pointer.y);
+        const bDistance = Math.abs((bRect.top + bRect.height / 2) - pointer.y);
+        
+        return aDistance - bDistance;
+      });
+      
+      return sortedIntersections;
     }
 
     // If no pointer intersections, fall back to rectangle intersections
@@ -426,42 +442,50 @@ export function ProjectOutline({
       return;
     }
 
-    setOverId(over.id);
-
-    // Get the mouse position relative to the over element
-    const overRect = over.rect;
-    const activeRect = active.rect.current.translated;
-    
-    if (!overRect || !activeRect) {
-      setDropPosition(null);
-      return;
-    }
-
     // Find the target section
     const flatList = flattenTree(sections);
     const targetItem = flatList.find(f => f.section.id === over.id);
     
     if (!targetItem) {
+      setOverId(null);
       setDropPosition(null);
       return;
     }
 
-    // Calculate drop position based on mouse position
+    setOverId(over.id);
+
+    // Get fresh element rect for accurate positioning
     const overElement = document.querySelector(`[data-testid="section-item-${over.id}"]`);
     if (!overElement) {
       setDropPosition(null);
       return;
     }
 
+    // Get current mouse position from the pointer sensor
+    const pointerCoords = event.activatorEvent;
+    let mouseY: number;
+    
+    if (pointerCoords && 'clientY' in pointerCoords) {
+      mouseY = pointerCoords.clientY;
+    } else {
+      // Fallback to active rect center if pointer coords unavailable
+      const activeRect = active.rect.current.translated;
+      if (!activeRect) {
+        setDropPosition(null);
+        return;
+      }
+      mouseY = activeRect.top + (activeRect.height / 2);
+    }
+
+    // Get fresh bounding rect for the target element
     const rect = overElement.getBoundingClientRect();
-    const mouseY = activeRect.top + (activeRect.height / 2);
     const elementTop = rect.top;
     const elementBottom = rect.bottom;
     const elementHeight = rect.height;
 
-    // Define zones for drop position
-    const topThreshold = elementTop + (elementHeight * 0.25);
-    const bottomThreshold = elementBottom - (elementHeight * 0.25);
+    // Use smaller threshold zones for more responsive feedback
+    const topThreshold = elementTop + (elementHeight * 0.2);
+    const bottomThreshold = elementBottom - (elementHeight * 0.2);
 
     if (targetItem.section.type === 'folder') {
       if (mouseY < topThreshold) {
@@ -472,7 +496,7 @@ export function ProjectOutline({
         setDropPosition('inside');
       }
     } else {
-      // For pages, only allow above/below
+      // For pages, only allow above/below with more precise detection
       if (mouseY < elementTop + (elementHeight / 2)) {
         setDropPosition('above');
       } else {
