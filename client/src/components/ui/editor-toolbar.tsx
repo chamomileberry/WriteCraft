@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +41,9 @@ import {
   Link,
   ChevronDown,
   MoreHorizontal,
+  Plus,
+  Palette,
+  Heading,
 } from 'lucide-react';
 
 interface EditorToolbarProps {
@@ -612,405 +616,453 @@ export function EditorToolbar({
           </DropdownMenu>
         </div>
       ) : (
-        // Desktop Layout: Full toolbar (existing implementation)
-        <div className="flex items-center gap-1 flex-wrap">
-          {/* Headers */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant={editor?.isActive('heading', { level: 1 }) ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => toggleHeading(1)}
-              data-testid="button-h1"
-              title="Heading 1"
-            >
-              <Heading1 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={editor?.isActive('heading', { level: 2 }) ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => toggleHeading(2)}
-              data-testid="button-h2"
-              title="Heading 2"
-            >
-              <Heading2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={editor?.isActive('heading', { level: 3 }) ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => toggleHeading(3)}
-              data-testid="button-h3"
-              title="Heading 3"
-            >
-              <Heading3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={editor?.isActive('heading', { level: 4 }) ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => toggleHeading(4)}
-              data-testid="button-h4"
-              title="Heading 4"
-            >
-              <Heading4 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={editor?.isActive('heading', { level: 5 }) ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => toggleHeading(5)}
-              data-testid="button-h5"
-              title="Heading 5"
-            >
-              <Heading5 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={editor?.isActive('heading', { level: 6 }) ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => toggleHeading(6)}
-              data-testid="button-h6"
-              title="Heading 6"
-            >
-              <Heading6 className="h-4 w-4" />
-            </Button>
+        // Desktop Layout: Streamlined toolbar with grouped controls
+        <TooltipProvider>
+          <div className="flex items-center gap-1 flex-wrap">
+            {/* Headings Dropdown */}
+            <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="button-headings"
+                    >
+                      <Heading className="h-4 w-4" />
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Headings</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(1))}>
+                  <Heading1 className="h-4 w-4 mr-2" />
+                  Heading 1
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(2))}>
+                  <Heading2 className="h-4 w-4 mr-2" />
+                  Heading 2
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(3))}>
+                  <Heading3 className="h-4 w-4 mr-2" />
+                  Heading 3
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(4))}>
+                  <Heading4 className="h-4 w-4 mr-2" />
+                  Heading 4
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(5))}>
+                  <Heading5 className="h-4 w-4 mr-2" />
+                  Heading 5
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(6))}>
+                  <Heading6 className="h-4 w-4 mr-2" />
+                  Heading 6
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
+            {/* Basic Formatting */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editor?.isActive('bold') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={toggleBold}
+                  data-testid="button-bold"
+                >
+                  <Bold className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Bold (Ctrl+B)</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editor?.isActive('italic') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={toggleItalic}
+                  data-testid="button-italic"
+                >
+                  <Italic className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Italic (Ctrl+I)</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editor?.isActive('highlight') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={toggleHighlight}
+                  data-testid="button-highlight"
+                >
+                  <Highlighter className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Highlight</TooltipContent>
+            </Tooltip>
+
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
+            {/* Lists */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editor?.isActive('bulletList') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={toggleBulletList}
+                  data-testid="button-bullet-list"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Bullet List</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editor?.isActive('orderedList') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={toggleOrderedList}
+                  data-testid="button-ordered-list"
+                >
+                  <ListOrdered className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Numbered List</TooltipContent>
+            </Tooltip>
+
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
+            {/* Link */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editor?.isActive('link') ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={addLink}
+                  data-testid="button-link"
+                >
+                  <Link className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Add Link (Ctrl+K)</TooltipContent>
+            </Tooltip>
+
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
+            {/* Undo/Redo */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().undo().run()}
+                  disabled={!editor?.can().chain().focus().undo().run()}
+                  data-testid="button-undo"
+                >
+                  <Undo className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().redo().run()}
+                  disabled={!editor?.can().chain().focus().redo().run()}
+                  data-testid="button-redo"
+                >
+                  <Redo className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
+            </Tooltip>
+
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
+            {/* Insert Menu - Groups media and content insertion */}
+            <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="button-insert"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Insert</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem onClick={() => setImageDialogOpen(true)}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Insert Image
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setVideoDialogOpen(true)}>
+                  <Video className="h-4 w-4 mr-2" />
+                  Insert Video
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => {
+                  editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+                })}>
+                  <Table className="h-4 w-4 mr-2" />
+                  Insert Table
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => {
+                  editor?.chain().focus().toggleCodeBlock().run();
+                })}>
+                  <Code className="h-4 w-4 mr-2" />
+                  Code Block
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => {
+                  editor?.chain().focus().setHorizontalRule().run();
+                })}>
+                  <Minus className="h-4 w-4 mr-2" />
+                  Horizontal Rule
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFootnoteDialogOpen(true)}>
+                  <Hash className="h-4 w-4 mr-2" />
+                  Insert Footnote
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSpecialCharDialogOpen(true)}>
+                  <SpecialChar className="h-4 w-4 mr-2" />
+                  Special Characters
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Format Menu - Groups alignment and styling */}
+            <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="button-format"
+                    >
+                      <Palette className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Format</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="start" className="w-64">
+                {/* Text Alignment */}
+                <div className="px-2 py-1.5">
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Text Alignment</div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('left'))}
+                      className="flex-1"
+                    >
+                      <AlignLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('center'))}
+                      className="flex-1"
+                    >
+                      <AlignCenter className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('right'))}
+                      className="flex-1"
+                    >
+                      <AlignRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('justify'))}
+                      className="flex-1"
+                    >
+                      <AlignJustify className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                
+                {/* Font Controls */}
+                <div className="px-2 py-1.5 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Font Size</div>
+                  <select
+                    className="w-full px-2 py-1 text-sm border rounded-md bg-background"
+                    onChange={(e) => {
+                      const size = e.target.value;
+                      restoreSelectionAndExecute(() => setFontSize(size));
+                    }}
+                    value={editor?.getAttributes('textStyle').fontSize || '16px'}
+                    data-testid="select-font-size"
+                  >
+                    <option value="12px">12px</option>
+                    <option value="14px">14px</option>
+                    <option value="16px">16px</option>
+                    <option value="18px">18px</option>
+                    <option value="20px">20px</option>
+                    <option value="24px">24px</option>
+                    <option value="28px">28px</option>
+                    <option value="32px">32px</option>
+                    <option value="36px">36px</option>
+                    <option value="48px">48px</option>
+                  </select>
+                </div>
+
+                <div className="px-2 py-1.5 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Font Family</div>
+                  <select
+                    className="w-full px-2 py-1 text-sm border rounded-md bg-background"
+                    onChange={(e) => {
+                      const family = e.target.value;
+                      restoreSelectionAndExecute(() => setFontFamily(family));
+                    }}
+                    value={editor?.getAttributes('textStyle').fontFamily || 'unset'}
+                    data-testid="select-font-family"
+                  >
+                    <option value="unset">Default</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Lato">Lato</option>
+                    <option value="Montserrat">Montserrat</option>
+                  </select>
+                </div>
+                <DropdownMenuSeparator />
+
+                {/* Colors */}
+                <div className="px-2 py-1.5 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Colors</div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs flex-shrink-0">Text:</Label>
+                    <input
+                      type="color"
+                      className="w-full h-8 border rounded cursor-pointer"
+                      onChange={(e) => restoreSelectionAndExecute(() => setColor(e.target.value))}
+                      value={editor?.getAttributes('textStyle').color || '#000000'}
+                      data-testid="input-text-color"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs flex-shrink-0">Highlight:</Label>
+                    <input
+                      type="color"
+                      className="w-full h-8 border rounded cursor-pointer"
+                      onChange={(e) => restoreSelectionAndExecute(() => setHighlightColor(e.target.value))}
+                      value={editor?.getAttributes('highlight').color || '#ffff00'}
+                      data-testid="input-highlight-color"
+                    />
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
+            {/* Export Menu */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="button-export"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Export</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => handleExport('html')}>
+                  Export as HTML
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                  Export as PDF (Print)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('docx')}>
+                  Export as DOCX (Text)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('email')} disabled>
+                  Send via Email (Coming Soon)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('collaboration')} disabled>
+                  Share for Collaboration (Coming Soon)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* More Options */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="button-more"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>More Options</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => window.print()}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print Document
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onFocusModeToggle?.()}>
+                  <FocusIcon className="h-4 w-4 mr-2" />
+                  {isFocusMode ? 'Exit Focus Mode' : 'Focus Mode'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="px-2 py-1.5 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Zoom Level</div>
+                  <select
+                    className="w-full px-2 py-1 text-sm border rounded-md bg-background"
+                    onChange={(e) => {
+                      const zoom = parseInt(e.target.value) / 100;
+                      onZoomChange?.(zoom);
+                    }}
+                    value={(zoomLevel * 100).toString()}
+                    data-testid="select-zoom"
+                  >
+                    <option value="50">50%</option>
+                    <option value="75">75%</option>
+                    <option value="100">100%</option>
+                    <option value="125">125%</option>
+                    <option value="150">150%</option>
+                    <option value="200">200%</option>
+                  </select>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Basic Formatting */}
-          <Button
-            variant={editor?.isActive('bold') ? 'default' : 'outline'}
-            size="sm"
-            onClick={toggleBold}
-            data-testid="button-bold"
-            title="Bold"
-          >
-            <Bold className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={editor?.isActive('italic') ? 'default' : 'outline'}
-            size="sm"
-            onClick={toggleItalic}
-            data-testid="button-italic"
-            title="Italic"
-          >
-            <Italic className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={editor?.isActive('highlight') ? 'default' : 'outline'}
-            size="sm"
-            onClick={toggleHighlight}
-            data-testid="button-highlight"
-            title="Highlight"
-          >
-            <Highlighter className="h-4 w-4" />
-          </Button>
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Lists */}
-          <Button
-            variant={editor?.isActive('bulletList') ? 'default' : 'outline'}
-            size="sm"
-            onClick={toggleBulletList}
-            data-testid="button-bullet-list"
-            title="Bullet List"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={editor?.isActive('orderedList') ? 'default' : 'outline'}
-            size="sm"
-            onClick={toggleOrderedList}
-            data-testid="button-ordered-list"
-            title="Numbered List"
-          >
-            <ListOrdered className="h-4 w-4" />
-          </Button>
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Text Alignment */}
-          <Button
-            variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setTextAlign('left')}
-            data-testid="button-align-left"
-            title="Align Left"
-          >
-            <AlignLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setTextAlign('center')}
-            data-testid="button-align-center"
-            title="Align Center"
-          >
-            <AlignCenter className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setTextAlign('right')}
-            data-testid="button-align-right"
-            title="Align Right"
-          >
-            <AlignRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setTextAlign('justify')}
-            data-testid="button-align-justify"
-            title="Justify"
-          >
-            <AlignJustify className="h-4 w-4" />
-          </Button>
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Links */}
-          <Button
-            variant={editor?.isActive('link') ? 'default' : 'outline'}
-            size="sm"
-            onClick={addLink}
-            data-testid="button-link"
-            title="Add Link"
-          >
-            <Link className="h-4 w-4" />
-          </Button>
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Undo/Redo */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => editor?.chain().focus().undo().run()}
-            disabled={!editor?.can().chain().focus().undo().run()}
-            data-testid="button-undo"
-            title="Undo (Ctrl+Z)"
-          >
-            <Undo className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => editor?.chain().focus().redo().run()}
-            disabled={!editor?.can().chain().focus().redo().run()}
-            data-testid="button-redo"
-            title="Redo (Ctrl+Y)"
-          >
-            <Redo className="h-4 w-4" />
-          </Button>
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Media Insertion */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setImageDialogOpen(true)}
-            data-testid="button-insert-image"
-            title="Insert Image"
-          >
-            <ImageIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-            }}
-            data-testid="button-insert-table"
-            title="Insert Table"
-          >
-            <Table className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              editor?.chain().focus().toggleCodeBlock().run();
-            }}
-            data-testid="button-code-block"
-            title="Code Block"
-          >
-            <Code className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              editor?.chain().focus().setHorizontalRule().run();
-            }}
-            data-testid="button-horizontal-rule"
-            title="Horizontal Rule"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setVideoDialogOpen(true)}
-            data-testid="button-insert-video"
-            title="Insert YouTube Video"
-          >
-            <Video className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setFootnoteDialogOpen(true)}
-            data-testid="button-insert-footnote"
-            title="Insert Footnote"
-          >
-            <Hash className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSpecialCharDialogOpen(true)}
-            data-testid="button-special-chars"
-            title="Insert Special Characters"
-          >
-            <SpecialChar className="h-4 w-4" />
-          </Button>
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Font Size */}
-          <Select
-            onValueChange={setFontSize}
-            value={editor?.getAttributes('textStyle').fontSize || '16px'}
-          >
-            <SelectTrigger className="w-20 h-8" data-testid="select-font-size">
-              <SelectValue placeholder="Size" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="12px">12px</SelectItem>
-              <SelectItem value="14px">14px</SelectItem>
-              <SelectItem value="16px">16px</SelectItem>
-              <SelectItem value="18px">18px</SelectItem>
-              <SelectItem value="20px">20px</SelectItem>
-              <SelectItem value="24px">24px</SelectItem>
-              <SelectItem value="28px">28px</SelectItem>
-              <SelectItem value="32px">32px</SelectItem>
-              <SelectItem value="36px">36px</SelectItem>
-              <SelectItem value="48px">48px</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Font Family */}
-          <Select
-            onValueChange={setFontFamily}
-            value={editor?.getAttributes('textStyle').fontFamily || 'Default'}
-          >
-            <SelectTrigger className="w-32 h-8" data-testid="select-font-family">
-              <SelectValue placeholder="Font" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unset">Default</SelectItem>
-              <SelectItem value="Arial">Arial</SelectItem>
-              <SelectItem value="Helvetica">Helvetica</SelectItem>
-              <SelectItem value="Times New Roman">Times New Roman</SelectItem>
-              <SelectItem value="Georgia">Georgia</SelectItem>
-              <SelectItem value="Courier New">Courier New</SelectItem>
-              <SelectItem value="Verdana">Verdana</SelectItem>
-              <SelectItem value="Roboto">Roboto</SelectItem>
-              <SelectItem value="Open Sans">Open Sans</SelectItem>
-              <SelectItem value="Lato">Lato</SelectItem>
-              <SelectItem value="Montserrat">Montserrat</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Text Color */}
-          <input
-            type="color"
-            className="w-8 h-8 border rounded cursor-pointer"
-            onChange={(e) => setColor(e.target.value)}
-            value={editor?.getAttributes('textStyle').color || '#000000'}
-            data-testid="input-text-color"
-            title="Text Color"
-          />
-
-          {/* Highlight Color */}
-          <input
-            type="color"
-            className="w-8 h-8 border rounded cursor-pointer bg-yellow-200"
-            onChange={(e) => setHighlightColor(e.target.value)}
-            value={editor?.getAttributes('highlight').color || '#ffff00'}
-            data-testid="input-highlight-color"
-            title="Highlight Color"
-          />
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
-          {/* Utilities */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.print()}
-            data-testid="button-print"
-            title="Print Document"
-          >
-            <Printer className="h-4 w-4" />
-          </Button>
-          <select
-            className="px-2 py-1 text-sm border rounded-md bg-background min-w-20"
-            onChange={(e) => {
-              const zoom = parseInt(e.target.value) / 100;
-              onZoomChange?.(zoom);
-            }}
-            value={(zoomLevel * 100).toString()}
-            data-testid="select-zoom"
-            title="Zoom Level"
-          >
-            <option value="50">50%</option>
-            <option value="75">75%</option>
-            <option value="100">100%</option>
-            <option value="125">125%</option>
-            <option value="150">150%</option>
-            <option value="200">200%</option>
-          </select>
-          <Button
-            variant={isFocusMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => onFocusModeToggle?.()}
-            data-testid="button-focus-mode"
-            title="Focus Mode"
-          >
-            <FocusIcon className="h-4 w-4" />
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                data-testid="button-export"
-                title="Export & Share Document"
-              >
-                <Download className="h-4 w-4" />
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => handleExport('html')}>
-                Export as HTML
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                Export as PDF (Print)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('docx')}>
-                Export as DOCX (Text)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('email')} disabled>
-                Send via Email (Coming Soon)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('collaboration')} disabled>
-                Share for Collaboration (Coming Soon)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        </TooltipProvider>
       )}
 
       {/* Link Dialog */}
