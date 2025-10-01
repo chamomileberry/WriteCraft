@@ -458,10 +458,14 @@ export function ProjectOutline({
       console.log('[DND] Dropping next to page, using parent:', newParentId);
     }
 
-    // Check if this is truly a no-op
+    // Check if this is truly a no-op (same parent AND same position)
     if (sourceItem.parentId === newParentId) {
-      console.log('[DND] No change needed - already in the same parent');
-      return;
+      // For same parent, only skip if dropping on the exact same item
+      if (targetItem.section.id === sourceItem.section.id) {
+        console.log('[DND] No change needed - dropping on self');
+        return;
+      }
+      console.log('[DND] Reordering within same parent');
     }
 
     // Build the reorder payload keeping the relative ordering of the target parent's children
@@ -474,18 +478,21 @@ export function ProjectOutline({
     if (targetItem.section.type === 'folder') {
       // When dropping directly on a folder, append the moved item to the end of that folder
       orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
+      console.log('[DND] Will place as last child in folder');
     } else {
       // When dropping on a page, insert before the target page (matching the visual cue)
       const targetIndex = siblings.findIndex(item => item.section.id === targetItem.section.id);
 
       if (targetIndex === -1) {
         orderedIds = [...siblings.map(item => item.section.id), sourceItem.section.id];
+        console.log('[DND] Target not found, placing at end');
       } else {
         orderedIds = [
           ...siblings.slice(0, targetIndex).map(item => item.section.id),
           sourceItem.section.id,
           ...siblings.slice(targetIndex).map(item => item.section.id),
         ];
+        console.log(`[DND] Inserting before target at position ${targetIndex}`);
       }
     }
 
