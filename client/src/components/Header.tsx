@@ -20,7 +20,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [, setLocation] = useLocation();
   
   // Quick note functionality
-  const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel } = useWorkspaceStore();
+  const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel, isInManuscriptEditor } = useWorkspaceStore();
   
   // Mobile workspace menu functionality
   const { isMobile, hasPanels, MobileMenuButton } = useMobileWorkspaceMenu();
@@ -222,8 +222,8 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
 
-            {/* Mobile Workspace Menu Button - Only show if there are docked panels */}
-            {isMobile && hasPanels && <MobileMenuButton />}
+            {/* Mobile Workspace Menu Button - Only show if in manuscript editor and there are docked panels */}
+            {isMobile && hasPanels && isInManuscriptEditor() && <MobileMenuButton />}
 
             <Button 
               variant="ghost" 
