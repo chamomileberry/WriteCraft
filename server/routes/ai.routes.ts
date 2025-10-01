@@ -9,7 +9,7 @@ const anthropic = new Anthropic({
 
 router.post("/improve-text", async (req, res) => {
   try {
-    const { text, action } = req.body;
+    const { text, action, customPrompt } = req.body;
 
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
@@ -43,9 +43,21 @@ ${text}`;
         break;
 
       case 'ask':
-        prompt = `You are a creative writing assistant. The user has selected this text and wants your help with it. Provide a brief, helpful suggestion or improvement. Be concise:
+        if (customPrompt) {
+          prompt = `You are a creative writing assistant. The user has selected the following text and wants you to help with a specific task.
+
+SELECTED TEXT:
+${text}
+
+USER'S INSTRUCTION:
+${customPrompt}
+
+Follow the user's instruction and return ONLY the modified text without any explanations or commentary.`;
+        } else {
+          prompt = `You are a creative writing assistant. The user has selected this text and wants your help with it. Provide a brief, helpful suggestion or improvement. Be concise:
 
 ${text}`;
+        }
         break;
 
       default:
