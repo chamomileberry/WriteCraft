@@ -214,6 +214,7 @@ function SortableItemWrapper({
   handleCancelEdit,
   handleDelete,
   updateChildrenInParent,
+  queryClient,
 }: {
   section: SortableSection;
   depth: number;
@@ -233,6 +234,7 @@ function SortableItemWrapper({
   handleCancelEdit: () => void;
   handleDelete: (id: string) => void;
   updateChildrenInParent: (sectionId: string, newChildren: SortableSection[]) => void;
+  queryClient: any;
 }) {
   const isActive = section.id === activeSectionId;
   const isExpanded = expandedIds.has(section.id);
@@ -320,6 +322,7 @@ function SortableItemWrapper({
                 handleCancelEdit={handleCancelEdit}
                 handleDelete={handleDelete}
                 updateChildrenInParent={updateChildrenInParent}
+                queryClient={queryClient}
               />
             ))}
           </ReactSortable>
@@ -612,6 +615,7 @@ export function ProjectOutline({
               handleCancelEdit={handleCancelEdit}
               handleDelete={handleDelete}
               updateChildrenInParent={updateChildrenInParent}
+              queryClient={queryClient}
             />
           ))}
         </ReactSortable>
