@@ -539,6 +539,8 @@ export default function WritingAssistantPanel({
   const MessageWithApplyButtons = ({ message }: { message: Message }) => {
     const suggestions = extractTextSuggestions(message.content);
     const hasApplicableText = suggestions.length > 0;
+    const editorContext = getEditorContext();
+    const hasEditorAvailable = editorContext.type !== null && editorContext.entityId !== null;
 
     return (
       <div className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -578,8 +580,8 @@ export default function WritingAssistantPanel({
             </div>
           </div>
 
-          {/* Apply buttons for text suggestions */}
-          {hasApplicableText && message.type === 'assistant' && (
+          {/* Apply buttons for text suggestions - only show when in editor context */}
+          {hasApplicableText && message.type === 'assistant' && hasEditorAvailable && (
             <div className="mt-3 space-y-2">
               <div className="text-xs text-muted-foreground font-medium">
                 Suggested text changes:
