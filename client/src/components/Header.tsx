@@ -106,11 +106,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
             data-testid="button-logo-home"
           >
-            <BookOpen className="h-8 w-8 text-primary flex-shrink-0" />
-            <h1 className="text-xl font-serif font-bold text-foreground whitespace-nowrap">WriteCraft</h1>
+            <BookOpen className="h-7 w-7 text-primary flex-shrink-0" />
+            <h1 className="text-lg lg:text-xl font-serif font-bold text-foreground whitespace-nowrap">WriteCraft</h1>
           </button>
 
-          <nav className="hidden lg:flex items-center gap-6 flex-shrink-0">
+          <nav className="hidden md:flex items-center gap-4 flex-shrink-0">
             <button 
               onClick={() => setLocation('/generators')}
               className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap" 
@@ -142,15 +142,15 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            <form onSubmit={handleSearch} className="hidden sm:flex items-center">
+            <form onSubmit={handleSearch} className="hidden lg:flex items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search tools and guides..."
+                  placeholder="Search..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10 w-48"
+                  className="pl-10 w-32 lg:w-40"
                   data-testid="input-search"
                 />
               </div>
@@ -158,12 +158,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             
             <Button
               variant="default"
-              size="default"
+              size="sm"
               onClick={() => onCreateNew?.()}
               className="flex bg-primary hover:bg-primary/90 text-primary-foreground"
               data-testid="button-create-new"
             >
-              <Plus className="h-4 w-4 sm:mr-2" />
+              <Plus className="h-4 w-4 sm:mr-1" />
               <span className="hidden sm:inline">Create</span>
             </Button>
             
