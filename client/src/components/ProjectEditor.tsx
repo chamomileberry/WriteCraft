@@ -64,6 +64,8 @@ import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ProjectHeader } from './ProjectHeader';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
+import AIBubbleMenu from '@/components/AIBubbleMenu';
+import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -320,6 +322,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         mode: 'all',
       }),
       Typography,
+      AISuggestionsExtension,
     ],
     content: project?.content || '',
     editorProps: {
@@ -810,6 +813,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           {/* **REFINED**: Main editor area with focus mode support */}
           <div className="flex-1 overflow-auto">
             <EditorContent editor={editor} />
+            <AIBubbleMenu editor={editor} />
           </div>
         </div>
       </div>

@@ -36,6 +36,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useNotebookStore } from '@/stores/notebookStore';
 import { getMappingById } from '@shared/contentTypes';
+import AIBubbleMenu from '@/components/AIBubbleMenu';
+import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 
 // Custom FontSize extension - same as GuideEditor
 declare module '@tiptap/core' {
@@ -206,6 +208,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
         mode: 'all',
       }),
       Typography,
+      AISuggestionsExtension,
     ],
     content: initialContent,
     editorProps: {
@@ -366,6 +369,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
               }}
             >
               <EditorContent editor={editor} data-testid="article-editor-content" />
+              <AIBubbleMenu editor={editor} />
             </div>
           </div>
         </CardContent>

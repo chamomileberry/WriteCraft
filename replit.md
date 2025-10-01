@@ -50,6 +50,13 @@ Preferred communication style: Simple, everyday language.
   - **Smart Navigation**: Auto-saves before section switching, shows empty state for folders, editor for pages
   - **Visual Feedback**: Badge system for save status (unsaved/saving/saved with timestamps), breadcrumb trail with chevron separators, real-time word count
   - **API**: RESTful endpoints for section CRUD, tree retrieval, and reordering
+- **AI-Powered Inline Editing**: Grammarly-style AI editing assistance integrated across all text editors:
+  - **Floating AI Menu**: Custom bubble menu that appears when text is selected, offering quick AI actions
+  - **AI Actions**: Improve writing, shorten text, expand content, fix grammar, or ask AI for suggestions
+  - **Inline Suggestions**: ProseMirror-based suggestion system showing deletions (strikethrough) and additions (green highlight) with accept/reject buttons
+  - **Real-time Feedback**: Visual decorations show AI suggestions inline without disrupting the writing flow
+  - **Claude Integration**: Backend uses Anthropic's Claude 3.5 Sonnet for high-quality text improvements
+  - **Universal Integration**: Available in ArticleEditor, GuideEditor, and ProjectEditor components
 
 ## External Dependencies
 

@@ -1,0 +1,776 @@
+# Building Grammarly-Style AI Editing in TipTap
+
+**Building a Grammarly-like inline AI editing feature in TipTap requires three core components: a bubble menu for selection-based actions, ProseMirror decorations for visual suggestions, and a plugin state system to manage the suggestion lifecycle.** The implementation combines TipTap's React components with ProseMirror's powerful decoration and transaction system to create non-destructive overlays that users can accept or reject. This approach preserves editor functionality including undo/redo while providing real-time AI-powered editing suggestions with full keyboard and screen reader accessibility.
+
+The most successful pattern uses a **hybrid architecture**: mark-based annotations for text ranges combined with widget decorations for interactive UI elements. This prevents DOM pollution (a problem Grammarly explicitly solved by moving to external overlays) while maintaining performance with hundreds of suggestions. Modern implementations leverage TipTap v2.x's extension system, React hooks for state management, and ProseMirror's transaction mapping to handle document changes efficiently.
+
+## The foundation: TipTap bubble menus and selection APIs
+
+TipTap's BubbleMenu extension provides the entry point for users to trigger AI actions. Installing the extension requires `npm install @tiptap/extension-bubble-menu`, though newer TipTap v3.x versions use `@tiptap/react/menus` for imports. The BubbleMenu appears automatically when text is selected, positioning itself via Floating UI (which replaced Tippy.js in recent versions).
+
+The basic React implementation establishes the pattern:
+
+```jsx
+import { useEditor, EditorContent } from '@tiptap/react'
+import { BubbleMenu } from '@tiptap/react' // v2.x
+import StarterKit from '@tiptap/starter-kit'
+
+function AIEditor() {
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: '<p>Select text to see AI suggestions</p>',
+  })
+
+  return (
+    <>
+      <EditorContent editor={editor} />
+      <BubbleMenu
+        editor={editor}
+        options={{
+          placement: 'top',
+          offset: 6,
+        }}
+        shouldShow={({ editor, state }) => {
+          const { from, to } = state.selection
+          return from !== to && !editor.isActive('image')
+        }}
+      >
+        <div className="ai-bubble-menu">
+          <button onClick={() => handleAIAction(editor, 'improve')}>
+            Improve
+          </button>
+          <button onClick={() => handleAIAction(editor, 'shorten')}>
+            Shorten
+          </button>
+          <button onClick={() => handleAIAction(editor, 'expand')}>
+            Expand
+          </button>
+          <button onClick={() => handleAIAction(editor, 'fix')}>
+            Fix Grammar
+          </button>
+          <button onClick={() => handleAskAI(editor)}>
+            Ask AI
+          </button>
+        </div>
+      </BubbleMenu>
+    </>
+  )
+}
+```
+
+The `shouldShow` callback controls visibility—here showing the menu only for non-empty text selections excluding images. Positioning options include **placement** ('top', 'bottom', 'left', 'right'), **offset** (pixels from selection), and **flip** (automatically reposition if clipped). The updateDelay parameter defaults to 250ms, debouncing menu updates during selection changes.
+
+Accessing selected text requires ProseMirror's state API. The editor exposes `editor.state.selection` with **from** and **to** positions (integers representing character offsets in the document). Extract the selected text using `state.doc.textBetween(from, to, '')`. This becomes the payload sent to your AI API:
+
+```javascript
+function handleAIAction(editor, action) {
+  const { view, state } = editor
+  const { from, to } = state.selection
+  const selectedText = state.doc.textBetween(from, to, '')
+  
+  // Store original position for later
+  const suggestionPosition = { from, to }
+  
+  // Call AI API
+  fetchAISuggestion(selectedText, action)
+    .then(suggestedText => {
+      displaySuggestion(editor, suggestionPosition, suggestedText)
+    })
+}
+```
+
+Critical detail: Store the **original position** before the async call, as the user might continue editing while waiting for the AI response. Later, you'll need to **map these positions** through any document changes using ProseMirror's transaction mapping system.
+
+## Visualizing suggestions with decorations
+
+ProseMirror decorations provide the visual layer for suggestions without modifying the underlying document. This non-destructive approach mirrors Grammarly's architecture, which moved away from DOM node wrapping to external overlays positioned via `Range.getClientRects()`. TipTap inherits this capability through three decoration types: **inline** (styling text ranges), **widget** (inserting DOM nodes), and **node** (decorating block nodes).
+
+The plugin pattern manages decoration state:
+
+```javascript
+import { Plugin, PluginKey } from 'prosemirror-state'
+import { Decoration, DecorationSet } from 'prosemirror-view'
+
+const suggestionPluginKey = new PluginKey('aiSuggestions')
+
+const aiSuggestionPlugin = new Plugin({
+  key: suggestionPluginKey,
+  
+  state: {
+    init(_, { doc }) {
+      return {
+        suggestions: [],
+        decorations: DecorationSet.empty
+      }
+    },
+    
+    apply(tr, pluginState) {
+      // Map decorations through document changes
+      let decorations = pluginState.decorations.map(tr.mapping, tr.doc)
+      
+      // Check for new suggestions in transaction metadata
+      const newSuggestion = tr.getMeta(suggestionPluginKey)
+      if (newSuggestion) {
+        decorations = createSuggestionDecorations(
+          tr.doc, 
+          [...pluginState.suggestions, newSuggestion]
+        )
+      }
+      
+      return {
+        suggestions: newSuggestion 
+          ? [...pluginState.suggestions, newSuggestion]
+          : pluginState.suggestions,
+        decorations
+      }
+    }
+  },
+  
+  props: {
+    decorations(state) {
+      return suggestionPluginKey.getState(state).decorations
+    }
+  }
+})
+```
+
+The `map()` method is **performance-critical**—it efficiently updates decoration positions when the document changes, rebuilding only affected tree branches. Without this, you'd recreate all decorations on every keystroke, causing performance issues with dozens of suggestions.
+
+Create decorations combining inline highlights with widget controls:
+
+```javascript
+function createSuggestionDecorations(doc, suggestions) {
+  const decorations = []
+  
+  suggestions.forEach(suggestion => {
+    // Inline decoration for the affected text range
+    decorations.push(
+      Decoration.inline(
+        suggestion.from,
+        suggestion.to,
+        {
+          class: 'ai-suggestion-highlight',
+          style: `
+            background: rgba(59, 130, 246, 0.1);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.5);
+          `
+        }
+      )
+    )
+    
+    // Widget decoration for accept/reject buttons
+    decorations.push(
+      Decoration.widget(
+        suggestion.to,
+        () => createActionWidget(suggestion),
+        { side: 1 }
+      )
+    )
+  })
+  
+  return DecorationSet.create(doc, decorations)
+}
+
+function createActionWidget(suggestion) {
+  const container = document.createElement('span')
+  container.className = 'suggestion-actions'
+  
+  const acceptBtn = document.createElement('button')
+  acceptBtn.textContent = '✓'
+  acceptBtn.onclick = () => acceptSuggestion(suggestion.id)
+  acceptBtn.setAttribute('aria-label', 'Accept suggestion')
+  
+  const rejectBtn = document.createElement('button')
+  rejectBtn.textContent = '✗'
+  rejectBtn.onclick = () => rejectSuggestion(suggestion.id)
+  rejectBtn.setAttribute('aria-label', 'Reject suggestion')
+  
+  container.append(acceptBtn, rejectBtn)
+  return container
+}
+```
+
+The **side** parameter controls widget positioning: `side: 1` places it after the position, while `side: -1` places it before. This matters when multiple decorations share a position.
+
+For diff-style visualization showing deletions and additions, layer multiple decorations:
+
+```javascript
+// Show original text with strikethrough
+decorations.push(
+  Decoration.inline(suggestion.from, suggestion.to, {
+    class: 'suggestion-deletion',
+    style: 'color: #D13438; text-decoration: line-through; background: #FFF4F4;'
+  })
+)
+
+// Show suggested text as widget after deletion
+const suggestedTextWidget = document.createElement('span')
+suggestedTextWidget.className = 'suggestion-addition'
+suggestedTextWidget.textContent = suggestion.suggestedText
+suggestedTextWidget.style.cssText = 'color: #0F7C3E; background: #F0F9F4;'
+
+decorations.push(
+  Decoration.widget(suggestion.to, () => suggestedTextWidget, { side: 1 })
+)
+```
+
+This pattern mirrors Google Docs' suggestion mode, where original text appears struck through and suggested text appears in green alongside.
+
+## Managing suggestion state across document changes
+
+The most challenging aspect is maintaining suggestion validity as the document changes. Grammarly solves this with **Delta rebasing**—continuously updating suggestion positions using operational transforms. TipTap provides equivalent functionality through ProseMirror's transaction mapping.
+
+Store comprehensive metadata for each suggestion:
+
+```javascript
+const suggestionMetadata = {
+  id: 'suggestion-' + Date.now(),
+  type: 'grammar', // or 'style', 'clarity', 'conciseness'
+  
+  // Position tracking
+  deleteRange: { from: 10, to: 15 },
+  
+  // Content
+  originalText: 'teh',
+  suggestedText: 'the',
+  
+  // Status
+  status: 'pending', // or 'accepted', 'rejected', 'invalid'
+  
+  // UI
+  color: '#DC143C',
+  backgroundColor: '#FFE6E6',
+  
+  // Context
+  rule: { id: 'TYPO_001', title: 'Spelling Error' },
+  timestamp: Date.now()
+}
+```
+
+Map positions through transactions to handle concurrent editing:
+
+```javascript
+apply(tr, pluginState) {
+  // Map existing suggestions through this transaction
+  const updatedSuggestions = pluginState.suggestions.map(suggestion => {
+    const mappedFrom = tr.mapping.map(suggestion.deleteRange.from, -1)
+    const mappedTo = tr.mapping.map(suggestion.deleteRange.to, 1)
+    
+    // Check if suggestion is still valid
+    if (mappedFrom >= mappedTo && suggestion.deleteRange.from !== suggestion.deleteRange.to) {
+      // Content was deleted - mark as invalid
+      return { ...suggestion, status: 'invalid' }
+    }
+    
+    return {
+      ...suggestion,
+      deleteRange: { from: mappedFrom, to: mappedTo }
+    }
+  }).filter(s => s.status !== 'invalid')
+  
+  // Handle new suggestions from metadata
+  const newSuggestion = tr.getMeta(suggestionPluginKey)
+  
+  return {
+    suggestions: newSuggestion 
+      ? [...updatedSuggestions, newSuggestion]
+      : updatedSuggestions,
+    decorations: decorations.map(tr.mapping, tr.doc)
+  }
+}
+```
+
+The bias parameters (`-1` and `1`) determine behavior at insertion points. **Bias -1** places the mapped position before insertions at that point, while **bias 1** places it after. This prevents suggestions from expanding unintentionally when users type adjacent to them.
+
+Handle overlapping suggestions by sorting and conflict detection:
+
+```javascript
+function resolveOverlappingSuggestions(suggestions) {
+  const sorted = [...suggestions].sort((a, b) => 
+    a.deleteRange.from - b.deleteRange.from
+  )
+  
+  const resolved = []
+  let lastEnd = 0
+  
+  for (const suggestion of sorted) {
+    if (suggestion.deleteRange.from >= lastEnd) {
+      resolved.push(suggestion)
+      lastEnd = suggestion.deleteRange.to
+    } else {
+      // Mark conflict but keep both
+      suggestion.hasConflict = true
+      resolved.push(suggestion)
+    }
+  }
+  
+  return resolved
+}
+```
+
+This allows multiple suggestions to coexist while flagging conflicts for UI treatment (e.g., showing a warning or disabling conflicting suggestions).
+
+## Accepting and rejecting suggestions
+
+Applying suggestions requires careful transaction management to preserve **undo/redo functionality**. ProseMirror's history plugin groups changes within 500ms by default, but suggestion applications should be distinct undo-able events.
+
+The acceptance pattern replaces text while maintaining editor state:
+
+```javascript
+function acceptSuggestion(editor, suggestionId) {
+  const pluginState = suggestionPluginKey.getState(editor.state)
+  const suggestion = pluginState.suggestions.find(s => s.id === suggestionId)
+  
+  if (!suggestion) return
+  
+  editor.chain()
+    .command(({ tr, state }) => {
+      // Replace the original text with suggested text
+      const from = suggestion.deleteRange.from
+      const to = suggestion.deleteRange.to
+      
+      // Get existing marks to preserve formatting
+      const $from = state.doc.resolve(from)
+      const marks = $from.marks()
+      
+      // Create new text node with marks
+      const textNode = state.schema.text(suggestion.suggestedText, marks)
+      
+      // Replace
+      tr.replaceWith(from, to, textNode)
+      
+      // Update selection to end of replacement
+      const newPos = tr.mapping.map(to)
+      tr.setSelection(TextSelection.create(tr.doc, newPos))
+      
+      // Remove this suggestion from plugin state
+      tr.setMeta(suggestionPluginKey, {
+        action: 'remove',
+        suggestionId: suggestion.id
+      })
+      
+      return true
+    })
+    .focus()
+    .run()
+}
+```
+
+This preserves **marks** (bold, italic, links) on the replaced text. Without copying marks, accepting a suggestion on bolded text would remove the bold formatting.
+
+Rejection simply removes the suggestion from state without document changes:
+
+```javascript
+function rejectSuggestion(editor, suggestionId) {
+  const tr = editor.state.tr
+  
+  tr.setMeta(suggestionPluginKey, {
+    action: 'remove',
+    suggestionId: suggestionId
+  })
+  
+  editor.view.dispatch(tr)
+}
+```
+
+Update the plugin's `apply` method to handle these actions:
+
+```javascript
+apply(tr, pluginState) {
+  // ... existing mapping code ...
+  
+  const action = tr.getMeta(suggestionPluginKey)
+  
+  if (action?.action === 'remove') {
+    const filteredSuggestions = pluginState.suggestions.filter(
+      s => s.id !== action.suggestionId
+    )
+    
+    return {
+      suggestions: filteredSuggestions,
+      decorations: createSuggestionDecorations(tr.doc, filteredSuggestions)
+    }
+  }
+  
+  // ... rest of apply logic ...
+}
+```
+
+For history integration, use metadata to control undo grouping:
+
+```javascript
+// Apply suggestion as single undo-able action
+tr.setMeta('addToHistory', true) // default
+
+// Apply without adding to history (for background changes)
+tr.setMeta('addToHistory', false)
+
+// Close current history event (start new undo group)
+import { closeHistory } from 'prosemirror-history'
+tr = closeHistory(tr)
+```
+
+This prevents suggestion applications from merging with surrounding edits in the undo stack, giving users precise control over reverting changes.
+
+## Integrating with AI APIs asynchronously
+
+Real-world implementations require handling **asynchronous API calls** while the editor remains editable. The key challenge is position tracking between request and response.
+
+Implement debounced suggestion loading:
+
+```javascript
+const AISuggestionExtension = Extension.create({
+  name: 'aiSuggestion',
+  
+  addStorage() {
+    return {
+      isLoading: false,
+      error: null,
+      abortController: null
+    }
+  },
+  
+  addCommands() {
+    return {
+      loadAISuggestions: (selectedText, action, position) => ({ editor }) => {
+        const storage = editor.extensionStorage.aiSuggestion
+        
+        // Cancel previous request
+        if (storage.abortController) {
+          storage.abortController.abort()
+        }
+        
+        storage.abortController = new AbortController()
+        storage.isLoading = true
+        storage.error = null
+        
+        fetchAISuggestion(selectedText, action, storage.abortController.signal)
+          .then(result => {
+            storage.isLoading = false
+            
+            // Map position through any document changes since request
+            const currentFrom = editor.state.tr.mapping.map(position.from)
+            const currentTo = editor.state.tr.mapping.map(position.to)
+            
+            const suggestion = {
+              id: 'suggestion-' + Date.now(),
+              deleteRange: { from: currentFrom, to: currentTo },
+              originalText: selectedText,
+              suggestedText: result.text,
+              type: action
+            }
+            
+            // Add suggestion via transaction
+            const tr = editor.state.tr
+            tr.setMeta(suggestionPluginKey, suggestion)
+            editor.view.dispatch(tr)
+          })
+          .catch(error => {
+            if (error.name !== 'AbortError') {
+              storage.error = error
+              storage.isLoading = false
+            }
+          })
+        
+        return true
+      }
+    }
+  }
+})
+```
+
+The **AbortController** pattern cancels pending requests when new ones arrive, preventing race conditions where an older, slower response overwrites a newer one.
+
+For API configuration, structure your fetch with proper error handling:
+
+```javascript
+async function fetchAISuggestion(text, action, signal) {
+  try {
+    const response = await fetch('/api/ai-suggestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: text,
+        action: action,
+        // Include context like surrounding text if helpful
+      }),
+      signal: signal,
+      // Timeout after 10 seconds
+      signal: AbortSignal.timeout(10000)
+    })
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+    
+    return await response.json()
+    
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Request cancelled')
+    } else if (error.name === 'TimeoutError') {
+      throw new Error('AI request timed out')
+    } else {
+      throw error
+    }
+  }
+}
+```
+
+Debounce the loading to avoid excessive API calls:
+
+```javascript
+let loadTimeout = null
+
+editor.on('selectionUpdate', ({ editor }) => {
+  clearTimeout(loadTimeout)
+  
+  const { from, to } = editor.state.selection
+  if (from === to) return // No selection
+  
+  loadTimeout = setTimeout(() => {
+    const text = editor.state.doc.textBetween(from, to, '')
+    editor.commands.loadAISuggestions(text, 'improve', { from, to })
+  }, 800) // Wait 800ms after selection stops changing
+})
+```
+
+For large documents, implement **chunking** to avoid hitting API payload limits:
+
+```javascript
+function chunkDocument(doc, maxChunkSize = 5000) {
+  const chunks = []
+  let currentChunk = []
+  let currentSize = 0
+  
+  doc.descendants((node, pos) => {
+    if (currentSize + node.nodeSize > maxChunkSize && currentChunk.length > 0) {
+      chunks.push({ nodes: currentChunk, startPos: pos - currentSize })
+      currentChunk = []
+      currentSize = 0
+    }
+    
+    currentChunk.push({ node, pos })
+    currentSize += node.nodeSize
+  })
+  
+  if (currentChunk.length > 0) {
+    chunks.push({ nodes: currentChunk })
+  }
+  
+  return chunks
+}
+
+// Process chunks in parallel
+const chunks = chunkDocument(editor.state.doc)
+const suggestionPromises = chunks.map(chunk => 
+  fetchSuggestionsForChunk(chunk)
+)
+
+const results = await Promise.all(suggestionPromises)
+const allSuggestions = results.flat()
+```
+
+This approach processes large documents efficiently while staying within API constraints.
+
+## Making suggestions accessible to all users
+
+Accessibility separates production-ready implementations from prototypes. Screen reader users, keyboard-only users, and users with visual impairments need equivalent functionality.
+
+Implement **ARIA live regions** for suggestion announcements:
+
+```jsx
+function AIEditor() {
+  const [announcement, setAnnouncement] = useState('')
+  
+  useEffect(() => {
+    // Clear announcement after screen readers process it
+    if (announcement) {
+      const timer = setTimeout(() => setAnnouncement(''), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [announcement])
+  
+  return (
+    <>
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
+      
+      <EditorContent editor={editor} />
+    </>
+  )
+}
+```
+
+Use `aria-live="polite"` for most announcements (waits for user to finish current action) and `aria-live="assertive"` only for critical errors. Set `aria-atomic="true"` to announce the entire region content, not just changes.
+
+Announce suggestions appropriately:
+
+```javascript
+function displaySuggestion(editor, suggestion) {
+  // ... display logic ...
+  
+  setAnnouncement(
+    `Suggestion available: Replace "${suggestion.originalText}" with "${suggestion.suggestedText}". Press Tab to accept, Escape to reject.`
+  )
+}
+```
+
+Implement **keyboard shortcuts** following industry standards:
+
+```javascript
+const AISuggestionExtension = Extension.create({
+  addKeyboardShortcuts() {
+    return {
+      // Accept current suggestion with Tab
+      'Tab': ({ editor }) => {
+        const pluginState = suggestionPluginKey.getState(editor.state)
+        const firstSuggestion = pluginState.suggestions[0]
+        
+        if (firstSuggestion) {
+          acceptSuggestion(editor, firstSuggestion.id)
+          return true // Prevent default Tab behavior
+        }
+        
+        return false // Allow default Tab
+      },
+      
+      // Reject current suggestion with Escape
+      'Escape': ({ editor }) => {
+        const pluginState = suggestionPluginKey.getState(editor.state)
+        const firstSuggestion = pluginState.suggestions[0]
+        
+        if (firstSuggestion) {
+          rejectSuggestion(editor, firstSuggestion.id)
+          return true
+        }
+        
+        return false
+      },
+      
+      // Navigate suggestions with Alt+[ and Alt+]
+      'Alt-[': ({ editor }) => {
+        navigateToPreviousSuggestion(editor)
+        return true
+      },
+      
+      'Alt-]': ({ editor }) => {
+        navigateToNextSuggestion(editor)
+        return true
+      }
+    }
+  }
+})
+```
+
+These shortcuts match industry patterns: **Tab** for accept (GitHub Copilot, Google Docs), **Escape** for reject, and **Alt+brackets** for navigation (VS Code pattern).
+
+Add proper **ARIA attributes** to suggestion UI:
+
+```javascript
+function createActionWidget(suggestion) {
+  const container = document.createElement('span')
+  container.className = 'suggestion-actions'
+  container.setAttribute('role', 'group')
+  container.setAttribute('aria-label', 'Suggestion actions')
+  
+  const acceptBtn = document.createElement('button')
+  acceptBtn.textContent = '✓'
+  acceptBtn.setAttribute('aria-label', `Accept suggestion: ${suggestion.suggestedText}`)
+  acceptBtn.onclick = () => acceptSuggestion(suggestion.id)
+  
+  const rejectBtn = document.createElement('button')
+  rejectBtn.textContent = '✗'
+  rejectBtn.setAttribute('aria-label', 'Reject suggestion')
+  rejectBtn.onclick = () => rejectSuggestion(suggestion.id)
+  
+  container.append(acceptBtn, rejectBtn)
+  return container
+}
+```
+
+Ensure **color contrast** meets WCAG AA standards (4.5:1 for normal text, 3:1 for UI components). Use multiple visual indicators beyond color:
+
+```css
+.ai-suggestion-highlight {
+  /* Color indicator */
+  background: rgba(59, 130, 246, 0.1);
+  
+  /* Shape indicator (underline) */
+  border-bottom: 2px solid rgba(59, 130, 246, 0.5);
+  
+  /* Pattern indicator (dashed) */
+  border-bottom-style: dashed;
+}
+
+.suggestion-deletion {
+  /* Red color for deletions */
+  color: #D13438; /* 4.7:1 contrast on white */
+  background: #FFF4F4;
+  
+  /* Strikethrough pattern */
+  text-decoration: line-through;
+}
+
+.suggestion-addition {
+  /* Green color for additions */
+  color: #0F7C3E; /* 4.5:1 contrast */
+  background: #F0F9F4;
+  
+  /* Underline pattern */
+  text-decoration: underline;
+}
+```
+
+Never rely on color alone—the underline, strikethrough, and background patterns ensure users with color blindness can distinguish suggestion types.
+
+Test with screen readers: **NVDA** (Windows, free), **JAWS** (Windows, commercial), and **VoiceOver** (macOS/iOS, built-in). Test keyboard navigation by disconnecting your mouse and using Tab, arrow keys, and documented shortcuts exclusively.
+
+## Production implementation roadmap
+
+Start with core functionality before adding polish. **Phase 1** establishes the foundation: set up the ProseMirror plugin with basic state management, implement simple decorations for highlighting, and add accept/reject buttons as widgets. This gives you a working prototype to iterate on.
+
+**Phase 2** adds visual sophistication. Implement diff-style visualization with strikethrough for deletions and colored text for additions. Add hover states showing detailed explanations. Implement smooth animations using CSS transitions on decoration classes. Create loading states with spinners or skeleton screens during API calls.
+
+**Phase 3** hardens state management. Build the suggestion repository tracking all pending, accepted, and rejected suggestions. Implement transaction mapping to handle concurrent editing. Add conflict detection for overlapping suggestions. Integrate proper undo/redo support using ProseMirror's history metadata.
+
+**Phase 4** tackles accessibility and polish. Add ARIA live regions for screen reader announcements. Implement comprehensive keyboard shortcuts. Ensure 4.5:1 color contrast ratios. Add user preferences for suggestion frequency and types. Implement error recovery for failed API calls.
+
+**Key architectural decisions** to make early:
+
+Use **TipTap extensions** for the suggestion system rather than standalone plugins. This provides access to storage, commands, and lifecycle hooks while maintaining clean separation from core editor logic. Structure your extension with clear command APIs like `loadAISuggestions()`, `acceptSuggestion()`, and `rejectSuggestion()`.
+
+Choose between **mark-based** and **decoration-based** suggestions. Marks modify the document structure (good for collaborative editing where suggestions sync across clients), while decorations are pure UI overlays (better for local-only suggestions and performance). For most use cases, **decorations are recommended** because they don't pollute the document JSON and perform better with many suggestions.
+
+Handle **position tracking** religiously. Every stored position must be mapped through transactions or it becomes invalid. Use `tr.mapping.map(pos, bias)` with appropriate bias (`-1` or `1`) to handle edge cases at insertion points. Always validate mapped positions before using them.
+
+Implement **proper error boundaries**. Wrap all async operations in try-catch blocks. Show user-friendly error messages, not raw error codes. Provide retry mechanisms for transient failures. Never let a failed suggestion request crash the editor or block editing.
+
+**Testing checklist** before shipping:
+
+- Test with 100+ concurrent suggestions to verify performance
+- Test rapid typing while suggestions load (position mapping)
+- Test undo/redo with accepted and rejected suggestions
+- Test keyboard-only navigation (disconnect mouse)
+- Test with NVDA or VoiceOver screen reader
+- Test color contrast with automated tools (WebAIM, axe DevTools)
+- Test on mobile with touch interactions
+- Test with slow/failed API responses
+- Test document save/load with pending suggestions
+- Test collaborative editing if applicable (Yjs integration)
+
+## Conclusion: Building on proven patterns
+
+The Grammarly-style inline editing pattern is well-established across modern editors—GitHub Copilot, Google Docs suggestions, and VS Code's IntelliSense all use variations of this approach. TipTap's architecture, built on ProseMirror, provides the primitives needed to implement these patterns: BubbleMenu for selection-based triggers, Decorations for visual overlays, Plugin state for suggestion management, and Transaction mapping for position tracking.
+
+The most successful implementations share common characteristics: **non-destructive visualization** using decorations rather than document modifications, **async-aware state management** that handles concurrent editing during API calls, **comprehensive keyboard support** with standard shortcuts (Tab/Escape/Alt-brackets), and **proper accessibility** including ARIA attributes and screen reader announcements.
+
+Start simple with basic highlight and accept/reject functionality, then incrementally add diff visualization, keyboard shortcuts, and error handling. Test continuously with real users, especially keyboard and screen reader users who depend on proper accessibility implementation. The open-source examples like `tiptap-diff-suggestions` and TipTap's official AI extensions provide reference implementations demonstrating these patterns in production code.
+
+By combining TipTap's React integration, ProseMirror's powerful editor primitives, and careful attention to accessibility, you can build an AI editing experience that feels native, responsive, and universally usable.

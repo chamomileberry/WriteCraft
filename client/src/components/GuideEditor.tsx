@@ -45,6 +45,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useToast } from '@/hooks/use-toast';
 import type { Guide } from '@shared/schema';
+import AIBubbleMenu from '@/components/AIBubbleMenu';
+import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 
 interface GuideEditorProps {
   guideId: string;
@@ -313,6 +315,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         mode: 'all',
       }),
       Typography,
+      AISuggestionsExtension,
     ],
     content: guide?.content || '',
     editorProps: {
@@ -635,6 +638,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               }}
             >
               <EditorContent editor={editor} data-testid="editor-content" />
+              <AIBubbleMenu editor={editor} />
             </div>
           </div>
         </CardContent>
