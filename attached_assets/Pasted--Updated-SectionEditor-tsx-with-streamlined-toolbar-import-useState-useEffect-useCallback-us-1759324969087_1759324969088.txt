@@ -1,0 +1,313 @@
+// Updated SectionEditor.tsx with streamlined toolbar
+
+import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useEditor, EditorContent } from '@tiptap/react';
+// ... all your existing imports ...
+import { 
+  ImageIcon,
+  Video,
+  LinkIcon,
+  Download,
+  Plus,
+  MoreHorizontal,
+  ChevronDown,
+} from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+// ... all your existing code ...
+
+export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, SectionEditorProps>(
+  ({ projectId, section, onContentChange, onSaveStatusChange, onLastSaveTimeChange, onWordCountChange }, ref) => {
+    const [isInsertImageDialogOpen, setIsInsertImageDialogOpen] = useState(false);
+    const [isInsertVideoDialogOpen, setIsInsertVideoDialogOpen] = useState(false);
+    const [isInsertLinkDialogOpen, setIsInsertLinkDialogOpen] = useState(false);
+    const [insertImageUrl, setInsertImageUrl] = useState('');
+    const [insertVideoUrl, setInsertVideoUrl] = useState('');
+    const [insertLinkUrl, setInsertLinkUrl] = useState('');
+    const [showSecondaryToolbar, setShowSecondaryToolbar] = useState(false);
+    
+    // ... all your existing state and logic ...
+
+    // Media insertion handlers remain the same
+    const handleInsertImage = () => {
+      if (insertImageUrl.trim()) {
+        editor?.chain().focus().setImage({ src: insertImageUrl.trim() }).run();
+        setInsertImageUrl('');
+        setIsInsertImageDialogOpen(false);
+      }
+    };
+
+    const handleInsertVideo = () => {
+      if (insertVideoUrl.trim()) {
+        editor?.commands.setYoutubeVideo({
+          src: insertVideoUrl.trim(),
+          width: 640,
+          height: 480,
+        });
+        setInsertVideoUrl('');
+        setIsInsertVideoDialogOpen(false);
+      }
+    };
+
+    const handleInsertLink = () => {
+      if (insertLinkUrl.trim()) {
+        editor?.chain().focus().setLink({ href: insertLinkUrl.trim() }).run();
+        setInsertLinkUrl('');
+        setIsInsertLinkDialogOpen(false);
+      }
+    };
+
+    const handleExport = (format: string) => {
+      const content = editor?.getHTML() || '';
+      const title = section?.title || 'Untitled';
+      
+      switch(format) {
+        case 'html':
+          const htmlFile = new Blob([content], { type: 'text/html' });
+          const htmlLink = document.createElement('a');
+          htmlLink.href = URL.createObjectURL(htmlFile);
+          htmlLink.download = `${title}.html`;
+          htmlLink.click();
+          break;
+          
+        case 'pdf':
+          toast({
+            title: "PDF Export",
+            description: "Opening print dialog. Select 'Save as PDF' from the destination dropdown.",
+          });
+          setTimeout(() => window.print(), 500);
+          break;
+          
+        case 'docx':
+          const textContent = editor?.getText() || '';
+          const docxBlob = new Blob([`${title}\n\n${textContent}`], { 
+            type: 'text/plain' 
+          });
+          const docxLink = document.createElement('a');
+          docxLink.href = URL.createObjectURL(docxBlob);
+          docxLink.download = `${title}.txt`;
+          docxLink.click();
+          break;
+      }
+    };
+
+    if (!editor) {
+      return null;
+    }
+
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* STREAMLINED TOOLBAR */}
+        <div className="border-b bg-background/95 backdrop-blur">
+          {/* Primary toolbar row - always visible */}
+          <div className="flex items-center justify-between gap-2 px-4 py-2">
+            {/* Left: Main formatting toolbar */}
+            <div className="flex-1 min-w-0">
+              <EditorToolbar editor={editor} title={section.title} />
+            </div>
+            
+            {/* Right: Grouped actions */}
+            <TooltipProvider>
+              <div className="flex items-center gap-1">
+                {/* Insert Menu - Groups image, video, link */}
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Insert</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setIsInsertImageDialogOpen(true)}>
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Insert Image
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsInsertVideoDialogOpen(true)}>
+                      <Video className="h-4 w-4 mr-2" />
+                      Insert Video
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsInsertLinkDialogOpen(true)}>
+                      <LinkIcon className="h-4 w-4 mr-2" />
+                      Insert Link
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Export Menu */}
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Export</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleExport('html')}>
+                      Export as HTML
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                      Export as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('docx')}>
+                      Export as Text
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* More Options */}
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>More options</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowSecondaryToolbar(!showSecondaryToolbar)}>
+                      {showSecondaryToolbar ? 'Hide' : 'Show'} Advanced Tools
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => editor?.commands.selectAll()}>
+                      Select All
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.print()}>
+                      Print Section
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TooltipProvider>
+          </div>
+
+          {/* Secondary toolbar row - collapsible for advanced features */}
+          {showSecondaryToolbar && (
+            <div className="border-t px-4 py-2 flex items-center gap-2 bg-muted/50">
+              <span className="text-xs text-muted-foreground mr-2">Advanced:</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+                className={editor?.isActive('codeBlock') ? 'bg-accent' : ''}
+              >
+                Code Block
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+              >
+                Horizontal Line
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3 }).run()}
+              >
+                Insert Table
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Dialogs - unchanged */}
+        <Dialog open={isInsertImageDialogOpen} onOpenChange={setIsInsertImageDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Insert Image</DialogTitle>
+              <DialogDescription>
+                Enter the URL of the image you want to insert.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              value={insertImageUrl}
+              onChange={(e) => setInsertImageUrl(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              onKeyDown={(e) => e.key === 'Enter' && handleInsertImage()}
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsInsertImageDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleInsertImage} disabled={!insertImageUrl.trim()}>
+                Insert
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isInsertVideoDialogOpen} onOpenChange={setIsInsertVideoDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Insert Video</DialogTitle>
+              <DialogDescription>
+                Enter the YouTube URL of the video you want to insert.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              value={insertVideoUrl}
+              onChange={(e) => setInsertVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              onKeyDown={(e) => e.key === 'Enter' && handleInsertVideo()}
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsInsertVideoDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleInsertVideo} disabled={!insertVideoUrl.trim()}>
+                Insert
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isInsertLinkDialogOpen} onOpenChange={setIsInsertLinkDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Insert Link</DialogTitle>
+              <DialogDescription>
+                Enter the URL you want to link to.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              value={insertLinkUrl}
+              onChange={(e) => setInsertLinkUrl(e.target.value)}
+              placeholder="https://example.com"
+              onKeyDown={(e) => e.key === 'Enter' && handleInsertLink()}
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsInsertLinkDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleInsertLink} disabled={!insertLinkUrl.trim()}>
+                Insert
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Editor - unchanged */}
+        <div className="flex-1 overflow-auto">
+          <EditorContent editor={editor} />
+        </div>
+      </div>
+    );
+  }
+);
+
+SectionEditor.displayName = 'SectionEditor';
