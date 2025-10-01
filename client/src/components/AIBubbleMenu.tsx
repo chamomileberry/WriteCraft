@@ -304,7 +304,12 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       )}
 
       {/* Custom Prompt Dialog */}
-      <Dialog open={showAskDialog} onOpenChange={setShowAskDialog}>
+      <Dialog open={showAskDialog} onOpenChange={(open) => {
+        setShowAskDialog(open);
+        if (!open) {
+          setCustomPrompt(''); // Clear prompt when dialog closes
+        }
+      }}>
         <DialogContent data-testid="ai-ask-dialog">
           <DialogHeader>
             <DialogTitle>Ask AI</DialogTitle>
