@@ -282,7 +282,6 @@ export function ProjectOutline({
   const [editingTitle, setEditingTitle] = useState('');
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [lastOverId, setLastOverId] = useState<UniqueIdentifier | null>(null);
-  
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
