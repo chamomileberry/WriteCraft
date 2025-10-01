@@ -144,7 +144,7 @@ function SortableItem({
       
       {/* Drop indicator for folder highlighting */}
       {isDragOver && dropPosition === 'inside' && section.type === 'folder' && (
-        <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-md z-10" />
+        <div className="absolute inset-0 bg-primary/20 border-2 border-primary border-dashed rounded-md z-10 pointer-events-none" />
       )}
       
       <div
@@ -437,22 +437,29 @@ export function ProjectOutline({
       return;
     }
 
-    const pointerY = activeRect.top + activeRect.height / 2;
+    // Get the mouse/pointer position relative to the drop target
+    const clientY = event.active.rect.current.translated?.top ?? event.active.rect.current.initial?.top ?? 0;
+    const pointerY = clientY + (activeRect.height / 2);
     
-    // For folders, make the "inside" zone larger to make it easier to drop into them
-    const topBoundary = isFolder ? overRect.top + overRect.height * 0.2 : overRect.top + overRect.height * 0.25;
-    const bottomBoundary = isFolder ? overRect.bottom - overRect.height * 0.2 : overRect.bottom - overRect.height * 0.25;
+    // For folders, create larger drop zones to make it easier to drop into them
+    const topBoundary = isFolder ? overRect.top + overRect.height * 0.15 : overRect.top + overRect.height * 0.33;
+    const bottomBoundary = isFolder ? overRect.bottom - overRect.height * 0.15 : overRect.bottom - overRect.height * 0.33;
 
     let position: DropPosition;
 
+    // Determine drop position based on pointer location
     if (pointerY < topBoundary) {
       position = 'above';
     } else if (pointerY > bottomBoundary) {
       position = 'below';
-    } else if (isFolder) {
-      position = 'inside';
     } else {
-      position = pointerY < overRect.top + overRect.height / 2 ? 'above' : 'below';
+      // In the middle zone
+      if (isFolder) {
+        position = 'inside';
+      } else {
+        // For pages, prefer 'above' when in the middle
+        position = 'above';
+      }
     }
 
     setDropIndicator({ id: over.id, position });
@@ -507,15 +514,35 @@ export function ProjectOutline({
       }
     }
 
-    // Check if this is truly a no-op
-    if (sourceItem.parentId === newParentId && targetItem.section.id === sourceItem.section.id) {
+    // Check if this is truly a no-op (same item, same position)
+    if (sourceItem.parentId === newParentId && targetItem.section.id === sourceItem.section.id && dropPosition !== 'inside') {
       console.log('[DND] No change needed - dropping on self');
       return;
     }
 
-    // Allow moving into the same folder (reordering) or different folders
-    if (sourceItem.parentId === newParentId && dropPosition === 'inside') {
-      console.log('[DND] Reordering within same folder');
+    // Special handling for dropping into folders
+    if (dropPosition === 'inside' && targetItem.section.type === 'folder') {
+      // If already in this folder, check if we need to reorder to the end
+      if (sourceItem.parentId === newParentId) {
+        const siblings = flatList.filter(
+          f => f.parentId === newParentId && f.section.id !== sourceItem.section.id
+        );
+        
+        // If this item is already the last in the folder, it's a no-op
+        const sourceIndex = flatList.findIndex(f => f.section.id === sourceItem.section.id);
+        const lastSiblingIndex = Math.max(...siblings.map(s => 
+          flatList.findIndex(f => f.section.id === s.section.id)
+        ));
+        
+        if (siblings.length === 0 || sourceIndex > lastSiblingIndex) {
+          console.log('[DND] Already in correct position at end of folder');
+          return;
+        }
+        
+        console.log('[DND] Reordering to end of same folder');
+      } else {
+        console.log('[DND] Moving to different folder');
+      }
     }
 
     // Build the reorder payload keeping the relative ordering of the target parent's children
