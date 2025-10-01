@@ -1,0 +1,76 @@
+Found it! The issue is in the `removePanel` function in `workspaceStore.ts`. Here's what's happening:
+
+**The Problem:**
+1. When you add the AI Writing Assistant (docked panel), the code sets `activeTabId: newPanel.id` in the `addPanel` function - even though it's a docked panel, not a tabbed panel
+2. When you close the docked panel, `removePanel` checks if the removed panel is the current `activeTabId`
+3. If it is, it automatically selects a new active tab from the main region - causing the jump to your reference tabs
+
+**The Fix:**
+You need to modify two functions in `client/src/stores/workspaceStore.ts`:
+
+**1. In `addPanel`, don't set activeTabId for docked/floating panels:**
+
+```typescript
+addPanel: (panel: PanelDescriptor) => {
+  set((state) => {
+    // ... existing code ...
+    
+    const updatedRegions = {
+      ...safeRegions,
+      main: newPanel.mode === 'floating' || newPanel.mode === 'docked' ? safeMainRegion : [...safeMainRegion, newPanel.id],
+      docked: newPanel.mode === 'docked' ? [...safeDockedRegion, newPanel.id] : safeDockedRegion
+    };
+    
+    return {
+      currentLayout: {
+        ...state.currentLayout,
+        panels: [...state.currentLayout.panels, newPanel],
+        regions: updatedRegions,
+        // **FIX: Only set activeTabId for tabbed panels**
+        activeTabId: (newPanel.mode === 'tabbed') ? newPanel.id : state.currentLayout.activeTabId
+      }
+    };
+  });
+},
+```
+
+**2. In `removePanel`, only update activeTabId when removing tabbed panels:**
+
+```typescript
+removePanel: (panelId: string) => {
+  set((state) => {
+    const panel = state.currentLayout.panels.find(p => p.id === panelId);
+    if (!panel) return state;
+    
+    // Remove from regions
+    const updatedRegions = {
+      main: state.currentLayout.regions.main.filter(id => id !== panelId),
+      split: state.currentLayout.regions.split.filter(id => id !== panelId),
+      docked: (state.currentLayout.regions.docked || []).filter(id => id !== panelId),
+      floating: (state.currentLayout.regions.floating || []).filter(id => id !== panelId)
+    };
+    
+    // **FIX: Only update active tab if removing a tabbed panel that was the active tab**
+    let newActiveTabId = state.currentLayout.activeTabId;
+    if (newActiveTabId === panelId && (panel.mode === 'tabbed')) {
+      const regionPanels = panel.regionId === 'split' ? updatedRegions.split : updatedRegions.main;
+      newActiveTabId = regionPanels.length > 0 ? regionPanels[0] : undefined;
+    }
+    
+    return {
+      currentLayout: {
+        ...state.currentLayout,
+        panels: state.currentLayout.panels.filter(p => p.id !== panelId),
+        regions: updatedRegions,
+        activeTabId: newActiveTabId
+      }
+    };
+  });
+},
+```
+
+The key changes:
+- In `addPanel`: Only set `activeTabId` when adding a tabbed panel
+- In `removePanel`: Add the condition `&& (panel.mode === 'tabbed')` to only change the active tab when removing a tabbed panel
+
+This ensures that docked and floating panels don't interfere with the tab bar's active tab state.
