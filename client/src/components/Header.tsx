@@ -112,43 +112,43 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between gap-4 h-16">
           {/* Logo */}
           <button 
             onClick={() => setLocation('/')} 
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0"
             data-testid="button-logo-home"
           >
             <BookOpen className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-serif font-bold text-foreground">WriteCraft</h1>
+            <h1 className="text-xl font-serif font-bold text-foreground whitespace-nowrap">WriteCraft</h1>
           </button>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8 flex-shrink-0">
             <button 
               onClick={() => setLocation('/generators')}
-              className="text-foreground hover:text-primary transition-colors" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-generators"
             >
               Generators
             </button>
             <button 
               onClick={() => setLocation('/guides')}
-              className="text-foreground hover:text-primary transition-colors" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-guides"
             >
               Guides
             </button>
             <button 
               onClick={() => onNavigate?.('notebook')}
-              className="text-foreground hover:text-primary transition-colors" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-notebook"
             >
               Notebook
             </button>
             <button 
               onClick={() => onNavigate?.('projects')}
-              className="text-foreground hover:text-primary transition-colors" 
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
               data-testid="link-projects"
             >
               Projects
@@ -156,7 +156,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </nav>
 
           {/* Search and Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <form onSubmit={handleSearch} className="hidden sm:flex items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
