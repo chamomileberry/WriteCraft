@@ -189,46 +189,7 @@ function SortableItem({
         )}
       </div>
 
-      {/* Nested children for folders */}
-      {section.type === 'folder' && isExpanded && section.children && section.children.length > 0 && (
-        <div className="ml-4">
-          <ReactSortable
-            list={section.children as SortableSection[]}
-            setList={onChildrenChange}
-            group="nested"
-            animation={150}
-            fallbackOnBody={true}
-            swapThreshold={0.65}
-            ghostClass="opacity-30"
-            chosenClass="bg-primary/10"
-            dragClass="rotate-3"
-          >
-            {section.children.map((child) => (
-              <SortableItemWrapper
-                key={child.id}
-                section={child as SortableSection}
-                depth={depth + 1}
-                projectId={section.id}
-                activeSectionId={isActive ? section.id : null}
-                onSectionClick={onSectionClick}
-                expandedIds={new Set()}
-                setExpandedIds={() => {}}
-                editingId={null}
-                editingTitle=""
-                setEditingId={() => {}}
-                setEditingTitle={() => {}}
-                handleCreateFolder={onCreateFolder}
-                handleCreatePage={onCreatePage}
-                handleStartEdit={onStartEdit}
-                handleSaveEdit={onSaveEdit}
-                handleCancelEdit={onCancelEdit}
-                handleDelete={onDelete}
-                updateChildrenInParent={() => {}}
-              />
-            ))}
-          </ReactSortable>
-        </div>
-      )}
+      
     </div>
   );
 }
@@ -294,24 +255,67 @@ function SortableItemWrapper({
   };
 
   return (
-    <SortableItem
-      section={section}
-      depth={depth}
-      isActive={isActive}
-      isExpanded={isExpanded}
-      isEditing={isEditing}
-      editingTitle={editingTitle}
-      onToggleExpanded={toggleExpanded}
-      onSectionClick={() => onSectionClick(section)}
-      onStartEdit={() => handleStartEdit(section)}
-      onSaveEdit={handleSaveEdit}
-      onCancelEdit={handleCancelEdit}
-      onTitleChange={setEditingTitle}
-      onCreateFolder={() => handleCreateFolder(section.id)}
-      onCreatePage={() => handleCreatePage(section.id)}
-      onDelete={() => handleDelete(section.id)}
-      onChildrenChange={handleChildrenChange}
-    />
+    <div>
+      <SortableItem
+        section={section}
+        depth={depth}
+        isActive={isActive}
+        isExpanded={isExpanded}
+        isEditing={isEditing}
+        editingTitle={editingTitle}
+        onToggleExpanded={toggleExpanded}
+        onSectionClick={() => onSectionClick(section)}
+        onStartEdit={() => handleStartEdit(section)}
+        onSaveEdit={handleSaveEdit}
+        onCancelEdit={handleCancelEdit}
+        onTitleChange={setEditingTitle}
+        onCreateFolder={() => handleCreateFolder(section.id)}
+        onCreatePage={() => handleCreatePage(section.id)}
+        onDelete={() => handleDelete(section.id)}
+        onChildrenChange={handleChildrenChange}
+      />
+      
+      {/* Render nested children only when expanded */}
+      {section.type === 'folder' && isExpanded && section.children && section.children.length > 0 && (
+        <div className="ml-4">
+          <ReactSortable
+            list={section.children as SortableSection[]}
+            setList={handleChildrenChange}
+            group="nested"
+            animation={150}
+            fallbackOnBody={true}
+            swapThreshold={0.65}
+            ghostClass="opacity-30"
+            chosenClass="bg-primary/10"
+            dragClass="rotate-3"
+          >
+            {section.children.map((child) => (
+              <SortableItemWrapper
+                key={child.id}
+                section={child as SortableSection}
+                depth={depth + 1}
+                projectId={projectId}
+                activeSectionId={activeSectionId}
+                onSectionClick={onSectionClick}
+                expandedIds={expandedIds}
+                setExpandedIds={setExpandedIds}
+                editingId={editingId}
+                editingTitle={editingTitle}
+                setEditingId={setEditingId}
+                setEditingTitle={setEditingTitle}
+                handleCreateFolder={handleCreateFolder}
+                handleCreatePage={handleCreatePage}
+                handleStartEdit={handleStartEdit}
+                handleSaveEdit={handleSaveEdit}
+                handleCancelEdit={handleCancelEdit}
+                handleDelete={handleDelete}
+                updateChildrenInParent={updateChildrenInParent}
+              />
+            ))}
+          </ReactSortable>
+        </div>
+      )}
+    </div>
   );
 }
 
