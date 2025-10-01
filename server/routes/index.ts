@@ -120,4 +120,5 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/laws", lawRoutes);
   app.use("/api/policies", policyRoutes);
   app.use("/api/potions", potionRoutes);
+  app.use("/api/plants", plantRoutes);
 }
