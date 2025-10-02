@@ -1193,6 +1193,31 @@ export async function generateArticleForContent(
   switch (contentType) {
     case 'characters':
       content = await storage.getCharacter(contentId, userId, notebookId);
+      
+      // Resolve occupation and species IDs to names
+      if (content) {
+        if (content.occupation) {
+          try {
+            const profession = await storage.getProfession(content.occupation);
+            if (profession) {
+              content.occupation = profession.name;
+            }
+          } catch (error) {
+            console.error('Failed to resolve occupation:', error);
+          }
+        }
+        
+        if (content.species) {
+          try {
+            const species = await storage.getSpecies(content.species);
+            if (species) {
+              content.species = species.name;
+            }
+          } catch (error) {
+            console.error('Failed to resolve species:', error);
+          }
+        }
+      }
       break;
     case 'locations':
       content = await storage.getLocation(contentId, userId, notebookId);
