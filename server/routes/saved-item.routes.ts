@@ -154,4 +154,103 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
+// Sync endpoint to update itemData for all saved_items with current content
+router.post("/sync/:userId", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const requestedUserId = req.params.userId;
+    
+    // Validate that authenticated user can only sync their own saved items
+    if (userId !== requestedUserId) {
+      return res.status(403).json({ error: 'Access denied - can only sync your own saved items' });
+    }
+    
+    // Get all saved items for this user
+    const savedItems = await storage.getUserSavedItems(userId);
+    
+    const results = {
+      total: savedItems.length,
+      updated: 0,
+      failed: 0,
+      errors: [] as string[]
+    };
+    
+    // For each saved item, fetch current data and update itemData
+    for (const savedItem of savedItems) {
+      try {
+        let currentData = null;
+        
+        console.log(`[Sync] Processing ${savedItem.itemType} ${savedItem.itemId}`);
+        
+        // Fetch current data based on item type
+        switch (savedItem.itemType) {
+          case 'character':
+            currentData = await storage.getCharacter(savedItem.itemId, userId, savedItem.notebookId);
+            break;
+          case 'plant':
+            currentData = await storage.getPlant(savedItem.itemId, userId, savedItem.notebookId);
+            break;
+          case 'weapon':
+            currentData = await storage.getWeapon(savedItem.itemId);
+            break;
+          case 'armor':
+            currentData = await storage.getArmor(savedItem.itemId);
+            break;
+          case 'location':
+            currentData = await storage.getLocation(savedItem.itemId, userId, savedItem.notebookId);
+            break;
+          case 'creature':
+            currentData = await storage.getCreature(savedItem.itemId);
+            break;
+          case 'faction':
+            currentData = await storage.getFaction(savedItem.itemId, userId, savedItem.notebookId);
+            break;
+          case 'culture':
+            currentData = await storage.getCulture(savedItem.itemId, userId, savedItem.notebookId);
+            break;
+          case 'religion':
+            currentData = await storage.getReligion(savedItem.itemId);
+            break;
+          case 'language':
+            currentData = await storage.getLanguage(savedItem.itemId);
+            break;
+          case 'technology':
+            currentData = await storage.getTechnology(savedItem.itemId);
+            break;
+          case 'profession':
+            currentData = await storage.getProfession(savedItem.itemId);
+            break;
+          case 'species':
+            currentData = await storage.getSpecies(savedItem.itemId);
+            break;
+          default:
+            // Skip unknown types
+            continue;
+        }
+        
+        console.log(`[Sync] Fetched data for ${savedItem.itemType} ${savedItem.itemId}:`, currentData ? 'found' : 'not found');
+        
+        if (currentData) {
+          // Update the itemData
+          await storage.updateSavedItemData(savedItem.id, userId, currentData);
+          console.log(`[Sync] Updated itemData for saved item ${savedItem.id}`);
+          results.updated++;
+        } else {
+          results.errors.push(`Item not found: ${savedItem.itemType} ${savedItem.itemId}`);
+          results.failed++;
+        }
+      } catch (error) {
+        results.failed++;
+        results.errors.push(`Failed to sync ${savedItem.itemType} ${savedItem.itemId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+    
+    res.json(results);
+  } catch (error) {
+    console.error('Error syncing saved items:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 export default router;
