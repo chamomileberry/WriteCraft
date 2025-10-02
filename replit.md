@@ -37,6 +37,11 @@ Preferred communication style: Simple, everyday language.
 - **Component Variants**: Consistent styling patterns across buttons, cards, and interactive elements
 
 ### Content Management
+- **Notebook System**: User-created notebooks for organizing all worldbuilding content with proper scoping
+  - **Active Notebook**: Zustand store persists active notebook selection across sessions
+  - **Automatic Activation**: Newly created notebooks are automatically set as active
+  - **Query Cache Sync**: All notebook mutations (create/update/delete) invalidate React Query cache to prevent race conditions
+  - **Fixed Issue (Oct 2024)**: Resolved critical bug where new notebooks would disappear after creation due to stale cache overwriting Zustand store
 - **Generator System**: Modular content generation for characters, plots, settings, names, conflicts, themes, and moods
 - **Writing Guides**: Structured educational content with categories, difficulty levels, and comprehensive search
 - **User Collections**: System for saving and organizing generated content and favorite guides
