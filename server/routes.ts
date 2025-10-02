@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { registerDomainRoutes } from "./routes/index";
 import aiRoutes from "./routes/ai.routes";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { 
   insertCharacterSchema, 
   updateCharacterSchema,
@@ -56,6 +57,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register AI routes
   app.use("/api/ai", aiRoutes);
+
+  // Image upload routes (reference: blueprint:javascript_object_storage)
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error retrieving object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.post("/api/upload/image", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error generating upload URL:", error);
+      res.status(500).json({ error: "Failed to generate upload URL" });
+    }
+  });
 
 
 
