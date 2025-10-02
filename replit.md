@@ -41,6 +41,7 @@ Preferred communication style: Simple, everyday language.
   - **Active Notebook**: Zustand store persists active notebook selection across sessions
   - **Automatic Activation**: Newly created notebooks are automatically set as active
   - **Query Cache Sync**: All notebook mutations (create/update/delete) invalidate React Query cache to prevent race conditions
+  - **Quick Access**: Settings gear icon in ContentTypeModal provides direct access to NotebookManager for convenient notebook management during content creation
   - **Fixed Issue (Oct 2024)**: Resolved critical bug where new notebooks would disappear after creation due to stale cache overwriting Zustand store
 - **Generator System**: Modular content generation for characters, plots, settings, names, conflicts, themes, and moods
 - **Writing Guides**: Structured educational content with categories, difficulty levels, and comprehensive search
