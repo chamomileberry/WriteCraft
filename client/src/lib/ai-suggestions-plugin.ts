@@ -49,7 +49,7 @@ if (typeof document !== 'undefined' && !document.getElementById('ai-suggestion-s
 
     .ai-canvas-popup {
       position: absolute;
-      z-index: 9999;
+      z-index: 99999;
       animation: aiPopupFadeIn 0.3s ease-out;
       pointer-events: none;
     }
@@ -117,18 +117,23 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   // The actual popup card
   const card = document.createElement('div');
   card.className = 'ai-canvas-popup-card';
+  
+  // Check if we're on mobile
+  const isMobile = window.innerWidth <= 768;
+  
+  // Initial positioning - will be adjusted dynamically
   card.style.cssText = `
     position: absolute;
     left: 0;
     bottom: 24px;
-    min-width: 320px;
-    max-width: 400px;
+    min-width: ${isMobile ? '280px' : '320px'};
+    max-width: ${isMobile ? '90vw' : '400px'};
     background: white;
     border: 1px solid rgba(203, 213, 225, 0.6);
     border-radius: 12px;
     padding: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
-    z-index: 9999;
+    z-index: 99999;
     pointer-events: auto;
     animation: aiPopupFadeIn 0.3s ease-out;
   `.replace(/\s+/g, ' ').trim();
@@ -300,6 +305,74 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   actionsDiv.append(dismissBtn, acceptBtn);
   card.append(typeBadge, originalDiv, arrowDiv, suggestedDiv, actionsDiv);
   popupWidget.appendChild(card);
+
+  // Function to dynamically adjust positioning based on viewport and actual measurements
+  const adjustPosition = () => {
+    const cardRect = card.getBoundingClientRect();
+    const popupRect = popupWidget.getBoundingClientRect();
+    
+    // Dynamically measure toolbar height by finding header elements
+    let actualToolbarHeight = 0;
+    const header = document.querySelector('header');
+    if (header) {
+      actualToolbarHeight = header.getBoundingClientRect().bottom;
+    }
+    
+    // Calculate if popup would extend beyond viewport top
+    const popupTopIfAbove = popupRect.top - cardRect.height - 24;
+    const wouldOverlapToolbar = popupTopIfAbove < actualToolbarHeight;
+    const wouldOverlapViewportTop = popupTopIfAbove < 10;
+    
+    // Only position below if there's an actual collision
+    if (wouldOverlapToolbar || wouldOverlapViewportTop) {
+      card.style.bottom = 'auto';
+      card.style.top = '24px';
+    } else {
+      // Restore default above positioning if no collision
+      card.style.bottom = '24px';
+      card.style.top = 'auto';
+    }
+    
+    // Ensure horizontal positioning stays within viewport
+    const cardLeft = cardRect.left;
+    const cardRight = cardRect.right;
+    const marginFromEdge = isMobile ? 10 : 20;
+    
+    if (cardLeft < marginFromEdge) {
+      card.style.left = `${marginFromEdge - cardLeft}px`;
+    } else if (cardRight > window.innerWidth - marginFromEdge) {
+      card.style.left = `${window.innerWidth - cardRight - marginFromEdge}px`;
+    }
+  };
+
+  // Initial positioning adjustment
+  setTimeout(adjustPosition, 0);
+
+  // Re-adjust on scroll and resize to handle layout changes
+  let resizeObserver: ResizeObserver | null = null;
+  const handleScrollOrResize = () => {
+    adjustPosition();
+  };
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(handleScrollOrResize);
+    resizeObserver.observe(document.body);
+  }
+  
+  window.addEventListener('scroll', handleScrollOrResize, true);
+  window.addEventListener('resize', handleScrollOrResize);
+
+  // Cleanup observers when card is removed
+  const cleanupObservers = () => {
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+    }
+    window.removeEventListener('scroll', handleScrollOrResize, true);
+    window.removeEventListener('resize', handleScrollOrResize);
+  };
+
+  // Store cleanup function on the card for potential future use
+  (card as any)._cleanup = cleanupObservers;
 
   decorations.push(
     Decoration.widget(activeSuggestion.deleteRange.to, () => popupWidget, { side: 1 })
