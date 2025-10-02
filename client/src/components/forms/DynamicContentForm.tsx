@@ -495,7 +495,7 @@ export default function DynamicContentForm({
                       <div className="grid gap-4 md:grid-cols-2">
                         {tab.fields.map(field => (
                           <div key={field.name} className={
-                            field.type === "textarea" ? "md:col-span-2" : ""
+                            field.type === "textarea" || field.type === "image" ? "md:col-span-2" : ""
                           }>
                             {renderField(field)}
                           </div>
