@@ -262,22 +262,22 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                     }`}
                     data-testid={`card-notebook-${notebook.id}`}
                   >
-                    <CardHeader className="pb-2 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <CardHeader className="pb-2 space-y-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
                           <CardTitle className="text-base sm:text-lg font-serif truncate">{notebook.name}</CardTitle>
                           {activeNotebookId === notebook.id && (
-                            <Badge variant="default" data-testid="badge-active-notebook" className="shrink-0 text-xs">Active</Badge>
+                            <Badge variant="default" data-testid="badge-active-notebook" className="shrink-0 text-xs hidden sm:inline-flex">Active</Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                        <div className="flex items-center shrink-0">
                           <Button
                             size="icon"
                             variant="ghost"
                             onClick={() => handleEditClick(notebook)}
                             data-testid={`button-edit-notebook-${notebook.id}`}
                             title="Edit notebook"
-                            className="h-8 w-8 sm:h-9 sm:w-9"
+                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -287,21 +287,24 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                             onClick={() => handleDeleteClick(notebook)}
                             data-testid={`button-delete-notebook-${notebook.id}`}
                             title="Delete notebook"
-                            className="h-8 w-8 sm:h-9 sm:w-9"
+                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      {notebook.description && (
-                        <CardDescription className="mb-2">{notebook.description}</CardDescription>
+                      {activeNotebookId === notebook.id && (
+                        <Badge variant="default" data-testid="badge-active-notebook-mobile" className="shrink-0 text-xs w-fit sm:hidden">Active</Badge>
                       )}
-                      <div className="flex items-center justify-between">
+                    </CardHeader>
+                    <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                      {notebook.description && (
+                        <CardDescription className="mb-2 text-sm">{notebook.description}</CardDescription>
+                      )}
+                      <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          Created {formatDistance(new Date(notebook.createdAt), new Date(), { addSuffix: true })}
+                          <span className="truncate">Created {formatDistance(new Date(notebook.createdAt), new Date(), { addSuffix: true })}</span>
                         </div>
                         {activeNotebookId !== notebook.id && (
                           <Button
@@ -309,6 +312,7 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                             variant="outline"
                             onClick={() => handleSetActive(notebook)}
                             data-testid={`button-activate-notebook-${notebook.id}`}
+                            className="shrink-0 text-xs h-7"
                           >
                             Set Active
                           </Button>
