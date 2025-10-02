@@ -83,11 +83,19 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
     },
     onSuccess: (newNotebook) => {
       addNotebook(newNotebook);
+      
+      // Automatically set the new notebook as active
+      setActiveNotebook(newNotebook.id);
+      
       setCreateForm({ name: "", description: "" });
       setIsCreateOpen(false);
+      
+      // Invalidate notebook queries to ensure all components get fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/notebooks'] });
+      
       toast({
         title: "Notebook Created",
-        description: `"${newNotebook.name}" has been created successfully.`
+        description: `"${newNotebook.name}" is now your active notebook.`
       });
     },
     onError: (error) => {
@@ -109,6 +117,10 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
       updateNotebook(updatedNotebook.id, updatedNotebook);
       setEditingNotebook(null);
       setEditForm({ name: "", description: "" });
+      
+      // Invalidate notebook queries to ensure all components get fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/notebooks'] });
+      
       toast({
         title: "Notebook Updated",
         description: `"${updatedNotebook.name}" has been updated successfully.`
@@ -132,6 +144,10 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
     onSuccess: (_, notebookId) => {
       removeNotebook(notebookId);
       setDeletingNotebook(null);
+      
+      // Invalidate notebook queries to ensure all components get fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/notebooks'] });
+      
       toast({
         title: "Notebook Deleted",
         description: "The notebook has been deleted successfully."
