@@ -103,13 +103,41 @@ function NotebookPage() {
 // Content editor page component  
 function EditorPage({ params }: { params: { type: string; id: string } }) {
   const [, setLocation] = useLocation();
+  const [searchQuery, setSearchQuery] = useState('');
   const mapping = getMappingByUrlSegment(params.type);
+  
   if (!mapping) {
     return <NotFound />;
   }
 
+  const handleNavigate = (toolId: string) => {
+    if (toolId === 'notebook') {
+      setLocation('/notebook');
+    } else if (toolId === 'projects') {
+      setLocation('/projects');
+    } else if (toolId === 'generators') {
+      setLocation('/generators');
+    } else if (toolId === 'guides') {
+      setLocation('/guides');
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleCreateNew = () => {
+    setLocation('/notebook');
+  };
+
   return (
     <Layout>
+      <Header
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+        onCreateNew={handleCreateNew}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ContentEditor 
           contentType={mapping.id}
