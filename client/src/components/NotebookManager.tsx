@@ -201,26 +201,27 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+        <DialogContent className="max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-serif flex items-center gap-2">
-              <BookOpen className="h-6 w-6" />
+            <DialogTitle className="text-xl sm:text-2xl font-serif flex items-center gap-2">
+              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
               Manage Notebooks
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               Create and organize your writing notebooks. Each notebook is a separate world for your stories and characters.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             {/* Create New Button */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div className="text-sm text-muted-foreground">
                 {notebooks.length} notebook{notebooks.length !== 1 ? 's' : ''}
               </div>
               <Button 
                 onClick={() => setIsCreateOpen(true)}
                 data-testid="button-create-notebook"
+                className="w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Notebook
@@ -261,21 +262,22 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                     }`}
                     data-testid={`card-notebook-${notebook.id}`}
                   >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between gap-2">
+                    <CardHeader className="pb-2 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <CardTitle className="text-lg font-serif truncate">{notebook.name}</CardTitle>
+                          <CardTitle className="text-base sm:text-lg font-serif truncate">{notebook.name}</CardTitle>
                           {activeNotebookId === notebook.id && (
-                            <Badge variant="default" data-testid="badge-active-notebook" className="shrink-0">Active</Badge>
+                            <Badge variant="default" data-testid="badge-active-notebook" className="shrink-0 text-xs">Active</Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-0.5 shrink-0 ml-2">
                           <Button
                             size="icon"
                             variant="ghost"
                             onClick={() => handleEditClick(notebook)}
                             data-testid={`button-edit-notebook-${notebook.id}`}
                             title="Edit notebook"
+                            className="h-8 w-8 sm:h-9 sm:w-9"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -285,6 +287,7 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                             onClick={() => handleDeleteClick(notebook)}
                             data-testid={`button-delete-notebook-${notebook.id}`}
                             title="Delete notebook"
+                            className="h-8 w-8 sm:h-9 sm:w-9"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
