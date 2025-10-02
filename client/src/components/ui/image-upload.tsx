@@ -33,13 +33,11 @@ export function ImageUpload({
   const [imageUrl, setImageUrl] = useState(value || '');
   const [urlInput, setUrlInput] = useState('');
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFile = async (file: File) => {
     // Validate file size
     if (file.size > maxFileSize * 1024 * 1024) {
       toast({
@@ -118,6 +116,12 @@ export function ImageUpload({
     }
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
+  };
+
   const handleUrlSubmit = () => {
     if (urlInput.trim()) {
       setImageUrl(urlInput.trim());
@@ -135,6 +139,49 @@ export function ImageUpload({
     setImageUrl('');
     onChange('');
     setUrlInput('');
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled) return;
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled) return;
+    if (e.currentTarget === e.target) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (disabled || uploading) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+
+    if (!imageFile) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please drop an image file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    await uploadFile(imageFile);
   };
 
   return (
@@ -162,10 +209,21 @@ export function ImageUpload({
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50">
+          <div 
+            className={cn(
+              "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+              isDragging 
+                ? "border-primary bg-primary/10" 
+                : "border-border bg-muted/50"
+            )}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
             <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground mb-4">
-              Upload an image or enter a URL
+              {isDragging ? 'Drop image here' : 'Drag and drop an image, or choose a file'}
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <Button
