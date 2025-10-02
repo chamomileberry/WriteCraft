@@ -668,6 +668,11 @@ export const weapons = pgTable("weapons", {
   requirements: text("requirements"),
   maintenance: text("maintenance"),
   genre: text("genre"),
+  // Article content for hybrid structured-to-freeform editing
+  articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
