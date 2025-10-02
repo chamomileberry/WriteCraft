@@ -16,12 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, BookOpen, AlertCircle } from "lucide-react";
+import { Search, BookOpen, AlertCircle, Settings } from "lucide-react";
 import { CONTENT_TYPES, type ContentType } from "@/config/content-types";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Notebook } from "@/stores/notebookStore";
+import NotebookManager from "@/components/NotebookManager";
 
 // Content types moved to centralized config
 
@@ -35,6 +36,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedNotebookId, setSelectedNotebookId] = useState<string>("");
+  const [isNotebookManagerOpen, setIsNotebookManagerOpen] = useState(false);
   
   const { notebooks, activeNotebookId, getActiveNotebook, setNotebooks } = useNotebookStore();
   
@@ -88,6 +90,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] sm:max-h-[80vh] max-sm:max-h-none h-[100vh] sm:h-auto w-[100vw] sm:w-auto overflow-hidden">
         <DialogHeader>
@@ -97,10 +100,22 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
         <div className="space-y-4">
           {/* Notebook Selection */}
           <div className="space-y-2">
-            <Label htmlFor="notebook-select" className="text-sm font-medium flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Save to Notebook
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="notebook-select" className="text-sm font-medium flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Save to Notebook
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsNotebookManagerOpen(true)}
+                className="h-8 px-2"
+                data-testid="button-manage-notebooks"
+                title="Manage Notebooks"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
             {isLoadingNotebooks && notebooks.length === 0 ? (
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
@@ -252,5 +267,12 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
         </div>
       </DialogContent>
     </Dialog>
+    
+    {/* Notebook Manager Modal */}
+    <NotebookManager 
+      isOpen={isNotebookManagerOpen} 
+      onClose={() => setIsNotebookManagerOpen(false)} 
+    />
+  </>
   );
 }
