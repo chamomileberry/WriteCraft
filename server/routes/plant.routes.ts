@@ -90,6 +90,28 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.patch("/:id", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const validatedUpdates = updatePlantSchema.parse(req.body);
+    const updatedPlant = await storage.updatePlant(req.params.id, userId, validatedUpdates, notebookId);
+    res.json(updatedPlant);
+  } catch (error) {
+    console.error('Error updating plant:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 router.put("/:id", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'demo-user';
