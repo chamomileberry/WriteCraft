@@ -262,27 +262,29 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                     data-testid={`card-notebook-${notebook.id}`}
                   >
                     <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg font-serif">{notebook.name}</CardTitle>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <CardTitle className="text-lg font-serif truncate">{notebook.name}</CardTitle>
                           {activeNotebookId === notebook.id && (
-                            <Badge variant="default" data-testid="badge-active-notebook">Active</Badge>
+                            <Badge variant="default" data-testid="badge-active-notebook" className="shrink-0">Active</Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={() => handleEditClick(notebook)}
                             data-testid={`button-edit-notebook-${notebook.id}`}
+                            title="Edit notebook"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={() => handleDeleteClick(notebook)}
                             data-testid={`button-delete-notebook-${notebook.id}`}
+                            title="Delete notebook"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
