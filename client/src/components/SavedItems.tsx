@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Search, Edit, Trash2, Copy, Package, BookOpen } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -40,6 +41,12 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
   }
   
   return dataSource?.name || 'Untitled';
+};
+
+// Helper function to get image URL from item data
+const getImageUrl = (item: SavedItem, actualItemData?: any): string | null => {
+  const dataSource = item.itemData || actualItemData;
+  return dataSource?.imageUrl || null;
 };
 
 interface SavedItem {
@@ -534,26 +541,38 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {items.map((item) => (
-                      <Card key={item.id} className="group hover-elevate" data-testid={`card-content-${item.id}`}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2">
-                              <IconComponent className="w-4 h-4 text-primary" />
-                              <CardTitle className="text-base line-clamp-1">
-                                {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                              </CardTitle>
-                            </div>
-                            <Badge variant="secondary" className="text-xs">
-                              {mapping?.name || type}
-                            </Badge>
-                          </div>
-                          {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
-                            <CardDescription className="line-clamp-2">
-                              {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
-                            </CardDescription>
+                    {items.map((item) => {
+                      const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
+                      return (
+                        <Card key={item.id} className="group hover-elevate overflow-hidden" data-testid={`card-content-${item.id}`}>
+                          {imageUrl && (
+                            <AspectRatio ratio={16 / 9}>
+                              <img
+                                src={imageUrl}
+                                alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                                className="w-full h-full object-cover"
+                                data-testid={`image-content-${item.id}`}
+                              />
+                            </AspectRatio>
                           )}
-                        </CardHeader>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                <IconComponent className="w-4 h-4 text-primary" />
+                                <CardTitle className="text-base line-clamp-1">
+                                  {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                                </CardTitle>
+                              </div>
+                              <Badge variant="secondary" className="text-xs">
+                                {mapping?.name || type}
+                              </Badge>
+                            </div>
+                            {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
+                              <CardDescription className="line-clamp-2">
+                                {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
+                              </CardDescription>
+                            )}
+                          </CardHeader>
                         
                         <CardContent className="pt-0">
                           <div className="flex items-center justify-between">
@@ -590,7 +609,8 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    );
+                  })}
                   </div>
                 </div>
               );
@@ -609,9 +629,20 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                 const type = item.contentType || item.itemType || 'unknown';
                 const mapping = getMappingById(type);
                 const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
+                const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
                 
                 return (
-                  <Card key={item.id} className="group hover-elevate" data-testid={`card-recent-${item.id}`}>
+                  <Card key={item.id} className="group hover-elevate overflow-hidden" data-testid={`card-recent-${item.id}`}>
+                    {imageUrl && (
+                      <AspectRatio ratio={16 / 9}>
+                        <img
+                          src={imageUrl}
+                          alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                          className="w-full h-full object-cover"
+                          data-testid={`image-recent-${item.id}`}
+                        />
+                      </AspectRatio>
+                    )}
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
