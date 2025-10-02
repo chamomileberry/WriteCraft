@@ -105,12 +105,40 @@ export default function CharacterEditPageWithSidebar() {
     updateMutation.mutate(cleanedData);
   };
 
+  // Generate article mutation
+  const generateArticleMutation = useMutation({
+    mutationFn: async () => {
+      if (!notebookId) {
+        throw new Error('No notebook ID available');
+      }
+      const response = await apiRequest(
+        'POST',
+        `/api/characters/${id}/generate-article?notebookId=${notebookId}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to generate article');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Article Generated",
+        description: "Character article has been generated successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
+    },
+    onError: (error) => {
+      console.error('Error generating article:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate article. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleGenerate = () => {
-    // AI generation functionality can be added here
-    toast({
-      title: "AI Generation",
-      description: "AI character generation coming soon!",
-    });
+    generateArticleMutation.mutate();
   };
 
   const handleNavigate = (toolId: string) => {
