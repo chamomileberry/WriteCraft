@@ -19,6 +19,9 @@ import {
 import { Search, BookOpen, AlertCircle } from "lucide-react";
 import { CONTENT_TYPES, type ContentType } from "@/config/content-types";
 import { useNotebookStore } from "@/stores/notebookStore";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { Notebook } from "@/stores/notebookStore";
 
 // Content types moved to centralized config
 
@@ -33,7 +36,26 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedNotebookId, setSelectedNotebookId] = useState<string>("");
   
-  const { notebooks, activeNotebookId, getActiveNotebook } = useNotebookStore();
+  const { notebooks, activeNotebookId, getActiveNotebook, setNotebooks } = useNotebookStore();
+  
+  // Fetch notebooks when modal opens
+  const { data: fetchedNotebooks, isLoading: isLoadingNotebooks, error: notebooksError, refetch } = useQuery({
+    queryKey: ['/api/notebooks'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/notebooks');
+      const data = await response.json() as Notebook[];
+      return data;
+    },
+    enabled: isOpen,
+    retry: 1
+  });
+  
+  // Update store when notebooks are fetched
+  useEffect(() => {
+    if (fetchedNotebooks) {
+      setNotebooks(fetchedNotebooks);
+    }
+  }, [fetchedNotebooks, setNotebooks]);
   
   // Auto-select active notebook when modal opens
   useEffect(() => {
@@ -79,7 +101,31 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
               <BookOpen className="h-4 w-4" />
               Save to Notebook
             </Label>
-            {notebooks.length === 0 ? (
+            {isLoadingNotebooks && notebooks.length === 0 ? (
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                <span className="text-sm text-muted-foreground">
+                  Loading notebooks...
+                </span>
+              </div>
+            ) : notebooksError && notebooks.length === 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-md">
+                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                  <span className="text-sm text-destructive flex-1">
+                    Failed to load notebooks. Please check your connection.
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => refetch()}
+                    data-testid="button-retry-notebooks"
+                  >
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            ) : notebooks.length === 0 ? (
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
@@ -87,27 +133,45 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                 </span>
               </div>
             ) : (
-              <Select value={selectedNotebookId} onValueChange={setSelectedNotebookId}>
-                <SelectTrigger data-testid="select-content-notebook">
-                  <SelectValue placeholder="Choose a notebook..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {notebooks.map((notebook) => (
-                    <SelectItem key={notebook.id} value={notebook.id} data-testid={`select-notebook-${notebook.id}`}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{notebook.name}</span>
-                        {notebook.description && (
-                          <span className="text-xs text-muted-foreground">
-                            {notebook.description}
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <>
+                {notebooksError && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-md mb-2">
+                    <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                    <span className="text-sm text-destructive flex-1">
+                      Failed to refresh notebooks. Using cached data.
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => refetch()}
+                      data-testid="button-retry-notebooks-refresh"
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                )}
+                <Select value={selectedNotebookId} onValueChange={setSelectedNotebookId}>
+                  <SelectTrigger data-testid="select-content-notebook">
+                    <SelectValue placeholder="Choose a notebook..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {notebooks.map((notebook) => (
+                      <SelectItem key={notebook.id} value={notebook.id} data-testid={`select-notebook-${notebook.id}`}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{notebook.name}</span>
+                          {notebook.description && (
+                            <span className="text-xs text-muted-foreground">
+                              {notebook.description}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
             )}
-            {!selectedNotebookId && notebooks.length > 0 && (
+            {!selectedNotebookId && notebooks.length > 0 && !isLoadingNotebooks && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <AlertCircle className="h-3 w-3" />
                 <span>Please select a notebook to organize your new content.</span>
@@ -162,7 +226,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                   variant="outline"
                   className="h-auto p-4 flex flex-col items-start space-y-2 hover-elevate"
                   onClick={() => handleSelectType(type.id)}
-                  disabled={notebooks.length === 0 || !selectedNotebookId}
+                  disabled={isLoadingNotebooks || notebooks.length === 0 || !selectedNotebookId}
                   data-testid={`button-content-type-${type.id}`}
                 >
                   <div className="flex items-center space-x-2 w-full">
