@@ -3056,6 +3056,23 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Project link methods (stub implementations)
+  async createProjectLink(link: InsertProjectLink): Promise<ProjectLink> {
+    throw new Error('ProjectLink functionality not yet implemented');
+  }
+
+  async getProjectLinks(projectId: string, userId: string): Promise<ProjectLink[]> {
+    return [];
+  }
+
+  async getProjectLinksForUser(userId: string): Promise<ProjectLink[]> {
+    return [];
+  }
+
+  async deleteProjectLink(id: string, userId: string): Promise<void> {
+    // Stub - no-op
+  }
+
   async searchAllContent(userId: string, query: string): Promise<any[]> {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
