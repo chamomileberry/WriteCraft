@@ -540,11 +540,16 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                     </h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((item) => {
                       const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
                       return (
-                        <Card key={item.id} className="group hover-elevate" data-testid={`card-content-${item.id}`}>
+                        <Card key={item.id} className="group hover-elevate relative" data-testid={`card-content-${item.id}`}>
+                          {/* Content type icon - top right corner */}
+                          <div className="absolute top-3 right-3 z-10">
+                            <IconComponent className="w-6 h-6 text-primary" />
+                          </div>
+
                           <div className="flex gap-4 p-4">
                             {/* Left side - Image */}
                             <div className="flex-shrink-0">
@@ -565,42 +570,10 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                             </div>
 
                             {/* Right side - Content */}
-                            <div className="flex-1 min-w-0 flex flex-col">
-                              <div className="flex items-start justify-between gap-2 mb-2">
-                                <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-content-${item.id}`}>
-                                  {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                                </h3>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  <IconComponent className="w-5 h-5 text-primary" />
-                                  <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleEdit(item)}
-                                      data-testid={`button-edit-${item.id}`}
-                                    >
-                                      <Edit className="w-3 h-3" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleCopy(item)}
-                                      data-testid={`button-copy-${item.id}`}
-                                    >
-                                      <Copy className="w-3 h-3" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleUnsave(item)}
-                                      disabled={unsaveMutation.isPending}
-                                      data-testid={`button-delete-${item.id}`}
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
+                            <div className="flex-1 min-w-0 flex flex-col pr-8">
+                              <h3 className="text-lg font-semibold line-clamp-1 mb-2" data-testid={`title-content-${item.id}`}>
+                                {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                              </h3>
 
                               {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
                                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
@@ -615,6 +588,35 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                                 <span className="text-xs text-muted-foreground">
                                   Created {new Date(item.createdAt).toLocaleDateString()}
                                 </span>
+                              </div>
+
+                              {/* Action buttons - hidden until hover */}
+                              <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleEdit(item)}
+                                  data-testid={`button-edit-${item.id}`}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleCopy(item)}
+                                  data-testid={`button-copy-${item.id}`}
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleUnsave(item)}
+                                  disabled={unsaveMutation.isPending}
+                                  data-testid={`button-delete-${item.id}`}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -634,7 +636,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
               <p className="text-muted-foreground">No recent items found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {filteredItems.slice(0, 12).map((item) => {
                 const type = item.contentType || item.itemType || 'unknown';
                 const mapping = getMappingById(type);
@@ -642,7 +644,12 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                 const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
                 
                 return (
-                  <Card key={item.id} className="group hover-elevate" data-testid={`card-recent-${item.id}`}>
+                  <Card key={item.id} className="group hover-elevate relative" data-testid={`card-recent-${item.id}`}>
+                    {/* Content type icon - top right corner */}
+                    <div className="absolute top-3 right-3 z-10">
+                      <IconComponent className="w-6 h-6 text-primary" />
+                    </div>
+
                     <div className="flex gap-4 p-4">
                       {/* Left side - Image */}
                       <div className="flex-shrink-0">
@@ -663,23 +670,10 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                       </div>
 
                       {/* Right side - Content */}
-                      <div className="flex-1 min-w-0 flex flex-col">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-recent-${item.id}`}>
-                            {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                          </h3>
-                          <div className="flex items-center gap-1 flex-shrink-0">
-                            <IconComponent className="w-5 h-5 text-primary" />
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEdit(item)}
-                              data-testid={`button-edit-recent-${item.id}`}
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
+                      <div className="flex-1 min-w-0 flex flex-col pr-8">
+                        <h3 className="text-lg font-semibold line-clamp-1 mb-2" data-testid={`title-recent-${item.id}`}>
+                          {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                        </h3>
 
                         {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
@@ -694,6 +688,18 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                           <span className="text-xs text-muted-foreground">
                             {new Date(item.createdAt).toLocaleDateString()}
                           </span>
+                        </div>
+
+                        {/* Action button - hidden until hover */}
+                        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(item)}
+                            data-testid={`button-edit-recent-${item.id}`}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
                         </div>
                       </div>
                     </div>
