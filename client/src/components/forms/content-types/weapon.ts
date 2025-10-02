@@ -1,6 +1,6 @@
-import { ContentTypeFormConfig } from '../../components/forms/types';
-import { WEAPON_TYPES } from '@/lib/field-options';  // <-- NEW: Import type options
-import * as Fields from '@/lib/field-definitions';  // <-- CHANGED: Import all as Fields
+import { ContentTypeFormConfig } from '../types';
+import { WEAPON_TYPES } from '@/lib/field-options';
+import * as Fields from '@/lib/field-definitions';
 
 export const weaponConfig: ContentTypeFormConfig = {
   title: "Weapon Editor",
@@ -12,6 +12,7 @@ export const weaponConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Sword",
       fields: [
+        Fields.createImageField("weapon"),
         Fields.createNameField("weapon"),                    // <-- Replace manual name field
         Fields.createTypeField("weapon", WEAPON_TYPES),      // <-- Replace manual type field
         Fields.createDescriptionField("weapon"),             // <-- Replace manual description

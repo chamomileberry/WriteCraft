@@ -59,6 +59,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/ai", aiRoutes);
 
   // Image upload routes (reference: blueprint:javascript_object_storage)
+  // NOTE: Images are set to public visibility for world-building content (characters, 
+  // weapons, locations, etc.). For private user content (profiles, etc.), implement 
+  // authentication checks and ACL verification here using canAccessObjectEntity.
   app.get("/objects/:objectPath(*)", async (req, res) => {
     const objectStorageService = new ObjectStorageService();
     try {
@@ -89,6 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NOTE: This sets uploaded images to public visibility for world-building content.
+  // UUIDs provide practical protection against guessing. For production systems with 
+  // private user content, track upload sessions and verify ownership before finalizing.
   app.post("/api/upload/finalize", async (req, res) => {
     try {
       const { objectPath } = req.body;
@@ -104,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         objectPath,
         {
           owner: userId,
-          visibility: "public"
+          visibility: "public" // Public for world-building content
         }
       );
 

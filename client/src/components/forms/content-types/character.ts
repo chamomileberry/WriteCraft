@@ -1,4 +1,5 @@
 import { ContentTypeFormConfig } from '../types';
+import { createImageField } from '@/lib/field-definitions';
 
 export const characterConfig: ContentTypeFormConfig = {
   title: "Character Editor",
@@ -30,6 +31,7 @@ export const characterConfig: ContentTypeFormConfig = {
       label: "Physical Appearance",
       icon: "Eye", 
       fields: [
+        createImageField("character"),
         { name: "physicalDescription", label: "Overall Physical Description", type: "textarea", placeholder: "Describe their general physical appearance...", description: "A comprehensive description of how they look" },
         { name: "height", label: "Height", type: "text", placeholder: "5'8\", tall, average, etc.", description: "How tall are they?" },
         { name: "heightDetail", label: "Height Details", type: "text", placeholder: "Specific height measurements", description: "More specific height information" },

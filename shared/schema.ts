@@ -197,6 +197,9 @@ export const characters = pgTable("characters", {
   investments: text("investments"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -269,6 +272,9 @@ export const settings = pgTable("settings", {
   settingType: text("setting_type"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -299,6 +305,9 @@ export const conflicts = pgTable("conflicts", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -317,6 +326,9 @@ export const themes = pgTable("themes", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -350,6 +362,9 @@ export const creatures = pgTable("creatures", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -370,6 +385,9 @@ export const plants = pgTable("plants", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -407,6 +425,9 @@ export const locations = pgTable("locations", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -430,6 +451,9 @@ export const items = pgTable("items", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -455,6 +479,9 @@ export const organizations = pgTable("organizations", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -479,6 +506,9 @@ export const species = pgTable("species", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -502,6 +532,9 @@ export const ethnicities = pgTable("ethnicities", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -527,6 +560,9 @@ export const cultures = pgTable("cultures", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -550,6 +586,9 @@ export const documents = pgTable("documents", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -574,6 +613,9 @@ export const foods = pgTable("foods", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -598,6 +640,9 @@ export const drinks = pgTable("drinks", {
   genre: text("genre"),
   // Article content for hybrid structured-to-freeform editing
   articleContent: text("article_content"), // Stores rich HTML content when converted to article format
+  // Image fields
+  imageUrl: text("image_url"),
+  imageCaption: text("image_caption"),
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
