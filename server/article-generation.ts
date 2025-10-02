@@ -63,10 +63,23 @@ function generateCharacterArticle(character: any): string {
 
   // Header with character name
   if (character.givenName || character.familyName) {
-    const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ');
+    const nameParts = [character.givenName, character.middleName, character.familyName].filter(Boolean);
+    const fullName = nameParts.join(' ');
     sections.push(`<h1>${escapeHtml(fullName)}</h1>`);
+    
+    // Additional names section
+    const nameDetails: string[] = [];
     if (character.nickname) {
-      sections.push(`<p><em>Also known as: ${escapeHtml(character.nickname)}</em></p>`);
+      nameDetails.push(`Also known as: ${escapeHtml(character.nickname)}`);
+    }
+    if (character.maidenName) {
+      nameDetails.push(`Maiden name: ${escapeHtml(character.maidenName)}`);
+    }
+    if (character.honorificTitle) {
+      nameDetails.push(`Title: ${escapeHtml(character.honorificTitle)}`);
+    }
+    if (nameDetails.length > 0) {
+      sections.push(`<p><em>${nameDetails.join(' • ')}</em></p>`);
     }
   }
 
@@ -75,9 +88,16 @@ function generateCharacterArticle(character: any): string {
     sections.push(createImageSection(character.imageUrl, character.imageCaption));
   }
 
+  // General Description (if provided)
+  if (character.generalDescription) {
+    sections.push(createSafeParagraph(null, character.generalDescription));
+  }
+
   // Basic Information
   const basicInfo: string[] = [];
   if (character.age) basicInfo.push(createSafeParagraph('Age', character.age));
+  if (character.gender) basicInfo.push(createSafeParagraph('Gender', character.gender));
+  if (character.pronouns) basicInfo.push(createSafeParagraph('Pronouns', character.pronouns));
   if (character.occupation) basicInfo.push(createSafeParagraph('Occupation', character.occupation));
   if (character.species) basicInfo.push(createSafeParagraph('Species', character.species));
   if (character.currentLocation) basicInfo.push(createSafeParagraph('Location', character.currentLocation));
