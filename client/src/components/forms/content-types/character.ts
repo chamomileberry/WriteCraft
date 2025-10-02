@@ -19,6 +19,7 @@ export const characterConfig: ContentTypeFormConfig = {
         { name: "prefix", label: "Prefix", type: "text", placeholder: "Mr., Ms., Lord, etc.", description: "Name prefixes used in formal address" },
         { name: "suffix", label: "Suffix", type: "text", placeholder: "Jr., Sr., III, etc.", description: "Name suffixes like Jr., Sr., III" },
         { name: "maidenName", label: "Maiden Name", type: "text", placeholder: "Name before marriage", description: "Their family name before marriage (if applicable)" },
+        { name: "description", label: "General Description", type: "textarea", placeholder: "A brief overview of this character...", description: "A general description that appears on the character card in your notebook" },
         { name: "age", label: "Age", type: "number", placeholder: "Character's age...", description: "How old is this character?" },
         { name: "occupation", label: "Occupation", type: "autocomplete-profession", endpoint: "/api/professions", labelField: "name", valueField: "name", multiple: false, placeholder: "Search or select a profession...", description: "Their primary profession or role in society" },
         { name: "species", label: "Species", type: "autocomplete-species", multiple: false, placeholder: "Search or select a species...", description: "What species or race is this character?" },
