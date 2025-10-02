@@ -540,78 +540,86 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                     </h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-4">
                     {items.map((item) => {
                       const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
                       return (
                         <Card key={item.id} className="group hover-elevate" data-testid={`card-content-${item.id}`}>
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
-                                <CardTitle className="text-base line-clamp-1">
+                          <div className="flex gap-4 p-4">
+                            {/* Left side - Image */}
+                            <div className="flex-shrink-0">
+                              {imageUrl ? (
+                                <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted">
+                                  <img
+                                    src={imageUrl}
+                                    alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                                    className="w-full h-full object-cover"
+                                    data-testid={`image-content-${item.id}`}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center">
+                                  <IconComponent className="w-12 h-12 text-muted-foreground" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Right side - Content */}
+                            <div className="flex-1 min-w-0 flex flex-col">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-content-${item.id}`}>
                                   {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                                </CardTitle>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {imageUrl && (
-                                  <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                                    <img
-                                      src={imageUrl}
-                                      alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                                      className="w-full h-full object-cover"
-                                      data-testid={`image-content-${item.id}`}
-                                    />
+                                </h3>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <IconComponent className="w-5 h-5 text-primary" />
+                                  <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleEdit(item)}
+                                      data-testid={`button-edit-${item.id}`}
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleCopy(item)}
+                                      data-testid={`button-copy-${item.id}`}
+                                    >
+                                      <Copy className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleUnsave(item)}
+                                      disabled={unsaveMutation.isPending}
+                                      data-testid={`button-delete-${item.id}`}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
                                   </div>
-                                )}
+                                </div>
+                              </div>
+
+                              {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                  {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
+                                </p>
+                              )}
+
+                              <div className="mt-auto flex items-center gap-3">
                                 <Badge variant="secondary" className="text-xs">
                                   {mapping?.name || type}
                                 </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  Created {new Date(item.createdAt).toLocaleDateString()}
+                                </span>
                               </div>
                             </div>
-                            {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
-                              <CardDescription className="line-clamp-2 mt-2">
-                                {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
-                              </CardDescription>
-                            )}
-                          </CardHeader>
-                        
-                        <CardContent className="pt-0">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">
-                              Created {new Date(item.createdAt).toLocaleDateString()}
-                            </span>
-                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEdit(item)}
-                                data-testid={`button-edit-${item.id}`}
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleCopy(item)}
-                                data-testid={`button-copy-${item.id}`}
-                              >
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleUnsave(item)}
-                                disabled={unsaveMutation.isPending}
-                                data-testid={`button-delete-${item.id}`}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
+                        </Card>
+                      );
                   })}
                   </div>
                 </div>
@@ -626,7 +634,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
               <p className="text-muted-foreground">No recent items found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4">
               {filteredItems.slice(0, 12).map((item) => {
                 const type = item.contentType || item.itemType || 'unknown';
                 const mapping = getMappingById(type);
@@ -635,47 +643,60 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                 
                 return (
                   <Card key={item.id} className="group hover-elevate" data-testid={`card-recent-${item.id}`}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
-                          <CardTitle className="text-base line-clamp-1">
+                    <div className="flex gap-4 p-4">
+                      {/* Left side - Image */}
+                      <div className="flex-shrink-0">
+                        {imageUrl ? (
+                          <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted">
+                            <img
+                              src={imageUrl}
+                              alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                              className="w-full h-full object-cover"
+                              data-testid={`image-recent-${item.id}`}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center">
+                            <IconComponent className="w-12 h-12 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right side - Content */}
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-recent-${item.id}`}>
                             {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                          </CardTitle>
+                          </h3>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <IconComponent className="w-5 h-5 text-primary" />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEdit(item)}
+                              data-testid={`button-edit-recent-${item.id}`}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {imageUrl && (
-                            <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                              <img
-                                src={imageUrl}
-                                alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                                className="w-full h-full object-cover"
-                                data-testid={`image-recent-${item.id}`}
-                              />
-                            </div>
-                          )}
+
+                        {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                            {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
+                          </p>
+                        )}
+
+                        <div className="mt-auto flex items-center gap-3">
                           <Badge variant="secondary" className="text-xs">
                             {mapping?.name || type}
                           </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(item.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(item.createdAt).toLocaleDateString()}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEdit(item)}
-                          data-testid={`button-edit-recent-${item.id}`}
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
+                    </div>
                   </Card>
                 );
               })}
