@@ -294,7 +294,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           {/* Desktop Docked Sidebar - Fixed positioned overlay */}
           {dockedPanels.length > 0 && (
             <div 
-              className="fixed top-0 right-0 w-96 h-screen border-l border-border bg-background z-40 overflow-y-auto shadow-lg"
+              className="fixed top-16 right-0 w-96 h-[calc(100vh-4rem)] border-l border-border bg-background z-40 overflow-y-auto shadow-lg"
               data-testid="docked-sidebar-container"
             >
               {renderSidebarContent()}
