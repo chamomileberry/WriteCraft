@@ -214,7 +214,35 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         
         // Navigate back to notebook to see the saved item
         setLocation('/notebook');
-      } else {
+      } else if (!wasCreating && result?.id) {
+        // Update existing item - also update the saved-items itemData
+        try {
+          // Get notebookId from URL query parameters, fallback to active notebook
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlNotebookId = urlParams.get('notebookId');
+          const notebookId = urlNotebookId || activeNotebookId;
+          
+          if (notebookId) {
+            // Update the saved-items record with the latest data
+            const savedItemsResponse = await apiRequest('GET', `/api/saved-items?userId=demo-user&notebookId=${notebookId}`);
+            const savedItems = await savedItemsResponse.json();
+            
+            // Find the saved item that matches this content
+            const savedItem = savedItems.find((item: any) => item.itemId === result.id && item.itemType === contentType);
+            
+            if (savedItem) {
+              // Update the itemData with the latest content
+              await apiRequest('PATCH', `/api/saved-items/${savedItem.id}`, {
+                itemData: result
+              });
+              console.log('Successfully updated saved-items itemData:', { savedItemId: savedItem.id, itemId: result.id });
+            }
+          }
+        } catch (error) {
+          console.error('Failed to update saved-items itemData:', error);
+          // Don't show error to user as the main content was updated successfully
+        }
+        
         queryClient.invalidateQueries({ queryKey: [apiBase, currentItemId] });
       }
     },
