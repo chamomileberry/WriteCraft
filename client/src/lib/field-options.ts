@@ -51,7 +51,7 @@ export const ACCESSORY_TYPES = [
 
 export const CLOTHING_TYPES = [
   "Shirt", "Pants", "Dress", "Robe", "Cloak", "Hat", "Shoes", "Blouse", "Sportswear", "Swimsuit",
-  "Jacket", "Coat", "Sweater", "Suit", "Tuxedo", "T-Shirt", "Polo Shirt", "Pajamas", "Underwear"
+  "Jacket", "Coat", "Sweater", "Suit", "Tuxedo", "T-Shirt", "Polo Shirt", "Pajamas", "Underwear",
   "Stockings", "Hoisery", "Tights", "Corset",  "Hoodie", "Sweatshirt", "Sweater", "Uniform", 
   "Ceremonial", "Jeans", "Crop Top", "Cardigan", "Caftan", "Bell-Bottoms", "Blazer", "Bloomers", 
   "Bathrobe", "Toga", "Kilt", "Kimono", "Sari", "Dashiki", "Dirndl", "Lederhosen", "Cheongsam", "Huipil", 
