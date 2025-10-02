@@ -56,6 +56,18 @@ function createImageSection(imageUrl: string | null | undefined, imageCaption?: 
 }
 
 /**
+ * Helper to format array fields as bullet lists
+ */
+function createListParagraph(label: string | null, items: string[] | null | undefined): string {
+  if (!items || items.length === 0) return '';
+  const safeItems = items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  if (label) {
+    return `<p><strong>${escapeHtml(label)}:</strong></p><ul>${safeItems}</ul>`;
+  }
+  return `<ul>${safeItems}</ul>`;
+}
+
+/**
  * Generate article content for characters
  */
 function generateCharacterArticle(character: any): string {
@@ -63,7 +75,13 @@ function generateCharacterArticle(character: any): string {
 
   // Header with character name
   if (character.givenName || character.familyName) {
-    const nameParts = [character.givenName, character.middleName, character.familyName].filter(Boolean);
+    const nameParts = [
+      character.prefix,
+      character.givenName,
+      character.middleName,
+      character.familyName,
+      character.suffix
+    ].filter(Boolean);
     const fullName = nameParts.join(' ');
     sections.push(`<h1>${escapeHtml(fullName)}</h1>`);
     
@@ -88,92 +106,293 @@ function generateCharacterArticle(character: any): string {
     sections.push(createImageSection(character.imageUrl, character.imageCaption));
   }
 
-  // General Description (if provided)
-  if (character.generalDescription) {
-    sections.push(createSafeParagraph(null, character.generalDescription));
+  // General Description (correct field name is 'description')
+  if (character.description) {
+    sections.push(createSafeParagraph(null, character.description));
   }
 
-  // Basic Information
+  // Basic Information & Identity
   const basicInfo: string[] = [];
-  if (character.age) basicInfo.push(createSafeParagraph('Age', character.age));
+  if (character.age) basicInfo.push(createSafeParagraph('Age', character.age.toString()));
+  if (character.dateOfBirth) basicInfo.push(createSafeParagraph('Date of Birth', character.dateOfBirth));
+  if (character.placeOfBirth) basicInfo.push(createSafeParagraph('Place of Birth', character.placeOfBirth));
+  if (character.dateOfDeath) basicInfo.push(createSafeParagraph('Date of Death', character.dateOfDeath));
+  if (character.placeOfDeath) basicInfo.push(createSafeParagraph('Place of Death', character.placeOfDeath));
   if (character.gender) basicInfo.push(createSafeParagraph('Gender', character.gender));
   if (character.pronouns) basicInfo.push(createSafeParagraph('Pronouns', character.pronouns));
-  if (character.occupation) basicInfo.push(createSafeParagraph('Occupation', character.occupation));
+  if (character.sex) basicInfo.push(createSafeParagraph('Sex', character.sex));
+  if (character.sexualOrientation) basicInfo.push(createSafeParagraph('Sexual Orientation', character.sexualOrientation));
+  if (character.occupation || character.profession) {
+    const job = character.occupation || character.profession;
+    basicInfo.push(createSafeParagraph('Occupation', job));
+  }
   if (character.species) basicInfo.push(createSafeParagraph('Species', character.species));
-  if (character.currentLocation) basicInfo.push(createSafeParagraph('Location', character.currentLocation));
+  if (character.ethnicity) basicInfo.push(createSafeParagraph('Ethnicity', character.ethnicity));
+  if (character.currentLocation) basicInfo.push(createSafeParagraph('Current Location', character.currentLocation));
+  if (character.currentResidence) basicInfo.push(createSafeParagraph('Residence', character.currentResidence));
 
   if (basicInfo.length > 0) {
     sections.push(`<h2>Basic Information</h2>`);
     sections.push(basicInfo.join('\n'));
   }
 
-  // Physical Description
-  if (character.physicalDescription || character.height || character.build || character.hairColor || character.eyeColor) {
+  // Physical Appearance
+  const hasPhysical = character.physicalDescription || character.height || character.heightDetail || 
+    character.weight || character.build || character.hairColor || character.hairTexture || 
+    character.hairStyle || character.eyeColor || character.skinTone || character.facialFeatures ||
+    character.facialDetails || character.strikingFeatures || character.identifyingMarks || 
+    character.marksPiercingsTattoos || character.distinctPhysicalFeatures || 
+    character.distinctiveBodyFeatures || character.physicalCondition;
+
+  if (hasPhysical) {
     sections.push(`<h2>Physical Appearance</h2>`);
+    
     if (character.physicalDescription) {
       sections.push(createSafeParagraph(null, character.physicalDescription));
     }
 
     const physicalDetails: string[] = [];
-    if (character.height) physicalDetails.push(createSafeParagraph('Height', character.height));
+    if (character.height || character.heightDetail) {
+      const heightText = [character.height, character.heightDetail].filter(Boolean).join(' - ');
+      physicalDetails.push(createSafeParagraph('Height', heightText));
+    }
+    if (character.weight) physicalDetails.push(createSafeParagraph('Weight', character.weight));
     if (character.build) physicalDetails.push(createSafeParagraph('Build', character.build));
-    if (character.hairColor) physicalDetails.push(createSafeParagraph('Hair', character.hairColor));
-    if (character.eyeColor) physicalDetails.push(createSafeParagraph('Eyes', character.eyeColor));
+    if (character.hairColor) physicalDetails.push(createSafeParagraph('Hair Color', character.hairColor));
+    if (character.hairTexture) physicalDetails.push(createSafeParagraph('Hair Texture', character.hairTexture));
+    if (character.hairStyle) physicalDetails.push(createSafeParagraph('Hair Style', character.hairStyle));
+    if (character.eyeColor) physicalDetails.push(createSafeParagraph('Eye Color', character.eyeColor));
+    if (character.skinTone) physicalDetails.push(createSafeParagraph('Skin Tone', character.skinTone));
+    if (character.facialFeatures || character.facialDetails) {
+      const facialText = [character.facialFeatures, character.facialDetails].filter(Boolean).join('; ');
+      physicalDetails.push(createSafeParagraph('Facial Features', facialText));
+    }
+    if (character.strikingFeatures) physicalDetails.push(createSafeParagraph('Striking Features', character.strikingFeatures));
+    if (character.identifyingMarks) physicalDetails.push(createSafeParagraph('Identifying Marks', character.identifyingMarks));
+    if (character.marksPiercingsTattoos) physicalDetails.push(createSafeParagraph('Marks/Piercings/Tattoos', character.marksPiercingsTattoos));
+    if (character.distinctPhysicalFeatures || character.distinctiveBodyFeatures) {
+      const distinctText = [character.distinctPhysicalFeatures, character.distinctiveBodyFeatures].filter(Boolean).join('; ');
+      physicalDetails.push(createSafeParagraph('Distinctive Features', distinctText));
+    }
+    if (character.physicalCondition) physicalDetails.push(createSafeParagraph('Physical Condition', character.physicalCondition));
+    if (character.physicalPresentation) physicalDetails.push(createSafeParagraph('Physical Presentation', character.physicalPresentation));
 
     if (physicalDetails.length > 0) {
       sections.push(physicalDetails.join('\n'));
     }
   }
 
+  // Attire & Equipment
+  const hasAttire = character.typicalAttire || character.accessories || character.keyEquipment || character.specializedItems;
+  if (hasAttire) {
+    sections.push(`<h2>Attire & Equipment</h2>`);
+    const attireDetails: string[] = [];
+    if (character.typicalAttire) attireDetails.push(createSafeParagraph('Typical Attire', character.typicalAttire));
+    if (character.accessories) attireDetails.push(createSafeParagraph('Accessories', character.accessories));
+    if (character.keyEquipment) attireDetails.push(createSafeParagraph('Key Equipment', character.keyEquipment));
+    if (character.specializedItems) attireDetails.push(createSafeParagraph('Specialized Items', character.specializedItems));
+    sections.push(attireDetails.join('\n'));
+  }
+
   // Personality & Psychology
-  if (character.personality || character.motivation || character.flaw || character.strength) {
-    sections.push(`<h2>Personality</h2>`);
-    if (character.personality) {
-      sections.push(createSafeParagraph('Personality', character.personality));
+  const hasPersonality = character.personality || character.motivation || character.flaw || 
+    character.strength || character.strengths || character.characterFlaws || 
+    character.behavioralTraits || character.intellectualTraits || character.charisma ||
+    character.confidence || character.ego || character.extroversion || character.mannerisms;
+
+  if (hasPersonality) {
+    sections.push(`<h2>Personality & Psychology</h2>`);
+    
+    if (Array.isArray(character.personality) && character.personality.length > 0) {
+      sections.push(createListParagraph('Personality Traits', character.personality));
     }
-    if (character.motivation) {
-      sections.push(createSafeParagraph('Motivation', character.motivation));
+    
+    const personalityDetails: string[] = [];
+    if (character.motivation) personalityDetails.push(createSafeParagraph('Motivation', character.motivation));
+    if (character.strength || character.strengths || character.positiveAspects) {
+      const strengthText = [character.strength, character.strengths, character.positiveAspects].filter(Boolean).join('; ');
+      personalityDetails.push(createSafeParagraph('Strengths', strengthText));
     }
-    if (character.strength) {
-      sections.push(createSafeParagraph('Strength', character.strength));
+    if (character.flaw || character.characterFlaws) {
+      const flawText = [character.flaw, character.characterFlaws].filter(Boolean).join('; ');
+      personalityDetails.push(createSafeParagraph('Flaws', flawText));
     }
-    if (character.flaw) {
-      sections.push(createSafeParagraph('Flaw', character.flaw));
+    if (character.vices) personalityDetails.push(createSafeParagraph('Vices', character.vices));
+    if (character.addictions) personalityDetails.push(createSafeParagraph('Addictions', character.addictions));
+    if (character.likes) personalityDetails.push(createSafeParagraph('Likes', character.likes));
+    if (character.dislikes) personalityDetails.push(createSafeParagraph('Dislikes', character.dislikes));
+    if (character.behavioralTraits) personalityDetails.push(createSafeParagraph('Behavioral Traits', character.behavioralTraits));
+    if (character.intellectualTraits) personalityDetails.push(createSafeParagraph('Intellectual Traits', character.intellectualTraits));
+    if (character.valuesEthicsMorals) personalityDetails.push(createSafeParagraph('Values & Ethics', character.valuesEthicsMorals));
+    if (character.charisma) personalityDetails.push(createSafeParagraph('Charisma', character.charisma));
+    if (character.confidence) personalityDetails.push(createSafeParagraph('Confidence', character.confidence));
+    if (character.mannerisms) personalityDetails.push(createSafeParagraph('Mannerisms', character.mannerisms));
+    if (character.particularities) personalityDetails.push(createSafeParagraph('Particularities', character.particularities));
+    if (character.mentalHealth) personalityDetails.push(createSafeParagraph('Mental Health', character.mentalHealth));
+    
+    if (personalityDetails.length > 0) {
+      sections.push(personalityDetails.join('\n'));
     }
   }
 
-  // Backstory
-  if (character.backstory) {
-    sections.push(`<h2>Background</h2>`);
-    sections.push(createSafeParagraph(null, character.backstory));
+  // Background & History
+  const hasBackground = character.backstory || character.upbringing || character.education || 
+    character.workHistory || character.accomplishments || character.negativeEvents;
+  
+  if (hasBackground) {
+    sections.push(`<h2>Background & History</h2>`);
+    if (character.backstory) {
+      sections.push(createSafeParagraph(null, character.backstory));
+    }
+    const backgroundDetails: string[] = [];
+    if (character.upbringing) backgroundDetails.push(createSafeParagraph('Upbringing', character.upbringing));
+    if (character.education) backgroundDetails.push(createSafeParagraph('Education', character.education));
+    if (character.workHistory) backgroundDetails.push(createSafeParagraph('Work History', character.workHistory));
+    if (character.accomplishments) backgroundDetails.push(createSafeParagraph('Accomplishments', character.accomplishments));
+    if (character.negativeEvents) backgroundDetails.push(createSafeParagraph('Significant Challenges', character.negativeEvents));
+    
+    if (backgroundDetails.length > 0) {
+      sections.push(backgroundDetails.join('\n'));
+    }
   }
 
   // Skills & Abilities
-  if (character.mainSkills || character.proficiencies || character.supernaturalPowers) {
+  const hasSkills = character.mainSkills || character.proficiencies || character.supernaturalPowers || 
+    character.specialAbilities || character.mutations || character.lackingSkills;
+    
+  if (hasSkills) {
     sections.push(`<h2>Skills & Abilities</h2>`);
-    if (character.mainSkills) {
-      sections.push(createSafeParagraph('Main Skills', character.mainSkills));
-    }
-    if (character.proficiencies) {
-      sections.push(createSafeParagraph('Proficiencies', character.proficiencies));
-    }
-    if (character.supernaturalPowers) {
-      sections.push(createSafeParagraph('Supernatural Powers', character.supernaturalPowers));
+    const skillDetails: string[] = [];
+    if (character.mainSkills) skillDetails.push(createSafeParagraph('Main Skills', character.mainSkills));
+    if (character.proficiencies) skillDetails.push(createSafeParagraph('Proficiencies', character.proficiencies));
+    if (character.supernaturalPowers) skillDetails.push(createSafeParagraph('Supernatural Powers', character.supernaturalPowers));
+    if (character.specialAbilities) skillDetails.push(createSafeParagraph('Special Abilities', character.specialAbilities));
+    if (character.mutations) skillDetails.push(createSafeParagraph('Mutations', character.mutations));
+    if (character.lackingSkills) skillDetails.push(createSafeParagraph('Lacking Skills', character.lackingSkills));
+    if (character.lackingKnowledge) skillDetails.push(createSafeParagraph('Lacking Knowledge', character.lackingKnowledge));
+    sections.push(skillDetails.join('\n'));
+  }
+
+  // Languages
+  if (Array.isArray(character.languages) && character.languages.length > 0) {
+    sections.push(`<h2>Languages</h2>`);
+    sections.push(createListParagraph(null, character.languages));
+    if (character.languageFluencyAccent) {
+      sections.push(createSafeParagraph('Fluency & Accent', character.languageFluencyAccent));
     }
   }
 
+  // Speech & Communication
+  const hasSpeech = character.speakingStyle || character.toneOfVoice || character.voicePitch || 
+    character.accent || character.dialect || character.speechParticularities || character.famousQuotes ||
+    character.catchphrases || character.commonPhrases;
+    
+  if (hasSpeech) {
+    sections.push(`<h2>Speech & Communication</h2>`);
+    const speechDetails: string[] = [];
+    if (character.speakingStyle) speechDetails.push(createSafeParagraph('Speaking Style', character.speakingStyle));
+    if (character.toneOfVoice) speechDetails.push(createSafeParagraph('Tone of Voice', character.toneOfVoice));
+    if (character.voicePitch) speechDetails.push(createSafeParagraph('Voice Pitch', character.voicePitch));
+    if (character.accent) speechDetails.push(createSafeParagraph('Accent', character.accent));
+    if (character.dialect) speechDetails.push(createSafeParagraph('Dialect', character.dialect));
+    if (character.speechParticularities) speechDetails.push(createSafeParagraph('Speech Particularities', character.speechParticularities));
+    if (character.speechImpediments) speechDetails.push(createSafeParagraph('Speech Impediments', character.speechImpediments));
+    if (character.famousQuotes) speechDetails.push(createSafeParagraph('Famous Quotes', character.famousQuotes));
+    if (character.catchphrases) speechDetails.push(createSafeParagraph('Catchphrases', character.catchphrases));
+    if (character.commonPhrases) speechDetails.push(createSafeParagraph('Common Phrases', character.commonPhrases));
+    sections.push(speechDetails.join('\n'));
+  }
+
   // Relationships
-  if (character.family || character.allies || character.enemies) {
+  const hasRelationships = character.family || character.allies || character.enemies || 
+    character.keyRelationships || character.familialTies;
+    
+  if (hasRelationships) {
     sections.push(`<h2>Relationships</h2>`);
-    if (character.family) {
-      const familyText = Array.isArray(character.family) ? character.family.join(', ') : character.family;
-      sections.push(createSafeParagraph('Family', familyText));
+    const relationDetails: string[] = [];
+    
+    if (Array.isArray(character.family) && character.family.length > 0) {
+      relationDetails.push(createListParagraph('Family', character.family));
     }
-    if (character.allies) {
-      sections.push(createSafeParagraph('Allies', character.allies));
+    if (character.familialTies) relationDetails.push(createSafeParagraph('Familial Ties', character.familialTies));
+    if (character.keyRelationships) relationDetails.push(createSafeParagraph('Key Relationships', character.keyRelationships));
+    if (character.allies) relationDetails.push(createSafeParagraph('Allies', character.allies));
+    if (character.enemies) relationDetails.push(createSafeParagraph('Enemies', character.enemies));
+    
+    if (relationDetails.length > 0) {
+      sections.push(relationDetails.join('\n'));
     }
-    if (character.enemies) {
-      sections.push(createSafeParagraph('Enemies', character.enemies));
+  }
+
+  // Religion & Spirituality
+  const hasReligion = character.religiousBelief || character.religiousViews || character.spiritualPractices;
+  if (hasReligion) {
+    sections.push(`<h2>Religion & Spirituality</h2>`);
+    const religionDetails: string[] = [];
+    if (character.religiousBelief) religionDetails.push(createSafeParagraph('Religious Belief', character.religiousBelief));
+    if (character.religiousViews) religionDetails.push(createSafeParagraph('Religious Views', character.religiousViews));
+    if (character.spiritualPractices) religionDetails.push(createSafeParagraph('Spiritual Practices', character.spiritualPractices));
+    sections.push(religionDetails.join('\n'));
+  }
+
+  // Hobbies & Interests
+  const hasHobbies = character.hobbies || character.interests || character.activities || character.pets;
+  if (hasHobbies) {
+    sections.push(`<h2>Hobbies & Interests</h2>`);
+    const hobbyDetails: string[] = [];
+    if (character.hobbies) hobbyDetails.push(createSafeParagraph('Hobbies', character.hobbies));
+    if (character.interests) hobbyDetails.push(createSafeParagraph('Interests', character.interests));
+    if (character.activities) hobbyDetails.push(createSafeParagraph('Activities', character.activities));
+    if (character.pets) hobbyDetails.push(createSafeParagraph('Pets', character.pets));
+    sections.push(hobbyDetails.join('\n'));
+  }
+
+  // Wealth & Resources
+  const hasWealth = character.wealthClass || character.funds || character.assets || 
+    character.investments || character.debts;
+    
+  if (hasWealth) {
+    sections.push(`<h2>Wealth & Resources</h2>`);
+    const wealthDetails: string[] = [];
+    if (character.wealthClass) wealthDetails.push(createSafeParagraph('Wealth Class', character.wealthClass));
+    if (character.funds) wealthDetails.push(createSafeParagraph('Funds', character.funds));
+    if (character.disposableIncome) wealthDetails.push(createSafeParagraph('Disposable Income', character.disposableIncome));
+    if (character.assets) wealthDetails.push(createSafeParagraph('Assets', character.assets));
+    if (character.investments) wealthDetails.push(createSafeParagraph('Investments', character.investments));
+    if (character.debts) wealthDetails.push(createSafeParagraph('Debts', character.debts));
+    sections.push(wealthDetails.join('\n'));
+  }
+
+  // Leadership & Domain
+  const hasLeadership = character.overseeingDomain || character.leadershipGroup || 
+    character.positionDuration || character.affiliatedOrganizations;
+    
+  if (hasLeadership) {
+    sections.push(`<h2>Leadership & Affiliations</h2>`);
+    const leaderDetails: string[] = [];
+    if (character.overseeingDomain) leaderDetails.push(createSafeParagraph('Domain', character.overseeingDomain));
+    if (character.leadershipGroup) leaderDetails.push(createSafeParagraph('Leadership Role', character.leadershipGroup));
+    if (character.positionDuration) leaderDetails.push(createSafeParagraph('Position Duration', character.positionDuration));
+    if (character.affiliatedOrganizations) leaderDetails.push(createSafeParagraph('Affiliated Organizations', character.affiliatedOrganizations));
+    sections.push(leaderDetails.join('\n'));
+  }
+
+  // Legacy (for deceased characters)
+  const hasLegacy = character.worldInfluence || character.legacy || 
+    (Array.isArray(character.rememberedBy) && character.rememberedBy.length > 0);
+    
+  if (hasLegacy) {
+    sections.push(`<h2>Legacy</h2>`);
+    const legacyDetails: string[] = [];
+    if (character.worldInfluence) legacyDetails.push(createSafeParagraph('World Influence', character.worldInfluence));
+    if (character.legacy) legacyDetails.push(createSafeParagraph('Legacy', character.legacy));
+    
+    if (Array.isArray(character.rememberedBy) && character.rememberedBy.length > 0) {
+      legacyDetails.push(createListParagraph('Remembered By', character.rememberedBy));
+    }
+    
+    if (legacyDetails.length > 0) {
+      sections.push(legacyDetails.join('\n'));
     }
   }
 
