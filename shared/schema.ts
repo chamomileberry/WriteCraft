@@ -83,6 +83,8 @@ export const characters = pgTable("characters", {
   honorificTitle: text("honorific_title"),
   suffix: text("suffix"),
   prefix: text("prefix"),
+  // General description
+  description: text("description"),
   // Vital statistics
   dateOfBirth: text("date_of_birth"),
   placeOfBirth: text("place_of_birth"),
