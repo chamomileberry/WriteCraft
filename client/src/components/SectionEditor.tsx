@@ -219,6 +219,9 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         }),
         Mention.configure({
           suggestion,
+          renderLabel({ options, node }) {
+            return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
+          },
         }),
         Image,
         TiptapTable.configure({

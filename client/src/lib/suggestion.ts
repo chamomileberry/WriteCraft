@@ -59,6 +59,36 @@ export const suggestion = {
         });
       },
 
+      // Custom command to properly map search results to mention attributes
+      command: ({ editor, range, props }: any) => {
+        // Guard against malformed search results
+        if (!props || !props.id) {
+          console.error('Invalid mention props:', props);
+          return;
+        }
+
+        const mentionData = {
+          id: props.id,
+          label: props.title || props.id, // Fallback to id if title is missing
+          type: props.type || 'item'
+        };
+
+        editor
+          .chain()
+          .focus()
+          .insertContentAt(range, [
+            {
+              type: 'mention',
+              attrs: mentionData,
+            },
+            {
+              type: 'text',
+              text: ' ',
+            },
+          ])
+          .run();
+      },
+
       onKeyDown: (props: any) => {
         if (props.event.key === 'Escape') {
           popup[0].hide();

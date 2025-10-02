@@ -149,6 +149,9 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
           class: 'mention',
         },
         suggestion,
+        renderLabel({ options, node }) {
+          return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
+        },
       }),
       CharacterCount,
       TextStyle,
