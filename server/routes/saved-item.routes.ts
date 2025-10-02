@@ -45,6 +45,31 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.patch("/:id", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const savedItemId = req.params.id;
+    const { itemData } = req.body;
+    
+    if (!itemData) {
+      return res.status(400).json({ error: 'Missing required field: itemData' });
+    }
+    
+    // Update the saved item's itemData
+    const updatedItem = await storage.updateSavedItemData(savedItemId, userId, itemData);
+    
+    if (!updatedItem) {
+      return res.status(404).json({ error: 'Saved item not found or access denied' });
+    }
+    
+    res.json(updatedItem);
+  } catch (error) {
+    console.error('Error updating saved item:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 router.delete("/", async (req, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client payload)

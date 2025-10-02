@@ -484,6 +484,7 @@ export interface IStorage {
   getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]>;
   getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]>;
   isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
+  updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined>;
 
   // Project methods
   createProject(project: InsertProject): Promise<Project>;
@@ -2845,6 +2846,28 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(savedItems.createdAt));
     
     return savedItemsData;
+  }
+
+  async updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined> {
+    const conditions = [];
+    
+    // Verify the saved item belongs to this user
+    conditions.push(eq(savedItems.id, savedItemId));
+    
+    // Handle null userId for guest users
+    if (userId === 'null' || !userId) {
+      conditions.push(isNull(savedItems.userId));
+    } else {
+      conditions.push(eq(savedItems.userId, userId));
+    }
+    
+    const [updatedItem] = await db
+      .update(savedItems)
+      .set({ itemData })
+      .where(and(...conditions))
+      .returning();
+    
+    return updatedItem;
   }
 
   // Project methods
