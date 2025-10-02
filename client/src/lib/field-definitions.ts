@@ -159,6 +159,28 @@ export function createHistoryField(
   };
 }
 
+/**
+ * Creates a standard image field with optional caption support
+ * @param contentType - The type of content (e.g., "character", "weapon")
+ * @param options - Optional overrides including showCaption, captionFieldName, accept, maxFileSize
+ */
+export function createImageField(
+  contentType: string = "content",
+  options: Partial<FormField> = {}
+): FormField {
+  return {
+    name: "imageUrl",
+    label: `${contentType.charAt(0).toUpperCase() + contentType.slice(1)} Image`,
+    type: "image",
+    description: `Upload an image or enter a URL for this ${contentType}`,
+    accept: "image/jpeg,image/png,image/gif,image/webp",
+    maxFileSize: 5,
+    showCaption: true,
+    captionFieldName: "imageCaption",
+    ...options
+  };
+}
+
 // ============================================================================
 // NEW: COMMONLY REPEATED FIELDS
 // ============================================================================

@@ -6,6 +6,7 @@ export type FormFieldType =
   | "tags"
   | "date"
   | "checkbox"
+  | "image"
   // Existing content types with autocomplete
   | "autocomplete-location"
   | "autocomplete-character"
@@ -56,6 +57,11 @@ export interface FormField {
   customizable?: boolean;
   // Properties for tags fields
   maxTags?: number;
+  // Properties for image fields
+  accept?: string; // Accepted file types
+  maxFileSize?: number; // Max file size in MB
+  showCaption?: boolean; // Show caption input field
+  captionFieldName?: string; // Name of the caption field in the form
 }
 
 export interface FormTabConfig {

@@ -19,6 +19,7 @@ import { z } from "zod";
 import { FormField as FormFieldConfig, ContentTypeFormConfig } from './types';
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface DynamicContentFormProps {
   config: ContentTypeFormConfig;
@@ -57,6 +58,9 @@ const generateSchema = (config: ContentTypeFormConfig) => {
         case "checkbox":
           fieldSchema = z.boolean().nullable();
           break;
+        case "image":
+          fieldSchema = z.string().nullable();
+          break;
         default:
           // Handle autocomplete types based on their multiple property
           if (field.type.startsWith("autocomplete-")) {
@@ -86,6 +90,11 @@ const generateSchema = (config: ContentTypeFormConfig) => {
       }
       
       schemaObject[field.name] = fieldSchema;
+      
+      // Add caption field schema for image fields if present
+      if (field.type === "image" && field.showCaption && field.captionFieldName) {
+        schemaObject[field.captionFieldName] = z.string().nullable();
+      }
     });
   });
   
@@ -116,6 +125,13 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
           break;
         case "checkbox":
           defaults[field.name] = initialValue ?? false;
+          break;
+        case "image":
+          defaults[field.name] = initialValue ?? "";
+          // Handle caption field if present
+          if (field.showCaption && field.captionFieldName) {
+            defaults[field.captionFieldName] = initialData?.[field.captionFieldName] ?? "";
+          }
           break;
         default:
           // Handle autocomplete types based on their multiple property
@@ -309,6 +325,42 @@ export default function DynamicContentForm({
                     <FormDescription>{field.description}</FormDescription>
                   )}
                 </div>
+              </FormItem>
+            )}
+          />
+        );
+
+      case "image":
+        return (
+          <FormField
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormControl>
+                  <ImageUpload
+                    value={formField.value ?? ""}
+                    onChange={formField.onChange}
+                    onCaptionChange={
+                      field.showCaption && field.captionFieldName
+                        ? (caption) => form.setValue(field.captionFieldName!, caption)
+                        : undefined
+                    }
+                    caption={
+                      field.showCaption && field.captionFieldName
+                        ? form.watch(field.captionFieldName)
+                        : undefined
+                    }
+                    label={field.label}
+                    accept={field.accept}
+                    maxFileSize={field.maxFileSize}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
+                <FormMessage />
               </FormItem>
             )}
           />
