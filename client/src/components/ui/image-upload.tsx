@@ -52,17 +52,20 @@ export function ImageUpload({
 
     setUploading(true);
     try {
-      // Get presigned upload URL from server
+      // Get presigned upload URL and object path from server
       const uploadUrlResponse = await fetch('/api/upload/image', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       if (!uploadUrlResponse.ok) {
         throw new Error('Failed to get upload URL');
       }
 
-      const { uploadURL } = await uploadUrlResponse.json();
+      const { uploadURL, objectPath } = await uploadUrlResponse.json();
 
       // Upload file directly to object storage
       const uploadResponse = await fetch(uploadURL, {
@@ -77,15 +80,24 @@ export function ImageUpload({
         throw new Error('Upload failed');
       }
 
-      // Extract the object path from the upload URL
-      const url = new URL(uploadURL);
-      const pathname = url.pathname;
-      
-      // Convert to /objects/ path format
-      const objectPath = pathname.replace(/^\/[^/]+\/[^/]+\/uploads\//, '/objects/uploads/');
+      // Finalize upload by setting ACL metadata
+      const finalizeResponse = await fetch('/api/upload/finalize', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ objectPath })
+      });
 
-      setImageUrl(objectPath);
-      onChange(objectPath);
+      if (!finalizeResponse.ok) {
+        throw new Error('Failed to finalize upload');
+      }
+
+      const { objectPath: finalPath } = await finalizeResponse.json();
+
+      setImageUrl(finalPath);
+      onChange(finalPath);
 
       toast({
         title: 'Upload successful',

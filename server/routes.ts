@@ -76,11 +76,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload/image", async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      const { uploadURL, objectId } = await objectStorageService.getObjectEntityUploadURL();
+      const objectPath = `/objects/uploads/${objectId}`;
+      res.json({ 
+        uploadURL,
+        objectPath,
+        objectId
+      });
     } catch (error) {
       console.error("Error generating upload URL:", error);
       res.status(500).json({ error: "Failed to generate upload URL" });
+    }
+  });
+
+  app.post("/api/upload/finalize", async (req, res) => {
+    try {
+      const { objectPath } = req.body;
+      
+      if (!objectPath) {
+        return res.status(400).json({ error: "objectPath is required" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const userId = req.headers['x-user-id'] as string || 'anonymous';
+      
+      const finalPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        objectPath,
+        {
+          owner: userId,
+          visibility: "public"
+        }
+      );
+
+      res.json({ objectPath: finalPath });
+    } catch (error) {
+      console.error("Error finalizing upload:", error);
+      res.status(500).json({ error: "Failed to finalize upload" });
     }
   });
 

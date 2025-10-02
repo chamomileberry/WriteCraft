@@ -1,5 +1,5 @@
 import { Editor } from '@tiptap/react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -44,6 +44,9 @@ import {
   MoreHorizontal,
   Plus,
   Heading,
+  Upload,
+  Loader2,
+  X,
 } from 'lucide-react';
 
 interface EditorToolbarProps {
@@ -113,6 +116,9 @@ export function EditorToolbar({
   const [videoUrl, setVideoUrl] = useState('');
   const [footnoteText, setFootnoteText] = useState('');
   const [selectedSpecialChar, setSelectedSpecialChar] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Toolbar functions
   const toggleBold = () => {
@@ -180,15 +186,103 @@ export function EditorToolbar({
   };
 
   const handleImageSubmit = () => {
-    if (imageUrl.trim()) {
-      editor?.chain().focus().setImage({ src: imageUrl.trim() }).run();
+    const finalImageUrl = imagePreviewUrl || imageUrl.trim();
+    if (finalImageUrl) {
+      editor?.chain().focus().setImage({ src: finalImageUrl }).run();
       setImageUrl('');
+      setImagePreviewUrl('');
       setImageDialogOpen(false);
       toast({
         title: "Image added",
         description: "The image has been successfully inserted."
       });
     }
+  };
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxFileSize) {
+      toast({
+        title: 'File too large',
+        description: 'Image must be less than 5MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Get presigned upload URL and object path from server
+      const uploadUrlResponse = await fetch('/api/upload/image', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!uploadUrlResponse.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+
+      const { uploadURL, objectPath } = await uploadUrlResponse.json();
+
+      // Upload file directly to object storage
+      const uploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        }
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Upload failed');
+      }
+
+      // Finalize upload by setting ACL metadata
+      const finalizeResponse = await fetch('/api/upload/finalize', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ objectPath })
+      });
+
+      if (!finalizeResponse.ok) {
+        throw new Error('Failed to finalize upload');
+      }
+
+      const { objectPath: finalPath } = await finalizeResponse.json();
+
+      setImagePreviewUrl(finalPath);
+      setImageUrl(''); // Clear URL input when file is uploaded
+
+      toast({
+        title: 'Upload successful',
+        description: 'Your image has been uploaded'
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload image. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImagePreview = () => {
+    setImagePreviewUrl('');
   };
 
   const handleVideoSubmit = () => {
@@ -1097,27 +1191,109 @@ export function EditorToolbar({
 
       {/* Image Dialog */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Insert Image</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="image-url">Image URL</Label>
-              <Input
-                id="image-url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                onKeyDown={(e) => e.key === 'Enter' && handleImageSubmit()}
-              />
-            </div>
+            {imagePreviewUrl ? (
+              <div className="relative inline-block max-w-full">
+                <img 
+                  src={imagePreviewUrl} 
+                  alt="Preview" 
+                  className="max-w-full h-auto max-h-64 rounded-lg border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={handleRemoveImagePreview}
+                  data-testid="button-remove-image-preview"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50">
+                  <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Upload an image or enter a URL
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      data-testid="button-upload-file-editor"
+                    >
+                      {uploadingImage ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Choose File
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleImageFileChange}
+                    className="hidden"
+                    capture="environment"
+                    data-testid="input-file-editor"
+                  />
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or enter URL
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="image-url">Image URL</Label>
+                  <Input
+                    id="image-url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    onKeyDown={(e) => e.key === 'Enter' && !uploadingImage && handleImageSubmit()}
+                    disabled={uploadingImage}
+                    data-testid="input-image-url-editor"
+                  />
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setImageDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setImageDialogOpen(false);
+              setImageUrl('');
+              setImagePreviewUrl('');
+            }}>
               Cancel
             </Button>
-            <Button onClick={handleImageSubmit}>Insert Image</Button>
+            <Button 
+              onClick={handleImageSubmit}
+              disabled={!imagePreviewUrl && !imageUrl.trim()}
+              data-testid="button-insert-image-editor"
+            >
+              Insert Image
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
