@@ -43,6 +43,7 @@ Preferred communication style: Simple, everyday language.
   - **Query Cache Sync**: All notebook mutations (create/update/delete) invalidate React Query cache to prevent race conditions
   - **Quick Access**: Settings gear icon in ContentTypeModal provides direct access to NotebookManager for convenient notebook management during content creation
   - **Fixed Issue (Oct 2024)**: Resolved critical bug where new notebooks would disappear after creation due to stale cache overwriting Zustand store
+  - **Data Isolation Fix (Oct 2 2024)**: Fixed critical cross-contamination bug where autocomplete fields (species, profession) showed items from all notebooks instead of filtering by active notebook. Updated autocomplete-field.tsx to pass notebookId in API requests and include in React Query cache keys. Fixed species.routes.ts and profession.routes.ts GET endpoints to filter by notebookId query parameter. Verified isolation through testing.
 - **Generator System**: Modular content generation for characters, plots, settings, names, conflicts, themes, and moods
 - **Writing Guides**: Structured educational content with categories, difficulty levels, and comprehensive search
 - **User Collections**: System for saving and organizing generated content and favorite guides
@@ -91,3 +92,40 @@ Preferred communication style: Simple, everyday language.
 - **date-fns**: Date manipulation and formatting
 - **nanoid**: Unique ID generation for database records
 - **clsx & tailwind-merge**: Conditional CSS class management
+
+## Known Issues & Technical Debt
+
+### Autocomplete Notebook Isolation (Follow-up Required)
+**Status**: Partially fixed (species and profession completed on Oct 2 2024)
+
+**Issue**: Many content types with autocomplete fields may have the same cross-notebook data leakage bug that was fixed for species and profession.
+
+**Potentially Affected Routes** (need notebookId filtering in GET endpoints):
+- character.routes.ts
+- location.routes.ts
+- organization.routes.ts
+- culture.routes.ts
+- document.routes.ts
+- weapon.routes.ts
+- armor.routes.ts
+- accessory.routes.ts
+- clothing.routes.ts
+- material.routes.ts
+- settlement.routes.ts
+- society.routes.ts
+- faction.routes.ts
+- military-unit.routes.ts
+- potion.routes.ts
+- family-tree.routes.ts
+- timeline.routes.ts
+- ceremony.routes.ts
+- map.routes.ts
+- music.routes.ts
+- dance.routes.ts
+- law.routes.ts
+- policy.routes.ts
+
+**Recommended Actions**:
+1. Audit each route's GET endpoint to verify notebookId filtering
+2. Add automated tests for notebook-scoped queries
+3. Verify saved-items respect notebook scoping
