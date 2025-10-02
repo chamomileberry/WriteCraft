@@ -1,7 +1,9 @@
 import { useState, useReducer, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor as TiptapEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Mention from '@tiptap/extension-mention';
+import { guideSuggestion } from '@/lib/guide-suggestion';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Extension } from '@tiptap/core';
@@ -248,6 +250,15 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         link: false,
         codeBlock: false,
       }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'mention',
+        },
+        suggestion: guideSuggestion,
+        renderLabel({ options, node }) {
+          return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
+        },
+      }),
       CharacterCount,
       TextStyle,
       FontSize,
@@ -382,7 +393,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   useEffect(() => {
     if (!editor) return;
     
-    const handleUpdate = ({ editor }) => {
+    const handleUpdate = ({ editor }: { editor: TiptapEditor }) => {
       // Update word count
       const currentWordCount = editor.storage.characterCount.words();
       dispatch({ type: 'SET_WORD_COUNT', payload: currentWordCount });

@@ -135,9 +135,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.headers['x-user-id'] as string || 'demo-user';
       const query = req.query.q as string || '';
+      const typeFilter = req.query.type as string || ''; // Optional type filter
       
       const searchResults = await storage.searchAllContent(userId, query);
-      res.json(searchResults);
+      
+      // Filter by type if specified
+      const filteredResults = typeFilter 
+        ? searchResults.filter(result => result.type === typeFilter)
+        : searchResults;
+      
+      res.json(filteredResults);
     } catch (error) {
       console.error('Error searching content:', error);
       res.status(500).json({ error: 'Failed to search content' });
