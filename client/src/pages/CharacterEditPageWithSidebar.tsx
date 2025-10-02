@@ -5,9 +5,11 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { characterConfig } from "@/components/forms/content-types";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
+import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNotebookStore } from "@/stores/notebookStore";
+import { useState } from "react";
 
 export default function CharacterEditPageWithSidebar() {
   const { id } = useParams();
@@ -15,6 +17,7 @@ export default function CharacterEditPageWithSidebar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Extract notebookId from query parameters, fallback to active notebook
   const urlParams = new URLSearchParams(window.location.search);
@@ -110,6 +113,26 @@ export default function CharacterEditPageWithSidebar() {
     });
   };
 
+  const handleNavigate = (toolId: string) => {
+    if (toolId === 'notebook') {
+      setLocation('/notebook');
+    } else if (toolId === 'projects') {
+      setLocation('/projects');
+    } else if (toolId === 'generators') {
+      setLocation('/generators');
+    } else if (toolId === 'guides') {
+      setLocation('/guides');
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleCreateNew = () => {
+    setLocation('/notebook');
+  };
+
   // Handle missing notebook gracefully
   if (!notebookId) {
     return (
@@ -166,8 +189,16 @@ export default function CharacterEditPageWithSidebar() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with Back Navigation */}
-      <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Main Navigation Header */}
+      <Header
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+        onCreateNew={handleCreateNew}
+      />
+      
+      {/* Sub-header with Back Navigation */}
+      <div className="border-b bg-background">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
             <Button
