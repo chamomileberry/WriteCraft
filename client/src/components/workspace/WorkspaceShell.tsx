@@ -6,7 +6,7 @@ import { ContentDetailPanel } from './ContentDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
 import WritingAssistantPanel from './WritingAssistantPanel';
 import { FloatingLayer } from './FloatingLayer';
-import { X, GripHorizontal, Pin, Save, Minimize2, MessageSquarePlus, History, Menu } from 'lucide-react';
+import { X, GripHorizontal, Pin, Save, Minimize2, MessageSquarePlus, History, Menu, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -163,7 +163,17 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           {/* Docked Panel Header */}
           <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30 flex-shrink-0">
             <div className="flex items-center space-x-2">
-              <h3 className="text-sm font-medium">{panel.title}</h3>
+              {panel.type === 'writingAssistant' && (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)'}}>
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium">{panel.title}</h3>
+                {panel.type === 'writingAssistant' && (
+                  <p className="text-xs text-muted-foreground">AI-powered writing help</p>
+                )}
+              </div>
             </div>
             <div className="flex items-center space-x-1">
               {panel.type === 'writingAssistant' && (

@@ -618,27 +618,6 @@ export default function WritingAssistantPanel({
 
   return (
     <div className={`h-full flex flex-col bg-background overflow-hidden ${className}`} data-testid={`writing-assistant-panel-${panelId}`}>
-      {/* Header */}
-      <div className="flex items-center gap-2 p-3 border-b flex-shrink-0">
-        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)'}}>
-          <Sparkles className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-medium text-sm">Writing Assistant</h3>
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground">AI-powered writing help</p>
-            {(() => {
-              const editorContent = getEditorText();
-              return editorContent.hasEditorContent && (
-                <Badge variant="secondary" className="text-xs">
-                  {editorContent.type === 'manuscript' ? '📖' : '📝'} {editorContent.title}
-                </Badge>
-              );
-            })()}
-          </div>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="flex-1 flex flex-col min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
