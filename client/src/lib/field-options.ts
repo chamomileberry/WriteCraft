@@ -13,43 +13,109 @@
 // ============================================================================
 
 export const WEAPON_TYPES = [
-  "Sword", "Bow", "Staff", "Dagger", "Axe", "Mace", "Spear", 
-  "Crossbow", "Wand", "Other"
+  "Air Gun", "Axe", "Bazooka", "Biological Weapon", "Blow Gun", "Blunderbuss", "Bomb", "Bow", 
+  "Brass Knuckles", "Cannon", "Chemical Weapon", "Club", "Crossbow", "Dagger", "Derringer", "Gas", 
+  "Grenade", "Hammer", "Katana", "Knife", "Lance", "Mace", "Machine Gun", "Missile", "Musket", 
+  "Nuclear Weapon", "Nunchaku", "Pike", "Pistol", "Polearm", "Revolver", "Rifle", "Rocket", "Sabre",
+  "Scimitar", "Shotgun", "Shuriken", "Slingshot", "Spear", "Staff", "Sword", "Tomahawk", "Torpedo", 
+  "Wand", "Whip", "Quarter Staff", "Other"
 ];
 
 export const ARMOR_TYPES = [
   "Light", "Medium", "Heavy", "Shield", "Helmet", "Gauntlets", 
-  "Boots", "Cloak", "Magical", "Other"
+  "Boots", "Cloak", "Magical", "Plate Armour", "Chainmail", 
+  "Leather", "Cloth", "Scale", "Studded", "Ringmail", "Padded", "Hide", "Spiked", "Banded",
+  "Lamellar", "Segmented", "Splinted", "Laminar", "Plated", "Studded Leather", "Brigandine", "Kevlar",
+  "Soft Body Armour", "Hard Body Armour", "Powered Armour", "Exoskeleton", "Force Field", "Other"
 ];
 
 export const ITEM_TYPES = [
-  "Weapon", "Armor", "Tool", "Magic Item", "Artifact", "Consumable", 
+  "Weapon", "Armour", "Tool", "Magic Item", "Artifact", "Consumable", 
   "Trade Good", "Art Object", "Document", "Other"
 ];
 
 export const ACCESSORY_TYPES = [
   "Jewelry", "Belt", "Cloak", "Hat", "Gloves", "Bag", "Amulet", 
-  "Ring", "Necklace", "Bracelet", "Other"
+  "Ring", "Necklace", "Bracelet", "Earrings", "Anklet", "Toe Ring", "Watch", "Purse", "Handbag", 
+  "Wallet", "Brooch", "Scarf", "Shoes", "Headband", "Hair clip", "Crown", "Headwrap", "Tiara", 
+  "Sceptre", "Socks", "Glasses", "Monacle", "Telescope", "Binoculars", "Spyglass", "Magnifying Glass", 
+  "Tie", "Bowtie", "Map", "Cantine", "Flask", "Pendant", "Pouch", "Coin Purse", 
+  "Cufflinks", "Sunglasses", "Cane", "Staff", "Walking Stick", "Backpack", "Rucksack", "Satchel", 
+  "Clutch", "Totebag", "Brief Case", "Fanny Pack", "Duffle Bag", "Messenger Bag", "Doctor's Bag", 
+  "Drawstring Bag", "Bowling Bag", "Saddle Purse", "Bandana", "Gym Bag", "Shawl", "Keffiyah",
+  "Beret", "Sombrero", "Fedora", "Baseball Cap", "Beanie", "Bucket Hat", "Toque", "Panama Hat", "Kasa",
+  "Cowboy Hat", "Top Hat", "Helmet", "Hardee Hat", "Boater Hat", "Hijab", "Turban", "Handkerchief", 
+  "Fez", "Taqiyah", "Bonnet", "Kepi", "Niqab", "Thawb", "Veil", "Tudong", "Songkok", "Girdle", "Hood", 
+  "Coif", "Cap", "Sash", "Slouch Hat", "Tricorne", "Other"
 ];
 
 export const CLOTHING_TYPES = [
-  "Shirt", "Pants", "Dress", "Robe", "Cloak", "Hat", "Shoes", 
-  "Armor", "Uniform", "Ceremonial", "Other"
+  "Shirt", "Pants", "Dress", "Robe", "Cloak", "Hat", "Shoes", "Blouse", "Sportswear", "Swimsuit",
+  "Jacket", "Coat", "Sweater", "Suit", "Tuxedo", "T-Shirt", "Polo Shirt", "Pajamas", "Underwear"
+  "Stockings", "Hoisery", "Tights", "Corset",  "Hoodie", "Sweatshirt", "Sweater", "Uniform", 
+  "Ceremonial", "Jeans", "Crop Top", "Cardigan", "Caftan", "Bell-Bottoms", "Blazer", "Bloomers", 
+  "Bathrobe", "Toga", "Kilt", "Kimono", "Sari", "Dashiki", "Dirndl", "Lederhosen", "Cheongsam", "Huipil", 
+  "Kebaya", "Poncho", "Hanbok", "Kanzu","Tunic", "Leggings", "Abaya", "Gown", "Jilbāb", "Trousers", 
+  "Samping", "Wedding Dress", "Dress Shirt", "Baju Melayu", "Kurta", "Sarong", "Smock", "Hose", 
+  "Breeches", "Surcoat", "Doublet", "Yarmulke/Kippah", "Shtreimel", "Spodik", "Trapper Hat", "Overshirt",
+  "Undershirt", "Tank Top", "Flannel Shirt", "Henley Shirt", "Night Gown", "Prince's Vest", "Wrap Bust", 
+  "Chambray Shirt", "Button-Down Shirt","Turtleneck", "Ruffled Shirt", "Jabot", "Sailot", "Cossack", 
+  "Gypsy Shirt", "Jumper", "Military Shirt", "Fitted Wrap Shirt", "Belted Shirt", "Peplum Shirt", 
+  "Peasant Shirt", "Long-Sleeve Shirt", "Oxford Shirt", "Tube Top", "V-Neck Shirt", "Sleeveless Shirt", 
+  "Cargo Pants", "Chino Pants", "Sweatpants", "Dress Pants", "Joggers", "Sirwal", "Capris", "Culottes", 
+  "Pleated Pants", "Corduroy Pants", "Jumpsuit", "Pant Suit", "Romper", "Leather Pants", "Palazzo Pants", 
+  "Piping Pants", "Tapered Pants", "Bootcut Pants", "Overalls", "Bodysuit", "Sheath Dress", 
+  "Blusson Dress", "Tunic Dress", "Pencil Dress", "Skirt", "Pencil Skirt", "A-Line Skirt", "Coveralls", 
+  "Boilersuit", "Other"
 ];
 
 export const MATERIAL_TYPES = [
-  "Metal", "Wood", "Fabric", "Stone", "Crystal", "Organic", 
-  "Synthetic", "Magical", "Composite", "Other"
+  "Metal", "Wood", "Fabric", "Stone", "Crystal", "Organic", "Leather", "Silk", "Wool", "Cotton", "Linen",
+  "Denim", "Velvet", "Fur", "Feather", "Bone", "Ivory", "Pearl", "Shell", "Glass", "Ceramic", "Plastic",
+  "Rubber", "Glass", "Mithril", "Adamantine", "Ebony", "Oak", "Maple", "Balsa", "Bamboo", "Cedar", 
+  "Cypress", "Eucalyptus", "Fir", "Hemlock", "Juniper", "Mahogany", "Pine", "Redwood", "Spruce", 
+  "Papyrus", "Parchment", "Paper", "Chambray", "Chiffon", "Chintz", "Corduroy", "Crepe", "Damask", 
+  "Flannel", "Hemp", "Gauze", "Lace", "Muslin", "Satin", "Tulle", "Amethyst", "Citrine", "Emerald", 
+  "Jasper", "Onyx", "Opal", "Pearl", "Quartz", "Ruby", "Sapphire", "Topaz", "Turquoise", "Zircon", 
+  "Brass", "Copper", "Gold", "Silver", "Bronze", "Iron", "Steel", "Titanium", "Tungsten", "Zinc", 
+  "Aluminum", "Beryllium", "Chromium", "Cobalt", "Magnesium", "Manganese", "Nickel", "Platinum",
+  "Synthetic", "Magical", "Composite", "Diamond", "Coal", "Clay", "Silicone", "Obsidian,", "Brick", 
+  "Lithium", "Alloy", "Nanomaterials", "Carbon", "Carbon Fibre", "Rubber", "Cardboard", "Textile", 
+  "Linoleum", "Tile", "Granite", "Polymer", "Marble", "Laminate", "Quartzite", "Soapstone", "Adobe", 
+  "Concrete", "Ashphalt", "Plywood", "Porcelain", "Vinyl", "Acrylic", "Slate", "Enamel", "Other"
 ];
 
 export const RESOURCE_TYPES = [
-  "Natural", "Manufactured", "Magical", "Energy", "Mineral", 
-  "Organic", "Rare Earth", "Fuel", "Precious", "Other"
+  "Natural", "Manufactured", "Magical", "Energy", "Mineral", "Air", "Water", "Soil", "Solar", "Human", 
+  "Nuclear", "Chemical", "Biological", "Biochemical", "Coal", "Natural Gas", "Petrolium", "Oil",
+  "Organic", "Rare Earth", "Fuel", "Precious", "Infrastructure", "Tools", "Geothermal", "Biomass", 
+  "Hydropower", "Uranium", "Metal Ores", "Gasoline", "Diesel", "Propane", "Gold Ore", "Copper Ore", 
+  "Diamond Ore", "Tin Ore", "Dark Soils", "Machinery", "Materials", "Other"
 ];
 
 export const TRANSPORTATION_TYPES = [
   "Land", "Sea", "Air", "Magical", "Underground", "Dimensional", 
-  "Hybrid", "Other"
+  "Hybrid", "Train", "Bus", "Ship", "Boat", "Sailboat", "Paddle Boat", "Cruiseship", "Submarine", 
+  "Rocketship", "Spaceship", "Car", "SUV", "Truck", "Ferry", "Rickshaw", "Bicycle", "Motorcycle", 
+  "Electric Scooter", "Motorbike", "Dirtbike", "Dune Buggy", "Golf Cart", "Racecar", "Go Kart", 
+  "Pickup Truck", "Transport Truck", "Carriage", "Buggy", "Scooter", "Skateboard", "Snowboard", 
+  "Surfboard", "Paddleboard", "Hoverboard", "Airplane", "Jetplane", "Schooner", "Taxi Cab", "Tram",   
+  "Streetcar", "Subway", "Helicopter", "Tractor", "Bus", "Barge", "Blimp", "Hot Air Balloon", 
+  "Convertible", "Dump Truck", "Battle Tank", "Van", "Fire Engine", "Canoe", "Raft", "Paddleboat", 
+  "Ambulance", "Langskip", "Knörr", "Cargo Vessel", "Longship", "Drakkar", "Dragonship", "Karve", 
+  "Snekkje", "Sloop", "Brigantine", "Brig", "Galleon", "Barque", "Matawar", "Privateer", "Naval Ship", 
+  "Galley", "Cog", "Carrack", "River Boat", "Canal Boat", "Hulk", "Birlinn", "Balinger", "Minivan", 
+  "Coupe", "Sedan", "Sportscar", "Crossover", "Hatchback", "Station Wagon", "Limousine", "Roadster", 
+  "Muscle Car", "Box Truck", "Flatbed Truck", "Tanker Truck", "Crane Truck", "Semi Truck", "Tow Truck",  
+  "Cement Truck", "Refrigerator Truck", "Garbage Truck", "Cement Mixer", "ATV", "UTV", "Snowmobile", 
+  "Yacht", "Jetski", "Jeep", "Armoured Car", "Military Truck", "Utility Vehicle", 
+  "Infantry Fighting Vehicle", "Armoured Personnel Carrier", "Armoured Fighting Vehicle", 
+  "Tank Destroyer", "Amphibious Vehicle", "Armoured Recovery Vehicle", "Armoured Assault Vehicle", 
+  "Military Aircraft", "Cargoplane", "Amphibious Aircraft", "Fighter Jet", "Bomber", "Stealth Aircraft",
+  "Piston Aircraft", "Horse-Drawn Vehicle", "Sled", "Sleigh", "Cart", "Wagon", "Caravan", "Camel Train",
+  "Elephant Train", "Horse Carriage", "Gondola", "Trolley", "Tractor Trailer", "Tanker", "Barge", 
+  "Satellite", "UFO", "Space Station", "Hovercraft", "Drone", "Rover", "Lander", "Probe", "Module", 
+  "Shuttle", "Spacecraft", "Other"
 ];
 
 // ============================================================================
@@ -57,19 +123,27 @@ export const TRANSPORTATION_TYPES = [
 // ============================================================================
 
 export const LOCATION_TYPES = [
-  "City", "Town", "Village", "Forest", "Mountain", "Desert", 
-  "Ocean", "River", "Cave", "Dungeon", "Castle", "Temple", 
-  "Ruins", "Other"
+  "Forest", "Mountain", "Desert", "Ocean", "River", "Cave", "Settlement", "Mountain Range", 
+  "Archipelagos", "Country", "Beach", "Lake", "Island", "Swamp", "Oasis", "Volcano", "Valley", "River", 
+  "Delta", "Canyon", "Jungle", "Tundra", "Salt Flat", "Basin", "Continent", "Farmstead", "Field", 
+  "Pasture", "Plain", "Sea", "Glacier", "Ice Cap", "Grassland", "Coastline", "Steppe", "Prairie", 
+  "Savanna", "Park", "Other"
 ];
 
 export const BUILDING_TYPES = [
-  "House", "Castle", "Temple", "Shop", "Tavern", "Library", 
-  "Prison", "Tower", "Mansion", "Barracks", "Other"
+  "House", "Castle", "Temple", "Shop", "Tavern", "Library", "Condo", "Apartment", "Office", "Warehouse",
+  "Prison", "Tower", "Mansion", "Barracks", "Ruins", "Factory", "Hostel", "Hotel", "Inn", "Motel", 
+  "Community Centre", "Racetrack", "Flat", "Penthouse", "Suite", "Skyscraper", "Watchtower", 
+  "Watertower", "Silo", "Farmhouse", "Barn", "Corral", "Storage Facility", "Dungeon", "Prison", 
+  "Barracks", "Wall", "Firehall", "Town Hall", "City Hall", "Meeting Space", "Hut", "Tent", "Duplex", 
+  "Triplex", "Bungalow", "Semi-Detached", "Mine", "Jail", "Store", "Boutique", "Restaurant", "Saloon", 
+  "Hospital", "Clinic", "Courthouse", "Police Station", "Waterpark", "Splashpad", "Playground", 
+  "Skatepark", "Church", "Cemetery", "Mosque", "Synagogue", "Other"
 ];
 
 export const SETTLEMENT_TYPES = [
   "City", "Town", "Village", "Outpost", "Fortress", "Trading Post", 
-  "Port", "Capital", "Ruins", "Other"
+  "Port", "Capital", "County", "Country", "State", "Province", "Campsite", "Other"
 ];
 
 export const SETTING_TYPES = [
