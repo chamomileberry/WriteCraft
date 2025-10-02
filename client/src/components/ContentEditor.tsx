@@ -155,9 +155,9 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           throw new Error('No notebook selected. Cannot update content.');
         }
         
-        console.log('Making PUT request to:', `${apiBase}/${currentItemId}`, 'with data:', data, 'notebookId:', notebookId);
-        const response = await apiRequest('PUT', `${apiBase}/${currentItemId}?notebookId=${notebookId}`, data);
-        console.log('PUT response status:', response.status, 'ok:', response.ok);
+        console.log('Making PATCH request to:', `${apiBase}/${currentItemId}`, 'with data:', data, 'notebookId:', notebookId);
+        const response = await apiRequest('PATCH', `${apiBase}/${currentItemId}?notebookId=${notebookId}`, data);
+        console.log('PATCH response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -199,14 +199,25 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         
         // Automatically save the newly created item to saved-items
         try {
-          await apiRequest('POST', '/api/saved-items', {
-            userId: 'demo-user', // Use demo-user for consistency with authentication
-            itemType: contentType,
-            itemId: result.id,
-            itemData: result, // Include the complete data from the successful creation
-            notebookId: notebookId // Include notebookId from URL or active notebook
-          });
-          console.log('Successfully saved item to saved-items:', { contentType, itemId: result.id, notebookId });
+          // First check if this item is already in saved-items to prevent duplicates
+          const existingItemsResponse = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${notebookId}`);
+          const existingItems = await existingItemsResponse.json();
+          const alreadySaved = existingItems.some((item: any) => 
+            item.itemId === result.id && item.itemType === contentType
+          );
+          
+          if (!alreadySaved) {
+            await apiRequest('POST', '/api/saved-items', {
+              userId: 'demo-user', // Use demo-user for consistency with authentication
+              itemType: contentType,
+              itemId: result.id,
+              itemData: result, // Include the complete data from the successful creation
+              notebookId: notebookId // Include notebookId from URL or active notebook
+            });
+            console.log('Successfully saved item to saved-items:', { contentType, itemId: result.id, notebookId });
+          } else {
+            console.log('Item already exists in saved-items, skipping duplicate save:', { contentType, itemId: result.id });
+          }
         } catch (error) {
           console.error('Failed to save item to saved-items:', error);
           // Don't show error to user as the main content was created successfully
@@ -224,7 +235,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           
           if (notebookId) {
             // Update the saved-items record with the latest data
-            const savedItemsResponse = await apiRequest('GET', `/api/saved-items?userId=demo-user&notebookId=${notebookId}`);
+            const savedItemsResponse = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${notebookId}`);
             const savedItems = await savedItemsResponse.json();
             
             // Find the saved item that matches this content
@@ -236,6 +247,9 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
                 itemData: result
               });
               console.log('Successfully updated saved-items itemData:', { savedItemId: savedItem.id, itemId: result.id });
+              
+              // Invalidate saved-items cache so the notebook view shows updated data
+              queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
             }
           }
         } catch (error) {
