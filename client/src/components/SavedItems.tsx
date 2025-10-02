@@ -571,9 +571,13 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
 
                             {/* Right side - Content */}
                             <div className="flex-1 min-w-0 flex flex-col pr-8">
-                              <h3 className="text-lg font-semibold line-clamp-1 mb-2" data-testid={`title-content-${item.id}`}>
+                              <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-content-${item.id}`}>
                                 {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                               </h3>
+                              
+                              <span className="text-xs text-muted-foreground mb-2">
+                                Created {new Date(item.createdAt).toLocaleDateString()}
+                              </span>
 
                               {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
                                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
@@ -581,13 +585,10 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                                 </p>
                               )}
 
-                              <div className="mt-auto flex items-center gap-3">
+                              <div className="mt-auto">
                                 <Badge variant="secondary" className="text-xs">
                                   {mapping?.name || type}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                  Created {new Date(item.createdAt).toLocaleDateString()}
-                                </span>
                               </div>
 
                               {/* Action buttons - hidden until hover */}
@@ -671,9 +672,13 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
 
                       {/* Right side - Content */}
                       <div className="flex-1 min-w-0 flex flex-col pr-8">
-                        <h3 className="text-lg font-semibold line-clamp-1 mb-2" data-testid={`title-recent-${item.id}`}>
+                        <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-recent-${item.id}`}>
                           {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                         </h3>
+                        
+                        <span className="text-xs text-muted-foreground mb-2">
+                          Created {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
 
                         {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
@@ -681,13 +686,10 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                           </p>
                         )}
 
-                        <div className="mt-auto flex items-center gap-3">
+                        <div className="mt-auto">
                           <Badge variant="secondary" className="text-xs">
                             {mapping?.name || type}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(item.createdAt).toLocaleDateString()}
-                          </span>
                         </div>
 
                         {/* Action button - hidden until hover */}
