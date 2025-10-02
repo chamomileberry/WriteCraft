@@ -544,31 +544,33 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                     {items.map((item) => {
                       const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
                       return (
-                        <Card key={item.id} className="group hover-elevate overflow-hidden" data-testid={`card-content-${item.id}`}>
-                          {imageUrl && (
-                            <AspectRatio ratio={16 / 9}>
-                              <img
-                                src={imageUrl}
-                                alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                                className="w-full h-full object-cover"
-                                data-testid={`image-content-${item.id}`}
-                              />
-                            </AspectRatio>
-                          )}
+                        <Card key={item.id} className="group hover-elevate" data-testid={`card-content-${item.id}`}>
                           <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center gap-2">
-                                <IconComponent className="w-4 h-4 text-primary" />
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
                                 <CardTitle className="text-base line-clamp-1">
                                   {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                                 </CardTitle>
                               </div>
-                              <Badge variant="secondary" className="text-xs">
-                                {mapping?.name || type}
-                              </Badge>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {imageUrl && (
+                                  <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                                    <img
+                                      src={imageUrl}
+                                      alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                                      className="w-full h-full object-cover"
+                                      data-testid={`image-content-${item.id}`}
+                                    />
+                                  </div>
+                                )}
+                                <Badge variant="secondary" className="text-xs">
+                                  {mapping?.name || type}
+                                </Badge>
+                              </div>
                             </div>
                             {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
-                              <CardDescription className="line-clamp-2">
+                              <CardDescription className="line-clamp-2 mt-2">
                                 {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
                               </CardDescription>
                             )}
@@ -632,28 +634,30 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                 const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
                 
                 return (
-                  <Card key={item.id} className="group hover-elevate overflow-hidden" data-testid={`card-recent-${item.id}`}>
-                    {imageUrl && (
-                      <AspectRatio ratio={16 / 9}>
-                        <img
-                          src={imageUrl}
-                          alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                          className="w-full h-full object-cover"
-                          data-testid={`image-recent-${item.id}`}
-                        />
-                      </AspectRatio>
-                    )}
+                  <Card key={item.id} className="group hover-elevate" data-testid={`card-recent-${item.id}`}>
                     <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <IconComponent className="w-4 h-4 text-primary" />
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
                           <CardTitle className="text-base line-clamp-1">
                             {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                           </CardTitle>
                         </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {mapping?.name || type}
-                        </Badge>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {imageUrl && (
+                            <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                              <img
+                                src={imageUrl}
+                                alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
+                                className="w-full h-full object-cover"
+                                data-testid={`image-recent-${item.id}`}
+                              />
+                            </div>
+                          )}
+                          <Badge variant="secondary" className="text-xs">
+                            {mapping?.name || type}
+                          </Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     
