@@ -1,7 +1,9 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor as TiptapEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Mention from '@tiptap/extension-mention';
+import { suggestion } from '@/lib/suggestion';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Extension } from '@tiptap/core';
@@ -142,6 +144,12 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
         link: false,
         codeBlock: false,
       }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'mention',
+        },
+        suggestion,
+      }),
       CharacterCount,
       TextStyle,
       FontSize,
@@ -242,7 +250,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
   useEffect(() => {
     if (!editor) return;
     
-    const handleUpdate = ({ editor }) => {
+    const handleUpdate = ({ editor }: { editor: TiptapEditor }) => {
       // Update word count
       const currentWordCount = editor.storage.characterCount.words();
       setWordCount(currentWordCount);
