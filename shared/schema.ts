@@ -2419,6 +2419,10 @@ export const insertPlantSchema = createInsertSchema(plants).omit({
   createdAt: true,
 });
 
+export const updatePlantSchema = insertPlantSchema.partial().omit({
+  userId: true,
+});
+
 export const insertDescriptionSchema = createInsertSchema(descriptions).omit({
   id: true,
   createdAt: true,
@@ -2707,6 +2711,7 @@ export type Mood = typeof moods.$inferSelect;
 export type InsertCreature = z.infer<typeof insertCreatureSchema>;
 export type Creature = typeof creatures.$inferSelect;
 export type InsertPlant = z.infer<typeof insertPlantSchema>;
+export type UpdatePlant = z.infer<typeof updatePlantSchema>;
 export type Plant = typeof plants.$inferSelect;
 export type InsertDescription = z.infer<typeof insertDescriptionSchema>;
 export type Description = typeof descriptions.$inferSelect;

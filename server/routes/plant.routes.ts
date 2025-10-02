@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { insertPlantSchema } from "@shared/schema";
+import { insertPlantSchema, updatePlantSchema } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
@@ -99,7 +99,7 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: 'notebookId query parameter is required' });
     }
     
-    const validatedUpdates = insertPlantSchema.parse(req.body);
+    const validatedUpdates = updatePlantSchema.parse(req.body);
     const updatedPlant = await storage.updatePlant(req.params.id, userId, validatedUpdates, notebookId);
     res.json(updatedPlant);
   } catch (error) {
