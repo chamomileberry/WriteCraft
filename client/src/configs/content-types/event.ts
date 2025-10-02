@@ -12,6 +12,7 @@ export const eventConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Calendar",
       fields: [
+        Fields.createImageField("event"),
         Fields.createNameField("event"),
         Fields.createTypeField("event", EVENT_TYPES),
         Fields.createDescriptionField("event"),

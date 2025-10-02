@@ -12,6 +12,7 @@ export const locationConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "MapPin",
       fields: [
+        Fields.createImageField("location"),
         Fields.createNameField("location"),
         Fields.createTypeField("location", LOCATION_TYPES),
         Fields.createDescriptionField("location"),

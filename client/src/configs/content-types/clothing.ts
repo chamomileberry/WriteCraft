@@ -12,6 +12,7 @@ export const clothingConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Shirt",
       fields: [
+        Fields.createImageField("clothing"),
         Fields.createNameField("clothing"),
         Fields.createTypeField("clothing", CLOTHING_TYPES),
         Fields.createDescriptionField("clothing"),

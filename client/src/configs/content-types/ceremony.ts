@@ -12,6 +12,7 @@ export const ceremonyConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Crown",
       fields: [
+        Fields.createImageField("ceremony"),
         Fields.createNameField("ceremony"),
         Fields.createTypeField("ceremony", CEREMONY_TYPES),
         Fields.createPurposeField(),

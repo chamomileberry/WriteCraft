@@ -12,6 +12,7 @@ export const armorConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Shield",
       fields: [
+        Fields.createImageField("armor"),
         Fields.createNameField("armor"),
         Fields.createTypeField("armor", ARMOR_TYPES),
         Fields.createDescriptionField("armor"),

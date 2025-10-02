@@ -12,6 +12,7 @@ export const transportationConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Car",
       fields: [
+        Fields.createImageField("transportation"),
         Fields.createNameField("transportation"),
         Fields.createTypeField("transportation", TRANSPORTATION_TYPES),
         Fields.createDescriptionField("transportation"),

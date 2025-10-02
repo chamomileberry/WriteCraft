@@ -11,6 +11,7 @@ export const moodConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Palette",
       fields: [
+        Fields.createImageField("mood"),
         Fields.createNameField("mood"),
         Fields.createDescriptionField("mood"),
         { name: "emotionalTone", label: "Emotional Tone", type: "text", placeholder: "Overall emotional feeling", description: "The primary emotional atmosphere" }

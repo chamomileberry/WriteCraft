@@ -12,6 +12,7 @@ export const accessoryConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Watch",
       fields: [
+        Fields.createImageField("accessory"),
         Fields.createNameField("accessory"),
         Fields.createTypeField("accessory", ACCESSORY_TYPES),
         Fields.createDescriptionField("accessory"),

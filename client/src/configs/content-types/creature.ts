@@ -12,6 +12,7 @@ export const creatureConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Zap",
       fields: [
+        Fields.createImageField("creature"),
         Fields.createNameField("creature"),
         Fields.createTypeField("creature", CREATURE_TYPES),
         Fields.createHabitatField(),

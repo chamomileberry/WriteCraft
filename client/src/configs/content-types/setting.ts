@@ -12,6 +12,7 @@ export const settingConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Mountain",
       fields: [
+        Fields.createImageField("setting"),
         Fields.createNameField("setting"),
         { name: "location", label: "Location", type: "text", placeholder: "Where is it located?", description: "Geographic location and positioning" },
         { name: "timePeriod", label: "Time Period", type: "text", placeholder: "When does it exist?", description: "Historical time period or era" },

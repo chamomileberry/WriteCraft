@@ -11,6 +11,7 @@ export const religionConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Church",
       fields: [
+        Fields.createImageField("religion"),
         Fields.createNameField("religion"),
         Fields.createDescriptionField("religion"),
         { name: "followers", label: "Followers", type: "text", placeholder: "Who follows this religion?", description: "Description of the faithful and adherents" },

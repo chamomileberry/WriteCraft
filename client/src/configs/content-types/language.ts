@@ -11,6 +11,7 @@ export const languageConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Globe",
       fields: [
+        Fields.createImageField("language"),
         Fields.createNameField("language"),
         { name: "family", label: "Language Family", type: "text", placeholder: "Germanic, Romance, Constructed, etc.", description: "What family does this language belong to?" },
         { name: "speakers", label: "Speakers", type: "text", placeholder: "Who speaks this language?", description: "Description of the people or groups who speak this language" },

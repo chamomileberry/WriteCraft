@@ -12,6 +12,7 @@ export const musicConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Music",
       fields: [
+        Fields.createImageField("music"),
         Fields.createNameField("song/composition"),
         Fields.createTypeField("music", MUSIC_TYPES),
         { name: "composer", label: "Composer", type: "autocomplete-character", placeholder: "Search or create composer...", description: "Who composed this music?", multiple: false },

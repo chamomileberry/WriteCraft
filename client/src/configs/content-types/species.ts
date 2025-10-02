@@ -11,6 +11,7 @@ export const speciesConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Zap",
       fields: [
+        Fields.createImageField("species"),
         Fields.createNameField("species"),
         { name: "classification", label: "Classification", type: "text", placeholder: "Scientific or fantasy classification", description: "Taxonomic or fantasy classification" },
         { name: "physicalDescription", label: "Physical Description", type: "textarea", placeholder: "Describe their appearance...", description: "Detailed physical characteristics" },

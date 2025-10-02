@@ -12,6 +12,7 @@ export const societyConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Users",
       fields: [
+        Fields.createImageField("society"),
         Fields.createNameField("society"),
         Fields.createTypeField("society", SOCIETY_TYPES),
         Fields.createDescriptionField("society"),

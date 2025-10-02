@@ -12,6 +12,7 @@ export const ritualConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Flame",
       fields: [
+        Fields.createImageField("ritual"),
         Fields.createNameField("ritual"),
         Fields.createTypeField("ritual", RITUAL_TYPES),
         Fields.createDescriptionField("ritual"),

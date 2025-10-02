@@ -12,6 +12,7 @@ export const conflictConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Swords",
       fields: [
+        Fields.createImageField("conflict"),
         { name: "title", label: "Conflict Title", type: "text", placeholder: "Enter conflict title...", description: "The name of this conflict" },
         Fields.createTypeField("conflict", CONFLICT_TYPES),
         Fields.createDescriptionField("conflict"),

@@ -11,6 +11,7 @@ export const themeConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Lightbulb",
       fields: [
+        Fields.createImageField("theme"),
         { name: "title", label: "Theme Title", type: "text", placeholder: "Enter theme title...", description: "The name of this theme" },
         Fields.createDescriptionField("theme"),
         { name: "coreMessage", label: "Core Message", type: "text", placeholder: "What's the main message?", description: "Central message or idea" },

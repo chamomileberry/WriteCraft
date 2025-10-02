@@ -11,6 +11,7 @@ export const spellConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Sparkles",
       fields: [
+        Fields.createImageField("spell"),
         Fields.createNameField("spell"),
         { name: "school", label: "School of Magic", type: "select", options: ["Evocation", "Divination", "Enchantment", "Illusion", "Necromancy", "Transmutation", "Conjuration", "Abjuration", "Elemental", "Other"], description: "Which school of magic does this belong to?" },
         { name: "level", label: "Spell Level", type: "select", options: ["Cantrip", "1st Level", "2nd Level", "3rd Level", "4th Level", "5th Level", "6th Level", "7th Level", "8th Level", "9th Level", "Epic"], description: "Power level of the spell" },

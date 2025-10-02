@@ -12,6 +12,7 @@ export const mythConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Crown",
       fields: [
+        Fields.createImageField("myth"),
         { name: "title", label: "Myth Title", type: "text", placeholder: "Enter myth title...", description: "The title of this myth" },
         Fields.createTypeField("myth", MYTH_TYPES),
         { name: "summary", label: "Summary", type: "textarea", placeholder: "Brief summary of the myth...", description: "Short summary of the myth's main story" },

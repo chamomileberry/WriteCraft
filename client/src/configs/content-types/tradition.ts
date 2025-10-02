@@ -12,6 +12,7 @@ export const traditionConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Calendar",
       fields: [
+        Fields.createImageField("tradition"),
         Fields.createNameField("tradition"),
         Fields.createTypeField("tradition", TRADITION_TYPES),
         Fields.createDescriptionField("tradition"),

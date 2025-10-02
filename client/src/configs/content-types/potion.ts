@@ -12,6 +12,7 @@ export const potionConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "FlaskConical",
       fields: [
+        Fields.createImageField("potion"),
         Fields.createNameField("potion"),
         Fields.createTypeField("potion", POTION_TYPES),
         Fields.createRarityField(),

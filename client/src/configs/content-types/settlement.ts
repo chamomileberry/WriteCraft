@@ -12,6 +12,7 @@ export const settlementConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Home",
       fields: [
+        Fields.createImageField("settlement"),
         Fields.createNameField("settlement"),
         Fields.createTypeField("settlement", SETTLEMENT_TYPES),
         Fields.createDescriptionField("settlement"),

@@ -12,6 +12,7 @@ export const documentConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "FileText",
       fields: [
+        Fields.createImageField("document"),
         { name: "title", label: "Document Title", type: "text", placeholder: "Enter document title...", description: "The title of this document" },
         Fields.createTypeField("document", DOCUMENT_TYPES),
         { name: "author", label: "Author", type: "text", placeholder: "Who created this?", description: "The original author or creator" },

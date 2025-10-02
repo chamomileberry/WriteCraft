@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { FormField as FormFieldComponent, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { 
   ChevronRight, ChevronDown, Menu, X 
 } from "lucide-react";
@@ -229,6 +230,42 @@ export default function CharacterEditorWithSidebar({
                     <FormDescription>{field.description}</FormDescription>
                   )}
                 </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+
+      case "image":
+        return (
+          <FormFieldComponent
+            key={field.name}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormControl>
+                  <ImageUpload
+                    value={formField.value ?? ""}
+                    onChange={formField.onChange}
+                    onCaptionChange={
+                      field.showCaption && field.captionFieldName
+                        ? (caption) => form.setValue(field.captionFieldName!, caption)
+                        : undefined
+                    }
+                    caption={
+                      field.showCaption && field.captionFieldName
+                        ? form.watch(field.captionFieldName)
+                        : undefined
+                    }
+                    label={field.label}
+                    accept={field.accept}
+                    maxFileSize={field.maxFileSize}
+                  />
+                </FormControl>
+                {field.description && (
+                  <FormDescription>{field.description}</FormDescription>
+                )}
                 <FormMessage />
               </FormItem>
             )}

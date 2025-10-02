@@ -12,6 +12,7 @@ export const factionConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Flag",
       fields: [
+        Fields.createImageField("faction"),
         Fields.createNameField("faction"),
         Fields.createTypeField("faction", FACTION_TYPES),
         Fields.createDescriptionField("faction"),

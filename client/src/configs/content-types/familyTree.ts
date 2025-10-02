@@ -11,6 +11,7 @@ export const familyTreeConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Users",
       fields: [
+        Fields.createImageField("familyTree"),
         Fields.createNameField("family tree"),
         { name: "treeType", label: "Tree Type", type: "select", options: ["Lineage", "Ancestral", "Descendant", "Genealogical", "Royal", "Noble", "Other"], description: "What type of family tree is this?" },
         { name: "rootPerson", label: "Root Person", type: "autocomplete-character", placeholder: "Search or create root family member...", description: "The central person of this family tree", multiple: false },

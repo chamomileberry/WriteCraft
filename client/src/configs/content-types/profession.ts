@@ -12,6 +12,7 @@ export const professionConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "User",
       fields: [
+        Fields.createImageField("profession"),
         Fields.createNameField("profession"),
         Fields.createTypeField("profession", PROFESSION_TYPES),
         Fields.createDescriptionField("profession"),

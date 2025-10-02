@@ -11,6 +11,7 @@ export const plantConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Flower",
       fields: [
+        Fields.createImageField("plant"),
         Fields.createNameField("plant"),
         { name: "scientificName", label: "Scientific Name", type: "text", placeholder: "Scientific classification", description: "Scientific or botanical name" },
         { name: "type", label: "Plant Type", type: "select", options: ["Tree", "Shrub", "Herb", "Flower", "Grass", "Vine", "Moss", "Fern", "Mushroom", "Algae", "Other"], description: "What type of plant is this?" },

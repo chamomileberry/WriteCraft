@@ -12,6 +12,7 @@ export const policyConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "FileText",
       fields: [
+        Fields.createImageField("policy"),
         Fields.createNameField("policy"),
         Fields.createTypeField("policy", POLICY_TYPES),
         { name: "organization", label: "Governing Organization", type: "autocomplete-organization", placeholder: "Search or create organization...", description: "The organization that implements this policy", multiple: false },

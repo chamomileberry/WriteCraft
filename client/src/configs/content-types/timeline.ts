@@ -11,6 +11,7 @@ export const timelineConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Clock",
       fields: [
+        Fields.createImageField("timeline"),
         Fields.createNameField("timeline"),
         { name: "timelineType", label: "Timeline Type", type: "select", options: ["Historical", "Personal", "Fictional", "Political", "Cultural", "Military", "Scientific", "Other"], description: "What type of timeline is this?" },
         { name: "scope", label: "Scope", type: "text", placeholder: "Geographic or thematic scope", description: "What area or theme does this timeline cover?" },

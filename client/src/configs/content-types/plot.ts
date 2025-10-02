@@ -11,6 +11,7 @@ export const plotConfig: ContentTypeFormConfig = {
       label: "Story Structure",
       icon: "BookOpen",
       fields: [
+        Fields.createImageField("plot"),
         { name: "setup", label: "Setup", type: "textarea", placeholder: "Introduce characters, world, and status quo...", description: "Set the stage for your story" },
         { name: "incitingIncident", label: "Inciting Incident", type: "textarea", placeholder: "The event that kicks off the main story...", description: "What disrupts the normal world?" },
         { name: "firstPlotPoint", label: "First Plot Point", type: "textarea", placeholder: "The protagonist commits to the journey...", description: "The point of no return" },

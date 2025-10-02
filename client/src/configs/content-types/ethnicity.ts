@@ -11,6 +11,7 @@ export const ethnicityConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Users",
       fields: [
+        Fields.createImageField("ethnicity"),
         Fields.createNameField("ethnicity"),
         Fields.createOriginField(),
         { name: "physicalTraits", label: "Physical Traits", type: "text", placeholder: "Common physical characteristics", description: "Typical physical appearance and traits" },

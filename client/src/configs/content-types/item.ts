@@ -12,6 +12,7 @@ export const itemConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Package",
       fields: [
+        Fields.createImageField("item"),
         Fields.createNameField("item"),
         Fields.createTypeField("item", ITEM_TYPES),
         Fields.createDescriptionField("item"),

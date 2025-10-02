@@ -12,6 +12,7 @@ export const weaponConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Sword",
       fields: [
+        Fields.createImageField("weapon"),
         Fields.createNameField("weapon"),
         Fields.createTypeField("weapon", WEAPON_TYPES),
         Fields.createDescriptionField("weapon"),

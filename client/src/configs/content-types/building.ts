@@ -12,6 +12,7 @@ export const buildingConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Building",
       fields: [
+        Fields.createImageField("building"),
         Fields.createNameField("building"),
         Fields.createTypeField("building", BUILDING_TYPES),
         Fields.createDescriptionField("building"),

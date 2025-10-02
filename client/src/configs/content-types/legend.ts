@@ -12,6 +12,7 @@ export const legendConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Shield",
       fields: [
+        Fields.createImageField("legend"),
         { name: "title", label: "Legend Title", type: "text", placeholder: "Enter legend title...", description: "The title of this legend" },
         Fields.createTypeField("legend", LEGEND_TYPES),
         { name: "summary", label: "Summary", type: "textarea", placeholder: "Brief summary of the legend...", description: "Short summary of the legend's main story" },

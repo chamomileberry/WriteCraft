@@ -12,6 +12,7 @@ export const lawConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Scale",
       fields: [
+        Fields.createImageField("law"),
         Fields.createNameField("law"),
         Fields.createTypeField("law", LAW_TYPES),
         { name: "jurisdiction", label: "Jurisdiction", type: "autocomplete-location", placeholder: "Search or create location...", description: "Where does this law apply?", multiple: false },

@@ -12,6 +12,7 @@ export const drinkConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Cup",
       fields: [
+        Fields.createImageField("drink"),
         Fields.createNameField("drink"),
         Fields.createTypeField("drink", DRINK_TYPES),
         Fields.createDescriptionField("drink"),

@@ -12,6 +12,7 @@ export const animalConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Cat",
       fields: [
+        Fields.createImageField("animal"),
         Fields.createNameField("animal"),
         Fields.createTypeField("animal", ANIMAL_TYPES),
         Fields.createDescriptionField("animal"),

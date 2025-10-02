@@ -11,6 +11,7 @@ export const cultureConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Globe",
       fields: [
+        Fields.createImageField("culture"),
         Fields.createNameField("culture"),
         Fields.createDescriptionField("culture"),
         { name: "language", label: "Language", type: "text", placeholder: "Primary language", description: "Main language spoken by this culture" },

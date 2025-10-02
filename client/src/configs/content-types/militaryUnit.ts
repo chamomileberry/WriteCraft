@@ -12,6 +12,7 @@ export const militaryUnitConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Shield",
       fields: [
+        Fields.createImageField("militaryUnit"),
         Fields.createNameField("unit"),
         Fields.createTypeField("militaryunit", MILITARY_UNIT_TYPES),
         Fields.createDescriptionField("unit"),

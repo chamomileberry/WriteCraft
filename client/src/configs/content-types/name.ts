@@ -11,6 +11,7 @@ export const nameConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Type",
       fields: [
+        Fields.createImageField("name"),
         Fields.createNameField("name"),
         { name: "nameType", label: "Name Type", type: "select", options: ["Character", "Place", "Fantasy", "Historical", "Family", "Title", "Organization", "Item", "Other"], description: "What type of name is this?" },
         { name: "culture", label: "Culture", type: "text", placeholder: "Cultural origin", description: "Cultural or ethnic origin" },

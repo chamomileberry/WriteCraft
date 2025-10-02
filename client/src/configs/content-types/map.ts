@@ -12,6 +12,7 @@ export const mapConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Map",
       fields: [
+        Fields.createImageField("map"),
         Fields.createNameField("map"),
         Fields.createTypeField("map", MAP_TYPES),
         { name: "scale", label: "Scale", type: "text", placeholder: "Map scale (e.g., 1:100,000)", description: "The scale or zoom level of this map" },

@@ -11,6 +11,7 @@ export const naturalLawConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Atom",
       fields: [
+        Fields.createImageField("naturalLaw"),
         Fields.createNameField("law"),
         { name: "lawType", label: "Law Type", type: "select", options: ["Physical", "Magical", "Divine", "Quantum", "Biological", "Chemical", "Mathematical", "Metaphysical", "Other"], description: "What type of natural law is this?" },
         Fields.createDescriptionField("law"),

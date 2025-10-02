@@ -12,6 +12,7 @@ export const technologyConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Cog",
       fields: [
+        Fields.createImageField("technology"),
         Fields.createNameField("technology"),
         Fields.createTypeField("technology", TECHNOLOGY_TYPES),
         Fields.createDescriptionField("technology"),

@@ -11,6 +11,7 @@ export const promptConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "PenTool",
       fields: [
+        Fields.createImageField("prompt"),
         { name: "text", label: "Prompt Text", type: "textarea", placeholder: "Write your prompt here...", description: "The main writing prompt or exercise" },
         { name: "type", label: "Prompt Type", type: "select", options: ["Character Development", "Plot Hook", "Setting Description", "Dialogue", "Opening Line", "Story Structure", "World Building", "Conflict", "Other"], description: "What type of writing prompt is this?" },
         Fields.createGenreField(),

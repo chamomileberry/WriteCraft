@@ -12,6 +12,7 @@ export const resourceConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Gem",
       fields: [
+        Fields.createImageField("resource"),
         Fields.createNameField("resource"),
         Fields.createTypeField("resource", RESOURCE_TYPES),
         Fields.createDescriptionField("resource"),

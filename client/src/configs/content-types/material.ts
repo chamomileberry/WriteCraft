@@ -12,6 +12,7 @@ export const materialConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "Package",
       fields: [
+        Fields.createImageField("material"),
         Fields.createNameField("material"),
         Fields.createTypeField("material", MATERIAL_TYPES),
         Fields.createDescriptionField("material"),

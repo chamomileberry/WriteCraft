@@ -12,6 +12,7 @@ export const danceConfig: ContentTypeFormConfig = {
       label: "Basic Info",
       icon: "PersonStanding",
       fields: [
+        Fields.createImageField("dance"),
         Fields.createNameField("dance"),
         Fields.createTypeField("dance", DANCE_TYPES),
         { name: "choreographer", label: "Choreographer", type: "autocomplete-character", placeholder: "Search or create choreographer...", description: "Who created this dance?", multiple: false },
