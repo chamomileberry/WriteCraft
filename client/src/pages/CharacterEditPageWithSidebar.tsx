@@ -5,9 +5,11 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { characterConfig } from "@/components/forms/content-types";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
+import ArticleEditor from "@/components/ArticleEditor";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Database, FileText } from "lucide-react";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { useState } from "react";
 
@@ -18,6 +20,7 @@ export default function CharacterEditPageWithSidebar() {
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'structured' | 'article'>('structured');
 
   // Extract notebookId from query parameters, fallback to active notebook
   const urlParams = new URLSearchParams(window.location.search);
@@ -120,12 +123,17 @@ export default function CharacterEditPageWithSidebar() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedCharacter) => {
+      // Update cache with new article content
+      queryClient.setQueryData(['/api/characters', id, notebookId], updatedCharacter);
+      
+      // Switch to article view to show the generated article
+      setViewMode('article');
+      
       toast({
         title: "Article Generated",
         description: "Character article has been generated successfully!",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
     },
     onError: (error) => {
       console.error('Error generating article:', error);
@@ -254,15 +262,59 @@ export default function CharacterEditPageWithSidebar() {
         </div>
       </div>
 
-      {/* Character Editor */}
-      <CharacterEditorWithSidebar
-        config={characterConfig}
-        initialData={character}
-        onSubmit={onSubmit}
-        onGenerate={handleGenerate}
-        isLoading={updateMutation.isPending}
-        isCreating={false}
-      />
+      {/* View Mode Tabs */}
+      <div className="border-b bg-background">
+        <div className="container mx-auto px-4">
+          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'structured' | 'article')} className="w-full">
+            <TabsList className="h-10 bg-transparent border-0 rounded-none p-0">
+              <TabsTrigger 
+                value="structured" 
+                data-testid="tab-structured-view"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              >
+                <Database className="mr-2 h-4 w-4" />
+                Edit Character
+              </TabsTrigger>
+              <TabsTrigger 
+                value="article" 
+                disabled={!character?.articleContent}
+                data-testid="tab-article-view"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Article View
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Content based on view mode */}
+      {viewMode === 'structured' ? (
+        <CharacterEditorWithSidebar
+          config={characterConfig}
+          initialData={character}
+          onSubmit={onSubmit}
+          onGenerate={handleGenerate}
+          isLoading={updateMutation.isPending}
+          isCreating={false}
+        />
+      ) : (
+        <div className="container mx-auto px-4 py-8">
+          <ArticleEditor
+            contentType="character"
+            contentId={id || ''}
+            initialContent={character?.articleContent || ''}
+            title="Character Article"
+            onContentChange={(content) => {
+              console.log('Article content changed:', content.length, 'characters');
+            }}
+            onSave={(content) => {
+              console.log('Article saved:', content.length, 'characters');
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
