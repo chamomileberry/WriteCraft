@@ -20,6 +20,7 @@ import { FormField as FormFieldConfig, ContentTypeFormConfig } from './types';
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { ContentHero } from "@/components/ContentHero";
 
 interface DynamicContentFormProps {
   config: ContentTypeFormConfig;
@@ -474,10 +475,15 @@ export default function DynamicContentForm({
               })}
             </TabsList>
 
-            {(config.tabs || []).map((tab) => {
+            {(config.tabs || []).map((tab, index) => {
               const TabIcon = getIcon(tab.icon);
+              const isFirstTab = index === 0;
+              const imageUrl = form.watch('imageUrl');
+              const imageCaption = form.watch('imageCaption');
+              
               return (
                 <TabsContent key={tab.id} value={tab.id} className="space-y-6">
+                  {isFirstTab && <ContentHero imageUrl={imageUrl} imageCaption={imageCaption} />}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
