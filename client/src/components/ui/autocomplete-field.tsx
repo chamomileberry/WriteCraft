@@ -77,7 +77,7 @@ export function AutocompleteField({
   // Search existing items (skip for static options like location-type)
   const apiEndpoint = getApiEndpoint(contentType);
   const { data: items = [], isLoading } = useQuery({
-    queryKey: [`/api/${apiEndpoint}`, searchValue],
+    queryKey: [`/api/${apiEndpoint}`, searchValue, activeNotebookId],
     queryFn: async () => {
       // Handle static options like location-type
       if (contentType === "location-type" && options) {
@@ -91,9 +91,17 @@ export function AutocompleteField({
         }));
       }
       
-      // Build URL with search parameter only if search value exists
-      const searchParam = searchValue.trim() ? `?search=${encodeURIComponent(searchValue)}` : '';
-      const response = await fetch(`/api/${apiEndpoint}${searchParam}`, {
+      // Build URL with search and notebookId parameters
+      const params = new URLSearchParams();
+      if (searchValue.trim()) {
+        params.append('search', searchValue.trim());
+      }
+      if (activeNotebookId) {
+        params.append('notebookId', activeNotebookId);
+      }
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+      
+      const response = await fetch(`/api/${apiEndpoint}${queryString}`, {
         headers: {
           'X-User-Id': 'demo-user' // TODO: Replace with actual user authentication
         }

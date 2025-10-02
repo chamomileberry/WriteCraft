@@ -26,18 +26,23 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
     const species = await storage.getUserSpecies(userId);
     
+    // Filter by notebook if notebookId is provided
+    let filtered = notebookId 
+      ? species.filter(item => item.notebookId === notebookId)
+      : species;
+    
+    // Then filter by search text if provided
     if (search) {
-      // Filter species by name (case-insensitive)
-      const filtered = species.filter(item =>
+      filtered = filtered.filter(item =>
         item.name?.toLowerCase().includes(search.toLowerCase())
       );
-      res.json(filtered);
-    } else {
-      res.json(species);
     }
+    
+    res.json(filtered);
   } catch (error) {
     console.error('Error fetching species:', error);
     res.status(500).json({ error: 'Failed to fetch species' });
