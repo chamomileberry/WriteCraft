@@ -69,8 +69,8 @@ if (typeof document !== 'undefined' && !document.getElementById('ai-suggestion-s
     }
 
     .dark .ai-canvas-suggested-text {
-      color: #60A5FA !important;
-      background: rgba(59, 130, 246, 0.15) !important;
+      color: #A78BFA !important;
+      background: rgba(167, 139, 250, 0.15) !important;
     }
 
     .dark .ai-canvas-dismiss-btn {
@@ -205,11 +205,11 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   suggestedDiv.className = 'ai-canvas-suggested-text';
   suggestedDiv.style.cssText = `
     font-size: 13px;
-    color: #3B82F6;
-    background: rgba(59, 130, 246, 0.08);
+    color: #8B5CF6;
+    background: rgba(139, 92, 246, 0.08);
     padding: 8px 12px;
     border-radius: 8px;
-    border: 1.5px solid rgba(59, 130, 246, 0.2);
+    border: 1.5px solid rgba(139, 92, 246, 0.2);
     margin-bottom: 16px;
     line-height: 1.5;
     font-weight: 500;
@@ -278,7 +278,7 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
     align-items: center;
     justify-content: center;
     gap: 6px;
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    background: linear-gradient(135deg, #A78BFA, #8B5CF6);
     color: white;
     border: none;
     border-radius: 8px;
@@ -287,7 +287,7 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
     font-size: 13px;
     font-weight: 600;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
   `.replace(/\s+/g, ' ').trim();
   acceptBtn.setAttribute('data-suggestion-id', activeSuggestion.id);
   acceptBtn.setAttribute('data-action', 'accept');
@@ -295,11 +295,11 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   
   acceptBtn.onmouseenter = () => {
     acceptBtn.style.transform = 'translateY(-1px)';
-    acceptBtn.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.35)';
+    acceptBtn.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.35)';
   };
   acceptBtn.onmouseleave = () => {
     acceptBtn.style.transform = 'translateY(0)';
-    acceptBtn.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.25)';
+    acceptBtn.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.25)';
   };
 
   actionsDiv.append(dismissBtn, acceptBtn);
