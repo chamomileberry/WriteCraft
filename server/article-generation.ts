@@ -41,6 +41,21 @@ function createSafeParagraph(label: string | null, content: string | null | unde
 }
 
 /**
+ * Helper to create image section with optional caption
+ */
+function createImageSection(imageUrl: string | null | undefined, imageCaption?: string | null): string {
+  if (!imageUrl) return '';
+  
+  const safeUrl = escapeHtml(imageUrl);
+  const safeCaption = imageCaption ? escapeHtml(imageCaption) : '';
+  
+  if (safeCaption) {
+    return `<figure><img src="${safeUrl}" alt="${safeCaption}" style="max-width: 100%; height: auto;" /><figcaption><em>${safeCaption}</em></figcaption></figure>`;
+  }
+  return `<img src="${safeUrl}" alt="" style="max-width: 100%; height: auto;" />`;
+}
+
+/**
  * Generate article content for characters
  */
 function generateCharacterArticle(character: any): string {
@@ -53,6 +68,11 @@ function generateCharacterArticle(character: any): string {
     if (character.nickname) {
       sections.push(`<p><em>Also known as: ${escapeHtml(character.nickname)}</em></p>`);
     }
+  }
+
+  // Image
+  if (character.imageUrl) {
+    sections.push(createImageSection(character.imageUrl, character.imageCaption));
   }
 
   // Basic Information
@@ -154,6 +174,11 @@ function generateLocationArticle(location: any): string {
     }
   }
 
+  // Image
+  if (location.imageUrl) {
+    sections.push(createImageSection(location.imageUrl, location.imageCaption));
+  }
+
   // General Description
   if (location.description) {
     sections.push(`<h2>Overview</h2>`);
@@ -239,6 +264,11 @@ function generateSettingArticle(setting: Setting): string {
     }
   }
 
+  // Image
+  if (setting.imageUrl) {
+    sections.push(createImageSection(setting.imageUrl, setting.imageCaption));
+  }
+
   // Basic Information
   const basicInfo: string[] = [];
   if (setting.location) basicInfo.push(createSafeParagraph('Location', setting.location));
@@ -289,6 +319,11 @@ function generateConflictArticle(conflict: Conflict): string {
     if (conflict.type) {
       sections.push(`<p><em>Type: ${escapeHtml(conflict.type)}</em></p>`);
     }
+  }
+
+  // Image
+  if (conflict.imageUrl) {
+    sections.push(createImageSection(conflict.imageUrl, conflict.imageCaption));
   }
 
   // Description
@@ -386,6 +421,11 @@ function generateCreatureArticle(creature: Creature): string {
     }
   }
 
+  // Image
+  if (creature.imageUrl) {
+    sections.push(createImageSection(creature.imageUrl, creature.imageCaption));
+  }
+
   // Physical Description
   if (creature.physicalDescription) {
     sections.push(`<h2>Physical Description</h2>`);
@@ -433,6 +473,11 @@ function generatePlantArticle(plant: any): string {
     if (plant.type) {
       sections.push(`<p><em>Type: ${escapeHtml(plant.type)}</em></p>`);
     }
+  }
+
+  // Image
+  if (plant.imageUrl) {
+    sections.push(createImageSection(plant.imageUrl, plant.imageCaption));
   }
 
   // Description
@@ -485,6 +530,11 @@ function generateItemArticle(item: Item): string {
     if (item.itemType) {
       sections.push(`<p><em>Type: ${escapeHtml(item.itemType)}</em></p>`);
     }
+  }
+
+  // Image
+  if (item.imageUrl) {
+    sections.push(createImageSection(item.imageUrl, item.imageCaption));
   }
 
   // Description
@@ -553,6 +603,11 @@ function generateOrganizationArticle(organization: Organization): string {
     if (organization.organizationType) {
       sections.push(`<p><em>Type: ${escapeHtml(organization.organizationType)}</em></p>`);
     }
+  }
+
+  // Image
+  if (organization.imageUrl) {
+    sections.push(createImageSection(organization.imageUrl, organization.imageCaption));
   }
 
   // Purpose & Description
@@ -639,6 +694,11 @@ function generateSpeciesArticle(species: Species): string {
     }
   }
 
+  // Image
+  if (species.imageUrl) {
+    sections.push(createImageSection(species.imageUrl, species.imageCaption));
+  }
+
   // Physical Description
   if (species.physicalDescription) {
     sections.push(`<h2>Physical Description</h2>`);
@@ -707,6 +767,11 @@ function generateEthnicityArticle(ethnicity: Ethnicity): string {
   // Header
   if (ethnicity.name) {
     sections.push(`<h1>${escapeHtml(ethnicity.name)}</h1>`);
+  }
+
+  // Image
+  if (ethnicity.imageUrl) {
+    sections.push(createImageSection(ethnicity.imageUrl, ethnicity.imageCaption));
   }
 
   // Origin & Geography
@@ -783,6 +848,11 @@ function generateCultureArticle(culture: Culture): string {
   // Header
   if (culture.name) {
     sections.push(`<h1>${escapeHtml(culture.name)}</h1>`);
+  }
+
+  // Image
+  if (culture.imageUrl) {
+    sections.push(createImageSection(culture.imageUrl, culture.imageCaption));
   }
 
   // Description
@@ -873,6 +943,11 @@ function generateDocumentArticle(document: Document): string {
     }
   }
 
+  // Image
+  if (document.imageUrl) {
+    sections.push(createImageSection(document.imageUrl, document.imageCaption));
+  }
+
   // Content
   if (document.content) {
     sections.push(`<h2>Content</h2>`);
@@ -933,6 +1008,11 @@ function generateFoodArticle(food: Food): string {
     if (food.foodType) {
       sections.push(`<p><em>Type: ${escapeHtml(food.foodType)}</em></p>`);
     }
+  }
+
+  // Image
+  if (food.imageUrl) {
+    sections.push(createImageSection(food.imageUrl, food.imageCaption));
   }
 
   // Description
@@ -1004,6 +1084,11 @@ function generateDrinkArticle(drink: Drink): string {
     if (drink.drinkType) {
       sections.push(`<p><em>Type: ${escapeHtml(drink.drinkType)}</em></p>`);
     }
+  }
+
+  // Image
+  if (drink.imageUrl) {
+    sections.push(createImageSection(drink.imageUrl, drink.imageCaption));
   }
 
   // Description
