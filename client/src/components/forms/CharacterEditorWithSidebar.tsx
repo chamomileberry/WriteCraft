@@ -14,7 +14,7 @@ import { TagsInput } from "@/components/ui/tags-input";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ContentHero } from "@/components/ContentHero";
 import { 
-  ChevronRight, ChevronDown, Menu, X 
+  ChevronRight, ChevronDown, Menu, X, Wand2 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -466,7 +466,8 @@ export default function CharacterEditorWithSidebar({
               disabled={isLoading}
               data-testid="button-generate-content"
             >
-              Generate with AI
+              <Wand2 className="mr-2 h-4 w-4" />
+              Generate Article
             </Button>
           )}
         </div>
