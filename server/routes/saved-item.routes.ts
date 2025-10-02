@@ -40,6 +40,13 @@ router.post("/", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid saved item data', details: error.errors });
     }
+    // Handle unique constraint violation (duplicate saved item)
+    if (error instanceof Error && 'code' in error && (error as any).code === '23505') {
+      return res.status(409).json({ 
+        error: 'This item is already saved in this notebook',
+        code: 'DUPLICATE_SAVED_ITEM'
+      });
+    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
   }

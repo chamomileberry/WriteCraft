@@ -199,24 +199,21 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         
         // Automatically save the newly created item to saved-items
         try {
-          // First check if this item is already in saved-items to prevent duplicates
-          const existingItemsResponse = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${notebookId}`);
-          const existingItems = await existingItemsResponse.json();
-          const alreadySaved = existingItems.some((item: any) => 
-            item.itemId === result.id && item.itemType === contentType
-          );
+          const saveResponse = await apiRequest('POST', '/api/saved-items', {
+            userId: 'demo-user', // Use demo-user for consistency with authentication
+            itemType: contentType,
+            itemId: result.id,
+            itemData: result, // Include the complete data from the successful creation
+            notebookId: notebookId // Include notebookId from URL or active notebook
+          });
           
-          if (!alreadySaved) {
-            await apiRequest('POST', '/api/saved-items', {
-              userId: 'demo-user', // Use demo-user for consistency with authentication
-              itemType: contentType,
-              itemId: result.id,
-              itemData: result, // Include the complete data from the successful creation
-              notebookId: notebookId // Include notebookId from URL or active notebook
-            });
+          if (saveResponse.ok) {
             console.log('Successfully saved item to saved-items:', { contentType, itemId: result.id, notebookId });
+          } else if (saveResponse.status === 409) {
+            // Item already exists in this notebook (duplicate), which is fine
+            console.log('Item already exists in saved-items (409), skipping:', { contentType, itemId: result.id });
           } else {
-            console.log('Item already exists in saved-items, skipping duplicate save:', { contentType, itemId: result.id });
+            throw new Error(`Failed to save item: ${saveResponse.status}`);
           }
         } catch (error) {
           console.error('Failed to save item to saved-items:', error);

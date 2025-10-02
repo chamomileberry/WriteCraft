@@ -1441,14 +1441,16 @@ export const professions = pgTable("professions", {
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   itemType: text("item_type").notNull(), // 'character', 'location', 'item', 'organization', etc.
   itemId: varchar("item_id").notNull(),
   itemData: jsonb("item_data"), // Stores the actual item content (character names, profession details, etc.)
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
-  uniqueUserItem: sql`UNIQUE(COALESCE(${table.userId}, 'guest'), ${table.itemType}, ${table.itemId})`
+  // Prevent duplicate saved items: same content can't be saved twice to the same notebook
+  uniqueUserNotebookItem: uniqueIndex("saved_items_unique_user_notebook_item_idx")
+    .on(table.userId, table.notebookId, table.itemType, table.itemId)
 }));
 
 // Folders - Organizational structure for projects and guides
