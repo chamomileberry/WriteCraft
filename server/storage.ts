@@ -210,10 +210,10 @@ export interface IStorage {
 
   // Weapon methods
   createWeapon(weapon: InsertWeapon): Promise<Weapon>;
-  getWeapon(id: string): Promise<Weapon | undefined>;
-  getUserWeapons(userId: string | null): Promise<Weapon[]>;
-  updateWeapon(id: string, updates: Partial<InsertWeapon>): Promise<Weapon>;
-  deleteWeapon(id: string): Promise<void>;
+  getWeapon(id: string, userId: string, notebookId: string): Promise<Weapon | undefined>;
+  getUserWeapons(userId: string, notebookId: string): Promise<Weapon[]>;
+  updateWeapon(id: string, userId: string, notebookId: string, updates: Partial<InsertWeapon>): Promise<Weapon>;
+  deleteWeapon(id: string, userId: string, notebookId: string): Promise<void>;
 
 
   // Profession methods
@@ -1238,33 +1238,47 @@ export class DatabaseStorage implements IStorage {
     return newWeapon;
   }
 
-  async getWeapon(id: string): Promise<Weapon | undefined> {
-    const [weapon] = await db.select().from(weapons).where(eq(weapons.id, id));
+  async getWeapon(id: string, userId: string, notebookId: string): Promise<Weapon | undefined> {
+    const whereClause = and(
+      eq(weapons.id, id),
+      eq(weapons.userId, userId),
+      eq(weapons.notebookId, notebookId)
+    );
+    const [weapon] = await db.select().from(weapons).where(whereClause);
     return weapon || undefined;
   }
 
-  async getUserWeapons(userId: string | null): Promise<Weapon[]> {
-    if (userId) {
-      return await db.select().from(weapons)
-        .where(eq(weapons.userId, userId))
-        .orderBy(desc(weapons.createdAt));
-    }
+  async getUserWeapons(userId: string, notebookId: string): Promise<Weapon[]> {
+    const whereClause = and(
+      eq(weapons.userId, userId),
+      eq(weapons.notebookId, notebookId)
+    );
     return await db.select().from(weapons)
-      .orderBy(desc(weapons.createdAt))
-      .limit(10);
+      .where(whereClause)
+      .orderBy(desc(weapons.createdAt));
   }
 
-  async updateWeapon(id: string, updates: Partial<InsertWeapon>): Promise<Weapon> {
+  async updateWeapon(id: string, userId: string, notebookId: string, updates: Partial<InsertWeapon>): Promise<Weapon> {
+    const whereClause = and(
+      eq(weapons.id, id),
+      eq(weapons.userId, userId),
+      eq(weapons.notebookId, notebookId)
+    );
     const [updatedWeapon] = await db
       .update(weapons)
       .set(updates)
-      .where(eq(weapons.id, id))
+      .where(whereClause)
       .returning();
     return updatedWeapon;
   }
 
-  async deleteWeapon(id: string): Promise<void> {
-    await db.delete(weapons).where(eq(weapons.id, id));
+  async deleteWeapon(id: string, userId: string, notebookId: string): Promise<void> {
+    const whereClause = and(
+      eq(weapons.id, id),
+      eq(weapons.userId, userId),
+      eq(weapons.notebookId, notebookId)
+    );
+    await db.delete(weapons).where(whereClause);
   }
 
 

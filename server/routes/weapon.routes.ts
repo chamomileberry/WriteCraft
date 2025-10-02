@@ -79,6 +79,28 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// PATCH - Update weapon
+router.patch("/:id", async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+    
+    const updates = insertWeaponSchema.partial().parse(req.body);
+    const updatedWeapon = await storage.updateWeapon(req.params.id, userId, notebookId, updates);
+    res.json(updatedWeapon);
+  } catch (error) {
+    console.error('Error updating weapon:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to update weapon' });
+  }
+});
+
 // PUT - Update weapon
 router.put("/:id", async (req, res) => {
   try {
