@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { registerDomainRoutes } from "./routes/index";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import aiRoutes from "./routes/ai.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { 
@@ -52,6 +53,21 @@ import {
 } from "./ai-generation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth (must be before other routes)
+  await setupAuth(app);
+
+  // Auth user endpoint
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // Register modular domain-specific routes
   registerDomainRoutes(app);
   
