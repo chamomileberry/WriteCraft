@@ -71,7 +71,20 @@ const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
 
 // Helper function to convert markdown to HTML if needed
 const convertMarkdownToHTML = (content: string): string => {
-  // Check if content looks like markdown (contains markdown heading patterns)
+  // Check if content has markdown headings wrapped in paragraph tags
+  // Pattern: <p>### Heading</p> or <p>## Heading</p>
+  const hasWrappedMarkdownHeadings = /<p>\s*(#{1,6})\s+([^<]+)<\/p>/g.test(content);
+  
+  if (hasWrappedMarkdownHeadings) {
+    // Replace markdown headings inside <p> tags with proper heading tags
+    let convertedContent = content.replace(/<p>\s*(#{1,6})\s+([^<]+)<\/p>/g, (match, hashes, text) => {
+      const level = hashes.length;
+      return `<h${level}>${text.trim()}</h${level}>`;
+    });
+    return convertedContent;
+  }
+  
+  // Check if content looks like pure markdown (contains markdown heading patterns at root level)
   const hasMarkdownHeadings = /^#{1,6}\s+.+$/m.test(content);
   
   if (hasMarkdownHeadings) {
