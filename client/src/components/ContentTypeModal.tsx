@@ -106,7 +106,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] sm:max-h-[80vh] max-sm:max-h-none h-[100vh] sm:h-auto w-[100vw] sm:w-auto overflow-hidden z-[100]">
+      <DialogContent className="max-w-4xl max-h-[80vh] sm:max-h-[80vh] max-sm:max-h-none h-[100vh] sm:h-auto w-[100vw] sm:w-auto overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-2xl font-serif">Create New Content</DialogTitle>
         </DialogHeader>
