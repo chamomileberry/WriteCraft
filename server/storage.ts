@@ -117,6 +117,7 @@ export interface IStorage {
   getCharacter(id: string, userId: string, notebookId: string): Promise<Character | undefined>;
   getUserCharacters(userId: string, notebookId: string): Promise<Character[]>;
   updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character>;
+  deleteCharacter(id: string, userId: string, notebookId: string): Promise<void>;
   
   // Plot methods
   createPlot(plot: InsertPlot): Promise<Plot>;
@@ -641,6 +642,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteNotebook(id: string, userId: string): Promise<void> {
+    // Validate ownership before deleting
+    const [existing] = await db.select().from(notebooks).where(eq(notebooks.id, id));
+    if (!existing) {
+      throw new Error('Notebook not found');
+    }
+    if (existing.userId !== userId) {
+      throw new Error('Unauthorized: You do not own this notebook');
+    }
+
     await db
       .delete(notebooks)
       .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
@@ -711,6 +721,24 @@ export class DatabaseStorage implements IStorage {
       .where(whereClause)
       .returning();
     return updatedCharacter;
+  }
+
+  async deleteCharacter(id: string, userId: string, notebookId: string): Promise<void> {
+    // Validate ownership and notebook association
+    const [existing] = await db.select().from(characters).where(eq(characters.id, id));
+    if (!this.validateContentOwnership(existing, userId)) {
+      throw new Error('Unauthorized: You do not own this content');
+    }
+    if (!existing || existing.notebookId !== notebookId) {
+      throw new Error('Character not found in the specified notebook');
+    }
+
+    const whereClause = and(
+      eq(characters.id, id),
+      eq(characters.userId, userId),
+      eq(characters.notebookId, notebookId)
+    );
+    await db.delete(characters).where(whereClause);
   }
   
   // Plot methods

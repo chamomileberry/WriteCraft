@@ -25,7 +25,8 @@ router.post("/generate", async (req: any, res) => {
     // Validate user owns the notebook before creating content
     const userNotebook = await storage.getNotebook(notebookId, userId);
     if (!userNotebook) {
-      return res.status(403).json({ error: 'Notebook not found or access denied' });
+      console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Notebook not found' });
     }
     
     // Use AI generation instead of archetype system
@@ -128,7 +129,9 @@ router.post("/generate", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      console.warn(`[Security] Unauthorized error in character generation - userId: ${userId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -166,7 +169,8 @@ router.post("/:id/generate-field", async (req: any, res) => {
     // Validate user owns the notebook before generating content
     const userNotebook = await storage.getNotebook(notebookId, userId);
     if (!userNotebook) {
-      return res.status(403).json({ error: 'Notebook not found or access denied' });
+      console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Notebook not found' });
     }
     
     // Get the existing character data for context
@@ -209,7 +213,8 @@ router.post("/", async (req: any, res) => {
     // Validate user owns the notebook before creating content
     const userNotebook = await storage.getNotebook(notebookId, userId);
     if (!userNotebook) {
-      return res.status(403).json({ error: 'Notebook not found or access denied' });
+      console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Notebook not found' });
     }
     
     const fullCharacterData = { ...characterData, userId, notebookId };
@@ -323,7 +328,35 @@ router.patch("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized character update attempt - userId: ${userId}, characterId: ${req.params.id}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Character not found' });
+    }
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Delete character
+router.delete("/:id", async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    await storage.deleteCharacter(req.params.id, userId, notebookId);
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting character:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && (error.message.includes('Unauthorized') || error.message.includes('not found'))) {
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized character deletion attempt - userId: ${userId}, characterId: ${req.params.id}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Character not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -352,7 +385,10 @@ router.post("/:id/generate-article", async (req: any, res) => {
     console.error('Error generating character article:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized article generation attempt - userId: ${userId}, characterId: ${req.params.id}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Character not found' });
     }
     res.status(500).json({ error: errorMessage });
   }

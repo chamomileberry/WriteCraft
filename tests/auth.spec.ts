@@ -107,12 +107,22 @@ describe('Authentication & Authorization Tests', () => {
 
     it('should return 404 when User 2 tries to update User 1\'s character', async () => {
       const response = await request(app)
-        .put(`/api/characters/${user1CharacterId}`)
+        .patch(`/api/characters/${user1CharacterId}`)
         .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user2Id)
         .send({
           givenName: "Hacked Name"
         })
+        .expect(404);
+      
+      expect(response.body).toHaveProperty('error');
+    });
+
+    it('should return 404 when User 1 tries to delete their character with wrong notebookId', async () => {
+      const response = await request(app)
+        .delete(`/api/characters/${user1CharacterId}`)
+        .query({ notebookId: user2NotebookId })
+        .set('X-Test-User-Id', user1Id)
         .expect(404);
       
       expect(response.body).toHaveProperty('error');
@@ -160,7 +170,7 @@ describe('Authentication & Authorization Tests', () => {
 
     it('should return 200 when User 1 updates their own character', async () => {
       const response = await request(app)
-        .put(`/api/characters/${user1CharacterId}`)
+        .patch(`/api/characters/${user1CharacterId}`)
         .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user1Id)
         .send({

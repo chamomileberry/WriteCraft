@@ -90,11 +90,10 @@ router.delete("/:id", async (req: any, res) => {
   } catch (error) {
     console.error('Error deleting notebook:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+    if (error instanceof Error && (error.message.includes('Unauthorized') || error.message.includes('Notebook not found'))) {
+      const userId = req.user?.claims?.sub || 'unknown';
+      console.warn(`[Security] Unauthorized notebook deletion attempt - userId: ${userId}, notebookId: ${req.params.id}`);
+      return res.status(404).json({ error: 'Notebook not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
