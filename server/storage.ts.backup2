@@ -138,7 +138,7 @@ export interface IStorage {
   createSetting(setting: InsertSetting): Promise<Setting>;
   getSetting(id: string): Promise<Setting | undefined>;
   getUserSettings(userId: string, notebookId: string): Promise<Setting[]>;
-  updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting>;
+  updateSetting(id: string, updates: Partial<InsertSetting>): Promise<Setting>;
 
   // Item methods  
   createItem(item: InsertItem): Promise<Item>;
@@ -158,7 +158,7 @@ export interface IStorage {
   createCreature(creature: InsertCreature): Promise<Creature>;
   getCreature(id: string): Promise<Creature | undefined>;
   getUserCreatures(userId: string, notebookId: string): Promise<Creature[]>;
-  updateCreature(id: string, userId: string, updates: Partial<InsertCreature>): Promise<Creature>;
+  updateCreature(id: string, updates: Partial<InsertCreature>): Promise<Creature>;
 
   // Species methods
   createSpecies(species: InsertSpecies): Promise<Species>;
@@ -178,42 +178,42 @@ export interface IStorage {
   createMagic(): Promise<any>;
   getMagic(id: string): Promise<any | undefined>;
   getUserMagic(userId: string, notebookId: string): Promise<any[]>;
-  updateMagic(id: string, userId: string, updates: any): Promise<any>;
+  updateMagic(id: string, updates: any): Promise<any>;
 
   // Document methods
   createDocument(document: InsertDocument): Promise<Document>;
   getDocument(id: string): Promise<Document | undefined>;
   getUserDocuments(userId: string, notebookId: string): Promise<Document[]>;
-  updateDocument(id: string, userId: string, updates: Partial<InsertDocument>): Promise<Document>;
-  deleteDocument(id: string, userId: string): Promise<void>;
+  updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document>;
+  deleteDocument(id: string): Promise<void>;
 
   // Food methods
   createFood(food: InsertFood): Promise<Food>;
   getFood(id: string): Promise<Food | undefined>;
   getUserFoods(userId: string, notebookId: string): Promise<Food[]>;
-  updateFood(id: string, userId: string, updates: Partial<InsertFood>): Promise<Food>;
-  deleteFood(id: string, userId: string): Promise<void>;
+  updateFood(id: string, updates: Partial<InsertFood>): Promise<Food>;
+  deleteFood(id: string): Promise<void>;
 
   // Language methods
   createLanguage(language: InsertLanguage): Promise<Language>;
   getLanguage(id: string): Promise<Language | undefined>;
   getUserLanguages(userId: string, notebookId: string): Promise<Language[]>;
-  updateLanguage(id: string, userId: string, updates: Partial<InsertLanguage>): Promise<Language>;
-  deleteLanguage(id: string, userId: string): Promise<void>;
+  updateLanguage(id: string, updates: Partial<InsertLanguage>): Promise<Language>;
+  deleteLanguage(id: string): Promise<void>;
 
   // Religion methods
   createReligion(religion: InsertReligion): Promise<Religion>;
   getReligion(id: string): Promise<Religion | undefined>;
   getUserReligions(userId: string, notebookId: string): Promise<Religion[]>;
-  updateReligion(id: string, userId: string, updates: Partial<InsertReligion>): Promise<Religion>;
-  deleteReligion(id: string, userId: string): Promise<void>;
+  updateReligion(id: string, updates: Partial<InsertReligion>): Promise<Religion>;
+  deleteReligion(id: string): Promise<void>;
 
   // Technology methods
   createTechnology(technology: InsertTechnology): Promise<Technology>;
   getTechnology(id: string): Promise<Technology | undefined>;
   getUserTechnologies(userId: string, notebookId: string): Promise<Technology[]>;
-  updateTechnology(id: string, userId: string, updates: Partial<InsertTechnology>): Promise<Technology>;
-  deleteTechnology(id: string, userId: string): Promise<void>;
+  updateTechnology(id: string, updates: Partial<InsertTechnology>): Promise<Technology>;
+  deleteTechnology(id: string): Promise<void>;
 
   // Weapon methods
   createWeapon(weapon: InsertWeapon): Promise<Weapon>;
@@ -227,8 +227,8 @@ export interface IStorage {
   createProfession(profession: InsertProfession): Promise<Profession>;
   getProfession(id: string): Promise<Profession | undefined>;
   getUserProfessions(userId: string, notebookId: string): Promise<Profession[]>;
-  updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession>;
-  deleteProfession(id: string, userId: string): Promise<void>;
+  updateProfession(id: string, updates: Partial<InsertProfession>): Promise<Profession>;
+  deleteProfession(id: string): Promise<void>;
 
   // Plant methods
   createPlant(plant: InsertPlant): Promise<Plant>;
@@ -241,64 +241,64 @@ export interface IStorage {
   createDescription(description: InsertDescription): Promise<Description>;
   getDescription(id: string): Promise<Description | undefined>;
   getUserDescriptions(userId: string, notebookId: string): Promise<Description[]>;
-  updateDescription(id: string, userId: string, updates: Partial<InsertDescription>): Promise<Description>;
-  deleteDescription(id: string, userId: string): Promise<void>;
+  updateDescription(id: string, updates: Partial<InsertDescription>): Promise<Description>;
+  deleteDescription(id: string): Promise<void>;
 
   // Ethnicity methods
   createEthnicity(ethnicity: InsertEthnicity): Promise<Ethnicity>;
   getEthnicity(id: string): Promise<Ethnicity | undefined>;
   getUserEthnicities(userId: string, notebookId: string): Promise<Ethnicity[]>;
-  updateEthnicity(id: string, userId: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity>;
-  deleteEthnicity(id: string, userId: string): Promise<void>;
+  updateEthnicity(id: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity>;
+  deleteEthnicity(id: string): Promise<void>;
 
   // Drink methods
   createDrink(drink: InsertDrink): Promise<Drink>;
   getDrink(id: string): Promise<Drink | undefined>;
   getUserDrinks(userId: string, notebookId: string): Promise<Drink[]>;
-  updateDrink(id: string, userId: string, updates: Partial<InsertDrink>): Promise<Drink>;
-  deleteDrink(id: string, userId: string): Promise<void>;
+  updateDrink(id: string, updates: Partial<InsertDrink>): Promise<Drink>;
+  deleteDrink(id: string): Promise<void>;
 
   // Armor methods
   createArmor(armor: InsertArmor): Promise<Armor>;
   getArmor(id: string): Promise<Armor | undefined>;
   getUserArmor(userId: string, notebookId: string): Promise<Armor[]>;
-  updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor>;
-  deleteArmor(id: string, userId: string): Promise<void>;
+  updateArmor(id: string, updates: Partial<InsertArmor>): Promise<Armor>;
+  deleteArmor(id: string): Promise<void>;
 
   // Accessory methods
   createAccessory(accessory: InsertAccessory): Promise<Accessory>;
   getAccessory(id: string): Promise<Accessory | undefined>;
   getUserAccessories(userId: string, notebookId: string): Promise<Accessory[]>;
-  updateAccessory(id: string, userId: string, updates: Partial<InsertAccessory>): Promise<Accessory>;
-  deleteAccessory(id: string, userId: string): Promise<void>;
+  updateAccessory(id: string, updates: Partial<InsertAccessory>): Promise<Accessory>;
+  deleteAccessory(id: string): Promise<void>;
 
   // Clothing methods
   createClothing(clothing: InsertClothing): Promise<Clothing>;
   getClothing(id: string): Promise<Clothing | undefined>;
   getUserClothing(userId: string, notebookId: string): Promise<Clothing[]>;
-  updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing>;
-  deleteClothing(id: string, userId: string): Promise<void>;
+  updateClothing(id: string, updates: Partial<InsertClothing>): Promise<Clothing>;
+  deleteClothing(id: string): Promise<void>;
 
   // Material methods
   createMaterial(material: InsertMaterial): Promise<Material>;
   getMaterial(id: string): Promise<Material | undefined>;
   getUserMaterials(userId: string, notebookId: string): Promise<Material[]>;
-  updateMaterial(id: string, userId: string, updates: Partial<InsertMaterial>): Promise<Material>;
-  deleteMaterial(id: string, userId: string): Promise<void>;
+  updateMaterial(id: string, updates: Partial<InsertMaterial>): Promise<Material>;
+  deleteMaterial(id: string): Promise<void>;
 
   // Settlement methods
   createSettlement(settlement: InsertSettlement): Promise<Settlement>;
   getSettlement(id: string): Promise<Settlement | undefined>;
   getUserSettlements(userId: string, notebookId: string): Promise<Settlement[]>;
-  updateSettlement(id: string, userId: string, updates: Partial<InsertSettlement>): Promise<Settlement>;
-  deleteSettlement(id: string, userId: string): Promise<void>;
+  updateSettlement(id: string, updates: Partial<InsertSettlement>): Promise<Settlement>;
+  deleteSettlement(id: string): Promise<void>;
 
   // Society methods
   createSociety(society: InsertSociety): Promise<Society>;
   getSociety(id: string): Promise<Society | undefined>;
   getUserSocieties(userId: string, notebookId: string): Promise<Society[]>;
-  updateSociety(id: string, userId: string, updates: Partial<InsertSociety>): Promise<Society>;
-  deleteSociety(id: string, userId: string): Promise<void>;
+  updateSociety(id: string, updates: Partial<InsertSociety>): Promise<Society>;
+  deleteSociety(id: string): Promise<void>;
 
   // Faction methods
   createFaction(faction: InsertFaction): Promise<Faction>;
@@ -311,148 +311,148 @@ export interface IStorage {
   createMilitaryUnit(militaryUnit: InsertMilitaryUnit): Promise<MilitaryUnit>;
   getMilitaryUnit(id: string): Promise<MilitaryUnit | undefined>;
   getUserMilitaryUnits(userId: string, notebookId: string): Promise<MilitaryUnit[]>;
-  updateMilitaryUnit(id: string, userId: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit>;
-  deleteMilitaryUnit(id: string, userId: string): Promise<void>;
+  updateMilitaryUnit(id: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit>;
+  deleteMilitaryUnit(id: string): Promise<void>;
 
   // Myth methods
   createMyth(myth: InsertMyth): Promise<Myth>;
   getMyth(id: string): Promise<Myth | undefined>;
   getUserMyths(userId: string, notebookId: string): Promise<Myth[]>;
-  updateMyth(id: string, userId: string, updates: Partial<InsertMyth>): Promise<Myth>;
-  deleteMyth(id: string, userId: string): Promise<void>;
+  updateMyth(id: string, updates: Partial<InsertMyth>): Promise<Myth>;
+  deleteMyth(id: string): Promise<void>;
 
   // Legend methods
   createLegend(legend: InsertLegend): Promise<Legend>;
   getLegend(id: string): Promise<Legend | undefined>;
   getUserLegends(userId: string, notebookId: string): Promise<Legend[]>;
-  updateLegend(id: string, userId: string, updates: Partial<InsertLegend>): Promise<Legend>;
-  deleteLegend(id: string, userId: string): Promise<void>;
+  updateLegend(id: string, updates: Partial<InsertLegend>): Promise<Legend>;
+  deleteLegend(id: string): Promise<void>;
 
   // Event methods
   createEvent(event: InsertEvent): Promise<Event>;
   getEvent(id: string): Promise<Event | undefined>;
   getUserEvents(userId: string, notebookId: string): Promise<Event[]>;
-  updateEvent(id: string, userId: string, updates: Partial<InsertEvent>): Promise<Event>;
-  deleteEvent(id: string, userId: string): Promise<void>;
+  updateEvent(id: string, updates: Partial<InsertEvent>): Promise<Event>;
+  deleteEvent(id: string): Promise<void>;
 
   // Spell methods
   createSpell(spell: InsertSpell): Promise<Spell>;
   getSpell(id: string): Promise<Spell | undefined>;
   getUserSpells(userId: string, notebookId: string): Promise<Spell[]>;
-  updateSpell(id: string, userId: string, updates: Partial<InsertSpell>): Promise<Spell>;
-  deleteSpell(id: string, userId: string): Promise<void>;
+  updateSpell(id: string, updates: Partial<InsertSpell>): Promise<Spell>;
+  deleteSpell(id: string): Promise<void>;
 
   // Resource methods
   createResource(resource: InsertResource): Promise<Resource>;
   getResource(id: string): Promise<Resource | undefined>;
   getUserResources(userId: string, notebookId: string): Promise<Resource[]>;
-  updateResource(id: string, userId: string, updates: Partial<InsertResource>): Promise<Resource>;
-  deleteResource(id: string, userId: string): Promise<void>;
+  updateResource(id: string, updates: Partial<InsertResource>): Promise<Resource>;
+  deleteResource(id: string): Promise<void>;
 
   // Building methods
   createBuilding(building: InsertBuilding): Promise<Building>;
   getBuilding(id: string): Promise<Building | undefined>;
   getUserBuildings(userId: string, notebookId: string): Promise<Building[]>;
-  updateBuilding(id: string, userId: string, updates: Partial<InsertBuilding>): Promise<Building>;
-  deleteBuilding(id: string, userId: string): Promise<void>;
+  updateBuilding(id: string, updates: Partial<InsertBuilding>): Promise<Building>;
+  deleteBuilding(id: string): Promise<void>;
 
   // Animal methods
   createAnimal(animal: InsertAnimal): Promise<Animal>;
   getAnimal(id: string): Promise<Animal | undefined>;
   getUserAnimals(userId: string, notebookId: string): Promise<Animal[]>;
-  updateAnimal(id: string, userId: string, updates: Partial<InsertAnimal>): Promise<Animal>;
-  deleteAnimal(id: string, userId: string): Promise<void>;
+  updateAnimal(id: string, updates: Partial<InsertAnimal>): Promise<Animal>;
+  deleteAnimal(id: string): Promise<void>;
 
   // Transportation methods
   createTransportation(transportation: InsertTransportation): Promise<Transportation>;
   getTransportation(id: string): Promise<Transportation | undefined>;
   getUserTransportation(userId: string, notebookId: string): Promise<Transportation[]>;
-  updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation>;
-  deleteTransportation(id: string, userId: string): Promise<void>;
+  updateTransportation(id: string, updates: Partial<InsertTransportation>): Promise<Transportation>;
+  deleteTransportation(id: string): Promise<void>;
 
   // Natural Law methods
   createNaturalLaw(naturalLaw: InsertNaturalLaw): Promise<NaturalLaw>;
   getNaturalLaw(id: string): Promise<NaturalLaw | undefined>;
   getUserNaturalLaws(userId: string, notebookId: string): Promise<NaturalLaw[]>;
-  updateNaturalLaw(id: string, userId: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw>;
-  deleteNaturalLaw(id: string, userId: string): Promise<void>;
+  updateNaturalLaw(id: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw>;
+  deleteNaturalLaw(id: string): Promise<void>;
 
   // Tradition methods
   createTradition(tradition: InsertTradition): Promise<Tradition>;
   getTradition(id: string): Promise<Tradition | undefined>;
   getUserTraditions(userId: string, notebookId: string): Promise<Tradition[]>;
-  updateTradition(id: string, userId: string, updates: Partial<InsertTradition>): Promise<Tradition>;
-  deleteTradition(id: string, userId: string): Promise<void>;
+  updateTradition(id: string, updates: Partial<InsertTradition>): Promise<Tradition>;
+  deleteTradition(id: string): Promise<void>;
 
   // Ritual methods
   createRitual(ritual: InsertRitual): Promise<Ritual>;
   getRitual(id: string): Promise<Ritual | undefined>;
   getUserRituals(userId: string, notebookId: string): Promise<Ritual[]>;
-  updateRitual(id: string, userId: string, updates: Partial<InsertRitual>): Promise<Ritual>;
-  deleteRitual(id: string, userId: string): Promise<void>;
+  updateRitual(id: string, updates: Partial<InsertRitual>): Promise<Ritual>;
+  deleteRitual(id: string): Promise<void>;
 
   // Family Tree methods
   createFamilyTree(familyTree: InsertFamilyTree): Promise<FamilyTree>;
   getFamilyTree(id: string): Promise<FamilyTree | undefined>;
   getUserFamilyTrees(userId: string, notebookId: string): Promise<FamilyTree[]>;
-  updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree>;
-  deleteFamilyTree(id: string, userId: string): Promise<void>;
+  updateFamilyTree(id: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree>;
+  deleteFamilyTree(id: string): Promise<void>;
 
   // Timeline methods
   createTimeline(timeline: InsertTimeline): Promise<Timeline>;
   getTimeline(id: string): Promise<Timeline | undefined>;
   getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]>;
-  updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline>;
-  deleteTimeline(id: string, userId: string): Promise<void>;
+  updateTimeline(id: string, updates: Partial<InsertTimeline>): Promise<Timeline>;
+  deleteTimeline(id: string): Promise<void>;
 
   // Ceremony methods
   createCeremony(ceremony: InsertCeremony): Promise<Ceremony>;
   getCeremony(id: string): Promise<Ceremony | undefined>;
   getUserCeremonies(userId: string, notebookId: string): Promise<Ceremony[]>;
-  updateCeremony(id: string, userId: string, updates: Partial<InsertCeremony>): Promise<Ceremony>;
-  deleteCeremony(id: string, userId: string): Promise<void>;
+  updateCeremony(id: string, updates: Partial<InsertCeremony>): Promise<Ceremony>;
+  deleteCeremony(id: string): Promise<void>;
 
   // Map methods
   createMap(map: InsertMap): Promise<Map>;
   getMap(id: string): Promise<Map | undefined>;
   getUserMaps(userId: string, notebookId: string): Promise<Map[]>;
-  updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map>;
-  deleteMap(id: string, userId: string): Promise<void>;
+  updateMap(id: string, updates: Partial<InsertMap>): Promise<Map>;
+  deleteMap(id: string): Promise<void>;
 
   // Music methods
   createMusic(music: InsertMusic): Promise<Music>;
   getMusic(id: string): Promise<Music | undefined>;
   getUserMusic(userId: string, notebookId: string): Promise<Music[]>;
-  updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music>;
-  deleteMusic(id: string, userId: string): Promise<void>;
+  updateMusic(id: string, updates: Partial<InsertMusic>): Promise<Music>;
+  deleteMusic(id: string): Promise<void>;
 
   // Dance methods
   createDance(dance: InsertDance): Promise<Dance>;
   getDance(id: string): Promise<Dance | undefined>;
   getUserDances(userId: string, notebookId: string): Promise<Dance[]>;
-  updateDance(id: string, userId: string, updates: Partial<InsertDance>): Promise<Dance>;
-  deleteDance(id: string, userId: string): Promise<void>;
+  updateDance(id: string, updates: Partial<InsertDance>): Promise<Dance>;
+  deleteDance(id: string): Promise<void>;
 
   // Law methods
   createLaw(law: InsertLaw): Promise<Law>;
   getLaw(id: string): Promise<Law | undefined>;
   getUserLaws(userId: string, notebookId: string): Promise<Law[]>;
-  updateLaw(id: string, userId: string, updates: Partial<InsertLaw>): Promise<Law>;
-  deleteLaw(id: string, userId: string): Promise<void>;
+  updateLaw(id: string, updates: Partial<InsertLaw>): Promise<Law>;
+  deleteLaw(id: string): Promise<void>;
 
   // Policy methods
   createPolicy(policy: InsertPolicy): Promise<Policy>;
   getPolicy(id: string): Promise<Policy | undefined>;
   getUserPolicies(userId: string, notebookId: string): Promise<Policy[]>;
-  updatePolicy(id: string, userId: string, updates: Partial<InsertPolicy>): Promise<Policy>;
-  deletePolicy(id: string, userId: string): Promise<void>;
+  updatePolicy(id: string, updates: Partial<InsertPolicy>): Promise<Policy>;
+  deletePolicy(id: string): Promise<void>;
 
   // Potion methods
   createPotion(potion: InsertPotion): Promise<Potion>;
   getPotion(id: string): Promise<Potion | undefined>;
   getUserPotions(userId: string, notebookId: string): Promise<Potion[]>;
-  updatePotion(id: string, userId: string, updates: Partial<InsertPotion>): Promise<Potion>;
-  deletePotion(id: string, userId: string): Promise<void>;
+  updatePotion(id: string, updates: Partial<InsertPotion>): Promise<Potion>;
+  deletePotion(id: string): Promise<void>;
 
   // Name generator methods
   createName(name: InsertName): Promise<GeneratedName>;
@@ -463,7 +463,7 @@ export interface IStorage {
   createTheme(theme: InsertTheme): Promise<Theme>;
   getTheme(id: string): Promise<Theme | undefined>;
   getUserThemes(userId: string, notebookId: string): Promise<Theme[]>;
-  updateTheme(id: string, userId: string, updates: Partial<InsertTheme>): Promise<Theme>;
+  updateTheme(id: string, updates: Partial<InsertTheme>): Promise<Theme>;
 
   // Mood methods
   createMood(mood: InsertMood): Promise<Mood>;
@@ -474,15 +474,15 @@ export interface IStorage {
   createConflict(conflict: InsertConflict): Promise<Conflict>;
   getConflict(id: string): Promise<Conflict | undefined>;
   getUserConflicts(userId: string, notebookId: string): Promise<Conflict[]>;
-  updateConflict(id: string, userId: string, updates: Partial<InsertConflict>): Promise<Conflict>;
+  updateConflict(id: string, updates: Partial<InsertConflict>): Promise<Conflict>;
 
   // Guide methods
   createGuide(guide: InsertGuide): Promise<Guide>;
   getGuide(id: string): Promise<Guide | undefined>;
   getGuides(category?: string): Promise<Guide[]>;
   searchGuides(query: string, category?: string): Promise<Guide[]>;
-  updateGuide(id: string, userId: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
-  deleteGuide(id: string, userId: string): Promise<boolean>;
+  updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
+  deleteGuide(id: string): Promise<boolean>;
 
   // Saved item methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -664,12 +664,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character> {
-    // Validate ownership
-    const [existing] = await db.select().from(characters).where(eq(characters.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
@@ -759,12 +753,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLocation(id: string, userId: string, updates: Partial<InsertLocation>, notebookId: string): Promise<Location> {
-    // Validate ownership
-    const [existing] = await db.select().from(locations).where(eq(locations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(locations.id, id),
       eq(locations.userId, userId),
@@ -779,12 +767,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteLocation(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(locations).where(eq(locations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(locations.id, id),
       eq(locations.userId, userId),
@@ -816,13 +798,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(settings.createdAt));
   }
 
-  async updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting> {
-    // Validate ownership
-    const [existing] = await db.select().from(settings).where(eq(settings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateSetting(id: string, updates: Partial<InsertSetting>): Promise<Setting> {
     const [updatedSetting] = await db
       .update(settings)
       .set(updates)
@@ -861,12 +837,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateItem(id: string, userId: string, updates: Partial<InsertItem>, notebookId: string): Promise<Item> {
-    // Validate ownership
-    const [existing] = await db.select().from(items).where(eq(items.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(items.id, id),
       eq(items.userId, userId),
@@ -881,12 +851,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteItem(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(items).where(eq(items.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(items.id, id),
       eq(items.userId, userId),
@@ -925,12 +889,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateOrganization(id: string, userId: string, updates: Partial<InsertOrganization>, notebookId: string): Promise<Organization> {
-    // Validate ownership
-    const [existing] = await db.select().from(organizations).where(eq(organizations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(organizations.id, id), 
       eq(organizations.userId, userId),
@@ -945,12 +903,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOrganization(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(organizations).where(eq(organizations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(organizations.id, id), 
       eq(organizations.userId, userId),
@@ -982,13 +934,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(creatures.createdAt));
   }
 
-  async updateCreature(id: string, userId: string, updates: Partial<InsertCreature>): Promise<Creature> {
-    // Validate ownership
-    const [existing] = await db.select().from(creatures).where(eq(creatures.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateCreature(id: string, updates: Partial<InsertCreature>): Promise<Creature> {
     const [updatedCreature] = await db
       .update(creatures)
       .set(updates)
@@ -1077,12 +1023,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCulture(id: string, userId: string, updates: Partial<InsertCulture>, notebookId: string): Promise<Culture> {
-    // Validate ownership
-    const [existing] = await db.select().from(cultures).where(eq(cultures.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(cultures.id, id), 
       eq(cultures.userId, userId),
@@ -1097,12 +1037,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCulture(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(cultures).where(eq(cultures.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(cultures.id, id), 
       eq(cultures.userId, userId),
@@ -1124,7 +1058,7 @@ export class DatabaseStorage implements IStorage {
     return [];
   }
 
-  async updateMagic(id: string, userId: string, updates: any): Promise<any> {
+  async updateMagic(id: string, updates: any): Promise<any> {
     throw new Error('Magic system not implemented');
   }
 
@@ -1151,13 +1085,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(documents.createdAt));
   }
 
-  async updateDocument(id: string, userId: string, updates: Partial<InsertDocument>): Promise<Document> {
-    // Validate ownership
-    const [existing] = await db.select().from(documents).where(eq(documents.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document> {
     const [updatedDocument] = await db
       .update(documents)
       .set(updates)
@@ -1166,13 +1094,7 @@ export class DatabaseStorage implements IStorage {
     return updatedDocument;
   }
 
-  async deleteDocument(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(documents).where(eq(documents.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteDocument(id: string): Promise<void> {
     await db.delete(documents).where(eq(documents.id, id));
   }
 
@@ -1199,13 +1121,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(foods.createdAt));
   }
 
-  async updateFood(id: string, userId: string, updates: Partial<InsertFood>): Promise<Food> {
-    // Validate ownership
-    const [existing] = await db.select().from(foods).where(eq(foods.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateFood(id: string, updates: Partial<InsertFood>): Promise<Food> {
     const [updatedFood] = await db
       .update(foods)
       .set(updates)
@@ -1214,13 +1130,7 @@ export class DatabaseStorage implements IStorage {
     return updatedFood;
   }
 
-  async deleteFood(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(foods).where(eq(foods.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteFood(id: string): Promise<void> {
     await db.delete(foods).where(eq(foods.id, id));
   }
 
@@ -1247,13 +1157,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(languages.createdAt));
   }
 
-  async updateLanguage(id: string, userId: string, updates: Partial<InsertLanguage>): Promise<Language> {
-    // Validate ownership
-    const [existing] = await db.select().from(languages).where(eq(languages.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateLanguage(id: string, updates: Partial<InsertLanguage>): Promise<Language> {
     const [updatedLanguage] = await db
       .update(languages)
       .set(updates)
@@ -1262,13 +1166,7 @@ export class DatabaseStorage implements IStorage {
     return updatedLanguage;
   }
 
-  async deleteLanguage(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(languages).where(eq(languages.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteLanguage(id: string): Promise<void> {
     await db.delete(languages).where(eq(languages.id, id));
   }
 
@@ -1295,13 +1193,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(religions.createdAt));
   }
 
-  async updateReligion(id: string, userId: string, updates: Partial<InsertReligion>): Promise<Religion> {
-    // Validate ownership
-    const [existing] = await db.select().from(religions).where(eq(religions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateReligion(id: string, updates: Partial<InsertReligion>): Promise<Religion> {
     const [updatedReligion] = await db
       .update(religions)
       .set(updates)
@@ -1310,13 +1202,7 @@ export class DatabaseStorage implements IStorage {
     return updatedReligion;
   }
 
-  async deleteReligion(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(religions).where(eq(religions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteReligion(id: string): Promise<void> {
     await db.delete(religions).where(eq(religions.id, id));
   }
 
@@ -1343,13 +1229,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(technologies.createdAt));
   }
 
-  async updateTechnology(id: string, userId: string, updates: Partial<InsertTechnology>): Promise<Technology> {
-    // Validate ownership
-    const [existing] = await db.select().from(technologies).where(eq(technologies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateTechnology(id: string, updates: Partial<InsertTechnology>): Promise<Technology> {
     const [updatedTechnology] = await db
       .update(technologies)
       .set(updates)
@@ -1358,13 +1238,7 @@ export class DatabaseStorage implements IStorage {
     return updatedTechnology;
   }
 
-  async deleteTechnology(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(technologies).where(eq(technologies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteTechnology(id: string): Promise<void> {
     await db.delete(technologies).where(eq(technologies.id, id));
   }
 
@@ -1398,12 +1272,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateWeapon(id: string, userId: string, notebookId: string, updates: Partial<InsertWeapon>): Promise<Weapon> {
-    // Validate ownership
-    const [existing] = await db.select().from(weapons).where(eq(weapons.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(weapons.id, id),
       eq(weapons.userId, userId),
@@ -1418,12 +1286,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteWeapon(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(weapons).where(eq(weapons.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(weapons.id, id),
       eq(weapons.userId, userId),
@@ -1456,13 +1318,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(professions.createdAt));
   }
 
-  async updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession> {
-    // Validate ownership
-    const [existing] = await db.select().from(professions).where(eq(professions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateProfession(id: string, updates: Partial<InsertProfession>): Promise<Profession> {
     const [updatedProfession] = await db
       .update(professions)
       .set(updates)
@@ -1471,13 +1327,7 @@ export class DatabaseStorage implements IStorage {
     return updatedProfession;
   }
 
-  async deleteProfession(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(professions).where(eq(professions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteProfession(id: string): Promise<void> {
     await db.delete(professions).where(eq(professions.id, id));
   }
 
@@ -1511,12 +1361,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePlant(id: string, userId: string, updates: Partial<InsertPlant>, notebookId: string): Promise<Plant> {
-    // Validate ownership
-    const [existing] = await db.select().from(plants).where(eq(plants.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(plants.id, id),
       eq(plants.userId, userId),
@@ -1531,12 +1375,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePlant(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(plants).where(eq(plants.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(plants.id, id),
       eq(plants.userId, userId),
@@ -1565,13 +1403,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(descriptions.createdAt));
   }
 
-  async updateDescription(id: string, userId: string, updates: Partial<InsertDescription>): Promise<Description> {
-    // Validate ownership
-    const [existing] = await db.select().from(descriptions).where(eq(descriptions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateDescription(id: string, updates: Partial<InsertDescription>): Promise<Description> {
     const [updatedDescription] = await db
       .update(descriptions)
       .set(updates)
@@ -1580,13 +1412,7 @@ export class DatabaseStorage implements IStorage {
     return updatedDescription;
   }
 
-  async deleteDescription(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(descriptions).where(eq(descriptions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteDescription(id: string): Promise<void> {
     await db.delete(descriptions).where(eq(descriptions.id, id));
   }
 
@@ -1613,13 +1439,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(ethnicities.createdAt));
   }
 
-  async updateEthnicity(id: string, userId: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity> {
-    // Validate ownership
-    const [existing] = await db.select().from(ethnicities).where(eq(ethnicities.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateEthnicity(id: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity> {
     const [updatedEthnicity] = await db
       .update(ethnicities)
       .set(updates)
@@ -1628,13 +1448,7 @@ export class DatabaseStorage implements IStorage {
     return updatedEthnicity;
   }
 
-  async deleteEthnicity(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(ethnicities).where(eq(ethnicities.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteEthnicity(id: string): Promise<void> {
     await db.delete(ethnicities).where(eq(ethnicities.id, id));
   }
 
@@ -1661,13 +1475,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(drinks.createdAt));
   }
 
-  async updateDrink(id: string, userId: string, updates: Partial<InsertDrink>): Promise<Drink> {
-    // Validate ownership
-    const [existing] = await db.select().from(drinks).where(eq(drinks.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateDrink(id: string, updates: Partial<InsertDrink>): Promise<Drink> {
     const [updatedDrink] = await db
       .update(drinks)
       .set(updates)
@@ -1676,13 +1484,7 @@ export class DatabaseStorage implements IStorage {
     return updatedDrink;
   }
 
-  async deleteDrink(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(drinks).where(eq(drinks.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteDrink(id: string): Promise<void> {
     await db.delete(drinks).where(eq(drinks.id, id));
   }
 
@@ -1709,13 +1511,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(armor.createdAt));
   }
 
-  async updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor> {
-    // Validate ownership
-    const [existing] = await db.select().from(armors).where(eq(armors.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateArmor(id: string, updates: Partial<InsertArmor>): Promise<Armor> {
     const [updatedArmor] = await db
       .update(armor)
       .set(updates)
@@ -1724,13 +1520,7 @@ export class DatabaseStorage implements IStorage {
     return updatedArmor;
   }
 
-  async deleteArmor(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(armors).where(eq(armors.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteArmor(id: string): Promise<void> {
     await db.delete(armor).where(eq(armor.id, id));
   }
 
@@ -1757,13 +1547,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(accessories.createdAt));
   }
 
-  async updateAccessory(id: string, userId: string, updates: Partial<InsertAccessory>): Promise<Accessory> {
-    // Validate ownership
-    const [existing] = await db.select().from(accessories).where(eq(accessories.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateAccessory(id: string, updates: Partial<InsertAccessory>): Promise<Accessory> {
     const [updatedAccessory] = await db
       .update(accessories)
       .set(updates)
@@ -1772,13 +1556,7 @@ export class DatabaseStorage implements IStorage {
     return updatedAccessory;
   }
 
-  async deleteAccessory(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(accessories).where(eq(accessories.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteAccessory(id: string): Promise<void> {
     await db.delete(accessories).where(eq(accessories.id, id));
   }
 
@@ -1805,13 +1583,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(clothing.createdAt));
   }
 
-  async updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing> {
-    // Validate ownership
-    const [existing] = await db.select().from(clothings).where(eq(clothings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateClothing(id: string, updates: Partial<InsertClothing>): Promise<Clothing> {
     const [updatedClothing] = await db
       .update(clothing)
       .set(updates)
@@ -1820,13 +1592,7 @@ export class DatabaseStorage implements IStorage {
     return updatedClothing;
   }
 
-  async deleteClothing(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(clothings).where(eq(clothings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteClothing(id: string): Promise<void> {
     await db.delete(clothing).where(eq(clothing.id, id));
   }
 
@@ -1853,13 +1619,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(materials.createdAt));
   }
 
-  async updateMaterial(id: string, userId: string, updates: Partial<InsertMaterial>): Promise<Material> {
-    // Validate ownership
-    const [existing] = await db.select().from(materials).where(eq(materials.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateMaterial(id: string, updates: Partial<InsertMaterial>): Promise<Material> {
     const [updatedMaterial] = await db
       .update(materials)
       .set(updates)
@@ -1868,13 +1628,7 @@ export class DatabaseStorage implements IStorage {
     return updatedMaterial;
   }
 
-  async deleteMaterial(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(materials).where(eq(materials.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteMaterial(id: string): Promise<void> {
     await db.delete(materials).where(eq(materials.id, id));
   }
 
@@ -1901,13 +1655,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(settlements.createdAt));
   }
 
-  async updateSettlement(id: string, userId: string, updates: Partial<InsertSettlement>): Promise<Settlement> {
-    // Validate ownership
-    const [existing] = await db.select().from(settlements).where(eq(settlements.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateSettlement(id: string, updates: Partial<InsertSettlement>): Promise<Settlement> {
     const [updatedSettlement] = await db
       .update(settlements)
       .set(updates)
@@ -1916,13 +1664,7 @@ export class DatabaseStorage implements IStorage {
     return updatedSettlement;
   }
 
-  async deleteSettlement(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(settlements).where(eq(settlements.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteSettlement(id: string): Promise<void> {
     await db.delete(settlements).where(eq(settlements.id, id));
   }
 
@@ -1949,13 +1691,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(societies.createdAt));
   }
 
-  async updateSociety(id: string, userId: string, updates: Partial<InsertSociety>): Promise<Society> {
-    // Validate ownership
-    const [existing] = await db.select().from(societies).where(eq(societies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateSociety(id: string, updates: Partial<InsertSociety>): Promise<Society> {
     const [updatedSociety] = await db
       .update(societies)
       .set(updates)
@@ -1964,13 +1700,7 @@ export class DatabaseStorage implements IStorage {
     return updatedSociety;
   }
 
-  async deleteSociety(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(societies).where(eq(societies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteSociety(id: string): Promise<void> {
     await db.delete(societies).where(eq(societies.id, id));
   }
 
@@ -2004,12 +1734,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateFaction(id: string, userId: string, updates: Partial<InsertFaction>, notebookId: string): Promise<Faction> {
-    // Validate ownership
-    const [existing] = await db.select().from(factions).where(eq(factions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(factions.id, id), 
       eq(factions.userId, userId),
@@ -2024,12 +1748,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteFaction(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(factions).where(eq(factions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(factions.id, id), 
       eq(factions.userId, userId),
@@ -2061,13 +1779,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(militaryUnits.createdAt));
   }
 
-  async updateMilitaryUnit(id: string, userId: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit> {
-    // Validate ownership
-    const [existing] = await db.select().from(militaryUnits).where(eq(militaryUnits.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateMilitaryUnit(id: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit> {
     const [updatedMilitaryUnit] = await db
       .update(militaryUnits)
       .set(updates)
@@ -2076,13 +1788,7 @@ export class DatabaseStorage implements IStorage {
     return updatedMilitaryUnit;
   }
 
-  async deleteMilitaryUnit(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(militaryUnits).where(eq(militaryUnits.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteMilitaryUnit(id: string): Promise<void> {
     await db.delete(militaryUnits).where(eq(militaryUnits.id, id));
   }
 
@@ -2109,13 +1815,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(myths.createdAt));
   }
 
-  async updateMyth(id: string, userId: string, updates: Partial<InsertMyth>): Promise<Myth> {
-    // Validate ownership
-    const [existing] = await db.select().from(myths).where(eq(myths.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateMyth(id: string, updates: Partial<InsertMyth>): Promise<Myth> {
     const [updatedMyth] = await db
       .update(myths)
       .set(updates)
@@ -2124,13 +1824,7 @@ export class DatabaseStorage implements IStorage {
     return updatedMyth;
   }
 
-  async deleteMyth(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(myths).where(eq(myths.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteMyth(id: string): Promise<void> {
     await db.delete(myths).where(eq(myths.id, id));
   }
 
@@ -2157,13 +1851,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(legends.createdAt));
   }
 
-  async updateLegend(id: string, userId: string, updates: Partial<InsertLegend>): Promise<Legend> {
-    // Validate ownership
-    const [existing] = await db.select().from(legends).where(eq(legends.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateLegend(id: string, updates: Partial<InsertLegend>): Promise<Legend> {
     const [updatedLegend] = await db
       .update(legends)
       .set(updates)
@@ -2172,13 +1860,7 @@ export class DatabaseStorage implements IStorage {
     return updatedLegend;
   }
 
-  async deleteLegend(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(legends).where(eq(legends.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteLegend(id: string): Promise<void> {
     await db.delete(legends).where(eq(legends.id, id));
   }
 
@@ -2205,13 +1887,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(events.createdAt));
   }
 
-  async updateEvent(id: string, userId: string, updates: Partial<InsertEvent>): Promise<Event> {
-    // Validate ownership
-    const [existing] = await db.select().from(events).where(eq(events.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateEvent(id: string, updates: Partial<InsertEvent>): Promise<Event> {
     const [updatedEvent] = await db
       .update(events)
       .set(updates)
@@ -2220,13 +1896,7 @@ export class DatabaseStorage implements IStorage {
     return updatedEvent;
   }
 
-  async deleteEvent(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(events).where(eq(events.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteEvent(id: string): Promise<void> {
     await db.delete(events).where(eq(events.id, id));
   }
 
@@ -2253,13 +1923,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(spells.createdAt));
   }
 
-  async updateSpell(id: string, userId: string, updates: Partial<InsertSpell>): Promise<Spell> {
-    // Validate ownership
-    const [existing] = await db.select().from(spells).where(eq(spells.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateSpell(id: string, updates: Partial<InsertSpell>): Promise<Spell> {
     const [updatedSpell] = await db
       .update(spells)
       .set(updates)
@@ -2268,13 +1932,7 @@ export class DatabaseStorage implements IStorage {
     return updatedSpell;
   }
 
-  async deleteSpell(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(spells).where(eq(spells.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteSpell(id: string): Promise<void> {
     await db.delete(spells).where(eq(spells.id, id));
   }
 
@@ -2301,13 +1959,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(resources.createdAt));
   }
 
-  async updateResource(id: string, userId: string, updates: Partial<InsertResource>): Promise<Resource> {
-    // Validate ownership
-    const [existing] = await db.select().from(resources).where(eq(resources.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateResource(id: string, updates: Partial<InsertResource>): Promise<Resource> {
     const [updatedResource] = await db
       .update(resources)
       .set(updates)
@@ -2316,13 +1968,7 @@ export class DatabaseStorage implements IStorage {
     return updatedResource;
   }
 
-  async deleteResource(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(resources).where(eq(resources.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteResource(id: string): Promise<void> {
     await db.delete(resources).where(eq(resources.id, id));
   }
 
@@ -2349,13 +1995,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(buildings.createdAt));
   }
 
-  async updateBuilding(id: string, userId: string, updates: Partial<InsertBuilding>): Promise<Building> {
-    // Validate ownership
-    const [existing] = await db.select().from(buildings).where(eq(buildings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateBuilding(id: string, updates: Partial<InsertBuilding>): Promise<Building> {
     const [updatedBuilding] = await db
       .update(buildings)
       .set(updates)
@@ -2364,13 +2004,7 @@ export class DatabaseStorage implements IStorage {
     return updatedBuilding;
   }
 
-  async deleteBuilding(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(buildings).where(eq(buildings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteBuilding(id: string): Promise<void> {
     await db.delete(buildings).where(eq(buildings.id, id));
   }
 
@@ -2397,13 +2031,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(animals.createdAt));
   }
 
-  async updateAnimal(id: string, userId: string, updates: Partial<InsertAnimal>): Promise<Animal> {
-    // Validate ownership
-    const [existing] = await db.select().from(animals).where(eq(animals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateAnimal(id: string, updates: Partial<InsertAnimal>): Promise<Animal> {
     const [updatedAnimal] = await db
       .update(animals)
       .set(updates)
@@ -2412,13 +2040,7 @@ export class DatabaseStorage implements IStorage {
     return updatedAnimal;
   }
 
-  async deleteAnimal(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(animals).where(eq(animals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteAnimal(id: string): Promise<void> {
     await db.delete(animals).where(eq(animals.id, id));
   }
 
@@ -2445,13 +2067,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(transportation.createdAt));
   }
 
-  async updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation> {
-    // Validate ownership
-    const [existing] = await db.select().from(transportations).where(eq(transportations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateTransportation(id: string, updates: Partial<InsertTransportation>): Promise<Transportation> {
     const [updatedTransportation] = await db
       .update(transportation)
       .set(updates)
@@ -2460,13 +2076,7 @@ export class DatabaseStorage implements IStorage {
     return updatedTransportation;
   }
 
-  async deleteTransportation(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(transportations).where(eq(transportations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteTransportation(id: string): Promise<void> {
     await db.delete(transportation).where(eq(transportation.id, id));
   }
 
@@ -2493,13 +2103,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(naturalLaws.createdAt));
   }
 
-  async updateNaturalLaw(id: string, userId: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw> {
-    // Validate ownership
-    const [existing] = await db.select().from(naturalLaws).where(eq(naturalLaws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateNaturalLaw(id: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw> {
     const [updatedNaturalLaw] = await db
       .update(naturalLaws)
       .set(updates)
@@ -2508,13 +2112,7 @@ export class DatabaseStorage implements IStorage {
     return updatedNaturalLaw;
   }
 
-  async deleteNaturalLaw(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(naturalLaws).where(eq(naturalLaws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteNaturalLaw(id: string): Promise<void> {
     await db.delete(naturalLaws).where(eq(naturalLaws.id, id));
   }
 
@@ -2541,13 +2139,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(traditions.createdAt));
   }
 
-  async updateTradition(id: string, userId: string, updates: Partial<InsertTradition>): Promise<Tradition> {
-    // Validate ownership
-    const [existing] = await db.select().from(traditions).where(eq(traditions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateTradition(id: string, updates: Partial<InsertTradition>): Promise<Tradition> {
     const [updatedTradition] = await db
       .update(traditions)
       .set(updates)
@@ -2556,13 +2148,7 @@ export class DatabaseStorage implements IStorage {
     return updatedTradition;
   }
 
-  async deleteTradition(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(traditions).where(eq(traditions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteTradition(id: string): Promise<void> {
     await db.delete(traditions).where(eq(traditions.id, id));
   }
 
@@ -2589,13 +2175,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(rituals.createdAt));
   }
 
-  async updateRitual(id: string, userId: string, updates: Partial<InsertRitual>): Promise<Ritual> {
-    // Validate ownership
-    const [existing] = await db.select().from(rituals).where(eq(rituals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateRitual(id: string, updates: Partial<InsertRitual>): Promise<Ritual> {
     const [updatedRitual] = await db
       .update(rituals)
       .set(updates)
@@ -2604,13 +2184,7 @@ export class DatabaseStorage implements IStorage {
     return updatedRitual;
   }
 
-  async deleteRitual(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(rituals).where(eq(rituals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteRitual(id: string): Promise<void> {
     await db.delete(rituals).where(eq(rituals.id, id));
   }
 
@@ -2637,13 +2211,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(familyTrees.createdAt));
   }
 
-  async updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree> {
-    // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateFamilyTree(id: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree> {
     const [updatedFamilyTree] = await db
       .update(familyTrees)
       .set(updates)
@@ -2652,13 +2220,7 @@ export class DatabaseStorage implements IStorage {
     return updatedFamilyTree;
   }
 
-  async deleteFamilyTree(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteFamilyTree(id: string): Promise<void> {
     await db.delete(familyTrees).where(eq(familyTrees.id, id));
   }
 
@@ -2685,13 +2247,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(timelines.createdAt));
   }
 
-  async updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
-    // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateTimeline(id: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
     const [updatedTimeline] = await db
       .update(timelines)
       .set(updates)
@@ -2700,13 +2256,7 @@ export class DatabaseStorage implements IStorage {
     return updatedTimeline;
   }
 
-  async deleteTimeline(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteTimeline(id: string): Promise<void> {
     await db.delete(timelines).where(eq(timelines.id, id));
   }
 
@@ -2733,13 +2283,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(ceremonies.createdAt));
   }
 
-  async updateCeremony(id: string, userId: string, updates: Partial<InsertCeremony>): Promise<Ceremony> {
-    // Validate ownership
-    const [existing] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateCeremony(id: string, updates: Partial<InsertCeremony>): Promise<Ceremony> {
     const [updatedCeremony] = await db
       .update(ceremonies)
       .set(updates)
@@ -2748,13 +2292,7 @@ export class DatabaseStorage implements IStorage {
     return updatedCeremony;
   }
 
-  async deleteCeremony(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteCeremony(id: string): Promise<void> {
     await db.delete(ceremonies).where(eq(ceremonies.id, id));
   }
 
@@ -2781,13 +2319,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(maps.createdAt));
   }
 
-  async updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
-    // Validate ownership
-    const [existing] = await db.select().from(maps).where(eq(maps.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateMap(id: string, updates: Partial<InsertMap>): Promise<Map> {
     const [updatedMap] = await db
       .update(maps)
       .set(updates)
@@ -2796,13 +2328,7 @@ export class DatabaseStorage implements IStorage {
     return updatedMap;
   }
 
-  async deleteMap(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(maps).where(eq(maps.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteMap(id: string): Promise<void> {
     await db.delete(maps).where(eq(maps.id, id));
   }
 
@@ -2829,13 +2355,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(music.createdAt));
   }
 
-  async updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music> {
-    // Validate ownership
-    const [existing] = await db.select().from(musics).where(eq(musics.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateMusic(id: string, updates: Partial<InsertMusic>): Promise<Music> {
     const [updatedMusic] = await db
       .update(music)
       .set(updates)
@@ -2844,13 +2364,7 @@ export class DatabaseStorage implements IStorage {
     return updatedMusic;
   }
 
-  async deleteMusic(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(musics).where(eq(musics.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteMusic(id: string): Promise<void> {
     await db.delete(music).where(eq(music.id, id));
   }
 
@@ -2877,13 +2391,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(dances.createdAt));
   }
 
-  async updateDance(id: string, userId: string, updates: Partial<InsertDance>): Promise<Dance> {
-    // Validate ownership
-    const [existing] = await db.select().from(dances).where(eq(dances.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateDance(id: string, updates: Partial<InsertDance>): Promise<Dance> {
     const [updatedDance] = await db
       .update(dances)
       .set(updates)
@@ -2892,13 +2400,7 @@ export class DatabaseStorage implements IStorage {
     return updatedDance;
   }
 
-  async deleteDance(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(dances).where(eq(dances.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteDance(id: string): Promise<void> {
     await db.delete(dances).where(eq(dances.id, id));
   }
 
@@ -2925,13 +2427,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(laws.createdAt));
   }
 
-  async updateLaw(id: string, userId: string, updates: Partial<InsertLaw>): Promise<Law> {
-    // Validate ownership
-    const [existing] = await db.select().from(laws).where(eq(laws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateLaw(id: string, updates: Partial<InsertLaw>): Promise<Law> {
     const [updatedLaw] = await db
       .update(laws)
       .set(updates)
@@ -2940,13 +2436,7 @@ export class DatabaseStorage implements IStorage {
     return updatedLaw;
   }
 
-  async deleteLaw(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(laws).where(eq(laws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deleteLaw(id: string): Promise<void> {
     await db.delete(laws).where(eq(laws.id, id));
   }
 
@@ -2973,13 +2463,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(policies.createdAt));
   }
 
-  async updatePolicy(id: string, userId: string, updates: Partial<InsertPolicy>): Promise<Policy> {
-    // Validate ownership
-    const [existing] = await db.select().from(policies).where(eq(policies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updatePolicy(id: string, updates: Partial<InsertPolicy>): Promise<Policy> {
     const [updatedPolicy] = await db
       .update(policies)
       .set(updates)
@@ -2988,13 +2472,7 @@ export class DatabaseStorage implements IStorage {
     return updatedPolicy;
   }
 
-  async deletePolicy(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(policies).where(eq(policies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deletePolicy(id: string): Promise<void> {
     await db.delete(policies).where(eq(policies.id, id));
   }
 
@@ -3021,13 +2499,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(potions.createdAt));
   }
 
-  async updatePotion(id: string, userId: string, updates: Partial<InsertPotion>): Promise<Potion> {
-    // Validate ownership
-    const [existing] = await db.select().from(potions).where(eq(potions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updatePotion(id: string, updates: Partial<InsertPotion>): Promise<Potion> {
     const [updatedPotion] = await db
       .update(potions)
       .set(updates)
@@ -3036,13 +2508,7 @@ export class DatabaseStorage implements IStorage {
     return updatedPotion;
   }
 
-  async deletePotion(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(potions).where(eq(potions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async deletePotion(id: string): Promise<void> {
     await db.delete(potions).where(eq(potions.id, id));
   }
 
@@ -3089,13 +2555,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(themes.createdAt));
   }
 
-  async updateTheme(id: string, userId: string, updates: Partial<InsertTheme>): Promise<Theme> {
-    // Validate ownership
-    const [existing] = await db.select().from(themes).where(eq(themes.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateTheme(id: string, updates: Partial<InsertTheme>): Promise<Theme> {
     const [updatedTheme] = await db
       .update(themes)
       .set(updates)
@@ -3147,13 +2607,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(conflicts.createdAt));
   }
 
-  async updateConflict(id: string, userId: string, updates: Partial<InsertConflict>): Promise<Conflict> {
-    // Validate ownership
-    const [existing] = await db.select().from(conflicts).where(eq(conflicts.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
+  async updateConflict(id: string, updates: Partial<InsertConflict>): Promise<Conflict> {
     const [updatedConflict] = await db
       .update(conflicts)
       .set(updates)
@@ -3205,7 +2659,7 @@ export class DatabaseStorage implements IStorage {
       .limit(20);
   }
 
-  async updateGuide(id: string, userId: string, updates: Partial<InsertGuide>): Promise<Guide | undefined> {
+  async updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined> {
     const [updatedGuide] = await db
       .update(guides)
       .set({ ...updates, updatedAt: new Date() })
@@ -3214,7 +2668,7 @@ export class DatabaseStorage implements IStorage {
     return updatedGuide;
   }
 
-  async deleteGuide(id: string, userId: string): Promise<boolean> {
+  async deleteGuide(id: string): Promise<boolean> {
     const deletedGuides = await db.delete(guides)
       .where(eq(guides.id, id))
       .returning({ id: guides.id });

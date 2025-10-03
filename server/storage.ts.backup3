@@ -664,12 +664,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character> {
-    // Validate ownership
-    const [existing] = await db.select().from(characters).where(eq(characters.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
@@ -759,12 +753,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLocation(id: string, userId: string, updates: Partial<InsertLocation>, notebookId: string): Promise<Location> {
-    // Validate ownership
-    const [existing] = await db.select().from(locations).where(eq(locations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(locations.id, id),
       eq(locations.userId, userId),
@@ -779,12 +767,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteLocation(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(locations).where(eq(locations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(locations.id, id),
       eq(locations.userId, userId),
@@ -817,12 +799,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting> {
-    // Validate ownership
-    const [existing] = await db.select().from(settings).where(eq(settings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedSetting] = await db
       .update(settings)
       .set(updates)
@@ -861,12 +837,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateItem(id: string, userId: string, updates: Partial<InsertItem>, notebookId: string): Promise<Item> {
-    // Validate ownership
-    const [existing] = await db.select().from(items).where(eq(items.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(items.id, id),
       eq(items.userId, userId),
@@ -881,12 +851,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteItem(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(items).where(eq(items.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(items.id, id),
       eq(items.userId, userId),
@@ -925,12 +889,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateOrganization(id: string, userId: string, updates: Partial<InsertOrganization>, notebookId: string): Promise<Organization> {
-    // Validate ownership
-    const [existing] = await db.select().from(organizations).where(eq(organizations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(organizations.id, id), 
       eq(organizations.userId, userId),
@@ -945,12 +903,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOrganization(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(organizations).where(eq(organizations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(organizations.id, id), 
       eq(organizations.userId, userId),
@@ -983,12 +935,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCreature(id: string, userId: string, updates: Partial<InsertCreature>): Promise<Creature> {
-    // Validate ownership
-    const [existing] = await db.select().from(creatures).where(eq(creatures.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedCreature] = await db
       .update(creatures)
       .set(updates)
@@ -1077,12 +1023,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCulture(id: string, userId: string, updates: Partial<InsertCulture>, notebookId: string): Promise<Culture> {
-    // Validate ownership
-    const [existing] = await db.select().from(cultures).where(eq(cultures.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(cultures.id, id), 
       eq(cultures.userId, userId),
@@ -1097,12 +1037,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCulture(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(cultures).where(eq(cultures.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(cultures.id, id), 
       eq(cultures.userId, userId),
@@ -1152,12 +1086,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDocument(id: string, userId: string, updates: Partial<InsertDocument>): Promise<Document> {
-    // Validate ownership
-    const [existing] = await db.select().from(documents).where(eq(documents.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedDocument] = await db
       .update(documents)
       .set(updates)
@@ -1167,12 +1095,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDocument(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(documents).where(eq(documents.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(documents).where(eq(documents.id, id));
   }
 
@@ -1200,12 +1122,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateFood(id: string, userId: string, updates: Partial<InsertFood>): Promise<Food> {
-    // Validate ownership
-    const [existing] = await db.select().from(foods).where(eq(foods.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedFood] = await db
       .update(foods)
       .set(updates)
@@ -1215,12 +1131,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteFood(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(foods).where(eq(foods.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(foods).where(eq(foods.id, id));
   }
 
@@ -1248,12 +1158,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLanguage(id: string, userId: string, updates: Partial<InsertLanguage>): Promise<Language> {
-    // Validate ownership
-    const [existing] = await db.select().from(languages).where(eq(languages.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedLanguage] = await db
       .update(languages)
       .set(updates)
@@ -1263,12 +1167,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteLanguage(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(languages).where(eq(languages.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(languages).where(eq(languages.id, id));
   }
 
@@ -1296,12 +1194,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateReligion(id: string, userId: string, updates: Partial<InsertReligion>): Promise<Religion> {
-    // Validate ownership
-    const [existing] = await db.select().from(religions).where(eq(religions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedReligion] = await db
       .update(religions)
       .set(updates)
@@ -1311,12 +1203,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteReligion(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(religions).where(eq(religions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(religions).where(eq(religions.id, id));
   }
 
@@ -1344,12 +1230,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTechnology(id: string, userId: string, updates: Partial<InsertTechnology>): Promise<Technology> {
-    // Validate ownership
-    const [existing] = await db.select().from(technologies).where(eq(technologies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedTechnology] = await db
       .update(technologies)
       .set(updates)
@@ -1359,12 +1239,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTechnology(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(technologies).where(eq(technologies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(technologies).where(eq(technologies.id, id));
   }
 
@@ -1398,12 +1272,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateWeapon(id: string, userId: string, notebookId: string, updates: Partial<InsertWeapon>): Promise<Weapon> {
-    // Validate ownership
-    const [existing] = await db.select().from(weapons).where(eq(weapons.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(weapons.id, id),
       eq(weapons.userId, userId),
@@ -1418,12 +1286,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteWeapon(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(weapons).where(eq(weapons.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(weapons.id, id),
       eq(weapons.userId, userId),
@@ -1457,12 +1319,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession> {
-    // Validate ownership
-    const [existing] = await db.select().from(professions).where(eq(professions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedProfession] = await db
       .update(professions)
       .set(updates)
@@ -1472,12 +1328,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProfession(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(professions).where(eq(professions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(professions).where(eq(professions.id, id));
   }
 
@@ -1511,12 +1361,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePlant(id: string, userId: string, updates: Partial<InsertPlant>, notebookId: string): Promise<Plant> {
-    // Validate ownership
-    const [existing] = await db.select().from(plants).where(eq(plants.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(plants.id, id),
       eq(plants.userId, userId),
@@ -1531,12 +1375,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePlant(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(plants).where(eq(plants.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(plants.id, id),
       eq(plants.userId, userId),
@@ -1566,12 +1404,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDescription(id: string, userId: string, updates: Partial<InsertDescription>): Promise<Description> {
-    // Validate ownership
-    const [existing] = await db.select().from(descriptions).where(eq(descriptions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedDescription] = await db
       .update(descriptions)
       .set(updates)
@@ -1581,12 +1413,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDescription(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(descriptions).where(eq(descriptions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(descriptions).where(eq(descriptions.id, id));
   }
 
@@ -1614,12 +1440,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateEthnicity(id: string, userId: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity> {
-    // Validate ownership
-    const [existing] = await db.select().from(ethnicities).where(eq(ethnicities.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedEthnicity] = await db
       .update(ethnicities)
       .set(updates)
@@ -1629,12 +1449,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteEthnicity(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(ethnicities).where(eq(ethnicities.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(ethnicities).where(eq(ethnicities.id, id));
   }
 
@@ -1662,12 +1476,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDrink(id: string, userId: string, updates: Partial<InsertDrink>): Promise<Drink> {
-    // Validate ownership
-    const [existing] = await db.select().from(drinks).where(eq(drinks.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedDrink] = await db
       .update(drinks)
       .set(updates)
@@ -1677,12 +1485,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDrink(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(drinks).where(eq(drinks.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(drinks).where(eq(drinks.id, id));
   }
 
@@ -1710,12 +1512,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor> {
-    // Validate ownership
-    const [existing] = await db.select().from(armors).where(eq(armors.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedArmor] = await db
       .update(armor)
       .set(updates)
@@ -1725,12 +1521,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteArmor(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(armors).where(eq(armors.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(armor).where(eq(armor.id, id));
   }
 
@@ -1758,12 +1548,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAccessory(id: string, userId: string, updates: Partial<InsertAccessory>): Promise<Accessory> {
-    // Validate ownership
-    const [existing] = await db.select().from(accessories).where(eq(accessories.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedAccessory] = await db
       .update(accessories)
       .set(updates)
@@ -1773,12 +1557,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAccessory(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(accessories).where(eq(accessories.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(accessories).where(eq(accessories.id, id));
   }
 
@@ -1806,12 +1584,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing> {
-    // Validate ownership
-    const [existing] = await db.select().from(clothings).where(eq(clothings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedClothing] = await db
       .update(clothing)
       .set(updates)
@@ -1821,12 +1593,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteClothing(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(clothings).where(eq(clothings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(clothing).where(eq(clothing.id, id));
   }
 
@@ -1854,12 +1620,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMaterial(id: string, userId: string, updates: Partial<InsertMaterial>): Promise<Material> {
-    // Validate ownership
-    const [existing] = await db.select().from(materials).where(eq(materials.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedMaterial] = await db
       .update(materials)
       .set(updates)
@@ -1869,12 +1629,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMaterial(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(materials).where(eq(materials.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(materials).where(eq(materials.id, id));
   }
 
@@ -1902,12 +1656,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSettlement(id: string, userId: string, updates: Partial<InsertSettlement>): Promise<Settlement> {
-    // Validate ownership
-    const [existing] = await db.select().from(settlements).where(eq(settlements.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedSettlement] = await db
       .update(settlements)
       .set(updates)
@@ -1917,12 +1665,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSettlement(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(settlements).where(eq(settlements.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(settlements).where(eq(settlements.id, id));
   }
 
@@ -1950,12 +1692,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSociety(id: string, userId: string, updates: Partial<InsertSociety>): Promise<Society> {
-    // Validate ownership
-    const [existing] = await db.select().from(societies).where(eq(societies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedSociety] = await db
       .update(societies)
       .set(updates)
@@ -1965,12 +1701,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSociety(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(societies).where(eq(societies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(societies).where(eq(societies.id, id));
   }
 
@@ -2004,12 +1734,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateFaction(id: string, userId: string, updates: Partial<InsertFaction>, notebookId: string): Promise<Faction> {
-    // Validate ownership
-    const [existing] = await db.select().from(factions).where(eq(factions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(factions.id, id), 
       eq(factions.userId, userId),
@@ -2024,12 +1748,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteFaction(id: string, userId: string, notebookId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(factions).where(eq(factions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const whereClause = and(
       eq(factions.id, id), 
       eq(factions.userId, userId),
@@ -2062,12 +1780,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMilitaryUnit(id: string, userId: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit> {
-    // Validate ownership
-    const [existing] = await db.select().from(militaryUnits).where(eq(militaryUnits.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedMilitaryUnit] = await db
       .update(militaryUnits)
       .set(updates)
@@ -2077,12 +1789,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMilitaryUnit(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(militaryUnits).where(eq(militaryUnits.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(militaryUnits).where(eq(militaryUnits.id, id));
   }
 
@@ -2110,12 +1816,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMyth(id: string, userId: string, updates: Partial<InsertMyth>): Promise<Myth> {
-    // Validate ownership
-    const [existing] = await db.select().from(myths).where(eq(myths.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedMyth] = await db
       .update(myths)
       .set(updates)
@@ -2125,12 +1825,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMyth(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(myths).where(eq(myths.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(myths).where(eq(myths.id, id));
   }
 
@@ -2158,12 +1852,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLegend(id: string, userId: string, updates: Partial<InsertLegend>): Promise<Legend> {
-    // Validate ownership
-    const [existing] = await db.select().from(legends).where(eq(legends.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedLegend] = await db
       .update(legends)
       .set(updates)
@@ -2173,12 +1861,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteLegend(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(legends).where(eq(legends.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(legends).where(eq(legends.id, id));
   }
 
@@ -2206,12 +1888,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateEvent(id: string, userId: string, updates: Partial<InsertEvent>): Promise<Event> {
-    // Validate ownership
-    const [existing] = await db.select().from(events).where(eq(events.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedEvent] = await db
       .update(events)
       .set(updates)
@@ -2221,12 +1897,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteEvent(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(events).where(eq(events.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(events).where(eq(events.id, id));
   }
 
@@ -2254,12 +1924,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSpell(id: string, userId: string, updates: Partial<InsertSpell>): Promise<Spell> {
-    // Validate ownership
-    const [existing] = await db.select().from(spells).where(eq(spells.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedSpell] = await db
       .update(spells)
       .set(updates)
@@ -2269,12 +1933,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSpell(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(spells).where(eq(spells.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(spells).where(eq(spells.id, id));
   }
 
@@ -2302,12 +1960,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateResource(id: string, userId: string, updates: Partial<InsertResource>): Promise<Resource> {
-    // Validate ownership
-    const [existing] = await db.select().from(resources).where(eq(resources.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedResource] = await db
       .update(resources)
       .set(updates)
@@ -2317,12 +1969,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteResource(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(resources).where(eq(resources.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(resources).where(eq(resources.id, id));
   }
 
@@ -2350,12 +1996,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBuilding(id: string, userId: string, updates: Partial<InsertBuilding>): Promise<Building> {
-    // Validate ownership
-    const [existing] = await db.select().from(buildings).where(eq(buildings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedBuilding] = await db
       .update(buildings)
       .set(updates)
@@ -2365,12 +2005,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteBuilding(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(buildings).where(eq(buildings.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(buildings).where(eq(buildings.id, id));
   }
 
@@ -2398,12 +2032,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAnimal(id: string, userId: string, updates: Partial<InsertAnimal>): Promise<Animal> {
-    // Validate ownership
-    const [existing] = await db.select().from(animals).where(eq(animals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedAnimal] = await db
       .update(animals)
       .set(updates)
@@ -2413,12 +2041,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAnimal(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(animals).where(eq(animals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(animals).where(eq(animals.id, id));
   }
 
@@ -2446,12 +2068,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation> {
-    // Validate ownership
-    const [existing] = await db.select().from(transportations).where(eq(transportations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedTransportation] = await db
       .update(transportation)
       .set(updates)
@@ -2461,12 +2077,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTransportation(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(transportations).where(eq(transportations.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(transportation).where(eq(transportation.id, id));
   }
 
@@ -2494,12 +2104,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateNaturalLaw(id: string, userId: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw> {
-    // Validate ownership
-    const [existing] = await db.select().from(naturalLaws).where(eq(naturalLaws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedNaturalLaw] = await db
       .update(naturalLaws)
       .set(updates)
@@ -2509,12 +2113,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteNaturalLaw(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(naturalLaws).where(eq(naturalLaws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(naturalLaws).where(eq(naturalLaws.id, id));
   }
 
@@ -2542,12 +2140,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTradition(id: string, userId: string, updates: Partial<InsertTradition>): Promise<Tradition> {
-    // Validate ownership
-    const [existing] = await db.select().from(traditions).where(eq(traditions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedTradition] = await db
       .update(traditions)
       .set(updates)
@@ -2557,12 +2149,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTradition(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(traditions).where(eq(traditions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(traditions).where(eq(traditions.id, id));
   }
 
@@ -2590,12 +2176,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateRitual(id: string, userId: string, updates: Partial<InsertRitual>): Promise<Ritual> {
-    // Validate ownership
-    const [existing] = await db.select().from(rituals).where(eq(rituals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedRitual] = await db
       .update(rituals)
       .set(updates)
@@ -2605,12 +2185,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRitual(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(rituals).where(eq(rituals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(rituals).where(eq(rituals.id, id));
   }
 
@@ -2638,12 +2212,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree> {
-    // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedFamilyTree] = await db
       .update(familyTrees)
       .set(updates)
@@ -2653,12 +2221,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteFamilyTree(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(familyTrees).where(eq(familyTrees.id, id));
   }
 
@@ -2686,12 +2248,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
-    // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedTimeline] = await db
       .update(timelines)
       .set(updates)
@@ -2701,12 +2257,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTimeline(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(timelines).where(eq(timelines.id, id));
   }
 
@@ -2734,12 +2284,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCeremony(id: string, userId: string, updates: Partial<InsertCeremony>): Promise<Ceremony> {
-    // Validate ownership
-    const [existing] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedCeremony] = await db
       .update(ceremonies)
       .set(updates)
@@ -2749,12 +2293,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCeremony(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(ceremonies).where(eq(ceremonies.id, id));
   }
 
@@ -2782,12 +2320,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
-    // Validate ownership
-    const [existing] = await db.select().from(maps).where(eq(maps.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedMap] = await db
       .update(maps)
       .set(updates)
@@ -2797,12 +2329,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMap(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(maps).where(eq(maps.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(maps).where(eq(maps.id, id));
   }
 
@@ -2830,12 +2356,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music> {
-    // Validate ownership
-    const [existing] = await db.select().from(musics).where(eq(musics.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedMusic] = await db
       .update(music)
       .set(updates)
@@ -2845,12 +2365,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMusic(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(musics).where(eq(musics.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(music).where(eq(music.id, id));
   }
 
@@ -2878,12 +2392,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDance(id: string, userId: string, updates: Partial<InsertDance>): Promise<Dance> {
-    // Validate ownership
-    const [existing] = await db.select().from(dances).where(eq(dances.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedDance] = await db
       .update(dances)
       .set(updates)
@@ -2893,12 +2401,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDance(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(dances).where(eq(dances.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(dances).where(eq(dances.id, id));
   }
 
@@ -2926,12 +2428,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLaw(id: string, userId: string, updates: Partial<InsertLaw>): Promise<Law> {
-    // Validate ownership
-    const [existing] = await db.select().from(laws).where(eq(laws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedLaw] = await db
       .update(laws)
       .set(updates)
@@ -2941,12 +2437,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteLaw(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(laws).where(eq(laws.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(laws).where(eq(laws.id, id));
   }
 
@@ -2974,12 +2464,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePolicy(id: string, userId: string, updates: Partial<InsertPolicy>): Promise<Policy> {
-    // Validate ownership
-    const [existing] = await db.select().from(policies).where(eq(policies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedPolicy] = await db
       .update(policies)
       .set(updates)
@@ -2989,12 +2473,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePolicy(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(policies).where(eq(policies.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(policies).where(eq(policies.id, id));
   }
 
@@ -3022,12 +2500,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePotion(id: string, userId: string, updates: Partial<InsertPotion>): Promise<Potion> {
-    // Validate ownership
-    const [existing] = await db.select().from(potions).where(eq(potions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedPotion] = await db
       .update(potions)
       .set(updates)
@@ -3037,12 +2509,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePotion(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(potions).where(eq(potions.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     await db.delete(potions).where(eq(potions.id, id));
   }
 
@@ -3090,12 +2556,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTheme(id: string, userId: string, updates: Partial<InsertTheme>): Promise<Theme> {
-    // Validate ownership
-    const [existing] = await db.select().from(themes).where(eq(themes.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedTheme] = await db
       .update(themes)
       .set(updates)
@@ -3148,12 +2608,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateConflict(id: string, userId: string, updates: Partial<InsertConflict>): Promise<Conflict> {
-    // Validate ownership
-    const [existing] = await db.select().from(conflicts).where(eq(conflicts.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
     const [updatedConflict] = await db
       .update(conflicts)
       .set(updates)
