@@ -5,9 +5,9 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
     
     // Validate notebook ownership before allowing write
@@ -33,11 +33,11 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: any, res) => {
   try {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     
     if (!notebookId) {
       return res.status(400).json({ error: 'notebookId query parameter is required' });
@@ -60,9 +60,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
-    const userId = req.params.userId || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -77,7 +77,7 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const familyTree = await storage.getFamilyTree(req.params.id);
     if (!familyTree) {
@@ -90,9 +90,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const validatedUpdates = insertFamilyTreeSchema.parse(req.body);
     const updatedFamilyTree = await storage.updateFamilyTree(req.params.id, userId, validatedUpdates);
     res.json(updatedFamilyTree);
@@ -109,9 +109,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     await storage.deleteFamilyTree(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {

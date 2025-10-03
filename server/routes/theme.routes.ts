@@ -5,14 +5,13 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/generate", async (req, res) => {
+router.post("/generate", async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
-      userId: z.string().nullable().optional()
     });
     
-    const { genre, userId } = generateRequestSchema.parse(req.body);
+    const { genre } = generateRequestSchema.parse(req.body);
     
     // TODO: Extract generator function from main routes.ts file
     const theme = {
@@ -35,9 +34,9 @@ router.post("/generate", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
     
     // Validate notebook ownership before allowing write
@@ -60,9 +59,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
-    const userId = req.params.userId || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -77,7 +76,7 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const theme = await storage.getTheme(req.params.id);
     if (!theme) {

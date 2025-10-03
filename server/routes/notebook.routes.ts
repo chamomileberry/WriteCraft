@@ -6,9 +6,9 @@ import { z } from "zod";
 const router = Router();
 
 // Get all notebooks for a user
-router.get("/", async (req, res) => {
+router.get("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebooks = await storage.getUserNotebooks(userId);
     res.json(notebooks);
   } catch (error) {
@@ -21,9 +21,9 @@ router.get("/", async (req, res) => {
 });
 
 // Create a new notebook
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookData = { ...req.body, userId };
     
     const validatedNotebook = insertNotebookSchema.parse(notebookData);
@@ -40,9 +40,9 @@ router.post("/", async (req, res) => {
 });
 
 // Get a specific notebook by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebook = await storage.getNotebook(req.params.id, userId);
     if (!notebook) {
       return res.status(404).json({ error: 'Notebook not found' });
@@ -55,9 +55,9 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update a notebook
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const updateData = { ...req.body, userId };
     
     const validatedUpdates = updateNotebookSchema.parse(updateData);
@@ -82,9 +82,9 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete a notebook
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     await storage.deleteNotebook(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {

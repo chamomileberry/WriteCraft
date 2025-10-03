@@ -5,9 +5,9 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const noteData = { ...req.body, userId };
     
     const validatedNote = insertNoteSchema.parse(noteData);
@@ -25,9 +25,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notes = await storage.getUserNotes(userId);
     res.json(notes);
   } catch (error) {
@@ -36,7 +36,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const note = await storage.getNote(req.params.id);
     if (!note) {
@@ -49,9 +49,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     
     const validatedUpdates = insertNoteSchema.partial().parse(req.body);
     const updatedNote = await storage.updateNote(req.params.id, userId, validatedUpdates);
@@ -73,9 +73,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     await storage.deleteNote(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {

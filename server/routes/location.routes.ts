@@ -6,10 +6,10 @@ import { generateArticleForContent } from "../article-generation";
 
 const router = Router();
 
-router.post("/generate", async (req, res) => {
+router.post("/generate", async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client payload)
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     
     const generateRequestSchema = z.object({
       locationType: z.string().optional(),
@@ -48,9 +48,9 @@ router.post("/generate", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
     
     // Validate notebook ownership before allowing write
@@ -74,10 +74,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client-supplied userId)
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -92,9 +92,9 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -113,10 +113,10 @@ router.get("/:id", async (req, res) => {
 });
 
 // Generate article from structured location data
-router.post("/:id/generate-article", async (req, res) => {
+router.post("/:id/generate-article", async (req: any, res) => {
   try {
     const notebookId = req.query.notebookId as string;
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     
     if (!notebookId) {
       return res.status(400).json({ error: 'notebookId query parameter is required' });

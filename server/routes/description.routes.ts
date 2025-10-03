@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
     const validatedDescription = insertDescriptionSchema.parse(req.body);
     const savedDescription = await storage.createDescription(validatedDescription);
@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
     const userId = req.params.userId || null;
     const descriptions = await storage.getUserDescriptions(userId);
@@ -33,7 +33,7 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const description = await storage.getDescription(req.params.id);
     if (!description) {
@@ -46,9 +46,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const validatedUpdates = insertDescriptionSchema.parse(req.body);
     const updatedDescription = await storage.updateDescription(req.params.id, userId, validatedUpdates);
     res.json(updatedDescription);
@@ -65,9 +65,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     await storage.deleteDescription(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {

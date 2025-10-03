@@ -7,7 +7,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-router.post("/improve-text", async (req, res) => {
+router.post("/improve-text", async (req: any, res) => {
   try {
     const { text, action, customPrompt } = req.body;
 

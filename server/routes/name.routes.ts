@@ -5,15 +5,14 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/generate", async (req, res) => {
+router.post("/generate", async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       nameType: z.string(),
       culture: z.string(),
-      userId: z.string().nullable().optional()
     });
     
-    const { nameType, culture, userId } = generateRequestSchema.parse(req.body);
+    const { nameType, culture } = generateRequestSchema.parse(req.body);
     
     // TODO: Extract generator function from main routes.ts file
     const generatedNames = [{
@@ -52,7 +51,7 @@ router.post("/generate", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
     const validatedName = insertNameSchema.parse(req.body);
     const savedName = await storage.createName(validatedName);
@@ -66,9 +65,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
-    const userId = req.params.userId || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -83,7 +82,7 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const name = await storage.getName(req.params.id);
     if (!name) {

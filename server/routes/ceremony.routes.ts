@@ -5,9 +5,9 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
     
     // Validate notebook ownership before allowing write
@@ -33,9 +33,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
-    const userId = req.params.userId || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -50,7 +50,7 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const ceremony = await storage.getCeremony(req.params.id);
     if (!ceremony) {
@@ -63,9 +63,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const validatedUpdates = insertCeremonySchema.parse(req.body);
     const updatedCeremony = await storage.updateCeremony(req.params.id, userId, validatedUpdates);
     res.json(updatedCeremony);
@@ -82,9 +82,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     await storage.deleteCeremony(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {

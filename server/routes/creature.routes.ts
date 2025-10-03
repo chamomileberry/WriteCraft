@@ -7,21 +7,20 @@ import { generateCreatureWithAI } from "../ai-generation";
 const router = Router();
 
 // Creature generator routes
-router.post("/generate", async (req, res) => {
+router.post("/generate", async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
       creatureType: z.string().optional(),
-      userId: z.string().nullable().optional(),
       notebookId: z.string().nullable().optional()
     });
     
-    const authUserId = req.headers['x-user-id'] as string || 'demo-user';
-    const { genre, creatureType, userId, notebookId } = generateRequestSchema.parse(req.body);
+    const userId = req.user.claims.sub;
+    const { genre, creatureType, notebookId } = generateRequestSchema.parse(req.body);
     
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, authUserId);
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
       if (!ownsNotebook) {
         return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
       }
@@ -38,7 +37,7 @@ router.post("/generate", async (req, res) => {
       abilities: aiCreature.abilities,
       physicalDescription: aiCreature.physicalDescription,
       culturalSignificance: aiCreature.culturalSignificance,
-      userId: userId || null,
+      userId: userId,
       notebookId: notebookId || null
     };
 
@@ -59,9 +58,9 @@ router.post("/generate", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
-    const userId = req.params.userId || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -76,11 +75,16 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const creature = await storage.getCreature(req.params.id);
     if (!creature) {
       return res.status(404).json({ error: 'Creature not found' });
+    }
+    // Verify ownership
+    if (creature.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this creature' });
     }
     res.json(creature);
   } catch (error) {
@@ -89,18 +93,14 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
-    // Extract userId from header for security
+    const userId = req.user.claims.sub;
     
     // Validate the request body
     const validatedUpdates = insertCreatureSchema.partial().parse(req.body);
     
-    // Ensure userId is preserved
-    const updatesWithUserId = { ...validatedUpdates, userId };
-    
-    const updatedCreature = await storage.updateCreature(req.params.id, updatesWithUserId);
+    const updatedCreature = await storage.updateCreature(req.params.id, userId, validatedUpdates);
     res.json(updatedCreature);
   } catch (error) {
     console.error('Error updating creature:', error);

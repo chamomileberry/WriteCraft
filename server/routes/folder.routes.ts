@@ -5,9 +5,9 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const folderData = { ...req.body, userId };
     
     const validatedFolder = insertFolderSchema.parse(folderData);
@@ -25,9 +25,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const type = req.query.type as string;
     const manuscriptId = req.query.manuscriptId as string;
     const guideId = req.query.guideId as string;
@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const folder = await storage.getFolder(req.params.id);
     if (!folder) {
@@ -63,9 +63,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const folderData = { ...req.body, userId };
     
     const validatedUpdates = insertFolderSchema.partial().parse(folderData);
@@ -88,9 +88,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     await storage.deleteFolder(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {

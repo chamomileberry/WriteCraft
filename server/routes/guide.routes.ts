@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: any, res) => {
   try {
     const category = req.query.category as string;
     const difficulty = req.query.difficulty as string;
@@ -42,7 +42,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
     const guide = await storage.getGuide(req.params.id);
     if (!guide) {
@@ -55,7 +55,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
@@ -71,9 +71,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
     const updatedGuide = await storage.updateGuide(req.params.id, validatedGuide);
@@ -91,9 +91,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     await storage.deleteGuide(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {

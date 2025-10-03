@@ -5,10 +5,10 @@ import { z } from "zod";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client payload)
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const { notebookId, itemType, itemId, itemData } = req.body;
     
     // Validate required fields
@@ -55,9 +55,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const savedItemId = req.params.id;
     const { itemData } = req.body;
     
@@ -86,9 +86,9 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-router.delete("/", async (req, res) => {
+router.delete("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     // Extract userId from authentication headers for security (ignore client payload)
     const { itemType, itemId, notebookId } = req.body;
     
@@ -136,10 +136,10 @@ router.delete("/", async (req, res) => {
   }
 });
 
-router.get("/:userId", async (req, res) => {
+router.get("/:userId", async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security 
-    const authenticatedUserId = req.headers['x-user-id'] as string || 'demo-user';
+    const authenticatedUserId = req.user.claims.sub;
     const requestedUserId = req.params.userId;
     const notebookId = req.query.notebookId as string;
     
@@ -170,9 +170,9 @@ router.get("/:userId", async (req, res) => {
 });
 
 // Sync endpoint to update itemData for all saved_items with current content
-router.post("/sync/:userId", async (req, res) => {
+router.post("/sync/:userId", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = req.user.claims.sub;
     const requestedUserId = req.params.userId;
     
     // Validate that authenticated user can only sync their own saved items

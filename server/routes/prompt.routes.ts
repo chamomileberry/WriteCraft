@@ -7,21 +7,20 @@ import { generatePromptWithAI } from "../ai-generation";
 const router = Router();
 
 // Prompt generator routes
-router.post("/generate", async (req, res) => {
+router.post("/generate", async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
       type: z.string().optional(),
-      userId: z.string().nullable().optional(),
       notebookId: z.string().nullable().optional()
     });
     
-    const authUserId = req.headers['x-user-id'] as string || 'demo-user';
-    const { genre, type, userId, notebookId } = generateRequestSchema.parse(req.body);
+    const userId = req.user.claims.sub;
+    const { genre, type, notebookId } = generateRequestSchema.parse(req.body);
     
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, authUserId);
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
       if (!ownsNotebook) {
         return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
       }
@@ -34,7 +33,7 @@ router.post("/generate", async (req, res) => {
       text: aiPrompt.text,
       genre: genre || null,
       promptType: type || null,
-      userId: userId || null,
+      userId: userId,
       notebookId: notebookId || null
     };
 
@@ -52,15 +51,16 @@ router.post("/generate", async (req, res) => {
   }
 });
 
-router.get("/random", async (req, res) => {
+router.get("/random", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
       return res.status(400).json({ error: 'notebookId query parameter is required' });
     }
     
-    const prompts = await storage.getUserPrompts('demo-user', notebookId);
+    const prompts = await storage.getUserPrompts(userId, notebookId);
     if (prompts.length === 0) {
       return res.status(404).json({ error: 'No prompts found' });
     }
@@ -72,9 +72,9 @@ router.get("/random", async (req, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req, res) => {
+router.get("/user/:userId?", async (req: any, res) => {
   try {
-    const userId = req.params.userId || 'demo-user';
+    const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
@@ -89,11 +89,16 @@ router.get("/user/:userId?", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const prompt = await storage.getPrompt(req.params.id);
     if (!prompt) {
       return res.status(404).json({ error: 'Prompt not found' });
+    }
+    // Verify ownership
+    if (prompt.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this prompt' });
     }
     res.json(prompt);
   } catch (error) {

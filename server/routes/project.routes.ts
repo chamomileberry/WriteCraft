@@ -44,9 +44,9 @@ function buildTree(sections: ProjectSection[]): ProjectSectionWithChildren[] {
   return roots;
 }
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const projects = await storage.getUserProjects(userId);
     res.json(projects);
   } catch (error) {
@@ -58,9 +58,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const projectData = { ...req.body, userId };
 
     const validatedProject = insertProjectSchema.parse(projectData);
@@ -76,10 +76,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/search", async (req, res) => {
+router.get("/search", async (req: any, res) => {
   try {
     const query = req.query.q as string;
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
 
     if (!query) {
       return res.status(400).json({ error: 'Search query is required' });
@@ -93,9 +93,9 @@ router.get("/search", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const project = await storage.getProject(req.params.id, userId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
@@ -107,9 +107,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const updateData = { ...req.body, userId };
 
     const validatedUpdates = insertProjectSchema.partial().parse(updateData);
@@ -133,9 +133,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     await storage.deleteProject(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
@@ -152,9 +152,9 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Project Section routes
-router.get("/:projectId/sections", async (req, res) => {
+router.get("/:projectId/sections", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const { projectId } = req.params;
     const { flat } = req.query;
 
@@ -182,9 +182,9 @@ router.get("/:projectId/sections", async (req, res) => {
   }
 });
 
-router.post("/:projectId/sections", async (req, res) => {
+router.post("/:projectId/sections", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const { projectId } = req.params;
     const { parentId, type } = req.body;
 
@@ -221,9 +221,9 @@ router.post("/:projectId/sections", async (req, res) => {
   }
 });
 
-router.get("/:projectId/sections/:sectionId", async (req, res) => {
+router.get("/:projectId/sections/:sectionId", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const { projectId, sectionId } = req.params;
 
     // Verify user owns the project
@@ -244,9 +244,9 @@ router.get("/:projectId/sections/:sectionId", async (req, res) => {
   }
 });
 
-router.put("/:projectId/sections/:sectionId", async (req, res) => {
+router.put("/:projectId/sections/:sectionId", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const { projectId, sectionId } = req.params;
 
     // Verify user owns the project
@@ -281,9 +281,9 @@ router.put("/:projectId/sections/:sectionId", async (req, res) => {
   }
 });
 
-router.delete("/:projectId/sections/:sectionId", async (req, res) => {
+router.delete("/:projectId/sections/:sectionId", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const { projectId, sectionId } = req.params;
 
     // Verify user owns the project
@@ -307,9 +307,9 @@ router.delete("/:projectId/sections/:sectionId", async (req, res) => {
   }
 });
 
-router.post("/:projectId/sections/reorder", async (req, res) => {
+router.post("/:projectId/sections/reorder", async (req: any, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'guest';
+    const userId = req.user.claims.sub;
     const { projectId } = req.params;
 
     // Verify user owns the project
