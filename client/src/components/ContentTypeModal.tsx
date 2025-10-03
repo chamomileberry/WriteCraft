@@ -59,12 +59,16 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
     }
   }, [fetchedNotebooks, setNotebooks]);
   
-  // Auto-select active notebook when modal opens
+  // Auto-select active notebook when modal opens, or single notebook if only one exists
   useEffect(() => {
-    if (isOpen && activeNotebookId) {
-      setSelectedNotebookId(activeNotebookId);
+    if (isOpen) {
+      if (activeNotebookId) {
+        setSelectedNotebookId(activeNotebookId);
+      } else if (notebooks.length === 1) {
+        setSelectedNotebookId(notebooks[0].id);
+      }
     }
-  }, [isOpen, activeNotebookId]);
+  }, [isOpen, activeNotebookId, notebooks]);
   
   // Auto-open NotebookManager when no notebooks exist
   useEffect(() => {
@@ -119,16 +123,18 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                 <BookOpen className="h-4 w-4" />
                 Save to Notebook
               </Label>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsNotebookManagerOpen(true)}
-                className="h-8 px-2"
-                data-testid="button-manage-notebooks"
-                title="Manage Notebooks"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+              {notebooks.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsNotebookManagerOpen(true)}
+                  className="h-8 px-2"
+                  data-testid="button-manage-notebooks"
+                  title="Manage Notebooks"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
             </div>
             {isLoadingNotebooks && notebooks.length === 0 ? (
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
@@ -161,6 +167,39 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                   No notebooks available. Create a notebook first to organize your content.
                 </span>
               </div>
+            ) : notebooks.length === 1 ? (
+              <>
+                {notebooksError && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-md mb-2">
+                    <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                    <span className="text-sm text-destructive flex-1">
+                      Failed to refresh notebooks. Using cached data.
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => refetch()}
+                      data-testid="button-retry-notebooks-refresh"
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                )}
+                {/* Single notebook display with gear button */}
+                <div className="flex items-center justify-between p-3 bg-muted rounded-md">
+                  <span className="font-medium text-sm">{notebooks[0].name}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsNotebookManagerOpen(true)}
+                    className="h-8 px-2"
+                    data-testid="button-manage-single-notebook"
+                    title="Manage Notebooks"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
             ) : (
               <>
                 {notebooksError && (
@@ -186,16 +225,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                   <SelectContent>
                     {notebooks.map((notebook) => (
                       <SelectItem key={notebook.id} value={notebook.id} data-testid={`select-notebook-${notebook.id}`}>
-                        <div className="flex flex-col max-w-full">
-                          <span className="font-medium truncate">{notebook.name}</span>
-                          {notebook.description && (
-                            <span className="text-xs text-muted-foreground truncate max-w-[300px]">
-                              {notebook.description.length > 60 
-                                ? `${notebook.description.substring(0, 60)}...` 
-                                : notebook.description}
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-medium">{notebook.name}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
