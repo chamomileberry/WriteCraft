@@ -53,6 +53,7 @@ import type { Guide } from '@shared/schema';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 import { Switch } from '@/components/ui/switch';
+import { useWorkspaceStore, type EditorActions } from '@/stores/workspaceStore';
 
 interface GuideEditorProps {
   guideId: string;
@@ -233,6 +234,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
   
   // Check if current user is admin
   const isAdmin = user?.isAdmin || false;
@@ -346,9 +348,21 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     content: guide?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
+        class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none min-h-[400px] p-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
         style: 'font-size: 12pt;', // Set default font size to 12pt
       },
+    },
+    onUpdate: ({ editor }) => {
+      // Update editor context for AI Writing Assistant
+      const content = editor.getText();
+      const htmlContent = editor.getHTML();
+      updateEditorContext({
+        content,
+        htmlContent,
+        title: title || 'Untitled Guide',
+        type: 'guide',
+        entityId: currentGuideId
+      });
     },
   });
 
@@ -453,6 +467,52 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     }
   }, [editor]);
 
+  // Initialize editor context when guide data loads
+  useEffect(() => {
+    if (guide && editor) {
+      const content = editor.getText();
+      const htmlContent = editor.getHTML();
+      updateEditorContext({
+        content,
+        htmlContent,
+        title: guide.title || 'Untitled Guide',
+        type: 'guide',
+        entityId: currentGuideId
+      });
+    }
+  }, [guide, editor, currentGuideId, updateEditorContext]);
+
+  // Register editor actions for cross-component communication
+  useEffect(() => {
+    if (editor) {
+      const editorActions: EditorActions = {
+        insertContent: (content: string) => {
+          editor.chain().focus().insertContent(content).run();
+        },
+        replaceContent: (content: string) => {
+          editor.commands.setContent(content);
+        },
+        replaceSelection: (content: string) => {
+          editor.chain().focus().deleteSelection().insertContent(content).run();
+        },
+        selectAll: () => {
+          editor.commands.selectAll();
+        },
+        insertAtCursor: (content: string) => {
+          editor.chain().focus().insertContent(content).run();
+        },
+      };
+      registerEditorActions(editorActions);
+    }
+  }, [editor, registerEditorActions]);
+
+  // Clear editor context on unmount
+  useEffect(() => {
+    return () => {
+      clearEditorContext();
+    };
+  }, [clearEditorContext]);
+
   const isFormValid = () => {
     return !!editor && !!title.trim() && !!category && !!difficulty;
   };
@@ -495,7 +555,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   }
 
   return (
-    <div className="max-w-4xl space-y-6 p-6">
+    <div className="w-full space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
