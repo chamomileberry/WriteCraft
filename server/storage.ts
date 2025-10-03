@@ -1,5 +1,5 @@
 import { 
-  type User, type InsertUser, 
+  type User, type InsertUser, type UpsertUser,
   type Character, type UpdateCharacter, type InsertCharacter,
   type Plot, type InsertPlot,
   type Prompt, type InsertPrompt,
@@ -95,6 +95,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
   
   // Notebook methods
   createNotebook(notebook: InsertNotebook): Promise<Notebook>;

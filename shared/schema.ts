@@ -2369,9 +2369,9 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
 }));
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertNotebookSchema = createInsertSchema(notebooks).omit({
@@ -2710,6 +2710,7 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertNotebook = z.infer<typeof insertNotebookSchema>;
 export type UpdateNotebook = z.infer<typeof updateNotebookSchema>;
