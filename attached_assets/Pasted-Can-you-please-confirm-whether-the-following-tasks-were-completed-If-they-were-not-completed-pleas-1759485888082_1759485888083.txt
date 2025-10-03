@@ -1,0 +1,39 @@
+Can you please confirm whether the following tasks were completed? If they were not completed, please create a strategic implementation plan based on what still needs to be done to ensure comprehensive data security across the application. 
+
+1. Confirm the storage-level-owned modules still reject foreign user reads. 
+2. Extend equivalent ownership validation to PUT/PATCH/DELETE routes. 
+3. Add automated tests covering 401/403 behaviours for representative resources. 
+4. Add structured logging around ownership denial to aid intrusion detection
+5. Consider unit tests covering validateContentOwnership edge cases (e.g. soft-delete or system-owned records). 
+6. Keep this pattern as part of future code review checklists to prevent regression.  
+7. Inventory each storage method to classify as user-owned vs public and capture in a checklist. 
+8. Update storage signatures to require userId and adjust route handlers to pass it, ensuring all queries filter by ownership. 
+9. Add documentation/tests confirming public endpoints and verifying 403 behaviours for cross-user access post-migration. 
+10. Review each get * implementation in server/storage.ts to confirm the database-level and(eq(id), eq(userId), eq(notebookId)) filters are in place. 
+11. Audit update/delete implementations to ensure they enforce notebook ownership or explicitly justify why notebook scoping is unnecessary. 
+12. Once verified, document the storage-layer ownership rule as the canonical pattern and add regression test covering a sample content type to lock the behaviour in. 
+13. Restore storage.getGuide signature to accept userId, filter by id & userId, and update callers accordingly. 
+14. Confirm all other storage get * methods still enforce both userId and notebookId (where relevant) after changes. 
+15. Re-run authorization regression test to ensure no remaining routes rely on route-level ownership checks. 
+16. Ensure Automatic session expiry handling has been fixed. 
+17. Rework the auth query to use getQueryFn({ on401: “returnNull” }) (or otherwise avoid self-invalidating on 401) so it resolves null without looping
+18. Keep the mutation onError 401 invalidation since it already ensures the auth query refetches after expired session mutations. 
+19. After adjusting the query behaviour, retest session expiry to confirm the user is redirected once and the loop is eliminated. 
+20. Run manual session expiry checks (invalidate cookie, trigger query/mutation) to confirm redirect UX. 
+21. Cover representative AI/upload/search flows in forthcoming integration tests to assert 401/403 handling. 
+22. Monitor logs for unexpected 401 loops as tests are added to ensure no regressions. 
+23. Document the public /objects/:objectPath(*) contract and monitoring  expectations. 
+24. Monitor future route additions for compliance with the middleware ordering and storage ownership contract. 
+25. Add Vitest + Supertest dev dependencies and create test/auth.spec.ts that spins the app with fake auth contexts and seeded data. 
+26. Implement shared helpers for seeding two users’ resources and toggling auth middleware on/off. 
+27. Wire the suite into CI via npm test to guard future routes against missing 401/403 checks. 
+28. Run a code base-wide audit focusing on any remaining endpoints or pathways that could bypass ownership checks. 
+29. Implement a minimal Vitest + Supertest suite covering representative 401 and 403 scenarios across key resource families to lock in current guarantees. 
+30. Execute end-to-end authorization flow testing to confirm session handling and cross-user isolation in real usage paths. 
+31. Remove the 60 legacy backup route files to eliminate future confusion. 
+32. Add an npm script (e.g., “test”: “vitest”) plus any required Vitest config. 
+33. Create a test helper that spins up the Express app and seeds a user/session for Supertest. 
+34. Implement a minimal suite covering unahthenticated 401s, cross-user 403/404s, and a happy path 200 to validate the pipeline. 
+35. Refactor the server entry point to export the Express app (without listening) and add reusable Supertest setup/seeding utilities. 
+36. Replace placeholder bodies with real HTTP calls asserting 401 for unauthenticated access, 404/403 for cross-user requests, and 200 for owner flows. 
+37. Add workflow/script so vitest runs cleanly (e.g., via npm run test) and ensure the suite passes end to end. 
