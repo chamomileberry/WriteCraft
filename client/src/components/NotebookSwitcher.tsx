@@ -53,39 +53,80 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
 
   if (isLoading) {
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <div className="animate-pulse bg-muted h-9 w-48 rounded"></div>
-        <div className="animate-pulse bg-muted h-9 w-9 rounded"></div>
+      <div className={`space-y-4 ${className}`}>
+        <div className="flex items-center justify-between">
+          <div className="animate-pulse bg-muted h-6 w-32 rounded"></div>
+          <div className="flex items-center gap-2">
+            <div className="animate-pulse bg-muted h-9 w-9 rounded"></div>
+            <div className="animate-pulse bg-muted h-9 w-40 rounded"></div>
+          </div>
+        </div>
+        <div className="animate-pulse bg-muted h-24 w-full rounded"></div>
       </div>
     );
   }
 
   return (
     <>
-      <div className={`flex items-center gap-2 ${className}`}>
+      <div className={`space-y-4 ${className}`}>
+        {/* Header Section */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold" data-testid="text-active-notebook-header">
+            Active Notebook
+          </h2>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setIsManagerOpen(true)}
+              variant="outline"
+              size="sm"
+              className="flex-shrink-0"
+              data-testid="button-manage-notebooks"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={() => setIsManagerOpen(true)}
+              variant="default"
+              size="sm"
+              className="flex items-center gap-2"
+              data-testid="button-create-notebook"
+            >
+              <Plus className="h-4 w-4" />
+              Create Notebook
+            </Button>
+          </div>
+        </div>
+
+        {/* Notebook Display Section */}
         {notebooks.length === 0 ? (
-          <Button
-            onClick={() => setIsManagerOpen(true)}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            data-testid="button-create-first-notebook"
-          >
-            <Plus className="h-4 w-4" />
-            Create First Notebook
-          </Button>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-semibold mb-2">No notebooks yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Create your first notebook to start organizing your content
+              </p>
+              <Button
+                onClick={() => setIsManagerOpen(true)}
+                variant="default"
+                size="sm"
+                data-testid="button-create-first-notebook"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Notebook
+              </Button>
+            </CardContent>
+          </Card>
         ) : showActiveInfo && activeNotebook ? (
           otherNotebooks.length > 0 ? (
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
               <PopoverTrigger asChild>
                 <button
-                  className="flex-1 text-left w-full"
+                  className="w-full text-left"
                   data-testid="button-open-notebook-switcher"
                   aria-label="Switch notebook"
                 >
-                  <Card 
-                    className="overflow-hidden hover-elevate transition-all"
-                  >
+                  <Card className="overflow-hidden hover-elevate transition-all">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
@@ -101,15 +142,12 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                              Active Notebook
-                            </div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-base truncate" data-testid="text-active-notebook-name">
+                              {activeNotebook.name}
+                            </h3>
                             <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           </div>
-                          <h3 className="font-semibold text-base mb-1 truncate" data-testid="text-active-notebook-name">
-                            {activeNotebook.name}
-                          </h3>
                           {activeNotebook.description && (
                             <p className="text-sm text-muted-foreground line-clamp-2" data-testid="text-active-notebook-description">
                               {activeNotebook.description}
@@ -158,7 +196,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
               </PopoverContent>
             </Popover>
           ) : (
-            <Card className="flex-1 overflow-hidden">
+            <Card className="overflow-hidden">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
@@ -174,9 +212,6 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Active Notebook
-                    </div>
                     <h3 className="font-semibold text-base mb-1 truncate" data-testid="text-active-notebook-name">
                       {activeNotebook.name}
                     </h3>
@@ -191,16 +226,6 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
             </Card>
           )
         ) : null}
-
-        <Button
-          onClick={() => setIsManagerOpen(true)}
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0"
-          data-testid="button-manage-notebooks"
-        >
-          <Settings className="h-4 w-4" />
-        </Button>
       </div>
 
       <NotebookManager 
