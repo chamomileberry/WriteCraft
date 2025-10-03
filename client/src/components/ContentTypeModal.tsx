@@ -267,7 +267,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                       {type.category}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground text-left">
+                  <p className="text-sm text-muted-foreground text-left whitespace-normal break-words">
                     {type.description}
                   </p>
                 </Button>
