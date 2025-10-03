@@ -271,6 +271,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
 
+  // Track if we're doing an initial load vs autosave update
+  const isInitialLoadRef = useRef(true);
+  const lastLoadedGuideIdRef = useRef<string | null>(null);
+
   // Fetch guide data
   const { data: guide, isLoading: isLoadingGuide } = useQuery<Guide>({
     queryKey: ['/api/guides', currentGuideId],
@@ -434,10 +438,22 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         onGuideCreated?.(savedGuide.id);
       }
       
-      // Invalidate all guide-related queries (including filtered ones)
+      // Update the cache directly for the current guide to prevent refetching
+      // This prevents cursor jumping and content reversion during autosave
+      const guideId = savedGuide.id || currentGuideId;
+      if (guideId && guideId !== 'new') {
+        queryClient.setQueryData(['/api/guides', guideId], savedGuide);
+      }
+      
+      // Only invalidate list queries, not the detail query for the current guide
+      // This keeps the guide list fresh without disrupting the editor
       queryClient.invalidateQueries({ 
         predicate: (query) => {
-          return Array.isArray(query.queryKey) && query.queryKey[0] === '/api/guides';
+          if (!Array.isArray(query.queryKey)) return false;
+          if (query.queryKey[0] !== '/api/guides') return false;
+          
+          // Only invalidate list queries (length 1) or queries that aren't for the current guide
+          return query.queryKey.length === 1 || query.queryKey[1] !== guideId;
         }
       });
     },
@@ -480,21 +496,32 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         hasBeenSavedOnce: true,
       } });
       
-      if (editor && guide.content) {
+      // Only update editor content on initial load or when switching guides
+      // Skip updates during autosave to prevent cursor jumping
+      const shouldUpdateContent = 
+        isInitialLoadRef.current || 
+        lastLoadedGuideIdRef.current !== currentGuideId ||
+        autosave.saveStatus !== 'saving';
+      
+      if (editor && guide.content && shouldUpdateContent) {
         // Convert markdown to HTML if needed
         const htmlContent = convertMarkdownToHTML(guide.content);
         
-        // Only update editor content if it's different from current content
-        // This prevents cursor jumping during autosave
+        // Only update editor content if it's truly different
+        // This additional check helps prevent unnecessary updates
         const currentContent = editor.getHTML();
         if (currentContent !== htmlContent) {
           editor.commands.setContent(htmlContent);
           // Update word count after setting content
           dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
+          
+          // Mark that we've done the initial load
+          isInitialLoadRef.current = false;
+          lastLoadedGuideIdRef.current = currentGuideId;
         }
       }
     }
-  }, [guide, editor]);
+  }, [guide, editor, currentGuideId, autosave.saveStatus]);
 
   // Update word count when editor is first created
   useEffect(() => {
