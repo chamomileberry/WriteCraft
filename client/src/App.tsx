@@ -39,6 +39,7 @@ function NotebookPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const [notebookPopoverOpen, setNotebookPopoverOpen] = useState(false);
+  const [mountNotebookSwitcher, setMountNotebookSwitcher] = useState(true);
 
   const handleNavigate = (toolId: string) => {
     if (toolId === 'notebook') {
@@ -58,13 +59,16 @@ function NotebookPage() {
   };
 
   const handleCreateNew = () => {
-    // Close notebook switcher popover before opening content modal
+    // Force unmount NotebookSwitcher to remove its portal from DOM
     // This prevents notebook description from bleeding through into the modal
     setNotebookPopoverOpen(false);
-    // Small delay to ensure popover closes before modal opens
+    setMountNotebookSwitcher(false);
+    
+    // Remount NotebookSwitcher and open modal after portal cleanup
     setTimeout(() => {
+      setMountNotebookSwitcher(true);
       setIsContentModalOpen(true);
-    }, 10);
+    }, 50);
   };
 
   const handleSelectContentType = (contentType: string, notebookId?: string) => {
@@ -99,18 +103,24 @@ function NotebookPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Home
         </Button>
-        <SavedItems 
-          onCreateNew={handleCreateNew} 
-          notebookPopoverOpen={notebookPopoverOpen}
-          onNotebookPopoverOpenChange={setNotebookPopoverOpen}
-        />
+        {mountNotebookSwitcher && (
+          <SavedItems 
+            onCreateNew={handleCreateNew} 
+            notebookPopoverOpen={notebookPopoverOpen}
+            onNotebookPopoverOpenChange={setNotebookPopoverOpen}
+          />
+        )}
       </div>
       
       <ContentTypeModal
         isOpen={isContentModalOpen}
         onClose={() => {
           setIsContentModalOpen(false);
-          setNotebookPopoverOpen(false); // Ensure popover is closed when modal closes
+          setNotebookPopoverOpen(false);
+          // Ensure NotebookSwitcher is mounted when returning to page
+          if (!mountNotebookSwitcher) {
+            setMountNotebookSwitcher(true);
+          }
         }}
         onSelectType={handleSelectContentType}
       />
