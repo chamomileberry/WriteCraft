@@ -32,12 +32,12 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
       const response = await apiRequest('GET', '/api/notebooks');
       const fetchedNotebooks = await response.json() as Notebook[];
       setNotebooks(fetchedNotebooks);
-      
+
       // If no active notebook is set but we have notebooks, set the first one as active
       if (!activeNotebookId && fetchedNotebooks.length > 0) {
         setActiveNotebook(fetchedNotebooks[0].id);
       }
-      
+
       return fetchedNotebooks;
     }
   });
