@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { isAuthenticated } from "../replitAuth";
 import characterRoutes from "./character.routes";
 import creatureRoutes from "./creature.routes";
 import guideRoutes from "./guide.routes";
@@ -61,7 +62,11 @@ import plantRoutes from "./plant.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
-  // Register all domain-specific routes
+  // Apply global authentication middleware to ALL domain routes
+  // This prevents the critical authentication bypass vulnerability
+  app.use("/api/*", isAuthenticated);
+  
+  // Register all domain-specific routes (now protected by authentication)
   app.use("/api/characters", characterRoutes);
   app.use("/api/creatures", creatureRoutes);
   app.use("/api/guides", guideRoutes);
