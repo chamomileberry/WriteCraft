@@ -59,12 +59,17 @@ function NotebookPage() {
 
   const handleCreateNew = () => {
     // Close notebook switcher popover before opening content modal
+    // This prevents notebook description from bleeding through into the modal
     setNotebookPopoverOpen(false);
-    setIsContentModalOpen(true);
+    // Small delay to ensure popover closes before modal opens
+    setTimeout(() => {
+      setIsContentModalOpen(true);
+    }, 10);
   };
 
   const handleSelectContentType = (contentType: string, notebookId?: string) => {
     setIsContentModalOpen(false);
+    setNotebookPopoverOpen(false); // Ensure popover stays closed
     const mapping = getMappingById(contentType);
     if (mapping) {
       const url = notebookId 
@@ -103,7 +108,10 @@ function NotebookPage() {
       
       <ContentTypeModal
         isOpen={isContentModalOpen}
-        onClose={() => setIsContentModalOpen(false)}
+        onClose={() => {
+          setIsContentModalOpen(false);
+          setNotebookPopoverOpen(false); // Ensure popover is closed when modal closes
+        }}
         onSelectType={handleSelectContentType}
       />
     </div>
