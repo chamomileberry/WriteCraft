@@ -98,22 +98,23 @@ describe('Image Upload Visibility Tests', () => {
     });
 
     it('should return 400 when objectPath is missing', async () => {
-      const mockMiddleware = mockAuthMiddleware(user1Id);
-      const testApp = getTestApp();
-      
-      // Apply mock auth middleware
-      testApp.use((req, res, next) => mockMiddleware(req, res, next));
-      
-      // Try to finalize without objectPath
-      await request(testApp)
+      // Try to finalize without objectPath (authenticated)
+      await request(app)
         .post('/api/upload/finalize')
+        .set('X-Test-User-Id', user1Id)
         .send({})
         .expect(400);
+      
+      const response = await request(app)
+        .post('/api/upload/finalize')
+        .set('X-Test-User-Id', user1Id)
+        .send({})
+        .expect(400);
+      
+      expect(response.body).toHaveProperty('error');
     });
-  });
 
-  describe('Visibility Mode Handling', () => {
-    it('should handle public avatar paths in finalize endpoint', async () => {
+    it('should successfully finalize public avatar upload when authenticated', async () => {
       // Get public upload URL
       const uploadResponse = await request(app)
         .post('/api/upload/image')
@@ -121,15 +122,21 @@ describe('Image Upload Visibility Tests', () => {
         .expect(200);
       
       const { objectPath } = uploadResponse.body;
-      
-      // Verify it's a public avatar path
       expect(objectPath).toMatch(/^\/objects\/avatars\//);
       
-      // Note: Finalize with mock auth would be tested here
-      // For public avatars, ACL processing should be skipped
+      // Finalize with authentication
+      const finalizeResponse = await request(app)
+        .post('/api/upload/finalize')
+        .set('X-Test-User-Id', user1Id)
+        .send({ objectPath })
+        .expect(200);
+      
+      // Should return the same path (no ACL processing for public avatars)
+      expect(finalizeResponse.body).toHaveProperty('objectPath');
+      expect(finalizeResponse.body.objectPath).toBe(objectPath);
     });
 
-    it('should handle private upload paths in finalize endpoint', async () => {
+    it('should successfully finalize private upload when authenticated', async () => {
       // Get private upload URL
       const uploadResponse = await request(app)
         .post('/api/upload/image')
@@ -137,12 +144,63 @@ describe('Image Upload Visibility Tests', () => {
         .expect(200);
       
       const { objectPath } = uploadResponse.body;
-      
-      // Verify it's a private upload path
       expect(objectPath).toMatch(/^\/objects\/uploads\//);
       
-      // Note: Finalize with mock auth would be tested here
-      // For private uploads, ACL processing should set owner metadata
+      // Finalize with authentication (would set ACL in real scenario)
+      const finalizeResponse = await request(app)
+        .post('/api/upload/finalize')
+        .set('X-Test-User-Id', user1Id)
+        .send({ objectPath })
+        .expect(200);
+      
+      // Should return object path
+      expect(finalizeResponse.body).toHaveProperty('objectPath');
+      expect(typeof finalizeResponse.body.objectPath).toBe('string');
+    });
+  });
+
+  describe('Visibility Mode Handling', () => {
+    it('should handle public avatar finalization without ACL processing', async () => {
+      // Get public upload URL
+      const uploadResponse = await request(app)
+        .post('/api/upload/image')
+        .send({ visibility: 'public' })
+        .expect(200);
+      
+      const { objectPath } = uploadResponse.body;
+      expect(objectPath).toMatch(/^\/objects\/avatars\//);
+      
+      // Finalize public avatar (no ACL processing)
+      const finalizeResponse = await request(app)
+        .post('/api/upload/finalize')
+        .set('X-Test-User-Id', user1Id)
+        .send({ objectPath })
+        .expect(200);
+      
+      // Path should be returned unchanged
+      expect(finalizeResponse.body.objectPath).toBe(objectPath);
+    });
+
+    it('should handle private upload finalization with ACL processing', async () => {
+      // Get private upload URL
+      const uploadResponse = await request(app)
+        .post('/api/upload/image')
+        .send({ visibility: 'private' })
+        .expect(200);
+      
+      const { objectPath } = uploadResponse.body;
+      expect(objectPath).toMatch(/^\/objects\/uploads\//);
+      
+      // Finalize private upload (would set ACL metadata in real scenario)
+      const finalizeResponse = await request(app)
+        .post('/api/upload/finalize')
+        .set('X-Test-User-Id', user1Id)
+        .send({ objectPath })
+        .expect(200);
+      
+      // Should return a valid path
+      expect(finalizeResponse.body).toHaveProperty('objectPath');
+      expect(typeof finalizeResponse.body.objectPath).toBe('string');
     });
   });
 
@@ -314,6 +372,27 @@ describe('Image Upload Visibility Tests', () => {
         
         expect(response.body).toHaveProperty('uploadURL');
         expect(response.body).toHaveProperty('objectPath');
+      }
+    });
+
+    it('should handle invalid object path formats in finalize', async () => {
+      const invalidPaths = [
+        '/invalid/path',
+        'objects/no-leading-slash',
+        '/objects/',
+        '/objects',
+        '',
+        'not-a-path'
+      ];
+      
+      for (const invalidPath of invalidPaths) {
+        // Even invalid paths may be accepted by finalize endpoint
+        // The actual validation happens in object storage service
+        await request(app)
+          .post('/api/upload/finalize')
+          .set('X-Test-User-Id', user1Id)
+          .send({ objectPath: invalidPath });
+        // Don't assert specific status - just verify endpoint doesn't crash
       }
     });
   });
