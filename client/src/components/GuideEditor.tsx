@@ -744,7 +744,15 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         {/* Sticky Header & Toolbar */}
         <div className="sticky top-0 z-50 bg-card border-b">
           <CardHeader>
-            <CardTitle>{title || 'Untitled Guide'}</CardTitle>
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle>{title || 'Untitled Guide'}</CardTitle>
+              {/* Word Count */}
+              {editor && (
+                <div className="text-sm text-muted-foreground">
+                  {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
+                </div>
+              )}
+            </div>
           </CardHeader>
           
           <EditorToolbar 
@@ -755,13 +763,6 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
             zoomLevel={zoomLevel}
             onZoomChange={setZoomLevel}
           />
-          
-          {/* Word Count */}
-          {editor && (
-            <div className="px-2 pb-2 text-sm text-muted-foreground">
-              {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
-            </div>
-          )}
         </div>
         
         <CardContent>
