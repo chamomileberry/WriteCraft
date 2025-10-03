@@ -66,6 +66,18 @@ router.get("/", async (req: any, res) => {
   }
 });
 
+// Endpoint to check if current user is admin (MUST be before /:id route)
+router.get("/auth/is-admin", async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const userIsAdmin = await isAdmin(userId);
+    res.json({ isAdmin: userIsAdmin });
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    res.status(500).json({ error: 'Failed to check admin status' });
+  }
+});
+
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -167,18 +179,6 @@ router.delete("/:id", async (req: any, res) => {
       return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
-  }
-});
-
-// New endpoint to check if current user is admin
-router.get("/auth/is-admin", async (req: any, res) => {
-  try {
-    const userId = req.user.claims.sub;
-    const userIsAdmin = await isAdmin(userId);
-    res.json({ isAdmin: userIsAdmin });
-  } catch (error) {
-    console.error('Error checking admin status:', error);
-    res.status(500).json({ error: 'Failed to check admin status' });
   }
 });
 

@@ -46,6 +46,20 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
   - Positioned after loading state, before error state for optimal UX
   - Passes end-to-end tests for new user onboarding flow
 
+### Admin-Only Writing Guides System (Oct 3)
+- **Complete Admin Authorization**: Implemented admin-only guide creation, editing, deletion, and publishing
+  - **Database**: Added `isAdmin` boolean field to users table (defaults to false)
+  - **Backend Authorization**: All guide create/update/delete routes enforce admin-only access
+  - **Draft/Published Workflow**: Admins can toggle guide publish status; non-admins only see published guides
+  - **Route Ordering Fix**: Moved `/auth/is-admin` endpoint before `/:id` catch-all to prevent route conflict
+  - **Frontend UI**: 
+    - GuideEditor: Publish toggle with draft/published badge (admin only)
+    - GuideEditor: Autosave preserves published status instead of hardcoding true
+    - WritingGuides: Draft/published status badges visible to admins
+    - WritingGuides: Edit/delete/new buttons hidden for non-admin users
+  - **Admin Users**: Can be set via SQL: `UPDATE users SET is_admin = true WHERE id = 'user-id';`
+  - **Security**: Non-admins receive 403 errors for unauthorized guide operations; GET filters published guides only
+
 ### Authentication Bug Fixes (Oct 3)
 - **SavedItems Authentication**: Fixed hardcoded "demo-user" userId in SavedItems component
   - Now uses authenticated user ID from `useAuth()` hook
