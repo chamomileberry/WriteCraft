@@ -14,7 +14,8 @@ router.post("/", async (req: any, res) => {
     if (notebookId) {
       const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
       if (!ownsNotebook) {
-        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+        console.warn(`[Security] Unauthorized policy access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+        return res.status(404).json({ error: 'Policy not found' });
       }
     }
     
@@ -27,7 +28,10 @@ router.post("/", async (req: any, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const policyId = req.body.id || 'unknown';
+      console.warn(`[Security] Unauthorized policy operation - userId: ${userId}, policyId: ${policyId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to save policy' });
   }
@@ -83,7 +87,10 @@ router.put("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const policyId = req.params.id || 'unknown';
+      console.warn(`[Security] Unauthorized policy operation - userId: ${userId}, policyId: ${policyId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -97,10 +104,10 @@ router.delete("/:id", async (req: any, res) => {
   } catch (error) {
     console.error('Error deleting policy:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const policyId = req.params.id || 'unknown';
+      console.warn(`[Security] Unauthorized policy operation - userId: ${userId}, policyId: ${policyId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to delete policy' });
   }

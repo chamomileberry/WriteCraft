@@ -52,7 +52,9 @@ router.get("/", async (req: any, res) => {
   } catch (error) {
     console.error('Error fetching projects:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      console.warn(`[Security] Unauthorized project operation - userId: ${userId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to fetch projects' });
   }
@@ -127,7 +129,10 @@ router.put("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const projectId = req.params.id || 'unknown';
+      console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -142,10 +147,10 @@ router.delete("/:id", async (req: any, res) => {
     console.error('Error deleting project:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const projectId = req.params.id || 'unknown';
+      console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -176,7 +181,10 @@ router.get("/:projectId/sections", async (req: any, res) => {
   } catch (error) {
     console.error('Error fetching project sections:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const projectId = req.params.projectId || 'unknown';
+      console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to fetch project sections' });
   }
@@ -275,7 +283,11 @@ router.put("/:projectId/sections/:sectionId", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const projectId = req.params.projectId || 'unknown';
+      const sectionId = req.params.sectionId || 'unknown';
+      console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}, sectionId: ${sectionId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -298,10 +310,11 @@ router.delete("/:projectId/sections/:sectionId", async (req: any, res) => {
     console.error('Error deleting project section:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const projectId = req.params.projectId || 'unknown';
+      const sectionId = req.params.sectionId || 'unknown';
+      console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}, sectionId: ${sectionId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -330,7 +343,10 @@ router.post("/:projectId/sections/reorder", async (req: any, res) => {
     console.error('Error reordering project sections:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const projectId = req.params.projectId || 'unknown';
+      console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }

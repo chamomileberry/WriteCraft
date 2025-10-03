@@ -20,7 +20,8 @@ router.post("/", async (req: any, res) => {
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, userId);
       if (!userNotebook) {
-        return res.status(403).json({ error: 'Notebook not found or access denied' });
+        console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+        return res.status(404).json({ error: 'Notebook not found' });
       }
     }
     
@@ -49,7 +50,10 @@ router.post("/", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const savedItemId = req.body.itemId || 'unknown';
+      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -77,10 +81,10 @@ router.patch("/:id", async (req: any, res) => {
     console.error('Error updating saved item:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const savedItemId = req.params.id || 'unknown';
+      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -108,7 +112,8 @@ router.delete("/", async (req: any, res) => {
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, userId);
       if (!userNotebook) {
-        return res.status(403).json({ error: 'Notebook not found or access denied' });
+        console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+        return res.status(404).json({ error: 'Notebook not found' });
       }
       
       // Delete with notebook validation to prevent cross-notebook deletions
@@ -127,10 +132,10 @@ router.delete("/", async (req: any, res) => {
     console.error('Error deleting saved item:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const itemId = req.body.itemId || 'unknown';
+      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, itemId: ${itemId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -145,14 +150,16 @@ router.get("/:userId", async (req: any, res) => {
     
     // Validate that authenticated user can only access their own saved items
     if (authenticatedUserId !== requestedUserId) {
-      return res.status(403).json({ error: 'Access denied - can only access your own saved items' });
+      console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, requestedUserId: ${requestedUserId}`);
+      return res.status(404).json({ error: 'Saved items not found' });
     }
     
     // If notebookId is provided, validate user owns the notebook
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, authenticatedUserId);
       if (!userNotebook) {
-        return res.status(403).json({ error: 'Notebook not found or access denied' });
+        console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, notebookId: ${notebookId}`);
+        return res.status(404).json({ error: 'Notebook not found' });
       }
       
       // Get saved items for specific notebook
@@ -177,7 +184,8 @@ router.post("/sync/:userId", async (req: any, res) => {
     
     // Validate that authenticated user can only sync their own saved items
     if (userId !== requestedUserId) {
-      return res.status(403).json({ error: 'Access denied - can only sync your own saved items' });
+      console.warn(`[Security] Unauthorized saved-item sync attempt - userId: ${userId}, requestedUserId: ${requestedUserId}`);
+      return res.status(404).json({ error: 'Saved items not found' });
     }
     
     // Get all saved items for this user
@@ -206,16 +214,16 @@ router.post("/sync/:userId", async (req: any, res) => {
             currentData = await storage.getPlant(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'weapon':
-            currentData = await storage.getWeapon(savedItem.itemId);
+            currentData = await storage.getWeapon(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'armor':
-            currentData = await storage.getArmor(savedItem.itemId);
+            currentData = await storage.getArmor(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'location':
             currentData = await storage.getLocation(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'creature':
-            currentData = await storage.getCreature(savedItem.itemId);
+            currentData = await storage.getCreature(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'faction':
             currentData = await storage.getFaction(savedItem.itemId, userId, savedItem.notebookId);
@@ -224,19 +232,19 @@ router.post("/sync/:userId", async (req: any, res) => {
             currentData = await storage.getCulture(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'religion':
-            currentData = await storage.getReligion(savedItem.itemId);
+            currentData = await storage.getReligion(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'language':
-            currentData = await storage.getLanguage(savedItem.itemId);
+            currentData = await storage.getLanguage(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'technology':
-            currentData = await storage.getTechnology(savedItem.itemId);
+            currentData = await storage.getTechnology(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'profession':
-            currentData = await storage.getProfession(savedItem.itemId);
+            currentData = await storage.getProfession(savedItem.itemId, userId, savedItem.notebookId);
             break;
           case 'species':
-            currentData = await storage.getSpecies(savedItem.itemId);
+            currentData = await storage.getSpecies(savedItem.itemId, userId, savedItem.notebookId);
             break;
           default:
             // Skip unknown types

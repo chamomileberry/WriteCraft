@@ -19,7 +19,10 @@ router.post("/", async (req: any, res) => {
       return res.status(400).json({ error: 'Invalid note data', details: error.errors });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to create note' });
   }
@@ -39,12 +42,10 @@ router.get("/", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const note = await storage.getNote(req.params.id);
+    const note = await storage.getNote(req.params.id, userId);
     if (!note) {
+      console.warn(`[Security] Unauthorized note access attempt - userId: ${userId}, noteId: ${req.params.id}`);
       return res.status(404).json({ error: 'Note not found' });
-    }
-    if (note.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this note' });
     }
     res.json(note);
   } catch (error) {
@@ -71,7 +72,10 @@ router.put("/:id", async (req: any, res) => {
       return res.status(400).json({ error: 'Invalid note data', details: error.errors });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to update note' });
   }
@@ -85,10 +89,10 @@ router.delete("/:id", async (req: any, res) => {
   } catch (error) {
     console.error('Error deleting note:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to delete note' });
   }

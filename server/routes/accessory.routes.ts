@@ -14,7 +14,8 @@ router.post("/", async (req: any, res) => {
     if (notebookId) {
       const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
       if (!ownsNotebook) {
-        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+        console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+        return res.status(404).json({ error: 'Notebook not found' });
       }
     }
     

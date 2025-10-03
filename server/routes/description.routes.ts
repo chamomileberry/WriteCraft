@@ -16,7 +16,10 @@ router.post("/", async (req: any, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to save description' });
   }
@@ -24,8 +27,14 @@ router.post("/", async (req: any, res) => {
 
 router.get("/user/:userId?", async (req: any, res) => {
   try {
-    const userId = req.params.userId || null;
-    const descriptions = await storage.getUserDescriptions(userId);
+    const userId = req.user.claims.sub;
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const descriptions = await storage.getUserDescriptions(userId, notebookId);
     res.json(descriptions);
   } catch (error) {
     console.error('Error fetching descriptions:', error);
@@ -66,7 +75,10 @@ router.put("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -80,10 +92,10 @@ router.delete("/:id", async (req: any, res) => {
   } catch (error) {
     console.error('Error deleting description:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to delete description' });
   }

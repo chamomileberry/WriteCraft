@@ -36,7 +36,10 @@ router.post("/generate", async (req: any, res) => {
     console.error('Error generating plant:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: `Failed to generate plant: ${errorMessage}` });
   }
@@ -51,7 +54,8 @@ router.post("/", async (req: any, res) => {
     if (notebookId) {
       const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
       if (!ownsNotebook) {
-        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+        console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+        return res.status(404).json({ error: 'Notebook not found' });
       }
     }
     
@@ -123,7 +127,10 @@ router.patch("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -148,7 +155,10 @@ router.put("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -168,10 +178,10 @@ router.delete("/:id", async (req: any, res) => {
   } catch (error) {
     console.error('Error deleting plant:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to delete plant' });
   }
@@ -200,7 +210,10 @@ router.post("/:id/generate-article", async (req: any, res) => {
     console.error('Error generating plant article:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }

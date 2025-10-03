@@ -36,7 +36,10 @@ router.get("/", async (req: any, res) => {
   } catch (error) {
     console.error('Error fetching guides:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to fetch guides' });
   }
@@ -86,7 +89,10 @@ router.put("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -101,10 +107,10 @@ router.delete("/:id", async (req: any, res) => {
     console.error('Error deleting guide:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
