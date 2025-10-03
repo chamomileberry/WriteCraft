@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface DocumentSidebarProps {
-  type: "manuscript" | "guide" | "project";
+  type: "manuscript" | "guide" | "project"; // Note: "manuscript" type is legacy, use "project" for new implementations
   currentDocumentId?: string;
   userId: string;
 }

@@ -86,6 +86,7 @@ export default function WritingAssistantPanel({
         const editorContext = getEditorContext();
         
         // Build query parameters for fetching messages
+        // Note: 'manuscript' type is legacy terminology, refers to project editor
         const params = new URLSearchParams();
         if (editorContext.type === 'manuscript' && editorContext.entityId) {
           params.append('projectId', editorContext.entityId);
@@ -439,6 +440,7 @@ export default function WritingAssistantPanel({
         body: JSON.stringify({
           type,
           content,
+          // Note: 'manuscript' type is legacy, refers to project editor context
           projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
           guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
           metadata

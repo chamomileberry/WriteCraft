@@ -57,7 +57,8 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
         return <ContentDetailPanel panelId={panel.id} contentType={panel.contentType!} entityId={panel.entityId!} notebookId={panel.notebookId} />;
       case 'manuscript':
       case 'manuscriptOutline':
-        // Manuscript content should not be rendered as tabs - they are filtered out in TabStrip
+        // Project content should not be rendered as tabs - they are filtered out in TabStrip
+        // Note: 'manuscript' is legacy terminology, now refers to project editor content
         return null;
       case 'quickNote':
         return <QuickNotePanel panelId={panel.id} />;

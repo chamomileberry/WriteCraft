@@ -3935,95 +3935,96 @@ export class DatabaseStorage implements IStorage {
     return uniqueResults.slice(0, 20);
   }
 
-  // Manuscript links methods - TODO: Implement when manuscript types are available
-  // async createManuscriptLink(link: InsertManuscriptLink): Promise<ManuscriptLink> {
+  // Project links methods - TODO: Implement when project link types are available
+  // Note: Previously called "manuscript links" - renamed to "project links" for clarity
+  // async createProjectLink(link: InsertProjectLink): Promise<ProjectLink> {
   //   const [newLink] = await db
-  //     .insert(manuscriptLinks)
+  //     .insert(projectLinks)
   //     .values(link)
   //     .returning();
   //   return newLink;
   // }
 
-  // async getManuscriptLinks(manuscriptId: string, userId: string): Promise<ManuscriptLink[]> {
+  // async getProjectLinks(projectId: string, userId: string): Promise<ProjectLink[]> {
   //   return await db
   //     .select()
-  //     .from(manuscriptLinks)
+  //     .from(projectLinks)
   //     .where(and(
-  //       eq(manuscriptLinks.sourceId, manuscriptId),
-  //       eq(manuscriptLinks.userId, userId)
+  //       eq(projectLinks.sourceId, projectId),
+  //       eq(projectLinks.userId, userId)
   //     ))
-  //     .orderBy(manuscriptLinks.position);
+  //     .orderBy(projectLinks.position);
   // }
 
-  // async updateManuscriptLink(linkId: string, updates: Partial<InsertManuscriptLink>, userId: string): Promise<ManuscriptLink> {
+  // async updateProjectLink(linkId: string, updates: Partial<InsertProjectLink>, userId: string): Promise<ProjectLink> {
   //   const [updatedLink] = await db
-  //     .update(manuscriptLinks)
+  //     .update(projectLinks)
   //     .set(updates)
   //     .where(and(
-  //       eq(manuscriptLinks.id, linkId),
-  //       eq(manuscriptLinks.userId, userId)
+  //       eq(projectLinks.id, linkId),
+  //       eq(projectLinks.userId, userId)
   //     ))
   //     .returning();
   //   
   //   if (!updatedLink) {
-  //     throw new Error('Manuscript link not found or access denied');
+  //     throw new Error('Project link not found or access denied');
   //   }
   //   
   //   return updatedLink;
   // }
 
-  // async deleteManuscriptLink(linkId: string, userId: string): Promise<void> {
+  // async deleteProjectLink(linkId: string, userId: string): Promise<void> {
   //   const result = await db
-  //     .delete(manuscriptLinks)
+  //     .delete(projectLinks)
   //     .where(and(
-  //       eq(manuscriptLinks.id, linkId),
-  //       eq(manuscriptLinks.userId, userId)
+  //       eq(projectLinks.id, linkId),
+  //       eq(projectLinks.userId, userId)
   //     ));
   //   
   //   if (result.rowCount === 0) {
-  //     throw new Error('Manuscript link not found or access denied');
+  //     throw new Error('Project link not found or access denied');
   //   }
   // }
 
-  // async getBacklinks(targetType: string, targetId: string, userId: string): Promise<Array<ManuscriptLink & { manuscriptTitle: string }>> {
+  // async getBacklinks(targetType: string, targetId: string, userId: string): Promise<Array<ProjectLink & { projectTitle: string }>> {
   //   const backlinks = await db
   //     .select({
-  //       id: manuscriptLinks.id,
-  //       sourceId: manuscriptLinks.sourceId,
-  //       targetType: manuscriptLinks.targetType,
-  //       targetId: manuscriptLinks.targetId,
-  //       contextText: manuscriptLinks.contextText,
-  //       linkText: manuscriptLinks.linkText,
-  //       position: manuscriptLinks.position,
-  //       userId: manuscriptLinks.userId,
-  //       createdAt: manuscriptLinks.createdAt,
-  //       manuscriptTitle: manuscripts.title
+  //       id: projectLinks.id,
+  //       sourceId: projectLinks.sourceId,
+  //       targetType: projectLinks.targetType,
+  //       targetId: projectLinks.targetId,
+  //       contextText: projectLinks.contextText,
+  //       linkText: projectLinks.linkText,
+  //       position: projectLinks.position,
+  //       userId: projectLinks.userId,
+  //       createdAt: projectLinks.createdAt,
+  //       projectTitle: projects.title
   //     })
-  //     .from(manuscriptLinks)
-  //     .innerJoin(manuscripts, eq(manuscriptLinks.sourceId, manuscripts.id))
+  //     .from(projectLinks)
+  //     .innerJoin(projects, eq(projectLinks.sourceId, projects.id))
   //     .where(and(
-  //       eq(manuscriptLinks.targetType, targetType),
-  //       eq(manuscriptLinks.targetId, targetId),
-  //       eq(manuscriptLinks.userId, userId)
+  //       eq(projectLinks.targetType, targetType),
+  //       eq(projectLinks.targetId, targetId),
+  //       eq(projectLinks.userId, userId)
   //     ))
-  //     .orderBy(manuscriptLinks.createdAt);
+  //     .orderBy(projectLinks.createdAt);
   //   
   //   return backlinks;
   // }
 
-  // async getManuscriptLinksForUser(userId: string): Promise<ManuscriptLink[]> {
-  //   return await db.select().from(manuscriptLinks)
-  //     .where(eq(manuscriptLinks.userId, userId))
-  //     .orderBy(desc(manuscriptLinks.createdAt))
+  // async getProjectLinksForUser(userId: string): Promise<ProjectLink[]> {
+  //   return await db.select().from(projectLinks)
+  //     .where(eq(projectLinks.userId, userId))
+  //     .orderBy(desc(projectLinks.createdAt))
   //     .limit(100);
   // }
 
-  // async findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ManuscriptLink[]> {
-  //   return await db.select().from(manuscriptLinks)
+  // async findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ProjectLink[]> {
+  //   return await db.select().from(projectLinks)
   //     .where(and(
-  //       eq(manuscriptLinks.targetType, targetType),
-  //       eq(manuscriptLinks.targetId, targetId),
-  //       eq(manuscriptLinks.userId, userId)
+  //       eq(projectLinks.targetType, targetType),
+  //       eq(projectLinks.targetId, targetId),
+  //       eq(projectLinks.userId, userId)
   //     ));
   // }
 

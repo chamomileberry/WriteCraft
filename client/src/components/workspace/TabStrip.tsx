@@ -58,7 +58,8 @@ export function TabStrip({ regionId, className, onDrop, onDragOver, projectInfo 
     enabled: searchQuery.trim().length > 0,
   });
 
-  // Filter out manuscript-related panels - only show reference/secondary panels
+  // Filter out project editor panels - only show reference/secondary panels
+  // Note: 'manuscript' and 'manuscriptOutline' are legacy type names for project editor panels
   const allTabs = getTabsInRegion(regionId);
   const tabs = allTabs.filter(tab => 
     tab.type !== 'manuscript' && 

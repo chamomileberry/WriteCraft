@@ -26,10 +26,11 @@ export default function NoteEditPage({ params }: NoteEditPageProps) {
     }
 
     // Navigate back to the appropriate editor based on the note's parent context
+    // Note: manuscriptId is legacy field, new notes use projectId
     if (note?.projectId) {
       setLocation(`/projects/${note.projectId}/edit`);
     } else if (note?.manuscriptId) {
-      setLocation(`/manuscripts/${note.manuscriptId}/edit`);
+      setLocation(`/projects/${note.manuscriptId}/edit`); // Legacy manuscript routes redirect to projects
     } else if (note?.guideId) {
       setLocation(`/guides/${note.guideId}/edit`);
     } else {
