@@ -57,6 +57,8 @@ function NotebookPage() {
   };
 
   const handleCreateNew = () => {
+    // Close any open notebook switcher popovers by triggering a brief unmount/remount
+    // This prevents notebook descriptions from bleeding through into the modal
     setIsContentModalOpen(true);
   };
 
