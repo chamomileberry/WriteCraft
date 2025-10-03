@@ -25,6 +25,17 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
     getActiveNotebook 
   } = useNotebookStore();
 
+  // Close popover when manager opens
+  const handleOpenManagerWithClose = () => {
+    setIsPopoverOpen(false);
+    handleOpenManager();
+  };
+
+  const handleOpenCreateWithClose = () => {
+    setIsPopoverOpen(false);
+    handleOpenCreate();
+  };
+
   // Fetch notebooks when component mounts
   const { isLoading } = useQuery({
     queryKey: ['/api/notebooks'],
@@ -89,7 +100,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
           )}
           <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
             <Button
-              onClick={handleOpenManager}
+              onClick={handleOpenManagerWithClose}
               variant="outline"
               size="sm"
               className="flex-shrink-0"
@@ -98,7 +109,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
               <Settings className="h-4 w-4" />
             </Button>
             <Button
-              onClick={handleOpenCreate}
+              onClick={handleOpenCreateWithClose}
               variant="default"
               size="sm"
               className="flex items-center gap-2"
@@ -120,7 +131,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
                 Create your first notebook to start organizing your content
               </p>
               <Button
-                onClick={handleOpenCreate}
+                onClick={handleOpenCreateWithClose}
                 variant="default"
                 size="sm"
                 data-testid="button-create-first-notebook"
@@ -132,7 +143,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
           </Card>
         ) : showActiveInfo && activeNotebook ? (
           otherNotebooks.length > 0 ? (
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={true}>
               <PopoverTrigger asChild>
                 <button
                   className="w-full text-left"
