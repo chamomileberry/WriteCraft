@@ -2,18 +2,39 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertGuideSchema } from "@shared/schema";
 import { z } from "zod";
+import { db } from "../db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
+// Helper function to check if user is admin
+async function isAdmin(userId: string): Promise<boolean> {
+  try {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    return user?.isAdmin || false;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+}
+
 router.get("/", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const category = req.query.category as string;
     const difficulty = req.query.difficulty as string;
     const search = req.query.search as string;
     
+    const userIsAdmin = await isAdmin(userId);
     const guides = await storage.getGuides();
     
     let filteredGuides = guides;
+    
+    // Non-admin users only see published guides
+    if (!userIsAdmin) {
+      filteredGuides = filteredGuides.filter((guide: any) => guide.published);
+    }
     
     if (category) {
       filteredGuides = filteredGuides.filter((guide: any) => guide.category === category);
@@ -48,10 +69,18 @@ router.get("/", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
+    const userIsAdmin = await isAdmin(userId);
     const guide = await storage.getGuide(req.params.id, userId);
+    
     if (!guide) {
       return res.status(404).json({ error: 'Guide not found' });
     }
+    
+    // Non-admin users can only view published guides
+    if (!userIsAdmin && !guide.published) {
+      return res.status(404).json({ error: 'Guide not found' });
+    }
+    
     res.json(guide);
   } catch (error) {
     console.error('Error fetching guide:', error);
@@ -61,6 +90,15 @@ router.get("/:id", async (req: any, res) => {
 
 router.post("/", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
+    const userIsAdmin = await isAdmin(userId);
+    
+    // Only admins can create guides
+    if (!userIsAdmin) {
+      console.warn(`[Security] Non-admin user attempted to create guide - userId: ${userId}`);
+      return res.status(403).json({ error: 'Only administrators can create guides' });
+    }
+    
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
     const savedGuide = await storage.createGuide(validatedGuide);
@@ -78,6 +116,14 @@ router.post("/", async (req: any, res) => {
 router.put("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
+    const userIsAdmin = await isAdmin(userId);
+    
+    // Only admins can update guides
+    if (!userIsAdmin) {
+      console.warn(`[Security] Non-admin user attempted to update guide - userId: ${userId}, guideId: ${req.params.id}`);
+      return res.status(403).json({ error: 'Only administrators can edit guides' });
+    }
+    
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
     const updatedGuide = await storage.updateGuide(req.params.id, userId, validatedGuide);
@@ -101,6 +147,14 @@ router.put("/:id", async (req: any, res) => {
 router.delete("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
+    const userIsAdmin = await isAdmin(userId);
+    
+    // Only admins can delete guides
+    if (!userIsAdmin) {
+      console.warn(`[Security] Non-admin user attempted to delete guide - userId: ${userId}, guideId: ${req.params.id}`);
+      return res.status(403).json({ error: 'Only administrators can delete guides' });
+    }
+    
     await storage.deleteGuide(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
@@ -113,6 +167,18 @@ router.delete("/:id", async (req: any, res) => {
       return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
+  }
+});
+
+// New endpoint to check if current user is admin
+router.get("/auth/is-admin", async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const userIsAdmin = await isAdmin(userId);
+    res.json({ isAdmin: userIsAdmin });
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    res.status(500).json({ error: 'Failed to check admin status' });
   }
 });
 
