@@ -6,11 +6,13 @@ import { Separator } from "@/components/ui/separator";
 import { Palette, Eye, Ear, Sun, Cloud, Copy, Heart, Loader2, Sparkles } from "lucide-react";
 import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
 import { useToast } from "@/hooks/use-toast";
+import { useNotebookStore } from "@/stores/notebookStore";
 import type { Mood } from "@shared/schema";
 
 export default function MoodPalette() {
   const [generatedMood, setGeneratedMood] = useState<Mood | null>(null);
   const { toast } = useToast();
+  const { activeNotebookId } = useNotebookStore();
 
   const generateMutation = useGenerateMutation<Mood>('/api/moods/generate', {
     errorMessage: "Unable to create mood palette. Please try again.",
@@ -27,7 +29,7 @@ export default function MoodPalette() {
   });
 
   const handleGenerate = () => {
-    generateMutation.mutate({});
+    generateMutation.mutate({ notebookId: activeNotebookId });
   };
 
   const handleSave = () => {
