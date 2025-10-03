@@ -53,12 +53,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const ritual = await storage.getRitual(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const ritual = await storage.getRitual(req.params.id, userId, notebookId);
     if (!ritual) {
       return res.status(404).json({ error: 'Ritual not found' });
-    }
-    if (ritual.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this ritual' });
     }
     res.json(ritual);
   } catch (error) {

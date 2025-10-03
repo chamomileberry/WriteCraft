@@ -53,12 +53,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const timeline = await storage.getTimeline(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const timeline = await storage.getTimeline(req.params.id, userId, notebookId);
     if (!timeline) {
       return res.status(404).json({ error: 'Timeline not found' });
-    }
-    if (timeline.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this timeline' });
     }
     res.json(timeline);
   } catch (error) {

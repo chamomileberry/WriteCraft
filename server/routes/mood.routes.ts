@@ -79,12 +79,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const mood = await storage.getMood(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const mood = await storage.getMood(req.params.id, userId, notebookId);
     if (!mood) {
       return res.status(404).json({ error: 'Mood not found' });
-    }
-    if (mood.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this mood' });
     }
     res.json(mood);
   } catch (error) {

@@ -80,12 +80,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const species = await storage.getSpecies(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const species = await storage.getSpecies(req.params.id, userId, notebookId);
     if (!species) {
       return res.status(404).json({ error: 'Species not found' });
-    }
-    if (species.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this species' });
     }
     res.json(species);
   } catch (error) {

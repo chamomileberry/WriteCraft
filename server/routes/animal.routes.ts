@@ -53,12 +53,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const animal = await storage.getAnimal(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const animal = await storage.getAnimal(req.params.id, userId, notebookId);
     if (!animal) {
       return res.status(404).json({ error: 'Animal not found' });
-    }
-    if (animal.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this animal' });
     }
     res.json(animal);
   } catch (error) {

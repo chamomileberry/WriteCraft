@@ -79,12 +79,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const document = await storage.getDocument(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const document = await storage.getDocument(req.params.id, userId, notebookId);
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
-    }
-    if (document.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this document' });
     }
     res.json(document);
   } catch (error) {

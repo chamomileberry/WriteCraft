@@ -120,12 +120,12 @@ export interface IStorage {
   
   // Plot methods
   createPlot(plot: InsertPlot): Promise<Plot>;
-  getPlot(id: string): Promise<Plot | undefined>;
+  getPlot(id: string, userId: string, notebookId: string): Promise<Plot | undefined>;
   getUserPlots(userId: string, notebookId: string): Promise<Plot[]>;
   
   // Prompt methods
   createPrompt(prompt: InsertPrompt): Promise<Prompt>;
-  getPrompt(id: string): Promise<Prompt | undefined>;
+  getPrompt(id: string, userId: string, notebookId: string): Promise<Prompt | undefined>;
   getUserPrompts(userId: string, notebookId: string): Promise<Prompt[]>;
   getRandomPrompts(count?: number): Promise<Prompt[]>;
   
@@ -138,7 +138,7 @@ export interface IStorage {
 
   // Setting methods
   createSetting(setting: InsertSetting): Promise<Setting>;
-  getSetting(id: string): Promise<Setting | undefined>;
+  getSetting(id: string, userId: string, notebookId: string): Promise<Setting | undefined>;
   getUserSettings(userId: string, notebookId: string): Promise<Setting[]>;
   updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting>;
 
@@ -158,13 +158,13 @@ export interface IStorage {
 
   // Creature methods
   createCreature(creature: InsertCreature): Promise<Creature>;
-  getCreature(id: string): Promise<Creature | undefined>;
+  getCreature(id: string, userId: string, notebookId: string): Promise<Creature | undefined>;
   getUserCreatures(userId: string, notebookId: string): Promise<Creature[]>;
   updateCreature(id: string, userId: string, updates: Partial<InsertCreature>): Promise<Creature>;
 
   // Species methods
   createSpecies(species: InsertSpecies): Promise<Species>;
-  getSpecies(id: string): Promise<Species | undefined>;
+  getSpecies(id: string, userId: string, notebookId: string): Promise<Species | undefined>;
   getUserSpecies(userId: string, notebookId: string): Promise<Species[]>;
   updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species>;
   deleteSpecies(id: string, userId: string): Promise<void>;
@@ -184,35 +184,35 @@ export interface IStorage {
 
   // Document methods
   createDocument(document: InsertDocument): Promise<Document>;
-  getDocument(id: string): Promise<Document | undefined>;
+  getDocument(id: string, userId: string, notebookId: string): Promise<Document | undefined>;
   getUserDocuments(userId: string, notebookId: string): Promise<Document[]>;
   updateDocument(id: string, userId: string, updates: Partial<InsertDocument>): Promise<Document>;
   deleteDocument(id: string, userId: string): Promise<void>;
 
   // Food methods
   createFood(food: InsertFood): Promise<Food>;
-  getFood(id: string): Promise<Food | undefined>;
+  getFood(id: string, userId: string, notebookId: string): Promise<Food | undefined>;
   getUserFoods(userId: string, notebookId: string): Promise<Food[]>;
   updateFood(id: string, userId: string, updates: Partial<InsertFood>): Promise<Food>;
   deleteFood(id: string, userId: string): Promise<void>;
 
   // Language methods
   createLanguage(language: InsertLanguage): Promise<Language>;
-  getLanguage(id: string): Promise<Language | undefined>;
+  getLanguage(id: string, userId: string, notebookId: string): Promise<Language | undefined>;
   getUserLanguages(userId: string, notebookId: string): Promise<Language[]>;
   updateLanguage(id: string, userId: string, updates: Partial<InsertLanguage>): Promise<Language>;
   deleteLanguage(id: string, userId: string): Promise<void>;
 
   // Religion methods
   createReligion(religion: InsertReligion): Promise<Religion>;
-  getReligion(id: string): Promise<Religion | undefined>;
+  getReligion(id: string, userId: string, notebookId: string): Promise<Religion | undefined>;
   getUserReligions(userId: string, notebookId: string): Promise<Religion[]>;
   updateReligion(id: string, userId: string, updates: Partial<InsertReligion>): Promise<Religion>;
   deleteReligion(id: string, userId: string): Promise<void>;
 
   // Technology methods
   createTechnology(technology: InsertTechnology): Promise<Technology>;
-  getTechnology(id: string): Promise<Technology | undefined>;
+  getTechnology(id: string, userId: string, notebookId: string): Promise<Technology | undefined>;
   getUserTechnologies(userId: string, notebookId: string): Promise<Technology[]>;
   updateTechnology(id: string, userId: string, updates: Partial<InsertTechnology>): Promise<Technology>;
   deleteTechnology(id: string, userId: string): Promise<void>;
@@ -227,7 +227,7 @@ export interface IStorage {
 
   // Profession methods
   createProfession(profession: InsertProfession): Promise<Profession>;
-  getProfession(id: string): Promise<Profession | undefined>;
+  getProfession(id: string, userId: string, notebookId: string): Promise<Profession | undefined>;
   getUserProfessions(userId: string, notebookId: string): Promise<Profession[]>;
   updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession>;
   deleteProfession(id: string, userId: string): Promise<void>;
@@ -241,63 +241,63 @@ export interface IStorage {
 
   // Description methods
   createDescription(description: InsertDescription): Promise<Description>;
-  getDescription(id: string): Promise<Description | undefined>;
+  getDescription(id: string, userId: string, notebookId: string): Promise<Description | undefined>;
   getUserDescriptions(userId: string, notebookId: string): Promise<Description[]>;
   updateDescription(id: string, userId: string, updates: Partial<InsertDescription>): Promise<Description>;
   deleteDescription(id: string, userId: string): Promise<void>;
 
   // Ethnicity methods
   createEthnicity(ethnicity: InsertEthnicity): Promise<Ethnicity>;
-  getEthnicity(id: string): Promise<Ethnicity | undefined>;
+  getEthnicity(id: string, userId: string, notebookId: string): Promise<Ethnicity | undefined>;
   getUserEthnicities(userId: string, notebookId: string): Promise<Ethnicity[]>;
   updateEthnicity(id: string, userId: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity>;
   deleteEthnicity(id: string, userId: string): Promise<void>;
 
   // Drink methods
   createDrink(drink: InsertDrink): Promise<Drink>;
-  getDrink(id: string): Promise<Drink | undefined>;
+  getDrink(id: string, userId: string, notebookId: string): Promise<Drink | undefined>;
   getUserDrinks(userId: string, notebookId: string): Promise<Drink[]>;
   updateDrink(id: string, userId: string, updates: Partial<InsertDrink>): Promise<Drink>;
   deleteDrink(id: string, userId: string): Promise<void>;
 
   // Armor methods
   createArmor(armor: InsertArmor): Promise<Armor>;
-  getArmor(id: string): Promise<Armor | undefined>;
+  getArmor(id: string, userId: string, notebookId: string): Promise<Armor | undefined>;
   getUserArmor(userId: string, notebookId: string): Promise<Armor[]>;
   updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor>;
   deleteArmor(id: string, userId: string): Promise<void>;
 
   // Accessory methods
   createAccessory(accessory: InsertAccessory): Promise<Accessory>;
-  getAccessory(id: string): Promise<Accessory | undefined>;
+  getAccessory(id: string, userId: string, notebookId: string): Promise<Accessory | undefined>;
   getUserAccessories(userId: string, notebookId: string): Promise<Accessory[]>;
   updateAccessory(id: string, userId: string, updates: Partial<InsertAccessory>): Promise<Accessory>;
   deleteAccessory(id: string, userId: string): Promise<void>;
 
   // Clothing methods
   createClothing(clothing: InsertClothing): Promise<Clothing>;
-  getClothing(id: string): Promise<Clothing | undefined>;
+  getClothing(id: string, userId: string, notebookId: string): Promise<Clothing | undefined>;
   getUserClothing(userId: string, notebookId: string): Promise<Clothing[]>;
   updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing>;
   deleteClothing(id: string, userId: string): Promise<void>;
 
   // Material methods
   createMaterial(material: InsertMaterial): Promise<Material>;
-  getMaterial(id: string): Promise<Material | undefined>;
+  getMaterial(id: string, userId: string, notebookId: string): Promise<Material | undefined>;
   getUserMaterials(userId: string, notebookId: string): Promise<Material[]>;
   updateMaterial(id: string, userId: string, updates: Partial<InsertMaterial>): Promise<Material>;
   deleteMaterial(id: string, userId: string): Promise<void>;
 
   // Settlement methods
   createSettlement(settlement: InsertSettlement): Promise<Settlement>;
-  getSettlement(id: string): Promise<Settlement | undefined>;
+  getSettlement(id: string, userId: string, notebookId: string): Promise<Settlement | undefined>;
   getUserSettlements(userId: string, notebookId: string): Promise<Settlement[]>;
   updateSettlement(id: string, userId: string, updates: Partial<InsertSettlement>): Promise<Settlement>;
   deleteSettlement(id: string, userId: string): Promise<void>;
 
   // Society methods
   createSociety(society: InsertSociety): Promise<Society>;
-  getSociety(id: string): Promise<Society | undefined>;
+  getSociety(id: string, userId: string, notebookId: string): Promise<Society | undefined>;
   getUserSocieties(userId: string, notebookId: string): Promise<Society[]>;
   updateSociety(id: string, userId: string, updates: Partial<InsertSociety>): Promise<Society>;
   deleteSociety(id: string, userId: string): Promise<void>;
@@ -311,176 +311,176 @@ export interface IStorage {
 
   // Military Unit methods
   createMilitaryUnit(militaryUnit: InsertMilitaryUnit): Promise<MilitaryUnit>;
-  getMilitaryUnit(id: string): Promise<MilitaryUnit | undefined>;
+  getMilitaryUnit(id: string, userId: string, notebookId: string): Promise<MilitaryUnit | undefined>;
   getUserMilitaryUnits(userId: string, notebookId: string): Promise<MilitaryUnit[]>;
   updateMilitaryUnit(id: string, userId: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit>;
   deleteMilitaryUnit(id: string, userId: string): Promise<void>;
 
   // Myth methods
   createMyth(myth: InsertMyth): Promise<Myth>;
-  getMyth(id: string): Promise<Myth | undefined>;
+  getMyth(id: string, userId: string, notebookId: string): Promise<Myth | undefined>;
   getUserMyths(userId: string, notebookId: string): Promise<Myth[]>;
   updateMyth(id: string, userId: string, updates: Partial<InsertMyth>): Promise<Myth>;
   deleteMyth(id: string, userId: string): Promise<void>;
 
   // Legend methods
   createLegend(legend: InsertLegend): Promise<Legend>;
-  getLegend(id: string): Promise<Legend | undefined>;
+  getLegend(id: string, userId: string, notebookId: string): Promise<Legend | undefined>;
   getUserLegends(userId: string, notebookId: string): Promise<Legend[]>;
   updateLegend(id: string, userId: string, updates: Partial<InsertLegend>): Promise<Legend>;
   deleteLegend(id: string, userId: string): Promise<void>;
 
   // Event methods
   createEvent(event: InsertEvent): Promise<Event>;
-  getEvent(id: string): Promise<Event | undefined>;
+  getEvent(id: string, userId: string, notebookId: string): Promise<Event | undefined>;
   getUserEvents(userId: string, notebookId: string): Promise<Event[]>;
   updateEvent(id: string, userId: string, updates: Partial<InsertEvent>): Promise<Event>;
   deleteEvent(id: string, userId: string): Promise<void>;
 
   // Spell methods
   createSpell(spell: InsertSpell): Promise<Spell>;
-  getSpell(id: string): Promise<Spell | undefined>;
+  getSpell(id: string, userId: string, notebookId: string): Promise<Spell | undefined>;
   getUserSpells(userId: string, notebookId: string): Promise<Spell[]>;
   updateSpell(id: string, userId: string, updates: Partial<InsertSpell>): Promise<Spell>;
   deleteSpell(id: string, userId: string): Promise<void>;
 
   // Resource methods
   createResource(resource: InsertResource): Promise<Resource>;
-  getResource(id: string): Promise<Resource | undefined>;
+  getResource(id: string, userId: string, notebookId: string): Promise<Resource | undefined>;
   getUserResources(userId: string, notebookId: string): Promise<Resource[]>;
   updateResource(id: string, userId: string, updates: Partial<InsertResource>): Promise<Resource>;
   deleteResource(id: string, userId: string): Promise<void>;
 
   // Building methods
   createBuilding(building: InsertBuilding): Promise<Building>;
-  getBuilding(id: string): Promise<Building | undefined>;
+  getBuilding(id: string, userId: string, notebookId: string): Promise<Building | undefined>;
   getUserBuildings(userId: string, notebookId: string): Promise<Building[]>;
   updateBuilding(id: string, userId: string, updates: Partial<InsertBuilding>): Promise<Building>;
   deleteBuilding(id: string, userId: string): Promise<void>;
 
   // Animal methods
   createAnimal(animal: InsertAnimal): Promise<Animal>;
-  getAnimal(id: string): Promise<Animal | undefined>;
+  getAnimal(id: string, userId: string, notebookId: string): Promise<Animal | undefined>;
   getUserAnimals(userId: string, notebookId: string): Promise<Animal[]>;
   updateAnimal(id: string, userId: string, updates: Partial<InsertAnimal>): Promise<Animal>;
   deleteAnimal(id: string, userId: string): Promise<void>;
 
   // Transportation methods
   createTransportation(transportation: InsertTransportation): Promise<Transportation>;
-  getTransportation(id: string): Promise<Transportation | undefined>;
+  getTransportation(id: string, userId: string, notebookId: string): Promise<Transportation | undefined>;
   getUserTransportation(userId: string, notebookId: string): Promise<Transportation[]>;
   updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation>;
   deleteTransportation(id: string, userId: string): Promise<void>;
 
   // Natural Law methods
   createNaturalLaw(naturalLaw: InsertNaturalLaw): Promise<NaturalLaw>;
-  getNaturalLaw(id: string): Promise<NaturalLaw | undefined>;
+  getNaturalLaw(id: string, userId: string, notebookId: string): Promise<NaturalLaw | undefined>;
   getUserNaturalLaws(userId: string, notebookId: string): Promise<NaturalLaw[]>;
   updateNaturalLaw(id: string, userId: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw>;
   deleteNaturalLaw(id: string, userId: string): Promise<void>;
 
   // Tradition methods
   createTradition(tradition: InsertTradition): Promise<Tradition>;
-  getTradition(id: string): Promise<Tradition | undefined>;
+  getTradition(id: string, userId: string, notebookId: string): Promise<Tradition | undefined>;
   getUserTraditions(userId: string, notebookId: string): Promise<Tradition[]>;
   updateTradition(id: string, userId: string, updates: Partial<InsertTradition>): Promise<Tradition>;
   deleteTradition(id: string, userId: string): Promise<void>;
 
   // Ritual methods
   createRitual(ritual: InsertRitual): Promise<Ritual>;
-  getRitual(id: string): Promise<Ritual | undefined>;
+  getRitual(id: string, userId: string, notebookId: string): Promise<Ritual | undefined>;
   getUserRituals(userId: string, notebookId: string): Promise<Ritual[]>;
   updateRitual(id: string, userId: string, updates: Partial<InsertRitual>): Promise<Ritual>;
   deleteRitual(id: string, userId: string): Promise<void>;
 
   // Family Tree methods
   createFamilyTree(familyTree: InsertFamilyTree): Promise<FamilyTree>;
-  getFamilyTree(id: string): Promise<FamilyTree | undefined>;
+  getFamilyTree(id: string, userId: string, notebookId: string): Promise<FamilyTree | undefined>;
   getUserFamilyTrees(userId: string, notebookId: string): Promise<FamilyTree[]>;
   updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree>;
   deleteFamilyTree(id: string, userId: string): Promise<void>;
 
   // Timeline methods
   createTimeline(timeline: InsertTimeline): Promise<Timeline>;
-  getTimeline(id: string): Promise<Timeline | undefined>;
+  getTimeline(id: string, userId: string, notebookId: string): Promise<Timeline | undefined>;
   getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]>;
   updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline>;
   deleteTimeline(id: string, userId: string): Promise<void>;
 
   // Ceremony methods
   createCeremony(ceremony: InsertCeremony): Promise<Ceremony>;
-  getCeremony(id: string): Promise<Ceremony | undefined>;
+  getCeremony(id: string, userId: string, notebookId: string): Promise<Ceremony | undefined>;
   getUserCeremonies(userId: string, notebookId: string): Promise<Ceremony[]>;
   updateCeremony(id: string, userId: string, updates: Partial<InsertCeremony>): Promise<Ceremony>;
   deleteCeremony(id: string, userId: string): Promise<void>;
 
   // Map methods
   createMap(map: InsertMap): Promise<Map>;
-  getMap(id: string): Promise<Map | undefined>;
+  getMap(id: string, userId: string, notebookId: string): Promise<Map | undefined>;
   getUserMaps(userId: string, notebookId: string): Promise<Map[]>;
   updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map>;
   deleteMap(id: string, userId: string): Promise<void>;
 
   // Music methods
   createMusic(music: InsertMusic): Promise<Music>;
-  getMusic(id: string): Promise<Music | undefined>;
+  getMusic(id: string, userId: string, notebookId: string): Promise<Music | undefined>;
   getUserMusic(userId: string, notebookId: string): Promise<Music[]>;
   updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music>;
   deleteMusic(id: string, userId: string): Promise<void>;
 
   // Dance methods
   createDance(dance: InsertDance): Promise<Dance>;
-  getDance(id: string): Promise<Dance | undefined>;
+  getDance(id: string, userId: string, notebookId: string): Promise<Dance | undefined>;
   getUserDances(userId: string, notebookId: string): Promise<Dance[]>;
   updateDance(id: string, userId: string, updates: Partial<InsertDance>): Promise<Dance>;
   deleteDance(id: string, userId: string): Promise<void>;
 
   // Law methods
   createLaw(law: InsertLaw): Promise<Law>;
-  getLaw(id: string): Promise<Law | undefined>;
+  getLaw(id: string, userId: string, notebookId: string): Promise<Law | undefined>;
   getUserLaws(userId: string, notebookId: string): Promise<Law[]>;
   updateLaw(id: string, userId: string, updates: Partial<InsertLaw>): Promise<Law>;
   deleteLaw(id: string, userId: string): Promise<void>;
 
   // Policy methods
   createPolicy(policy: InsertPolicy): Promise<Policy>;
-  getPolicy(id: string): Promise<Policy | undefined>;
+  getPolicy(id: string, userId: string, notebookId: string): Promise<Policy | undefined>;
   getUserPolicies(userId: string, notebookId: string): Promise<Policy[]>;
   updatePolicy(id: string, userId: string, updates: Partial<InsertPolicy>): Promise<Policy>;
   deletePolicy(id: string, userId: string): Promise<void>;
 
   // Potion methods
   createPotion(potion: InsertPotion): Promise<Potion>;
-  getPotion(id: string): Promise<Potion | undefined>;
+  getPotion(id: string, userId: string, notebookId: string): Promise<Potion | undefined>;
   getUserPotions(userId: string, notebookId: string): Promise<Potion[]>;
   updatePotion(id: string, userId: string, updates: Partial<InsertPotion>): Promise<Potion>;
   deletePotion(id: string, userId: string): Promise<void>;
 
   // Name generator methods
   createName(name: InsertName): Promise<GeneratedName>;
-  getName(id: string): Promise<GeneratedName | undefined>;
+  getName(id: string, userId: string, notebookId: string): Promise<GeneratedName | undefined>;
   getUserNames(userId: string, notebookId: string): Promise<GeneratedName[]>;
 
   // Theme methods
   createTheme(theme: InsertTheme): Promise<Theme>;
-  getTheme(id: string): Promise<Theme | undefined>;
+  getTheme(id: string, userId: string, notebookId: string): Promise<Theme | undefined>;
   getUserThemes(userId: string, notebookId: string): Promise<Theme[]>;
   updateTheme(id: string, userId: string, updates: Partial<InsertTheme>): Promise<Theme>;
 
   // Mood methods
   createMood(mood: InsertMood): Promise<Mood>;
-  getMood(id: string): Promise<Mood | undefined>;
+  getMood(id: string, userId: string, notebookId: string): Promise<Mood | undefined>;
   getUserMoods(userId: string, notebookId: string): Promise<Mood[]>;
 
   // Conflict methods
   createConflict(conflict: InsertConflict): Promise<Conflict>;
-  getConflict(id: string): Promise<Conflict | undefined>;
+  getConflict(id: string, userId: string, notebookId: string): Promise<Conflict | undefined>;
   getUserConflicts(userId: string, notebookId: string): Promise<Conflict[]>;
   updateConflict(id: string, userId: string, updates: Partial<InsertConflict>): Promise<Conflict>;
 
   // Guide methods
   createGuide(guide: InsertGuide): Promise<Guide>;
-  getGuide(id: string): Promise<Guide | undefined>;
+  getGuide(id: string, userId: string, notebookId: string): Promise<Guide | undefined>;
   getGuides(category?: string): Promise<Guide[]>;
   searchGuides(query: string, category?: string): Promise<Guide[]>;
   updateGuide(id: string, userId: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
@@ -530,7 +530,7 @@ export interface IStorage {
 
   // Folder methods
   createFolder(folder: InsertFolder): Promise<Folder>;
-  getFolder(id: string): Promise<Folder | undefined>;
+  getFolder(id: string, userId: string): Promise<Folder | undefined>;
   getUserFolders(userId: string, type?: string): Promise<Folder[]>;
   getDocumentFolders(documentId: string, userId: string): Promise<Folder[]>;
   updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder>;
@@ -539,7 +539,7 @@ export interface IStorage {
 
   // Note methods
   createNote(note: InsertNote): Promise<Note>;
-  getNote(id: string): Promise<Note | undefined>;
+  getNote(id: string, userId: string): Promise<Note | undefined>;
   getUserNotes(userId: string, type?: string): Promise<Note[]>;
   getFolderNotes(folderId: string, userId: string): Promise<Note[]>;
   getDocumentNotes(documentId: string, userId: string): Promise<Note[]>;
@@ -722,8 +722,12 @@ export class DatabaseStorage implements IStorage {
     return newPlot;
   }
 
-  async getPlot(id: string): Promise<Plot | undefined> {
-    const [plot] = await db.select().from(plots).where(eq(plots.id, id));
+  async getPlot(id: string, userId: string, notebookId: string): Promise<Plot | undefined> {
+    const [plot] = await db.select().from(plots).where(and(
+      eq(plots.id, id),
+      eq(plots.userId, userId),
+      eq(plots.notebookId, notebookId)
+    ));
     return plot || undefined;
   }
 
@@ -742,8 +746,12 @@ export class DatabaseStorage implements IStorage {
     return newPrompt;
   }
 
-  async getPrompt(id: string): Promise<Prompt | undefined> {
-    const [prompt] = await db.select().from(prompts).where(eq(prompts.id, id));
+  async getPrompt(id: string, userId: string, notebookId: string): Promise<Prompt | undefined> {
+    const [prompt] = await db.select().from(prompts).where(and(
+      eq(prompts.id, id),
+      eq(prompts.userId, userId),
+      eq(prompts.notebookId, notebookId)
+    ));
     return prompt || undefined;
   }
 
@@ -832,8 +840,12 @@ export class DatabaseStorage implements IStorage {
     return newSetting;
   }
 
-  async getSetting(id: string): Promise<Setting | undefined> {
-    const [setting] = await db.select().from(settings).where(eq(settings.id, id));
+  async getSetting(id: string, userId: string, notebookId: string): Promise<Setting | undefined> {
+    const [setting] = await db.select().from(settings).where(and(
+      eq(settings.id, id),
+      eq(settings.userId, userId),
+      eq(settings.notebookId, notebookId)
+    ));
     return setting || undefined;
   }
 
@@ -998,8 +1010,12 @@ export class DatabaseStorage implements IStorage {
     return newCreature;
   }
 
-  async getCreature(id: string): Promise<Creature | undefined> {
-    const [creature] = await db.select().from(creatures).where(eq(creatures.id, id));
+  async getCreature(id: string, userId: string, notebookId: string): Promise<Creature | undefined> {
+    const [creature] = await db.select().from(creatures).where(and(
+      eq(creatures.id, id),
+      eq(creatures.userId, userId),
+      eq(creatures.notebookId, notebookId)
+    ));
     return creature || undefined;
   }
 
@@ -1036,8 +1052,12 @@ export class DatabaseStorage implements IStorage {
     return newSpecies;
   }
 
-  async getSpecies(id: string): Promise<Species | undefined> {
-    const [sp] = await db.select().from(species).where(eq(species.id, id));
+  async getSpecies(id: string, userId: string, notebookId: string): Promise<Species | undefined> {
+    const [sp] = await db.select().from(species).where(and(
+      eq(species.id, id),
+      eq(species.userId, userId),
+      eq(species.notebookId, notebookId)
+    ));
     return sp || undefined;
   }
 
@@ -1167,8 +1187,12 @@ export class DatabaseStorage implements IStorage {
     return newDocument;
   }
 
-  async getDocument(id: string): Promise<Document | undefined> {
-    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+  async getDocument(id: string, userId: string, notebookId: string): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(and(
+      eq(documents.id, id),
+      eq(documents.userId, userId),
+      eq(documents.notebookId, notebookId)
+    ));
     return document || undefined;
   }
 
@@ -1215,8 +1239,12 @@ export class DatabaseStorage implements IStorage {
     return newFood;
   }
 
-  async getFood(id: string): Promise<Food | undefined> {
-    const [food] = await db.select().from(foods).where(eq(foods.id, id));
+  async getFood(id: string, userId: string, notebookId: string): Promise<Food | undefined> {
+    const [food] = await db.select().from(foods).where(and(
+      eq(foods.id, id),
+      eq(foods.userId, userId),
+      eq(foods.notebookId, notebookId)
+    ));
     return food || undefined;
   }
 
@@ -1263,8 +1291,12 @@ export class DatabaseStorage implements IStorage {
     return newLanguage;
   }
 
-  async getLanguage(id: string): Promise<Language | undefined> {
-    const [language] = await db.select().from(languages).where(eq(languages.id, id));
+  async getLanguage(id: string, userId: string, notebookId: string): Promise<Language | undefined> {
+    const [language] = await db.select().from(languages).where(and(
+      eq(languages.id, id),
+      eq(languages.userId, userId),
+      eq(languages.notebookId, notebookId)
+    ));
     return language || undefined;
   }
 
@@ -1311,8 +1343,12 @@ export class DatabaseStorage implements IStorage {
     return newReligion;
   }
 
-  async getReligion(id: string): Promise<Religion | undefined> {
-    const [religion] = await db.select().from(religions).where(eq(religions.id, id));
+  async getReligion(id: string, userId: string, notebookId: string): Promise<Religion | undefined> {
+    const [religion] = await db.select().from(religions).where(and(
+      eq(religions.id, id),
+      eq(religions.userId, userId),
+      eq(religions.notebookId, notebookId)
+    ));
     return religion || undefined;
   }
 
@@ -1359,8 +1395,12 @@ export class DatabaseStorage implements IStorage {
     return newTechnology;
   }
 
-  async getTechnology(id: string): Promise<Technology | undefined> {
-    const [technology] = await db.select().from(technologies).where(eq(technologies.id, id));
+  async getTechnology(id: string, userId: string, notebookId: string): Promise<Technology | undefined> {
+    const [technology] = await db.select().from(technologies).where(and(
+      eq(technologies.id, id),
+      eq(technologies.userId, userId),
+      eq(technologies.notebookId, notebookId)
+    ));
     return technology || undefined;
   }
 
@@ -1472,8 +1512,12 @@ export class DatabaseStorage implements IStorage {
     return newProfession;
   }
 
-  async getProfession(id: string): Promise<Profession | undefined> {
-    const [profession] = await db.select().from(professions).where(eq(professions.id, id));
+  async getProfession(id: string, userId: string, notebookId: string): Promise<Profession | undefined> {
+    const [profession] = await db.select().from(professions).where(and(
+      eq(professions.id, id),
+      eq(professions.userId, userId),
+      eq(professions.notebookId, notebookId)
+    ));
     return profession || undefined;
   }
 
@@ -1584,8 +1628,12 @@ export class DatabaseStorage implements IStorage {
     return newDescription;
   }
 
-  async getDescription(id: string): Promise<Description | undefined> {
-    const [description] = await db.select().from(descriptions).where(eq(descriptions.id, id));
+  async getDescription(id: string, userId: string, notebookId: string): Promise<Description | undefined> {
+    const [description] = await db.select().from(descriptions).where(and(
+      eq(descriptions.id, id),
+      eq(descriptions.userId, userId),
+      eq(descriptions.notebookId, notebookId)
+    ));
     return description || undefined;
   }
 
@@ -1629,8 +1677,12 @@ export class DatabaseStorage implements IStorage {
     return newEthnicity;
   }
 
-  async getEthnicity(id: string): Promise<Ethnicity | undefined> {
-    const [ethnicity] = await db.select().from(ethnicities).where(eq(ethnicities.id, id));
+  async getEthnicity(id: string, userId: string, notebookId: string): Promise<Ethnicity | undefined> {
+    const [ethnicity] = await db.select().from(ethnicities).where(and(
+      eq(ethnicities.id, id),
+      eq(ethnicities.userId, userId),
+      eq(ethnicities.notebookId, notebookId)
+    ));
     return ethnicity || undefined;
   }
 
@@ -1677,8 +1729,12 @@ export class DatabaseStorage implements IStorage {
     return newDrink;
   }
 
-  async getDrink(id: string): Promise<Drink | undefined> {
-    const [drink] = await db.select().from(drinks).where(eq(drinks.id, id));
+  async getDrink(id: string, userId: string, notebookId: string): Promise<Drink | undefined> {
+    const [drink] = await db.select().from(drinks).where(and(
+      eq(drinks.id, id),
+      eq(drinks.userId, userId),
+      eq(drinks.notebookId, notebookId)
+    ));
     return drink || undefined;
   }
 
@@ -1725,8 +1781,12 @@ export class DatabaseStorage implements IStorage {
     return newArmor;
   }
 
-  async getArmor(id: string): Promise<Armor | undefined> {
-    const [armorItem] = await db.select().from(armor).where(eq(armor.id, id));
+  async getArmor(id: string, userId: string, notebookId: string): Promise<Armor | undefined> {
+    const [armorItem] = await db.select().from(armor).where(and(
+      eq(armor.id, id),
+      eq(armor.userId, userId),
+      eq(armor.notebookId, notebookId)
+    ));
     return armorItem || undefined;
   }
 
@@ -1773,8 +1833,12 @@ export class DatabaseStorage implements IStorage {
     return newAccessory;
   }
 
-  async getAccessory(id: string): Promise<Accessory | undefined> {
-    const [accessory] = await db.select().from(accessories).where(eq(accessories.id, id));
+  async getAccessory(id: string, userId: string, notebookId: string): Promise<Accessory | undefined> {
+    const [accessory] = await db.select().from(accessories).where(and(
+      eq(accessories.id, id),
+      eq(accessories.userId, userId),
+      eq(accessories.notebookId, notebookId)
+    ));
     return accessory || undefined;
   }
 
@@ -1821,8 +1885,12 @@ export class DatabaseStorage implements IStorage {
     return newClothing;
   }
 
-  async getClothing(id: string): Promise<Clothing | undefined> {
-    const [clothingItem] = await db.select().from(clothing).where(eq(clothing.id, id));
+  async getClothing(id: string, userId: string, notebookId: string): Promise<Clothing | undefined> {
+    const [clothingItem] = await db.select().from(clothing).where(and(
+      eq(clothing.id, id),
+      eq(clothing.userId, userId),
+      eq(clothing.notebookId, notebookId)
+    ));
     return clothingItem || undefined;
   }
 
@@ -1869,8 +1937,12 @@ export class DatabaseStorage implements IStorage {
     return newMaterial;
   }
 
-  async getMaterial(id: string): Promise<Material | undefined> {
-    const [material] = await db.select().from(materials).where(eq(materials.id, id));
+  async getMaterial(id: string, userId: string, notebookId: string): Promise<Material | undefined> {
+    const [material] = await db.select().from(materials).where(and(
+      eq(materials.id, id),
+      eq(materials.userId, userId),
+      eq(materials.notebookId, notebookId)
+    ));
     return material || undefined;
   }
 
@@ -1917,8 +1989,12 @@ export class DatabaseStorage implements IStorage {
     return newSettlement;
   }
 
-  async getSettlement(id: string): Promise<Settlement | undefined> {
-    const [settlement] = await db.select().from(settlements).where(eq(settlements.id, id));
+  async getSettlement(id: string, userId: string, notebookId: string): Promise<Settlement | undefined> {
+    const [settlement] = await db.select().from(settlements).where(and(
+      eq(settlements.id, id),
+      eq(settlements.userId, userId),
+      eq(settlements.notebookId, notebookId)
+    ));
     return settlement || undefined;
   }
 
@@ -1965,8 +2041,12 @@ export class DatabaseStorage implements IStorage {
     return newSociety;
   }
 
-  async getSociety(id: string): Promise<Society | undefined> {
-    const [society] = await db.select().from(societies).where(eq(societies.id, id));
+  async getSociety(id: string, userId: string, notebookId: string): Promise<Society | undefined> {
+    const [society] = await db.select().from(societies).where(and(
+      eq(societies.id, id),
+      eq(societies.userId, userId),
+      eq(societies.notebookId, notebookId)
+    ));
     return society || undefined;
   }
 
@@ -2077,8 +2157,12 @@ export class DatabaseStorage implements IStorage {
     return newMilitaryUnit;
   }
 
-  async getMilitaryUnit(id: string): Promise<MilitaryUnit | undefined> {
-    const [militaryUnit] = await db.select().from(militaryUnits).where(eq(militaryUnits.id, id));
+  async getMilitaryUnit(id: string, userId: string, notebookId: string): Promise<MilitaryUnit | undefined> {
+    const [militaryUnit] = await db.select().from(militaryUnits).where(and(
+      eq(militaryUnits.id, id),
+      eq(militaryUnits.userId, userId),
+      eq(militaryUnits.notebookId, notebookId)
+    ));
     return militaryUnit || undefined;
   }
 
@@ -2125,8 +2209,12 @@ export class DatabaseStorage implements IStorage {
     return newMyth;
   }
 
-  async getMyth(id: string): Promise<Myth | undefined> {
-    const [myth] = await db.select().from(myths).where(eq(myths.id, id));
+  async getMyth(id: string, userId: string, notebookId: string): Promise<Myth | undefined> {
+    const [myth] = await db.select().from(myths).where(and(
+      eq(myths.id, id),
+      eq(myths.userId, userId),
+      eq(myths.notebookId, notebookId)
+    ));
     return myth || undefined;
   }
 
@@ -2173,8 +2261,12 @@ export class DatabaseStorage implements IStorage {
     return newLegend;
   }
 
-  async getLegend(id: string): Promise<Legend | undefined> {
-    const [legend] = await db.select().from(legends).where(eq(legends.id, id));
+  async getLegend(id: string, userId: string, notebookId: string): Promise<Legend | undefined> {
+    const [legend] = await db.select().from(legends).where(and(
+      eq(legends.id, id),
+      eq(legends.userId, userId),
+      eq(legends.notebookId, notebookId)
+    ));
     return legend || undefined;
   }
 
@@ -2221,8 +2313,12 @@ export class DatabaseStorage implements IStorage {
     return newEvent;
   }
 
-  async getEvent(id: string): Promise<Event | undefined> {
-    const [event] = await db.select().from(events).where(eq(events.id, id));
+  async getEvent(id: string, userId: string, notebookId: string): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(and(
+      eq(events.id, id),
+      eq(events.userId, userId),
+      eq(events.notebookId, notebookId)
+    ));
     return event || undefined;
   }
 
@@ -2269,8 +2365,12 @@ export class DatabaseStorage implements IStorage {
     return newSpell;
   }
 
-  async getSpell(id: string): Promise<Spell | undefined> {
-    const [spell] = await db.select().from(spells).where(eq(spells.id, id));
+  async getSpell(id: string, userId: string, notebookId: string): Promise<Spell | undefined> {
+    const [spell] = await db.select().from(spells).where(and(
+      eq(spells.id, id),
+      eq(spells.userId, userId),
+      eq(spells.notebookId, notebookId)
+    ));
     return spell || undefined;
   }
 
@@ -2317,8 +2417,12 @@ export class DatabaseStorage implements IStorage {
     return newResource;
   }
 
-  async getResource(id: string): Promise<Resource | undefined> {
-    const [resource] = await db.select().from(resources).where(eq(resources.id, id));
+  async getResource(id: string, userId: string, notebookId: string): Promise<Resource | undefined> {
+    const [resource] = await db.select().from(resources).where(and(
+      eq(resources.id, id),
+      eq(resources.userId, userId),
+      eq(resources.notebookId, notebookId)
+    ));
     return resource || undefined;
   }
 
@@ -2365,8 +2469,12 @@ export class DatabaseStorage implements IStorage {
     return newBuilding;
   }
 
-  async getBuilding(id: string): Promise<Building | undefined> {
-    const [building] = await db.select().from(buildings).where(eq(buildings.id, id));
+  async getBuilding(id: string, userId: string, notebookId: string): Promise<Building | undefined> {
+    const [building] = await db.select().from(buildings).where(and(
+      eq(buildings.id, id),
+      eq(buildings.userId, userId),
+      eq(buildings.notebookId, notebookId)
+    ));
     return building || undefined;
   }
 
@@ -2413,8 +2521,12 @@ export class DatabaseStorage implements IStorage {
     return newAnimal;
   }
 
-  async getAnimal(id: string): Promise<Animal | undefined> {
-    const [animal] = await db.select().from(animals).where(eq(animals.id, id));
+  async getAnimal(id: string, userId: string, notebookId: string): Promise<Animal | undefined> {
+    const [animal] = await db.select().from(animals).where(and(
+      eq(animals.id, id),
+      eq(animals.userId, userId),
+      eq(animals.notebookId, notebookId)
+    ));
     return animal || undefined;
   }
 
@@ -2461,8 +2573,12 @@ export class DatabaseStorage implements IStorage {
     return newTransportation;
   }
 
-  async getTransportation(id: string): Promise<Transportation | undefined> {
-    const [transportationItem] = await db.select().from(transportation).where(eq(transportation.id, id));
+  async getTransportation(id: string, userId: string, notebookId: string): Promise<Transportation | undefined> {
+    const [transportationItem] = await db.select().from(transportation).where(and(
+      eq(transportation.id, id),
+      eq(transportation.userId, userId),
+      eq(transportation.notebookId, notebookId)
+    ));
     return transportationItem || undefined;
   }
 
@@ -2509,8 +2625,12 @@ export class DatabaseStorage implements IStorage {
     return newNaturalLaw;
   }
 
-  async getNaturalLaw(id: string): Promise<NaturalLaw | undefined> {
-    const [naturalLaw] = await db.select().from(naturalLaws).where(eq(naturalLaws.id, id));
+  async getNaturalLaw(id: string, userId: string, notebookId: string): Promise<NaturalLaw | undefined> {
+    const [naturalLaw] = await db.select().from(naturalLaws).where(and(
+      eq(naturalLaws.id, id),
+      eq(naturalLaws.userId, userId),
+      eq(naturalLaws.notebookId, notebookId)
+    ));
     return naturalLaw || undefined;
   }
 
@@ -2557,8 +2677,12 @@ export class DatabaseStorage implements IStorage {
     return newTradition;
   }
 
-  async getTradition(id: string): Promise<Tradition | undefined> {
-    const [tradition] = await db.select().from(traditions).where(eq(traditions.id, id));
+  async getTradition(id: string, userId: string, notebookId: string): Promise<Tradition | undefined> {
+    const [tradition] = await db.select().from(traditions).where(and(
+      eq(traditions.id, id),
+      eq(traditions.userId, userId),
+      eq(traditions.notebookId, notebookId)
+    ));
     return tradition || undefined;
   }
 
@@ -2605,8 +2729,12 @@ export class DatabaseStorage implements IStorage {
     return newRitual;
   }
 
-  async getRitual(id: string): Promise<Ritual | undefined> {
-    const [ritual] = await db.select().from(rituals).where(eq(rituals.id, id));
+  async getRitual(id: string, userId: string, notebookId: string): Promise<Ritual | undefined> {
+    const [ritual] = await db.select().from(rituals).where(and(
+      eq(rituals.id, id),
+      eq(rituals.userId, userId),
+      eq(rituals.notebookId, notebookId)
+    ));
     return ritual || undefined;
   }
 
@@ -2653,8 +2781,12 @@ export class DatabaseStorage implements IStorage {
     return newFamilyTree;
   }
 
-  async getFamilyTree(id: string): Promise<FamilyTree | undefined> {
-    const [familyTree] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
+  async getFamilyTree(id: string, userId: string, notebookId: string): Promise<FamilyTree | undefined> {
+    const [familyTree] = await db.select().from(familyTrees).where(and(
+      eq(familyTrees.id, id),
+      eq(familyTrees.userId, userId),
+      eq(familyTrees.notebookId, notebookId)
+    ));
     return familyTree || undefined;
   }
 
@@ -2701,8 +2833,12 @@ export class DatabaseStorage implements IStorage {
     return newTimeline;
   }
 
-  async getTimeline(id: string): Promise<Timeline | undefined> {
-    const [timeline] = await db.select().from(timelines).where(eq(timelines.id, id));
+  async getTimeline(id: string, userId: string, notebookId: string): Promise<Timeline | undefined> {
+    const [timeline] = await db.select().from(timelines).where(and(
+      eq(timelines.id, id),
+      eq(timelines.userId, userId),
+      eq(timelines.notebookId, notebookId)
+    ));
     return timeline || undefined;
   }
 
@@ -2749,8 +2885,12 @@ export class DatabaseStorage implements IStorage {
     return newCeremony;
   }
 
-  async getCeremony(id: string): Promise<Ceremony | undefined> {
-    const [ceremony] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
+  async getCeremony(id: string, userId: string, notebookId: string): Promise<Ceremony | undefined> {
+    const [ceremony] = await db.select().from(ceremonies).where(and(
+      eq(ceremonies.id, id),
+      eq(ceremonies.userId, userId),
+      eq(ceremonies.notebookId, notebookId)
+    ));
     return ceremony || undefined;
   }
 
@@ -2797,8 +2937,12 @@ export class DatabaseStorage implements IStorage {
     return newMap;
   }
 
-  async getMap(id: string): Promise<Map | undefined> {
-    const [map] = await db.select().from(maps).where(eq(maps.id, id));
+  async getMap(id: string, userId: string, notebookId: string): Promise<Map | undefined> {
+    const [map] = await db.select().from(maps).where(and(
+      eq(maps.id, id),
+      eq(maps.userId, userId),
+      eq(maps.notebookId, notebookId)
+    ));
     return map || undefined;
   }
 
@@ -2845,8 +2989,12 @@ export class DatabaseStorage implements IStorage {
     return newMusic;
   }
 
-  async getMusic(id: string): Promise<Music | undefined> {
-    const [musicItem] = await db.select().from(music).where(eq(music.id, id));
+  async getMusic(id: string, userId: string, notebookId: string): Promise<Music | undefined> {
+    const [musicItem] = await db.select().from(music).where(and(
+      eq(music.id, id),
+      eq(music.userId, userId),
+      eq(music.notebookId, notebookId)
+    ));
     return musicItem || undefined;
   }
 
@@ -2893,8 +3041,12 @@ export class DatabaseStorage implements IStorage {
     return newDance;
   }
 
-  async getDance(id: string): Promise<Dance | undefined> {
-    const [dance] = await db.select().from(dances).where(eq(dances.id, id));
+  async getDance(id: string, userId: string, notebookId: string): Promise<Dance | undefined> {
+    const [dance] = await db.select().from(dances).where(and(
+      eq(dances.id, id),
+      eq(dances.userId, userId),
+      eq(dances.notebookId, notebookId)
+    ));
     return dance || undefined;
   }
 
@@ -2941,8 +3093,12 @@ export class DatabaseStorage implements IStorage {
     return newLaw;
   }
 
-  async getLaw(id: string): Promise<Law | undefined> {
-    const [law] = await db.select().from(laws).where(eq(laws.id, id));
+  async getLaw(id: string, userId: string, notebookId: string): Promise<Law | undefined> {
+    const [law] = await db.select().from(laws).where(and(
+      eq(laws.id, id),
+      eq(laws.userId, userId),
+      eq(laws.notebookId, notebookId)
+    ));
     return law || undefined;
   }
 
@@ -2989,8 +3145,12 @@ export class DatabaseStorage implements IStorage {
     return newPolicy;
   }
 
-  async getPolicy(id: string): Promise<Policy | undefined> {
-    const [policy] = await db.select().from(policies).where(eq(policies.id, id));
+  async getPolicy(id: string, userId: string, notebookId: string): Promise<Policy | undefined> {
+    const [policy] = await db.select().from(policies).where(and(
+      eq(policies.id, id),
+      eq(policies.userId, userId),
+      eq(policies.notebookId, notebookId)
+    ));
     return policy || undefined;
   }
 
@@ -3037,8 +3197,12 @@ export class DatabaseStorage implements IStorage {
     return newPotion;
   }
 
-  async getPotion(id: string): Promise<Potion | undefined> {
-    const [potion] = await db.select().from(potions).where(eq(potions.id, id));
+  async getPotion(id: string, userId: string, notebookId: string): Promise<Potion | undefined> {
+    const [potion] = await db.select().from(potions).where(and(
+      eq(potions.id, id),
+      eq(potions.userId, userId),
+      eq(potions.notebookId, notebookId)
+    ));
     return potion || undefined;
   }
 
@@ -3085,8 +3249,12 @@ export class DatabaseStorage implements IStorage {
     return newName;
   }
 
-  async getName(id: string): Promise<GeneratedName | undefined> {
-    const [name] = await db.select().from(names).where(eq(names.id, id));
+  async getName(id: string, userId: string, notebookId: string): Promise<GeneratedName | undefined> {
+    const [name] = await db.select().from(names).where(and(
+      eq(names.id, id),
+      eq(names.userId, userId),
+      eq(names.notebookId, notebookId)
+    ));
     return name || undefined;
   }
 
@@ -3105,8 +3273,12 @@ export class DatabaseStorage implements IStorage {
     return newTheme;
   }
 
-  async getTheme(id: string): Promise<Theme | undefined> {
-    const [theme] = await db.select().from(themes).where(eq(themes.id, id));
+  async getTheme(id: string, userId: string, notebookId: string): Promise<Theme | undefined> {
+    const [theme] = await db.select().from(themes).where(and(
+      eq(themes.id, id),
+      eq(themes.userId, userId),
+      eq(themes.notebookId, notebookId)
+    ));
     return theme || undefined;
   }
 
@@ -3143,8 +3315,12 @@ export class DatabaseStorage implements IStorage {
     return newMood;
   }
 
-  async getMood(id: string): Promise<Mood | undefined> {
-    const [mood] = await db.select().from(moods).where(eq(moods.id, id));
+  async getMood(id: string, userId: string, notebookId: string): Promise<Mood | undefined> {
+    const [mood] = await db.select().from(moods).where(and(
+      eq(moods.id, id),
+      eq(moods.userId, userId),
+      eq(moods.notebookId, notebookId)
+    ));
     return mood || undefined;
   }
 
@@ -3163,8 +3339,12 @@ export class DatabaseStorage implements IStorage {
     return newConflict;
   }
 
-  async getConflict(id: string): Promise<Conflict | undefined> {
-    const [conflict] = await db.select().from(conflicts).where(eq(conflicts.id, id));
+  async getConflict(id: string, userId: string, notebookId: string): Promise<Conflict | undefined> {
+    const [conflict] = await db.select().from(conflicts).where(and(
+      eq(conflicts.id, id),
+      eq(conflicts.userId, userId),
+      eq(conflicts.notebookId, notebookId)
+    ));
     return conflict || undefined;
   }
 
@@ -3201,8 +3381,12 @@ export class DatabaseStorage implements IStorage {
     return newGuide;
   }
 
-  async getGuide(id: string): Promise<Guide | undefined> {
-    const [guide] = await db.select().from(guides).where(eq(guides.id, id));
+  async getGuide(id: string, userId: string, notebookId: string): Promise<Guide | undefined> {
+    const [guide] = await db.select().from(guides).where(and(
+      eq(guides.id, id),
+      eq(guides.userId, userId),
+      eq(guides.notebookId, notebookId)
+    ));
     return guide || undefined;
   }
 
@@ -3924,11 +4108,14 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getFolder(id: string): Promise<Folder | undefined> {
+  async getFolder(id: string, userId: string): Promise<Folder | undefined> {
     const [folder] = await db
       .select()
       .from(folders)
-      .where(eq(folders.id, id));
+      .where(and(
+        eq(folders.id, id),
+        eq(folders.userId, userId)
+      ));
     return folder || undefined;
   }
 
@@ -4006,11 +4193,14 @@ export class DatabaseStorage implements IStorage {
     return newNote;
   }
 
-  async getNote(id: string): Promise<Note | undefined> {
+  async getNote(id: string, userId: string): Promise<Note | undefined> {
     const [note] = await db
       .select()
       .from(notes)
-      .where(eq(notes.id, id));
+      .where(and(
+        eq(notes.id, id),
+        eq(notes.userId, userId)
+      ));
     return note || undefined;
   }
 

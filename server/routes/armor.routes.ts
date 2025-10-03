@@ -53,12 +53,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const armor = await storage.getArmor(req.params.id);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const armor = await storage.getArmor(req.params.id, userId, notebookId);
     if (!armor) {
       return res.status(404).json({ error: 'Armor not found' });
-    }
-    if (armor.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this armor' });
     }
     res.json(armor);
   } catch (error) {
