@@ -45,8 +45,11 @@ export const getQueryFn: <T>(options: {
       credentials: "include",
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    if (res.status === 401) {
+      if (unauthorizedBehavior === "returnNull") {
+        return null;
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     }
 
     await throwIfResNotOk(res);
@@ -64,6 +67,11 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: false,
+      onError: (error: Error) => {
+        if (error instanceof ApiError && error.status === 401) {
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        }
+      },
     },
   },
 });
