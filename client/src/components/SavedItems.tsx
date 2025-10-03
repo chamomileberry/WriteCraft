@@ -10,6 +10,7 @@ import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb } from "lucide
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { getMappingById } from "@shared/contentTypes";
 import { useNotebookStore } from "@/stores/notebookStore";
@@ -90,6 +91,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
   const [fetchedItemData, setFetchedItemData] = useState<{ [key: string]: any }>({});
   const fetchedItemsRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { activeNotebookId, getActiveNotebook, setActiveNotebook, notebooks, setNotebooks } = useNotebookStore();
   const { openQuickNote } = useWorkspaceStore();
@@ -125,15 +127,19 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
 
   // Fetch saved items for the active notebook
   const { data: savedItems = [], isLoading, error } = useQuery({
-    queryKey: ['/api/saved-items', 'demo-user', activeNotebookId], // Include activeNotebookId in query key
+    queryKey: ['/api/saved-items', user?.id, activeNotebookId], // Include user ID and activeNotebookId in query key
     queryFn: async () => {
       if (!activeNotebookId) {
         console.error('[SavedItems] No active notebook selected');
         throw new Error('No active notebook selected');
       }
+      if (!user?.id) {
+        console.error('[SavedItems] No user authenticated');
+        throw new Error('User not authenticated');
+      }
       console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
       // Use fetch directly with cache: 'no-cache' to force fresh data
-      const response = await fetch(`/api/saved-items/demo-user?notebookId=${activeNotebookId}`, {
+      const response = await fetch(`/api/saved-items/${user.id}?notebookId=${activeNotebookId}`, {
         credentials: 'include',
         cache: 'no-cache' // Force bypass of HTTP cache
       });
@@ -142,7 +148,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       }
       return await response.json() as SavedItem[];
     },
-    enabled: !!activeNotebookId // Only enabled when there's an active notebook
+    enabled: !!activeNotebookId && !!user?.id // Only enabled when there's an active notebook and authenticated user
   });
 
   // Fetch quick note separately
@@ -253,14 +259,16 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       return result;
     },
     onMutate: async (deletedItem) => {
+      if (!user?.id) return;
+      
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/saved-items', 'demo-user', activeNotebookId] });
+      await queryClient.cancelQueries({ queryKey: ['/api/saved-items', user.id, activeNotebookId] });
 
       // Snapshot the previous value
-      const previousItems = queryClient.getQueryData(['/api/saved-items', 'demo-user', activeNotebookId]);
+      const previousItems = queryClient.getQueryData(['/api/saved-items', user.id, activeNotebookId]);
 
       // Optimistically update to remove the item
-      queryClient.setQueryData(['/api/saved-items', 'demo-user', activeNotebookId], (old: SavedItem[] = []) => {
+      queryClient.setQueryData(['/api/saved-items', user.id, activeNotebookId], (old: SavedItem[] = []) => {
         return old.filter(item => item.id !== deletedItem.id);
       });
 
@@ -274,9 +282,11 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       });
     },
     onError: (error, deletedItem, context) => {
+      if (!user?.id) return;
+      
       // Rollback to previous value on error
       if (context?.previousItems) {
-        queryClient.setQueryData(['/api/saved-items', 'demo-user', activeNotebookId], context.previousItems);
+        queryClient.setQueryData(['/api/saved-items', user.id, activeNotebookId], context.previousItems);
       }
       toast({
         title: "Error",
@@ -285,9 +295,11 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       });
     },
     onSettled: () => {
+      if (!user?.id) return;
+      
       // Force a fresh refetch (not from cache) to ensure we get the updated list
       queryClient.refetchQueries({ 
-        queryKey: ['/api/saved-items', 'demo-user', activeNotebookId],
+        queryKey: ['/api/saved-items', user.id, activeNotebookId],
         type: 'active'
       });
     },
