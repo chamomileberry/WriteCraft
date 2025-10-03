@@ -1741,7 +1741,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor> {
     // Validate ownership
-    const [existing] = await db.select().from(armors).where(eq(armors.id, id));
+    const [existing] = await db.select().from(armor).where(eq(armor.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
@@ -1756,7 +1756,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArmor(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(armors).where(eq(armors.id, id));
+    const [existing] = await db.select().from(armor).where(eq(armor.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
@@ -1837,7 +1837,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing> {
     // Validate ownership
-    const [existing] = await db.select().from(clothings).where(eq(clothings.id, id));
+    const [existing] = await db.select().from(clothing).where(eq(clothing.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
@@ -1852,7 +1852,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClothing(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(clothings).where(eq(clothings.id, id));
+    const [existing] = await db.select().from(clothing).where(eq(clothing.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
@@ -2477,7 +2477,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation> {
     // Validate ownership
-    const [existing] = await db.select().from(transportations).where(eq(transportations.id, id));
+    const [existing] = await db.select().from(transportation).where(eq(transportation.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
@@ -2492,7 +2492,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTransportation(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(transportations).where(eq(transportations.id, id));
+    const [existing] = await db.select().from(transportation).where(eq(transportation.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
@@ -2861,7 +2861,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music> {
     // Validate ownership
-    const [existing] = await db.select().from(musics).where(eq(musics.id, id));
+    const [existing] = await db.select().from(music).where(eq(music.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
@@ -2876,7 +2876,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMusic(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(musics).where(eq(musics.id, id));
+    const [existing] = await db.select().from(music).where(eq(music.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
