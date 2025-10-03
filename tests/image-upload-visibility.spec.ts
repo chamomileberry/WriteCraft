@@ -25,6 +25,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should return public avatar path when visibility is "public"', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
@@ -43,6 +44,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should return private upload path when visibility is "private"', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'private' })
         .expect(200);
       
@@ -61,6 +63,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should default to private upload when visibility is not specified', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({})
         .expect(200);
       
@@ -72,6 +75,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should default to private for invalid visibility values', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'invalid-value' })
         .expect(200);
       
@@ -82,9 +86,10 @@ describe('Image Upload Visibility Tests', () => {
 
   describe('Finalize Endpoint - Authentication Required', () => {
     it('should return 401 when finalizing upload without authentication', async () => {
-      // First get an upload URL
+      // First get an upload URL (authenticated)
       const uploadResponse = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
@@ -118,6 +123,7 @@ describe('Image Upload Visibility Tests', () => {
       // Get public upload URL
       const uploadResponse = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
@@ -140,6 +146,7 @@ describe('Image Upload Visibility Tests', () => {
       // Get private upload URL
       const uploadResponse = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'private' })
         .expect(200);
       
@@ -164,6 +171,7 @@ describe('Image Upload Visibility Tests', () => {
       // Get public upload URL
       const uploadResponse = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
@@ -185,6 +193,7 @@ describe('Image Upload Visibility Tests', () => {
       // Get private upload URL
       const uploadResponse = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'private' })
         .expect(200);
       
@@ -208,6 +217,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should generate valid UUIDs for avatar uploads', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
@@ -225,6 +235,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should generate valid UUIDs for private uploads', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'private' })
         .expect(200);
       
@@ -242,11 +253,13 @@ describe('Image Upload Visibility Tests', () => {
     it('should generate unique UUIDs for each upload request', async () => {
       const response1 = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
       const response2 = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
@@ -261,6 +274,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should default to private when visibility is omitted', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({})
         .expect(200);
       
@@ -271,6 +285,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should default to private when visibility is undefined', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: undefined })
         .expect(200);
       
@@ -280,6 +295,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should default to private when visibility is null', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: null })
         .expect(200);
       
@@ -289,6 +305,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should default to private when visibility is empty string', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: '' })
         .expect(200);
       
@@ -301,6 +318,7 @@ describe('Image Upload Visibility Tests', () => {
       for (const value of testValues) {
         const response = await request(app)
           .post('/api/upload/image')
+          .set('X-Test-User-Id', user1Id)
           .send({ visibility: value })
           .expect(200);
         
@@ -315,6 +333,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should return all required fields for public uploads', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'public' })
         .expect(200);
       
@@ -337,6 +356,7 @@ describe('Image Upload Visibility Tests', () => {
     it('should return all required fields for private uploads', async () => {
       const response = await request(app)
         .post('/api/upload/image')
+        .set('X-Test-User-Id', user1Id)
         .send({ visibility: 'private' })
         .expect(200);
       
@@ -367,6 +387,7 @@ describe('Image Upload Visibility Tests', () => {
       for (const input of malformedInputs) {
         const response = await request(app)
           .post('/api/upload/image')
+          .set('X-Test-User-Id', user1Id)
           .send(input)
           .expect(200); // Should still succeed
         
@@ -403,6 +424,7 @@ describe('Image Upload Visibility Tests', () => {
       for (let i = 0; i < 5; i++) {
         const response = await request(app)
           .post('/api/upload/image')
+          .set('X-Test-User-Id', user1Id)
           .send({ visibility: 'public' })
           .expect(200);
         
@@ -416,6 +438,7 @@ describe('Image Upload Visibility Tests', () => {
       for (let i = 0; i < 5; i++) {
         const response = await request(app)
           .post('/api/upload/image')
+          .set('X-Test-User-Id', user1Id)
           .send({ visibility: 'private' })
           .expect(200);
         
