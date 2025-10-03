@@ -480,7 +480,7 @@ export interface IStorage {
 
   // Guide methods
   createGuide(guide: InsertGuide): Promise<Guide>;
-  getGuide(id: string, userId: string, notebookId: string): Promise<Guide | undefined>;
+  getGuide(id: string, userId: string): Promise<Guide | undefined>;
   getGuides(category?: string): Promise<Guide[]>;
   searchGuides(query: string, category?: string): Promise<Guide[]>;
   updateGuide(id: string, userId: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
@@ -3381,11 +3381,10 @@ export class DatabaseStorage implements IStorage {
     return newGuide;
   }
 
-  async getGuide(id: string, userId: string, notebookId: string): Promise<Guide | undefined> {
+  async getGuide(id: string, userId: string): Promise<Guide | undefined> {
     const [guide] = await db.select().from(guides).where(and(
       eq(guides.id, id),
-      eq(guides.userId, userId),
-      eq(guides.notebookId, notebookId)
+      eq(guides.userId, userId)
     ));
     return guide || undefined;
   }

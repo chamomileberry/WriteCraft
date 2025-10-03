@@ -45,12 +45,9 @@ router.get("/", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const guide = await storage.getGuide(req.params.id);
+    const guide = await storage.getGuide(req.params.id, userId);
     if (!guide) {
       return res.status(404).json({ error: 'Guide not found' });
-    }
-    if (guide.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this guide' });
     }
     res.json(guide);
   } catch (error) {
@@ -80,7 +77,7 @@ router.put("/:id", async (req: any, res) => {
     const userId = req.user.claims.sub;
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
-    const updatedGuide = await storage.updateGuide(req.params.id, validatedGuide);
+    const updatedGuide = await storage.updateGuide(req.params.id, userId, validatedGuide);
     res.json(updatedGuide);
   } catch (error) {
     console.error('Error updating guide:', error);

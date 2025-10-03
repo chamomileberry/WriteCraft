@@ -237,6 +237,7 @@ export const plots = pgTable("plots", {
   conflict: text("conflict").notNull(),
   genre: text("genre"),
   storyStructure: text("story_structure"),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -250,6 +251,7 @@ export const prompts = pgTable("prompts", {
   type: text("type").notNull(),
   wordCount: text("word_count").notNull(),
   tags: text("tags").array().notNull(),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -306,6 +308,7 @@ export const names = pgTable("names", {
   origin: text("origin"),
   nameType: text("name_type").notNull(), // 'character', 'place', 'fantasy', etc.
   culture: text("culture").notNull(),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -363,6 +366,7 @@ export const moods = pgTable("moods", {
   weatherElements: text("weather_elements").array().notNull(),
   lightingEffects: text("lighting_effects").array().notNull(),
   soundscape: text("soundscape").array().notNull(),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -419,6 +423,7 @@ export const descriptions = pgTable("descriptions", {
   descriptionType: text("description_type").notNull(), // 'armour', 'weapon', 'clothing', etc.
   genre: text("genre"),
   tags: text("tags").array().notNull(),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
