@@ -6,6 +6,18 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
 
 ## Recent Changes (October 2025)
 
+### Notebook Visual Enhancements (Oct 3)
+- **Notebook Image Thumbnails**: Added optional image upload support for visual notebook identification
+  - **Database**: Added `imageUrl` field to notebooks table via schema push
+  - **Create/Edit Forms**: Integrated ImageUpload component with URL entry and file upload
+  - **Visual Grid Layout**: Transformed notebook list into responsive grid (1-3 columns)
+  - **Thumbnail Display**: Shows uploaded images in aspect-video containers with smooth transitions
+  - **Fallback Icon**: BookOpen icon (lucide-react) displays for notebooks without images
+  - **Enhanced Interactions**: Hover reveals edit/delete buttons, active notebook shows badge overlay
+  - **Test Coverage**: Complete data-testid attributes for all interactive elements
+  - Uses object storage integration with 'public' visibility for shareable thumbnails
+  - Passed comprehensive end-to-end tests covering create, edit, and display workflows
+
 ### Responsive Search Improvements (Oct 3)
 - **Enhanced Search UX**: Improved search visibility and mobile experience
   - **Desktop (≥1024px)**: Increased search bar width from 160px to 256-288px for better visibility
