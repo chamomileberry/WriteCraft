@@ -7,16 +7,19 @@ export const guideSuggestion = {
     if (!query) return [];
     
     try {
-      // Search only for guides using the search endpoint with type filter
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=guide`, {
+      // Search for guides using the guides endpoint with search parameter
+      const response = await fetch(`/api/guides?search=${encodeURIComponent(query)}`, {
         credentials: 'include'
       });
       
       if (!response.ok) return [];
       
-      const results = await response.json();
-      // Filter to only include guides (additional client-side safety check)
-      const guideResults = results.filter((item: any) => item.type === 'guide');
+      const guides = await response.json();
+      // Map guides to include type field for mention system
+      const guideResults = guides.map((guide: any) => ({
+        ...guide,
+        type: 'guide'
+      }));
       return guideResults.slice(0, 10); // Limit to 10 suggestions
     } catch (error) {
       console.error('Error fetching guide suggestions:', error);
