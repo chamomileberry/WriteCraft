@@ -88,6 +88,9 @@ if (typeof document !== 'undefined' && !document.getElementById('ai-suggestion-s
   document.head.appendChild(style);
 }
 
+// Store the editor view globally for positioning calculations
+let globalEditorView: any = null;
+
 function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): DecorationSet {
   const decorations: any[] = [];
 
@@ -308,64 +311,83 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   card.append(typeBadge, originalDiv, arrowDiv, suggestedDiv, actionsDiv);
   popupContainer.appendChild(card);
 
-  // Function to dynamically adjust positioning based on the highlighted text anchor
+  // Function to dynamically adjust positioning based on ProseMirror coordinates
   const adjustPosition = () => {
-    // Find the highlighted text element using the data attribute we added
-    const highlightedElement = document.querySelector(`[data-suggestion-id="${activeSuggestion.id}"]`);
-    if (!highlightedElement) return;
-    
-    // Get the position of the highlighted text (the actual suggestion location)
-    const anchorRect = highlightedElement.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    
-    // Dynamically measure toolbar height by finding header elements
-    let actualToolbarHeight = 0;
-    const header = document.querySelector('header');
-    if (header) {
-      actualToolbarHeight = header.getBoundingClientRect().bottom;
+    if (!globalEditorView) {
+      console.warn('Editor view not available for AI suggestion positioning');
+      return;
     }
     
-    // Calculate available space above and below the highlighted text
-    const spaceAbove = anchorRect.top - actualToolbarHeight;
-    const spaceBelow = window.innerHeight - anchorRect.bottom;
-    const cardHeight = cardRect.height;
-    const cardWidth = cardRect.width;
-    
-    // Determine if we should show above or below the highlighted text
-    const shouldShowAbove = spaceAbove > cardHeight + 10;
-    const shouldShowBelow = !shouldShowAbove && spaceBelow > cardHeight + 10;
-    
-    // Calculate vertical position (fixed positioning relative to viewport)
-    let topPosition;
-    if (shouldShowAbove) {
-      // Position above the highlighted text
-      topPosition = anchorRect.top - cardHeight - 10;
-    } else if (shouldShowBelow) {
-      // Position below the highlighted text
-      topPosition = anchorRect.bottom + 10;
-    } else {
-      // If not enough space, align with top of highlighted text but ensure visible
-      topPosition = Math.max(actualToolbarHeight + 10, Math.min(anchorRect.top, window.innerHeight - cardHeight - 10));
+    try {
+      // Use ProseMirror's coordsAtPos to get the exact screen position of the suggestion
+      const startCoords = globalEditorView.coordsAtPos(activeSuggestion.deleteRange.from);
+      const endCoords = globalEditorView.coordsAtPos(activeSuggestion.deleteRange.to);
+      
+      if (!startCoords || !endCoords) return;
+      
+      // Create a rect representing the suggestion range
+      const anchorRect = {
+        top: startCoords.top,
+        bottom: endCoords.bottom,
+        left: startCoords.left,
+        right: endCoords.right,
+        width: endCoords.right - startCoords.left,
+        height: endCoords.bottom - startCoords.top
+      };
+      
+      const cardRect = card.getBoundingClientRect();
+      
+      // Dynamically measure toolbar height by finding header elements
+      let actualToolbarHeight = 0;
+      const header = document.querySelector('header');
+      if (header) {
+        actualToolbarHeight = header.getBoundingClientRect().bottom;
+      }
+      
+      // Calculate available space above and below the highlighted text
+      const spaceAbove = anchorRect.top - actualToolbarHeight;
+      const spaceBelow = window.innerHeight - anchorRect.bottom;
+      const cardHeight = cardRect.height;
+      const cardWidth = cardRect.width;
+      
+      // Determine if we should show above or below the highlighted text
+      const shouldShowAbove = spaceAbove > cardHeight + 10;
+      const shouldShowBelow = !shouldShowAbove && spaceBelow > cardHeight + 10;
+      
+      // Calculate vertical position (fixed positioning relative to viewport)
+      let topPosition;
+      if (shouldShowAbove) {
+        // Position above the highlighted text
+        topPosition = anchorRect.top - cardHeight - 10;
+      } else if (shouldShowBelow) {
+        // Position below the highlighted text
+        topPosition = anchorRect.bottom + 10;
+      } else {
+        // If not enough space, align with top of highlighted text but ensure visible
+        topPosition = Math.max(actualToolbarHeight + 10, Math.min(anchorRect.top, window.innerHeight - cardHeight - 10));
+      }
+      
+      // Calculate horizontal position (center over highlighted text)
+      const anchorCenter = anchorRect.left + (anchorRect.width / 2);
+      let leftPosition = anchorCenter - (cardWidth / 2);
+      
+      // Ensure horizontal positioning stays within viewport
+      const marginFromEdge = isMobile ? 10 : 20;
+      const maxLeft = window.innerWidth - cardWidth - marginFromEdge;
+      const minLeft = marginFromEdge;
+      
+      leftPosition = Math.max(minLeft, Math.min(leftPosition, maxLeft));
+      
+      // Apply the calculated position (using fixed positioning)
+      card.style.top = `${topPosition}px`;
+      card.style.left = `${leftPosition}px`;
+    } catch (err) {
+      console.warn('Failed to position AI suggestion popup:', err);
     }
-    
-    // Calculate horizontal position (center over highlighted text)
-    const anchorCenter = anchorRect.left + (anchorRect.width / 2);
-    let leftPosition = anchorCenter - (cardWidth / 2);
-    
-    // Ensure horizontal positioning stays within viewport
-    const marginFromEdge = isMobile ? 10 : 20;
-    const maxLeft = window.innerWidth - cardWidth - marginFromEdge;
-    const minLeft = marginFromEdge;
-    
-    leftPosition = Math.max(minLeft, Math.min(leftPosition, maxLeft));
-    
-    // Apply the calculated position (using fixed positioning)
-    card.style.top = `${topPosition}px`;
-    card.style.left = `${leftPosition}px`;
   };
 
-  // Initial positioning adjustment
-  setTimeout(adjustPosition, 0);
+  // Initial positioning adjustment - wait for DOM to be ready
+  setTimeout(adjustPosition, 10);
 
   // Re-adjust on scroll and resize to handle layout changes
   let resizeObserver: ResizeObserver | null = null;
@@ -410,6 +432,17 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
 
 const aiSuggestionProseMirrorPlugin = new Plugin<AISuggestionPluginState>({
   key: aiSuggestionPluginKey,
+
+  view(editorView) {
+    // Store the editor view globally for positioning calculations
+    globalEditorView = editorView;
+    
+    return {
+      destroy() {
+        globalEditorView = null;
+      }
+    };
+  },
 
   state: {
     init(_, { doc }) {
