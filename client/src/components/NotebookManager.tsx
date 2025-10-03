@@ -28,6 +28,7 @@ import { useNotebookStore, type Notebook } from "@/stores/notebookStore";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistance } from "date-fns";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface NotebookManagerProps {
   isOpen: boolean;
@@ -37,11 +38,13 @@ interface NotebookManagerProps {
 interface CreateNotebookData {
   name: string;
   description?: string;
+  imageUrl?: string;
 }
 
 interface UpdateNotebookData {
   name: string;
   description?: string;
+  imageUrl?: string;
 }
 
 export default function NotebookManager({ isOpen, onClose }: NotebookManagerProps) {
@@ -60,8 +63,8 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
   const [deletingNotebook, setDeletingNotebook] = useState<Notebook | null>(null);
-  const [createForm, setCreateForm] = useState<CreateNotebookData>({ name: "", description: "" });
-  const [editForm, setEditForm] = useState<UpdateNotebookData>({ name: "", description: "" });
+  const [createForm, setCreateForm] = useState<CreateNotebookData>({ name: "", description: "", imageUrl: "" });
+  const [editForm, setEditForm] = useState<UpdateNotebookData>({ name: "", description: "", imageUrl: "" });
 
   // Fetch notebooks
   const { isLoading, error } = useQuery({
@@ -87,7 +90,7 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
       // Automatically set the new notebook as active
       setActiveNotebook(newNotebook.id);
       
-      setCreateForm({ name: "", description: "" });
+      setCreateForm({ name: "", description: "", imageUrl: "" });
       setIsCreateOpen(false);
       
       // Invalidate notebook queries to ensure all components get fresh data
@@ -116,7 +119,7 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
     onSuccess: (updatedNotebook) => {
       updateNotebook(updatedNotebook.id, updatedNotebook);
       setEditingNotebook(null);
-      setEditForm({ name: "", description: "" });
+      setEditForm({ name: "", description: "", imageUrl: "" });
       
       // Invalidate notebook queries to ensure all components get fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/notebooks'] });
@@ -183,7 +186,11 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
 
   const handleEditClick = (notebook: Notebook) => {
     setEditingNotebook(notebook);
-    setEditForm({ name: notebook.name, description: notebook.description || "" });
+    setEditForm({ 
+      name: notebook.name, 
+      description: notebook.description || "", 
+      imageUrl: notebook.imageUrl || "" 
+    });
   };
 
   const handleDeleteClick = (notebook: Notebook) => {
@@ -228,95 +235,104 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
               </Button>
             </div>
 
-            {/* Notebooks List */}
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            {/* Notebooks Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
               {isLoading ? (
-                <div className="space-y-3">
+                <>
                   {[1, 2, 3].map(i => (
-                    <Card key={i} className="animate-pulse">
-                      <CardHeader className="pb-2">
-                        <div className="h-5 bg-muted rounded w-32"></div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-4 bg-muted rounded w-48"></div>
+                    <Card key={i} className="animate-pulse overflow-hidden">
+                      <div className="aspect-video bg-muted"></div>
+                      <CardContent className="p-4">
+                        <div className="h-5 bg-muted rounded w-3/4 mb-2"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
                       </CardContent>
                     </Card>
                   ))}
-                </div>
+                </>
               ) : notebooks.length === 0 ? (
-                <Card className="text-center py-8">
-                  <CardContent>
-                    <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground mb-4">No notebooks yet</p>
-                    <Button onClick={() => setIsCreateOpen(true)}>
-                      Create Your First Notebook
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div className="col-span-full">
+                  <Card className="text-center py-8">
+                    <CardContent>
+                      <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground mb-4">No notebooks yet</p>
+                      <Button onClick={() => setIsCreateOpen(true)}>
+                        Create Your First Notebook
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               ) : (
                 notebooks.map((notebook) => (
                   <Card 
                     key={notebook.id} 
-                    className={`hover-elevate transition-colors ${
+                    className={`group overflow-hidden hover-elevate cursor-pointer transition-all ${
                       activeNotebookId === notebook.id ? 'ring-2 ring-primary' : ''
                     }`}
                     data-testid={`card-notebook-${notebook.id}`}
+                    onClick={() => handleSetActive(notebook)}
                   >
-                    <CardHeader className="pb-2 space-y-2 px-3 sm:px-6 pt-3 sm:pt-6">
-                      <div className="flex items-center justify-between gap-1">
-                        <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-                          <CardTitle className="text-base sm:text-lg font-serif truncate">{notebook.name}</CardTitle>
-                          {activeNotebookId === notebook.id && (
-                            <Badge variant="default" data-testid="badge-active-notebook" className="shrink-0 text-xs hidden sm:inline-flex">Active</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center shrink-0">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEditClick(notebook)}
-                            data-testid={`button-edit-notebook-${notebook.id}`}
-                            title="Edit notebook"
-                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDeleteClick(notebook)}
-                            data-testid={`button-delete-notebook-${notebook.id}`}
-                            title="Delete notebook"
-                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                    {/* Thumbnail Image or Fallback */}
+                    <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden" data-testid={`thumbnail-notebook-${notebook.id}`}>
+                      {notebook.imageUrl ? (
+                        <img 
+                          src={notebook.imageUrl} 
+                          alt={notebook.name}
+                          className="w-full h-full object-cover"
+                          data-testid={`img-notebook-${notebook.id}`}
+                        />
+                      ) : (
+                        <BookOpen className="h-12 w-12 text-muted-foreground" data-testid={`icon-fallback-notebook-${notebook.id}`} />
+                      )}
+                      {/* Active Badge Overlay */}
                       {activeNotebookId === notebook.id && (
-                        <Badge variant="default" data-testid="badge-active-notebook-mobile" className="shrink-0 text-xs w-fit sm:hidden">Active</Badge>
-                      )}
-                    </CardHeader>
-                    <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-                      {notebook.description && (
-                        <CardDescription className="mb-2 text-sm">{notebook.description}</CardDescription>
-                      )}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span className="truncate">Created {formatDistance(new Date(notebook.createdAt), new Date(), { addSuffix: true })}</span>
+                        <div className="absolute top-2 right-2">
+                          <Badge variant="default" data-testid="badge-active-notebook" className="text-xs">
+                            Active
+                          </Badge>
                         </div>
-                        {activeNotebookId !== notebook.id && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleSetActive(notebook)}
-                            data-testid={`button-activate-notebook-${notebook.id}`}
-                            className="shrink-0 text-xs h-7"
-                          >
-                            Set Active
-                          </Button>
-                        )}
+                      )}
+                      {/* Action Buttons Overlay */}
+                      <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClick(notebook);
+                          }}
+                          data-testid={`button-edit-notebook-${notebook.id}`}
+                          title="Edit notebook"
+                          className="h-8 w-8"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(notebook);
+                          }}
+                          data-testid={`button-delete-notebook-${notebook.id}`}
+                          title="Delete notebook"
+                          className="h-8 w-8"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Notebook Info */}
+                    <CardContent className="p-4">
+                      <CardTitle className="text-lg font-serif truncate mb-1">{notebook.name}</CardTitle>
+                      {notebook.description && (
+                        <CardDescription className="text-sm line-clamp-2 mb-2">
+                          {notebook.description}
+                        </CardDescription>
+                      )}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span className="truncate">Created {formatDistance(new Date(notebook.createdAt), new Date(), { addSuffix: true })}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -357,6 +373,17 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                 placeholder="A world of magic and adventure..."
                 data-testid="textarea-create-notebook-description"
                 rows={3}
+              />
+            </div>
+            <div>
+              <Label>Thumbnail Image (Optional)</Label>
+              <ImageUpload
+                value={createForm.imageUrl}
+                onChange={(url) => setCreateForm(prev => ({ ...prev, imageUrl: url }))}
+                accept="image/jpeg,image/png,image/webp"
+                maxFileSize={5}
+                disabled={createMutation.isPending}
+                visibility="public"
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -410,6 +437,17 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
                 placeholder="A world of magic and adventure..."
                 data-testid="textarea-edit-notebook-description"
                 rows={3}
+              />
+            </div>
+            <div>
+              <Label>Thumbnail Image (Optional)</Label>
+              <ImageUpload
+                value={editForm.imageUrl}
+                onChange={(url) => setEditForm(prev => ({ ...prev, imageUrl: url }))}
+                accept="image/jpeg,image/png,image/webp"
+                maxFileSize={5}
+                disabled={updateMutation.isPending}
+                visibility="public"
               />
             </div>
             <div className="flex justify-end gap-2">

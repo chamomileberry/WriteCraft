@@ -42,6 +42,7 @@ export const notebooks = pgTable("notebooks", {
   description: text("description"),
   color: text("color"), // Optional color for visual organization
   icon: text("icon"), // Optional icon identifier
+  imageUrl: text("image_url"), // Optional thumbnail image for visual distinction
   isDefault: boolean("is_default").default(false), // One notebook can be marked as default per user
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
