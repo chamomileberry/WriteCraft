@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Search, Edit, Trash2, Copy, Package, BookOpen } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -391,6 +391,44 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
             </Card>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Show friendly empty state if no notebooks exist
+  if (fetchedNotebooks && fetchedNotebooks.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <BookOpen className="h-8 w-8 text-primary" />
+              Writing Notebook
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Your saved characters, locations, plots, and creative content
+            </p>
+          </div>
+        </div>
+
+        <Card className="border-2 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <BookOpen className="h-10 w-10 text-primary" />
+            </div>
+            <h2 className="text-2xl font-semibold mb-3">Create Your First Notebook</h2>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Notebooks help you organize your worldbuilding content. Create one for each story, setting, or creative project to keep your characters, locations, and ideas neatly organized.
+            </p>
+            <div className="w-full max-w-md">
+              <NotebookSwitcher showActiveInfo={false} />
+            </div>
+            <p className="text-sm text-muted-foreground mt-6 flex items-center gap-2 justify-center">
+              <Lightbulb className="h-4 w-4" />
+              <span><strong>Tip:</strong> You can switch between notebooks anytime to work on different projects.</span>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
