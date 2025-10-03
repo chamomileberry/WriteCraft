@@ -712,7 +712,7 @@ export function EditorToolbar({
       ) : (
         // Desktop Layout: Streamlined toolbar with grouped controls
         <TooltipProvider>
-          <div className="flex items-center gap-1 flex-nowrap overflow-x-auto">
+          <div className="flex items-center justify-center gap-1 flex-nowrap overflow-x-auto px-2 pb-2">
             {/* Format Menu - Groups alignment and styling */}
             <DropdownMenu onOpenChange={(open) => open && preserveSelection()}>
               <Tooltip>
