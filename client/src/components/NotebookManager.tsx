@@ -104,7 +104,12 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated }: 
       
       // Call callback if provided (for auto-open from ContentTypeModal)
       if (onNotebookCreated) {
-        onNotebookCreated(newNotebook);
+        // Use requestAnimationFrame to ensure the create dialog fully unmounts
+        // before calling the callback, which prevents DOM ghosting
+        requestAnimationFrame(() => {
+          onNotebookCreated(newNotebook);
+          onClose();
+        });
       }
     },
     onError: (error) => {
