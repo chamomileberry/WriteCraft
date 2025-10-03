@@ -16,6 +16,12 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: 'notebookId is required' });
     }
     
+    // Validate notebook ownership before allowing write
+    const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+    if (!ownsNotebook) {
+      return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+    }
+    
     const validatedProfession = insertProfessionSchema.parse({ 
       ...professionData, 
       userId, 

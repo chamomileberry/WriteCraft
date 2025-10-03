@@ -16,7 +16,16 @@ router.post("/generate", async (req, res) => {
       notebookId: z.string().nullable().optional()
     });
     
+    const authUserId = req.headers['x-user-id'] as string || 'demo-user';
     const { genre, creatureType, userId, notebookId } = generateRequestSchema.parse(req.body);
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, authUserId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
     
     // Use AI generation for creatures
     const aiCreature = await generateCreatureWithAI({ genre, creatureType });

@@ -102,6 +102,7 @@ export interface IStorage {
   getUserNotebooks(userId: string): Promise<Notebook[]>;
   updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined>;
   deleteNotebook(id: string, userId: string): Promise<void>;
+  validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean>;
   
   // Character methods
   createCharacter(character: InsertCharacter): Promise<Character>;
@@ -607,6 +608,15 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(notebooks)
       .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
+  }
+
+  async validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean> {
+    const [notebook] = await db
+      .select()
+      .from(notebooks)
+      .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
+      .limit(1);
+    return !!notebook;
   }
   
   // Character methods

@@ -12,10 +12,20 @@ router.post("/generate", async (req, res) => {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
       settingType: z.string().optional(),
-      userId: z.string().nullable().optional()
+      userId: z.string().nullable().optional(),
+      notebookId: z.string().nullable().optional()
     });
     
-    const { genre, settingType, userId } = generateRequestSchema.parse(req.body);
+    const authUserId = req.headers['x-user-id'] as string || 'demo-user';
+    const { genre, settingType, userId, notebookId } = generateRequestSchema.parse(req.body);
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, authUserId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
     
     // Use AI generation instead of random generation
     const aiSetting = await generateSettingWithAI({ genre, settingType });
@@ -32,7 +42,8 @@ router.post("/generate", async (req, res) => {
       notableFeatures: aiSetting.notableFeatures,
       genre: genre || null,
       settingType: settingType || null,
-      userId: userId || null
+      userId: userId || null,
+      notebookId: notebookId || null
     };
 
     // Validate the generated setting data before saving
@@ -53,6 +64,16 @@ router.post("/", async (req, res) => {
   try {
     // Extract userId from header for security
     const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.body.notebookId;
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
+    
     const settingData = { ...req.body, userId };
     
     // Validate the request body using the insert schema

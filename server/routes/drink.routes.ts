@@ -7,6 +7,17 @@ const router = Router();
 
 router.post("/", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.body.notebookId;
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
+    
     const validatedDrink = insertDrinkSchema.parse(req.body);
     const savedDrink = await storage.createDrink(validatedDrink);
     res.json(savedDrink);

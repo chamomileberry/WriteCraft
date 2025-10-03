@@ -54,6 +54,17 @@ router.post("/generate", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.body.notebookId;
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
+    
     const validatedConflict = insertConflictSchema.parse(req.body);
     const savedConflict = await storage.createConflict(validatedConflict);
     res.json(savedConflict);

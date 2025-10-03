@@ -11,10 +11,20 @@ router.post("/generate", async (req, res) => {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
       storyStructure: z.string().optional(),
-      userId: z.string().nullable().optional()
+      userId: z.string().nullable().optional(),
+      notebookId: z.string().nullable().optional()
     });
     
-    const { genre, storyStructure, userId } = generateRequestSchema.parse(req.body);
+    const authUserId = req.headers['x-user-id'] as string || 'demo-user';
+    const { genre, storyStructure, userId, notebookId } = generateRequestSchema.parse(req.body);
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, authUserId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
     
     // Generate random plot data (using helper functions from main routes for now)
     const plot = {
@@ -29,7 +39,8 @@ router.post("/generate", async (req, res) => {
       conflict: "The central conflict that drives the narrative forward",
       genre: genre || null,
       storyStructure: storyStructure || null,
-      userId: userId || null
+      userId: userId || null,
+      notebookId: notebookId || null
     };
 
     // Validate the generated plot data before saving

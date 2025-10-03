@@ -9,18 +9,18 @@ const router = Router();
 router.post("/", async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const notebookId = req.body.notebookId; // Get from body
+    const notebookId = req.body.notebookId;
     
-    if (!notebookId) {
-      return res.status(400).json({ error: 'Notebook ID is required' });
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
     }
     
     const validatedWeapon = insertWeaponSchema.parse(req.body);
-    const savedWeapon = await storage.createWeapon({
-      ...validatedWeapon,
-      userId,
-      notebookId
-    });
+    const savedWeapon = await storage.createWeapon(validatedWeapon);
     res.json(savedWeapon);
   } catch (error) {
     console.error('Error saving weapon:', error);

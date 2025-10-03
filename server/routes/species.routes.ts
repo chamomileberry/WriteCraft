@@ -9,6 +9,16 @@ router.post("/", async (req, res) => {
   try {
     // Extract userId from header for security (override client payload)
     const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.body.notebookId;
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
+    
     const speciesData = { ...req.body, userId };
     
     const validatedSpecies = insertSpeciesSchema.parse(speciesData);

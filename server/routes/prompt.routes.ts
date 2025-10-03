@@ -12,10 +12,20 @@ router.post("/generate", async (req, res) => {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
       type: z.string().optional(),
-      userId: z.string().nullable().optional()
+      userId: z.string().nullable().optional(),
+      notebookId: z.string().nullable().optional()
     });
     
-    const { genre, type, userId } = generateRequestSchema.parse(req.body);
+    const authUserId = req.headers['x-user-id'] as string || 'demo-user';
+    const { genre, type, userId, notebookId } = generateRequestSchema.parse(req.body);
+    
+    // Validate notebook ownership before allowing write
+    if (notebookId) {
+      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, authUserId);
+      if (!ownsNotebook) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this notebook' });
+      }
+    }
     
     // Use AI generation for prompts
     const aiPrompt = await generatePromptWithAI({ genre, type });
@@ -24,7 +34,8 @@ router.post("/generate", async (req, res) => {
       text: aiPrompt.text,
       genre: genre || null,
       promptType: type || null,
-      userId: userId || null
+      userId: userId || null,
+      notebookId: notebookId || null
     };
 
     // Validate the generated prompt data before saving
