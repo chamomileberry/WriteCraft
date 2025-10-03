@@ -398,9 +398,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     },
   });
 
-  // Setup autosave hook
+  // Setup autosave hook with longer delay to avoid interrupting typing
   const autosave = useAutosave({
     editor,
+    debounceMs: 5000, // Wait 5 seconds after user stops typing before saving
     saveDataFunction: () => {
       if (!editor || !isFormValid()) return null;
       
@@ -497,31 +498,25 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       } });
       
       // Only update editor content on initial load or when switching guides
-      // Skip updates during autosave to prevent cursor jumping
-      const shouldUpdateContent = 
-        isInitialLoadRef.current || 
-        lastLoadedGuideIdRef.current !== currentGuideId ||
-        autosave.saveStatus !== 'saving';
+      // Never update during normal editing to prevent cursor jumping
+      const isNewGuide = lastLoadedGuideIdRef.current !== currentGuideId;
+      const needsInitialLoad = isInitialLoadRef.current || isNewGuide;
       
-      if (editor && guide.content && shouldUpdateContent) {
+      if (editor && guide.content && needsInitialLoad) {
         // Convert markdown to HTML if needed
         const htmlContent = convertMarkdownToHTML(guide.content);
         
-        // Only update editor content if it's truly different
-        // This additional check helps prevent unnecessary updates
-        const currentContent = editor.getHTML();
-        if (currentContent !== htmlContent) {
-          editor.commands.setContent(htmlContent);
-          // Update word count after setting content
-          dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
-          
-          // Mark that we've done the initial load
-          isInitialLoadRef.current = false;
-          lastLoadedGuideIdRef.current = currentGuideId;
-        }
+        // Set the content only on initial load
+        editor.commands.setContent(htmlContent);
+        // Update word count after setting content
+        dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
+        
+        // Mark that we've loaded this guide
+        isInitialLoadRef.current = false;
+        lastLoadedGuideIdRef.current = currentGuideId;
       }
     }
-  }, [guide, editor, currentGuideId, autosave.saveStatus]);
+  }, [guide, editor, currentGuideId]);
 
   // Update word count when editor is first created
   useEffect(() => {
