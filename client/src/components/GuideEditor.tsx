@@ -348,7 +348,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     content: guide?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none min-h-[400px] !mx-0 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
+        class: 'prose dark:prose-invert prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none min-h-[400px] p-4 !max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
         style: 'font-size: 12pt;', // Set default font size to 12pt
       },
     },
