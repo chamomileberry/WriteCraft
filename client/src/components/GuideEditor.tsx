@@ -54,6 +54,7 @@ import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 import { Switch } from '@/components/ui/switch';
 import { useWorkspaceStore, type EditorActions } from '@/stores/workspaceStore';
+import { marked } from 'marked';
 
 interface GuideEditorProps {
   guideId: string;
@@ -67,6 +68,20 @@ export interface GuideEditorRef {
 
 const categories = ['Character Writing', 'Writing Craft', 'World Building', 'Story Structure', 'Genre Writing'];
 const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
+
+// Helper function to convert markdown to HTML if needed
+const convertMarkdownToHTML = (content: string): string => {
+  // Check if content looks like markdown (contains markdown heading patterns)
+  const hasMarkdownHeadings = /^#{1,6}\s+.+$/m.test(content);
+  
+  if (hasMarkdownHeadings) {
+    // Content looks like markdown, convert it to HTML
+    return marked.parse(content) as string;
+  }
+  
+  // Content is already HTML or plain text
+  return content;
+};
 
 // Guide editor state management
 interface GuideEditorState {
@@ -453,7 +468,9 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       } });
       
       if (editor && guide.content) {
-        editor.commands.setContent(guide.content);
+        // Convert markdown to HTML if needed
+        const htmlContent = convertMarkdownToHTML(guide.content);
+        editor.commands.setContent(htmlContent);
         // Update word count after setting content
         dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
       }
@@ -558,15 +575,9 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     <div className="w-full space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={onBack} data-testid="button-back">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-serif font-bold">
-            {currentGuideId === 'new' ? 'New Guide' : 'Edit Guide'}
-          </h1>
-        </div>
+        <h1 className="text-2xl font-serif font-bold">
+          {currentGuideId === 'new' ? 'New Guide' : 'Edit Guide'}
+        </h1>
         
         <div className="flex items-center gap-4">
           {isAdmin && (
