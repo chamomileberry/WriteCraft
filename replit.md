@@ -42,10 +42,10 @@ Documentation: Proactively create documentation for new features, APIs, and syst
     - **Notebook System**: User-created notebooks for organizing worldbuilding content with scoping and active notebook persistence.
     - **Generator System**: Modular content generation (characters, plots, settings, names, conflicts, themes, moods).
     - **Writing Guides**: Structured educational content with categories and search.
-    - **User Collections**: System for saving and organizing generated content and favorite guides.
+    - **Hierarchical Project System**: Project management with unlimited folder nesting, pages (sections), rich text editor (TipTap), auto-save, media insertion, and export capabilities.
     - **Enhanced Character Editor**: Responsive sidebar navigation for character details.
-    - **Hierarchical Project System**: Project management with unlimited folder nesting, pages, rich text editor (TipTap), auto-save, media insertion, and export capabilities.
     - **AI-Powered Inline Editing**: Grammarly-style AI assistance integrated across all text editors, offering actions like improving, shortening, expanding, fixing grammar, and suggestions using Anthropic's Claude 3.5 Sonnet.
+    - **Writing Assistant Panel**: Conversational AI assistant for analyzing text, proofreading, generating questions, and providing writing feedback.
 
 ## Security & Authorization
 
