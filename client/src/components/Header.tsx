@@ -20,6 +20,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [searchValue, setSearchValue] = useState(searchQuery);
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   
@@ -100,6 +101,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       setLocation('/search');
     }
     onSearch?.(searchValue);
+    setIsMobileSearchOpen(false);
     console.log('Search triggered:', searchValue);
   };
 
@@ -148,6 +150,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* Desktop Search Bar - Larger and more prominent */}
             <form onSubmit={handleSearch} className="hidden lg:flex items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -156,11 +159,29 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   placeholder="Search..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10 w-32 lg:w-40"
-                  data-testid="input-search"
+                  className="pl-10 w-64 lg:w-72"
+                  data-testid="input-search-desktop"
                 />
               </div>
             </form>
+
+            {/* Mobile/Tablet Search Icon */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setIsMobileSearchOpen(!isMobileSearchOpen);
+                if (!isMobileSearchOpen) {
+                  setIsMobileMenuOpen(false); // Close menu when opening search
+                }
+              }}
+              className="lg:hidden"
+              data-testid="button-search-mobile"
+              title="Search"
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
             
             <Button
               variant="default"
@@ -244,7 +265,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               variant="ghost" 
               size="icon" 
               className="md:hidden" 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+                if (!isMobileMenuOpen) {
+                  setIsMobileSearchOpen(false); // Close search when opening menu
+                }
+              }}
               data-testid="button-menu"
             >
               <Menu className="h-4 w-4" />
@@ -252,6 +278,28 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </div>
         </div>
       </div>
+
+      {/* Mobile/Tablet Search Dropdown */}
+      {isMobileSearchOpen && (
+        <div className="lg:hidden bg-background border-b border-border">
+          <div className="px-4 py-4">
+            <form onSubmit={handleSearch} className="w-full">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  className="pl-10 w-full"
+                  data-testid="input-search-mobile"
+                  autoFocus
+                />
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-b border-border">
@@ -260,6 +308,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 toggleQuickNote();
                 setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
               }}
               className={`flex items-center gap-2 w-full text-left transition-colors py-2 ${
                 isQuickNoteOpen() ? 'text-primary' : 'text-foreground hover:text-primary'
@@ -273,6 +322,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 openWritingAssistant();
                 setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
               }}
               className="flex items-center justify-center w-12 h-12 rounded-full transition-colors"
               style={{
@@ -287,6 +337,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 onNavigate?.('notebook');
                 setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-notebook"
@@ -297,6 +348,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 onNavigate?.('projects');
                 setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-projects"
@@ -307,6 +359,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 setLocation('/generators');
                 setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-generators"
@@ -317,6 +370,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 setLocation('/guides');
                 setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-guides"
