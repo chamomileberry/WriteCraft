@@ -245,12 +245,16 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const { data: guide, isLoading: isLoadingGuide } = useQuery<Guide>({
     queryKey: ['/api/guides', currentGuideId],
     queryFn: async () => {
+      console.log('[GuideEditor] Fetching guide:', currentGuideId);
       const response = await fetch(`/api/guides/${currentGuideId}`);
       if (!response.ok) throw new Error('Failed to fetch guide');
       return response.json();
     },
     enabled: !!currentGuideId && currentGuideId !== 'new',
   });
+  
+  // Debug logging
+  console.log('[GuideEditor] currentGuideId:', currentGuideId, 'isLoading:', isLoadingGuide, 'guide:', guide);
 
   // Initialize TipTap editor
   const lowlight = createLowlight();
