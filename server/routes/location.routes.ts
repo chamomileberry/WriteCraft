@@ -61,23 +61,8 @@ router.post("/", async (req, res) => {
       }
     }
     
-    // Extract userId from header for security (override client payload)
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const { notebookId, ...locationData } = req.body;
-    
-    // Validate notebookId is provided
-    if (!notebookId) {
-      return res.status(400).json({ error: 'Notebook ID is required' });
-    }
-    
-    // Validate user owns the notebook before creating content
-    const userNotebook = await storage.getNotebook(notebookId, userId);
-    if (!userNotebook) {
-      return res.status(403).json({ error: 'Notebook not found or access denied' });
-    }
-    
-    const fullLocationData = { ...locationData, userId, notebookId };
-    const validatedLocation = insertLocationSchema.parse(fullLocationData);
+    const locationData = { ...req.body, userId };
+    const validatedLocation = insertLocationSchema.parse(locationData);
     const savedLocation = await storage.createLocation(validatedLocation);
     res.json(savedLocation);
   } catch (error) {
