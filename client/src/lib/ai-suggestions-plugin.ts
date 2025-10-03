@@ -323,7 +323,17 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
       const startCoords = globalEditorView.coordsAtPos(activeSuggestion.deleteRange.from);
       const endCoords = globalEditorView.coordsAtPos(activeSuggestion.deleteRange.to);
       
-      if (!startCoords || !endCoords) return;
+      console.log('AI Suggestion positioning:', {
+        suggestionId: activeSuggestion.id,
+        range: activeSuggestion.deleteRange,
+        startCoords,
+        endCoords
+      });
+      
+      if (!startCoords || !endCoords) {
+        console.warn('Could not get coordinates for suggestion');
+        return;
+      }
       
       // Create a rect representing the suggestion range
       const anchorRect = {
