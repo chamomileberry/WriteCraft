@@ -48,18 +48,28 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
     setIsPopoverOpen(false);
   };
 
+  // Manager mode state and handlers (must be before any conditional returns)
+  const [managerMode, setManagerMode] = useState<'manage' | 'create'>('manage');
+
+  const handleOpenManager = () => {
+    setManagerMode('manage');
+    setIsManagerOpen(true);
+  };
+
+  const handleOpenCreate = () => {
+    setManagerMode('create');
+    setIsManagerOpen(true);
+  };
+
   // Get other notebooks (excluding the active one)
   const otherNotebooks = notebooks.filter(n => n.id !== activeNotebookId);
 
   if (isLoading) {
     return (
       <div className={`space-y-4 ${className}`}>
-        <div className="flex items-center justify-between">
-          <div className="animate-pulse bg-muted h-6 w-32 rounded"></div>
-          <div className="flex items-center gap-2">
-            <div className="animate-pulse bg-muted h-9 w-9 rounded"></div>
-            <div className="animate-pulse bg-muted h-9 w-40 rounded"></div>
-          </div>
+        <div className="flex items-center justify-end gap-2">
+          <div className="animate-pulse bg-muted h-9 w-9 rounded"></div>
+          <div className="animate-pulse bg-muted h-9 w-40 rounded"></div>
         </div>
         <div className="animate-pulse bg-muted h-24 w-full rounded"></div>
       </div>
@@ -70,31 +80,26 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
     <>
       <div className={`space-y-4 ${className}`}>
         {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold" data-testid="text-active-notebook-header">
-            Active Notebook
-          </h2>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setIsManagerOpen(true)}
-              variant="outline"
-              size="sm"
-              className="flex-shrink-0"
-              data-testid="button-manage-notebooks"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => setIsManagerOpen(true)}
-              variant="default"
-              size="sm"
-              className="flex items-center gap-2"
-              data-testid="button-create-notebook"
-            >
-              <Plus className="h-4 w-4" />
-              Create Notebook
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            onClick={handleOpenManager}
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0"
+            data-testid="button-manage-notebooks"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={handleOpenCreate}
+            variant="default"
+            size="sm"
+            className="flex items-center gap-2"
+            data-testid="button-create-notebook"
+          >
+            <Plus className="h-4 w-4" />
+            Create Notebook
+          </Button>
         </div>
 
         {/* Notebook Display Section */}
@@ -107,7 +112,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
                 Create your first notebook to start organizing your content
               </p>
               <Button
-                onClick={() => setIsManagerOpen(true)}
+                onClick={handleOpenCreate}
                 variant="default"
                 size="sm"
                 data-testid="button-create-first-notebook"
@@ -230,7 +235,8 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
 
       <NotebookManager 
         isOpen={isManagerOpen} 
-        onClose={() => setIsManagerOpen(false)} 
+        onClose={() => setIsManagerOpen(false)}
+        openInCreateMode={managerMode === 'create'}
       />
     </>
   );

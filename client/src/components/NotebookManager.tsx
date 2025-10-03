@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   Dialog, 
@@ -34,6 +34,7 @@ interface NotebookManagerProps {
   isOpen: boolean;
   onClose: () => void;
   onNotebookCreated?: (notebook: Notebook) => void;
+  openInCreateMode?: boolean;
 }
 
 interface CreateNotebookData {
@@ -48,7 +49,7 @@ interface UpdateNotebookData {
   imageUrl?: string;
 }
 
-export default function NotebookManager({ isOpen, onClose, onNotebookCreated }: NotebookManagerProps) {
+export default function NotebookManager({ isOpen, onClose, onNotebookCreated, openInCreateMode = false }: NotebookManagerProps) {
   const { toast } = useToast();
   const { 
     notebooks, 
@@ -66,6 +67,13 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated }: 
   const [deletingNotebook, setDeletingNotebook] = useState<Notebook | null>(null);
   const [createForm, setCreateForm] = useState<CreateNotebookData>({ name: "", description: "", imageUrl: "" });
   const [editForm, setEditForm] = useState<UpdateNotebookData>({ name: "", description: "", imageUrl: "" });
+
+  // Auto-open create dialog when openInCreateMode is true
+  useEffect(() => {
+    if (isOpen && openInCreateMode) {
+      setIsCreateOpen(true);
+    }
+  }, [isOpen, openInCreateMode]);
 
   // Fetch notebooks
   const { isLoading, error } = useQuery({
