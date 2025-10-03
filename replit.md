@@ -7,6 +7,7 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Documentation: Proactively create documentation for new features, APIs, and system changes to help future developers understand the codebase.
 
 ## System Architecture
 
