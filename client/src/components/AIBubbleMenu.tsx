@@ -33,8 +33,49 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
     const updateMenu = () => {
       const { view, state } = editor;
       const { from, to } = state.selection;
+      
+      // Check if we have an active suggestion to position near
+      const pluginState = aiSuggestionPluginKey.getState(state);
+      
+      // If there's an active suggestion, position near it instead of selection
+      if (pluginState && pluginState.suggestions.length > 0) {
+        const activeSuggestion = pluginState.suggestions[pluginState.suggestions.length - 1];
+        if (activeSuggestion.status === 'pending') {
+          // Use the suggestion's anchor position for menu placement
+          const suggestionFrom = activeSuggestion.deleteRange.from;
+          const suggestionTo = activeSuggestion.deleteRange.to;
+          
+          const start = view.coordsAtPos(suggestionFrom);
+          const end = view.coordsAtPos(suggestionTo);
+          
+          // Calculate menu position (above the suggestion)
+          let menuTop = start.top - 60; // Position above suggestion
+          let menuLeft = (start.left + end.left) / 2 - 200; // Center horizontally
+          
+          // Viewport clamping to keep menu visible
+          const menuWidth = 400;
+          const menuHeight = 50;
+          
+          // Clamp horizontal position
+          menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
+          
+          // Flip to below suggestion if too close to top
+          if (menuTop < 10) {
+            menuTop = end.bottom + 10;
+          }
+          
+          // Ensure menu doesn't go below viewport
+          if (menuTop + menuHeight > window.innerHeight - 10) {
+            menuTop = window.innerHeight - menuHeight - 10;
+          }
+          
+          setPosition({ top: menuTop, left: menuLeft });
+          setIsVisible(true);
+          return;
+        }
+      }
 
-      // Hide menu if no text is selected
+      // Default behavior: hide menu if no text is selected
       if (from === to) {
         setIsVisible(false);
         return;

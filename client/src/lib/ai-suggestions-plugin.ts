@@ -267,6 +267,25 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
     dismissBtn.style.borderColor = 'rgba(148, 163, 184, 0.2)';
     dismissBtn.style.transform = 'translateY(0)';
   };
+  
+  // Add click handler for dismiss button
+  dismissBtn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!globalEditorView) return;
+    const pluginState = aiSuggestionPluginKey.getState(globalEditorView.state);
+    if (!pluginState) return;
+    
+    // Remove the suggestion
+    const tr = globalEditorView.state.tr;
+    const updatedSuggestions = pluginState.suggestions.filter(s => s.id !== activeSuggestion.id);
+    tr.setMeta('updateSuggestions', updatedSuggestions);
+    globalEditorView.dispatch(tr);
+    
+    // Remove the popup
+    popupContainer.remove();
+  };
 
   // Accept button
   const acceptBtn = document.createElement('button');
@@ -305,6 +324,32 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   acceptBtn.onmouseleave = () => {
     acceptBtn.style.transform = 'translateY(0)';
     acceptBtn.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.25)';
+  };
+  
+  // Add click handler for accept button
+  acceptBtn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!globalEditorView) return;
+    const pluginState = aiSuggestionPluginKey.getState(globalEditorView.state);
+    if (!pluginState) return;
+    
+    // Replace text with suggestion
+    const tr = globalEditorView.state.tr;
+    tr.replaceRangeWith(
+      activeSuggestion.deleteRange.from,
+      activeSuggestion.deleteRange.to,
+      globalEditorView.state.schema.text(activeSuggestion.suggestedText)
+    );
+    
+    // Update suggestions to remove this one
+    const updatedSuggestions = pluginState.suggestions.filter(s => s.id !== activeSuggestion.id);
+    tr.setMeta('updateSuggestions', updatedSuggestions);
+    globalEditorView.dispatch(tr);
+    
+    // Remove the popup
+    popupContainer.remove();
   };
 
   actionsDiv.append(dismissBtn, acceptBtn);
