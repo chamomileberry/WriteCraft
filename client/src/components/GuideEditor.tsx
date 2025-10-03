@@ -41,14 +41,18 @@ import {
   Clock,
   AlignJustify,
   Link as LinkIcon,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import type { Guide } from '@shared/schema';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
+import { Switch } from '@/components/ui/switch';
 
 interface GuideEditorProps {
   guideId: string;
@@ -75,6 +79,7 @@ interface GuideEditorState {
   tagInput: string;
   hasBeenSavedOnce: boolean;
   wordCount: number;
+  published: boolean;
 }
 
 type GuideEditorAction =
@@ -88,6 +93,7 @@ type GuideEditorAction =
   | { type: 'SET_TAG_INPUT'; payload: string }
   | { type: 'SET_HAS_BEEN_SAVED_ONCE'; payload: boolean }
   | { type: 'SET_WORD_COUNT'; payload: number }
+  | { type: 'SET_PUBLISHED'; payload: boolean }
   | { type: 'LOAD_GUIDE_DATA'; payload: Partial<GuideEditorState> }
   | { type: 'RESET_FORM' };
 
@@ -113,6 +119,8 @@ function guideEditorReducer(state: GuideEditorState, action: GuideEditorAction):
       return { ...state, hasBeenSavedOnce: action.payload };
     case 'SET_WORD_COUNT':
       return { ...state, wordCount: action.payload };
+    case 'SET_PUBLISHED':
+      return { ...state, published: action.payload };
     case 'LOAD_GUIDE_DATA':
       return { ...state, ...action.payload };
     case 'RESET_FORM':
@@ -127,6 +135,7 @@ function guideEditorReducer(state: GuideEditorState, action: GuideEditorAction):
         tagInput: '',
         hasBeenSavedOnce: false,
         wordCount: 0,
+        published: false,
       };
     default:
       return state;
@@ -204,6 +213,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     tagInput: '',
     hasBeenSavedOnce: false,
     wordCount: 0,
+    published: false,
   });
 
   // Destructure state for easier access
@@ -218,9 +228,14 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     tagInput,
     hasBeenSavedOnce,
     wordCount,
+    published,
   } = guideState;
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Check if current user is admin
+  const isAdmin = user?.isAdmin || false;
 
   // Focus Mode and Zoom state
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -357,7 +372,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         difficulty: difficulty || 'Beginner',
         author: author.trim() || 'Anonymous',
         tags: tags.filter(tag => tag.trim()),
-        published: true,
+        published: published,
       };
     },
     mutationFunction: async (data: any) => {
@@ -419,6 +434,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         difficulty: guide.difficulty || '',
         author: guide.author || '',
         tags: guide.tags || [],
+        published: guide.published === true,
         hasBeenSavedOnce: true,
       } });
       
@@ -493,6 +509,29 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         </div>
         
         <div className="flex items-center gap-4">
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Badge variant={published ? "default" : "secondary"} data-testid="badge-publish-status">
+                {published ? (
+                  <>
+                    <Eye className="h-3 w-3 mr-1" />
+                    Published
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="h-3 w-3 mr-1" />
+                    Draft
+                  </>
+                )}
+              </Badge>
+              <Switch
+                checked={published}
+                onCheckedChange={(checked) => dispatch({ type: 'SET_PUBLISHED', payload: checked })}
+                data-testid="switch-published"
+              />
+            </div>
+          )}
+          
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {autosave.saveStatus === 'saving' && <Loader2 className="h-4 w-4 animate-spin" />}
             {autosave.saveStatus === 'saved' && <Clock className="h-4 w-4" />}

@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Clock, Star, Search, Filter, Loader2, Plus, Edit3, Trash2 } from "lucide-react";
+import { BookOpen, Clock, Star, Search, Filter, Loader2, Plus, Edit3, Trash2, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import type { Guide } from "@shared/schema";
 
 
@@ -22,6 +23,10 @@ export default function WritingGuides() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Check if current user is admin
+  const isAdmin = user?.isAdmin || false;
 
   // Build query parameters for API call
   const queryParams = new URLSearchParams();
@@ -108,10 +113,12 @@ export default function WritingGuides() {
               Expert advice and comprehensive guides to help you master the craft of writing
             </p>
           </div>
-          <Button onClick={handleNewGuide} data-testid="button-new-guide">
-            <Plus className="h-4 w-4 mr-2" />
-            New Guide
-          </Button>
+          {isAdmin && (
+            <Button onClick={handleNewGuide} data-testid="button-new-guide">
+              <Plus className="h-4 w-4 mr-2" />
+              New Guide
+            </Button>
+          )}
         </div>
       </div>
 
@@ -193,6 +200,25 @@ export default function WritingGuides() {
                     <Badge className={`text-xs ${getDifficultyColor(guide.difficulty)}`}>
                       {guide.difficulty}
                     </Badge>
+                    {isAdmin && (
+                      <Badge 
+                        variant={guide.published ? "default" : "outline"} 
+                        className="text-xs"
+                        data-testid={`badge-guide-status-${guide.id}`}
+                      >
+                        {guide.published ? (
+                          <>
+                            <Eye className="h-3 w-3 mr-1" />
+                            Published
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff className="h-3 w-3 mr-1" />
+                            Draft
+                          </>
+                        )}
+                      </Badge>
+                    )}
                   </div>
                   <CardTitle className="text-lg group-hover:text-primary transition-colors">
                     {guide.title}
@@ -238,22 +264,26 @@ export default function WritingGuides() {
                   <BookOpen className="mr-2 h-4 w-4" />
                   Read
                 </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => handleEditGuide(guide.id)}
-                  data-testid={`button-edit-guide-${guide.id}`}
-                >
-                  <Edit3 className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => handleDeleteGuide(guide.id, guide.title)}
-                  disabled={deleteGuideMutation.isPending}
-                  data-testid={`button-delete-guide-${guide.id}`}
-                  className="text-destructive hover:text-destructive hover:border-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {isAdmin && (
+                  <>
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleEditGuide(guide.id)}
+                      data-testid={`button-edit-guide-${guide.id}`}
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleDeleteGuide(guide.id, guide.title)}
+                      disabled={deleteGuideMutation.isPending}
+                      data-testid={`button-delete-guide-${guide.id}`}
+                      className="text-destructive hover:text-destructive hover:border-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
