@@ -200,14 +200,14 @@ export function ImageUpload({
           />
           <Button
             type="button"
-            variant="destructive"
+            variant="default"
             size="icon"
-            className="absolute top-2 right-2"
+            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-primary hover:bg-primary/90 shadow-md"
             onClick={handleRemove}
             disabled={disabled}
             data-testid="button-remove-image"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </Button>
         </div>
       ) : (
