@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2, LogOut, User } from "lucide-react";
 import { useLocation } from "wouter";
+import Header from "@/components/Header";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -21,6 +22,7 @@ export default function AccountSettings() {
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Sync state with user prop changes
   useEffect(() => {
@@ -74,6 +76,23 @@ export default function AccountSettings() {
     window.location.href = "/api/logout";
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setLocation(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleNavigate = (view: string) => {
+    if (view === 'notebook') {
+      setLocation('/notebook');
+    } else if (view === 'projects') {
+      setLocation('/projects');
+    } else if (view === 'generators') {
+      setLocation('/generators');
+    } else if (view === 'guides') {
+      setLocation('/guides');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -90,16 +109,12 @@ export default function AccountSettings() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => setLocation("/")}
-            data-testid="button-back-home"
-          >
-            ← Back to Home
-          </Button>
-        </div>
 
         <div className="space-y-6">
           {/* Profile Information */}
@@ -130,7 +145,6 @@ export default function AccountSettings() {
                   <ImageUpload
                     value={profileImageUrl}
                     onChange={setProfileImageUrl}
-                    label="Profile Photo"
                     accept="image/jpeg,image/png,image/webp"
                     maxFileSize={5}
                     disabled={updateProfileMutation.isPending}
