@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Settings, Plus } from "lucide-react";
 import { useNotebookStore, type Notebook } from "@/stores/notebookStore";
 import { apiRequest } from "@/lib/queryClient";
@@ -98,13 +99,26 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
                     value={notebook.id}
                     data-testid={`select-notebook-${notebook.id}`}
                   >
-                    <div className="flex flex-col">
-                      <span className="font-medium">{notebook.name}</span>
-                      {notebook.description && (
-                        <span className="text-xs text-muted-foreground truncate">
-                          {notebook.description}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-shrink-0 w-8 h-8 rounded overflow-hidden bg-muted flex items-center justify-center">
+                        {notebook.imageUrl ? (
+                          <img 
+                            src={notebook.imageUrl} 
+                            alt={notebook.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <BookOpen className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium truncate">{notebook.name}</span>
+                        {notebook.description && (
+                          <span className="text-xs text-muted-foreground truncate">
+                            {notebook.description}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </SelectItem>
                 ))}
@@ -124,14 +138,39 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
         </Button>
       </div>
 
-      {/* Active Notebook Info */}
+      {/* Active Notebook Card */}
       {showActiveInfo && activeNotebook && (
-        <div className="text-sm text-muted-foreground">
-          Working in: <span className="font-medium">{activeNotebook.name}</span>
-          {activeNotebook.description && (
-            <span className="ml-2 text-xs">— {activeNotebook.description}</span>
-          )}
-        </div>
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                {activeNotebook.imageUrl ? (
+                  <img 
+                    src={activeNotebook.imageUrl} 
+                    alt={activeNotebook.name}
+                    className="w-full h-full object-cover"
+                    data-testid="img-active-notebook-thumbnail"
+                  />
+                ) : (
+                  <BookOpen className="h-8 w-8 text-muted-foreground" data-testid="icon-active-notebook-fallback" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                  Working in
+                </div>
+                <h3 className="font-semibold text-base mb-1 truncate" data-testid="text-active-notebook-name">
+                  {activeNotebook.name}
+                </h3>
+                {activeNotebook.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2" data-testid="text-active-notebook-description">
+                    {activeNotebook.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <NotebookManager 
