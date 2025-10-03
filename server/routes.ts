@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/ai", aiRoutes);
 
   // Serve uploaded objects with optional access control
-  // NOTE: World-building content is publicly accessible via UUID protection.
+  // NOTE: World-building content and avatars are publicly accessible via UUID protection.
   // Private uploads in .private/ directory would require authentication and ownership validation.
   app.get("/objects/:objectPath(*)", async (req, res) => {
     const objectStorageService = new ObjectStorageService();
@@ -120,8 +120,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Public objects (world-building content) are accessible with UUID-based security
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      // Extract the file path after /objects/
+      const filePath = req.path.replace('/objects/', '');
+      
+      // Try to find in public search paths (for avatars and other public content)
+      let objectFile = await objectStorageService.searchPublicObject(filePath);
+      
+      // If not found in public paths, try private entity storage for backward compatibility
+      if (!objectFile) {
+        try {
+          objectFile = await objectStorageService.getObjectEntityFile(req.path);
+        } catch (err) {
+          if (err instanceof ObjectNotFoundError) {
+            return res.sendStatus(404);
+          }
+          throw err;
+        }
+      }
+      
+      if (!objectFile) {
+        return res.sendStatus(404);
+      }
+      
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error retrieving object:", error);
@@ -135,8 +155,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload/image", async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
-      const { uploadURL, objectId } = await objectStorageService.getObjectEntityUploadURL();
-      const objectPath = `/objects/uploads/${objectId}`;
+      const { uploadURL, objectId } = await objectStorageService.getPublicObjectUploadURL();
+      const objectPath = `/objects/avatars/${objectId}`;
       res.json({ 
         uploadURL,
         objectPath,
@@ -162,6 +182,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const objectStorageService = new ObjectStorageService();
       
+      // Check if this is a public avatar (no ACL needed for public storage)
+      if (objectPath.startsWith('/objects/avatars/')) {
+        // Public avatars are already in public storage, just return the path
+        res.json({ objectPath });
+        return;
+      }
+      
+      // For private uploads, set ACL policy
       const finalPath = await objectStorageService.trySetObjectEntityAclPolicy(
         objectPath,
         {
