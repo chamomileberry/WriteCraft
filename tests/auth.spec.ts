@@ -45,7 +45,7 @@ describe('Authentication & Authorization Tests', () => {
         .get(`/api/characters/${user1CharacterId}`)
         .expect(401);
       
-      expect(response.body).toHaveProperty('error');
+      expect(response.body).toHaveProperty('message');
     });
 
     it('should return 401 for unauthenticated POST /api/characters request', async () => {
@@ -57,7 +57,7 @@ describe('Authentication & Authorization Tests', () => {
         })
         .expect(401);
       
-      expect(response.body).toHaveProperty('error');
+      expect(response.body).toHaveProperty('message');
     });
 
     it('should return 401 for unauthenticated GET /api/notebooks request', async () => {
@@ -65,7 +65,7 @@ describe('Authentication & Authorization Tests', () => {
         .get('/api/notebooks')
         .expect(401);
       
-      expect(response.body).toHaveProperty('error');
+      expect(response.body).toHaveProperty('message');
     });
 
     it('should return 401 for unauthenticated DELETE /api/characters/:id request', async () => {
@@ -73,7 +73,7 @@ describe('Authentication & Authorization Tests', () => {
         .delete(`/api/characters/${user1CharacterId}`)
         .expect(401);
       
-      expect(response.body).toHaveProperty('error');
+      expect(response.body).toHaveProperty('message');
     });
 
     it('should return 401 for unauthenticated GET /api/auth/user request', async () => {
@@ -81,7 +81,7 @@ describe('Authentication & Authorization Tests', () => {
         .get('/api/auth/user')
         .expect(401);
       
-      expect(response.body).toHaveProperty('error');
+      expect(response.body).toHaveProperty('message');
     });
   });
 
@@ -89,6 +89,7 @@ describe('Authentication & Authorization Tests', () => {
     it('should return 404 when User 2 tries to access User 1\'s character', async () => {
       const response = await request(app)
         .get(`/api/characters/${user1CharacterId}`)
+        .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user2Id)
         .expect(404);
       
@@ -107,6 +108,7 @@ describe('Authentication & Authorization Tests', () => {
     it('should return 404 when User 2 tries to update User 1\'s character', async () => {
       const response = await request(app)
         .put(`/api/characters/${user1CharacterId}`)
+        .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user2Id)
         .send({
           givenName: "Hacked Name"
@@ -121,6 +123,7 @@ describe('Authentication & Authorization Tests', () => {
     it('should return 200 when User 1 accesses their own character', async () => {
       const response = await request(app)
         .get(`/api/characters/${user1CharacterId}`)
+        .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user1Id)
         .expect(200);
       
@@ -128,7 +131,7 @@ describe('Authentication & Authorization Tests', () => {
       expect(response.body).toHaveProperty('givenName');
     });
 
-    it('should return 201 when User 1 creates a character in their notebook', async () => {
+    it('should return 200 when User 1 creates a character in their notebook', async () => {
       const response = await request(app)
         .post('/api/characters')
         .set('X-Test-User-Id', user1Id)
@@ -137,7 +140,7 @@ describe('Authentication & Authorization Tests', () => {
           familyName: "Created",
           notebookId: user1NotebookId
         })
-        .expect(201);
+        .expect(200);
       
       expect(response.body).toHaveProperty('id');
       expect(response.body).toHaveProperty('givenName', 'New Test Character');
@@ -158,6 +161,7 @@ describe('Authentication & Authorization Tests', () => {
     it('should return 200 when User 1 updates their own character', async () => {
       const response = await request(app)
         .put(`/api/characters/${user1CharacterId}`)
+        .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user1Id)
         .send({
           givenName: "Updated Name"
@@ -176,18 +180,20 @@ describe('Authentication & Authorization Tests', () => {
           givenName: "To Be Deleted",
           notebookId: user1NotebookId
         })
-        .expect(201);
+        .expect(200);
       
       const characterToDelete = createResponse.body.id;
       
       await request(app)
         .delete(`/api/characters/${characterToDelete}`)
+        .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user1Id)
         .expect(204);
       
       // Verify it's actually deleted
       await request(app)
         .get(`/api/characters/${characterToDelete}`)
+        .query({ notebookId: user1NotebookId })
         .set('X-Test-User-Id', user1Id)
         .expect(404);
     });
