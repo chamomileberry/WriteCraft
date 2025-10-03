@@ -382,8 +382,8 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated }: 
               />
             </div>
             <div>
-              <Label>Thumbnail Image (Optional)</Label>
               <ImageUpload
+                label="Thumbnail Image (Optional)"
                 value={createForm.imageUrl}
                 onChange={(url) => setCreateForm(prev => ({ ...prev, imageUrl: url }))}
                 accept="image/jpeg,image/png,image/webp"
@@ -446,8 +446,8 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated }: 
               />
             </div>
             <div>
-              <Label>Thumbnail Image (Optional)</Label>
               <ImageUpload
+                label="Thumbnail Image (Optional)"
                 value={editForm.imageUrl}
                 onChange={(url) => setEditForm(prev => ({ ...prev, imageUrl: url }))}
                 accept="image/jpeg,image/png,image/webp"
