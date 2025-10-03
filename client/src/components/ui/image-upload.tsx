@@ -192,24 +192,26 @@ export function ImageUpload({
       {label && <Label>{label}</Label>}
       
       {imageUrl ? (
-        <div className="relative inline-block max-w-full">
-          <img 
-            src={imageUrl} 
-            alt={caption || "Uploaded image"} 
-            className="max-w-full h-auto max-h-64 rounded-lg border block"
-          />
-          <div className="absolute top-2 right-2 z-10">
-            <Button
-              type="button"
-              variant="default"
-              size="icon"
-              className="h-7 w-7 rounded-full bg-primary hover:bg-primary/90 shadow-md"
-              onClick={handleRemove}
-              disabled={disabled}
-              data-testid="button-remove-image"
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
+        <div className="flex justify-center">
+          <div className="relative inline-block max-w-full">
+            <img 
+              src={imageUrl} 
+              alt={caption || "Uploaded image"} 
+              className="max-w-full h-auto max-h-64 rounded-lg border block"
+            />
+            <div className="absolute top-2 right-2 z-10">
+              <Button
+                type="button"
+                variant="default"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-primary hover:bg-primary/90 shadow-md"
+                onClick={handleRemove}
+                disabled={disabled}
+                data-testid="button-remove-image"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
