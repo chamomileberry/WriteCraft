@@ -103,13 +103,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register AI routes
   app.use("/api/ai", aiRoutes);
 
-  // Image upload routes (reference: blueprint:javascript_object_storage)
-  // NOTE: Images are set to public visibility for world-building content (characters, 
-  // weapons, locations, etc.). For private user content (profiles, etc.), implement 
-  // authentication checks and ACL verification here using canAccessObjectEntity.
+  // Serve uploaded objects with optional access control
+  // NOTE: World-building content is publicly accessible via UUID protection.
+  // Private uploads in .private/ directory would require authentication and ownership validation.
   app.get("/objects/:objectPath(*)", async (req, res) => {
     const objectStorageService = new ObjectStorageService();
     try {
+      // Check if this is a private object (in .private/ directory)
+      const isPrivate = req.path.includes('/.private/');
+      
+      if (isPrivate) {
+        // Private objects require authentication and ownership check
+        // For production use, implement ownership validation here
+        return res.status(403).json({ 
+          error: "Private objects require authentication and ownership validation" 
+        });
+      }
+      
+      // Public objects (world-building content) are accessible with UUID-based security
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
@@ -137,10 +148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // NOTE: This sets uploaded images to public visibility for world-building content.
-  // UUIDs provide practical protection against guessing. For production systems with 
-  // private user content, track upload sessions and verify ownership before finalizing.
-  app.post("/api/upload/finalize", async (req, res) => {
+  // Finalize upload - requires authentication for security
+  app.post("/api/upload/finalize", isAuthenticated, async (req: any, res) => {
     try {
       const { objectPath } = req.body;
       
@@ -148,8 +157,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "objectPath is required" });
       }
 
+      // Get authenticated user ID from session (never trust client headers)
+      const userId = req.user.claims.sub;
+
       const objectStorageService = new ObjectStorageService();
-      const userId = req.headers['x-user-id'] as string || 'anonymous';
       
       const finalPath = await objectStorageService.trySetObjectEntityAclPolicy(
         objectPath,
