@@ -43,7 +43,13 @@ router.post("/generate", async (req, res) => {
 
 router.get("/random", async (req, res) => {
   try {
-    const prompts = await storage.getUserPrompts(null);
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const prompts = await storage.getUserPrompts('demo-user', notebookId);
     if (prompts.length === 0) {
       return res.status(404).json({ error: 'No prompts found' });
     }
@@ -57,8 +63,14 @@ router.get("/random", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const prompts = await storage.getUserPrompts(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const prompts = await storage.getUserPrompts(userId, notebookId);
     res.json(prompts);
   } catch (error) {
     console.error('Error fetching prompts:', error);

@@ -28,14 +28,15 @@ router.get("/", async (req, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const species = await storage.getUserSpecies(userId);
     
-    // Filter by notebook if notebookId is provided
-    let filtered = notebookId 
-      ? species.filter(item => item.notebookId === notebookId)
-      : species;
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
     
-    // Then filter by search text if provided
+    const species = await storage.getUserSpecies(userId, notebookId);
+    
+    // Filter by search text if provided
+    let filtered = species;
     if (search) {
       filtered = filtered.filter(item =>
         item.name?.toLowerCase().includes(search.toLowerCase())
@@ -51,8 +52,14 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const species = await storage.getUserSpecies(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const species = await storage.getUserSpecies(userId, notebookId);
     res.json(species);
   } catch (error) {
     console.error('Error fetching species:', error);

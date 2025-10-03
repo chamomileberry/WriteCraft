@@ -21,8 +21,14 @@ router.post("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const timelines = await storage.getUserTimeline(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const timelines = await storage.getUserTimelines(userId, notebookId);
     res.json(timelines);
   } catch (error) {
     console.error('Error fetching timelines:', error);

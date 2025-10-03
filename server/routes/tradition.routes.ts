@@ -24,14 +24,15 @@ router.get("/", async (req, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const traditions = await storage.getUserTraditions(userId);
     
-    // Filter by notebook if notebookId is provided
-    let filtered = notebookId 
-      ? traditions.filter((item: any) => item.notebookId === notebookId)
-      : traditions;
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
     
-    // Then filter by search text if provided
+    const traditions = await storage.getUserTraditions(userId, notebookId);
+    
+    // Filter by search text if provided
+    let filtered = traditions;
     if (search) {
       filtered = filtered.filter((tradition: any) =>
         tradition.name?.toLowerCase().includes(search.toLowerCase())
@@ -47,8 +48,14 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const traditions = await storage.getUserTraditions(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const traditions = await storage.getUserTraditions(userId, notebookId);
     res.json(traditions);
   } catch (error) {
     console.error('Error fetching traditions:', error);

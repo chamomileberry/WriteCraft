@@ -22,8 +22,14 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const foods = await storage.getUserFoods(userId);
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const foods = await storage.getUserFoods(userId, notebookId);
     
     if (search) {
       const filtered = foods.filter(food =>
@@ -41,8 +47,14 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const foods = await storage.getUserFoods(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const foods = await storage.getUserFoods(userId, notebookId);
     res.json(foods);
   } catch (error) {
     console.error('Error fetching foods:', error);

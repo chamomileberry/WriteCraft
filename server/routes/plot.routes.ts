@@ -48,8 +48,14 @@ router.post("/generate", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const plots = await storage.getUserPlots(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const plots = await storage.getUserPlots(userId, notebookId);
     res.json(plots);
   } catch (error) {
     console.error('Error fetching plots:', error);

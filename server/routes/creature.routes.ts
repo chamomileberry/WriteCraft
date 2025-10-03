@@ -49,8 +49,14 @@ router.post("/generate", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const creatures = await storage.getUserCreatures(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const creatures = await storage.getUserCreatures(userId, notebookId);
     res.json(creatures);
   } catch (error) {
     console.error('Error fetching creatures:', error);

@@ -24,14 +24,15 @@ router.get("/", async (req, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const languages = await storage.getUserLanguages(userId);
     
-    // Filter by notebook if notebookId is provided
-    let filtered = notebookId 
-      ? languages.filter(item => item.notebookId === notebookId)
-      : languages;
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
     
-    // Then filter by search text if provided
+    const languages = await storage.getUserLanguages(userId, notebookId);
+    
+    // Filter by search text if provided
+    let filtered = languages;
     if (search) {
       filtered = filtered.filter(language =>
         language.name?.toLowerCase().includes(search.toLowerCase())
@@ -47,8 +48,14 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const languages = await storage.getUserLanguages(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const languages = await storage.getUserLanguages(userId, notebookId);
     res.json(languages);
   } catch (error) {
     console.error('Error fetching languages:', error);

@@ -38,14 +38,15 @@ router.get("/", async (req, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const professions = await storage.getUserProfessions(userId);
     
-    // Filter by notebook if notebookId is provided
-    let filtered = notebookId 
-      ? professions.filter(item => item.notebookId === notebookId)
-      : professions;
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
     
-    // Then filter by search text if provided
+    const professions = await storage.getUserProfessions(userId, notebookId);
+    
+    // Filter by search text if provided
+    let filtered = professions;
     if (search) {
       filtered = filtered.filter(item =>
         item.name?.toLowerCase().includes(search.toLowerCase())

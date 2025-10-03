@@ -24,14 +24,15 @@ router.get("/", async (req, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const religions = await storage.getUserReligions(userId);
     
-    // Filter by notebook if notebookId is provided
-    let filtered = notebookId 
-      ? religions.filter(item => item.notebookId === notebookId)
-      : religions;
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
     
-    // Then filter by search text if provided
+    const religions = await storage.getUserReligions(userId, notebookId);
+    
+    // Filter by search text if provided
+    let filtered = religions;
     if (search) {
       filtered = filtered.filter(religion =>
         religion.name?.toLowerCase().includes(search.toLowerCase())
@@ -47,8 +48,14 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const religions = await storage.getUserReligions(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const religions = await storage.getUserReligions(userId, notebookId);
     res.json(religions);
   } catch (error) {
     console.error('Error fetching religions:', error);

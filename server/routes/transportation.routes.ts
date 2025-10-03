@@ -21,8 +21,14 @@ router.post("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const transportations = await storage.getUserTransportation(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const transportations = await storage.getUserTransportations(userId, notebookId);
     res.json(transportations);
   } catch (error) {
     console.error('Error fetching transportations:', error);

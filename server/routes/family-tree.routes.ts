@@ -24,21 +24,22 @@ router.get("/", async (req, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
-    const familyTrees = await storage.getUserFamilyTrees(userId);
     
-    // Filter by notebook if notebookId is provided
-    let filtered = notebookId 
-      ? familyTrees.filter((item: any) => item.notebookId === notebookId)
-      : familyTrees;
-    
-    // Then filter by search text if provided
-    if (search) {
-      filtered = filtered.filter((item: any) =>
-        item.name?.toLowerCase().includes(search.toLowerCase())
-      );
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
     }
     
-    res.json(filtered);
+    const familyTrees = await storage.getUserFamilyTrees(userId, notebookId);
+    
+    // Filter by search text if provided
+    if (search) {
+      const filtered = familyTrees.filter((item: any) =>
+        item.name?.toLowerCase().includes(search.toLowerCase())
+      );
+      res.json(filtered);
+    } else {
+      res.json(familyTrees);
+    }
   } catch (error) {
     console.error('Error fetching family trees:', error);
     res.status(500).json({ error: 'Failed to fetch family trees' });
@@ -47,8 +48,14 @@ router.get("/", async (req, res) => {
 
 router.get("/user/:userId?", async (req, res) => {
   try {
-    const userId = req.params.userId || null;
-    const familyTrees = await storage.getUserFamilyTrees(userId);
+    const userId = req.params.userId || 'demo-user';
+    const notebookId = req.query.notebookId as string;
+    
+    if (!notebookId) {
+      return res.status(400).json({ error: 'notebookId query parameter is required' });
+    }
+    
+    const familyTrees = await storage.getUserFamilyTrees(userId, notebookId);
     res.json(familyTrees);
   } catch (error) {
     console.error('Error fetching family trees:', error);
