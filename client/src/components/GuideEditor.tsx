@@ -743,7 +743,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       <Card>
         <CardHeader>
           <CardTitle>Content</CardTitle>
-          
+        </CardHeader>
+        
+        {/* Sticky Toolbar */}
+        <div className="sticky top-0 z-50 bg-card border-b">
           <EditorToolbar 
             editor={editor} 
             title={title}
@@ -759,9 +762,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
             </div>
           )}
-
-
-        </CardHeader>
+        </div>
         
         <CardContent>
           <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring">
