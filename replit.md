@@ -68,6 +68,18 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
   - Optimistic updates and cache invalidation properly scoped to authenticated user
   - **Known Issue**: Other components (QuickNotePanel, ContentEditor, CharacterGenerator, etc.) still contain hardcoded "demo-user" references that should be addressed in future work
 
+### AI Inline Suggestion Positioning Fix (Oct 3)
+- **Fixed AI suggestion popup positioning**: Canvas-style inline suggestion popups now appear correctly adjacent to highlighted text
+  - **Root Cause**: Popup was using `window.getSelection()` which tracked cursor position instead of suggestion location
+  - **Solution**: Switched to ProseMirror's native `coordsAtPos()` API for accurate text position tracking
+  - **Implementation**:
+    - Captured editor view reference in plugin `view()` method for positioning calculations
+    - Used `position: fixed` with viewport-relative coordinates for reliable placement
+    - Added throttling (16ms) to scroll/resize handlers to prevent excessive position adjustments
+    - Smart positioning logic: shows above/below highlighted text based on available space
+  - **Result**: Popup now appears directly next to highlighted suggestion text and stays anchored even when cursor moves
+  - File: `client/src/lib/ai-suggestions-plugin.ts`
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

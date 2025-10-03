@@ -313,27 +313,14 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
 
   // Function to dynamically adjust positioning based on ProseMirror coordinates
   const adjustPosition = () => {
-    if (!globalEditorView) {
-      console.warn('Editor view not available for AI suggestion positioning');
-      return;
-    }
+    if (!globalEditorView) return;
     
     try {
       // Use ProseMirror's coordsAtPos to get the exact screen position of the suggestion
       const startCoords = globalEditorView.coordsAtPos(activeSuggestion.deleteRange.from);
       const endCoords = globalEditorView.coordsAtPos(activeSuggestion.deleteRange.to);
       
-      console.log('AI Suggestion positioning:', {
-        suggestionId: activeSuggestion.id,
-        range: activeSuggestion.deleteRange,
-        startCoords,
-        endCoords
-      });
-      
-      if (!startCoords || !endCoords) {
-        console.warn('Could not get coordinates for suggestion');
-        return;
-      }
+      if (!startCoords || !endCoords) return;
       
       // Create a rect representing the suggestion range
       const anchorRect = {
@@ -400,26 +387,37 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   setTimeout(adjustPosition, 10);
 
   // Re-adjust on scroll and resize to handle layout changes
-  let resizeObserver: ResizeObserver | null = null;
-  const handleScrollOrResize = () => {
-    adjustPosition();
+  // Throttle position adjustments to prevent excessive calls
+  let adjustmentTimeout: number | null = null;
+  const throttledAdjustPosition = () => {
+    if (adjustmentTimeout) return; // Skip if already scheduled
+    
+    adjustmentTimeout = window.setTimeout(() => {
+      adjustPosition();
+      adjustmentTimeout = null;
+    }, 16); // ~60fps
   };
 
+  let resizeObserver: ResizeObserver | null = null;
+  
   if (typeof ResizeObserver !== 'undefined') {
-    resizeObserver = new ResizeObserver(handleScrollOrResize);
+    resizeObserver = new ResizeObserver(throttledAdjustPosition);
     resizeObserver.observe(document.body);
   }
   
-  window.addEventListener('scroll', handleScrollOrResize, true);
-  window.addEventListener('resize', handleScrollOrResize);
+  window.addEventListener('scroll', throttledAdjustPosition, true);
+  window.addEventListener('resize', throttledAdjustPosition);
 
   // Cleanup observers when card is removed
   const cleanupObservers = () => {
+    if (adjustmentTimeout) {
+      clearTimeout(adjustmentTimeout);
+    }
     if (resizeObserver) {
       resizeObserver.disconnect();
     }
-    window.removeEventListener('scroll', handleScrollOrResize, true);
-    window.removeEventListener('resize', handleScrollOrResize);
+    window.removeEventListener('scroll', throttledAdjustPosition, true);
+    window.removeEventListener('resize', throttledAdjustPosition);
   };
 
   // Store cleanup function on the card for potential future use
@@ -486,15 +484,10 @@ const aiSuggestionProseMirrorPlugin = new Plugin<AISuggestionPluginState>({
       const newSuggestion = tr.getMeta(aiSuggestionPluginKey);
       const updatedSuggestionsMeta = tr.getMeta('updateSuggestions');
 
-      if (newSuggestion) {
-        console.log('AI Plugin received new suggestion:', newSuggestion);
-      }
-
       let finalSuggestions = updatedSuggestions;
 
       if (newSuggestion) {
         finalSuggestions = [...updatedSuggestions, newSuggestion];
-        console.log('Final suggestions after adding new:', finalSuggestions);
       }
 
       if (updatedSuggestionsMeta) {
@@ -503,7 +496,6 @@ const aiSuggestionProseMirrorPlugin = new Plugin<AISuggestionPluginState>({
 
       // Recreate decorations if suggestions changed
       if (newSuggestion || updatedSuggestionsMeta) {
-        console.log('Creating decorations for suggestions:', finalSuggestions);
         decorations = createSuggestionDecorations(tr.doc, finalSuggestions);
       }
 
