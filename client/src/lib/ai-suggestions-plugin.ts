@@ -486,10 +486,15 @@ const aiSuggestionProseMirrorPlugin = new Plugin<AISuggestionPluginState>({
       const newSuggestion = tr.getMeta(aiSuggestionPluginKey);
       const updatedSuggestionsMeta = tr.getMeta('updateSuggestions');
 
+      if (newSuggestion) {
+        console.log('AI Plugin received new suggestion:', newSuggestion);
+      }
+
       let finalSuggestions = updatedSuggestions;
 
       if (newSuggestion) {
         finalSuggestions = [...updatedSuggestions, newSuggestion];
+        console.log('Final suggestions after adding new:', finalSuggestions);
       }
 
       if (updatedSuggestionsMeta) {
@@ -498,6 +503,7 @@ const aiSuggestionProseMirrorPlugin = new Plugin<AISuggestionPluginState>({
 
       // Recreate decorations if suggestions changed
       if (newSuggestion || updatedSuggestionsMeta) {
+        console.log('Creating decorations for suggestions:', finalSuggestions);
         decorations = createSuggestionDecorations(tr.doc, finalSuggestions);
       }
 
