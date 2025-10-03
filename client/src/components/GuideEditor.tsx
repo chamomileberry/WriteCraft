@@ -483,9 +483,15 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       if (editor && guide.content) {
         // Convert markdown to HTML if needed
         const htmlContent = convertMarkdownToHTML(guide.content);
-        editor.commands.setContent(htmlContent);
-        // Update word count after setting content
-        dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
+        
+        // Only update editor content if it's different from current content
+        // This prevents cursor jumping during autosave
+        const currentContent = editor.getHTML();
+        if (currentContent !== htmlContent) {
+          editor.commands.setContent(htmlContent);
+          // Update word count after setting content
+          dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
+        }
       }
     }
   }, [guide, editor]);
