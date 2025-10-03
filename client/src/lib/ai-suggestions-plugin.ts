@@ -308,8 +308,13 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
 
   // Function to dynamically adjust positioning based on viewport and actual measurements
   const adjustPosition = () => {
+    // Get the selection's position relative to viewport
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const rangeRect = range.getBoundingClientRect();
     const cardRect = card.getBoundingClientRect();
-    const popupRect = popupWidget.getBoundingClientRect();
     
     // Dynamically measure toolbar height by finding header elements
     let actualToolbarHeight = 0;
@@ -318,31 +323,44 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
       actualToolbarHeight = header.getBoundingClientRect().bottom;
     }
     
-    // Calculate if popup would extend beyond viewport top
-    const popupTopIfAbove = popupRect.top - cardRect.height - 24;
-    const wouldOverlapToolbar = popupTopIfAbove < actualToolbarHeight;
-    const wouldOverlapViewportTop = popupTopIfAbove < 10;
+    // Position the popup relative to the selected text
+    const spaceAbove = rangeRect.top - actualToolbarHeight;
+    const spaceBelow = window.innerHeight - rangeRect.bottom;
+    const cardHeight = cardRect.height;
     
-    // Only position below if there's an actual collision
-    if (wouldOverlapToolbar || wouldOverlapViewportTop) {
+    // Determine if we should show above or below the selection
+    const shouldShowAbove = spaceAbove > cardHeight + 30;
+    const shouldShowBelow = !shouldShowAbove && spaceBelow > cardHeight + 30;
+    
+    if (shouldShowAbove) {
+      // Position above the selection
+      const topPosition = rangeRect.top - popupWidget.getBoundingClientRect().top - cardHeight - 10;
       card.style.bottom = 'auto';
-      card.style.top = '24px';
+      card.style.top = `${topPosition}px`;
+    } else if (shouldShowBelow) {
+      // Position below the selection
+      const topPosition = rangeRect.bottom - popupWidget.getBoundingClientRect().top + 10;
+      card.style.bottom = 'auto';
+      card.style.top = `${topPosition}px`;
     } else {
-      // Restore default above positioning if no collision
-      card.style.bottom = '24px';
-      card.style.top = 'auto';
+      // If not enough space, position at viewport center
+      const centerPosition = (window.innerHeight - cardHeight) / 2;
+      card.style.bottom = 'auto';
+      card.style.top = `${centerPosition - popupWidget.getBoundingClientRect().top}px`;
     }
+    
+    // Center horizontally relative to the selection
+    const selectionCenter = rangeRect.left + (rangeRect.width / 2);
+    const cardWidth = cardRect.width;
+    let leftPosition = selectionCenter - popupWidget.getBoundingClientRect().left - (cardWidth / 2);
     
     // Ensure horizontal positioning stays within viewport
-    const cardLeft = cardRect.left;
-    const cardRight = cardRect.right;
     const marginFromEdge = isMobile ? 10 : 20;
+    const maxLeft = window.innerWidth - cardWidth - marginFromEdge - popupWidget.getBoundingClientRect().left;
+    const minLeft = marginFromEdge - popupWidget.getBoundingClientRect().left;
     
-    if (cardLeft < marginFromEdge) {
-      card.style.left = `${marginFromEdge - cardLeft}px`;
-    } else if (cardRight > window.innerWidth - marginFromEdge) {
-      card.style.left = `${window.innerWidth - cardRight - marginFromEdge}px`;
-    }
+    leftPosition = Math.max(minLeft, Math.min(leftPosition, maxLeft));
+    card.style.left = `${leftPosition}px`;
   };
 
   // Initial positioning adjustment
