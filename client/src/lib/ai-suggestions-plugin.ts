@@ -118,6 +118,11 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   const popupContainer = document.createElement('div');
   popupContainer.className = 'ai-canvas-popup-container';
   popupContainer.setAttribute('data-suggestion-popup', activeSuggestion.id);
+  popupContainer.style.cssText = `
+    position: absolute;
+    z-index: 99999;
+    pointer-events: none;
+  `.replace(/\s+/g, ' ').trim();
   
   // The actual popup card - use fixed positioning for better control
   const card = document.createElement('div');
@@ -247,6 +252,7 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
     border-radius: 8px;
     padding: 8px 16px;
     cursor: pointer;
+    pointer-events: auto;
     font-size: 13px;
     font-weight: 500;
     transition: all 0.2s ease;
@@ -308,6 +314,7 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
     border-radius: 8px;
     padding: 8px 16px;
     cursor: pointer;
+    pointer-events: auto;
     font-size: 13px;
     font-weight: 600;
     transition: all 0.2s ease;
