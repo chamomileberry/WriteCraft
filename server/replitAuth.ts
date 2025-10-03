@@ -130,6 +130,16 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // Test mode bypass - allows automated tests to simulate authenticated users
+  if (process.env.NODE_ENV === 'test' && req.headers['x-test-user-id']) {
+    (req as any).user = {
+      claims: {
+        sub: req.headers['x-test-user-id'] as string
+      }
+    };
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
