@@ -79,9 +79,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const tradition = await storage.getTradition(req.params.id);
     if (!tradition) {
       return res.status(404).json({ error: 'Tradition not found' });
+    }
+    if (tradition.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this tradition' });
     }
     res.json(tradition);
   } catch (error) {

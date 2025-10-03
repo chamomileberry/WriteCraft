@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const building = await storage.getBuilding(req.params.id);
     if (!building) {
       return res.status(404).json({ error: 'Building not found' });
+    }
+    if (building.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this building' });
     }
     res.json(building);
   } catch (error) {

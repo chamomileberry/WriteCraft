@@ -95,9 +95,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const conflict = await storage.getConflict(req.params.id);
     if (!conflict) {
       return res.status(404).json({ error: 'Conflict not found' });
+    }
+    if (conflict.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this conflict' });
     }
     res.json(conflict);
   } catch (error) {

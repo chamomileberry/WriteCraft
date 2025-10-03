@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const ethnicity = await storage.getEthnicity(req.params.id);
     if (!ethnicity) {
       return res.status(404).json({ error: 'Ethnicity not found' });
+    }
+    if (ethnicity.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this ethnicity' });
     }
     res.json(ethnicity);
   } catch (error) {

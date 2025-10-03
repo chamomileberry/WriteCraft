@@ -35,9 +35,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const description = await storage.getDescription(req.params.id);
     if (!description) {
       return res.status(404).json({ error: 'Description not found' });
+    }
+    if (description.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this description' });
     }
     res.json(description);
   } catch (error) {

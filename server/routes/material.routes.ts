@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const material = await storage.getMaterial(req.params.id);
     if (!material) {
       return res.status(404).json({ error: 'Material not found' });
+    }
+    if (material.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this material' });
     }
     res.json(material);
   } catch (error) {

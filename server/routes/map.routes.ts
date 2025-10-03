@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const map = await storage.getMap(req.params.id);
     if (!map) {
       return res.status(404).json({ error: 'Map not found' });
+    }
+    if (map.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this map' });
     }
     res.json(map);
   } catch (error) {

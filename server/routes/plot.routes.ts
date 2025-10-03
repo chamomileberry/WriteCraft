@@ -75,9 +75,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const plot = await storage.getPlot(req.params.id);
     if (!plot) {
       return res.status(404).json({ error: 'Plot not found' });
+    }
+    if (plot.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this plot' });
     }
     res.json(plot);
   } catch (error) {

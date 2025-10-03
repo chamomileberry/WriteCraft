@@ -79,9 +79,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const familyTree = await storage.getFamilyTree(req.params.id);
     if (!familyTree) {
       return res.status(404).json({ error: 'Family tree not found' });
+    }
+    if (familyTree.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this family tree' });
     }
     res.json(familyTree);
   } catch (error) {

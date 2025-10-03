@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const settlement = await storage.getSettlement(req.params.id);
     if (!settlement) {
       return res.status(404).json({ error: 'Settlement not found' });
+    }
+    if (settlement.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this settlement' });
     }
     res.json(settlement);
   } catch (error) {

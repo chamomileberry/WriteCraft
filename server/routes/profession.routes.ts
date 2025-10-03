@@ -68,9 +68,13 @@ router.get("/", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const profession = await storage.getProfession(req.params.id);
     if (!profession) {
       return res.status(404).json({ error: 'Profession not found' });
+    }
+    if (profession.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this profession' });
     }
     res.json(profession);
   } catch (error) {

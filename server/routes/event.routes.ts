@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const event = await storage.getEvent(req.params.id);
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
+    }
+    if (event.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this event' });
     }
     res.json(event);
   } catch (error) {

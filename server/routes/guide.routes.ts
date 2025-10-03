@@ -44,9 +44,13 @@ router.get("/", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const guide = await storage.getGuide(req.params.id);
     if (!guide) {
       return res.status(404).json({ error: 'Guide not found' });
+    }
+    if (guide.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this guide' });
     }
     res.json(guide);
   } catch (error) {

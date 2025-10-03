@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const ceremony = await storage.getCeremony(req.params.id);
     if (!ceremony) {
       return res.status(404).json({ error: 'Ceremony not found' });
+    }
+    if (ceremony.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this ceremony' });
     }
     res.json(ceremony);
   } catch (error) {

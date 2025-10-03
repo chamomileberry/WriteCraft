@@ -78,9 +78,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const document = await storage.getDocument(req.params.id);
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
+    }
+    if (document.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this document' });
     }
     res.json(document);
   } catch (error) {

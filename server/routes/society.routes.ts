@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const society = await storage.getSociety(req.params.id);
     if (!society) {
       return res.status(404).json({ error: 'Society not found' });
+    }
+    if (society.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this society' });
     }
     res.json(society);
   } catch (error) {

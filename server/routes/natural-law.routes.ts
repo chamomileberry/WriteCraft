@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const naturalLaw = await storage.getNaturalLaw(req.params.id);
     if (!naturalLaw) {
       return res.status(404).json({ error: 'Natural law not found' });
+    }
+    if (naturalLaw.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this natural law' });
     }
     res.json(naturalLaw);
   } catch (error) {

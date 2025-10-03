@@ -79,9 +79,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const language = await storage.getLanguage(req.params.id);
     if (!language) {
       return res.status(404).json({ error: 'Language not found' });
+    }
+    if (language.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this language' });
     }
     res.json(language);
   } catch (error) {

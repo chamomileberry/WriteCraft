@@ -78,9 +78,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const theme = await storage.getTheme(req.params.id);
     if (!theme) {
       return res.status(404).json({ error: 'Theme not found' });
+    }
+    if (theme.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this theme' });
     }
     res.json(theme);
   } catch (error) {

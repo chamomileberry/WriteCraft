@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const law = await storage.getLaw(req.params.id);
     if (!law) {
       return res.status(404).json({ error: 'Law not found' });
+    }
+    if (law.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this law' });
     }
     res.json(law);
   } catch (error) {

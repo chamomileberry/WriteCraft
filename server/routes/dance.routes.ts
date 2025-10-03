@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const dance = await storage.getDance(req.params.id);
     if (!dance) {
       return res.status(404).json({ error: 'Dance not found' });
+    }
+    if (dance.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this dance' });
     }
     res.json(dance);
   } catch (error) {

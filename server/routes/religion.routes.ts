@@ -79,9 +79,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const religion = await storage.getReligion(req.params.id);
     if (!religion) {
       return res.status(404).json({ error: 'Religion not found' });
+    }
+    if (religion.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this religion' });
     }
     res.json(religion);
   } catch (error) {

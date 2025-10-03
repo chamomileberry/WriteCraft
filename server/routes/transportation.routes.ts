@@ -52,9 +52,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const transportation = await storage.getTransportation(req.params.id);
     if (!transportation) {
       return res.status(404).json({ error: 'Transportation not found' });
+    }
+    if (transportation.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this transportation' });
     }
     res.json(transportation);
   } catch (error) {

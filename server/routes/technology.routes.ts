@@ -78,9 +78,13 @@ router.get("/user/:userId?", async (req: any, res) => {
 
 router.get("/:id", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
     const technology = await storage.getTechnology(req.params.id);
     if (!technology) {
       return res.status(404).json({ error: 'Technology not found' });
+    }
+    if (technology.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this technology' });
     }
     res.json(technology);
   } catch (error) {
