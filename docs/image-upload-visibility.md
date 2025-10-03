@@ -11,6 +11,8 @@ The WriteCraft platform supports two types of image uploads with different visib
 
 ### Upload Endpoint: `/api/upload/image`
 
+**Authentication:** Not required (generates signed URL only)
+
 **Request:**
 ```http
 POST /api/upload/image
@@ -20,6 +22,8 @@ Content-Type: application/json
   "visibility": "public" | "private"
 }
 ```
+
+**Important:** While the upload endpoint doesn't require authentication to generate a signed URL, the finalize endpoint DOES require authentication. This prevents abuse while allowing flexible upload flows.
 
 **Response:**
 ```json
@@ -32,15 +36,30 @@ Content-Type: application/json
 
 ### Finalize Endpoint: `/api/upload/finalize`
 
+**Authentication:** Required (session-based authentication via cookies)
+
 **Request:**
 ```http
 POST /api/upload/finalize
 Content-Type: application/json
-Authorization: Required (session-based)
+Cookie: connect.sid=<session-cookie>
 
 {
-  "objectPath": "/objects/avatars/{uuid}" or "/objects/uploads/{uuid}"
+  "objectPath": "/objects/avatars/{uuid}"
 }
+```
+
+**Example:**
+```javascript
+// After uploading file to signed URL
+const finalizeResponse = await fetch('/api/upload/finalize', {
+  method: 'POST',
+  credentials: 'include', // Include session cookies
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ objectPath })
+});
 ```
 
 **Response:**
@@ -163,16 +182,18 @@ GET /objects/uploads/xyz-789-ghi
 ## Security Considerations
 
 ### Public Uploads
-- Upload endpoint still requires authentication (prevents spam)
-- Files stored in public bucket with public read access
-- No ACL policy needed (bucket-level permissions)
-- Suitable for user-facing content like avatars
+- **Upload URL generation:** No authentication required (generates signed URL only)
+- **Finalize endpoint:** Requires authentication to prevent spam and associate uploads with users
+- **File access:** Stored in public bucket with public read access
+- **ACL policy:** Not needed (bucket-level public permissions apply)
+- **Use cases:** User-facing content like avatars that need to be accessible without authentication
 
 ### Private Uploads
-- Upload endpoint requires authentication
-- Finalize endpoint sets ACL policy with owner metadata
-- Access requires authentication and ownership validation
-- Suitable for sensitive or user-specific content
+- **Upload URL generation:** No authentication required (generates signed URL only)
+- **Finalize endpoint:** Requires authentication and sets ACL policy with owner metadata  
+- **File access:** Requires authentication and ownership validation
+- **ACL policy:** Set with owner userId and visibility metadata
+- **Use cases:** Sensitive or user-specific content that should not be publicly accessible
 
 ## Example Workflows
 
