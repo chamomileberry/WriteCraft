@@ -16,6 +16,7 @@ interface ImageUploadProps {
   maxFileSize?: number; // in MB
   className?: string;
   disabled?: boolean;
+  visibility?: 'public' | 'private'; // Specify upload visibility
 }
 
 export function ImageUpload({ 
@@ -27,7 +28,8 @@ export function ImageUpload({
   accept = 'image/jpeg,image/png,image/gif,image/webp',
   maxFileSize = 5,
   className,
-  disabled = false
+  disabled = false,
+  visibility = 'private' // Default to private for backward compatibility
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState(value || '');
@@ -56,7 +58,8 @@ export function ImageUpload({
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ visibility })
       });
 
       if (!uploadUrlResponse.ok) {

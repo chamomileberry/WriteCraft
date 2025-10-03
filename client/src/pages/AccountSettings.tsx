@@ -135,6 +135,7 @@ export default function AccountSettings() {
                     maxFileSize={5}
                     disabled={updateProfileMutation.isPending}
                     className="max-w-md"
+                    visibility="public"
                   />
                   <p className="text-xs text-muted-foreground">
                     Upload a photo to personalize your profile. Max size: 5MB

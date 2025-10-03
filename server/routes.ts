@@ -155,8 +155,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload/image", async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
-      const { uploadURL, objectId } = await objectStorageService.getPublicObjectUploadURL();
-      const objectPath = `/objects/avatars/${objectId}`;
+      const { visibility } = req.body;
+      const isPublic = visibility === 'public';
+      
+      let uploadURL: string;
+      let objectId: string;
+      let objectPath: string;
+      
+      if (isPublic) {
+        // Public uploads (avatars) go to public directory
+        const result = await objectStorageService.getPublicObjectUploadURL();
+        uploadURL = result.uploadURL;
+        objectId = result.objectId;
+        objectPath = `/objects/avatars/${objectId}`;
+      } else {
+        // Private uploads (content images) go to private directory
+        const result = await objectStorageService.getObjectEntityUploadURL();
+        uploadURL = result.uploadURL;
+        objectId = result.objectId;
+        objectPath = `/objects/uploads/${objectId}`;
+      }
+      
       res.json({ 
         uploadURL,
         objectPath,
