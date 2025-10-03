@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updates = req.body;
       // Only allow updating specific fields
-      const allowedFields = ['firstName', 'lastName'];
+      const allowedFields = ['firstName', 'lastName', 'profileImageUrl'];
       const sanitizedUpdates: any = {};
       for (const field of allowedFields) {
         if (updates[field] !== undefined) {

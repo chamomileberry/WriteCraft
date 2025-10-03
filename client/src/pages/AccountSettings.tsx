@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -19,6 +20,16 @@ export default function AccountSettings() {
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
+  const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
+
+  // Sync state with user prop changes
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setProfileImageUrl(user.profileImageUrl || "");
+    }
+  }, [user]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -28,7 +39,7 @@ export default function AccountSettings() {
   }, [user, isLoading, setLocation]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { firstName: string; lastName: string }) => {
+    mutationFn: async (data: { firstName: string; lastName: string; profileImageUrl?: string }) => {
       return await apiRequest("PATCH", `/api/users/${user?.id}`, data);
     },
     onSuccess: () => {
@@ -49,12 +60,13 @@ export default function AccountSettings() {
   });
 
   const handleSave = () => {
-    updateProfileMutation.mutate({ firstName, lastName });
+    updateProfileMutation.mutate({ firstName, lastName, profileImageUrl });
   };
 
   const handleCancel = () => {
     setFirstName(user?.firstName || "");
     setLastName(user?.lastName || "");
+    setProfileImageUrl(user?.profileImageUrl || "");
     setIsEditing(false);
   };
 
@@ -101,7 +113,7 @@ export default function AccountSettings() {
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={user.profileImageUrl || undefined} />
+                  <AvatarImage src={profileImageUrl || user.profileImageUrl || undefined} />
                   <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -111,6 +123,24 @@ export default function AccountSettings() {
                   <p className="text-sm text-muted-foreground">{user.email}</p>
                 </div>
               </div>
+
+              {isEditing && (
+                <div className="space-y-2">
+                  <Label>Profile Photo</Label>
+                  <ImageUpload
+                    value={profileImageUrl}
+                    onChange={setProfileImageUrl}
+                    label="Profile Photo"
+                    accept="image/jpeg,image/png,image/webp"
+                    maxFileSize={5}
+                    disabled={updateProfileMutation.isPending}
+                    className="max-w-md"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Upload a photo to personalize your profile. Max size: 5MB
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
