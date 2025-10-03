@@ -746,12 +746,30 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
               <CardTitle>{title || 'Untitled Guide'}</CardTitle>
-              {/* Word Count */}
-              {editor && (
-                <div className="text-sm text-muted-foreground">
-                  {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {/* Word Count */}
+                {editor && (
+                  <div className="text-sm text-muted-foreground">
+                    {wordCount} words • {Math.max(1, Math.round(wordCount / 200))} min read
+                  </div>
+                )}
+                {/* Quick Save Button */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => autosave.handleSave()}
+                  disabled={autosave.saveStatus === 'saving'}
+                  data-testid="button-quick-save"
+                  className="gap-2"
+                >
+                  {autosave.saveStatus === 'saving' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Save
+                </Button>
+              </div>
             </div>
           </CardHeader>
           
