@@ -12,11 +12,17 @@ interface NotebookSwitcherProps {
   className?: string;
   showActiveInfo?: boolean;
   showHeader?: boolean;
+  isPopoverOpen?: boolean;
+  onPopoverOpenChange?: (open: boolean) => void;
 }
 
-export default function NotebookSwitcher({ className, showActiveInfo = true, showHeader = false }: NotebookSwitcherProps) {
+export default function NotebookSwitcher({ className, showActiveInfo = true, showHeader = false, isPopoverOpen: externalPopoverOpen, onPopoverOpenChange }: NotebookSwitcherProps) {
   const [isManagerOpen, setIsManagerOpen] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [internalPopoverOpen, setInternalPopoverOpen] = useState(false);
+  
+  // Use external control if provided, otherwise use internal state
+  const isPopoverOpen = externalPopoverOpen !== undefined ? externalPopoverOpen : internalPopoverOpen;
+  const setIsPopoverOpen = onPopoverOpenChange || setInternalPopoverOpen;
   const { 
     activeNotebookId, 
     notebooks, 

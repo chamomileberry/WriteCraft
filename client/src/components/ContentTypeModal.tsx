@@ -64,16 +64,6 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
     if (isOpen && activeNotebookId) {
       setSelectedNotebookId(activeNotebookId);
     }
-    
-    // Force close any open popovers by triggering a document click
-    // This prevents notebook switcher popover from bleeding through
-    if (isOpen) {
-      // Small delay to ensure modal is mounted first
-      setTimeout(() => {
-        const event = new MouseEvent('click', { bubbles: true });
-        document.body.dispatchEvent(event);
-      }, 50);
-    }
   }, [isOpen, activeNotebookId]);
   
   // Auto-open NotebookManager when no notebooks exist

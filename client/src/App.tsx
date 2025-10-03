@@ -38,6 +38,7 @@ function NotebookPage() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
+  const [notebookPopoverOpen, setNotebookPopoverOpen] = useState(false);
 
   const handleNavigate = (toolId: string) => {
     if (toolId === 'notebook') {
@@ -57,8 +58,8 @@ function NotebookPage() {
   };
 
   const handleCreateNew = () => {
-    // Close any open notebook switcher popovers by triggering a brief unmount/remount
-    // This prevents notebook descriptions from bleeding through into the modal
+    // Close notebook switcher popover before opening content modal
+    setNotebookPopoverOpen(false);
     setIsContentModalOpen(true);
   };
 
@@ -93,7 +94,11 @@ function NotebookPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Home
         </Button>
-        <SavedItems onCreateNew={handleCreateNew} />
+        <SavedItems 
+          onCreateNew={handleCreateNew} 
+          notebookPopoverOpen={notebookPopoverOpen}
+          onNotebookPopoverOpenChange={setNotebookPopoverOpen}
+        />
       </div>
       
       <ContentTypeModal

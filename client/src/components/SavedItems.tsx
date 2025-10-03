@@ -23,10 +23,10 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
   if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
     return item.itemData?.title || item.title || 'Quick Note';
   }
-  
+
   // Use actualItemData if itemData is null (for older saved items)
   const dataSource = item.itemData || actualItemData;
-  
+
   if (item.itemType === 'character') {
     if (dataSource) {
       const givenName = dataSource.givenName || '';
@@ -36,11 +36,11 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
     }
     return 'Untitled Character';
   }
-  
+
   if (item.itemType === 'profession') {
     return dataSource?.name || 'Untitled';
   }
-  
+
   return dataSource?.name || 'Untitled';
 };
 
@@ -82,9 +82,11 @@ const CONTENT_CATEGORIES: { [key: string]: string[] } = {
 
 interface SavedItemsProps {
   onCreateNew?: () => void;
+  notebookPopoverOpen?: boolean;
+  onNotebookPopoverOpenChange?: (open: boolean) => void;
 }
 
-export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
+export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNotebookPopoverOpenChange }: SavedItemsProps = {}) {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,10 +115,10 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     if (fetchedNotebooks && fetchedNotebooks.length > 0) {
       console.log('[SavedItems] Initializing notebooks, current activeNotebookId:', activeNotebookId);
       setNotebooks(fetchedNotebooks);
-      
+
       // Check if current activeNotebookId is valid
       const isValidNotebook = fetchedNotebooks.some((nb: any) => nb.id === activeNotebookId);
-      
+
       // If no active notebook or invalid notebook, select the first one
       if (!activeNotebookId || !isValidNotebook) {
         console.log('[SavedItems] Setting active notebook to first one:', fetchedNotebooks[0].id);
@@ -184,16 +186,16 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       const itemKey = item.itemId || item.id;
       return !item.itemData && itemKey && !fetchedItemsRef.current.has(itemKey);
     });
-    
+
     if (missingDataItems.length === 0) return;
-    
+
     const newFetchedData: { [key: string]: any } = {};
 
     for (const item of missingDataItems) {
       const itemKey = item.itemId || item.id;
       // Mark as fetched to prevent duplicate fetches
       fetchedItemsRef.current.add(itemKey);
-      
+
       try {
         let endpoint = '';
         if (item.itemType === 'character') {
@@ -205,7 +207,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
           const notebookIdParam = item.notebookId || activeNotebookId;
           endpoint = `/api/professions/${item.itemId}?notebookId=${notebookIdParam}`;
         }
-        
+
         if (endpoint) {
           const response = await apiRequest('GET', endpoint);
           if (response.ok) {
@@ -247,12 +249,12 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
         itemId: item.itemId || item.contentId || item.id,
         notebookId: item.notebookId || activeNotebookId
       };
-      
+
       console.log('[SavedItems] Deleting item:', {
         itemFromState: item,
         deleteBody: body
       });
-      
+
       const response = await apiRequest('DELETE', '/api/saved-items', body);
       const result = await response.json();
       console.log('[SavedItems] Delete response:', result);
@@ -260,7 +262,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     },
     onMutate: async (deletedItem) => {
       if (!user?.id) return;
-      
+
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['/api/saved-items', user.id, activeNotebookId] });
 
@@ -283,7 +285,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     },
     onError: (error, deletedItem, context) => {
       if (!user?.id) return;
-      
+
       // Rollback to previous value on error
       if (context?.previousItems) {
         queryClient.setQueryData(['/api/saved-items', user.id, activeNotebookId], context.previousItems);
@@ -296,7 +298,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
     },
     onSettled: () => {
       if (!user?.id) return;
-      
+
       // Force a fresh refetch (not from cache) to ensure we get the updated list
       queryClient.refetchQueries({ 
         queryKey: ['/api/saved-items', user.id, activeNotebookId],
@@ -332,15 +334,15 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       openQuickNote();
       return;
     }
-    
+
     const type = item.itemType || item.contentType || '';
     const id = item.itemId || item.contentId || '';
     const mapping = getMappingById(type);
-    
+
     // Include notebookId query parameter for API endpoints that require it
     const notebookIdParam = item.notebookId || activeNotebookId;
     const queryParam = notebookIdParam ? `?notebookId=${notebookIdParam}` : '';
-    
+
     if (mapping) {
       setLocation(`/${mapping.urlSegment}/${id}/edit${queryParam}`);
     } else {
@@ -367,13 +369,13 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
       (displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (type.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (getCategoryForType(type)?.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     const matchesTab = activeTab === "all" || 
       (activeTab === "recent" && new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
-    
+
     const matchesCategory = !selectedCategory || 
       (CONTENT_CATEGORIES[selectedCategory]?.includes(type));
-    
+
     return matchesSearch && matchesTab && matchesCategory;
   });
 
@@ -496,7 +498,12 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
 
       {/* Notebook Switcher */}
       <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-        <NotebookSwitcher showHeader />
+        <NotebookSwitcher 
+          showActiveInfo={true} 
+          showHeader={false}
+          isPopoverOpen={notebookPopoverOpen}
+          onPopoverOpenChange={onNotebookPopoverOpenChange}
+        />
         {!activeNotebookId && (
           <div className="text-sm text-muted-foreground">
             💡 Create or select a notebook to organize your content by world or project.
@@ -516,7 +523,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
             data-testid="input-search-content"
           />
         </div>
-        
+
         {/* Category Filter Buttons */}
         <div className="flex flex-wrap gap-2">
           <Button
@@ -579,7 +586,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
             Object.entries(groupedItems).map(([type, items]) => {
               const mapping = getMappingById(type);
               const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
-              
+
               return (
                 <div key={type} className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -588,7 +595,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                       {mapping?.name || type} ({items.length})
                     </h2>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((item) => {
                       const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
@@ -623,7 +630,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                               <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-content-${item.id}`}>
                                 {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                               </h3>
-                              
+
                               <span className="text-xs text-muted-foreground mb-2">
                                 Created {new Date(item.createdAt).toLocaleDateString()}
                               </span>
@@ -692,7 +699,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                 const mapping = getMappingById(type);
                 const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
                 const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
-                
+
                 return (
                   <Card key={item.id} className="group hover-elevate relative" data-testid={`card-recent-${item.id}`}>
                     {/* Content type icon - top right corner */}
@@ -724,7 +731,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
                         <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-recent-${item.id}`}>
                           {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                         </h3>
-                        
+
                         <span className="text-xs text-muted-foreground mb-2">
                           Created {new Date(item.createdAt).toLocaleDateString()}
                         </span>
