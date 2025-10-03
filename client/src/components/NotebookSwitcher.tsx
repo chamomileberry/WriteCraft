@@ -11,9 +11,10 @@ import NotebookManager from "./NotebookManager";
 interface NotebookSwitcherProps {
   className?: string;
   showActiveInfo?: boolean;
+  showHeader?: boolean;
 }
 
-export default function NotebookSwitcher({ className, showActiveInfo = true }: NotebookSwitcherProps) {
+export default function NotebookSwitcher({ className, showActiveInfo = true, showHeader = false }: NotebookSwitcherProps) {
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const { 
@@ -80,26 +81,33 @@ export default function NotebookSwitcher({ className, showActiveInfo = true }: N
     <>
       <div className={`space-y-4 ${className}`}>
         {/* Header Section */}
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            onClick={handleOpenManager}
-            variant="outline"
-            size="sm"
-            className="flex-shrink-0"
-            data-testid="button-manage-notebooks"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-          <Button
-            onClick={handleOpenCreate}
-            variant="default"
-            size="sm"
-            className="flex items-center gap-2"
-            data-testid="button-create-notebook"
-          >
-            <Plus className="h-4 w-4" />
-            Create Notebook
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          {showHeader && (
+            <h2 className="text-lg font-semibold" data-testid="text-active-notebook-header">
+              Active Notebook
+            </h2>
+          )}
+          <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
+            <Button
+              onClick={handleOpenManager}
+              variant="outline"
+              size="sm"
+              className="flex-shrink-0"
+              data-testid="button-manage-notebooks"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={handleOpenCreate}
+              variant="default"
+              size="sm"
+              className="flex items-center gap-2"
+              data-testid="button-create-notebook"
+            >
+              <Plus className="h-4 w-4" />
+              Create Notebook
+            </Button>
+          </div>
         </div>
 
         {/* Notebook Display Section */}

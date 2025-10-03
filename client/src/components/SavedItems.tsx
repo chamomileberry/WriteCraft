@@ -496,8 +496,7 @@ export default function SavedItems({ onCreateNew }: SavedItemsProps = {}) {
 
       {/* Notebook Switcher */}
       <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-        <h2 className="text-lg font-semibold">Active Notebook</h2>
-        <NotebookSwitcher />
+        <NotebookSwitcher showHeader />
         {!activeNotebookId && (
           <div className="text-sm text-muted-foreground">
             💡 Create or select a notebook to organize your content by world or project.
