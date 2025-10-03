@@ -4,6 +4,24 @@
 
 WriteCraft is a comprehensive web platform designed to support creative writers with an extensive suite of tools, generators, and educational resources. It provides character generators, plot structure tools, writing prompts, setting builders, and detailed writing guides to enhance the creative process. The platform aims to be a modern, full-stack application with a clean, writer-friendly interface, enhancing the creative workflow for professional writers.
 
+## Recent Changes (October 2025)
+
+### Onboarding & Empty State Improvements
+- **Notebook Empty State (Oct 3)**: Added friendly "Create Your First Notebook" welcome screen for new users
+  - Shows welcoming card with explanation of notebooks when user has no notebooks
+  - Integrates NotebookSwitcher for consistent notebook creation experience
+  - Uses Lightbulb icon for tips (no emojis per design guidelines)
+  - Positioned after loading state, before error state for optimal UX
+  - Passes end-to-end tests for new user onboarding flow
+
+### Authentication Bug Fixes (Oct 3)
+- **SavedItems Authentication**: Fixed hardcoded "demo-user" userId in SavedItems component
+  - Now uses authenticated user ID from `useAuth()` hook
+  - All query keys and API calls updated to use `user?.id`
+  - Query enabled guards ensure no fetches when user not authenticated
+  - Optimistic updates and cache invalidation properly scoped to authenticated user
+  - **Known Issue**: Other components (QuickNotePanel, ContentEditor, CharacterGenerator, etc.) still contain hardcoded "demo-user" references that should be addressed in future work
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
