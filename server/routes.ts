@@ -187,9 +187,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Universal search endpoint
-  app.get("/api/search", async (req, res) => {
+  app.get("/api/search", async (req: any, res) => {
     try {
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.user.claims.sub;
       const query = req.query.q as string || '';
       const typeFilter = req.query.type as string || ''; // Optional type filter
       
@@ -208,9 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Pinned content endpoints
-  app.get("/api/pinned-content", async (req, res) => {
+  app.get("/api/pinned-content", async (req: any, res) => {
     try {
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.user.claims.sub;
       const notebookId = req.query.notebookId as string;
       const category = req.query.category as string;
       
@@ -275,9 +275,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/pinned-content", async (req, res) => {
+  app.post("/api/pinned-content", async (req: any, res) => {
     try {
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.user.claims.sub;
       const { notebookId, targetType, targetId, category, notes } = req.body;
       
       if (!notebookId) {
@@ -301,9 +301,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/pinned-content/:id", async (req, res) => {
+  app.delete("/api/pinned-content/:id", async (req: any, res) => {
     try {
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      const userId = req.user.claims.sub;
       const pinnedId = req.params.id;
       const notebookId = req.query.notebookId as string;
       
@@ -339,9 +339,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Note routes
-  app.post("/api/notes", async (req, res) => {
+  app.post("/api/notes", async (req: any, res) => {
     try {
-      const note = insertNoteSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      // Override any client-provided userId with authenticated session
+      const noteData = { ...req.body, userId };
+      const note = insertNoteSchema.parse(noteData);
       const newNote = await storage.createNote(note);
       res.status(201).json(newNote);
     } catch (error) {
@@ -350,12 +353,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notes/:id", async (req, res) => {
+  app.get("/api/notes/:id", async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
       const note = await storage.getNote(id);
       if (!note) {
         return res.status(404).json({ error: 'Note not found' });
+      }
+      // Verify ownership
+      if (note.userId !== userId) {
+        return res.status(403).json({ error: 'Forbidden: You do not own this note' });
       }
       res.json(note);
     } catch (error) {
@@ -364,22 +372,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notes", async (req, res) => {
+  app.get("/api/notes", async (req: any, res) => {
     try {
-      const { userId, type, folderId, documentId } = req.query;
-      if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
-      }
+      const userId = req.user.claims.sub;
+      const { type, folderId, documentId } = req.query;
       
       let notes;
       if (folderId) {
-        notes = await storage.getFolderNotes(folderId as string, userId as string);
+        notes = await storage.getFolderNotes(folderId as string, userId);
       } else if (documentId) {
         // Get notes for specific document (manuscript or guide)
-        notes = await storage.getDocumentNotes(documentId as string, userId as string);
+        notes = await storage.getDocumentNotes(documentId as string, userId);
       } else {
         // Get all notes for user and type (backward compatibility)
-        notes = await storage.getUserNotes(userId as string, type as string);
+        notes = await storage.getUserNotes(userId, type as string);
       }
       res.json(notes);
     } catch (error) {
@@ -388,13 +394,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/notes/:id", async (req, res) => {
+  app.put("/api/notes/:id", async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
-      const { userId, ...updates } = req.body;
-      if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
-      }
+      const { userId: _ignored, ...updates } = req.body;
       const note = await storage.updateNote(id, userId, updates);
       res.json(note);
     } catch (error: any) {
@@ -407,14 +411,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/notes/:id", async (req, res) => {
+  app.delete("/api/notes/:id", async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
-      const { userId } = req.query;
-      if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
-      }
-      await storage.deleteNote(id, userId as string);
+      await storage.deleteNote(id, userId);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting note:', error);
@@ -423,12 +424,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quick note routes
-  app.post("/api/quick-note", async (req, res) => {
+  app.post("/api/quick-note", async (req: any, res) => {
     try {
-      const { userId, title, content } = req.body;
-      if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
-      }
+      const userId = req.user.claims.sub;
+      const { title, content } = req.body;
       
       // Check if user already has a quick note
       const existingNote = await storage.getUserQuickNote(userId);
@@ -447,14 +446,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/quick-note", async (req, res) => {
+  app.get("/api/quick-note", async (req: any, res) => {
     try {
-      const { userId } = req.query;
-      if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
-      }
+      const userId = req.user.claims.sub;
       
-      const quickNote = await storage.getUserQuickNote(userId as string);
+      const quickNote = await storage.getUserQuickNote(userId);
       if (!quickNote) {
         return res.status(404).json({ error: 'Quick note not found' });
       }
@@ -466,19 +462,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/quick-note", async (req, res) => {
+  app.delete("/api/quick-note", async (req: any, res) => {
     try {
-      const { userId } = req.query;
-      if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
-      }
+      const userId = req.user.claims.sub;
       
-      const quickNote = await storage.getUserQuickNote(userId as string);
+      const quickNote = await storage.getUserQuickNote(userId);
       if (!quickNote) {
         return res.status(404).json({ error: 'Quick note not found' });
       }
       
-      await storage.deleteQuickNote(quickNote.id, userId as string);
+      await storage.deleteQuickNote(quickNote.id, userId);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting quick note:', error);
@@ -642,10 +635,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat Messages API routes
-  app.post("/api/chat-messages", async (req, res) => {
+  app.post("/api/chat-messages", async (req: any, res) => {
     try {
-      // Extract userId from header for security (override client payload)
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      // Get authenticated userId from session (never trust client headers)
+      const userId = req.user.claims.sub;
       
       const { projectId, guideId, type, content, metadata } = z.object({
         projectId: z.string().optional(),
@@ -675,10 +668,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/chat-messages", async (req, res) => {
+  app.get("/api/chat-messages", async (req: any, res) => {
     try {
-      // Extract userId from header for security
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      // Get authenticated userId from session (never trust client headers)
+      const userId = req.user.claims.sub;
       
       const { projectId, guideId, limit } = z.object({
         projectId: z.string().optional(),
@@ -698,10 +691,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/chat-messages", async (req, res) => {
+  app.delete("/api/chat-messages", async (req: any, res) => {
     try {
-      // Extract userId from header for security
-      const userId = req.headers['x-user-id'] as string || 'demo-user';
+      // Get authenticated userId from session (never trust client headers)
+      const userId = req.user.claims.sub;
       
       const { projectId, guideId } = z.object({
         projectId: z.string().optional(),
