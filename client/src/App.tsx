@@ -59,16 +59,18 @@ function NotebookPage() {
   };
 
   const handleCreateNew = () => {
-    // Force unmount NotebookSwitcher to remove its portal from DOM
-    // This prevents notebook description from bleeding through into the modal
+    // Force close popover and unmount NotebookSwitcher
     setNotebookPopoverOpen(false);
     setMountNotebookSwitcher(false);
     
-    // Remount NotebookSwitcher and open modal after portal cleanup
+    // Wait for popover to fully close and unmount before opening modal
     setTimeout(() => {
-      setMountNotebookSwitcher(true);
       setIsContentModalOpen(true);
-    }, 50);
+      // Remount NotebookSwitcher after modal is open
+      setTimeout(() => {
+        setMountNotebookSwitcher(true);
+      }, 100);
+    }, 100);
   };
 
   const handleSelectContentType = (contentType: string, notebookId?: string) => {
