@@ -19,7 +19,8 @@ router.post("/", async (req: any, res) => {
     // Validate user owns the notebook before creating content
     const userNotebook = await storage.getNotebook(notebookId, userId);
     if (!userNotebook) {
-      return res.status(403).json({ error: 'Notebook not found or access denied' });
+      console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Notebook not found' });
     }
     
     const fullFactionData = { ...factionData, userId, notebookId };
@@ -32,7 +33,10 @@ router.post("/", async (req: any, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to save faction' });
   }
@@ -95,7 +99,10 @@ router.put("/:id", async (req: any, res) => {
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -115,10 +122,10 @@ router.delete("/:id", async (req: any, res) => {
   } catch (error) {
     console.error('Error deleting faction:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
-    }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return res.status(403).json({ error: error.message });
+      const userId = req.user?.claims?.sub || 'unknown';
+      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
+      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
+      return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: 'Failed to delete faction' });
   }
