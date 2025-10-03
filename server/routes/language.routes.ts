@@ -22,17 +22,23 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
     const languages = await storage.getUserLanguages(userId);
     
+    // Filter by notebook if notebookId is provided
+    let filtered = notebookId 
+      ? languages.filter(item => item.notebookId === notebookId)
+      : languages;
+    
+    // Then filter by search text if provided
     if (search) {
-      const filtered = languages.filter(language =>
+      filtered = filtered.filter(language =>
         language.name?.toLowerCase().includes(search.toLowerCase())
       );
-      res.json(filtered);
-    } else {
-      res.json(languages);
     }
+    
+    res.json(filtered);
   } catch (error) {
     console.error('Error fetching languages:', error);
     res.status(500).json({ error: 'Failed to fetch languages' });

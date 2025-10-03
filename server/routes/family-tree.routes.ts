@@ -19,6 +19,32 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const familyTrees = await storage.getUserFamilyTrees(userId);
+    
+    // Filter by notebook if notebookId is provided
+    let filtered = notebookId 
+      ? familyTrees.filter((item: any) => item.notebookId === notebookId)
+      : familyTrees;
+    
+    // Then filter by search text if provided
+    if (search) {
+      filtered = filtered.filter((item: any) =>
+        item.name?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error fetching family trees:', error);
+    res.status(500).json({ error: 'Failed to fetch family trees' });
+  }
+});
+
 router.get("/user/:userId?", async (req, res) => {
   try {
     const userId = req.params.userId || null;

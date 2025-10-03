@@ -19,10 +19,36 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const traditions = await storage.getUserTraditions(userId);
+    
+    // Filter by notebook if notebookId is provided
+    let filtered = notebookId 
+      ? traditions.filter((item: any) => item.notebookId === notebookId)
+      : traditions;
+    
+    // Then filter by search text if provided
+    if (search) {
+      filtered = filtered.filter((tradition: any) =>
+        tradition.name?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error fetching traditions:', error);
+    res.status(500).json({ error: 'Failed to fetch traditions' });
+  }
+});
+
 router.get("/user/:userId?", async (req, res) => {
   try {
     const userId = req.params.userId || null;
-    const traditions = await storage.getUserTradition(userId);
+    const traditions = await storage.getUserTraditions(userId);
     res.json(traditions);
   } catch (error) {
     console.error('Error fetching traditions:', error);

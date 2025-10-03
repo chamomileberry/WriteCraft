@@ -95,37 +95,40 @@ Preferred communication style: Simple, everyday language.
 
 ## Known Issues & Technical Debt
 
-### Autocomplete Notebook Isolation (Follow-up Required)
-**Status**: Partially fixed (species and profession completed on Oct 2 2024)
+### CRITICAL: Notebook Data Isolation Vulnerability (Oct 2-3 2024)
+**Status**: Immediate security fix applied (route-layer filtering), storage-layer refactor required
 
-**Issue**: Many content types with autocomplete fields may have the same cross-notebook data leakage bug that was fixed for species and profession.
+**Security Audit Results**: Out of 60 content type routes audited:
+- ✅ **10 routes SECURE** (character, culture, faction, item, location, organization, plant, profession, species, weapon)
+- ⚠️ **6 routes PATCHED** (religion, language, tradition, family-tree - route-layer filtering added)
+- ❌ **44 routes VULNERABLE** (still missing notebook filtering)
 
-**Potentially Affected Routes** (need notebookId filtering in GET endpoints):
-- character.routes.ts
-- location.routes.ts
-- organization.routes.ts
-- culture.routes.ts
-- document.routes.ts
-- weapon.routes.ts
-- armor.routes.ts
-- accessory.routes.ts
-- clothing.routes.ts
-- material.routes.ts
-- settlement.routes.ts
-- society.routes.ts
-- faction.routes.ts
-- military-unit.routes.ts
-- potion.routes.ts
-- family-tree.routes.ts
-- timeline.routes.ts
-- ceremony.routes.ts
-- map.routes.ts
-- music.routes.ts
-- dance.routes.ts
-- law.routes.ts
-- policy.routes.ts
+**Root Cause**: Storage layer methods (getUserX functions) only filter by userId, not notebookId, causing cross-notebook data leakage. Users can see data from other notebooks through autocomplete fields and direct API access.
+
+**Immediate Fix Applied** (Oct 2-3 2024):
+- Updated autocomplete-field.tsx to pass notebookId in all API requests
+- Fixed species.routes.ts and profession.routes.ts with route-layer filtering
+- Fixed religion, language, tradition, family-tree routes with route-layer filtering
+- Pattern: Fetch all user data, then filter by notebookId in JavaScript (stopgap solution)
+
+**Remaining Vulnerable Routes** (44 routes):
+accessory, animal, armor, building, ceremony, clothing, conflict, creature, dance, description, document, drink, ethnicity, event, food, guide, language (GET /user), legend, map, material, military-unit, mood, music, myth, name, natural-law, note, plot, policy, potion, prompt, religion (GET /user), resource, ritual, setting, settlement, society, spell, technology, theme, timeline, transportation
+
+**Required Long-Term Fix** (Architect-Recommended):
+1. **Storage Layer Refactor**: Update all 48+ getUserX methods in IStorage interface and DatabaseStorage implementation to accept and filter by notebookId parameter
+2. **Database-Level Filtering**: Use `and(eq(table.userId, userId), eq(table.notebookId, notebookId))` pattern like getUserCharacters does
+3. **Automated Testing**: Add notebook isolation tests for all content types before refactoring
+4. **Phased Rollout**: Implement in batches with regression testing
+
+**Why Route-Layer Filtering is Insufficient**:
+- Still fetches cross-notebook data from database before filtering
+- Inefficient (fetches all user data, then filters in JavaScript)
+- Security gap if storage methods are reused elsewhere in codebase
+- Does not prevent data leakage at storage boundary
 
 **Recommended Actions**:
-1. Audit each route's GET endpoint to verify notebookId filtering
-2. Add automated tests for notebook-scoped queries
-3. Verify saved-items respect notebook scoping
+1. Complete route-layer filtering for all 44 vulnerable routes (immediate stopgap)
+2. Create storage layer refactor plan with shared helper utilities
+3. Implement automated notebook isolation tests per content type
+4. Execute storage-layer refactor in phases with validation
+5. Remove route-layer filtering once storage layer is secure

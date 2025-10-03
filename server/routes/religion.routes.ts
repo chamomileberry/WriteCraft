@@ -22,17 +22,23 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search as string;
+    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
     const religions = await storage.getUserReligions(userId);
     
+    // Filter by notebook if notebookId is provided
+    let filtered = notebookId 
+      ? religions.filter(item => item.notebookId === notebookId)
+      : religions;
+    
+    // Then filter by search text if provided
     if (search) {
-      const filtered = religions.filter(religion =>
+      filtered = filtered.filter(religion =>
         religion.name?.toLowerCase().includes(search.toLowerCase())
       );
-      res.json(filtered);
-    } else {
-      res.json(religions);
     }
+    
+    res.json(filtered);
   } catch (error) {
     console.error('Error fetching religions:', error);
     res.status(500).json({ error: 'Failed to fetch religions' });
