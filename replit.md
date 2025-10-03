@@ -28,6 +28,17 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
   - End-to-end tests confirm proper responsive behavior and dropdown interactions
 
 ### Onboarding & Empty State Improvements
+- **Automatic Notebook Creation Flow (Oct 3)**: Seamless onboarding for new users without notebooks
+  - **Trigger Points**: "+ Create" button (header) and "Start Creating" button (home page)
+  - **Auto-Detection**: ContentTypeModal detects empty notebooks after loading
+  - **Auto-Open**: NotebookManager automatically opens on top for first-time users
+  - **Callback Flow**: After notebook creation, NotebookManager closes and returns to ContentTypeModal
+  - **Auto-Selection**: Newly created notebook is pre-selected in ContentTypeModal
+  - **Enabled State**: Content types become immediately available for selection
+  - **Subsequent Usage**: NotebookManager does NOT auto-open when notebooks exist
+  - Components: Enhanced NotebookManager with `onNotebookCreated` callback, ContentTypeModal with auto-detection logic
+  - Passed comprehensive end-to-end tests covering first-time and repeat usage flows
+  
 - **Notebook Empty State (Oct 3)**: Added friendly "Create Your First Notebook" welcome screen for new users
   - Shows welcoming card with explanation of notebooks when user has no notebooks
   - Integrates NotebookSwitcher for consistent notebook creation experience
