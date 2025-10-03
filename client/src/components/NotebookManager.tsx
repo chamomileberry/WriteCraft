@@ -33,6 +33,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 interface NotebookManagerProps {
   isOpen: boolean;
   onClose: () => void;
+  onNotebookCreated?: (notebook: Notebook) => void;
 }
 
 interface CreateNotebookData {
@@ -47,7 +48,7 @@ interface UpdateNotebookData {
   imageUrl?: string;
 }
 
-export default function NotebookManager({ isOpen, onClose }: NotebookManagerProps) {
+export default function NotebookManager({ isOpen, onClose, onNotebookCreated }: NotebookManagerProps) {
   const { toast } = useToast();
   const { 
     notebooks, 
@@ -100,6 +101,11 @@ export default function NotebookManager({ isOpen, onClose }: NotebookManagerProp
         title: "Notebook Created",
         description: `"${newNotebook.name}" is now your active notebook.`
       });
+      
+      // Call callback if provided (for auto-open from ContentTypeModal)
+      if (onNotebookCreated) {
+        onNotebookCreated(newNotebook);
+      }
     },
     onError: (error) => {
       toast({

@@ -65,6 +65,13 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
       setSelectedNotebookId(activeNotebookId);
     }
   }, [isOpen, activeNotebookId]);
+  
+  // Auto-open NotebookManager when no notebooks exist
+  useEffect(() => {
+    if (isOpen && !isLoadingNotebooks && fetchedNotebooks && fetchedNotebooks.length === 0) {
+      setIsNotebookManagerOpen(true);
+    }
+  }, [isOpen, isLoadingNotebooks, fetchedNotebooks]);
 
   const categories = Array.from(new Set(CONTENT_TYPES.map(type => type.category)));
   
@@ -87,6 +94,13 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
     setSelectedNotebookId("");
     setSearchQuery("");
     setSelectedCategory(null);
+  };
+  
+  const handleNotebookCreated = (notebook: Notebook) => {
+    // Auto-select the newly created notebook
+    setSelectedNotebookId(notebook.id);
+    // Close NotebookManager to return to ContentTypeModal
+    setIsNotebookManagerOpen(false);
   };
 
   return (
@@ -271,7 +285,8 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
     {/* Notebook Manager Modal */}
     <NotebookManager 
       isOpen={isNotebookManagerOpen} 
-      onClose={() => setIsNotebookManagerOpen(false)} 
+      onClose={() => setIsNotebookManagerOpen(false)}
+      onNotebookCreated={handleNotebookCreated}
     />
   </>
   );
