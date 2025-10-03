@@ -26,6 +26,9 @@ router.post("/", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to save technology' });
   }
 });
@@ -88,13 +91,17 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     const updates = insertTechnologySchema.partial().parse(req.body);
-    const updatedTechnology = await storage.updateTechnology(req.params.id, updates);
+    const updatedTechnology = await storage.updateTechnology(req.params.id, userId, updates);
     res.json(updatedTechnology);
   } catch (error) {
     console.error('Error updating technology:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
     }
     res.status(500).json({ error: 'Failed to update technology' });
   }
@@ -102,10 +109,14 @@ router.patch("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteTechnology(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteTechnology(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting technology:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to delete technology' });
   }
 });

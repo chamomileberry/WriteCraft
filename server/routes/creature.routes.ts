@@ -52,6 +52,9 @@ router.post("/generate", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -88,8 +91,8 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
-    // Extract userId from header for security
     const userId = req.headers['x-user-id'] as string || 'demo-user';
+    // Extract userId from header for security
     
     // Validate the request body
     const validatedUpdates = insertCreatureSchema.partial().parse(req.body);
@@ -105,6 +108,9 @@ router.patch("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });

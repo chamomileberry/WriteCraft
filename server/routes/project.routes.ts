@@ -51,6 +51,9 @@ router.get("/", async (req, res) => {
     res.json(projects);
   } catch (error) {
     console.error('Error fetching projects:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to fetch projects' });
   }
 });
@@ -123,6 +126,9 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid project data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -135,6 +141,12 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.error('Error deleting project:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -163,6 +175,9 @@ router.get("/:projectId/sections", async (req, res) => {
     }
   } catch (error) {
     console.error('Error fetching project sections:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to fetch project sections' });
   }
 });
@@ -259,6 +274,9 @@ router.put("/:projectId/sections/:sectionId", async (req, res) => {
       return res.status(400).json({ error: 'Invalid section data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -279,6 +297,12 @@ router.delete("/:projectId/sections/:sectionId", async (req, res) => {
   } catch (error) {
     console.error('Error deleting project section:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -305,6 +329,9 @@ router.post("/:projectId/sections/reorder", async (req, res) => {
   } catch (error) {
     console.error('Error reordering project sections:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });

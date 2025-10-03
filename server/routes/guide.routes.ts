@@ -35,6 +35,9 @@ router.get("/", async (req, res) => {
     res.json(filteredGuides);
   } catch (error) {
     console.error('Error fetching guides:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to fetch guides' });
   }
 });
@@ -70,6 +73,7 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
     const updatedGuide = await storage.updateGuide(req.params.id, validatedGuide);
@@ -80,17 +84,27 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid guide data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteGuide(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteGuide(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting guide:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });

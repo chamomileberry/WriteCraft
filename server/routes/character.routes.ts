@@ -127,6 +127,9 @@ router.post("/generate", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -298,8 +301,8 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
-    const notebookId = req.query.notebookId as string;
     const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const notebookId = req.query.notebookId as string;
     
     if (!notebookId) {
       return res.status(400).json({ error: 'notebookId query parameter is required' });
@@ -319,6 +322,9 @@ router.patch("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -345,6 +351,9 @@ router.post("/:id/generate-article", async (req, res) => {
   } catch (error) {
     console.error('Error generating character article:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });

@@ -35,6 +35,9 @@ router.post("/generate", async (req, res) => {
   } catch (error) {
     console.error('Error generating plant:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: `Failed to generate plant: ${errorMessage}` });
   }
 });
@@ -119,6 +122,9 @@ router.patch("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -141,6 +147,9 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -158,6 +167,12 @@ router.delete("/:id", async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting plant:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to delete plant' });
   }
 });
@@ -184,6 +199,9 @@ router.post("/:id/generate-article", async (req, res) => {
   } catch (error) {
     console.error('Error generating plant article:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });

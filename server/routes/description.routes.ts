@@ -15,6 +15,9 @@ router.post("/", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to save description' });
   }
 });
@@ -45,8 +48,9 @@ router.get("/:id", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     const validatedUpdates = insertDescriptionSchema.parse(req.body);
-    const updatedDescription = await storage.updateDescription(req.params.id, validatedUpdates);
+    const updatedDescription = await storage.updateDescription(req.params.id, userId, validatedUpdates);
     res.json(updatedDescription);
   } catch (error) {
     console.error('Error updating description:', error);
@@ -54,16 +58,26 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteDescription(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteDescription(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting description:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to delete description' });
   }
 });

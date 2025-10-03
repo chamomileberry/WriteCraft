@@ -26,6 +26,9 @@ router.post("/", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to save ceremony' });
   }
 });
@@ -62,8 +65,9 @@ router.get("/:id", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     const validatedUpdates = insertCeremonySchema.parse(req.body);
-    const updatedCeremony = await storage.updateCeremony(req.params.id, validatedUpdates);
+    const updatedCeremony = await storage.updateCeremony(req.params.id, userId, validatedUpdates);
     res.json(updatedCeremony);
   } catch (error) {
     console.error('Error updating ceremony:', error);
@@ -71,16 +75,26 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteCeremony(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteCeremony(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting ceremony:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to delete ceremony' });
   }
 });

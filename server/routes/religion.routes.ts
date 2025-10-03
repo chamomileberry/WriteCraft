@@ -26,6 +26,9 @@ router.post("/", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to save religion' });
   }
 });
@@ -89,13 +92,17 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     const updates = insertReligionSchema.partial().parse(req.body);
-    const updatedReligion = await storage.updateReligion(req.params.id, updates);
+    const updatedReligion = await storage.updateReligion(req.params.id, userId, updates);
     res.json(updatedReligion);
   } catch (error) {
     console.error('Error updating religion:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
     }
     res.status(500).json({ error: 'Failed to update religion' });
   }
@@ -103,10 +110,17 @@ router.patch("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteReligion(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteReligion(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting religion:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to delete religion' });
   }
 });

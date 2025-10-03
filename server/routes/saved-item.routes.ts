@@ -48,6 +48,9 @@ router.post("/", async (req, res) => {
       });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -73,14 +76,20 @@ router.patch("/:id", async (req, res) => {
   } catch (error) {
     console.error('Error updating saved item:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
 
 router.delete("/", async (req, res) => {
   try {
-    // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.headers['x-user-id'] as string || 'demo-user';
+    // Extract userId from authentication headers for security (ignore client payload)
     const { itemType, itemId, notebookId } = req.body;
     
     console.log('[DELETE] Attempting to delete saved item:', {
@@ -117,6 +126,12 @@ router.delete("/", async (req, res) => {
   } catch (error) {
     console.error('Error deleting saved item:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });

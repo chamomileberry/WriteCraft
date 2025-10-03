@@ -26,6 +26,9 @@ router.post("/", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to save document' });
   }
 });
@@ -88,13 +91,20 @@ router.get("/:id", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   try {
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
     const updates = insertDocumentSchema.partial().parse(req.body);
-    const updatedDocument = await storage.updateDocument(req.params.id, updates);
+    const updatedDocument = await storage.updateDocument(req.params.id, userId, updates);
     res.json(updatedDocument);
   } catch (error) {
     console.error('Error updating document:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
     }
     res.status(500).json({ error: 'Failed to update document' });
   }
@@ -102,10 +112,17 @@ router.patch("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteDocument(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteDocument(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting document:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to delete document' });
   }
 });

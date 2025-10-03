@@ -13,6 +13,9 @@ router.get("/", async (req, res) => {
     res.json(notebooks);
   } catch (error) {
     console.error('Error fetching notebooks:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to fetch notebooks' });
   }
 });
@@ -71,6 +74,9 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: 'Invalid notebook data', details: error.errors });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -84,6 +90,12 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.error('Error deleting notebook:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: errorMessage });
   }
 });

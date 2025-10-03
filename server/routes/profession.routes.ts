@@ -85,12 +85,15 @@ router.put("/:id", async (req, res) => {
     const professionData = { ...req.body, userId };
     
     const validatedUpdates = insertProfessionSchema.partial().parse(professionData);
-    const updatedProfession = await storage.updateProfession(req.params.id, validatedUpdates);
+    const updatedProfession = await storage.updateProfession(req.params.id, userId, validatedUpdates);
     res.json(updatedProfession);
   } catch (error) {
     console.error('Error updating profession:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
     }
     res.status(500).json({ error: 'Failed to update profession' });
   }
@@ -98,10 +101,14 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await storage.deleteProfession(req.params.id);
+    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    await storage.deleteProfession(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting profession:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Failed to delete profession' });
   }
 });
