@@ -357,13 +357,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      const note = await storage.getNote(id);
+      const note = await storage.getNote(id, userId);
       if (!note) {
         return res.status(404).json({ error: 'Note not found' });
-      }
-      // Verify ownership
-      if (note.userId !== userId) {
-        return res.status(403).json({ error: 'Forbidden: You do not own this note' });
       }
       res.json(note);
     } catch (error) {
