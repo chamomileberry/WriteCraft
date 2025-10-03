@@ -186,11 +186,13 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
                   <SelectContent>
                     {notebooks.map((notebook) => (
                       <SelectItem key={notebook.id} value={notebook.id} data-testid={`select-notebook-${notebook.id}`}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{notebook.name}</span>
+                        <div className="flex flex-col max-w-full">
+                          <span className="font-medium truncate">{notebook.name}</span>
                           {notebook.description && (
-                            <span className="text-xs text-muted-foreground">
-                              {notebook.description}
+                            <span className="text-xs text-muted-foreground truncate max-w-[300px]">
+                              {notebook.description.length > 60 
+                                ? `${notebook.description.substring(0, 60)}...` 
+                                : notebook.description}
                             </span>
                           )}
                         </div>
