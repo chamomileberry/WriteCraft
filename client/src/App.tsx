@@ -14,6 +14,7 @@ import GeneratorsPage from "@/pages/GeneratorsPage";
 import GuidesPage from "@/pages/GuidesPage";
 import GuideDetail from "@/pages/GuideDetail";
 import GuideEditPage from "@/pages/GuideEditPage";
+import AccountSettings from "@/pages/AccountSettings";
 import CharacterPage from "@/pages/CharacterPage";
 import CharacterEditPageWithSidebar from "@/pages/CharacterEditPageWithSidebar";
 import SettingPage from "@/pages/SettingPage";
@@ -155,6 +156,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/account" component={AccountSettings} />
       <Route path="/search" component={SearchPage} />
       <Route path="/generators" component={GeneratorsPage} />
       <Route path="/guides" component={GuidesPage} />

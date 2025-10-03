@@ -68,6 +68,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile
+  app.patch('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const targetUserId = req.params.id;
+
+      // Users can only update their own profile
+      if (userId !== targetUserId) {
+        return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
+      }
+
+      const updates = req.body;
+      // Only allow updating specific fields
+      const allowedFields = ['firstName', 'lastName'];
+      const sanitizedUpdates: any = {};
+      for (const field of allowedFields) {
+        if (updates[field] !== undefined) {
+          sanitizedUpdates[field] = updates[field];
+        }
+      }
+
+      const updatedUser = await storage.updateUser(targetUserId, sanitizedUpdates);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+
   // Register modular domain-specific routes
   registerDomainRoutes(app);
   

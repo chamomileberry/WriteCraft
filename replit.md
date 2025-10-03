@@ -2,7 +2,7 @@
 
 ## Overview
 
-WriteCraft is a comprehensive web platform designed to support creative writers with an extensive suite of tools, generators, and educational resources. The platform provides writers with character generators, plot structure tools, writing prompts, setting builders, and detailed writing guides to enhance their creative process. Built as a modern full-stack application, it features a clean, writer-friendly interface inspired by Writer's Digest and Reedsy, with enhanced aesthetics for creative professionals.
+WriteCraft is a comprehensive web platform designed to support creative writers with an extensive suite of tools, generators, and educational resources. It provides character generators, plot structure tools, writing prompts, setting builders, and detailed writing guides to enhance the creative process. The platform aims to be a modern, full-stack application with a clean, writer-friendly interface, enhancing the creative workflow for professional writers.
 
 ## User Preferences
 
@@ -10,190 +10,66 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
-- **Framework**: React with TypeScript for type safety and developer experience
-- **Styling**: Tailwind CSS with custom design system featuring writer-friendly typography (Merriweather serif for headings, Open Sans for body text)
-- **UI Components**: Comprehensive component library built on Radix UI primitives (shadcn/ui) for accessibility and consistency
-- **State Management**: TanStack Query for server state management with optimistic updates and caching
-- **Routing**: Wouter for lightweight client-side routing
-- **Build Tool**: Vite for fast development and optimized production builds
+### Frontend
+- **Framework**: React with TypeScript
+- **Styling**: Tailwind CSS with a custom design system and writer-friendly typography (Merriweather, Open Sans)
+- **UI Components**: Radix UI primitives (shadcn/ui) for accessibility
+- **State Management**: TanStack Query for server state, Zustand for client state
+- **Routing**: Wouter
+- **Build Tool**: Vite
 
-### Backend Architecture
-- **Runtime**: Node.js with Express.js framework for RESTful API endpoints
-- **Language**: TypeScript throughout the stack for consistency and type safety
-- **API Design**: RESTful endpoints organized by feature (characters, plots, prompts, guides, etc.)
-- **Content Generation**: Server-side algorithms for generating creative writing content with genre-specific variations
+### Backend
+- **Runtime**: Node.js with Express.js
+- **Language**: TypeScript
+- **API Design**: RESTful endpoints
+- **Content Generation**: Server-side algorithms for creative writing content.
 
 ### Data Storage
-- **Database**: PostgreSQL for structured data storage with strong consistency
-- **ORM**: Drizzle ORM for type-safe database operations and migrations
-- **Schema**: Well-defined tables for users, generated content (characters, plots, prompts), guides, and user collections
-- **Connection**: Neon serverless PostgreSQL with connection pooling for scalability
+- **Database**: PostgreSQL (Neon serverless)
+- **ORM**: Drizzle ORM for type-safe operations
+- **Schema**: Tables for users, generated content, guides, and user collections.
 
 ### Design System & Theming
-- **Color Palette**: Professional writer-focused colors with creative purple primary (#6B73FF), teal secondary, and warm orange accents
-- **Dark/Light Mode**: Complete theme system with CSS custom properties and automatic system preference detection
-- **Typography Scale**: Hierarchical font sizing with serif headings and sans-serif body text for optimal readability
-- **Component Variants**: Consistent styling patterns across buttons, cards, and interactive elements
+- **Color Palette**: Professional writer-focused colors (purple primary, teal secondary, orange accents)
+- **Theming**: Dark/Light mode with CSS custom properties
+- **Typography**: Hierarchical font sizing with serif headings and sans-serif body text.
 
-### Content Management
-- **Notebook System**: User-created notebooks for organizing all worldbuilding content with proper scoping
-  - **Active Notebook**: Zustand store persists active notebook selection across sessions
-  - **Automatic Activation**: Newly created notebooks are automatically set as active
-  - **Query Cache Sync**: All notebook mutations (create/update/delete) invalidate React Query cache to prevent race conditions
-  - **Quick Access**: Settings gear icon in ContentTypeModal provides direct access to NotebookManager for convenient notebook management during content creation
-  - **Fixed Issue (Oct 2024)**: Resolved critical bug where new notebooks would disappear after creation due to stale cache overwriting Zustand store
-  - **Data Isolation Fix (Oct 2 2024)**: Fixed critical cross-contamination bug where autocomplete fields (species, profession) showed items from all notebooks instead of filtering by active notebook. Updated autocomplete-field.tsx to pass notebookId in API requests and include in React Query cache keys. Fixed species.routes.ts and profession.routes.ts GET endpoints to filter by notebookId query parameter. Verified isolation through testing.
-- **Generator System**: Modular content generation for characters, plots, settings, names, conflicts, themes, and moods
-- **Writing Guides**: Structured educational content with categories, difficulty levels, and comprehensive search
-- **User Collections**: System for saving and organizing generated content and favorite guides
-- **Enhanced Character Editor**: Responsive sidebar navigation system with 6 logical sections (Identity, Appearance, Mind & Personality, Skills & Powers, Life & Background, Prompts) that replaces cramped multi-row tab layouts with clean, organized navigation for both desktop and mobile users
-- **Hierarchical Project System**: Complete hierarchical project management with folders and pages (replacing the old manuscript system):
-  - **View/Edit Modes**: Projects can be viewed in read-only mode or edited with full functionality
-  - **Tree Structure**: Unlimited folder nesting with pages as leaf nodes containing content
-  - **ProjectContainer**: Main orchestrator managing active sections, auto-save, and navigation
-  - **ProjectOutline**: Collapsible tree sidebar with expand/collapse, highlighting, and CRUD operations
-  - **SectionEditor**: Full TipTap rich text editor with 2-second auto-save, media insertion (images, videos, links), and export (HTML/PDF/DOCX)
-  - **Smart Navigation**: Auto-saves before section switching, shows empty state for folders, editor for pages
-  - **Visual Feedback**: Badge system for save status (unsaved/saving/saved with timestamps), breadcrumb trail with chevron separators, real-time word count
-  - **API**: RESTful endpoints for section CRUD, tree retrieval, and reordering
-- **AI-Powered Inline Editing**: Grammarly-style AI editing assistance integrated across all text editors:
-  - **Floating AI Menu**: Custom bubble menu that appears when text is selected, offering quick AI actions
-  - **AI Actions**: Improve writing, shorten text, expand content, fix grammar, or ask AI for suggestions
-  - **Inline Suggestions**: ProseMirror-based suggestion system showing deletions (strikethrough) and additions (green highlight) with accept/reject buttons
-  - **Real-time Feedback**: Visual decorations show AI suggestions inline without disrupting the writing flow
-  - **Claude Integration**: Backend uses Anthropic's Claude 3.5 Sonnet for high-quality text improvements
-  - **Universal Integration**: Available in all editors (ArticleEditor, GuideEditor, ProjectEditor, and SectionEditor)
+### Key Features
+- **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
+- **Account Management**: User profiles, editing, and secure access control.
+- **Content Management**:
+    - **Notebook System**: User-created notebooks for organizing worldbuilding content with scoping and active notebook persistence.
+    - **Generator System**: Modular content generation (characters, plots, settings, names, conflicts, themes, moods).
+    - **Writing Guides**: Structured educational content with categories and search.
+    - **User Collections**: System for saving and organizing generated content and favorite guides.
+    - **Enhanced Character Editor**: Responsive sidebar navigation for character details.
+    - **Hierarchical Project System**: Project management with unlimited folder nesting, pages, rich text editor (TipTap), auto-save, media insertion, and export capabilities.
+    - **AI-Powered Inline Editing**: Grammarly-style AI assistance integrated across all text editors, offering actions like improving, shortening, expanding, fixing grammar, and suggestions using Anthropic's Claude 3.5 Sonnet.
 
 ## External Dependencies
 
 ### Database & Infrastructure
-- **@neondatabase/serverless**: Serverless PostgreSQL database connection and management
-- **connect-pg-simple**: PostgreSQL session store for user session management
-- **drizzle-orm & drizzle-kit**: Type-safe ORM with migration tooling
+- **@neondatabase/serverless**: Serverless PostgreSQL connection
+- **connect-pg-simple**: PostgreSQL session store
+- **drizzle-orm & drizzle-kit**: ORM and migration tooling
 
 ### UI & Design
-- **@radix-ui/***: Comprehensive set of accessible UI primitives for consistent component behavior
-- **tailwindcss**: Utility-first CSS framework with custom design tokens
+- **@radix-ui/***: Accessible UI primitives
+- **tailwindcss**: Utility-first CSS framework
 - **class-variance-authority**: Type-safe component variant system
-- **lucide-react**: Modern icon library for consistent iconography
+- **lucide-react**: Icon library
 
 ### Development & Tooling
-- **vite**: Fast build tool with HMR for development
-- **@replit/vite-plugin-runtime-error-modal**: Development error handling for Replit environment
-- **tsx**: TypeScript execution for server-side development
+- **vite**: Fast build tool
+- **@replit/vite-plugin-runtime-error-modal**: Replit-specific error handling
+- **tsx**: TypeScript execution for server-side
 
 ### State & Data Management
-- **@tanstack/react-query**: Server state management with caching, background updates, and optimistic updates
-- **react-hook-form & @hookform/resolvers**: Form management with validation
-- **zod**: Runtime type validation for API requests and responses
+- **@tanstack/react-query**: Server state management
+- **react-hook-form & @hookform/resolvers**: Form management and validation
+- **zod**: Runtime type validation
 
 ### Utilities
-- **date-fns**: Date manipulation and formatting
-- **nanoid**: Unique ID generation for database records
+- **date-fns**: Date manipulation
+- **nanoid**: Unique ID generation
 - **clsx & tailwind-merge**: Conditional CSS class management
-
-## Known Issues & Technical Debt
-
-### ✅ RESOLVED: Notebook Data Isolation (Oct 3 2024)
-**Status**: Complete - Storage-layer refactor successfully implemented and tested
-
-**Resolution Summary** (Oct 3 2024):
-Successfully implemented comprehensive storage-layer refactor to ensure complete notebook data isolation. All 48 worldbuilding content types now have database-level filtering that prevents cross-notebook data leakage.
-
-**What Was Fixed**:
-1. **Storage Interface Updated**: Modified 45 getUserX method signatures to require notebookId parameter
-   - Changed from: `getUserSpecies(userId: string | null): Promise<Species[]>`
-   - Changed to: `getUserSpecies(userId: string, notebookId: string): Promise<Species[]>`
-
-2. **Database-Level Filtering**: Updated all implementations to use `and(eq(userId), eq(notebookId))` pattern
-   ```typescript
-   // Secure implementation
-   return await db.select().from(species)
-     .where(and(
-       eq(species.userId, userId),
-       eq(species.notebookId, notebookId)
-     ))
-     .orderBy(desc(species.createdAt));
-   ```
-
-3. **Route Handlers Updated**: All 44 route files now pass notebookId to storage methods
-   - Extract notebookId from query params: `req.query.notebookId`
-   - Validate notebookId presence (return 400 if missing)
-   - Pass to storage: `storage.getUserX(userId, notebookId)`
-
-4. **End-to-End Testing**: Comprehensive isolation testing passed ✅
-   - Created 2 test notebooks (Alpha & Beta)
-   - Added species, professions, languages, religions to each
-   - Verified zero cross-notebook data leakage
-   - Confirmed API endpoints return only notebook-specific data
-
-**Content Types Secured** (48 total):
-accessories, animals, armor, buildings, ceremonies, characters, clothing, conflicts, creatures, cultures, dances, documents, drinks, ethnicities, events, factions, familyTrees, foods, items, languages, laws, legends, locations, maps, materials, militaryUnits, music, myths, naturalLaws, organizations, plants, policies, potions, professions, religions, resources, rituals, settings, settlements, societies, species, spells, technologies, themes, timelines, traditions, transportation, weapons
-
-**Special Cases Handled**:
-- plots, prompts, descriptions, names, moods: Shared/generated content without notebookId (parameter ignored)
-- All route handlers validate notebookId requirement
-- Autocomplete fields correctly scoped to active notebook
-
-**Security Verification**:
-- ✅ Database-level filtering prevents SQL-level leakage
-- ✅ API endpoints require notebookId parameter
-- ✅ E2E tests confirm complete isolation
-- ✅ No cross-notebook contamination possible
-
-### ✅ RESOLVED: Update/Delete Authorization Security (Oct 3 2024)
-**Status**: Complete - Comprehensive authorization hardening implemented and tested
-
-**Resolution Summary** (Oct 3 2024):
-Successfully secured all update and delete operations across the entire application. All 113 storage methods (59 update + 54 delete) now validate user ownership before allowing modifications, preventing unauthorized cross-user access.
-
-**What Was Fixed**:
-1. **Storage Layer Authorization**: Added `validateContentOwnership` helper method
-   - All `updateX(id, userId, updates)` methods now validate content belongs to user
-   - All `deleteX(id, userId)` methods now validate content belongs to user
-   - Unauthorized attempts throw error: "Unauthorized: You do not own this content"
-
-2. **Route Layer Security**: Updated all PATCH/PUT/DELETE endpoints (48 route files)
-   - Extract userId from `x-user-id` header
-   - Pass userId to storage methods: `storage.updateX(id, userId, updates)`
-   - Return 403 Forbidden on authorization failures
-   - Return 204 No Content on successful deletes
-
-3. **Authorization Pattern**:
-   ```typescript
-   // Storage validation
-   async updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species> {
-     const [existing] = await db.select().from(species).where(eq(species.id, id));
-     if (!this.validateContentOwnership(existing, userId)) {
-       throw new Error('Unauthorized: You do not own this content');
-     }
-     // Proceed with update
-   }
-   
-   // Route handling
-   router.patch("/:id", async (req, res) => {
-     const userId = req.headers['x-user-id'] as string || 'demo-user';
-     const updates = schema.partial().parse(req.body);
-     const result = await storage.updateX(req.params.id, userId, updates);
-     if (error.message.includes('Unauthorized')) {
-       return res.status(403).json({ error: error.message });
-     }
-   });
-   ```
-
-4. **Integration Testing**: Cross-user authorization tests passed ✅
-   - User B blocked from updating User A's content (403)
-   - User B can update their own content (200)
-   - User A blocked from deleting User B's content (403)
-   - User B can delete their own content (204)
-
-**Content Types Secured** (48 total):
-All worldbuilding content types including: species, professions, languages, religions, cultures, factions, locations, items, weapons, and 39 others
-
-**Security Impact**:
-- ✅ Users can only update content they created
-- ✅ Users can only delete content they created
-- ✅ Cross-user modification attempts return 403 Forbidden
-- ✅ Database-level ownership validation prevents unauthorized writes
-- ✅ Complete authorization coverage across all CRUD operations
