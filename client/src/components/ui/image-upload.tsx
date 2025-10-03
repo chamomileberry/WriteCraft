@@ -196,19 +196,21 @@ export function ImageUpload({
           <img 
             src={imageUrl} 
             alt={caption || "Uploaded image"} 
-            className="max-w-full h-auto max-h-64 rounded-lg border"
+            className="max-w-full h-auto max-h-64 rounded-lg border block"
           />
-          <Button
-            type="button"
-            variant="default"
-            size="icon"
-            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-primary hover:bg-primary/90 shadow-md"
-            onClick={handleRemove}
-            disabled={disabled}
-            data-testid="button-remove-image"
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
+          <div className="absolute top-2 right-2 z-10">
+            <Button
+              type="button"
+              variant="default"
+              size="icon"
+              className="h-7 w-7 rounded-full bg-primary hover:bg-primary/90 shadow-md"
+              onClick={handleRemove}
+              disabled={disabled}
+              data-testid="button-remove-image"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">
