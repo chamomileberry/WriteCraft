@@ -6,6 +6,15 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
 
 ## Recent Changes (October 2025)
 
+### Responsive Search Improvements (Oct 3)
+- **Enhanced Search UX**: Improved search visibility and mobile experience
+  - **Desktop (≥1024px)**: Increased search bar width from 160px to 256-288px for better visibility
+  - **Mobile/Tablet (<1024px)**: Added search icon button that opens dropdown panel below header
+  - **Mobile Dropdown Management**: Implemented mutual exclusion between search and menu dropdowns
+  - **Navigation Cleanup**: All mobile navigation actions close dropdowns to prevent stray panels
+  - Tested across desktop (1440x900), tablet (768x1024), and mobile (375x667) viewports
+  - End-to-end tests confirm proper responsive behavior and dropdown interactions
+
 ### Onboarding & Empty State Improvements
 - **Notebook Empty State (Oct 3)**: Added friendly "Create Your First Notebook" welcome screen for new users
   - Shows welcoming card with explanation of notebooks when user has no notebooks
