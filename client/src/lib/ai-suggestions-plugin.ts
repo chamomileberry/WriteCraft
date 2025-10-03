@@ -98,23 +98,25 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
     return DecorationSet.empty;
   }
 
-  // Add subtle highlight to the affected text
+  // Add subtle highlight to the affected text with data attribute for positioning
   decorations.push(
     Decoration.inline(
       activeSuggestion.deleteRange.from,
       activeSuggestion.deleteRange.to,
       {
-        class: 'ai-suggestion-highlight'
+        class: 'ai-suggestion-highlight',
+        'data-suggestion-id': activeSuggestion.id,
+        'data-suggestion-anchor': 'true'
       }
     )
   );
 
   // Create Canvas-style floating popup card
-  const popupWidget = document.createElement('span');
-  popupWidget.className = 'ai-canvas-popup';
-  popupWidget.style.cssText = 'position: relative; display: inline-block; width: 0; height: 0;';
-
-  // The actual popup card
+  const popupContainer = document.createElement('div');
+  popupContainer.className = 'ai-canvas-popup-container';
+  popupContainer.setAttribute('data-suggestion-popup', activeSuggestion.id);
+  
+  // The actual popup card - use fixed positioning for better control
   const card = document.createElement('div');
   card.className = 'ai-canvas-popup-card';
   
@@ -123,9 +125,9 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   
   // Initial positioning - will be adjusted dynamically
   card.style.cssText = `
-    position: absolute;
+    position: fixed;
     left: 0;
-    bottom: 24px;
+    top: 0;
     min-width: ${isMobile ? '280px' : '320px'};
     max-width: ${isMobile ? '90vw' : '400px'};
     background: white;
@@ -304,16 +306,16 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
 
   actionsDiv.append(dismissBtn, acceptBtn);
   card.append(typeBadge, originalDiv, arrowDiv, suggestedDiv, actionsDiv);
-  popupWidget.appendChild(card);
+  popupContainer.appendChild(card);
 
-  // Function to dynamically adjust positioning based on viewport and actual measurements
+  // Function to dynamically adjust positioning based on the highlighted text anchor
   const adjustPosition = () => {
-    // Get the selection's position relative to viewport
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
+    // Find the highlighted text element using the data attribute we added
+    const highlightedElement = document.querySelector(`[data-suggestion-id="${activeSuggestion.id}"]`);
+    if (!highlightedElement) return;
     
-    const range = selection.getRangeAt(0);
-    const rangeRect = range.getBoundingClientRect();
+    // Get the position of the highlighted text (the actual suggestion location)
+    const anchorRect = highlightedElement.getBoundingClientRect();
     const cardRect = card.getBoundingClientRect();
     
     // Dynamically measure toolbar height by finding header elements
@@ -323,43 +325,42 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
       actualToolbarHeight = header.getBoundingClientRect().bottom;
     }
     
-    // Position the popup relative to the selected text
-    const spaceAbove = rangeRect.top - actualToolbarHeight;
-    const spaceBelow = window.innerHeight - rangeRect.bottom;
+    // Calculate available space above and below the highlighted text
+    const spaceAbove = anchorRect.top - actualToolbarHeight;
+    const spaceBelow = window.innerHeight - anchorRect.bottom;
     const cardHeight = cardRect.height;
+    const cardWidth = cardRect.width;
     
-    // Determine if we should show above or below the selection
-    const shouldShowAbove = spaceAbove > cardHeight + 30;
-    const shouldShowBelow = !shouldShowAbove && spaceBelow > cardHeight + 30;
+    // Determine if we should show above or below the highlighted text
+    const shouldShowAbove = spaceAbove > cardHeight + 10;
+    const shouldShowBelow = !shouldShowAbove && spaceBelow > cardHeight + 10;
     
+    // Calculate vertical position (fixed positioning relative to viewport)
+    let topPosition;
     if (shouldShowAbove) {
-      // Position above the selection
-      const topPosition = rangeRect.top - popupWidget.getBoundingClientRect().top - cardHeight - 10;
-      card.style.bottom = 'auto';
-      card.style.top = `${topPosition}px`;
+      // Position above the highlighted text
+      topPosition = anchorRect.top - cardHeight - 10;
     } else if (shouldShowBelow) {
-      // Position below the selection
-      const topPosition = rangeRect.bottom - popupWidget.getBoundingClientRect().top + 10;
-      card.style.bottom = 'auto';
-      card.style.top = `${topPosition}px`;
+      // Position below the highlighted text
+      topPosition = anchorRect.bottom + 10;
     } else {
-      // If not enough space, position at viewport center
-      const centerPosition = (window.innerHeight - cardHeight) / 2;
-      card.style.bottom = 'auto';
-      card.style.top = `${centerPosition - popupWidget.getBoundingClientRect().top}px`;
+      // If not enough space, align with top of highlighted text but ensure visible
+      topPosition = Math.max(actualToolbarHeight + 10, Math.min(anchorRect.top, window.innerHeight - cardHeight - 10));
     }
     
-    // Center horizontally relative to the selection
-    const selectionCenter = rangeRect.left + (rangeRect.width / 2);
-    const cardWidth = cardRect.width;
-    let leftPosition = selectionCenter - popupWidget.getBoundingClientRect().left - (cardWidth / 2);
+    // Calculate horizontal position (center over highlighted text)
+    const anchorCenter = anchorRect.left + (anchorRect.width / 2);
+    let leftPosition = anchorCenter - (cardWidth / 2);
     
     // Ensure horizontal positioning stays within viewport
     const marginFromEdge = isMobile ? 10 : 20;
-    const maxLeft = window.innerWidth - cardWidth - marginFromEdge - popupWidget.getBoundingClientRect().left;
-    const minLeft = marginFromEdge - popupWidget.getBoundingClientRect().left;
+    const maxLeft = window.innerWidth - cardWidth - marginFromEdge;
+    const minLeft = marginFromEdge;
     
     leftPosition = Math.max(minLeft, Math.min(leftPosition, maxLeft));
+    
+    // Apply the calculated position (using fixed positioning)
+    card.style.top = `${topPosition}px`;
     card.style.left = `${leftPosition}px`;
   };
 
@@ -392,9 +393,17 @@ function createSuggestionDecorations(doc: any, suggestions: AISuggestion[]): Dec
   // Store cleanup function on the card for potential future use
   (card as any)._cleanup = cleanupObservers;
 
-  decorations.push(
-    Decoration.widget(activeSuggestion.deleteRange.to, () => popupWidget, { side: 1 })
-  );
+  // Add the popup container to the document body for fixed positioning
+  document.body.appendChild(popupContainer);
+  
+  // Clean up when decoration is removed
+  const originalCleanup = (card as any)._cleanup;
+  (popupContainer as any)._cleanup = () => {
+    originalCleanup?.();
+    if (popupContainer.parentNode) {
+      popupContainer.parentNode.removeChild(popupContainer);
+    }
+  };
 
   return DecorationSet.create(doc, decorations);
 }
