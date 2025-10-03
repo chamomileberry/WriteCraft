@@ -481,11 +481,11 @@ export interface IStorage {
 
   // Guide methods
   createGuide(guide: InsertGuide): Promise<Guide>;
-  getGuide(id: string, userId: string): Promise<Guide | undefined>;
+  getGuide(id: string): Promise<Guide | undefined>;
   getGuides(category?: string): Promise<Guide[]>;
   searchGuides(query: string, category?: string): Promise<Guide[]>;
-  updateGuide(id: string, userId: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
-  deleteGuide(id: string, userId: string): Promise<boolean>;
+  updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
+  deleteGuide(id: string): Promise<boolean>;
 
   // Saved item methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -3409,11 +3409,8 @@ export class DatabaseStorage implements IStorage {
     return newGuide;
   }
 
-  async getGuide(id: string, userId: string): Promise<Guide | undefined> {
-    const [guide] = await db.select().from(guides).where(and(
-      eq(guides.id, id),
-      eq(guides.userId, userId)
-    ));
+  async getGuide(id: string): Promise<Guide | undefined> {
+    const [guide] = await db.select().from(guides).where(eq(guides.id, id));
     return guide || undefined;
   }
 
@@ -3446,7 +3443,7 @@ export class DatabaseStorage implements IStorage {
       .limit(20);
   }
 
-  async updateGuide(id: string, userId: string, updates: Partial<InsertGuide>): Promise<Guide | undefined> {
+  async updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined> {
     const [updatedGuide] = await db
       .update(guides)
       .set({ ...updates, updatedAt: new Date() })
@@ -3455,7 +3452,7 @@ export class DatabaseStorage implements IStorage {
     return updatedGuide;
   }
 
-  async deleteGuide(id: string, userId: string): Promise<boolean> {
+  async deleteGuide(id: string): Promise<boolean> {
     const deletedGuides = await db.delete(guides)
       .where(eq(guides.id, id))
       .returning({ id: guides.id });

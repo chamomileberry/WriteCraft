@@ -82,7 +82,7 @@ router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
-    const guide = await storage.getGuide(req.params.id, userId);
+    const guide = await storage.getGuide(req.params.id);
     
     if (!guide) {
       return res.status(404).json({ error: 'Guide not found' });
@@ -138,7 +138,7 @@ router.put("/:id", async (req: any, res) => {
     
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
-    const updatedGuide = await storage.updateGuide(req.params.id, userId, validatedGuide);
+    const updatedGuide = await storage.updateGuide(req.params.id, validatedGuide);
     res.json(updatedGuide);
   } catch (error) {
     console.error('Error updating guide:', error);
@@ -167,7 +167,7 @@ router.delete("/:id", async (req: any, res) => {
       return res.status(403).json({ error: 'Only administrators can delete guides' });
     }
     
-    await storage.deleteGuide(req.params.id, userId);
+    await storage.deleteGuide(req.params.id);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting guide:', error);
