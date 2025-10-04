@@ -122,7 +122,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
 
     // Update menu on selection change
     const handleSelectionUpdate = () => {
-      setTimeout(updateMenu, 10);
+      updateMenu();
     };
 
     editor.on('selectionUpdate', handleSelectionUpdate);
@@ -131,9 +131,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
     // Update menu position on scroll
     const editorElement = editor.view.dom.closest('.ProseMirror')?.parentElement;
     const handleScroll = () => {
-      if (isVisible) {
-        updateMenu();
-      }
+      updateMenu();
     };
 
     if (editorElement) {
@@ -149,7 +147,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       }
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [editor, isVisible]);
+  }, [editor]);
 
   const handleAIAction = async (action: AIAction) => {
     if (!editor) return;
