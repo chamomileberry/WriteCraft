@@ -1,4 +1,5 @@
-import { Editor, BubbleMenu } from '@tiptap/react';
+import { Editor } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -138,29 +139,74 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
     }
   };
 
+  // Check if there's an active suggestion
+  const hasActiveSuggestion = () => {
+    if (!editor) return false;
+    const pluginState = aiSuggestionPluginKey.getState(editor.state);
+    return pluginState && pluginState.suggestions.some((s: AISuggestion) => s.status === 'pending');
+  };
+
+  // Handle accepting a suggestion
+  const handleAcceptSuggestion = () => {
+    if (!editor) return;
+    const pluginState = aiSuggestionPluginKey.getState(editor.state);
+    if (!pluginState || pluginState.suggestions.length === 0) return;
+
+    const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+    if (!activeSuggestion) return;
+
+    const tr = editor.state.tr;
+    tr.replaceRangeWith(
+      activeSuggestion.deleteRange.from,
+      activeSuggestion.deleteRange.to,
+      editor.state.schema.text(activeSuggestion.suggestedText)
+    );
+    
+    // Remove the suggestion from state
+    const updatedSuggestions = pluginState.suggestions.filter((s: AISuggestion) => s.id !== activeSuggestion.id);
+    tr.setMeta('updateSuggestions', updatedSuggestions);
+    editor.view.dispatch(tr);
+  };
+
+  // Handle dismissing a suggestion
+  const handleDismissSuggestion = () => {
+    if (!editor) return;
+    const pluginState = aiSuggestionPluginKey.getState(editor.state);
+    if (!pluginState || pluginState.suggestions.length === 0) return;
+
+    const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+    if (!activeSuggestion) return;
+
+    const tr = editor.state.tr;
+    const updatedSuggestions = pluginState.suggestions.filter((s: AISuggestion) => s.id !== activeSuggestion.id);
+    tr.setMeta('updateSuggestions', updatedSuggestions);
+    editor.view.dispatch(tr);
+  };
+
+  // Get active suggestion details
+  const getActiveSuggestion = () => {
+    if (!editor) return null;
+    const pluginState = aiSuggestionPluginKey.getState(editor.state);
+    if (!pluginState || pluginState.suggestions.length === 0) return null;
+    return pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+  };
+
   if (!editor) return null;
+
+  const activeSuggestion = getActiveSuggestion();
 
   return (
     <>
-      {/* TipTap BubbleMenu - automatically positions near selection */}
+      {/* AI Action Menu - shows when text is selected and no suggestion is active */}
       <BubbleMenu
         editor={editor}
-        tippyOptions={{ 
-          duration: 100,
-          placement: 'top',
-          animation: 'shift-away',
+        pluginKey="aiActionMenu"
+        shouldShow={({ from, to }) => {
+          return from !== to && !hasActiveSuggestion();
         }}
-        shouldShow={({ editor, from, to }) => {
-          // Only show when text is selected (not empty selection)
-          if (from === to) return false;
-
-          // Hide if there's already a pending AI suggestion
-          const pluginState = aiSuggestionPluginKey.getState(editor.state);
-          if (pluginState && pluginState.suggestions.some(s => s.status === 'pending')) {
-            return false;
-          }
-
-          return true;
+        options={{
+          placement: 'top',
+          offset: 8,
         }}
       >
         <Card className="flex items-center gap-1 p-1 shadow-lg border">
@@ -169,145 +215,168 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
             size="sm"
             onClick={() => handleAIAction('improve')}
             disabled={isLoading}
-            data-testid="ai-improve-btn"
-            className="gap-1.5 h-8"
+            data-testid="button-ai-improve"
           >
             {isLoading && currentAction === 'improve' ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Sparkles className="h-3.5 w-3.5" />
+              <Wand2 className="w-4 h-4" />
             )}
-            Improve
+            <span className="ml-1">Improve</span>
           </Button>
-
+          
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleAIAction('shorten')}
             disabled={isLoading}
-            data-testid="ai-shorten-btn"
-            className="gap-1.5 h-8"
+            data-testid="button-ai-shorten"
           >
             {isLoading && currentAction === 'shorten' ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Minimize2 className="h-3.5 w-3.5" />
+              <Minimize2 className="w-4 h-4" />
             )}
-            Shorten
+            <span className="ml-1">Shorten</span>
           </Button>
-
+          
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleAIAction('expand')}
             disabled={isLoading}
-            data-testid="ai-expand-btn"
-            className="gap-1.5 h-8"
+            data-testid="button-ai-expand"
           >
             {isLoading && currentAction === 'expand' ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Maximize2 className="h-3.5 w-3.5" />
+              <Maximize2 className="w-4 h-4" />
             )}
-            Expand
+            <span className="ml-1">Expand</span>
           </Button>
-
+          
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleAIAction('fix')}
             disabled={isLoading}
-            data-testid="ai-fix-btn"
-            className="gap-1.5 h-8"
+            data-testid="button-ai-fix"
           >
             {isLoading && currentAction === 'fix' ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <CheckCircle2 className="h-3.5 w-3.5" />
+              <CheckCircle2 className="w-4 h-4" />
             )}
-            Fix
+            <span className="ml-1">Fix Grammar</span>
           </Button>
-
-          <div className="w-px h-6 bg-border mx-1" />
-
+          
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleAIAction('ask')}
             disabled={isLoading}
-            data-testid="ai-ask-btn"
-            className="gap-1.5 h-8"
+            data-testid="button-ai-ask"
           >
-            {isLoading && currentAction === 'ask' ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Wand2 className="h-3.5 w-3.5" />
-            )}
-            Ask AI
+            <Sparkles className="w-4 h-4" />
+            <span className="ml-1">Ask AI</span>
           </Button>
         </Card>
       </BubbleMenu>
 
-      {/* Custom Prompt Dialog */}
-      <Dialog open={showAskDialog} onOpenChange={(open) => {
-        setShowAskDialog(open);
-        if (!open) {
-          setCustomPrompt(''); // Clear prompt when dialog closes
-        }
-      }}>
-        <DialogContent data-testid="ai-ask-dialog">
+      {/* AI Suggestion Popup - shows when there's an active suggestion */}
+      {activeSuggestion && (
+        <BubbleMenu
+          editor={editor}
+          pluginKey="aiSuggestionPopup"
+          shouldShow={() => !!hasActiveSuggestion()}
+          options={{
+            placement: 'bottom',
+            offset: 8,
+          }}
+        >
+          <Card className="max-w-md p-4 shadow-xl border">
+            <div className="space-y-3">
+              {/* Type badge */}
+              <div className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-1 rounded">
+                <Sparkles className="w-3 h-3" />
+                {activeSuggestion.type.charAt(0).toUpperCase() + activeSuggestion.type.slice(1)} Suggestion
+              </div>
+
+              {/* Original text */}
+              <div className="p-2 bg-gray-50 rounded text-sm text-gray-600 max-h-20 overflow-auto">
+                {activeSuggestion.originalText}
+              </div>
+
+              {/* Arrow */}
+              <div className="text-center text-purple-600">↓</div>
+
+              {/* Suggested text */}
+              <div className="p-2 bg-purple-50 rounded text-sm text-purple-700 font-medium max-h-20 overflow-auto">
+                {activeSuggestion.suggestedText}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDismissSuggestion}
+                  className="flex-1"
+                  data-testid="button-ai-dismiss"
+                >
+                  Dismiss
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleAcceptSuggestion}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  data-testid="button-ai-accept"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-1" />
+                  Accept
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </BubbleMenu>
+      )}
+
+      {/* Ask AI Dialog */}
+      <Dialog open={showAskDialog} onOpenChange={setShowAskDialog}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ask AI</DialogTitle>
+            <DialogTitle>Ask AI to Edit Text</DialogTitle>
             <DialogDescription>
-              Tell the AI what you want to do with the selected text. For example: "Make this more formal" or "Simplify this for a younger audience"
+              Describe how you want the selected text to be changed.
             </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4">
             <div className="p-3 bg-muted rounded-md">
-              <p className="text-sm text-muted-foreground mb-1">Selected text:</p>
-              <p className="text-sm line-clamp-3">{selectedTextForAsk}</p>
+              <p className="text-sm text-muted-foreground">Selected text:</p>
+              <p className="text-sm mt-1">{selectedTextForAsk}</p>
             </div>
-            
             <Textarea
+              placeholder="e.g., Make it more formal, Add more detail, Convert to bullet points..."
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="What would you like the AI to do?"
-              className="min-h-[100px]"
-              data-testid="ai-custom-prompt-input"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                  handleCustomPromptSubmit();
-                }
-              }}
+              rows={4}
             />
           </div>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowAskDialog(false);
-                setCustomPrompt('');
-              }}
-              disabled={isLoading}
-              data-testid="ai-ask-cancel-btn"
-            >
+            <Button variant="outline" onClick={() => setShowAskDialog(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleCustomPromptSubmit}
-              disabled={isLoading || !customPrompt.trim()}
-              data-testid="ai-ask-submit-btn"
-            >
+            <Button onClick={handleCustomPromptSubmit} disabled={!customPrompt.trim() || isLoading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Processing...
                 </>
               ) : (
-                'Submit'
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Apply Edit
+                </>
               )}
             </Button>
           </DialogFooter>
