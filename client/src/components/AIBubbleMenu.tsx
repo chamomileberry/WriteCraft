@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Loader2, Sparkles, Wand2, Minimize2, Maximize2, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { aiSuggestionPluginKey, type AISuggestion } from '@/lib/ai-suggestions-plugin';
@@ -210,76 +211,96 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         }}
       >
         <Card className="flex items-center gap-1 p-1 shadow-lg border">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAIAction('improve')}
-            disabled={isLoading}
-            data-testid="button-ai-improve"
-          >
-            {isLoading && currentAction === 'improve' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Wand2 className="w-4 h-4" />
-            )}
-            <span className="ml-1">Improve</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleAIAction('improve')}
+                disabled={isLoading}
+                data-testid="button-ai-improve"
+              >
+                {isLoading && currentAction === 'improve' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Wand2 className="w-4 h-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Improve</TooltipContent>
+          </Tooltip>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAIAction('shorten')}
-            disabled={isLoading}
-            data-testid="button-ai-shorten"
-          >
-            {isLoading && currentAction === 'shorten' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Minimize2 className="w-4 h-4" />
-            )}
-            <span className="ml-1">Shorten</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleAIAction('shorten')}
+                disabled={isLoading}
+                data-testid="button-ai-shorten"
+              >
+                {isLoading && currentAction === 'shorten' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Minimize2 className="w-4 h-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Shorten</TooltipContent>
+          </Tooltip>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAIAction('expand')}
-            disabled={isLoading}
-            data-testid="button-ai-expand"
-          >
-            {isLoading && currentAction === 'expand' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Maximize2 className="w-4 h-4" />
-            )}
-            <span className="ml-1">Expand</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleAIAction('expand')}
+                disabled={isLoading}
+                data-testid="button-ai-expand"
+              >
+                {isLoading && currentAction === 'expand' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Maximize2 className="w-4 h-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Expand</TooltipContent>
+          </Tooltip>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAIAction('fix')}
-            disabled={isLoading}
-            data-testid="button-ai-fix"
-          >
-            {isLoading && currentAction === 'fix' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CheckCircle2 className="w-4 h-4" />
-            )}
-            <span className="ml-1">Fix Grammar</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleAIAction('fix')}
+                disabled={isLoading}
+                data-testid="button-ai-fix"
+              >
+                {isLoading && currentAction === 'fix' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Fix Grammar</TooltipContent>
+          </Tooltip>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAIAction('ask')}
-            disabled={isLoading}
-            data-testid="button-ai-ask"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span className="ml-1">Ask AI</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleAIAction('ask')}
+                disabled={isLoading}
+                data-testid="button-ai-ask"
+              >
+                <Sparkles className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Ask AI</TooltipContent>
+          </Tooltip>
         </Card>
       </BubbleMenu>
 
