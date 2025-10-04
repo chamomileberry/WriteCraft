@@ -1,0 +1,128 @@
+Bubble Menu
+We need to add an extension from TipTap called the Bubble Menu extension which will add a tooltip whenever the user makes an inline text selection. This is available via the BubbleMenu as BubbleMenuReact component in the @tiptap/react library. We pass in the editor element, a container reference with a DOM element in which the tooltip will be contained.
+export const BubbleMenu = ({ editor, containerRef }: BubbleMenuProps) => {
+  const [selectionType, setSelectionType] = useState<SelectionMenuType>(null);
+  useEffect(() => {
+    if (selectionType !== "link") setSelectionType(null);
+  }, []);
+  if (!editor || !containerRef.current) return null;
+  return (
+    <BubbleMenuReact
+      pluginKey="bubbleMenu"
+      editor={editor}
+      className="bubble-menu"
+      tippyOptions={{
+        appendTo: containerRef.current,
+      }}
+    >
+      <SelectionMenu
+        editor={editor}
+        selectionType={selectionType}
+        setSelectionType={setSelectionType}
+      />
+    </BubbleMenuReact>
+  );
+};
+We also need to add a Selection Menu that allows the user to paste a link embed when the user clicks on the Link mark in the Bubble Menu.
+export interface BubbleMenuProps {
+  editor: Editor;
+  containerRef: RefObject<HTMLDivElement>;
+}
+
+export type SelectionMenuType = "link" | null;
+
+const SelectionMenu = ({
+  editor,
+  selectionType,
+  setSelectionType,
+}: {
+  editor: Editor;
+  selectionType: SelectionMenuType;
+  setSelectionType: (type: SelectionMenuType) => void;
+}) => {
+  switch (selectionType) {
+    case null:
+      return (
+        <>
+          <button
+            type="button"
+            data-test-id="mark-bold"
+            className={clsx({
+              active: editor.isActive("bold"),
+            })}
+            onClick={() => editor.chain().toggleBold().run()}
+          >
+            <BoldIcon />
+          </button>
+          <button
+            type="button"
+            data-test-id="mark-italic"
+            className={clsx({
+              active: editor.isActive("italic"),
+            })}
+            onClick={() => editor.chain().toggleItalic().run()}
+          >
+            <ItalicIcon />
+          </button>
+          <button
+            type="button"
+            data-test-id="mark-underline"
+            className={clsx({
+              active: editor.isActive("underline"),
+            })}
+            onClick={() => editor.chain().toggleUnderline().run()}
+          >
+            <UnderlineIcon />
+          </button>
+          <button
+            type="button"
+            data-test-id="mark-strike"
+            className={clsx({
+              active: editor.isActive("strike"),
+            })}
+            onClick={() => editor.chain().toggleStrike().run()}
+          >
+            <StrikeIcon />
+          </button>
+          <button
+            type="button"
+            data-test-id="mark-link"
+            className={clsx({
+              active: editor.isActive("link"),
+            })}
+            onClick={() => {
+              setSelectionType("link");
+            }}
+          >
+            <LinkIcon />
+          </button>
+        </>
+      );
+    case "link":
+      return (
+        <div className="insert-link-box">
+          <input
+            data-test-id="insert-link-value"
+            autoFocus
+            type="text"
+            placeholder="Insert link address"
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                editor
+                  .chain()
+                  .focus()
+                  .setLink({
+                    href: (event.target as HTMLInputElement).value,
+                    target: "_blank",
+                  })
+                  .run();
+                setSelectionType(null);
+              }
+            }}
+          />
+        </div>
+      );
+  }
+};
+This element shows the Bold, Italics, Underline, and Strike marks, and if Link is selected, shows an <input> element that lets the user paste a link embed and highlights it in the text element. When all is said and done, this is how the experience looks like for a user
+Press enter or click to view image in full size
