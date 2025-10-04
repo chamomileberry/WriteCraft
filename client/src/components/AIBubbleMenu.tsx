@@ -1,11 +1,10 @@
-import { Editor } from '@tiptap/react';
+import { Editor, BubbleMenu } from '@tiptap/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Sparkles, Wand2, Minimize2, Maximize2, CheckCircle2 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { aiSuggestionPluginKey, type AISuggestion } from '@/lib/ai-suggestions-plugin';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -19,138 +18,11 @@ type AIAction = 'improve' | 'shorten' | 'expand' | 'fix' | 'ask';
 export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [currentAction, setCurrentAction] = useState<AIAction | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [selectedTextForAsk, setSelectedTextForAsk] = useState('');
   const [askSuggestionPosition, setAskSuggestionPosition] = useState({ from: 0, to: 0 });
-  const menuRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (!editor) return;
-
-    const updateMenu = () => {
-      const { view, state } = editor;
-      const { from, to } = state.selection;
-      
-      // Check if we have an active suggestion to position near
-      const pluginState = aiSuggestionPluginKey.getState(state);
-      
-      // Helper function to calculate menu position from coords
-      const calculatePosition = (startCoords: { top: number; bottom: number; left: number }, endCoords: { top: number; bottom: number; left: number }) => {
-        const menuWidth = 400;
-        const menuHeight = 50;
-        
-        // Calculate center position horizontally
-        let menuLeft = (startCoords.left + endCoords.left) / 2 - (menuWidth / 2);
-        
-        // Clamp horizontal position within viewport
-        menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
-        
-        // Position above selection by default
-        let menuTop = startCoords.top - menuHeight - 10;
-        
-        // If too close to top, position below selection instead
-        if (menuTop < 10) {
-          menuTop = endCoords.bottom + 10;
-        }
-        
-        // If menu would go below viewport, clamp it
-        if (menuTop + menuHeight > window.innerHeight - 10) {
-          menuTop = window.innerHeight - menuHeight - 10;
-        }
-        
-        return { top: menuTop, left: menuLeft };
-      };
-      
-      // If there's an active suggestion, position near it instead of selection
-      if (pluginState && pluginState.suggestions.length > 0) {
-        const activeSuggestion = pluginState.suggestions[pluginState.suggestions.length - 1];
-        if (activeSuggestion.status === 'pending') {
-          const suggestionFrom = activeSuggestion.deleteRange.from;
-          const suggestionTo = activeSuggestion.deleteRange.to;
-          
-          const startDOM = view.domAtPos(suggestionFrom);
-          const endDOM = view.domAtPos(suggestionTo);
-          
-          if (!startDOM.node || !endDOM.node) {
-            setIsVisible(false);
-            return;
-          }
-          
-          const range = document.createRange();
-          range.setStart(startDOM.node, startDOM.offset);
-          range.setEnd(endDOM.node, endDOM.offset);
-          const rect = range.getBoundingClientRect();
-          
-          const pos = calculatePosition(
-            { top: rect.top, bottom: rect.bottom, left: rect.left },
-            { top: rect.top, bottom: rect.bottom, left: rect.right }
-          );
-          setPosition(pos);
-          setIsVisible(true);
-          return;
-        }
-      }
-
-      // Default behavior: hide menu if no text is selected
-      if (from === to) {
-        setIsVisible(false);
-        return;
-      }
-
-      // Get the DOM coordinates of the selection using getBoundingClientRect
-      const startDOM = view.domAtPos(from);
-      const endDOM = view.domAtPos(to);
-      
-      if (!startDOM.node || !endDOM.node) {
-        setIsVisible(false);
-        return;
-      }
-      
-      const range = document.createRange();
-      range.setStart(startDOM.node, startDOM.offset);
-      range.setEnd(endDOM.node, endDOM.offset);
-      const rect = range.getBoundingClientRect();
-      
-      const pos = calculatePosition(
-        { top: rect.top, bottom: rect.bottom, left: rect.left },
-        { top: rect.top, bottom: rect.bottom, left: rect.right }
-      );
-      setPosition(pos);
-      setIsVisible(true);
-    };
-
-    // Update menu on selection change
-    const handleSelectionUpdate = () => {
-      updateMenu();
-    };
-
-    editor.on('selectionUpdate', handleSelectionUpdate);
-    editor.on('update', handleSelectionUpdate);
-
-    // Update menu position on scroll
-    const editorElement = editor.view.dom.closest('.ProseMirror')?.parentElement;
-    const handleScroll = () => {
-      updateMenu();
-    };
-
-    if (editorElement) {
-      editorElement.addEventListener('scroll', handleScroll);
-    }
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      editor.off('selectionUpdate', handleSelectionUpdate);
-      editor.off('update', handleSelectionUpdate);
-      if (editorElement) {
-        editorElement.removeEventListener('scroll', handleScroll);
-      }
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [editor]);
 
   const handleAIAction = async (action: AIAction) => {
     if (!editor) return;
@@ -167,7 +39,6 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       setSelectedTextForAsk(selectedText);
       setAskSuggestionPosition(suggestionPosition);
       setShowAskDialog(true);
-      setIsVisible(false); // Hide the bubble menu
       return;
     }
 
@@ -201,9 +72,6 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       const tr = view.state.tr;
       tr.setMeta(aiSuggestionPluginKey, suggestion);
       view.dispatch(tr);
-
-      // Hide menu after action
-      setIsVisible(false);
 
     } catch (error) {
       console.error('AI action failed:', error);
@@ -274,105 +142,111 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
 
   return (
     <>
-      {/* Bubble Menu */}
-      {isVisible && createPortal(
-        <div
-          ref={menuRef}
-          style={{
-            position: 'absolute',
-            top: `${position.top}px`,
-            left: `${position.left}px`,
-            zIndex: 1000,
-            pointerEvents: 'auto',
-          }}
-          className="ai-bubble-menu"
-        >
-          <Card className="flex items-center gap-1 p-1 shadow-lg border">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleAIAction('improve')}
-              disabled={isLoading}
-              data-testid="ai-improve-btn"
-              className="gap-1.5 h-8"
-            >
-              {isLoading && currentAction === 'improve' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="h-3.5 w-3.5" />
-              )}
-              Improve
-            </Button>
+      {/* TipTap BubbleMenu - automatically positions near selection */}
+      <BubbleMenu
+        editor={editor}
+        tippyOptions={{ 
+          duration: 100,
+          placement: 'top',
+          animation: 'shift-away',
+        }}
+        shouldShow={({ editor, from, to }) => {
+          // Only show when text is selected (not empty selection)
+          if (from === to) return false;
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleAIAction('shorten')}
-              disabled={isLoading}
-              data-testid="ai-shorten-btn"
-              className="gap-1.5 h-8"
-            >
-              {isLoading && currentAction === 'shorten' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Minimize2 className="h-3.5 w-3.5" />
-              )}
-              Shorten
-            </Button>
+          // Hide if there's already a pending AI suggestion
+          const pluginState = aiSuggestionPluginKey.getState(editor.state);
+          if (pluginState && pluginState.suggestions.some(s => s.status === 'pending')) {
+            return false;
+          }
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleAIAction('expand')}
-              disabled={isLoading}
-              data-testid="ai-expand-btn"
-              className="gap-1.5 h-8"
-            >
-              {isLoading && currentAction === 'expand' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Maximize2 className="h-3.5 w-3.5" />
-              )}
-              Expand
-            </Button>
+          return true;
+        }}
+      >
+        <Card className="flex items-center gap-1 p-1 shadow-lg border">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAIAction('improve')}
+            disabled={isLoading}
+            data-testid="ai-improve-btn"
+            className="gap-1.5 h-8"
+          >
+            {isLoading && currentAction === 'improve' ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            Improve
+          </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleAIAction('fix')}
-              disabled={isLoading}
-              data-testid="ai-fix-btn"
-              className="gap-1.5 h-8"
-            >
-              {isLoading && currentAction === 'fix' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-3.5 w-3.5" />
-              )}
-              Fix
-            </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAIAction('shorten')}
+            disabled={isLoading}
+            data-testid="ai-shorten-btn"
+            className="gap-1.5 h-8"
+          >
+            {isLoading && currentAction === 'shorten' ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Minimize2 className="h-3.5 w-3.5" />
+            )}
+            Shorten
+          </Button>
 
-            <div className="w-px h-6 bg-border mx-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAIAction('expand')}
+            disabled={isLoading}
+            data-testid="ai-expand-btn"
+            className="gap-1.5 h-8"
+          >
+            {isLoading && currentAction === 'expand' ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Maximize2 className="h-3.5 w-3.5" />
+            )}
+            Expand
+          </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleAIAction('ask')}
-              disabled={isLoading}
-              data-testid="ai-ask-btn"
-              className="gap-1.5 h-8"
-            >
-              {isLoading && currentAction === 'ask' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Wand2 className="h-3.5 w-3.5" />
-              )}
-              Ask AI
-            </Button>
-          </Card>
-        </div>,
-        document.body
-      )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAIAction('fix')}
+            disabled={isLoading}
+            data-testid="ai-fix-btn"
+            className="gap-1.5 h-8"
+          >
+            {isLoading && currentAction === 'fix' ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            )}
+            Fix
+          </Button>
+
+          <div className="w-px h-6 bg-border mx-1" />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAIAction('ask')}
+            disabled={isLoading}
+            data-testid="ai-ask-btn"
+            className="gap-1.5 h-8"
+          >
+            {isLoading && currentAction === 'ask' ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Wand2 className="h-3.5 w-3.5" />
+            )}
+            Ask AI
+          </Button>
+        </Card>
+      </BubbleMenu>
 
       {/* Custom Prompt Dialog */}
       <Dialog open={showAskDialog} onOpenChange={(open) => {
