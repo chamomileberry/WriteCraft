@@ -48,6 +48,35 @@ Documentation: Proactively create documentation for new features, APIs, and syst
     - **Writing Assistant Panel**: Conversational AI assistant for analyzing text, proofreading, generating questions, and providing writing feedback.
     - **AI Writing Style**: All AI features adhere to comprehensive anti-cliché guidelines to produce human-like, authentic, and expressive writing, avoiding robotic patterns and forbidden phrases.
 
+### AI Human-Like Writing Style Guidelines (Oct 4)
+- **Comprehensive Anti-Cliché System**: Implemented extensive style guidelines across all AI features to produce authentic, human-like writing
+  - **Forbidden Phrases (350+)**: Exhaustive ban on overused AI expressions including:
+    - Generic insights: "valuable insights", "actionable insights", "key takeaways", "treasure trove"
+    - Overused metaphors: "indelible mark", "tapestry", "journey", "beacon of hope", "golden ticket", "uncharted waters"
+    - Corporate buzzwords: "leverage", "optimize", "utilize", "synergy", "paradigm shift", "game-changer", "disruptive innovation", "scalable", "bandwidth"
+    - Tech jargon: "AI-powered", "cloud-based", "blockchain-enabled", "digital transformation", "cutting-edge", "state-of-the-art", "next-generation"
+    - Business clichés: "best practices", "thought leadership", "competitive landscape", "value proposition", "stakeholders", "deliverables", "roi", "kpis"
+    - Flowery language: "delve into", "embark on", "navigate the landscape", "at its core", "robust", "seamless", "comprehensive", "meticulous"
+    - Agile/tech terms: "sprint", "scrum", "mvp", "poc", "roadmap", "iteration", "deployment", "granular"
+    - Overused adjectives: "profound", "remarkable", "captivating", "exemplary", "invaluable", "unparalleled", "groundbreaking", "revolutionary"
+    - Corporate speak: "operational excellence", "process optimization", "strategic alignment", "resource allocation", "continuous improvement"
+  - **Transition Word Controls**: Banned overuse of robotic transitions (however, moreover, furthermore, consequently, notably, ultimately, etc.)
+  - **Natural Word Replacements**: Guidelines for authentic alternatives (e.g., "explore/look into" instead of "delve into", "important/key" instead of "pivotal", "use/apply" instead of "harness/leverage")
+  - **Human Authenticity Requirements**:
+    - Be diffident and partisan - express opinions and genuine uncertainty
+    - Choose words for emotional resonance and personal connection
+    - Include personal touches showing individuality and quirks
+    - Draw from lived experience with anecdotes and emotional nuance
+    - Vary sentence length unpredictably (mix short punchy with longer flowing)
+    - Use conversational rhythm and natural speech patterns
+    - Embrace natural imperfection over polished prose
+    - Write with personality - let emotion and perspective show through
+    - Avoid formulaic structures, bullet points, predictable formatting
+    - Sound clear, creative, nuanced, expressive
+  - **Robotic Pattern Avoidance**: Eliminates repetitive structures, generic generalizations, stiff academic tone, perfectly balanced phrasing, predictable conclusions, corporate buzzwords
+  - **Implementation**: Applied to all AI features including inline suggestions (Improve, Shorten, Expand, Fix Grammar, Ask AI), Writing Assistant chat, text analysis, proofreading, rephrasing, and description generation
+  - Files: `server/routes/ai.routes.ts`, `server/ai-generation.ts`
+
 ### Security & Authorization
 - **Ownership Validation Pattern**: All content operations enforce strict ownership validation using a "Fetch → Validate → Execute" pattern.
 - **Critical Security Rules**:
