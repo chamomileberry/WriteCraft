@@ -37,44 +37,57 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       // Check if we have an active suggestion to position near
       const pluginState = aiSuggestionPluginKey.getState(state);
       
+      // Helper function to calculate menu position from coords
+      const calculatePosition = (startCoords: { top: number; bottom: number; left: number }, endCoords: { top: number; bottom: number; left: number }) => {
+        // Get the editor DOM element and its container
+        const editorElement = view.dom;
+        const editorRect = editorElement.getBoundingClientRect();
+        
+        // Calculate menu position (above the selection/suggestion)
+        // The coords are already viewport-relative, so we use them directly
+        let menuTop = startCoords.top - 60;
+        let menuLeft = (startCoords.left + endCoords.left) / 2 - 200;
+        
+        // Viewport clamping to keep menu visible
+        const menuWidth = 400;
+        const menuHeight = 50; // Approximate height of menu
+        
+        // Clamp horizontal position within viewport
+        menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
+        
+        // Flip to below selection if too close to top of viewport
+        if (startCoords.top < 70) {
+          menuTop = endCoords.bottom + 10;
+        }
+        
+        // If menu would go below viewport, flip back to top
+        if (menuTop + menuHeight > window.innerHeight) {
+          menuTop = startCoords.top - 60;
+        }
+        
+        // Final clamp to ensure menu stays in viewport
+        menuTop = Math.max(10, Math.min(menuTop, window.innerHeight - menuHeight - 10));
+        
+        return { top: menuTop, left: menuLeft };
+      };
+      
       // If there's an active suggestion, position near it instead of selection
       if (pluginState && pluginState.suggestions.length > 0) {
         const activeSuggestion = pluginState.suggestions[pluginState.suggestions.length - 1];
         if (activeSuggestion.status === 'pending') {
-          // Use the suggestion's anchor position for menu placement
           const suggestionFrom = activeSuggestion.deleteRange.from;
           const suggestionTo = activeSuggestion.deleteRange.to;
           
           const start = view.coordsAtPos(suggestionFrom);
           const end = view.coordsAtPos(suggestionTo);
           
-          // Check if coordinates are valid
           if (!start || !end) {
             setIsVisible(false);
             return;
           }
           
-          // Calculate menu position (above the suggestion) - using fixed positioning
-          let menuTop = start.top - 60; // Position above suggestion
-          let menuLeft = (start.left + end.left) / 2 - 200; // Center horizontally
-          
-          // Viewport clamping to keep menu visible
-          const menuWidth = 400;
-          
-          // Clamp horizontal position
-          menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
-          
-          // Flip to below suggestion if too close to top of viewport
-          if (start.top < 70) {
-            menuTop = end.bottom + 10;
-          }
-          
-          // Ensure menu doesn't go below viewport
-          if (end.bottom + 70 > window.innerHeight) {
-            menuTop = start.top - 60;
-          }
-          
-          setPosition({ top: menuTop, left: menuLeft });
+          const pos = calculatePosition(start, end);
+          setPosition(pos);
           setIsVisible(true);
           return;
         }
@@ -86,37 +99,17 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         return;
       }
 
-      // Get the coordinates of the selection (relative to viewport)
+      // Get the coordinates of the selection
       const start = view.coordsAtPos(from);
       const end = view.coordsAtPos(to);
       
-      // Check if coordinates are valid
       if (!start || !end) {
         setIsVisible(false);
         return;
       }
       
-      // Calculate menu position (above the selection) - using fixed positioning
-      let menuTop = start.top - 60; // Position above selection
-      let menuLeft = (start.left + end.left) / 2 - 200; // Center horizontally
-
-      // Viewport clamping to keep menu visible
-      const menuWidth = 400;
-      
-      // Clamp horizontal position
-      menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
-      
-      // Flip to below selection if too close to top of viewport
-      if (start.top < 70) {
-        menuTop = end.bottom + 10;
-      }
-      
-      // Ensure menu doesn't go below viewport
-      if (end.bottom + 70 > window.innerHeight) {
-        menuTop = start.top - 60;
-      }
-
-      setPosition({ top: menuTop, left: menuLeft });
+      const pos = calculatePosition(start, end);
+      setPosition(pos);
       setIsVisible(true);
     };
 
