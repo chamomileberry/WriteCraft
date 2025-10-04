@@ -4,82 +4,6 @@
 
 WriteCraft is a comprehensive web platform designed to support creative writers with an extensive suite of tools, generators, and educational resources. It provides character generators, plot structure tools, writing prompts, setting builders, and detailed writing guides to enhance the creative process. The platform aims to be a modern, full-stack application with a clean, writer-friendly interface, enhancing the creative workflow for professional writers.
 
-## Recent Changes (October 2025)
-
-### Notebook Visual Enhancements (Oct 3)
-- **Notebook Image Thumbnails**: Added optional image upload support for visual notebook identification
-  - **Database**: Added `imageUrl` field to notebooks table via schema push
-  - **Create/Edit Forms**: Integrated ImageUpload component with URL entry and file upload
-  - **Visual Grid Layout**: Transformed notebook list into responsive grid (1-3 columns)
-  - **Thumbnail Display**: Shows uploaded images in aspect-video containers with smooth transitions
-  - **Fallback Icon**: BookOpen icon (lucide-react) displays for notebooks without images
-  - **Enhanced Interactions**: Hover reveals edit/delete buttons, active notebook shows badge overlay
-  - **Test Coverage**: Complete data-testid attributes for all interactive elements
-  - Uses object storage integration with 'public' visibility for shareable thumbnails
-  - Passed comprehensive end-to-end tests covering create, edit, and display workflows
-
-### Responsive Search Improvements (Oct 3)
-- **Enhanced Search UX**: Improved search visibility and mobile experience
-  - **Desktop (≥1024px)**: Increased search bar width from 160px to 256-288px for better visibility
-  - **Mobile/Tablet (<1024px)**: Added search icon button that opens dropdown panel below header
-  - **Mobile Dropdown Management**: Implemented mutual exclusion between search and menu dropdowns
-  - **Navigation Cleanup**: All mobile navigation actions close dropdowns to prevent stray panels
-  - Tested across desktop (1440x900), tablet (768x1024), and mobile (375x667) viewports
-  - End-to-end tests confirm proper responsive behavior and dropdown interactions
-
-### Onboarding & Empty State Improvements
-- **Automatic Notebook Creation Flow (Oct 3)**: Seamless onboarding for new users without notebooks
-  - **Trigger Points**: "+ Create" button (header) and "Start Creating" button (home page)
-  - **Auto-Detection**: ContentTypeModal detects empty notebooks after loading
-  - **Auto-Open**: NotebookManager automatically opens on top for first-time users
-  - **Callback Flow**: After notebook creation, NotebookManager closes and returns to ContentTypeModal
-  - **Auto-Selection**: Newly created notebook is pre-selected in ContentTypeModal
-  - **Enabled State**: Content types become immediately available for selection
-  - **Subsequent Usage**: NotebookManager does NOT auto-open when notebooks exist
-  - Components: Enhanced NotebookManager with `onNotebookCreated` callback, ContentTypeModal with auto-detection logic
-  - Passed comprehensive end-to-end tests covering first-time and repeat usage flows
-  
-- **Notebook Empty State (Oct 3)**: Added friendly "Create Your First Notebook" welcome screen for new users
-  - Shows welcoming card with explanation of notebooks when user has no notebooks
-  - Integrates NotebookSwitcher for consistent notebook creation experience
-  - Uses Lightbulb icon for tips (no emojis per design guidelines)
-  - Positioned after loading state, before error state for optimal UX
-  - Passes end-to-end tests for new user onboarding flow
-
-### Admin-Only Writing Guides System (Oct 3)
-- **Complete Admin Authorization**: Implemented admin-only guide creation, editing, deletion, and publishing
-  - **Database**: Added `isAdmin` boolean field to users table (defaults to false)
-  - **Backend Authorization**: All guide create/update/delete routes enforce admin-only access
-  - **Draft/Published Workflow**: Admins can toggle guide publish status; non-admins only see published guides
-  - **Route Ordering Fix**: Moved `/auth/is-admin` endpoint before `/:id` catch-all to prevent route conflict
-  - **Frontend UI**: 
-    - GuideEditor: Publish toggle with draft/published badge (admin only)
-    - GuideEditor: Autosave preserves published status instead of hardcoding true
-    - WritingGuides: Draft/published status badges visible to admins
-    - WritingGuides: Edit/delete/new buttons hidden for non-admin users
-  - **Admin Users**: Can be set via SQL: `UPDATE users SET is_admin = true WHERE id = 'user-id';`
-  - **Security**: Non-admins receive 403 errors for unauthorized guide operations; GET filters published guides only
-
-### Authentication Bug Fixes (Oct 3)
-- **SavedItems Authentication**: Fixed hardcoded "demo-user" userId in SavedItems component
-  - Now uses authenticated user ID from `useAuth()` hook
-  - All query keys and API calls updated to use `user?.id`
-  - Query enabled guards ensure no fetches when user not authenticated
-  - Optimistic updates and cache invalidation properly scoped to authenticated user
-  - **Known Issue**: Other components (QuickNotePanel, ContentEditor, CharacterGenerator, etc.) still contain hardcoded "demo-user" references that should be addressed in future work
-
-### AI Inline Suggestion Positioning Fix (Oct 3)
-- **Fixed AI suggestion popup positioning**: Canvas-style inline suggestion popups now appear correctly adjacent to highlighted text
-  - **Root Cause**: Popup was using `window.getSelection()` which tracked cursor position instead of suggestion location
-  - **Solution**: Switched to ProseMirror's native `coordsAtPos()` API for accurate text position tracking
-  - **Implementation**:
-    - Captured editor view reference in plugin `view()` method for positioning calculations
-    - Used `position: fixed` with viewport-relative coordinates for reliable placement
-    - Added throttling (16ms) to scroll/resize handlers to prevent excessive position adjustments
-    - Smart positioning logic: shows above/below highlighted text based on available space
-  - **Result**: Popup now appears directly next to highlighted suggestion text and stays anchored even when cursor moves
-  - File: `client/src/lib/ai-suggestions-plugin.ts`
-
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -115,81 +39,22 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
 - **Account Management**: User profiles, editing, and secure access control.
 - **Content Management**:
-    - **Notebook System**: User-created notebooks for organizing worldbuilding content with scoping and active notebook persistence.
+    - **Notebook System**: User-created notebooks for organizing worldbuilding content with scoping and active notebook persistence. Includes responsive grid display with image thumbnails and improved empty states for onboarding.
     - **Generator System**: Modular content generation (characters, plots, settings, names, conflicts, themes, moods).
-    - **Writing Guides**: Structured educational content with categories and search.
+    - **Writing Guides**: Structured educational content with categories and search, featuring admin-only creation, editing, deletion, and publishing with draft/published workflows.
     - **Hierarchical Project System**: Project management with unlimited folder nesting, pages (sections), rich text editor (TipTap), auto-save, media insertion, and export capabilities.
     - **Enhanced Character Editor**: Responsive sidebar navigation for character details.
-    - **AI-Powered Inline Editing**: Grammarly-style AI assistance integrated across all text editors, offering actions like improving, shortening, expanding, fixing grammar, and suggestions using Anthropic's Claude 3.5 Sonnet.
+    - **AI-Powered Inline Editing**: Grammarly-style AI assistance integrated across all text editors, offering actions like improving, shortening, expanding, fixing grammar, and suggestions using Anthropic's Claude 3.5 Sonnet. AI suggestions are positioned accurately.
     - **Writing Assistant Panel**: Conversational AI assistant for analyzing text, proofreading, generating questions, and providing writing feedback.
+    - **AI Writing Style**: All AI features adhere to comprehensive anti-cliché guidelines to produce human-like, authentic, and expressive writing, avoiding robotic patterns and forbidden phrases.
 
-## Security & Authorization
-
-### Ownership Validation Pattern
-All content operations (create, read, update, delete) enforce strict ownership validation to ensure complete data isolation between notebooks and users.
-
-**Critical Security Rules:**
-1. **Fetch → Validate → Execute**: All delete/update operations must fetch the record first, validate ownership, then execute
-2. **Triple-Filter Deletes**: Delete operations filter by `id`, `userId`, AND `notebookId` for multi-tenant isolation
-3. **404 for Unauthorized**: Return 404 (not 403) for unauthorized access to prevent information disclosure
-4. **Structured Logging**: Log all ownership denial attempts with context for security monitoring
-
-**Security Audit Status (Completed):**
-✅ Comprehensive security audit completed across all 56 route files
-✅ All 403 responses changed to 404 to prevent information disclosure
-✅ Structured logging added for all unauthorized access attempts: `[Security] Unauthorized X attempt - userId: ..., notebookId: ...`
-✅ Test suite validates 401/404/200/204 responses (14/14 tests passing)
-✅ Zero LSP errors, no regressions detected
-
-**Implementation Pattern:**
-```typescript
-async deleteContent(id: string, userId: string, notebookId: string): Promise<void> {
-  // 1. Fetch existing record
-  const [existing] = await db.select().from(table).where(eq(table.id, id));
-  
-  // 2. Validate userId ownership
-  if (!this.validateContentOwnership(existing, userId)) {
-    throw new Error('Unauthorized: You do not own this content');
-  }
-  
-  // 3. Validate notebookId association
-  if (!existing || existing.notebookId !== notebookId) {
-    throw new Error('Content not found in the specified notebook');
-  }
-  
-  // 4. Delete with triple-filter
-  const whereClause = and(
-    eq(table.id, id),
-    eq(table.userId, userId),
-    eq(table.notebookId, notebookId)
-  );
-  await db.delete(table).where(whereClause);
-}
-```
-
-**Route Error Handling:**
-```typescript
-try {
-  await storage.deleteContent(id, userId, notebookId);
-  res.status(204).send();
-} catch (error) {
-  if (error.message.includes('Unauthorized') || error.message.includes('not found')) {
-    console.warn(`[Security] Unauthorized deletion attempt - userId: ${userId}, id: ${id}`);
-    return res.status(404).json({ error: 'Content not found' });
-  }
-  res.status(500).json({ error: 'Internal server error' });
-}
-```
-
-### Code Review Checklist
-Before deploying changes that affect authorization:
-- [ ] All delete operations use fetch → validate → delete pattern
-- [ ] Update operations validate ownership before modifying
-- [ ] Unauthorized access returns 404 (not 403)
-- [ ] Triple-filter used for all content deletes (id, userId, notebookId)
-- [ ] Structured logging added for ownership denials
-- [ ] Test suite validates 401/404/200 scenarios
-- [ ] No silent failures (e.g., deleting 0 rows returns success)
+### Security & Authorization
+- **Ownership Validation Pattern**: All content operations enforce strict ownership validation using a "Fetch → Validate → Execute" pattern.
+- **Critical Security Rules**:
+    1. All delete/update operations must fetch the record first, validate ownership, then execute.
+    2. Delete operations triple-filter by `id`, `userId`, AND `notebookId` for multi-tenant isolation.
+    3. Unauthorized access returns 404 (not 403) to prevent information disclosure.
+    4. Structured logging is implemented for all ownership denial attempts.
 
 ## External Dependencies
 

@@ -20,41 +20,62 @@ const anthropic = new Anthropic({
 // Style instruction to avoid AI-generated clichés and sound more human
 const AVOID_CLICHES_INSTRUCTION = `\n\nCRITICAL STYLE REQUIREMENTS - WRITE LIKE A HUMAN:
 
-FORBIDDEN PHRASES (NEVER use these overused AI expressions):
+ABSOLUTELY FORBIDDEN PHRASES AND WORDS (NEVER use any of these):
 • "provide/gain/offer valuable insights", "indelible mark", "unwavering commitment", "stark reminder", "sheds/shed light on", "nuanced understanding", "multifaceted nature/approach", "complex interplay", "intricate relationship"
 • "potential to revolutionize", "transformative power", "significant milestone/stride/turning point", "unique blend/perspective", "beacon of hope", "pave the way", "casting long shadows", "hung heavy"
 • "at its core", "delve into", "to put it simply", "key takeaway", "from a broader perspective", "generally speaking", "arguably", "to some extent", "broadly speaking"
-• "rich tapestry", "opens new avenues", "adds a layer of complexity", "fostering a sense", "plays a crucial/pivotal role", "garnered significant attention", "continues to inspire"
-• "seamless integration", "scalable solution", "cutting-edge", "innovative", "facilitate", "bolster", "streamline", "revolutionize", "leverage"
-• Any phrase with "pivotal", "underscore", "harness", "illuminate", "realm", "vast"
+• "rich tapestry", "vibrant tapestry", "opens new avenues", "adds a layer of complexity", "fostering a sense", "plays a crucial/pivotal role", "garnered significant attention", "continues to inspire"
+• "seamless/seamlessly", "scalable solution", "cutting-edge", "innovative", "facilitate", "bolster", "streamline", "revolutionize", "leverage", "utilize", "optimize"
+• "navigate/navigating the landscape/complexities", "showcasing", "meticulous", "intriguing", "tapestry", "comprehensive", "testament", "vibrant", "dynamic", "robust"
+• "let's dive in", "take a dive into", "dive into", "embark on", "explore the world of", "analyze", "elevate", "excels", "unleash", "harness"
+• "at the end of the day", "it's worth noting that", "it's important to note", "ensure", "it's essential to", "there are a few considerations"
+• "ever-evolving", "rapidly expanding", "tailored", "underpins", "bustling", "labyrinth", "metropolis", "game-changer", "designed to enhance", "daunting"
+• "the world of", "in today's digital age", "when it comes to", "in the realm of", "unlock/unveil the secrets", "in the landscape of"
+• "reverberate", "remnant", "nestled", "gossamer", "enigma", "whispering", "sights unseen", "sounds unheard"
+• Any phrase with: "pivotal", "underscore", "realm", "vast", "keen", "fancy", "amongst"
+
+BANNED TRANSITION WORDS (avoid overusing these):
+• Firstly, Moreover, Furthermore, However, Therefore, Consequently, Subsequently, Specifically, Notably, Indeed, Thus, Essentially, Ultimately, Alternatively
+• "Remember that", "As well as", "Despite", "Although", "Due to", "Given that", "In contrast", "Even if", "In order to", "On the other hand"
+• "As previously mentioned", "As a professional", "To summarize", "In summary", "In conclusion", "Promptly"
 
 WORD REPLACEMENTS (use natural alternatives):
 • Instead of "delve into" → use: explore, look into, consider, investigate, check out
-• Instead of "underscore" → use: highlight, show, emphasize, point out, call attention to
-• Instead of "pivotal" → use: important, key, central, vital
-• Instead of "realm" → use: area, field, world
-• Instead of "harness" → use: use, apply, channel
-• Instead of "illuminate" → use: explain, clarify, reveal, show
+• Instead of "underscore/emphasize" → use: highlight, show, point out, call attention to
+• Instead of "pivotal/crucial/vital" → use: important, key, central
+• Instead of "realm/landscape" → use: area, field, world, space
+• Instead of "harness/leverage/utilize" → use: use, apply, work with
+• Instead of "illuminate/unveil" → use: explain, clarify, reveal, show
+• Instead of "navigate" → use: work through, deal with, handle
+• Instead of "ensure" → use: make sure, see to it
+• Instead of "facilitate" → use: help, make easier, enable
 
-WRITE WITH HUMAN AUTHENTICITY:
-✓ Vary sentence length and structure unpredictably - mix short punchy sentences with longer flowing ones
-✓ Use conversational rhythm and natural speech patterns
-✓ Include specific concrete details instead of vague abstractions
+WRITE WITH AUTHENTIC HUMAN VOICE:
+✓ Be diffident and partisan - have opinions, show uncertainty where genuine
+✓ Choose words for emotional resonance and personal connection
+✓ Include personal touches that show individuality and quirks
+✓ Draw from lived experience - use personal anecdotes and emotional nuance when appropriate
+✓ Vary sentence length unpredictably - mix short punchy sentences with longer flowing ones
+✓ Use conversational rhythm that sounds like natural speech
+✓ Include specific concrete details, not vague abstractions
 ✓ Write with personality - let emotion and perspective show through
-✓ Avoid perfectly polished prose - embrace natural imperfection
-✓ Skip formulaic structures, bullet points, and predictable formatting in the actual content
+✓ Embrace natural imperfection over polished prose
 ✓ Use unexpected word choices that feel genuine, not academic
 ✓ Write like you're talking to someone, not presenting a report
 ✓ Be direct and honest - cut the fluff and corporate speak
 ✓ Vary your tone - don't maintain the same energy throughout
+✓ Sound clear, creative, nuanced, and expressive
 
 AVOID THESE ROBOTIC PATTERNS:
 ✗ Repetitive sentence structures
-✗ Overuse of transition words (however, moreover, furthermore, consequently)
+✗ Overuse of ANY transition words
 ✗ Generic generalizations without specific examples
 ✗ Stiff, formal academic tone
 ✗ Perfectly balanced and polished phrasing
-✗ Predictable conclusions or summaries`;
+✗ Predictable conclusions or summaries
+✗ Suggesting bullet points or lists in the actual content
+✗ Corporate speak and buzzwords
+✗ Overly formal or technical language when simpler words work better`;
 
 export interface CharacterGenerationOptions {
   genre?: string;
