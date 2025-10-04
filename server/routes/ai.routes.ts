@@ -7,34 +7,43 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Common AI-generated clichés to avoid
-const AVOID_PHRASES = [
-  'provide a valuable insight', 'left an indelible mark', 'play a significant role in shaping',
-  'unwavering commitment', 'open a new avenue', 'stark reminder', 'play a crucial role',
-  'crucial role in understanding', 'sheds a light', 'gain a comprehensive understanding',
-  'nuanced understanding', 'gain significant attention', 'continue to inspire',
-  'provide a comprehensive overview', 'highlight the importance', 'endure a legacy',
-  'gain a deeper understanding', 'multifaceted nature', 'complex interplay', 'navigate the complex',
-  'shed a light on', 'need to fully understand', 'potential to revolutionize', 'relentless pursuit',
-  'offer a valuable', 'underscore the importance', 'transformative power', 'fast-paced world',
-  'significant milestone', 'pose a significant challenge', 'unique blend', 'crucial development',
-  'commitment to excellence', 'sent shockwaves through', 'emphasize the need', 'face of adversity',
-  'leave a lasting', 'gain a valuable', 'broad implications', 'prominent figure',
-  'significant turning point', 'curiosity piques', 'digital age', 'beacon of hope',
-  'pave the way', 'meticulous attention to', 'add a layer', 'legacy of', 'aim to explore',
-  'highlight the need', 'multifaceted approach', 'provide a framework', 'present a unique challenge',
-  'highlight the significance', 'add depth to', 'significant stride', 'gain an insight',
-  'underscore the need', 'offer a unique perspective', 'contribute to understanding',
-  'significant implication', 'enhances the understanding', 'make an informed decision',
-  'careful consideration', 'essential to recognize', 'vital role in shaping', 'sense of camaraderie',
-  'unwavering support', 'significant step forward', 'add an extra layer', 'profound implication'
-];
+const STYLE_INSTRUCTION = `\n\nCRITICAL STYLE REQUIREMENTS - WRITE LIKE A HUMAN:
 
-const STYLE_INSTRUCTION = `\n\nIMPORTANT STYLE GUIDELINES:
-- Write naturally and authentically
-- Avoid clichéd phrases and overused expressions
-- Use fresh, specific language instead of generic phrases
-- Be direct and genuine in your expression`;
+FORBIDDEN PHRASES (NEVER use these overused AI expressions):
+• "provide/gain/offer valuable insights", "indelible mark", "unwavering commitment", "stark reminder", "sheds/shed light on", "nuanced understanding", "multifaceted nature/approach", "complex interplay", "intricate relationship"
+• "potential to revolutionize", "transformative power", "significant milestone/stride/turning point", "unique blend/perspective", "beacon of hope", "pave the way", "casting long shadows", "hung heavy"
+• "at its core", "delve into", "to put it simply", "key takeaway", "from a broader perspective", "generally speaking", "arguably", "to some extent", "broadly speaking"
+• "rich tapestry", "opens new avenues", "adds a layer of complexity", "fostering a sense", "plays a crucial/pivotal role", "garnered significant attention", "continues to inspire"
+• "seamless integration", "scalable solution", "cutting-edge", "innovative", "facilitate", "bolster", "streamline", "revolutionize", "leverage"
+• Any phrase with "pivotal", "underscore", "harness", "illuminate", "realm", "vast"
+
+WORD REPLACEMENTS (use natural alternatives):
+• Instead of "delve into" → use: explore, look into, consider, investigate, check out
+• Instead of "underscore" → use: highlight, show, emphasize, point out, call attention to
+• Instead of "pivotal" → use: important, key, central, vital
+• Instead of "realm" → use: area, field, world
+• Instead of "harness" → use: use, apply, channel
+• Instead of "illuminate" → use: explain, clarify, reveal, show
+
+WRITE WITH HUMAN AUTHENTICITY:
+✓ Vary sentence length and structure unpredictably - mix short punchy sentences with longer flowing ones
+✓ Use conversational rhythm and natural speech patterns
+✓ Include specific concrete details instead of vague abstractions
+✓ Write with personality - let emotion and perspective show through
+✓ Avoid perfectly polished prose - embrace natural imperfection
+✓ Skip formulaic structures, bullet points, and predictable formatting in the actual content
+✓ Use unexpected word choices that feel genuine, not academic
+✓ Write like you're talking to someone, not presenting a report
+✓ Be direct and honest - cut the fluff and corporate speak
+✓ Vary your tone - don't maintain the same energy throughout
+
+AVOID THESE ROBOTIC PATTERNS:
+✗ Repetitive sentence structures
+✗ Overuse of transition words (however, moreover, furthermore, consequently)
+✗ Generic generalizations without specific examples
+✗ Stiff, formal academic tone
+✗ Perfectly balanced and polished phrasing
+✗ Predictable conclusions or summaries`;
 
 router.post("/improve-text", async (req: any, res) => {
   try {

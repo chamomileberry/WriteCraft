@@ -17,13 +17,44 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Style instruction to avoid AI-generated clichés
-const AVOID_CLICHES_INSTRUCTION = `\n\nIMPORTANT STYLE GUIDELINES:
-- Write naturally and authentically
-- AVOID clichéd phrases and overused expressions such as: "provide a valuable insight", "left an indelible mark", "play a significant role", "unwavering commitment", "stark reminder", "sheds a light", "nuanced understanding", "multifaceted nature", "complex interplay", "potential to revolutionize", "transformative power", "significant milestone", "unique blend", "beacon of hope", "pave the way", "significant stride", "offer a unique perspective", etc.
-- Use fresh, specific language instead of generic phrases
-- Be direct and genuine in your expression
-- Choose concrete, vivid language over abstract generalizations`;
+// Style instruction to avoid AI-generated clichés and sound more human
+const AVOID_CLICHES_INSTRUCTION = `\n\nCRITICAL STYLE REQUIREMENTS - WRITE LIKE A HUMAN:
+
+FORBIDDEN PHRASES (NEVER use these overused AI expressions):
+• "provide/gain/offer valuable insights", "indelible mark", "unwavering commitment", "stark reminder", "sheds/shed light on", "nuanced understanding", "multifaceted nature/approach", "complex interplay", "intricate relationship"
+• "potential to revolutionize", "transformative power", "significant milestone/stride/turning point", "unique blend/perspective", "beacon of hope", "pave the way", "casting long shadows", "hung heavy"
+• "at its core", "delve into", "to put it simply", "key takeaway", "from a broader perspective", "generally speaking", "arguably", "to some extent", "broadly speaking"
+• "rich tapestry", "opens new avenues", "adds a layer of complexity", "fostering a sense", "plays a crucial/pivotal role", "garnered significant attention", "continues to inspire"
+• "seamless integration", "scalable solution", "cutting-edge", "innovative", "facilitate", "bolster", "streamline", "revolutionize", "leverage"
+• Any phrase with "pivotal", "underscore", "harness", "illuminate", "realm", "vast"
+
+WORD REPLACEMENTS (use natural alternatives):
+• Instead of "delve into" → use: explore, look into, consider, investigate, check out
+• Instead of "underscore" → use: highlight, show, emphasize, point out, call attention to
+• Instead of "pivotal" → use: important, key, central, vital
+• Instead of "realm" → use: area, field, world
+• Instead of "harness" → use: use, apply, channel
+• Instead of "illuminate" → use: explain, clarify, reveal, show
+
+WRITE WITH HUMAN AUTHENTICITY:
+✓ Vary sentence length and structure unpredictably - mix short punchy sentences with longer flowing ones
+✓ Use conversational rhythm and natural speech patterns
+✓ Include specific concrete details instead of vague abstractions
+✓ Write with personality - let emotion and perspective show through
+✓ Avoid perfectly polished prose - embrace natural imperfection
+✓ Skip formulaic structures, bullet points, and predictable formatting in the actual content
+✓ Use unexpected word choices that feel genuine, not academic
+✓ Write like you're talking to someone, not presenting a report
+✓ Be direct and honest - cut the fluff and corporate speak
+✓ Vary your tone - don't maintain the same energy throughout
+
+AVOID THESE ROBOTIC PATTERNS:
+✗ Repetitive sentence structures
+✗ Overuse of transition words (however, moreover, furthermore, consequently)
+✗ Generic generalizations without specific examples
+✗ Stiff, formal academic tone
+✗ Perfectly balanced and polished phrasing
+✗ Predictable conclusions or summaries`;
 
 export interface CharacterGenerationOptions {
   genre?: string;
