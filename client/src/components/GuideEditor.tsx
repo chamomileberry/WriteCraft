@@ -24,7 +24,6 @@ import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import Youtube from '@tiptap/extension-youtube';
 import Focus from '@tiptap/extension-focus';
 import Typography from '@tiptap/extension-typography';
-import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import { createLowlight } from 'lowlight';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
