@@ -1,13 +1,12 @@
 import { Editor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
-import { TextSelection } from '@tiptap/pm/state';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Loader2, Sparkles, Wand2, Minimize2, Maximize2, CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { aiSuggestionPluginKey, type AISuggestion } from '@/lib/ai-suggestions-plugin';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +24,60 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
   const [customPrompt, setCustomPrompt] = useState('');
   const [selectedTextForAsk, setSelectedTextForAsk] = useState('');
   const [askSuggestionPosition, setAskSuggestionPosition] = useState({ from: 0, to: 0 });
+  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const { toast } = useToast();
+
+  // Update popup position when suggestion becomes active
+  useEffect(() => {
+    if (!editor) {
+      setPopupPosition(null);
+      return;
+    }
+
+    const updatePosition = () => {
+      const pluginState = aiSuggestionPluginKey.getState(editor.state);
+      if (!pluginState || pluginState.suggestions.length === 0) {
+        setPopupPosition(null);
+        return;
+      }
+
+      const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+      if (!activeSuggestion) {
+        setPopupPosition(null);
+        return;
+      }
+
+      const { view } = editor;
+      const { from, to } = activeSuggestion.deleteRange;
+      
+      // Get coordinates at the end of the suggestion
+      const coords = view.coordsAtPos(to);
+      
+      // Position below the highlighted text
+      setPopupPosition({
+        top: coords.bottom + 8,
+        left: coords.left
+      });
+    };
+
+    updatePosition();
+
+    // Listen to editor updates (transactions)
+    const handleEditorUpdate = () => {
+      updatePosition();
+    };
+    editor.on('update', handleEditorUpdate);
+
+    // Update position on scroll/resize
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      editor.off('update', handleEditorUpdate);
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [editor]);
 
   const handleAIAction = async (action: AIAction) => {
     if (!editor) return;
@@ -71,14 +123,9 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         timestamp: Date.now()
       };
 
-      // Add suggestion to plugin state and set selection to suggestion range
+      // Add suggestion to plugin state
       const tr = view.state.tr;
       tr.setMeta(aiSuggestionPluginKey, suggestion);
-      tr.setSelection(TextSelection.create(
-        view.state.doc,
-        suggestionPosition.from,
-        suggestionPosition.to
-      ));
       view.dispatch(tr);
 
     } catch (error) {
@@ -125,14 +172,9 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         timestamp: Date.now()
       };
 
-      // Add suggestion to plugin state and set selection to suggestion range
+      // Add suggestion to plugin state
       const tr = view.state.tr;
       tr.setMeta(aiSuggestionPluginKey, suggestion);
-      tr.setSelection(TextSelection.create(
-        view.state.doc,
-        askSuggestionPosition.from,
-        askSuggestionPosition.to
-      ));
       view.dispatch(tr);
 
       // Close dialog and reset
@@ -315,27 +357,13 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         </Card>
       </BubbleMenu>
 
-      {/* AI Suggestion Popup - shows when there's an active suggestion */}
-      {activeSuggestion && (
-        <BubbleMenu
-          editor={editor}
-          pluginKey="aiSuggestionPopup"
-          shouldShow={({ state, from, to }) => {
-            const pluginState = aiSuggestionPluginKey.getState(state);
-            if (!pluginState || pluginState.suggestions.length === 0) return false;
-            
-            const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
-            if (!activeSuggestion) return false;
-            
-            // Check if the current selection matches the suggestion range
-            const suggestionFrom = activeSuggestion.deleteRange.from;
-            const suggestionTo = activeSuggestion.deleteRange.to;
-            
-            return from === suggestionFrom && to === suggestionTo;
-          }}
-          options={{
-            placement: 'bottom',
-            offset: 8,
+      {/* AI Suggestion Popup - custom positioned near highlighted text */}
+      {activeSuggestion && popupPosition && (
+        <div
+          className="fixed z-50"
+          style={{
+            top: `${popupPosition.top}px`,
+            left: `${popupPosition.left}px`,
           }}
         >
           <Card className="max-w-md p-4 shadow-xl border">
@@ -374,7 +402,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
               </div>
             </div>
           </Card>
-        </BubbleMenu>
+        </div>
       )}
 
       {/* Ask AI Dialog */}
