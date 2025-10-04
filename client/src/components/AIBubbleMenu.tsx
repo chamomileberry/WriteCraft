@@ -323,16 +323,8 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
                 {activeSuggestion.type.charAt(0).toUpperCase() + activeSuggestion.type.slice(1)} Suggestion
               </div>
 
-              {/* Original text */}
-              <div className="p-2 bg-gray-50 rounded text-sm text-gray-600 max-h-20 overflow-auto">
-                {activeSuggestion.originalText}
-              </div>
-
-              {/* Arrow */}
-              <div className="text-center text-purple-600">↓</div>
-
               {/* Suggested text */}
-              <div className="p-2 bg-purple-50 rounded text-sm text-purple-700 font-medium max-h-20 overflow-auto">
+              <div className="p-3 bg-purple-50 rounded text-sm text-purple-700 font-medium max-h-32 overflow-auto">
                 {activeSuggestion.suggestedText}
               </div>
 
