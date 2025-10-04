@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Sparkles, Wand2, Minimize2, Maximize2, CheckCircle2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { aiSuggestionPluginKey, type AISuggestion } from '@/lib/ai-suggestions-plugin';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -52,17 +53,6 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         const viewportEndBottom = endCoords.bottom + editorRect.top;
         const viewportEndLeft = endCoords.left + editorRect.left;
         
-        console.log('Position calculation:', {
-          editorRect,
-          startCoords,
-          endCoords,
-          viewportCoords: {
-            top: viewportStartTop,
-            left: viewportStartLeft,
-            bottom: viewportEndBottom
-          }
-        });
-        
         // Calculate menu position (center horizontally)
         let menuLeft = (viewportStartLeft + viewportEndLeft) / 2 - (menuWidth / 2);
         
@@ -81,8 +71,6 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         if (menuTop + menuHeight > window.innerHeight - 10) {
           menuTop = window.innerHeight - menuHeight - 10;
         }
-        
-        console.log('Final menu position:', { top: menuTop, left: menuLeft });
         
         return { top: menuTop, left: menuLeft };
       };
@@ -299,14 +287,15 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
   return (
     <>
       {/* Bubble Menu */}
-      {isVisible && (
+      {isVisible && createPortal(
         <div
           ref={menuRef}
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: `${position.top}px`,
             left: `${position.left}px`,
             zIndex: 1000,
+            pointerEvents: 'auto',
           }}
           className="ai-bubble-menu"
         >
@@ -393,7 +382,8 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
               Ask AI
             </Button>
           </Card>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Custom Prompt Dialog */}
