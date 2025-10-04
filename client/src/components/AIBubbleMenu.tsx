@@ -39,32 +39,53 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       
       // Helper function to calculate menu position from coords
       const calculatePosition = (startCoords: { top: number; bottom: number; left: number }, endCoords: { top: number; bottom: number; left: number }) => {
-        // coordsAtPos gives us viewport-relative coordinates
-        // Since we're using position: fixed, we can use these directly
-        // The key is that coordsAtPos already accounts for scroll within the editor
+        // coordsAtPos returns coordinates relative to the editor's viewport
+        // We need to convert these to be relative to the window for position: fixed
         
         const menuWidth = 400;
         const menuHeight = 50; // Approximate height of menu
         
+        // Get the editor's bounding rect to convert editor-relative coords to window coords
+        const editorElement = view.dom.getBoundingClientRect();
+        
+        // Convert editor-relative coordinates to window coordinates
+        const windowStartTop = startCoords.top;
+        const windowStartLeft = startCoords.left;
+        const windowEndBottom = endCoords.bottom;
+        const windowEndLeft = endCoords.left;
+        
+        console.log('Position calculation:', {
+          editorRect: { top: editorElement.top, left: editorElement.left },
+          startCoords,
+          endCoords,
+          windowCoords: {
+            top: windowStartTop,
+            left: windowStartLeft,
+            bottom: windowEndBottom
+          }
+        });
+        
         // Calculate menu position (center horizontally, position above)
-        let menuTop = startCoords.top - 60;
-        let menuLeft = (startCoords.left + endCoords.left) / 2 - (menuWidth / 2);
+        let menuTop = windowStartTop - 60;
+        let menuLeft = (windowStartLeft + windowEndLeft) / 2 - (menuWidth / 2);
         
         // Clamp horizontal position within viewport
         menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
         
         // Flip to below selection if too close to top of viewport
-        if (startCoords.top < 70) {
-          menuTop = endCoords.bottom + 10;
+        if (windowStartTop < 70) {
+          menuTop = windowEndBottom + 10;
         }
         
         // If menu would go below viewport, flip back to top
         if (menuTop + menuHeight > window.innerHeight) {
-          menuTop = startCoords.top - 60;
+          menuTop = windowStartTop - 60;
         }
         
         // Final clamp to ensure menu stays in viewport
         menuTop = Math.max(10, Math.min(menuTop, window.innerHeight - menuHeight - 10));
+        
+        console.log('Final menu position:', { top: menuTop, left: menuLeft });
         
         return { top: menuTop, left: menuLeft };
       };
