@@ -43,28 +43,18 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         const menuWidth = 400;
         const menuHeight = 50;
         
-        // coordsAtPos returns coordinates relative to the editor element, not the viewport
-        // We need to get the actual screen position by adding the editor's bounding rect
-        const editorRect = view.dom.getBoundingClientRect();
-        
-        // Convert editor-relative coordinates to viewport coordinates
-        const viewportStartTop = startCoords.top + editorRect.top;
-        const viewportStartLeft = startCoords.left + editorRect.left;
-        const viewportEndBottom = endCoords.bottom + editorRect.top;
-        const viewportEndLeft = endCoords.left + editorRect.left;
-        
-        // Calculate menu position (center horizontally)
-        let menuLeft = (viewportStartLeft + viewportEndLeft) / 2 - (menuWidth / 2);
+        // Calculate center position horizontally
+        let menuLeft = (startCoords.left + endCoords.left) / 2 - (menuWidth / 2);
         
         // Clamp horizontal position within viewport
         menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
         
         // Position above selection by default
-        let menuTop = viewportStartTop - menuHeight - 10;
+        let menuTop = startCoords.top - menuHeight - 10;
         
         // If too close to top, position below selection instead
         if (menuTop < 10) {
-          menuTop = viewportEndBottom + 10;
+          menuTop = endCoords.bottom + 10;
         }
         
         // If menu would go below viewport, clamp it
@@ -82,23 +72,23 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
           const suggestionFrom = activeSuggestion.deleteRange.from;
           const suggestionTo = activeSuggestion.deleteRange.to;
           
-          const start = view.coordsAtPos(suggestionFrom);
-          const end = view.coordsAtPos(suggestionTo);
+          const startDOM = view.domAtPos(suggestionFrom);
+          const endDOM = view.domAtPos(suggestionTo);
           
-          if (!start || !end) {
+          if (!startDOM.node || !endDOM.node) {
             setIsVisible(false);
             return;
           }
           
-          console.log('Positioning near suggestion:', {
-            suggestionFrom,
-            suggestionTo,
-            startCoords: start,
-            endCoords: end
-          });
+          const range = document.createRange();
+          range.setStart(startDOM.node, startDOM.offset);
+          range.setEnd(endDOM.node, endDOM.offset);
+          const rect = range.getBoundingClientRect();
           
-          const pos = calculatePosition(start, end);
-          console.log('Suggestion menu position:', pos);
+          const pos = calculatePosition(
+            { top: rect.top, bottom: rect.bottom, left: rect.left },
+            { top: rect.top, bottom: rect.bottom, left: rect.right }
+          );
           setPosition(pos);
           setIsVisible(true);
           return;
@@ -111,26 +101,24 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         return;
       }
 
-      // Get the coordinates of the selection
-      const start = view.coordsAtPos(from);
-      const end = view.coordsAtPos(to);
+      // Get the DOM coordinates of the selection using getBoundingClientRect
+      const startDOM = view.domAtPos(from);
+      const endDOM = view.domAtPos(to);
       
-      if (!start || !end) {
+      if (!startDOM.node || !endDOM.node) {
         setIsVisible(false);
         return;
       }
       
-      // Debug: Log the coordinates and selection positions
-      console.log('Selection coords:', {
-        from,
-        to,
-        selectedText: state.doc.textBetween(from, to, ''),
-        startCoords: start,
-        endCoords: end
-      });
+      const range = document.createRange();
+      range.setStart(startDOM.node, startDOM.offset);
+      range.setEnd(endDOM.node, endDOM.offset);
+      const rect = range.getBoundingClientRect();
       
-      const pos = calculatePosition(start, end);
-      console.log('Calculated menu position:', pos);
+      const pos = calculatePosition(
+        { top: rect.top, bottom: rect.bottom, left: rect.left },
+        { top: rect.top, bottom: rect.bottom, left: rect.right }
+      );
       setPosition(pos);
       setIsVisible(true);
     };
