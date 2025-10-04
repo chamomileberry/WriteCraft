@@ -50,13 +50,16 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       const { view } = editor;
       const { from, to } = activeSuggestion.deleteRange;
       
-      // Get coordinates at the end of the suggestion
-      const coords = view.coordsAtPos(to);
-      
-      // Position below the highlighted text
-      setPopupPosition({
-        top: coords.bottom + 8,
-        left: coords.left
+      // Wait for next frame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        // Get coordinates at the end of the suggestion
+        const coords = view.coordsAtPos(to);
+        
+        // Position below the highlighted text
+        setPopupPosition({
+          top: coords.bottom + 8,
+          left: coords.left
+        });
       });
     };
 
