@@ -48,13 +48,18 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
           const start = view.coordsAtPos(suggestionFrom);
           const end = view.coordsAtPos(suggestionTo);
           
+          // Check if coordinates are valid
+          if (!start || !end) {
+            setIsVisible(false);
+            return;
+          }
+          
           // Calculate menu position (above the suggestion) - using fixed positioning
           let menuTop = start.top - 60; // Position above suggestion
           let menuLeft = (start.left + end.left) / 2 - 200; // Center horizontally
           
           // Viewport clamping to keep menu visible
           const menuWidth = 400;
-          const menuHeight = 50;
           
           // Clamp horizontal position
           menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
@@ -85,9 +90,11 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       const start = view.coordsAtPos(from);
       const end = view.coordsAtPos(to);
       
-      // Get the editor's DOM element to find its offset
-      const editorElement = view.dom.closest('.ProseMirror')?.parentElement;
-      const editorRect = editorElement?.getBoundingClientRect();
+      // Check if coordinates are valid
+      if (!start || !end) {
+        setIsVisible(false);
+        return;
+      }
       
       // Calculate menu position (above the selection) - using fixed positioning
       let menuTop = start.top - 60; // Position above selection
@@ -95,7 +102,6 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
 
       // Viewport clamping to keep menu visible
       const menuWidth = 400;
-      const menuHeight = 50;
       
       // Clamp horizontal position
       menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
