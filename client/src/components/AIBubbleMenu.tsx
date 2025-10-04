@@ -48,31 +48,25 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
           const start = view.coordsAtPos(suggestionFrom);
           const end = view.coordsAtPos(suggestionTo);
           
-          // Add scroll offsets for accurate positioning
-          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-          const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-          
-          // Calculate menu position (above the suggestion)
-          let menuTop = start.top + scrollTop - 60; // Position above suggestion with scroll offset
-          let menuLeft = (start.left + scrollLeft + end.left + scrollLeft) / 2 - 200; // Center horizontally with scroll offset
+          // Calculate menu position (above the suggestion) - using fixed positioning
+          let menuTop = start.top - 60; // Position above suggestion
+          let menuLeft = (start.left + end.left) / 2 - 200; // Center horizontally
           
           // Viewport clamping to keep menu visible
           const menuWidth = 400;
           const menuHeight = 50;
           
-          // Clamp horizontal position (relative to viewport)
-          const viewportLeft = (start.left + end.left) / 2 - 200;
-          const clampedViewportLeft = Math.max(10, Math.min(viewportLeft, window.innerWidth - menuWidth - 10));
-          menuLeft = clampedViewportLeft + scrollLeft;
+          // Clamp horizontal position
+          menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
           
           // Flip to below suggestion if too close to top of viewport
           if (start.top < 70) {
-            menuTop = end.bottom + scrollTop + 10;
+            menuTop = end.bottom + 10;
           }
           
           // Ensure menu doesn't go below viewport
           if (end.bottom + 70 > window.innerHeight) {
-            menuTop = start.top + scrollTop - 60;
+            menuTop = start.top - 60;
           }
           
           setPosition({ top: menuTop, left: menuLeft });
@@ -91,31 +85,29 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       const start = view.coordsAtPos(from);
       const end = view.coordsAtPos(to);
       
-      // Add scroll offsets for accurate positioning
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      // Get the editor's DOM element to find its offset
+      const editorElement = view.dom.closest('.ProseMirror')?.parentElement;
+      const editorRect = editorElement?.getBoundingClientRect();
       
-      // Calculate menu position (above the selection)
-      let menuTop = start.top + scrollTop - 60; // Position above selection with scroll offset
-      let menuLeft = (start.left + scrollLeft + end.left + scrollLeft) / 2 - 200; // Center horizontally with scroll offset
+      // Calculate menu position (above the selection) - using fixed positioning
+      let menuTop = start.top - 60; // Position above selection
+      let menuLeft = (start.left + end.left) / 2 - 200; // Center horizontally
 
       // Viewport clamping to keep menu visible
       const menuWidth = 400;
       const menuHeight = 50;
       
-      // Clamp horizontal position (relative to viewport)
-      const viewportLeft = (start.left + end.left) / 2 - 200;
-      const clampedViewportLeft = Math.max(10, Math.min(viewportLeft, window.innerWidth - menuWidth - 10));
-      menuLeft = clampedViewportLeft + scrollLeft;
+      // Clamp horizontal position
+      menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
       
       // Flip to below selection if too close to top of viewport
       if (start.top < 70) {
-        menuTop = end.bottom + scrollTop + 10;
+        menuTop = end.bottom + 10;
       }
       
       // Ensure menu doesn't go below viewport
       if (end.bottom + 70 > window.innerHeight) {
-        menuTop = start.top + scrollTop - 60;
+        menuTop = start.top - 60;
       }
 
       setPosition({ top: menuTop, left: menuLeft });
@@ -263,7 +255,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         <div
           ref={menuRef}
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: `${position.top}px`,
             left: `${position.left}px`,
             zIndex: 1000,
