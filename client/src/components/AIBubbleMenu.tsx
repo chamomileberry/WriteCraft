@@ -45,17 +45,14 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         const menuWidth = 400;
         const menuHeight = 50; // Approximate height of menu
         
-        // Get the editor's bounding rect to convert editor-relative coords to window coords
-        const editorElement = view.dom.getBoundingClientRect();
-        
-        // Convert editor-relative coordinates to window coordinates
+        // These coordinates are already window-relative (coordsAtPos returns absolute coordinates)
+        // No conversion needed!
         const windowStartTop = startCoords.top;
         const windowStartLeft = startCoords.left;
         const windowEndBottom = endCoords.bottom;
         const windowEndLeft = endCoords.left;
         
         console.log('Position calculation:', {
-          editorRect: { top: editorElement.top, left: editorElement.left },
           startCoords,
           endCoords,
           windowCoords: {

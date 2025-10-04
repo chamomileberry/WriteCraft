@@ -820,9 +820,9 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               }}
             >
               <EditorContent editor={editor} data-testid="editor-content" />
-              <AIBubbleMenu editor={editor} />
             </div>
           </div>
+          <AIBubbleMenu editor={editor} />
         </CardContent>
       </Card>
     </div>
