@@ -1,5 +1,6 @@
 import { Editor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
+import { TextSelection } from '@tiptap/pm/state';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -70,9 +71,14 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         timestamp: Date.now()
       };
 
-      // Add suggestion to plugin state
+      // Add suggestion to plugin state and set selection to suggestion range
       const tr = view.state.tr;
       tr.setMeta(aiSuggestionPluginKey, suggestion);
+      tr.setSelection(TextSelection.create(
+        view.state.doc,
+        suggestionPosition.from,
+        suggestionPosition.to
+      ));
       view.dispatch(tr);
 
     } catch (error) {
@@ -119,9 +125,14 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         timestamp: Date.now()
       };
 
-      // Add suggestion to plugin state
+      // Add suggestion to plugin state and set selection to suggestion range
       const tr = view.state.tr;
       tr.setMeta(aiSuggestionPluginKey, suggestion);
+      tr.setSelection(TextSelection.create(
+        view.state.doc,
+        askSuggestionPosition.from,
+        askSuggestionPosition.to
+      ));
       view.dispatch(tr);
 
       // Close dialog and reset
@@ -309,7 +320,19 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         <BubbleMenu
           editor={editor}
           pluginKey="aiSuggestionPopup"
-          shouldShow={() => !!hasActiveSuggestion()}
+          shouldShow={({ state, from, to }) => {
+            const pluginState = aiSuggestionPluginKey.getState(state);
+            if (!pluginState || pluginState.suggestions.length === 0) return false;
+            
+            const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+            if (!activeSuggestion) return false;
+            
+            // Check if the current selection matches the suggestion range
+            const suggestionFrom = activeSuggestion.deleteRange.from;
+            const suggestionTo = activeSuggestion.deleteRange.to;
+            
+            return from === suggestionFrom && to === suggestionTo;
+          }}
           options={{
             placement: 'bottom',
             offset: 8,
