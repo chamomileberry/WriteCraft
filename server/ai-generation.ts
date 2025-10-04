@@ -17,6 +17,14 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Style instruction to avoid AI-generated clichés
+const AVOID_CLICHES_INSTRUCTION = `\n\nIMPORTANT STYLE GUIDELINES:
+- Write naturally and authentically
+- AVOID clichéd phrases and overused expressions such as: "provide a valuable insight", "left an indelible mark", "play a significant role", "unwavering commitment", "stark reminder", "sheds a light", "nuanced understanding", "multifaceted nature", "complex interplay", "potential to revolutionize", "transformative power", "significant milestone", "unique blend", "beacon of hope", "pave the way", "significant stride", "offer a unique perspective", etc.
+- Use fresh, specific language instead of generic phrases
+- Be direct and genuine in your expression
+- Choose concrete, vivid language over abstract generalizations`;
+
 export interface CharacterGenerationOptions {
   genre?: string;
   gender?: string;
@@ -1101,7 +1109,7 @@ Style instructions:
 - "creative": Use more engaging, creative language
 - "clear": Focus on clarity and simplicity
 
-Provide only the rephrased text, no explanations or additional formatting.`;
+Provide only the rephrased text, no explanations or additional formatting.${AVOID_CLICHES_INSTRUCTION}`;
 
   try {
     const response = await anthropic.messages.create({
@@ -1136,7 +1144,7 @@ export async function proofreadText(
 }> {
   const systemPrompt = `You are a professional proofreader and editor. Correct grammar, spelling, punctuation, and style issues while maintaining the author's voice and intent.
 
-Provide corrections and explanations for any changes made.
+Provide corrections and explanations for any changes made.${AVOID_CLICHES_INSTRUCTION}
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
@@ -1297,7 +1305,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 export async function improveText(text: string, instruction: string): Promise<string> {
   const systemPrompt = `You are a professional writing assistant. Follow the user's specific instructions to improve the provided text while maintaining the original meaning and voice.
 
-Provide only the improved text, no explanations or additional formatting.`;
+Provide only the improved text, no explanations or additional formatting.${AVOID_CLICHES_INSTRUCTION}`;
 
   try {
     const response = await anthropic.messages.create({
@@ -1348,7 +1356,7 @@ DESCRIPTION GUIDELINES:
 - Create atmosphere through word choice and imagery
 - Include unique or memorable details that make the description distinctive
 - Consider how the description fits into a larger narrative context
-- Avoid clichéd or overused descriptive phrases
+- Avoid clichéd or overused descriptive phrases${AVOID_CLICHES_INSTRUCTION}
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
@@ -1666,7 +1674,7 @@ CONVERSATION GUIDELINES:
 • Adapt your communication style to match the writer's needs
 • Remember details from the conversation for continuity
 
-You should feel like a knowledgeable writing mentor who genuinely cares about helping writers succeed with their creative projects.`;
+You should feel like a knowledgeable writing mentor who genuinely cares about helping writers succeed with their creative projects.${AVOID_CLICHES_INSTRUCTION}`;
 
   // Add context if editor content is available
   if (editorContent && documentTitle) {
