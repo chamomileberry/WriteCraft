@@ -84,7 +84,15 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
             return;
           }
           
+          console.log('Positioning near suggestion:', {
+            suggestionFrom,
+            suggestionTo,
+            startCoords: start,
+            endCoords: end
+          });
+          
           const pos = calculatePosition(start, end);
+          console.log('Suggestion menu position:', pos);
           setPosition(pos);
           setIsVisible(true);
           return;
@@ -106,14 +114,17 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         return;
       }
       
-      // Validate coordinates are reasonable (not negative or extremely large)
-      if (start.top < 0 || start.left < 0 || end.top < 0 || end.left < 0) {
-        console.warn('Invalid coordinates from coordsAtPos:', { start, end, from, to });
-        setIsVisible(false);
-        return;
-      }
+      // Debug: Log the coordinates and selection positions
+      console.log('Selection coords:', {
+        from,
+        to,
+        selectedText: state.doc.textBetween(from, to, ''),
+        startCoords: start,
+        endCoords: end
+      });
       
       const pos = calculatePosition(start, end);
+      console.log('Calculated menu position:', pos);
       setPosition(pos);
       setIsVisible(true);
     };
