@@ -39,18 +39,16 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       
       // Helper function to calculate menu position from coords
       const calculatePosition = (startCoords: { top: number; bottom: number; left: number }, endCoords: { top: number; bottom: number; left: number }) => {
-        // Get the editor DOM element and its container
-        const editorElement = view.dom;
-        const editorRect = editorElement.getBoundingClientRect();
+        // coordsAtPos gives us viewport-relative coordinates
+        // Since we're using position: fixed, we can use these directly
+        // The key is that coordsAtPos already accounts for scroll within the editor
         
-        // Calculate menu position (above the selection/suggestion)
-        // The coords are already viewport-relative, so we use them directly
-        let menuTop = startCoords.top - 60;
-        let menuLeft = (startCoords.left + endCoords.left) / 2 - 200;
-        
-        // Viewport clamping to keep menu visible
         const menuWidth = 400;
         const menuHeight = 50; // Approximate height of menu
+        
+        // Calculate menu position (center horizontally, position above)
+        let menuTop = startCoords.top - 60;
+        let menuLeft = (startCoords.left + endCoords.left) / 2 - (menuWidth / 2);
         
         // Clamp horizontal position within viewport
         menuLeft = Math.max(10, Math.min(menuLeft, window.innerWidth - menuWidth - 10));
@@ -104,6 +102,13 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       const end = view.coordsAtPos(to);
       
       if (!start || !end) {
+        setIsVisible(false);
+        return;
+      }
+      
+      // Validate coordinates are reasonable (not negative or extremely large)
+      if (start.top < 0 || start.left < 0 || end.top < 0 || end.left < 0) {
+        console.warn('Invalid coordinates from coordsAtPos:', { start, end, from, to });
         setIsVisible(false);
         return;
       }
