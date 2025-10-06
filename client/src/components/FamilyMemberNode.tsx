@@ -7,14 +7,53 @@ import { Edit, User } from 'lucide-react';
 import type { FamilyTreeMember } from '@shared/schema';
 
 export interface FamilyMemberNodeData {
-  member: FamilyTreeMember;
+  member: FamilyTreeMember & {
+    character?: {
+      id: string;
+      givenName: string | null;
+      familyName: string | null;
+      middleName: string | null;
+      nickname: string | null;
+      imageUrl: string | null;
+      dateOfBirth: string | null;
+      dateOfDeath: string | null;
+    } | null;
+  };
   notebookId: string;
   treeId: string;
 }
 
 function FamilyMemberNodeComponent({ data }: NodeProps) {
   const { member } = data as unknown as FamilyMemberNodeData;
-  const displayName = member.inlineName || 'Unknown';
+  
+  // Get display name - prefer character data if available
+  let displayName = 'Unknown';
+  let displayImage: string | null | undefined = member.inlineImageUrl;
+  let displayDOB: string | null | undefined = member.inlineDateOfBirth;
+  let displayDOD: string | null | undefined = member.inlineDateOfDeath;
+  
+  if (member.character && member.character.id) {
+    // Use character data
+    if (member.character.nickname) {
+      displayName = member.character.nickname;
+    } else {
+      const parts = [
+        member.character.givenName,
+        member.character.middleName,
+        member.character.familyName
+      ].filter(Boolean);
+      if (parts.length > 0) {
+        displayName = parts.join(' ');
+      }
+    }
+    displayImage = member.character.imageUrl || displayImage;
+    displayDOB = member.character.dateOfBirth || displayDOB;
+    displayDOD = member.character.dateOfDeath || displayDOD;
+  } else if (member.inlineName) {
+    // Use inline data
+    displayName = member.inlineName;
+  }
+  
   const initials = displayName
     .split(' ')
     .map((n: string) => n[0])
@@ -33,7 +72,7 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
       
       <div className="flex items-center gap-3">
         <Avatar className="w-12 h-12">
-          <AvatarImage src={member.inlineImageUrl || undefined} />
+          <AvatarImage src={displayImage || undefined} />
           <AvatarFallback>
             {initials || <User className="w-6 h-6" />}
           </AvatarFallback>
@@ -42,11 +81,11 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">{displayName}</h4>
           <div className="text-xs text-muted-foreground space-y-0.5">
-            {member.inlineDateOfBirth && (
-              <div>b. {member.inlineDateOfBirth}</div>
+            {displayDOB && (
+              <div>b. {displayDOB}</div>
             )}
-            {member.inlineDateOfDeath && (
-              <div>d. {member.inlineDateOfDeath}</div>
+            {displayDOD && (
+              <div>d. {displayDOD}</div>
             )}
           </div>
         </div>

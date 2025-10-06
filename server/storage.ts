@@ -2875,16 +2875,44 @@ export class DatabaseStorage implements IStorage {
     return newMember;
   }
 
-  async getFamilyTreeMembers(treeId: string, userId: string): Promise<FamilyTreeMember[]> {
+  async getFamilyTreeMembers(treeId: string, userId: string): Promise<any[]> {
     // Validate tree ownership
     const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
 
-    return await db.select().from(familyTreeMembers)
+    // Fetch members with character data using LEFT JOIN
+    const members = await db
+      .select({
+        id: familyTreeMembers.id,
+        treeId: familyTreeMembers.treeId,
+        characterId: familyTreeMembers.characterId,
+        inlineName: familyTreeMembers.inlineName,
+        inlineDateOfBirth: familyTreeMembers.inlineDateOfBirth,
+        inlineDateOfDeath: familyTreeMembers.inlineDateOfDeath,
+        inlineImageUrl: familyTreeMembers.inlineImageUrl,
+        positionX: familyTreeMembers.positionX,
+        positionY: familyTreeMembers.positionY,
+        createdAt: familyTreeMembers.createdAt,
+        // Include character data
+        character: {
+          id: characters.id,
+          givenName: characters.givenName,
+          familyName: characters.familyName,
+          middleName: characters.middleName,
+          nickname: characters.nickname,
+          imageUrl: characters.imageUrl,
+          dateOfBirth: characters.dateOfBirth,
+          dateOfDeath: characters.dateOfDeath,
+        }
+      })
+      .from(familyTreeMembers)
+      .leftJoin(characters, eq(familyTreeMembers.characterId, characters.id))
       .where(eq(familyTreeMembers.treeId, treeId))
       .orderBy(desc(familyTreeMembers.createdAt));
+    
+    return members;
   }
 
   async updateFamilyTreeMember(id: string, userId: string, updates: Partial<InsertFamilyTreeMember>): Promise<FamilyTreeMember> {
