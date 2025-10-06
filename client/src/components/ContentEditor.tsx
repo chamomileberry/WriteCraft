@@ -544,11 +544,15 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             const urlNotebookId = urlParams.get('notebookId');
             const notebookId = urlNotebookId || activeNotebookId || '';
             
+            // Return the editor with proper height styling
+            // Give it viewport height minus space for app header
             return (
-              <FamilyTreeEditor
-                treeId={contentId}
-                notebookId={notebookId}
-              />
+              <div className="w-full" style={{ height: 'calc(100vh - 12rem)' }}>
+                <FamilyTreeEditor
+                  treeId={contentId}
+                  notebookId={notebookId}
+                />
+              </div>
             );
           }
           

@@ -469,9 +469,9 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
   }
 
   return (
-    <div className="w-full h-full flex flex-col" data-testid="family-tree-editor">
+    <div className="flex h-full flex-col min-h-0" data-testid="family-tree-editor">
       {/* Editable header for tree metadata */}
-      <div className="border-b p-4 space-y-2 bg-background">
+      <div className="border-b p-4 space-y-2 bg-background flex-shrink-0">
         <div className="flex items-center gap-2">
           <Input
             value={treeName}
@@ -493,7 +493,7 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
         />
       </div>
       
-      <div className="flex-1 relative w-full h-full">
+      <div className="flex-1 min-h-0 relative">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -510,6 +510,7 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
           fitView
           minZoom={0.1}
           maxZoom={2}
+          style={{ width: '100%', height: '100%' }}
         >
           <Background />
           <Controls />
@@ -556,7 +557,9 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
         </ReactFlow>
       </div>
       
-      <CharacterGallery notebookId={notebookId} />
+      <div className="flex-shrink-0">
+        <CharacterGallery notebookId={notebookId} />
+      </div>
       
       <RelationshipSelector
         open={selectorOpen}
