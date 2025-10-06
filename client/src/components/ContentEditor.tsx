@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { getMappingById } from "@shared/contentTypes";
 import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
 import ArticleEditor from "@/components/ArticleEditor";
+import { FamilyTreeEditor } from "@/components/FamilyTreeEditor";
 import { getContentTypeConfig } from "@/configs/content-types";
 import type { ContentTypeFormConfig } from "@/components/forms/types";
 
@@ -31,6 +32,52 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { activeNotebookId } = useNotebookStore();
+
+  // Auto-create family trees when creating new ones to bypass the form
+  useEffect(() => {
+    async function autoCreateFamilyTree() {
+      if (contentType === 'familyTree' && contentId === 'new') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlNotebookId = urlParams.get('notebookId');
+        const notebookId = urlNotebookId || activeNotebookId;
+        
+        if (!notebookId) {
+          toast({
+            title: "No Notebook Selected",
+            description: "Please select a notebook before creating a family tree.",
+            variant: "destructive"
+          });
+          onBack();
+          return;
+        }
+        
+        try {
+          const response = await apiRequest('POST', '/api/family-trees', {
+            name: 'Untitled Family Tree',
+            description: '',
+            notebookId
+          });
+          
+          const result = await response.json();
+          
+          if (result?.id) {
+            // Navigate to the newly created tree editor
+            setLocation(`/editor/familyTree/${result.id}?notebookId=${notebookId}`);
+          }
+        } catch (error) {
+          console.error('Error creating family tree:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create family tree. Please try again.",
+            variant: "destructive"
+          });
+          onBack();
+        }
+      }
+    }
+    
+    autoCreateFamilyTree();
+  }, [contentType, contentId, activeNotebookId, toast, onBack, setLocation]);
 
   // Load content type configuration
   useEffect(() => {
@@ -473,6 +520,21 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
                 onSubmit={handleFormSubmit}
                 isLoading={saveMutation.isPending}
                 isCreating={isCreating}
+              />
+            );
+          }
+          
+          // Use visual family tree editor for family trees
+          if (contentType === 'familyTree') {
+            // For existing trees, show the visual editor
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlNotebookId = urlParams.get('notebookId');
+            const notebookId = urlNotebookId || activeNotebookId || '';
+            
+            return (
+              <FamilyTreeEditor
+                treeId={contentId}
+                notebookId={notebookId}
               />
             );
           }
