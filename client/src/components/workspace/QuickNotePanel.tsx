@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useNotebookStore } from '@/stores/notebookStore';
+import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { useAutosave } from '@/hooks/useAutosave';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -24,6 +25,11 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
+  const { currentLayout, updatePanel } = useWorkspaceStore();
+
+  // Get the panel title from workspace store
+  const panel = currentLayout.panels.find(p => p.id === panelId);
+  const noteTitle = panel?.title || 'Quick Note';
 
   // Using guest user for consistency with other components in this demo app
   const userId = 'guest'; 
@@ -69,18 +75,45 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       const serverContent = quickNote.content || '';
       editor.commands.setContent(serverContent);
       setHasBeenSavedOnce(true);
+      
+      // Update workspace panel title to match the loaded note title
+      if (quickNote.title && quickNote.title !== noteTitle) {
+        updatePanel(panelId, { title: quickNote.title });
+      }
     }
-  }, [quickNote, editor]);
+  }, [quickNote, editor, panelId, noteTitle, updatePanel]);
+
+  // Save title to database when it changes (after initial load)
+  useEffect(() => {
+    if (hasBeenSavedOnce && editor && noteTitle !== quickNote?.title) {
+      const saveTitleUpdate = async () => {
+        try {
+          const response = await apiRequest('POST', '/api/quick-note', {
+            userId,
+            title: noteTitle,
+            content: editor.getHTML(),
+          });
+          const savedNote = await response.json();
+          
+          // Update the React Query cache to keep it in sync
+          queryClient.setQueryData(['/api/quick-note', userId], savedNote);
+        } catch (error) {
+          console.error('Failed to save title:', error);
+        }
+      };
+      saveTitleUpdate();
+    }
+  }, [noteTitle, hasBeenSavedOnce, editor, quickNote?.title, userId, queryClient]);
 
   // Save data function for autosave
   const saveDataFunction = useCallback(() => {
     if (!editor) return null;
     return {
       userId,
-      title: 'Quick Note',
+      title: noteTitle,
       content: editor.getHTML(),
     };
-  }, [editor, userId]);
+  }, [editor, userId, noteTitle]);
 
   // Mutation function for autosave - returns parsed JSON
   const mutationFunction = useCallback(async (data: any) => {
@@ -164,7 +197,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         itemType: 'quickNote',
         itemId: uniqueItemId,
         itemData: {
-          title: 'Quick Note',
+          title: noteTitle,
           content: editor.getHTML()
         }
       });

@@ -8,6 +8,7 @@ import CharacterDetailPanel from './CharacterDetailPanel';
 import { ContentDetailPanel } from './ContentDetailPanel';
 import QuickNotePanel from './QuickNotePanel';
 import WritingAssistantPanel from './WritingAssistantPanel';
+import { EditableTitle } from './EditableTitle';
 
 interface FloatingWindowProps {
   panel: PanelDescriptor;
@@ -15,6 +16,10 @@ interface FloatingWindowProps {
 
 function FloatingWindow({ panel }: FloatingWindowProps) {
   const { removePanel, updatePanel, attachToTabBar } = useWorkspaceStore();
+
+  const handleTitleChange = (newTitle: string) => {
+    updatePanel(panel.id, { title: newTitle });
+  };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     e.dataTransfer?.setData('application/json', JSON.stringify({
@@ -124,15 +129,23 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
               <GripHorizontal className="h-4 w-4 text-muted-foreground" />
             </div>
             
-            {/* Tab creation drag handle - for creating tabs */}
-            <span 
-              className="text-sm font-medium truncate cursor-pointer hover:bg-accent/50 px-2 py-1 rounded transition-colors"
-              draggable
-              onDragStart={handleDragStart}
-              title="Drag to tab bar to dock"
-            >
-              {panel.title}
-            </span>
+            {/* Title - editable for quick notes, draggable for tab creation */}
+            {panel.type === 'quickNote' ? (
+              <EditableTitle 
+                title={panel.title}
+                onTitleChange={handleTitleChange}
+                placeholder="Quick Note"
+              />
+            ) : (
+              <span 
+                className="text-sm font-medium truncate cursor-pointer hover:bg-accent/50 px-2 py-1 rounded transition-colors"
+                draggable
+                onDragStart={handleDragStart}
+                title="Drag to tab bar to dock"
+              >
+                {panel.title}
+              </span>
+            )}
           </div>
           
           <div className="flex items-center gap-1">
