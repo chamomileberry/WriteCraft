@@ -461,15 +461,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     });
   }, [nodes, createInlineMember]);
 
-  if (treeLoading || membersLoading || relationshipsLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // Manual save handler for immediate save
+  // Manual save handler for immediate save (moved before conditional return)
   const handleManualSave = useCallback(async () => {
     const updates: { name?: string; description?: string } = {};
     if (treeName !== tree?.name) updates.name = treeName;
@@ -492,6 +484,14 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       });
     }
   }, [treeName, treeDescription, tree, updateTreeMetadata, toast]);
+
+  if (treeLoading || membersLoading || relationshipsLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full w-full flex-col min-h-0" data-testid="family-tree-editor">
