@@ -22,7 +22,14 @@ interface CharacterGalleryProps {
 
 export function CharacterGallery({ notebookId }: CharacterGalleryProps) {
   const { data: characters = [], isLoading } = useQuery<Character[]>({
-    queryKey: ['/api/characters', { notebookId }],
+    queryKey: ['/api/characters', notebookId],
+    queryFn: async () => {
+      const response = await fetch(`/api/characters?notebookId=${notebookId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch characters');
+      return response.json();
+    },
     enabled: !!notebookId
   });
 
