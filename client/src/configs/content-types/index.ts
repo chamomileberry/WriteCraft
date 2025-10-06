@@ -33,6 +33,7 @@ const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>>
   plot: () => import('./plot').then(m => m.default || m.plotConfig),
   language: () => import('./language').then(m => m.default || m.languageConfig),
   plant: () => import('./plant').then(m => m.default || m.plantConfig),
+  familyTree: () => import('./familyTree').then(m => m.default || m.familyTreeConfig),
   // culture: () => import('./culture').then(m => m.default || m.cultureConfig),
   // society: () => import('./society').then(m => m.default || m.societyConfig),
   // faction: () => import('./faction').then(m => m.default || m.factionConfig),
