@@ -31,18 +31,60 @@ This document outlines the comprehensive security measures implemented in WriteC
 
 ### 3. Rate Limiting
 
-#### Global Rate Limiting
-- Default: 100 requests per 15 minutes per user/IP combination
+#### Current Status
+⚠️ **IMPORTANT**: Rate limiting is currently **DISABLED** for development. You must re-enable it before deployment.
+
+#### Re-enabling Rate Limiting for Deployment
+
+**Before deploying to production**, follow these steps:
+
+1. Open `server/app-security.ts`
+2. Locate the commented-out rate limiting code (around line 22-25)
+3. **Uncomment** the following lines:
+
+```typescript
+app.use(createRateLimiter({
+  maxRequests: 1000, // 1000 requests per 15 minutes for normal app operation
+  windowMs: 15 * 60 * 1000
+}));
+```
+
+4. Update the log message from:
+```typescript
+console.log('[SECURITY] ⚠ Rate limiting DISABLED (uncomment to enable)');
+```
+
+To:
+```typescript
+console.log('[SECURITY] ✓ Rate limiting enabled (1000 req/15min)');
+```
+
+5. Restart your application - rate limiting will now be active
+
+#### Global Rate Limiting (When Enabled)
+- Default: 1,000 requests per 15 minutes per user/IP combination
 - Sensitive operations have stricter limits:
   - User profile updates: 20 requests per 15 minutes
   - User deletion: 5 requests per 15 minutes
-  - Admin operations: 10 requests per 15 minutes
+  - Admin operations: 50 requests per 15 minutes
 
 #### Rate Limit Headers
 All responses include:
 - `X-RateLimit-Limit`: Maximum requests allowed
 - `X-RateLimit-Remaining`: Requests remaining
 - `X-RateLimit-Reset`: Time when limit resets
+
+#### Adjusting Rate Limits
+
+To modify rate limits for your deployment needs, edit values in `server/security/middleware.ts`:
+
+```typescript
+const SECURITY_CONFIG = {
+  RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000,      // 15 minutes
+  RATE_LIMIT_MAX_REQUESTS: 1000,              // Global limit
+  STRICT_RATE_LIMIT_MAX_REQUESTS: 50,        // Sensitive operations
+};
+```
 
 ### 4. CSRF Protection
 
