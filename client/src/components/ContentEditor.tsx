@@ -36,7 +36,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   // Auto-create family trees when creating new ones to bypass the form
   useEffect(() => {
     async function autoCreateFamilyTree() {
-      if (contentType === 'familyTree' && contentId === 'new') {
+      if ((contentType === 'familyTree' || contentType === 'familytree') && contentId === 'new') {
         const urlParams = new URLSearchParams(window.location.search);
         const urlNotebookId = urlParams.get('notebookId');
         const notebookId = urlNotebookId || activeNotebookId;
@@ -423,7 +423,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const contentName = isCreating ? `New ${contentType}` : (contentData?.name || contentData?.title || `${contentType} ${contentId}`);
 
   // Render family tree fullscreen without header
-  if (contentType === 'familyTree') {
+  if (contentType === 'familyTree' || contentType === 'familytree') {
     const urlParams = new URLSearchParams(window.location.search);
     const urlNotebookId = urlParams.get('notebookId');
     const notebookId = urlNotebookId || activeNotebookId || '';

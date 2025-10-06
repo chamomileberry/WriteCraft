@@ -520,6 +520,18 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       badges: ["generations", "genre"]
     }
   },
+  familytree: {
+    id: "familytree",
+    name: "Family Tree",
+    urlSegment: "family-trees",
+    apiBase: "/api/family-trees",
+    displayFields: {
+      title: "name",
+      subtitle: "treeType",
+      description: "description",
+      badges: ["generations", "genre"]
+    }
+  },
   timeline: {
     id: "timeline",
     name: "Timeline",
