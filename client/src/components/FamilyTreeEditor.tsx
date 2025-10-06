@@ -558,7 +558,7 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
       </div>
       
       <div className="flex-shrink-0">
-        <CharacterGallery notebookId={notebookId} />
+        <CharacterGallery notebookId={notebookId} existingMembers={members} />
       </div>
       
       <RelationshipSelector

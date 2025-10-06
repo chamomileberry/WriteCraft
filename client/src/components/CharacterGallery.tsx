@@ -18,9 +18,10 @@ interface Character {
 
 interface CharacterGalleryProps {
   notebookId: string;
+  existingMembers?: any[];
 }
 
-export function CharacterGallery({ notebookId }: CharacterGalleryProps) {
+export function CharacterGallery({ notebookId, existingMembers = [] }: CharacterGalleryProps) {
   const { data: characters = [], isLoading } = useQuery<Character[]>({
     queryKey: ['/api/characters', notebookId],
     queryFn: async () => {
@@ -59,10 +60,29 @@ export function CharacterGallery({ notebookId }: CharacterGalleryProps) {
     );
   }
 
+  // Filter out characters that are already in the tree
+  const existingCharacterIds = new Set(
+    existingMembers
+      .filter(member => member.characterId)
+      .map(member => member.characterId)
+  );
+  
+  const availableCharacters = characters.filter(
+    character => !existingCharacterIds.has(character.id)
+  );
+
   if (characters.length === 0) {
     return (
       <div className="h-32 border-t bg-card/50 flex items-center justify-center">
         <p className="text-sm text-muted-foreground">No characters in this notebook. Create some characters to add them to your family tree.</p>
+      </div>
+    );
+  }
+
+  if (availableCharacters.length === 0) {
+    return (
+      <div className="h-32 border-t bg-card/50 flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">All characters from this notebook have been added to the tree.</p>
       </div>
     );
   }
@@ -72,7 +92,7 @@ export function CharacterGallery({ notebookId }: CharacterGalleryProps) {
       <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Characters</p>
       <ScrollArea className="h-20">
         <div className="flex gap-2 pb-2">
-          {characters.map((character) => {
+          {availableCharacters.map((character) => {
             const displayName = getDisplayName(character);
             const initials = getInitials(displayName);
             

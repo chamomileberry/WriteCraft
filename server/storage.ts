@@ -2883,34 +2883,27 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Fetch members with character data using LEFT JOIN
-    const members = await db
-      .select({
-        id: familyTreeMembers.id,
-        treeId: familyTreeMembers.treeId,
-        characterId: familyTreeMembers.characterId,
-        inlineName: familyTreeMembers.inlineName,
-        inlineDateOfBirth: familyTreeMembers.inlineDateOfBirth,
-        inlineDateOfDeath: familyTreeMembers.inlineDateOfDeath,
-        inlineImageUrl: familyTreeMembers.inlineImageUrl,
-        positionX: familyTreeMembers.positionX,
-        positionY: familyTreeMembers.positionY,
-        createdAt: familyTreeMembers.createdAt,
-        // Include character data
-        character: {
-          id: characters.id,
-          givenName: characters.givenName,
-          familyName: characters.familyName,
-          middleName: characters.middleName,
-          nickname: characters.nickname,
-          imageUrl: characters.imageUrl,
-          dateOfBirth: characters.dateOfBirth,
-          dateOfDeath: characters.dateOfDeath,
-        }
-      })
+    const rows = await db
+      .select()
       .from(familyTreeMembers)
       .leftJoin(characters, eq(familyTreeMembers.characterId, characters.id))
       .where(eq(familyTreeMembers.treeId, treeId))
       .orderBy(desc(familyTreeMembers.createdAt));
+    
+    // Reshape the data to nest character inside member
+    const members = rows.map(row => ({
+      ...row.family_tree_members,
+      character: row.characters ? {
+        id: row.characters.id,
+        givenName: row.characters.givenName,
+        familyName: row.characters.familyName,
+        middleName: row.characters.middleName,
+        nickname: row.characters.nickname,
+        imageUrl: row.characters.imageUrl,
+        dateOfBirth: row.characters.dateOfBirth,
+        dateOfDeath: row.characters.dateOfDeath,
+      } : null
+    }));
     
     return members;
   }
