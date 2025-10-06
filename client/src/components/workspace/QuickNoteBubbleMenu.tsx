@@ -1,7 +1,7 @@
 import { Editor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import { Button } from '@/components/ui/button';
-import { Bold, Italic, Underline, List } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListChecks } from 'lucide-react';
 
 interface QuickNoteBubbleMenuProps {
   editor: Editor | null;
@@ -77,6 +77,20 @@ export default function QuickNoteBubbleMenu({ editor }: QuickNoteBubbleMenuProps
         data-testid="bubble-button-bullet-list"
       >
         <List className="h-4 w-4" />
+      </Button>
+      
+      <Button
+        size="sm"
+        variant={editor.isActive('taskList') ? 'default' : 'ghost'}
+        onClick={() => editor.chain().focus().toggleTaskList().run()}
+        className="h-7 w-7 p-0"
+        style={{
+          backgroundColor: editor.isActive('taskList') ? 'rgb(147, 51, 234)' : 'transparent',
+          color: editor.isActive('taskList') ? 'white' : 'rgb(88, 28, 135)',
+        }}
+        data-testid="bubble-button-task-list"
+      >
+        <ListChecks className="h-4 w-4" />
       </Button>
     </BubbleMenu>
   );

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -59,6 +61,10 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         horizontalRule: false, // Disable horizontal rules
       }),
       Underline,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
     ],
     content: '',
     editorProps: {
@@ -404,14 +410,13 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
             <TooltipTrigger asChild>
               <Button
                 size="icon"
-                variant="outline"
+                variant={editor?.isActive('taskList') ? 'default' : 'outline'}
                 onClick={() => {
-                  // TODO: Implement checklist toggle in task 6
-                  toast({
-                    title: 'Coming soon',
-                    description: 'Checklist feature will be added soon',
-                  });
+                  if (editor) {
+                    editor.chain().focus().toggleTaskList().run();
+                  }
                 }}
+                disabled={!editor}
                 className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
                 data-testid="button-toggle-checklist"
               >
