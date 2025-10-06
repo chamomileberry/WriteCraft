@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
 import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
 import { CharacterGallery } from './CharacterGallery';
+import { RelationshipSelector, type RelationshipType } from './RelationshipSelector';
 
 interface FamilyTreeEditorProps {
   treeId: string;
@@ -36,6 +37,10 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
   const { toast } = useToast();
   const { screenToFlowPosition } = useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(true);
+  
+  // Relationship selector state
+  const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
+  const [selectorOpen, setSelectorOpen] = useState(false);
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(() => ({
@@ -136,8 +141,8 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
 
   // Handle connection (create relationship)
   const onConnect = useCallback((connection: Connection) => {
-    // We'll implement relationship creation later
-    console.log('Connection created:', connection);
+    setPendingConnection(connection);
+    setSelectorOpen(true);
   }, []);
 
   // Mutation to create a new family tree member
@@ -210,6 +215,65 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
     event.dataTransfer.dropEffect = 'copy';
   }, []);
 
+  // Mutation to create a relationship
+  const createRelationship = useMutation({
+    mutationFn: async (data: { 
+      fromMemberId: string; 
+      toMemberId: string; 
+      relationshipType: RelationshipType;
+      customLabel?: string;
+    }) => {
+      return apiRequest(`/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          treeId,
+          fromMemberId: data.fromMemberId,
+          toMemberId: data.toMemberId,
+          relationshipType: data.relationshipType,
+          customLabel: data.customLabel,
+        }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'relationships'] });
+      toast({
+        title: 'Relationship added',
+        description: 'Relationship successfully created',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to create relationship',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle relationship type selection
+  const handleRelationshipConfirm = useCallback((relationshipType: RelationshipType, customLabel?: string) => {
+    if (!pendingConnection) return;
+
+    createRelationship.mutate({
+      fromMemberId: pendingConnection.source,
+      toMemberId: pendingConnection.target!,
+      relationshipType,
+      customLabel,
+    });
+
+    setSelectorOpen(false);
+    setPendingConnection(null);
+  }, [pendingConnection, createRelationship]);
+
+  // Handle relationship selector close (including cancel)
+  const handleSelectorOpenChange = useCallback((open: boolean) => {
+    setSelectorOpen(open);
+    if (!open) {
+      setPendingConnection(null); // Clear pending connection when dialog closes
+    }
+  }, []);
+
   if (treeLoading || membersLoading || relationshipsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -257,6 +321,22 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
       </div>
       
       <CharacterGallery notebookId={notebookId} />
+      
+      <RelationshipSelector
+        open={selectorOpen}
+        onOpenChange={handleSelectorOpenChange}
+        onConfirm={handleRelationshipConfirm}
+        sourceNodeLabel={
+          pendingConnection 
+            ? members.find(m => m.id === pendingConnection.source)?.inlineName || 'Character A'
+            : 'Character A'
+        }
+        targetNodeLabel={
+          pendingConnection 
+            ? members.find(m => m.id === pendingConnection.target)?.inlineName || 'Character B'
+            : 'Character B'
+        }
+      />
     </div>
   );
 }
