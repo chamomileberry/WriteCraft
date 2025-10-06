@@ -24,6 +24,7 @@ interface QuickNotePanelProps {
 
 export default function QuickNotePanel({ panelId, className, onRegisterSaveFunction, onRegisterClearFunction }: QuickNotePanelProps) {
   const [hasBeenSavedOnce, setHasBeenSavedOnce] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
@@ -69,47 +70,68 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     content: '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm focus:outline-none max-w-none min-h-[200px] p-4',
+        class: 'prose prose-sm focus:outline-none max-w-none min-h-[200px] p-4 quick-note-prose',
         style: 'color: rgb(88, 28, 135); font-family: Arial, Helvetica, sans-serif; font-size: 0.95rem; line-height: 1.6;',
       },
     },
   });
 
-  // Load quick note data when available
+  // Load quick note data ONLY on initial load to prevent cursor jumping
   useEffect(() => {
-    if (quickNote && editor && !editor.isDestroyed) {
+    if (isInitialLoad && quickNote && editor && !editor.isDestroyed) {
       const serverContent = quickNote.content || '';
       editor.commands.setContent(serverContent);
       setHasBeenSavedOnce(true);
+      setIsInitialLoad(false);
       
-      // Update workspace panel title to match the loaded note title
-      if (quickNote.title && quickNote.title !== noteTitle) {
+      // Update workspace panel title to match the loaded note title (only on initial load)
+      if (quickNote.title && quickNote.title !== 'Quick Note') {
         updatePanel(panelId, { title: quickNote.title });
       }
     }
-  }, [quickNote, editor, panelId, noteTitle, updatePanel]);
+  }, [isInitialLoad, quickNote, editor, panelId, updatePanel]);
 
-  // Save title to database when it changes (after initial load)
+  // Debounced title save ref
+  const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Save title changes with debounce (after initial load)
   useEffect(() => {
-    if (hasBeenSavedOnce && editor && noteTitle !== quickNote?.title) {
-      const saveTitleUpdate = async () => {
-        try {
-          const response = await apiRequest('POST', '/api/quick-note', {
-            userId,
-            title: noteTitle,
-            content: editor.getHTML(),
-          });
-          const savedNote = await response.json();
-          
-          // Update the React Query cache to keep it in sync
-          queryClient.setQueryData(['/api/quick-note', userId], savedNote);
-        } catch (error) {
-          console.error('Failed to save title:', error);
-        }
-      };
-      saveTitleUpdate();
+    if (!isInitialLoad && hasBeenSavedOnce && editor && noteTitle !== quickNote?.title) {
+      // Clear existing timeout
+      if (titleSaveTimeoutRef.current) {
+        clearTimeout(titleSaveTimeoutRef.current);
+      }
+      
+      // Debounce title save for 500ms
+      titleSaveTimeoutRef.current = setTimeout(() => {
+        const saveTitle = async () => {
+          try {
+            const response = await apiRequest('POST', '/api/quick-note', {
+              userId,
+              title: noteTitle,
+              content: editor.getHTML(),
+            });
+            const savedNote = await response.json();
+            
+            // Update cache WITHOUT triggering re-fetch
+            queryClient.setQueryData(['/api/quick-note', userId], (old: any) => ({
+              ...old,
+              ...savedNote,
+            }));
+          } catch (error) {
+            console.error('Failed to save title:', error);
+          }
+        };
+        saveTitle();
+      }, 500);
     }
-  }, [noteTitle, hasBeenSavedOnce, editor, quickNote?.title, userId, queryClient]);
+    
+    return () => {
+      if (titleSaveTimeoutRef.current) {
+        clearTimeout(titleSaveTimeoutRef.current);
+      }
+    };
+  }, [noteTitle, isInitialLoad, hasBeenSavedOnce, editor, quickNote?.title, userId, queryClient]);
 
   // Save data function for autosave
   const saveDataFunction = useCallback(() => {

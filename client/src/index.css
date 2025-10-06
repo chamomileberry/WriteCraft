@@ -332,4 +332,67 @@
   .dark .react-flow__background {
     background-color: hsl(var(--background));
   }
+
+  /* Quick Note Styling - Darker bullet points for purple background */
+  .quick-note-prose ul {
+    list-style-type: disc;
+  }
+
+  .quick-note-prose ul > li::marker {
+    color: rgb(88, 28, 135);
+    font-size: 1.1em;
+  }
+
+  /* Google To Do-style checkboxes */
+  .quick-note-prose ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .quick-note-prose ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .quick-note-prose ul[data-type="taskList"] li[data-checked="true"] > div > p {
+    text-decoration: line-through;
+    color: rgb(124, 58, 237);
+    opacity: 0.6;
+  }
+
+  .quick-note-prose ul[data-type="taskList"] input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid rgb(147, 51, 234);
+    border-radius: 50%;
+    margin-right: 12px;
+    margin-top: 2px;
+    cursor: pointer;
+    background-color: transparent;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .quick-note-prose ul[data-type="taskList"] input[type="checkbox"]:hover {
+    background-color: rgba(147, 51, 234, 0.1);
+  }
+
+  .quick-note-prose ul[data-type="taskList"] input[type="checkbox"]:checked {
+    background-color: rgb(147, 51, 234);
+    border-color: rgb(147, 51, 234);
+  }
+
+  .quick-note-prose ul[data-type="taskList"] input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+  }
 }
