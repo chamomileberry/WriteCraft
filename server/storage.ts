@@ -2826,7 +2826,7 @@ export class DatabaseStorage implements IStorage {
       await this.saveItem({
         userId: newFamilyTree.userId,
         notebookId: newFamilyTree.notebookId,
-        itemType: 'familyTree',
+        itemType: 'familytree',
         itemId: newFamilyTree.id,
         itemData: {
           name: newFamilyTree.name,
