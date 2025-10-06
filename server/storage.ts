@@ -65,12 +65,13 @@ import {
   type Potion, type InsertPotion,
   type ChatMessage, type InsertChatMessage,
   type Notebook, type InsertNotebook, type UpdateNotebook,
+  type ImportJob, type InsertImportJob, type UpdateImportJob,
   users, characters, 
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
   languages, religions, technologies, weapons, professions,
   savedItems, names, themes, moods, conflicts, guides, projects, projectSections, projectLinks,
-  folders, notes, notebooks,
+  folders, notes, notebooks, importJobs,
   // Missing content types - Import tables
   plants, descriptions, ethnicities, drinks, armor, accessories, clothing, materials,
   settlements, societies, factions, militaryUnits, myths, legends, events, spells,
@@ -107,6 +108,12 @@ export interface IStorage {
   updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined>;
   deleteNotebook(id: string, userId: string): Promise<void>;
   validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean>;
+  
+  // Import Job methods
+  createImportJob(job: InsertImportJob): Promise<ImportJob>;
+  getImportJob(id: string, userId: string): Promise<ImportJob | undefined>;
+  getUserImportJobs(userId: string): Promise<ImportJob[]>;
+  updateImportJob(id: string, updates: UpdateImportJob): Promise<ImportJob | undefined>;
   
   // Generic content ownership validation
   validateContentOwnership<T extends { userId?: string | null, notebookId?: string | null }>(
@@ -677,6 +684,40 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
       .limit(1);
     return !!notebook;
+  }
+
+  // Import Job methods
+  async createImportJob(job: InsertImportJob): Promise<ImportJob> {
+    const [newJob] = await db
+      .insert(importJobs)
+      .values(job)
+      .returning();
+    return newJob;
+  }
+
+  async getImportJob(id: string, userId: string): Promise<ImportJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(importJobs)
+      .where(and(eq(importJobs.id, id), eq(importJobs.userId, userId)));
+    return job || undefined;
+  }
+
+  async getUserImportJobs(userId: string): Promise<ImportJob[]> {
+    return await db
+      .select()
+      .from(importJobs)
+      .where(eq(importJobs.userId, userId))
+      .orderBy(desc(importJobs.createdAt));
+  }
+
+  async updateImportJob(id: string, updates: UpdateImportJob): Promise<ImportJob | undefined> {
+    const [updatedJob] = await db
+      .update(importJobs)
+      .set(updates)
+      .where(eq(importJobs.id, id))
+      .returning();
+    return updatedJob || undefined;
   }
 
   validateContentOwnership<T extends { userId?: string | null, notebookId?: string | null }>(

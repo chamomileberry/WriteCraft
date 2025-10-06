@@ -53,6 +53,22 @@ export const notebooks = pgTable("notebooks", {
   uniqueDefaultPerUser: uniqueIndex("notebooks_user_default_idx").on(table.userId).where(sql`${table.isDefault} = true`)
 }));
 
+// Import Jobs - Track World Anvil and other imports
+export const importJobs = pgTable("import_jobs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  source: text("source").notNull(), // 'world_anvil', 'custom', etc.
+  status: text("status").notNull().default('pending'), // 'pending', 'processing', 'completed', 'failed'
+  progress: integer("progress").default(0), // Percentage 0-100
+  totalItems: integer("total_items").default(0),
+  processedItems: integer("processed_items").default(0),
+  results: jsonb("results"), // Detailed results: { imported: [], failed: [], skipped: [] }
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
 // Generated characters
 export const characters = pgTable("characters", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -2942,3 +2958,24 @@ export type InsertPotion = z.infer<typeof insertPotionSchema>;
 export type Potion = typeof potions.$inferSelect;
 export type InsertProfession = z.infer<typeof insertProfessionSchema>;
 export type Profession = typeof professions.$inferSelect;
+
+// Import Jobs schemas and types
+export const insertImportJobSchema = createInsertSchema(importJobs).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export const updateImportJobSchema = z.object({
+  status: z.enum(['pending', 'processing', 'completed', 'failed']).optional(),
+  progress: z.number().min(0).max(100).optional(),
+  totalItems: z.number().optional(),
+  processedItems: z.number().optional(),
+  results: z.any().optional(),
+  errorMessage: z.string().optional(),
+  completedAt: z.date().optional(),
+});
+
+export type InsertImportJob = z.infer<typeof insertImportJobSchema>;
+export type UpdateImportJob = z.infer<typeof updateImportJobSchema>;
+export type ImportJob = typeof importJobs.$inferSelect;

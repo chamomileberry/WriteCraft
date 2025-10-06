@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { registerDomainRoutes } from "./routes/index";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import aiRoutes from "./routes/ai.routes";
+import importRoutes from "./routes/import.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { 
   insertCharacterSchema, 
@@ -102,6 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register AI routes
   app.use("/api/ai", aiRoutes);
+
+  // Register import routes
+  app.use("/api/import", isAuthenticated, importRoutes);
 
   // Serve uploaded objects with optional access control
   // NOTE: World-building content and avatars are publicly accessible via UUID protection.
