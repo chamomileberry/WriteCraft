@@ -21,12 +21,13 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import type { FamilyTree, FamilyTreeMember, FamilyTreeRelationship } from '@shared/schema';
 import { Button } from '@/components/ui/button';
-import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3 } from 'lucide-react';
+import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
 import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
 import { CharacterGallery } from './CharacterGallery';
 import { RelationshipSelector, type RelationshipType } from './RelationshipSelector';
+import { InlineMemberDialog } from './InlineMemberDialog';
 import { getLayoutedElements } from '@/lib/elk-layout';
 
 interface FamilyTreeEditorProps {
@@ -36,13 +37,16 @@ interface FamilyTreeEditorProps {
 
 function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
   const { toast } = useToast();
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(true);
   const prevIsAutoLayout = useRef(isAutoLayout);
   
   // Relationship selector state
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
   const [selectorOpen, setSelectorOpen] = useState(false);
+  
+  // Add member dialog state (for inline node creation - task 3)
+  const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(() => ({
@@ -306,6 +310,33 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
     }
   }, []);
 
+  // Handle reset layout - reapply ELK auto-layout
+  const handleResetLayout = useCallback(() => {
+    if (nodes.length > 0) {
+      getLayoutedElements(nodes, edges, {
+        direction: 'DOWN',
+        nodeSpacing: 80,
+        layerSpacing: 150,
+      }).then(({ nodes: layoutedNodes }) => {
+        setNodes(layoutedNodes);
+        toast({
+          title: 'Layout reset',
+          description: 'Family tree layout has been reset',
+        });
+      });
+    }
+  }, [nodes, edges, setNodes, toast]);
+
+  // Handle inline member creation - will be implemented in task 3
+  const handleInlineMemberCreate = useCallback((name: string) => {
+    // TODO: Implement inline node creation in task 3
+    setAddMemberDialogOpen(false);
+    toast({
+      title: 'Coming soon',
+      description: `Inline member creation for "${name}" will be implemented in task 3`,
+    });
+  }, [toast]);
+
   if (treeLoading || membersLoading || relationshipsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -341,6 +372,33 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
           <Panel position="top-right" className="flex gap-2">
             <Button
               size="sm"
+              variant="outline"
+              onClick={() => setAddMemberDialogOpen(true)}
+              data-testid="button-add-member"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Add Member
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => fitView({ padding: 0.2, duration: 400 })}
+              data-testid="button-fit-view"
+            >
+              <Maximize2 className="w-4 h-4 mr-2" />
+              Fit View
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleResetLayout}
+              data-testid="button-reset-layout"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset Layout
+            </Button>
+            <Button
+              size="sm"
               variant={isAutoLayout ? "default" : "outline"}
               onClick={() => setIsAutoLayout(!isAutoLayout)}
               data-testid="button-toggle-layout"
@@ -368,6 +426,12 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
             ? members.find(m => m.id === pendingConnection.target)?.inlineName || 'Character B'
             : 'Character B'
         }
+      />
+      
+      <InlineMemberDialog
+        open={addMemberDialogOpen}
+        onOpenChange={setAddMemberDialogOpen}
+        onConfirm={handleInlineMemberCreate}
       />
     </div>
   );
