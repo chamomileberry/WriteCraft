@@ -327,15 +327,49 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
     }
   }, [nodes, edges, setNodes, toast]);
 
-  // Handle inline member creation - will be implemented in task 3
+  // Mutation to create inline member
+  const createInlineMember = useMutation({
+    mutationFn: async ({ name, x, y }: { name: string; x: number; y: number }) => {
+      return apiRequest(
+        'POST',
+        `/api/family-trees/${treeId}/members?notebookId=${notebookId}`,
+        {
+          treeId,
+          inlineName: name,
+          positionX: x,
+          positionY: y,
+        }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      setAddMemberDialogOpen(false);
+      toast({
+        title: 'Member added',
+        description: 'Family member successfully created',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to create member',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle inline member creation
   const handleInlineMemberCreate = useCallback((name: string) => {
-    // TODO: Implement inline node creation in task 3
-    setAddMemberDialogOpen(false);
-    toast({
-      title: 'Coming soon',
-      description: `Inline member creation for "${name}" will be implemented in task 3`,
+    // Calculate position to the right of existing nodes
+    const centerX = nodes.length > 0 ? Math.max(...nodes.map(n => n.position.x)) + 300 : 100;
+    const centerY = nodes.length > 0 ? nodes.reduce((sum, n) => sum + n.position.y, 0) / nodes.length : 100;
+    
+    createInlineMember.mutate({
+      name,
+      x: centerX,
+      y: centerY,
     });
-  }, [toast]);
+  }, [nodes, createInlineMember]);
 
   if (treeLoading || membersLoading || relationshipsLoading) {
     return (
@@ -432,6 +466,7 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
         open={addMemberDialogOpen}
         onOpenChange={setAddMemberDialogOpen}
         onConfirm={handleInlineMemberCreate}
+        isLoading={createInlineMember.isPending}
       />
     </div>
   );

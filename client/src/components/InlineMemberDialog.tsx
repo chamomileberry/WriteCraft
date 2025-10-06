@@ -15,12 +15,14 @@ interface InlineMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (name: string) => void;
+  isLoading?: boolean;
 }
 
 export function InlineMemberDialog({
   open,
   onOpenChange,
   onConfirm,
+  isLoading = false,
 }: InlineMemberDialogProps) {
   const [name, setName] = useState('');
 
@@ -71,16 +73,17 @@ export function InlineMemberDialog({
           <Button
             variant="outline"
             onClick={handleCancel}
+            disabled={isLoading}
             data-testid="button-cancel-inline-member"
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!name.trim()}
+            disabled={!name.trim() || isLoading}
             data-testid="button-confirm-inline-member"
           >
-            Add Member
+            {isLoading ? 'Adding...' : 'Add Member'}
           </Button>
         </DialogFooter>
       </DialogContent>
