@@ -81,9 +81,10 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     };
   }, [editor, userId]);
 
-  // Mutation function for autosave
+  // Mutation function for autosave - returns parsed JSON
   const mutationFunction = useCallback(async (data: any) => {
-    return await apiRequest('POST', '/api/quick-note', data);
+    const response = await apiRequest('POST', '/api/quick-note', data);
+    return await response.json();
   }, []);
 
   // Set up autosave using the hook
@@ -95,11 +96,11 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     successMessage: 'Quick note saved',
     errorMessage: 'Failed to save quick note',
     invalidateQueries: [['/api/quick-note']],
-    onSuccess: async (response) => {
+    onSuccess: (savedNote) => {
+      // Mark as saved for both new and existing notes
       setHasBeenSavedOnce(true);
-      const savedNote = await response.json();
       
-      // Update the local cache
+      // Update the local cache with the saved note data
       queryClient.setQueryData(['/api/quick-note', userId], () => ({
         id: savedNote.id || quickNote?.id || `quick-note-${userId}`,
         userId: userId,
@@ -276,7 +277,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       case 'saving':
         return 'Saving...';
       case 'unsaved':
-        return '';
+        return 'Unsaved changes';
       default:
         return 'Saved';
     }

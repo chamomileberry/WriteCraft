@@ -132,17 +132,24 @@ export function useAutosave({
   const handleAutoSave = useCallback(async () => {
     if (!editor || saveStatus === 'saving') return;
     
+    // Check if autosave condition allows saving
+    if (!autoSaveCondition()) {
+      setSaveStatus('unsaved');
+      return;
+    }
+    
     const data = saveDataFunction();
     
     // Check if saveDataFunction returned null (validation failed)
     if (data === null) {
-      return; // Don't change status for failed autosave validation
+      setSaveStatus('unsaved');
+      return;
     }
     
     // Don't set isManualSave for autosaves (keeps it false)
     setSaveStatus('saving');
     await saveMutation.mutateAsync(data);
-  }, [editor, saveDataFunction, saveMutation, saveStatus]);
+  }, [editor, saveDataFunction, saveMutation, saveStatus, autoSaveCondition]);
 
   // Trigger autosave with debouncing
   const triggerAutosave = useCallback(() => {
@@ -157,6 +164,9 @@ export function useAutosave({
     autosaveTimeoutRef.current = setTimeout(() => {
       if (autoSaveCondition()) {
         handleAutoSave();
+      } else {
+        // Reset status to unsaved if condition prevents save
+        setSaveStatus('unsaved');
       }
     }, debounceMs);
   }, [autoSaveCondition, handleAutoSave, debounceMs]);
