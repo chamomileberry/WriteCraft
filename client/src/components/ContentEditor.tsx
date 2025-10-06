@@ -61,8 +61,10 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           const result = await response.json();
           
           if (result?.id) {
-            // Navigate to the newly created tree editor
-            setLocation(`/editor/familyTree/${result.id}?notebookId=${notebookId}`);
+            // Navigate to the newly created tree editor using correct URL segment
+            const mapping = getMappingById('familyTree');
+            const urlSegment = mapping?.urlSegment || 'family-trees';
+            setLocation(`/editor/${urlSegment}/${result.id}?notebookId=${notebookId}`);
           }
         } catch (error) {
           console.error('Error creating family tree:', error);
