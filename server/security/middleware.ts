@@ -9,8 +9,8 @@ import { eq } from 'drizzle-orm';
 const SECURITY_CONFIG = {
   // Rate limiting
   RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-  RATE_LIMIT_MAX_REQUESTS: 100,
-  STRICT_RATE_LIMIT_MAX_REQUESTS: 10, // For sensitive operations
+  RATE_LIMIT_MAX_REQUESTS: 1000, // Increased for normal app operation (was 100)
+  STRICT_RATE_LIMIT_MAX_REQUESTS: 50, // For sensitive operations (was 10)
   
   // Security headers
   ALLOWED_HEADERS: ['content-type', 'authorization'],

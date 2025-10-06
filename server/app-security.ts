@@ -16,7 +16,7 @@ export function applySecurityMiddleware(app: Express): void {
   
   // Apply global rate limiting (can be overridden per route)
   app.use(createRateLimiter({
-    maxRequests: 100, // 100 requests per 15 minutes globally
+    maxRequests: 1000, // 1000 requests per 15 minutes for normal app operation
     windowMs: 15 * 60 * 1000
   }));
   
@@ -27,7 +27,7 @@ export function applySecurityMiddleware(app: Express): void {
   // Log security initialization
   console.log('[SECURITY] Security middleware initialized:');
   console.log('[SECURITY] ✓ Security headers enabled');
-  console.log('[SECURITY] ✓ Rate limiting enabled (100 req/15min)');
+  console.log('[SECURITY] ✓ Rate limiting enabled (1000 req/15min)');
   console.log('[SECURITY] ✓ Input sanitization enabled');
   console.log('[SECURITY] ✓ CSRF protection available per route');
   console.log('[SECURITY] ✓ Row-level security enforced');
