@@ -1,5 +1,8 @@
 import Hero from '../Hero';
+import { useLocation } from 'wouter';
 
 export default function HeroExample() {
-  return <Hero />;
+  const [, setLocation] = useLocation();
+  
+  return <Hero onNavigate={setLocation} />;
 }

@@ -3,19 +3,31 @@ import { Button } from "@/components/ui/button";
 
 interface HeroProps {
   onGetStarted?: () => void;
+  onNavigate?: (path: string) => void;
 }
 
-export default function Hero({ onGetStarted }: HeroProps) {
+export default function Hero({ onGetStarted, onNavigate }: HeroProps) {
   const handleGetStarted = () => {
-    console.log('Start creating clicked - opening content creation modal');
+    console.log('Start creating clicked');
     if (onGetStarted) {
+      console.log('Opening content creation modal');
       onGetStarted();
+    } else if (onNavigate) {
+      console.log('No callback provided, navigating to notebook page via prop');
+      onNavigate('/notebook');
+    } else {
+      console.log('No callback or navigation provided, using fallback redirect');
+      window.location.href = '/notebook';
     }
   };
 
   const handleStartWriting = () => {
     console.log('Start writing clicked');
-    window.location.href = '/projects';
+    if (onNavigate) {
+      onNavigate('/projects');
+    } else {
+      window.location.href = '/projects';
+    }
   };
 
   return (
