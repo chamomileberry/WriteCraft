@@ -61,10 +61,11 @@ interface WorldAnvilArticle {
   title: string;
   content?: string;
   excerpt?: string;
-  category?: string;
-  template?: string;
+  category?: any; // Category is an object with id, title, etc.
+  templateType?: string;
+  entityClass?: string;
   state?: string;
-  tags?: string[];
+  tags?: string | string[];
   [key: string]: any;
 }
 
@@ -130,8 +131,21 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
 
 // Map World Anvil article to WriteCraft content
 function mapArticleToContent(article: WorldAnvilArticle, userId: string, notebookId: string) {
-  const template = article.template?.toLowerCase() || article.category?.toLowerCase() || 'document';
-  const contentType = WORLD_ANVIL_TYPE_MAPPING[template] || 'document';
+  // World Anvil uses entityClass (e.g., "Character", "Species") or templateType (e.g., "character", "species")
+  // Category is an object, not a string!
+  let typeKey = '';
+  
+  if (article.templateType) {
+    typeKey = article.templateType.toLowerCase();
+  } else if (article.entityClass) {
+    typeKey = article.entityClass.toLowerCase();
+  } else if (article.category && typeof article.category === 'object' && article.category.title) {
+    typeKey = article.category.title.toLowerCase();
+  } else {
+    typeKey = 'document';
+  }
+  
+  const contentType = WORLD_ANVIL_TYPE_MAPPING[typeKey] || 'document';
 
   // Base fields all content types have
   const baseContent: any = {
@@ -226,13 +240,16 @@ async function processImport(
 
   try {
     await storage.updateImportJob(jobId, { status: 'processing' });
+    console.log(`[Import ${jobId}] Starting import of ${parsed.totalItems} articles`);
 
     for (let i = 0; i < parsed.articles.length; i++) {
       const article = parsed.articles[i];
 
       try {
         const mapped = mapArticleToContent(article, userId, notebookId);
-        const contentType = mapped.contentType || 'character';
+        const contentType = mapped.contentType || 'document';
+
+        console.log(`[Import ${jobId}] Processing ${i + 1}/${parsed.totalItems}: "${article.title}" (type: ${article.entityClass || article.templateType} → ${contentType})`);
 
         // Import based on content type
         if (contentType === 'character') {
@@ -242,6 +259,7 @@ async function processImport(
             notebookId,
           });
           results.imported.push(character.id);
+          console.log(`[Import ${jobId}] ✓ Created character: ${article.title}`);
         } else if (contentType === 'location') {
           const location = await storage.createLocation({
             ...mapped,
@@ -249,6 +267,7 @@ async function processImport(
             notebookId,
           });
           results.imported.push(location.id);
+          console.log(`[Import ${jobId}] ✓ Created location: ${article.title}`);
         } else if (contentType === 'organization') {
           const org = await storage.createOrganization({
             ...mapped,
@@ -256,6 +275,7 @@ async function processImport(
             notebookId,
           });
           results.imported.push(org.id);
+          console.log(`[Import ${jobId}] ✓ Created organization: ${article.title}`);
         } else if (contentType === 'species') {
           const species = await storage.createSpecies({
             ...mapped,
@@ -263,24 +283,32 @@ async function processImport(
             notebookId,
           });
           results.imported.push(species.id);
+          console.log(`[Import ${jobId}] ✓ Created species: ${article.title}`);
         } else {
           // Skip unsupported types for now
-          results.skipped.push(article.title || 'Untitled');
+          results.skipped.push(`${article.title} (${contentType})`);
+          console.log(`[Import ${jobId}] ⊘ Skipped (unsupported type): ${article.title} (${contentType})`);
         }
 
-        // Update progress
-        const progress = Math.round(((i + 1) / parsed.totalItems) * 100);
-        await storage.updateImportJob(jobId, {
-          processedItems: i + 1,
-          progress,
-        });
+        // Update progress every 10 items or on last item
+        if ((i + 1) % 10 === 0 || i === parsed.totalItems - 1) {
+          const progress = Math.round(((i + 1) / parsed.totalItems) * 100);
+          await storage.updateImportJob(jobId, {
+            processedItems: i + 1,
+            progress,
+          });
+        }
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         results.failed.push({
           title: article.title || 'Untitled',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMsg,
         });
+        console.error(`[Import ${jobId}] ✗ Failed: ${article.title} - ${errorMsg}`);
       }
     }
+
+    console.log(`[Import ${jobId}] Completed: ${results.imported.length} imported, ${results.skipped.length} skipped, ${results.failed.length} failed`);
 
     // Mark as completed
     await storage.updateImportJob(jobId, {
