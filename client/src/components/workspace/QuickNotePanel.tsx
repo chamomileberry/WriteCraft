@@ -65,6 +65,9 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       TaskList,
       TaskItem.configure({
         nested: true,
+        HTMLAttributes: {
+          class: 'task-item',
+        },
       }),
     ],
     content: '',
