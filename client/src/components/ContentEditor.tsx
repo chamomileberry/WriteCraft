@@ -545,9 +545,9 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             const notebookId = urlNotebookId || activeNotebookId || '';
             
             // Return the editor with proper height styling
-            // Give it viewport height minus space for app header
+            // Give it almost full viewport height (4x larger canvas)
             return (
-              <div className="w-full" style={{ height: 'calc(100vh - 12rem)' }}>
+              <div className="w-full" style={{ height: 'calc(100vh - 3rem)' }}>
                 <FamilyTreeEditor
                   treeId={contentId}
                   notebookId={notebookId}
