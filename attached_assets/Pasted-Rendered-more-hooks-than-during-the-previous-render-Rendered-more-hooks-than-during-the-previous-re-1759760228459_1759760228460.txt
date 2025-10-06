@@ -1,0 +1,30 @@
+Rendered more hooks than during the previous render.
+Rendered more hooks than during the previous render.
+The above error occurred in the <FamilyTreeEditorInner> component:
+
+    at FamilyTreeEditorInner (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/FamilyTreeEditor.tsx:44:34)
+    at BatchProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@xyflow_react.js?v=1c87126b:6761:36)
+    at ReactFlowProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@xyflow_react.js?v=1c87126b:8818:44)
+    at FamilyTreeEditor
+    at div
+    at ContentEditor (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/ContentEditor.tsx:35:41)
+    at div
+    at div
+    at Layout (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/Layout.tsx:17:34)
+    at EditorPage (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/App.tsx?v=bg1NT6VWBgW3cUPacVmCW:199:23)
+    at Route (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1c87126b:191:16)
+    at Switch (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1c87126b:247:17)
+    at Router
+    at div
+    at div
+    at WorkspaceShell (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/components/workspace/WorkspaceShell.tsx:73:27)
+    at div
+    at AuthenticatedApp (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/src/App.tsx?v=bg1NT6VWBgW3cUPacVmCW:442:31)
+    at Provider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KCIZDHHO.js?v=1c87126b:38:15)
+    at TooltipProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=1c87126b:64:5)
+    at QueryClientProvider (https://a78bf25c-a79e-4642-a799-9a78cafc81c7-00-1qn198u47gblh.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=1c87126b:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+Rendered more hooks than during the previous render.

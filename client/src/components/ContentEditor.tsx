@@ -423,13 +423,25 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const contentName = isCreating ? `New ${contentType}` : (contentData?.name || contentData?.title || `${contentType} ${contentId}`);
 
   // Render family tree fullscreen without header
-  if (contentType === 'familyTree' && contentId !== 'new') {
+  if (contentType === 'familyTree') {
     const urlParams = new URLSearchParams(window.location.search);
     const urlNotebookId = urlParams.get('notebookId');
     const notebookId = urlNotebookId || activeNotebookId || '';
     
+    // Show loading state while creating new tree
+    if (contentId === 'new') {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <span className="text-muted-foreground">Creating family tree...</span>
+          </div>
+        </div>
+      );
+    }
+    
     return (
-      <div className="w-full h-screen">
+      <div className="w-full h-screen" key={contentId}>
         <FamilyTreeEditor
           treeId={contentId}
           notebookId={notebookId}
@@ -540,36 +552,6 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
                 isLoading={saveMutation.isPending}
                 isCreating={isCreating}
               />
-            );
-          }
-          
-          // Use visual family tree editor for family trees
-          if (contentType === 'familyTree') {
-            // Don't render the editor if we're still creating (contentId === 'new')
-            // The auto-create effect will handle the redirect
-            if (contentId === 'new') {
-              return (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  <span className="ml-3 text-muted-foreground">Creating family tree...</span>
-                </div>
-              );
-            }
-            
-            // For existing trees, show the visual editor
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlNotebookId = urlParams.get('notebookId');
-            const notebookId = urlNotebookId || activeNotebookId || '';
-            
-            // Return the editor with proper height styling
-            // Give it almost full viewport height (4x larger canvas)
-            return (
-              <div className="w-full" style={{ height: 'calc(100vh - 3rem)' }}>
-                <FamilyTreeEditor
-                  treeId={contentId}
-                  notebookId={notebookId}
-                />
-              </div>
             );
           }
           
