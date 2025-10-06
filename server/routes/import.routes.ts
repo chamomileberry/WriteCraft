@@ -158,14 +158,27 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
 router.post('/upload', upload.single('file'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const { notebookId } = req.body;
-
-    if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId is required' });
-    }
 
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Get or create a default notebook for imports
+    let notebookId = req.body.notebookId;
+    if (!notebookId) {
+      // Get user's notebooks, use first one or create a default import notebook
+      const notebooks = await storage.getUserNotebooks(userId);
+      if (notebooks.length > 0) {
+        notebookId = notebooks[0].id;
+      } else {
+        // Create a default import notebook
+        const defaultNotebook = await storage.createNotebook({
+          userId,
+          name: 'Imported Content',
+          description: 'Content imported from World Anvil',
+        });
+        notebookId = defaultNotebook.id;
+      }
     }
 
     // Parse the ZIP file
