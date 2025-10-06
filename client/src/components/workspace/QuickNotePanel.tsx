@@ -8,7 +8,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useNotebookStore } from '@/stores/notebookStore';
 import { useAutosave } from '@/hooks/useAutosave';
 import { Button } from '@/components/ui/button';
-import { Save, BookmarkPlus } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Save, BookmarkPlus, ListChecks, FilePlus } from 'lucide-react';
 import QuickNoteBubbleMenu from './QuickNoteBubbleMenu';
 
 interface QuickNotePanelProps {
@@ -328,31 +329,89 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
           </span>
         </div>
         
-        {/* Action buttons */}
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleManualSave}
-            disabled={isSaving || !editor || !editor.getText().trim()}
-            className="flex-1 bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
-            data-testid="button-save-now"
-          >
-            <Save className="w-3 h-3 mr-1" />
-            Save Now
-          </Button>
+        {/* Icon-based toolbar */}
+        <div className="flex items-center justify-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={handleManualSave}
+                disabled={isSaving || !editor || !editor.getText().trim()}
+                className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
+                data-testid="button-save-now"
+              >
+                <Save className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Save Now</p>
+            </TooltipContent>
+          </Tooltip>
           
-          <Button
-            size="sm"
-            variant="default"
-            onClick={handleSaveToNotebook}
-            disabled={saveToNotebookMutation.isPending || !editor || !editor.getText().trim() || !activeNotebookId}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-            data-testid="button-save-to-notebook"
-          >
-            <BookmarkPlus className="w-3 h-3 mr-1" />
-            Save to Notebook
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={handleSaveToNotebook}
+                disabled={saveToNotebookMutation.isPending || !editor || !editor.getText().trim() || !activeNotebookId}
+                className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
+                data-testid="button-save-to-notebook"
+              >
+                <BookmarkPlus className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Save to Notebook</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => {
+                  // TODO: Implement checklist toggle in task 6
+                  toast({
+                    title: 'Coming soon',
+                    description: 'Checklist feature will be added soon',
+                  });
+                }}
+                className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
+                data-testid="button-toggle-checklist"
+              >
+                <ListChecks className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Toggle Checklist</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => {
+                  // TODO: Implement new note creation in task 9
+                  toast({
+                    title: 'Coming soon',
+                    description: 'Create new note feature will be added soon',
+                  });
+                }}
+                className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
+                data-testid="button-new-note"
+              >
+                <FilePlus className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>New Note</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </div>
