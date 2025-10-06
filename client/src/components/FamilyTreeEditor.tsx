@@ -21,7 +21,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import type { FamilyTree, FamilyTreeMember, FamilyTreeRelationship } from '@shared/schema';
 import { Button } from '@/components/ui/button';
-import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
 import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
@@ -47,6 +49,11 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
   
   // Add member dialog state (for inline node creation - task 3)
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+  
+  // Tree metadata editing state (for auto-save - task 4)
+  const [treeName, setTreeName] = useState('');
+  const [treeDescription, setTreeDescription] = useState('');
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(() => ({
@@ -77,6 +84,63 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
     queryFn: () => fetch(`/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`).then(r => r.json()),
     enabled: !!treeId && !!notebookId
   });
+
+  // Sync tree metadata to local state when tree data loads
+  useEffect(() => {
+    if (tree) {
+      setTreeName(tree.name || '');
+      setTreeDescription(tree.description || '');
+    }
+  }, [tree]);
+
+  // Mutation to update tree metadata
+  const updateTreeMetadata = useMutation({
+    mutationFn: async (data: { name?: string; description?: string }) => {
+      return apiRequest(
+        'PUT',
+        `/api/family-trees/${treeId}?notebookId=${notebookId}`,
+        { ...data, notebookId }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to save changes',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Debounced auto-save for tree metadata (name and description)
+  useEffect(() => {
+    if (!tree) return;
+    
+    const nameChanged = treeName !== tree.name;
+    const descriptionChanged = treeDescription !== tree.description;
+    
+    if (!nameChanged && !descriptionChanged) return;
+    
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      const updates: { name?: string; description?: string } = {};
+      if (nameChanged) updates.name = treeName;
+      if (descriptionChanged) updates.description = treeDescription;
+      
+      updateTreeMetadata.mutate(updates);
+    }, 1000); // 1 second debounce
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [treeName, treeDescription, tree]);
 
   // React Flow state - using generic types as React Flow's TypeScript support for custom data is limited
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -381,6 +445,29 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
 
   return (
     <div className="w-full h-full flex flex-col" data-testid="family-tree-editor">
+      {/* Editable header for tree metadata */}
+      <div className="border-b p-4 space-y-2 bg-background">
+        <div className="flex items-center gap-2">
+          <Input
+            value={treeName}
+            onChange={(e) => setTreeName(e.target.value)}
+            className="text-2xl font-semibold border-0 px-0 focus-visible:ring-0"
+            placeholder="Family Tree Name..."
+            data-testid="input-tree-name"
+          />
+          {updateTreeMetadata.isPending && (
+            <Save className="w-4 h-4 animate-spin text-muted-foreground" />
+          )}
+        </div>
+        <Textarea
+          value={treeDescription}
+          onChange={(e) => setTreeDescription(e.target.value)}
+          className="min-h-[60px] resize-none border-0 px-0 focus-visible:ring-0 text-muted-foreground"
+          placeholder="Add a description for this family tree..."
+          data-testid="textarea-tree-description"
+        />
+      </div>
+      
       <div className="flex-1 relative">
         <ReactFlow
           nodes={nodes}
