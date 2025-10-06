@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useNotebookStore } from '@/stores/notebookStore';
+import { useAutosave } from '@/hooks/useAutosave';
 import { Button } from '@/components/ui/button';
 import { Save, BookmarkPlus } from 'lucide-react';
 
@@ -14,11 +17,7 @@ interface QuickNotePanelProps {
 }
 
 export default function QuickNotePanel({ panelId, className, onRegisterSaveFunction, onRegisterClearFunction }: QuickNotePanelProps) {
-  const [content, setContent] = useState('');
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
-  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasBeenSavedOnce = useRef(false);
-  const isSavingOnUnmount = useRef(false);
+  const [hasBeenSavedOnce, setHasBeenSavedOnce] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
@@ -41,110 +40,87 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     },
   });
 
-  // Load quick note data only on initial mount or when panel is opened
-  const hasInitialized = useRef(false);
-
-  // Save mutation
-  const saveMutation = useMutation({
-    mutationFn: async (data: { content: string }) => {
-      return apiRequest('POST', '/api/quick-note', {
-        userId,
-        title: 'Quick Note',
-        content: data.content,
-      });
-    },
-    onSuccess: async (response, variables) => {
-      setSaveStatus('saved');
-      hasBeenSavedOnce.current = true;
-      
-      // Parse the response to get the complete saved note
-      const savedNote = await response.json();
-      
-      // Update the local cache immediately with the saved content to prevent stale data overwrites
-      queryClient.setQueryData(['/api/quick-note', userId], () => {
-        return {
-          id: savedNote.id || quickNote?.id || `quick-note-${userId}`,
-          userId: userId,
-          title: savedNote.title || 'Quick Note',
-          content: savedNote.content || variables.content,
-          createdAt: savedNote.createdAt || quickNote?.createdAt || new Date().toISOString(),
-          updatedAt: savedNote.updatedAt || new Date().toISOString()
-        };
-      });
-      
-      // Then invalidate to trigger refetch for other consumers (like SavedItems)
-      queryClient.invalidateQueries({ queryKey: ['/api/quick-note'], exact: false });
-    },
-    onError: (error) => {
-      setSaveStatus('unsaved');
-      toast({
-        title: 'Save failed',
-        description: 'Could not save your quick note. Please try again.',
-        variant: 'destructive',
-      });
-      console.error('Save error:', error);
+  // Initialize TipTap editor with minimal extensions
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false, // Disable headings for quick notes
+        codeBlock: false, // Disable code blocks
+        blockquote: false, // Disable blockquotes
+        horizontalRule: false, // Disable horizontal rules
+      }),
+    ],
+    content: '',
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm focus:outline-none max-w-none min-h-[200px] p-4',
+        style: 'color: rgb(88, 28, 135); font-family: Arial, Helvetica, sans-serif; font-size: 0.95rem; line-height: 1.6;',
+      },
     },
   });
 
-  // Load quick note data when available or when it changes (after save invalidation)
+  // Load quick note data when available
   useEffect(() => {
-    if (quickNote && !isLoading) {
+    if (quickNote && editor && !editor.isDestroyed) {
       const serverContent = quickNote.content || '';
-      // Only update if content differs from server and we're not currently editing
-      // (saveStatus 'saved' means no active edits)
-      if (!hasInitialized.current || (saveStatus === 'saved' && content !== serverContent)) {
-        console.log('[QuickNote] Loading content from server:', serverContent);
-        setContent(serverContent);
-        contentRef.current = serverContent;
-        hasBeenSavedOnce.current = true;
-        hasInitialized.current = true;
-      }
+      editor.commands.setContent(serverContent);
+      setHasBeenSavedOnce(true);
     }
-  }, [quickNote, isLoading, saveStatus]);
+  }, [quickNote, editor]);
 
-  // Autosave functionality
-  const triggerAutosave = () => {
-    if (autosaveTimeoutRef.current) {
-      clearTimeout(autosaveTimeoutRef.current);
+  // Save data function for autosave
+  const saveDataFunction = useCallback(() => {
+    if (!editor) return null;
+    return {
+      userId,
+      title: 'Quick Note',
+      content: editor.getHTML(),
+    };
+  }, [editor, userId]);
+
+  // Mutation function for autosave
+  const mutationFunction = useCallback(async (data: any) => {
+    return await apiRequest('POST', '/api/quick-note', data);
+  }, []);
+
+  // Set up autosave using the hook
+  const { saveStatus, handleSave, setupAutosave, isSaving } = useAutosave({
+    editor,
+    saveDataFunction,
+    mutationFunction,
+    autoSaveCondition: () => hasBeenSavedOnce || (editor?.getText().trim().length ?? 0) > 0,
+    successMessage: 'Quick note saved',
+    errorMessage: 'Failed to save quick note',
+    invalidateQueries: [['/api/quick-note']],
+    onSuccess: async (response) => {
+      setHasBeenSavedOnce(true);
+      const savedNote = await response.json();
+      
+      // Update the local cache
+      queryClient.setQueryData(['/api/quick-note', userId], () => ({
+        id: savedNote.id || quickNote?.id || `quick-note-${userId}`,
+        userId: userId,
+        title: savedNote.title || 'Quick Note',
+        content: savedNote.content,
+        createdAt: savedNote.createdAt || quickNote?.createdAt || new Date().toISOString(),
+        updatedAt: savedNote.updatedAt || new Date().toISOString()
+      }));
+    },
+  });
+
+  // Connect editor update to autosave (always listen, let autoSaveCondition gate the actual save)
+  useEffect(() => {
+    if (editor) {
+      editor.on('update', setupAutosave);
+      return () => {
+        editor.off('update', setupAutosave);
+      };
     }
-
-    setSaveStatus('unsaved');
-
-    autosaveTimeoutRef.current = setTimeout(() => {
-      if (hasBeenSavedOnce.current || content.trim()) {
-        handleAutoSave();
-      }
-    }, 2000);
-  };
-
-  const handleAutoSave = async () => {
-    if (saveMutation.isPending) {
-      console.log('[QuickNote] Skip autosave - mutation already pending');
-      return;
-    }
-    
-    const contentToSave = contentRef.current; // Use ref to get most current value
-    console.log('[QuickNote] Auto-saving content:', contentToSave);
-    setSaveStatus('saving');
-    try {
-      await saveMutation.mutateAsync({ content: contentToSave });
-      console.log('[QuickNote] Auto-save successful');
-    } catch (error) {
-      console.error('[QuickNote] Auto-save failed:', error);
-      // Error handling is done in mutation onError
-    }
-  };
-
-  // Handle content changes
-  const handleContentChange = (value: string) => {
-    console.log('[QuickNote] Content changed to:', value);
-    setContent(value);
-    triggerAutosave();
-  };
+  }, [editor, setupAutosave]);
 
   // Manual save handler
   const handleManualSave = async () => {
-    if (!content.trim()) {
+    if (!editor || !editor.getText().trim()) {
       toast({
         title: 'Nothing to save',
         description: 'Quick note is empty.',
@@ -153,12 +129,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       return;
     }
     
-    // Clear any pending autosave
-    if (autosaveTimeoutRef.current) {
-      clearTimeout(autosaveTimeoutRef.current);
-    }
-    
-    await handleAutoSave();
+    await handleSave();
   };
 
   // Save to notebook mutation
@@ -168,10 +139,17 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         throw new Error('No active notebook selected');
       }
       
-      // First, ensure the quick note is saved
-      await saveMutation.mutateAsync({ content: contentRef.current });
+      if (!editor) {
+        throw new Error('Editor not ready');
+      }
       
-      // Generate a unique ID for this saved note (not reusing quick note ID)
+      // First, ensure the quick note is saved
+      const data = saveDataFunction();
+      if (data) {
+        await apiRequest('POST', '/api/quick-note', data);
+      }
+      
+      // Generate a unique ID for this saved note
       const uniqueItemId = `saved-note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
       // Then save it to the notebook as a saved item
@@ -182,27 +160,32 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         itemId: uniqueItemId,
         itemData: {
           title: 'Quick Note',
-          content: contentRef.current
+          content: editor.getHTML()
         }
       });
       return response.json();
     },
     onSuccess: async () => {
       // Clear the quick note after saving to notebook
-      setContent('');
-      contentRef.current = '';
-      setSaveStatus('saved');
-      
-      // Clear the content in the database too, so next open starts fresh
-      await saveMutation.mutateAsync({ content: '' });
-      
-      // Update cache to reflect cleared content
-      queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
-        if (oldData) {
-          return { ...oldData, content: '' };
-        }
-        return oldData;
-      });
+      if (editor) {
+        editor.commands.setContent('');
+        setHasBeenSavedOnce(false);
+        
+        // Clear the content in the database too
+        await apiRequest('POST', '/api/quick-note', {
+          userId,
+          title: 'Quick Note',
+          content: ''
+        });
+        
+        // Update cache to reflect cleared content
+        queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
+          if (oldData) {
+            return { ...oldData, content: '' };
+          }
+          return oldData;
+        });
+      }
       
       // Invalidate saved items to show the new note in the notebook
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
@@ -222,7 +205,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   });
 
   const handleSaveToNotebook = () => {
-    if (!content.trim()) {
+    if (!editor || !editor.getText().trim()) {
       toast({
         title: 'Nothing to save',
         description: 'Quick note is empty.',
@@ -243,47 +226,20 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     saveToNotebookMutation.mutate();
   };
 
-  // Cleanup on unmount
+  // Register save function with parent component
   useEffect(() => {
-    return () => {
-      if (isSavingOnUnmount.current) {
-        console.log('[QuickNote] Already saving on unmount, skipping duplicate save');
-        return;
-      }
-      
-      if (autosaveTimeoutRef.current) {
-        clearTimeout(autosaveTimeoutRef.current);
-        // Save any pending content before unmounting
-        if (contentRef.current && contentRef.current.trim() && !saveMutation.isPending) {
-          isSavingOnUnmount.current = true;
-          console.log('[QuickNote] Saving on unmount:', contentRef.current);
-          saveMutation.mutate({ content: contentRef.current });
-        }
-      }
-      // Don't reset hasInitialized - keep the loaded state to prevent reloading on remount
-    };
-  }, [saveMutation]);
-
-  // Keep a ref to the current content
-  const contentRef = useRef(content);
-  useEffect(() => {
-    contentRef.current = content;
-  }, [content]);
-
-  // Register save function with parent component (only once)
-  useEffect(() => {
-    if (onRegisterSaveFunction) {
+    if (onRegisterSaveFunction && editor) {
       const saveAndGetContent = async () => {
-        const currentContent = contentRef.current; // Use ref to get current content
-        // Force save current content immediately if there are unsaved changes
+        const currentContent = editor.getHTML();
         if (currentContent.trim()) {
-          setSaveStatus('saving');
-          try {
-            await saveMutation.mutateAsync({ content: currentContent });
-            // Wait a moment for the save to complete
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (error) {
-            console.error('Failed to save before exporting:', error);
+          const data = saveDataFunction();
+          if (data) {
+            try {
+              await apiRequest('POST', '/api/quick-note', data);
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+              console.error('Failed to save before exporting:', error);
+            }
           }
         }
         return {
@@ -293,27 +249,24 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       };
       onRegisterSaveFunction(saveAndGetContent);
     }
-  }, [onRegisterSaveFunction, saveMutation, quickNote]); // Don't include content in deps
+  }, [onRegisterSaveFunction, editor, saveDataFunction, quickNote]);
   
   // Register clear function with parent component
   useEffect(() => {
-    if (onRegisterClearFunction) {
+    if (onRegisterClearFunction && editor) {
       const clearContent = () => {
-        setContent('');
-        contentRef.current = '';
-        setSaveStatus('saved');
-        // Update the React Query cache to reflect the cleared content
+        editor.commands.setContent('');
+        setHasBeenSavedOnce(false);
         queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
           if (oldData) {
             return { ...oldData, content: '' };
           }
           return oldData;
         });
-        // Don't reset hasInitialized - the cache is now updated
       };
       onRegisterClearFunction(clearContent);
     }
-  }, [onRegisterClearFunction, queryClient, userId]);
+  }, [onRegisterClearFunction, editor, queryClient, userId]);
 
   const getSaveStatusIndicator = () => {
     switch (saveStatus) {
@@ -324,6 +277,11 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       default:
         return 'Saved';
     }
+  };
+
+  const getCharacterCount = () => {
+    if (!editor) return 0;
+    return editor.getText().length;
   };
 
   if (isLoading) {
@@ -344,19 +302,14 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
            backgroundColor: '#e9d5ff',
            backgroundImage: 'linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)'
          }}>
-      {/* Simple sticky note style textarea */}
-      <textarea
-        value={content}
-        onChange={(e) => handleContentChange(e.target.value)}
-        placeholder="Start writing your quick note..."
-        className="flex-1 w-full p-4 resize-none bg-transparent border-0 outline-none text-purple-900 placeholder-purple-700/50"
-        style={{ 
-          fontFamily: "Arial, Helvetica, sans-serif",
-          fontSize: '0.95rem',
-          lineHeight: '1.6',
-        }}
-        data-testid={`textarea-content-${panelId}`}
-      />
+      {/* TipTap Editor */}
+      <div className="flex-1 w-full overflow-auto">
+        <EditorContent 
+          editor={editor} 
+          className="h-full"
+          data-testid={`editor-content-${panelId}`}
+        />
+      </div>
 
       {/* Footer with status and action buttons */}
       <div className="px-4 pb-3 space-y-2">
@@ -366,7 +319,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
             {getSaveStatusIndicator()}
           </span>
           <span className="text-xs text-purple-700/50">
-            {content.length} characters
+            {getCharacterCount()} characters
           </span>
         </div>
         
@@ -376,7 +329,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
             size="sm"
             variant="outline"
             onClick={handleManualSave}
-            disabled={saveMutation.isPending || !content.trim()}
+            disabled={isSaving || !editor || !editor.getText().trim()}
             className="flex-1 bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
             data-testid="button-save-now"
           >
@@ -388,7 +341,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
             size="sm"
             variant="default"
             onClick={handleSaveToNotebook}
-            disabled={saveToNotebookMutation.isPending || !content.trim() || !activeNotebookId}
+            disabled={saveToNotebookMutation.isPending || !editor || !editor.getText().trim() || !activeNotebookId}
             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
             data-testid="button-save-to-notebook"
           >
