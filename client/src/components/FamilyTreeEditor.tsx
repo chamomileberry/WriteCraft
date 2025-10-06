@@ -493,7 +493,7 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
         />
       </div>
       
-      <div className="flex-1 relative">
+      <div className="flex-1 relative w-full h-full">
         <ReactFlow
           nodes={nodes}
           edges={edges}
