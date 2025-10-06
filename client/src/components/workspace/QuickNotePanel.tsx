@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -8,6 +9,7 @@ import { useNotebookStore } from '@/stores/notebookStore';
 import { useAutosave } from '@/hooks/useAutosave';
 import { Button } from '@/components/ui/button';
 import { Save, BookmarkPlus } from 'lucide-react';
+import QuickNoteBubbleMenu from './QuickNoteBubbleMenu';
 
 interface QuickNotePanelProps {
   panelId: string;
@@ -49,6 +51,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         blockquote: false, // Disable blockquotes
         horizontalRule: false, // Disable horizontal rules
       }),
+      Underline,
     ],
     content: '',
     editorProps: {
@@ -304,6 +307,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
          }}>
       {/* TipTap Editor */}
       <div className="flex-1 w-full overflow-auto">
+        <QuickNoteBubbleMenu editor={editor} />
         <EditorContent 
           editor={editor} 
           className="h-full"
