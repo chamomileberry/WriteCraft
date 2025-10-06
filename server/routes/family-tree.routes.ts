@@ -268,6 +268,23 @@ router.post("/:treeId/relationships", async (req: any, res) => {
     }
     
     const validatedRelationship = insertFamilyTreeRelationshipSchema.parse({ ...req.body, treeId });
+    
+    // Validation: Prevent self-links
+    if (validatedRelationship.fromMemberId === validatedRelationship.toMemberId) {
+      return res.status(400).json({ error: 'A family member cannot have a relationship with themselves' });
+    }
+    
+    // Validation: Prevent duplicate relationships
+    const existingRelationships = await storage.getFamilyTreeRelationships(treeId, userId);
+    const duplicateExists = existingRelationships.some((rel: any) => 
+      (rel.fromMemberId === validatedRelationship.fromMemberId && rel.toMemberId === validatedRelationship.toMemberId) ||
+      (rel.fromMemberId === validatedRelationship.toMemberId && rel.toMemberId === validatedRelationship.fromMemberId)
+    );
+    
+    if (duplicateExists) {
+      return res.status(400).json({ error: 'A relationship between these family members already exists' });
+    }
+    
     const savedRelationship = await storage.createFamilyTreeRelationship(validatedRelationship);
     res.json(savedRelationship);
   } catch (error) {

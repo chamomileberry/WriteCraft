@@ -241,9 +241,34 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
 
   // Handle connection (create relationship)
   const onConnect = useCallback((connection: Connection) => {
+    // Validation: Prevent self-links
+    if (connection.source === connection.target) {
+      toast({
+        title: 'Invalid relationship',
+        description: 'A family member cannot have a relationship with themselves',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Validation: Prevent duplicate relationships
+    const duplicateExists = relationships.some(rel => 
+      (rel.fromMemberId === connection.source && rel.toMemberId === connection.target) ||
+      (rel.fromMemberId === connection.target && rel.toMemberId === connection.source)
+    );
+    
+    if (duplicateExists) {
+      toast({
+        title: 'Relationship already exists',
+        description: 'A relationship between these family members already exists',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setPendingConnection(connection);
     setSelectorOpen(true);
-  }, []);
+  }, [relationships, toast]);
 
   // Mutation to create a new family tree member
   const createMember = useMutation({
