@@ -233,11 +233,16 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     // Reset fetched items ref when notebook changes
     if (activeNotebookId) {
       fetchedItemsRef.current.clear();
+      setFetchedItemData({});
     }
   }, [activeNotebookId]);
 
   useEffect(() => {
     if (allItems.length > 0) {
+      // Clear fetchedItemsRef to allow refetching when items change
+      // This ensures updated character data is fetched after edits
+      fetchedItemsRef.current.clear();
+      setFetchedItemData({});
       fetchMissingItemData(allItems);
     }
     // Use a stable identifier: JSON stringify the item IDs to detect actual changes

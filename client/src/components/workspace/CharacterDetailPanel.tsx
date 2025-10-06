@@ -229,6 +229,7 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
       queryClient.invalidateQueries({ queryKey: ['/api/characters'] });
       queryClient.refetchQueries({ queryKey: ['/api/characters', characterId] });
       // Also invalidate saved-items to update the character name in notebook view
+      // This will force SavedItems component to refetch both the list and individual character data
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
       setIsEditing(false);
     },
