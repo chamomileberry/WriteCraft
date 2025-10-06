@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ import { getMappingById } from "@shared/contentTypes";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import NotebookSwitcher from "./NotebookSwitcher";
+import ContentTypeModal from "./ContentTypeModal";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
@@ -90,6 +91,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isContentModalOpen, setIsContentModalOpen] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [fetchedItemData, setFetchedItemData] = useState<{ [key: string]: any }>({});
   const fetchedItemsRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
@@ -351,6 +354,15 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     }
   };
 
+  const handleContentTypeSelect = (contentTypeId: string) => {
+    const mapping = getMappingById(contentTypeId);
+    if (mapping) {
+      const notebookParam = activeNotebookId ? `?notebookId=${activeNotebookId}` : '';
+      setLocation(`/${mapping.urlSegment}/new${notebookParam}`);
+    }
+    setIsContentModalOpen(false);
+  };
+
   // Get category for a content type
   const getCategoryForType = (type: string): string | null => {
     for (const [category, types] of Object.entries(CONTENT_CATEGORIES)) {
@@ -513,15 +525,25 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
       {/* Search and Filters */}
       <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search your content by name, type, or category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            data-testid="input-search-content"
-          />
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search your content by name, type, or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              data-testid="input-search-content"
+            />
+          </div>
+          <Button 
+            onClick={() => setIsContentModalOpen(true)}
+            className="gap-2"
+            data-testid="button-create-new-content"
+          >
+            <Plus className="w-4 h-4" />
+            Create New Content
+          </Button>
         </div>
 
         {/* Category Filter Buttons */}
@@ -586,17 +608,40 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
             Object.entries(groupedItems).map(([type, items]) => {
               const mapping = getMappingById(type);
               const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
+              const isCollapsed = collapsedCategories.has(type);
+
+              const toggleCollapse = () => {
+                setCollapsedCategories(prev => {
+                  const newSet = new Set(prev);
+                  if (newSet.has(type)) {
+                    newSet.delete(type);
+                  } else {
+                    newSet.add(type);
+                  }
+                  return newSet;
+                });
+              };
 
               return (
                 <div key={type} className="space-y-3">
-                  <div className="flex items-center gap-2">
+                  <button 
+                    onClick={toggleCollapse}
+                    className="flex items-center gap-2 hover-elevate rounded-md px-2 py-1 -mx-2 w-full"
+                    data-testid={`toggle-category-${type}`}
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    )}
                     <IconComponent className="w-5 h-5 text-primary" />
                     <h2 className="text-xl font-semibold capitalize">
                       {mapping?.name || type} ({items.length})
                     </h2>
-                  </div>
+                  </button>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {!isCollapsed && (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((item) => {
                       const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
                       return (
@@ -681,6 +726,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                       );
                   })}
                   </div>
+                  )}
                 </div>
               );
             })
@@ -768,6 +814,12 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
           )}
         </TabsContent>
       </Tabs>
+
+      <ContentTypeModal 
+        isOpen={isContentModalOpen}
+        onClose={() => setIsContentModalOpen(false)}
+        onSelectContentType={handleContentTypeSelect}
+      />
     </div>
   );
 }
