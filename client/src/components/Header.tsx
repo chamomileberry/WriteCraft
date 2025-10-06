@@ -147,6 +147,13 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               Projects
             </button>
+            <button 
+              onClick={() => setLocation('/import')}
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              data-testid="link-import"
+            >
+              Import
+            </button>
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -347,6 +354,17 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               data-testid="mobile-link-guides"
             >
               Guides
+            </button>
+            <button 
+              onClick={() => {
+                setLocation('/import');
+                setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
+              }}
+              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+              data-testid="mobile-link-import"
+            >
+              Import
             </button>
           </div>
         </div>
