@@ -343,6 +343,12 @@
     font-size: 1.1em;
   }
 
+  /* Keep bold text purple instead of black */
+  .quick-note-prose strong,
+  .quick-note-prose b {
+    color: rgb(88, 28, 135);
+  }
+
   /* Google To Do-style checkboxes */
   .quick-note-prose ul[data-type="taskList"] {
     list-style: none;
