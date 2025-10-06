@@ -2820,6 +2820,21 @@ export class DatabaseStorage implements IStorage {
       .insert(familyTrees)
       .values(familyTree)
       .returning();
+    
+    // Automatically save to saved_items for notebook display
+    if (newFamilyTree.notebookId && newFamilyTree.userId) {
+      await this.saveItem({
+        userId: newFamilyTree.userId,
+        notebookId: newFamilyTree.notebookId,
+        itemType: 'familyTree',
+        itemId: newFamilyTree.id,
+        itemData: {
+          name: newFamilyTree.name,
+          description: newFamilyTree.description
+        }
+      });
+    }
+    
     return newFamilyTree;
   }
 

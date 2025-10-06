@@ -83,7 +83,7 @@ export function MemberEditDialog({
   const handleEditCharacter = () => {
     if (member?.characterId) {
       onOpenChange(false);
-      setLocation(`/notebooks/${notebookId}/characters/${member.characterId}`);
+      setLocation(`/characters/${member.characterId}`);
     }
   };
 
