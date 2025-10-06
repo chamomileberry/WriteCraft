@@ -182,11 +182,17 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     return [...savedItems];
   }, [savedItems]);
 
-  // Fetch missing item data for entries that have itemData: null
+  // Fetch missing or stale item data for entries
   const fetchMissingItemData = async (items: SavedItem[]) => {
-    // Filter items that haven't been fetched yet
+    // Always fetch character data to ensure it's up-to-date
+    // For other types, only fetch if itemData is null
     const missingDataItems = items.filter(item => {
       const itemKey = item.itemId || item.id;
+      // Always fetch character data to get the latest names
+      if (item.itemType === 'character' && itemKey) {
+        return true;
+      }
+      // For other types, only fetch if missing
       return !item.itemData && itemKey && !fetchedItemsRef.current.has(itemKey);
     });
 
@@ -196,8 +202,11 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
     for (const item of missingDataItems) {
       const itemKey = item.itemId || item.id;
-      // Mark as fetched to prevent duplicate fetches
-      fetchedItemsRef.current.add(itemKey);
+      // Only mark non-character items as fetched to prevent duplicate fetches
+      // Characters always need fresh data
+      if (item.itemType !== 'character') {
+        fetchedItemsRef.current.add(itemKey);
+      }
 
       try {
         let endpoint = '';
@@ -216,6 +225,15 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
           if (response.ok) {
             const data = await response.json();
             newFetchedData[item.itemId || ''] = data;
+            // Log fetched character data to debug name issues
+            if (item.itemType === 'character') {
+              console.log('[SavedItems] Fetched character data:', {
+                id: item.itemId,
+                givenName: data.givenName,
+                familyName: data.familyName,
+                name: data.name
+              });
+            }
           }
         }
       } catch (error) {
@@ -245,8 +263,9 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       setFetchedItemData({});
       fetchMissingItemData(allItems);
     }
-    // Use a stable identifier: JSON stringify the item IDs to detect actual changes
-  }, [JSON.stringify(allItems.map(item => item.id || item.itemId)), activeNotebookId]);
+    // Depend on the actual saved items array reference to detect any changes
+    // This will re-run when the saved items are refetched after character updates
+  }, [savedItems, activeNotebookId]);
 
   // Unsave mutation with optimistic updates
   const unsaveMutation = useMutation({
@@ -617,7 +636,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
               const toggleCollapse = () => {
                 setCollapsedCategories(prev => {
-                  const newSet = new Set([...prev]);
+                  const newSet = new Set(Array.from(prev));
                   if (newSet.has(type)) {
                     newSet.delete(type);
                   } else {
