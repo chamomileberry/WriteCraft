@@ -57,46 +57,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth (must be before other routes)
   await setupAuth(app);
 
-  // Auth user endpoint
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  // Update user profile
-  app.patch('/api/users/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const targetUserId = req.params.id;
-
-      // Users can only update their own profile
-      if (userId !== targetUserId) {
-        return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
-      }
-
-      const updates = req.body;
-      // Only allow updating specific fields
-      const allowedFields = ['firstName', 'lastName', 'profileImageUrl'];
-      const sanitizedUpdates: any = {};
-      for (const field of allowedFields) {
-        if (updates[field] !== undefined) {
-          sanitizedUpdates[field] = updates[field];
-        }
-      }
-
-      const updatedUser = await storage.updateUser(targetUserId, sanitizedUpdates);
-      res.json(updatedUser);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Failed to update user profile" });
-    }
-  });
+  // Use secure user routes with enhanced security features
+  // These routes include:
+  // - Rate limiting protection
+  // - CSRF token validation
+  // - Input sanitization
+  // - Admin field protection
+  // - Security audit logging
+  const { default: secureUserRoutes } = await import('./security/userRoutes');
+  app.use('/api', secureUserRoutes);
+  
+  // Register security test endpoints (development only)
+  if (process.env.NODE_ENV !== 'production') {
+    const { default: securityTestRoutes } = await import('./security/test-endpoints');
+    app.use('/api', securityTestRoutes);
+  }
 
   // Register modular domain-specific routes
   registerDomainRoutes(app);

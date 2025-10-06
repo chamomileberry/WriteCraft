@@ -2,11 +2,17 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { log } from "./vite";
+import { applySecurityMiddleware } from "./app-security";
 
 export async function createApp() {
   const app = express();
+  
+  // Parse request bodies first (required for sanitization to work)
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
+  
+  // Apply security middleware AFTER body parsing so req.body exists
+  applySecurityMiddleware(app);
 
   app.use((req, res, next) => {
     const start = Date.now();

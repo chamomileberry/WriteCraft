@@ -130,11 +130,37 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // Test mode bypass - allows automated tests to simulate authenticated users
+  // SECURITY: Block test mode bypass in production
+  if (process.env.NODE_ENV === 'production' && req.headers['x-test-user-id']) {
+    console.error(`[SECURITY CRITICAL] Test mode bypass attempt in production - IP: ${req.ip}, User-Agent: ${req.headers['user-agent']}`);
+    // Log additional details for security audit
+    const securityLog = {
+      type: 'TEST_MODE_BYPASS_ATTEMPT',
+      timestamp: new Date().toISOString(),
+      ip: req.ip,
+      headers: {
+        'x-test-user-id': req.headers['x-test-user-id'],
+        'user-agent': req.headers['user-agent'],
+        'referer': req.headers['referer']
+      }
+    };
+    console.error('[SECURITY AUDIT]', JSON.stringify(securityLog));
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  
+  // Enhanced test mode validation - only in actual test environment
   if (process.env.NODE_ENV === 'test' && req.headers['x-test-user-id']) {
+    const testUserId = req.headers['x-test-user-id'] as string;
+    
+    // Validate test user ID format to prevent injection
+    if (!/^test-user-[a-z0-9-]+$/.test(testUserId)) {
+      console.error(`[SECURITY] Invalid test user ID format: ${testUserId}`);
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    
     (req as any).user = {
       claims: {
-        sub: req.headers['x-test-user-id'] as string
+        sub: testUserId
       }
     };
     return next();
