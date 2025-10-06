@@ -25,10 +25,10 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
     return item.itemData?.title || item.title || 'Quick Note';
   }
 
-  // Use actualItemData if itemData is null (for older saved items)
-  const dataSource = item.itemData || actualItemData;
-
+  // For characters, ALWAYS prefer fresh fetched data over stale itemData
+  // This ensures names update immediately after character edits
   if (item.itemType === 'character') {
+    const dataSource = actualItemData || item.itemData;
     if (dataSource) {
       const givenName = dataSource.givenName || '';
       const familyName = dataSource.familyName || '';
@@ -37,6 +37,9 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
     }
     return 'Untitled Character';
   }
+
+  // For other types, use itemData if available, otherwise use actualItemData
+  const dataSource = item.itemData || actualItemData;
 
   if (item.itemType === 'profession') {
     return dataSource?.name || 'Untitled';
@@ -47,6 +50,12 @@ const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
 
 // Helper function to get image URL from item data
 const getImageUrl = (item: SavedItem, actualItemData?: any): string | null => {
+  // For characters, prefer fresh fetched data to ensure consistency
+  if (item.itemType === 'character') {
+    const dataSource = actualItemData || item.itemData;
+    return dataSource?.imageUrl || null;
+  }
+  // For other types, use itemData if available
   const dataSource = item.itemData || actualItemData;
   return dataSource?.imageUrl || null;
 };
@@ -131,7 +140,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   }, [fetchedNotebooks, activeNotebookId, setNotebooks, setActiveNotebook]);
 
   // Fetch saved items for the active notebook
-  const { data: savedItems = [], isLoading, error } = useQuery({
+  const { data: savedItems = [], isLoading, error, dataUpdatedAt } = useQuery({
     queryKey: ['/api/saved-items', user?.id, activeNotebookId], // Include user ID and activeNotebookId in query key
     queryFn: async () => {
       if (!activeNotebookId) {
@@ -225,15 +234,6 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
           if (response.ok) {
             const data = await response.json();
             newFetchedData[item.itemId || ''] = data;
-            // Log fetched character data to debug name issues
-            if (item.itemType === 'character') {
-              console.log('[SavedItems] Fetched character data:', {
-                id: item.itemId,
-                givenName: data.givenName,
-                familyName: data.familyName,
-                name: data.name
-              });
-            }
           }
         }
       } catch (error) {
@@ -263,9 +263,9 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       setFetchedItemData({});
       fetchMissingItemData(allItems);
     }
-    // Depend on the actual saved items array reference to detect any changes
-    // This will re-run when the saved items are refetched after character updates
-  }, [savedItems, activeNotebookId]);
+    // Depend on dataUpdatedAt to detect when the query has been refetched
+    // This will trigger when the saved-items query is invalidated after character updates
+  }, [dataUpdatedAt, activeNotebookId, allItems.length]);
 
   // Unsave mutation with optimistic updates
   const unsaveMutation = useMutation({
