@@ -278,26 +278,28 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
           </div>
 
           {/* Content Types Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
             {filteredTypes.map(type => {
               const IconComponent = type.icon;
               return (
                 <Button
                   key={type.id}
                   variant="outline"
-                  className="h-auto p-4 flex flex-col items-start space-y-2 hover-elevate"
+                  className="h-auto p-4 flex flex-col items-start space-y-3 hover-elevate min-w-0"
                   onClick={() => handleSelectType(type.id)}
                   disabled={isLoadingNotebooks || notebooks.length === 0 || !selectedNotebookId}
                   data-testid={`button-content-type-${type.id}`}
                 >
-                  <div className="flex items-center space-x-2 w-full">
-                    <IconComponent className="h-5 w-5 text-primary" />
-                    <span className="font-medium">{type.name}</span>
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      {type.category}
-                    </Badge>
+                  <div className="flex items-start gap-3 w-full min-w-0">
+                    <IconComponent className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0 flex flex-col gap-1">
+                      <span className="font-medium text-left">{type.name}</span>
+                      <Badge variant="secondary" className="text-xs w-fit">
+                        {type.category}
+                      </Badge>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground text-left whitespace-normal break-words">
+                  <p className="text-sm text-muted-foreground text-left whitespace-normal break-words w-full">
                     {type.description}
                   </p>
                 </Button>

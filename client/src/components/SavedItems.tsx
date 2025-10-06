@@ -612,7 +612,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
               const toggleCollapse = () => {
                 setCollapsedCategories(prev => {
-                  const newSet = new Set(prev);
+                  const newSet = new Set([...prev]);
                   if (newSet.has(type)) {
                     newSet.delete(type);
                   } else {
@@ -818,7 +818,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       <ContentTypeModal 
         isOpen={isContentModalOpen}
         onClose={() => setIsContentModalOpen(false)}
-        onSelectContentType={handleContentTypeSelect}
+        onSelectType={handleContentTypeSelect}
       />
     </div>
   );
