@@ -21,10 +21,11 @@ export interface FamilyMemberNodeData {
   };
   notebookId: string;
   treeId: string;
+  onEdit?: (member: FamilyTreeMember) => void;
 }
 
 function FamilyMemberNodeComponent({ data }: NodeProps) {
-  const { member } = data as unknown as FamilyMemberNodeData;
+  const { member, onEdit } = data as unknown as FamilyMemberNodeData;
   
   // Get display name - prefer character data if available
   let displayName = 'Unknown';
@@ -61,8 +62,21 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
     .toUpperCase()
     .slice(0, 2);
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'familyMember',
+      memberId: member.id
+    }));
+  };
+
   return (
-    <Card className="p-3 min-w-[200px] hover-elevate" data-testid={`node-member-${member.id}`}>
+    <Card 
+      className="p-3 min-w-[200px] hover-elevate cursor-move" 
+      data-testid={`node-member-${member.id}`}
+      draggable
+      onDragStart={handleDragStart}
+    >
       <Handle
         type="target"
         position={Position.Top}
@@ -96,7 +110,9 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
           className="h-7 w-7"
           onClick={(e) => {
             e.stopPropagation();
-            // TODO: Open edit dialog
+            if (onEdit) {
+              onEdit(member);
+            }
           }}
           data-testid={`button-edit-member-${member.id}`}
         >

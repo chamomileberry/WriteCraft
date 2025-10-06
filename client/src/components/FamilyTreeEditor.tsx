@@ -30,6 +30,7 @@ import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRela
 import { CharacterGallery } from './CharacterGallery';
 import { RelationshipSelector, type RelationshipType } from './RelationshipSelector';
 import { InlineMemberDialog } from './InlineMemberDialog';
+import { MemberEditDialog } from './MemberEditDialog';
 import { getLayoutedElements } from '@/lib/elk-layout';
 
 interface FamilyTreeEditorProps {
@@ -51,10 +52,20 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   // Add member dialog state (for inline node creation - task 3)
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
   
+  // Character edit modal state
+  const [editingMember, setEditingMember] = useState<FamilyTreeMember | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  
   // Tree metadata editing state (for auto-save - task 4)
   const [treeName, setTreeName] = useState('');
   const [treeDescription, setTreeDescription] = useState('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle member edit
+  const handleEditMember = useCallback((member: FamilyTreeMember) => {
+    setEditingMember(member);
+    setEditModalOpen(true);
+  }, []);
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(() => ({
@@ -159,7 +170,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         data: { 
           member,
           notebookId,
-          treeId
+          treeId,
+          onEdit: handleEditMember
         },
       }));
       
@@ -461,6 +473,82 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     });
   }, [nodes, createInlineMember]);
 
+  // Mutation to delete a member
+  const deleteMemberMutation = useMutation({
+    mutationFn: async (memberId: string) => {
+      const response = await fetch(`/api/family-trees/${treeId}/members/${memberId}?notebookId=${notebookId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete member');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'relationships'] });
+      toast({
+        title: 'Member removed',
+        description: 'Family member has been removed from the tree',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to remove member',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle removing member from tree
+  const handleRemoveMember = useCallback((memberId: string) => {
+    deleteMemberMutation.mutate(memberId);
+  }, [deleteMemberMutation]);
+
+  // Mutation to update member details
+  const updateMemberMutation = useMutation({
+    mutationFn: async ({ memberId, updates }: { 
+      memberId: string; 
+      updates: { 
+        inlineName?: string; 
+        inlineDateOfBirth?: string | null; 
+        inlineDateOfDeath?: string | null;
+      } 
+    }) => {
+      return apiRequest(
+        'PUT',
+        `/api/family-trees/${treeId}/members/${memberId}?notebookId=${notebookId}`,
+        { ...updates, notebookId }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      toast({
+        title: 'Member updated',
+        description: 'Member details have been updated',
+      });
+      setEditModalOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to update member',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle saving member details
+  const handleSaveMemberDetails = useCallback((memberId: string, updates: {
+    inlineName?: string;
+    inlineDateOfBirth?: string | null;
+    inlineDateOfDeath?: string | null;
+  }) => {
+    updateMemberMutation.mutate({ memberId, updates });
+  }, [updateMemberMutation]);
+
   // Manual save handler for immediate save (moved before conditional return)
   const handleManualSave = useCallback(async () => {
     const updates: { name?: string; description?: string } = {};
@@ -559,14 +647,14 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
                   )}
                 </div>
                 <Button
-                  size="sm"
+                  size="icon"
                   variant="outline"
                   onClick={handleManualSave}
                   disabled={updateTreeMetadata.isPending}
                   data-testid="button-save-tree"
+                  title="Save Now"
                 >
-                  <Check className="w-4 h-4 mr-1" />
-                  Save Now
+                  <Save className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -613,8 +701,13 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         </ReactFlow>
       </div>
       
-      <div className="flex-shrink-0">
-        <CharacterGallery notebookId={notebookId} existingMembers={members} />
+      {/* Character Gallery - positioned at bottom but higher up */}
+      <div className="absolute bottom-0 left-0 right-0 z-10">
+        <CharacterGallery 
+          notebookId={notebookId} 
+          existingMembers={members} 
+          onRemoveMember={handleRemoveMember}
+        />
       </div>
       
       <RelationshipSelector
@@ -638,6 +731,14 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         onOpenChange={setAddMemberDialogOpen}
         onConfirm={handleInlineMemberCreate}
         isLoading={createInlineMember.isPending}
+      />
+      
+      <MemberEditDialog
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        member={editingMember}
+        onSave={handleSaveMemberDetails}
+        isLoading={updateMemberMutation.isPending}
       />
     </div>
   );

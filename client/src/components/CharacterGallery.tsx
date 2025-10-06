@@ -19,9 +19,10 @@ interface Character {
 interface CharacterGalleryProps {
   notebookId: string;
   existingMembers?: any[];
+  onRemoveMember?: (memberId: string) => void;
 }
 
-export function CharacterGallery({ notebookId, existingMembers = [] }: CharacterGalleryProps) {
+export function CharacterGallery({ notebookId, existingMembers = [], onRemoveMember }: CharacterGalleryProps) {
   const { data: characters = [], isLoading } = useQuery<Character[]>({
     queryKey: ['/api/characters', notebookId],
     queryFn: async () => {
@@ -52,9 +53,33 @@ export function CharacterGallery({ notebookId, existingMembers = [] }: Character
       .slice(0, 2);
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const dataStr = e.dataTransfer.getData('application/json');
+    if (dataStr) {
+      try {
+        const data = JSON.parse(dataStr);
+        if (data.type === 'familyMember' && data.memberId && onRemoveMember) {
+          onRemoveMember(data.memberId);
+        }
+      } catch (error) {
+        console.error('Failed to parse drop data:', error);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="h-32 border-t bg-card/50 flex items-center justify-center">
+      <div 
+        className="h-28 border-t bg-background/95 backdrop-blur-sm flex items-center justify-center shadow-lg"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <p className="text-sm text-muted-foreground">Loading characters...</p>
       </div>
     );
@@ -73,7 +98,11 @@ export function CharacterGallery({ notebookId, existingMembers = [] }: Character
 
   if (characters.length === 0) {
     return (
-      <div className="h-32 border-t bg-card/50 flex items-center justify-center">
+      <div 
+        className="h-28 border-t bg-background/95 backdrop-blur-sm flex items-center justify-center shadow-lg"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <p className="text-sm text-muted-foreground">No characters in this notebook. Create some characters to add them to your family tree.</p>
       </div>
     );
@@ -81,15 +110,24 @@ export function CharacterGallery({ notebookId, existingMembers = [] }: Character
 
   if (availableCharacters.length === 0) {
     return (
-      <div className="h-32 border-t bg-card/50 flex items-center justify-center">
+      <div 
+        className="h-28 border-t bg-background/95 backdrop-blur-sm flex items-center justify-center shadow-lg"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <p className="text-sm text-muted-foreground">All characters from this notebook have been added to the tree.</p>
       </div>
     );
   }
 
   return (
-    <div className="h-32 border-t bg-card/50 p-2" data-testid="character-gallery">
-      <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Characters</p>
+    <div 
+      className="h-28 border-t bg-background/95 backdrop-blur-sm p-2 shadow-lg" 
+      data-testid="character-gallery"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Characters - Drag to add or remove</p>
       <ScrollArea className="h-20">
         <div className="flex gap-2 pb-2">
           {availableCharacters.map((character) => {
