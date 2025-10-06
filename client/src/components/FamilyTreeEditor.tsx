@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -27,6 +27,7 @@ import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
 import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
 import { CharacterGallery } from './CharacterGallery';
 import { RelationshipSelector, type RelationshipType } from './RelationshipSelector';
+import { getLayoutedElements } from '@/lib/elk-layout';
 
 interface FamilyTreeEditorProps {
   treeId: string;
@@ -37,6 +38,7 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
   const { toast } = useToast();
   const { screenToFlowPosition } = useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(true);
+  const prevIsAutoLayout = useRef(isAutoLayout);
   
   // Relationship selector state
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
@@ -91,9 +93,21 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
           treeId
         },
       }));
-      setNodes(newNodes);
+      
+      // Apply auto-layout if enabled
+      if (isAutoLayout) {
+        getLayoutedElements(newNodes, edges, {
+          direction: 'DOWN',
+          nodeSpacing: 80,
+          layerSpacing: 150,
+        }).then(({ nodes: layoutedNodes }) => {
+          setNodes(layoutedNodes);
+        });
+      } else {
+        setNodes(newNodes);
+      }
     }
-  }, [members, setNodes]);
+  }, [members, setNodes, isAutoLayout, edges]);
 
   // Convert relationships to edges
   useEffect(() => {
@@ -113,6 +127,24 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
       setEdges(newEdges);
     }
   }, [relationships, setEdges]);
+
+  // Re-apply layout when toggling to auto-layout mode
+  useEffect(() => {
+    const wasManual = !prevIsAutoLayout.current;
+    const isNowAuto = isAutoLayout;
+    
+    if (wasManual && isNowAuto && nodes.length > 0) {
+      getLayoutedElements(nodes, edges, {
+        direction: 'DOWN',
+        nodeSpacing: 80,
+        layerSpacing: 150,
+      }).then(({ nodes: layoutedNodes }) => {
+        setNodes(layoutedNodes);
+      });
+    }
+    
+    prevIsAutoLayout.current = isAutoLayout;
+  }, [isAutoLayout]);
 
   // Update member position mutation
   const updateMemberPosition = useMutation({
@@ -148,16 +180,16 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
   // Mutation to create a new family tree member
   const createMember = useMutation({
     mutationFn: async (data: { characterId: string; x: number; y: number }) => {
-      return apiRequest(`/api/family-trees/${treeId}/members?notebookId=${notebookId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      return apiRequest(
+        'POST',
+        `/api/family-trees/${treeId}/members?notebookId=${notebookId}`,
+        {
           treeId,
           characterId: data.characterId,
           positionX: data.x,
           positionY: data.y,
-        }),
-      });
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
@@ -223,17 +255,17 @@ function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
       relationshipType: RelationshipType;
       customLabel?: string;
     }) => {
-      return apiRequest(`/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      return apiRequest(
+        'POST',
+        `/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`,
+        {
           treeId,
           fromMemberId: data.fromMemberId,
           toMemberId: data.toMemberId,
           relationshipType: data.relationshipType,
           customLabel: data.customLabel,
-        }),
-      });
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'relationships'] });
