@@ -526,6 +526,17 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           
           // Use visual family tree editor for family trees
           if (contentType === 'familyTree') {
+            // Don't render the editor if we're still creating (contentId === 'new')
+            // The auto-create effect will handle the redirect
+            if (contentId === 'new') {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="ml-3 text-muted-foreground">Creating family tree...</span>
+                </div>
+              );
+            }
+            
             // For existing trees, show the visual editor
             const urlParams = new URLSearchParams(window.location.search);
             const urlNotebookId = urlParams.get('notebookId');
