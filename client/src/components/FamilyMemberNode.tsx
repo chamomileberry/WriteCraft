@@ -86,7 +86,7 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
       
       <div className="flex items-center gap-3">
         <Avatar className="w-12 h-12">
-          <AvatarImage src={displayImage || undefined} />
+          <AvatarImage src={displayImage || undefined} className="object-cover" />
           <AvatarFallback>
             {initials || <User className="w-6 h-6" />}
           </AvatarFallback>

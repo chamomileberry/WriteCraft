@@ -7,17 +7,15 @@ interface HeroProps {
 
 export default function Hero({ onGetStarted }: HeroProps) {
   const handleGetStarted = () => {
-    console.log('Get started clicked');
+    console.log('Start creating clicked - opening content creation modal');
     if (onGetStarted) {
       onGetStarted();
-    } else {
-      document.getElementById('generators')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const handleExploreGuides = () => {
-    console.log('Explore guides clicked');
-    document.getElementById('guides')?.scrollIntoView({ behavior: 'smooth' });
+  const handleStartWriting = () => {
+    console.log('Start writing clicked');
+    window.location.href = '/projects';
   };
 
   return (
@@ -46,7 +44,7 @@ export default function Hero({ onGetStarted }: HeroProps) {
             <Button 
               size="lg" 
               onClick={handleGetStarted}
-              data-testid="button-get-started"
+              data-testid="button-start-creating"
               className="text-lg px-8"
             >
               <Pen className="mr-2 h-5 w-5" />
@@ -55,12 +53,12 @@ export default function Hero({ onGetStarted }: HeroProps) {
             <Button 
               size="lg" 
               variant="outline" 
-              onClick={handleExploreGuides}
-              data-testid="button-explore-guides"
+              onClick={handleStartWriting}
+              data-testid="button-start-writing"
               className="text-lg px-8"
             >
               <BookOpen className="mr-2 h-5 w-5" />
-              Explore Guides
+              Start Writing
             </Button>
           </div>
 
