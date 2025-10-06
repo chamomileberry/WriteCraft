@@ -1198,26 +1198,46 @@ export const rituals = pgTable("rituals", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Family trees for genealogical relationships
+// Visual Family Trees - Graph-based genealogical relationships
 export const familyTrees = pgTable("family_trees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
-  description: text("description").notNull(),
-  rootPerson: text("root_person").notNull(), // main person the tree starts from
-  treeType: text("tree_type").notNull(), // ancestral, descendant, full, etc.
-  generations: integer("generations"), // number of generations covered
-  familyLineage: text("family_lineage"), // noble, common, etc.
-  notableMembers: text("notable_members").array(),
-  familyTraditions: text("family_traditions").array(),
-  inheritancePatterns: text("inheritance_patterns"),
-  familySecrets: text("family_secrets").array(),
-  coatOfArms: text("coat_of_arms"),
-  familyMotto: text("family_motto"),
-  ancestralHome: text("ancestral_home"),
-  currentStatus: text("current_status"), // thriving, declining, extinct, etc.
-  genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  description: text("description"),
+  layoutMode: text("layout_mode").notNull().default('auto'), // 'auto' or 'manual'
+  zoom: real("zoom").default(1),
+  panX: real("pan_x").default(0),
+  panY: real("pan_y").default(0),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Family Tree Members - People/nodes in the family tree
+export const familyTreeMembers = pgTable("family_tree_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  treeId: varchar("tree_id").notNull().references(() => familyTrees.id, { onDelete: 'cascade' }),
+  characterId: varchar("character_id").references(() => characters.id, { onDelete: 'set null' }), // null = inline node
+  // Inline node fields (used when characterId is null)
+  inlineName: text("inline_name"),
+  inlineDateOfBirth: text("inline_date_of_birth"),
+  inlineDateOfDeath: text("inline_date_of_death"),
+  inlineImageUrl: text("inline_image_url"),
+  // Manual positioning coordinates
+  positionX: real("position_x"),
+  positionY: real("position_y"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Family Tree Relationships - Edges/connections between members
+export const familyTreeRelationships = pgTable("family_tree_relationships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  treeId: varchar("tree_id").notNull().references(() => familyTrees.id, { onDelete: 'cascade' }),
+  fromMemberId: varchar("from_member_id").notNull().references(() => familyTreeMembers.id, { onDelete: 'cascade' }),
+  toMemberId: varchar("to_member_id").notNull().references(() => familyTreeMembers.id, { onDelete: 'cascade' }),
+  relationshipType: text("relationship_type").notNull(), // parent, child, sibling, marriage, adoption, stepParent, grandparent, cousin, custom
+  customLabel: text("custom_label"), // for custom relationship types
+  metadata: jsonb("metadata"), // flexible storage for attributes like adoption flag, marriage dates, etc.
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -2173,7 +2193,7 @@ export const ritualsRelations = relations(rituals, ({ one }) => ({
   }),
 }));
 
-export const familyTreesRelations = relations(familyTrees, ({ one }) => ({
+export const familyTreesRelations = relations(familyTrees, ({ one, many }) => ({
   user: one(users, {
     fields: [familyTrees.userId],
     references: [users.id],
@@ -2181,6 +2201,34 @@ export const familyTreesRelations = relations(familyTrees, ({ one }) => ({
   notebook: one(notebooks, {
     fields: [familyTrees.notebookId],
     references: [notebooks.id],
+  }),
+  members: many(familyTreeMembers),
+  relationships: many(familyTreeRelationships),
+}));
+
+export const familyTreeMembersRelations = relations(familyTreeMembers, ({ one }) => ({
+  tree: one(familyTrees, {
+    fields: [familyTreeMembers.treeId],
+    references: [familyTrees.id],
+  }),
+  character: one(characters, {
+    fields: [familyTreeMembers.characterId],
+    references: [characters.id],
+  }),
+}));
+
+export const familyTreeRelationshipsRelations = relations(familyTreeRelationships, ({ one }) => ({
+  tree: one(familyTrees, {
+    fields: [familyTreeRelationships.treeId],
+    references: [familyTrees.id],
+  }),
+  fromMember: one(familyTreeMembers, {
+    fields: [familyTreeRelationships.fromMemberId],
+    references: [familyTreeMembers.id],
+  }),
+  toMember: one(familyTreeMembers, {
+    fields: [familyTreeRelationships.toMemberId],
+    references: [familyTreeMembers.id],
   }),
 }));
 
@@ -2629,6 +2677,17 @@ export const insertRitualSchema = createInsertSchema(rituals).omit({
 export const insertFamilyTreeSchema = createInsertSchema(familyTrees).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFamilyTreeMemberSchema = createInsertSchema(familyTreeMembers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFamilyTreeRelationshipSchema = createInsertSchema(familyTreeRelationships).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertTimelineSchema = createInsertSchema(timelines).omit({
@@ -2861,6 +2920,10 @@ export type InsertRitual = z.infer<typeof insertRitualSchema>;
 export type Ritual = typeof rituals.$inferSelect;
 export type InsertFamilyTree = z.infer<typeof insertFamilyTreeSchema>;
 export type FamilyTree = typeof familyTrees.$inferSelect;
+export type InsertFamilyTreeMember = z.infer<typeof insertFamilyTreeMemberSchema>;
+export type FamilyTreeMember = typeof familyTreeMembers.$inferSelect;
+export type InsertFamilyTreeRelationship = z.infer<typeof insertFamilyTreeRelationshipSchema>;
+export type FamilyTreeRelationship = typeof familyTreeRelationships.$inferSelect;
 export type InsertTimeline = z.infer<typeof insertTimelineSchema>;
 export type Timeline = typeof timelines.$inferSelect;
 export type InsertCeremony = z.infer<typeof insertCeremonySchema>;
