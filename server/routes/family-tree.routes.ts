@@ -23,7 +23,17 @@ router.post("/", async (req: any, res) => {
       }
     }
     
-    const validatedFamilyTree = insertFamilyTreeSchema.parse(req.body);
+    // Add userId to the request body and extract only the fields that exist in the schema
+    const familyTreeData = {
+      name: req.body.name,
+      description: req.body.description,
+      layoutMode: req.body.layoutMode,
+      zoom: req.body.zoom,
+      userId,
+      notebookId
+    };
+    
+    const validatedFamilyTree = insertFamilyTreeSchema.parse(familyTreeData);
     const savedFamilyTree = await storage.createFamilyTree(validatedFamilyTree);
     res.json(savedFamilyTree);
   } catch (error) {
@@ -108,7 +118,19 @@ router.get("/:id", async (req: any, res) => {
 router.put("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const validatedUpdates = insertFamilyTreeSchema.parse(req.body);
+    const notebookId = req.body.notebookId || req.query.notebookId;
+    
+    // Extract only the fields that exist in the schema
+    const familyTreeData = {
+      name: req.body.name,
+      description: req.body.description,
+      layoutMode: req.body.layoutMode,
+      zoom: req.body.zoom,
+      userId,
+      notebookId
+    };
+    
+    const validatedUpdates = insertFamilyTreeSchema.parse(familyTreeData);
     const updatedFamilyTree = await storage.updateFamilyTree(req.params.id, userId, validatedUpdates);
     res.json(updatedFamilyTree);
   } catch (error) {
