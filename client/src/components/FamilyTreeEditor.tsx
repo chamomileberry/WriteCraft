@@ -23,6 +23,7 @@ import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3 } from 'lucide-react
 import { useToast } from '@/hooks/use-toast';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
 import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
+import { CharacterGallery } from './CharacterGallery';
 
 interface FamilyTreeEditorProps {
   treeId: string;
@@ -145,38 +146,42 @@ export function FamilyTreeEditor({ treeId, notebookId }: FamilyTreeEditorProps) 
   }
 
   return (
-    <div className="w-full h-full relative" data-testid="family-tree-editor">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeDragStop={onNodeDragStop}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        nodesDraggable={!isAutoLayout}
-        nodesConnectable={true}
-        fitView
-        minZoom={0.1}
-        maxZoom={2}
-      >
-        <Background />
-        <Controls />
-        <MiniMap />
-        
-        <Panel position="top-right" className="flex gap-2">
-          <Button
-            size="sm"
-            variant={isAutoLayout ? "default" : "outline"}
-            onClick={() => setIsAutoLayout(!isAutoLayout)}
-            data-testid="button-toggle-layout"
-          >
-            <Grid3X3 className="w-4 h-4 mr-2" />
-            {isAutoLayout ? "Auto Layout" : "Manual Layout"}
-          </Button>
-        </Panel>
-      </ReactFlow>
+    <div className="w-full h-full flex flex-col" data-testid="family-tree-editor">
+      <div className="flex-1 relative">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeDragStop={onNodeDragStop}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          nodesDraggable={!isAutoLayout}
+          nodesConnectable={true}
+          fitView
+          minZoom={0.1}
+          maxZoom={2}
+        >
+          <Background />
+          <Controls />
+          <MiniMap />
+          
+          <Panel position="top-right" className="flex gap-2">
+            <Button
+              size="sm"
+              variant={isAutoLayout ? "default" : "outline"}
+              onClick={() => setIsAutoLayout(!isAutoLayout)}
+              data-testid="button-toggle-layout"
+            >
+              <Grid3X3 className="w-4 h-4 mr-2" />
+              {isAutoLayout ? "Auto Layout" : "Manual Layout"}
+            </Button>
+          </Panel>
+        </ReactFlow>
+      </div>
+      
+      <CharacterGallery notebookId={notebookId} />
     </div>
   );
 }
