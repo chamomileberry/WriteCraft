@@ -737,6 +737,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         member={editingMember}
+        notebookId={notebookId}
         onSave={handleSaveMemberDetails}
         isLoading={updateMemberMutation.isPending}
       />

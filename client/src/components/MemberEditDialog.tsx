@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from 'lucide-react';
+import { User, ExternalLink } from 'lucide-react';
+import { useLocation } from 'wouter';
 import type { FamilyTreeMember } from '@shared/schema';
 
 type FamilyTreeMemberWithCharacter = FamilyTreeMember & {
@@ -24,6 +25,7 @@ interface MemberEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   member: FamilyTreeMemberWithCharacter | null;
+  notebookId: string;
   onSave: (memberId: string, updates: {
     inlineName?: string;
     inlineDateOfBirth?: string | null;
@@ -35,10 +37,12 @@ interface MemberEditDialogProps {
 export function MemberEditDialog({ 
   open, 
   onOpenChange, 
-  member, 
+  member,
+  notebookId,
   onSave,
   isLoading 
 }: MemberEditDialogProps) {
+  const [, setLocation] = useLocation();
   const [name, setName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [dateOfDeath, setDateOfDeath] = useState('');
@@ -74,6 +78,13 @@ export function MemberEditDialog({
       });
     }
     onOpenChange(false);
+  };
+
+  const handleEditCharacter = () => {
+    if (member?.characterId) {
+      onOpenChange(false);
+      setLocation(`/notebooks/${notebookId}/characters/${member.characterId}`);
+    }
   };
 
   const getDisplayImage = () => {
@@ -155,12 +166,17 @@ export function MemberEditDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          {!isCharacterBased && (
-            <Button onClick={handleSave} disabled={isLoading}>
+          {isCharacterBased ? (
+            <Button onClick={handleEditCharacter} data-testid="button-edit-character">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Edit Character
+            </Button>
+          ) : (
+            <Button onClick={handleSave} disabled={isLoading} data-testid="button-save-member">
               {isLoading ? 'Saving...' : 'Save'}
             </Button>
           )}
