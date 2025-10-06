@@ -157,20 +157,24 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     autoSaveCondition: () => hasBeenSavedOnce || (editor?.getText().trim().length ?? 0) > 0,
     successMessage: 'Quick note saved',
     errorMessage: 'Failed to save quick note',
-    invalidateQueries: [['/api/quick-note']],
+    invalidateQueries: [], // Don't invalidate queries during auto-save to prevent re-renders
     onSuccess: (savedNote) => {
       // Mark as saved for both new and existing notes
       setHasBeenSavedOnce(true);
       
-      // Update the local cache with the saved note data
-      queryClient.setQueryData(['/api/quick-note', userId], () => ({
-        id: savedNote.id || quickNote?.id || `quick-note-${userId}`,
-        userId: userId,
-        title: savedNote.title || 'Quick Note',
-        content: savedNote.content,
-        createdAt: savedNote.createdAt || quickNote?.createdAt || new Date().toISOString(),
-        updatedAt: savedNote.updatedAt || new Date().toISOString()
-      }));
+      // Silently update the cache without triggering re-renders
+      queryClient.setQueryData(['/api/quick-note', userId], (old: any) => {
+        // Merge new data with old to preserve all fields and prevent re-renders
+        return {
+          ...old,
+          id: savedNote.id || old?.id || `quick-note-${userId}`,
+          userId: userId,
+          title: savedNote.title || old?.title || 'Quick Note',
+          content: savedNote.content,
+          createdAt: savedNote.createdAt || old?.createdAt || new Date().toISOString(),
+          updatedAt: savedNote.updatedAt || new Date().toISOString()
+        };
+      });
     },
   });
 
