@@ -2868,6 +2868,23 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(familyTrees.id, id))
       .returning();
+    
+    // Update saved_items entry if name or description changed
+    if (updates.name !== undefined || updates.description !== undefined) {
+      await db
+        .update(savedItems)
+        .set({
+          itemData: {
+            name: updatedFamilyTree.name,
+            description: updatedFamilyTree.description
+          }
+        })
+        .where(and(
+          eq(savedItems.itemId, id),
+          eq(savedItems.itemType, 'familytree')
+        ));
+    }
+    
     return updatedFamilyTree;
   }
 
