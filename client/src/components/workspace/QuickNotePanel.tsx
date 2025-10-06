@@ -187,11 +187,14 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Clear the quick note after saving to notebook
       setContent('');
       contentRef.current = '';
       setSaveStatus('saved');
+      
+      // Clear the content in the database too, so next open starts fresh
+      await saveMutation.mutateAsync({ content: '' });
       
       // Update cache to reflect cleared content
       queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
