@@ -105,6 +105,7 @@ export const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ classNam
   culture: Globe,
   profession: Briefcase,
   familyTree: GitBranch,
+  familytree: GitBranch,
   
   // Places & Locations
   location: MapPin,
