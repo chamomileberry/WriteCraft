@@ -422,6 +422,23 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
 
   const contentName = isCreating ? `New ${contentType}` : (contentData?.name || contentData?.title || `${contentType} ${contentId}`);
 
+  // Render family tree fullscreen without header
+  if (contentType === 'familyTree' && contentId !== 'new') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlNotebookId = urlParams.get('notebookId');
+    const notebookId = urlNotebookId || activeNotebookId || '';
+    
+    return (
+      <div className="w-full h-screen">
+        <FamilyTreeEditor
+          treeId={contentId}
+          notebookId={notebookId}
+          onBack={onBack}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
