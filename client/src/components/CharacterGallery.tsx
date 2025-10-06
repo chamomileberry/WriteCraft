@@ -69,10 +69,20 @@ export function CharacterGallery({ notebookId }: CharacterGalleryProps) {
             const displayName = getDisplayName(character);
             const initials = getInitials(displayName);
             
+            const handleDragStart = (e: React.DragEvent) => {
+              e.dataTransfer.effectAllowed = 'copy';
+              e.dataTransfer.setData('application/json', JSON.stringify({
+                type: 'character',
+                character: character
+              }));
+            };
+            
             return (
               <Card
                 key={character.id}
-                className="flex-shrink-0 w-16 p-2 flex flex-col items-center gap-1 hover-elevate cursor-pointer"
+                draggable
+                onDragStart={handleDragStart}
+                className="flex-shrink-0 w-16 p-2 flex flex-col items-center gap-1 hover-elevate cursor-grab active:cursor-grabbing"
                 data-testid={`character-card-${character.id}`}
               >
                 <Avatar className="w-10 h-10">

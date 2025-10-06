@@ -8,6 +8,8 @@ import {
   Edge,
   useNodesState,
   useEdgesState,
+  useReactFlow,
+  ReactFlowProvider,
   addEdge,
   Connection,
   NodeTypes,
@@ -30,8 +32,9 @@ interface FamilyTreeEditorProps {
   notebookId: string;
 }
 
-export function FamilyTreeEditor({ treeId, notebookId }: FamilyTreeEditorProps) {
+function FamilyTreeEditorInner({ treeId, notebookId }: FamilyTreeEditorProps) {
   const { toast } = useToast();
+  const { screenToFlowPosition } = useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(true);
 
   // Define custom node and edge types
@@ -137,6 +140,76 @@ export function FamilyTreeEditor({ treeId, notebookId }: FamilyTreeEditorProps) 
     console.log('Connection created:', connection);
   }, []);
 
+  // Mutation to create a new family tree member
+  const createMember = useMutation({
+    mutationFn: async (data: { characterId: string; x: number; y: number }) => {
+      return apiRequest(`/api/family-trees/${treeId}/members?notebookId=${notebookId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          treeId,
+          characterId: data.characterId,
+          positionX: data.x,
+          positionY: data.y,
+        }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      toast({
+        title: 'Character added',
+        description: 'Character successfully added to family tree',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to add character',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle drop from character gallery
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const data = event.dataTransfer.getData('application/json');
+      
+      if (!data) return;
+
+      try {
+        const { type, character } = JSON.parse(data);
+        
+        if (type === 'character') {
+          // Get the bounding rect of the ReactFlow wrapper to calculate relative coordinates
+          const reactFlowBounds = event.currentTarget.getBoundingClientRect();
+          
+          // Convert to pane-relative coordinates, then to flow coordinates using viewport transform
+          const position = screenToFlowPosition({
+            x: event.clientX - reactFlowBounds.left,
+            y: event.clientY - reactFlowBounds.top,
+          });
+
+          createMember.mutate({
+            characterId: character.id,
+            x: position.x,
+            y: position.y,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to parse drop data:', error);
+      }
+    },
+    [createMember, screenToFlowPosition]
+  );
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }, []);
+
   if (treeLoading || membersLoading || relationshipsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -155,6 +228,8 @@ export function FamilyTreeEditor({ treeId, notebookId }: FamilyTreeEditorProps) 
           onEdgesChange={onEdgesChange}
           onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           nodesDraggable={!isAutoLayout}
@@ -183,5 +258,14 @@ export function FamilyTreeEditor({ treeId, notebookId }: FamilyTreeEditorProps) 
       
       <CharacterGallery notebookId={notebookId} />
     </div>
+  );
+}
+
+// Wrapper component to provide React Flow context
+export function FamilyTreeEditor(props: FamilyTreeEditorProps) {
+  return (
+    <ReactFlowProvider>
+      <FamilyTreeEditorInner {...props} />
+    </ReactFlowProvider>
   );
 }
