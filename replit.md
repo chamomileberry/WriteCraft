@@ -77,13 +77,92 @@ Documentation: Proactively create documentation for new features, APIs, and syst
   - **Implementation**: Applied to all AI features including inline suggestions (Improve, Shorten, Expand, Fix Grammar, Ask AI), Writing Assistant chat, text analysis, proofreading, rephrasing, and description generation
   - Files: `server/routes/ai.routes.ts`, `server/ai-generation.ts`
 
-### Security & Authorization
-- **Ownership Validation Pattern**: All content operations enforce strict ownership validation using a "Fetch → Validate → Execute" pattern.
-- **Critical Security Rules**:
-    1. All delete/update operations must fetch the record first, validate ownership, then execute.
-    2. Delete operations triple-filter by `id`, `userId`, AND `notebookId` for multi-tenant isolation.
-    3. Unauthorized access returns 404 (not 403) to prevent information disclosure.
-    4. Structured logging is implemented for all ownership denial attempts.
+### Security & Authorization (Oct 6, 2025 - Comprehensive Hardening)
+- **Multi-Layer Security Architecture**: Enterprise-grade security implementation protecting against all major web vulnerabilities
+  
+**Security Layers:**
+1. **Input Sanitization** (Pre-Authentication Layer)
+   - SQL injection protection: Blocks dangerous SQL patterns
+   - XSS protection: Removes HTML/script tags and malicious content
+   - Prototype pollution prevention: Filters `__proto__`, `constructor`, `prototype` keys
+   - String length limits (10,000 chars) and array size limits (100 items)
+   - Runs AFTER body parsing (express.json/urlencoded) to ensure req.body exists
+   
+2. **Authentication & Access Control**
+   - Enhanced authentication middleware with session validation
+   - Test mode bypass protection (blocks x-test-user-id in production)
+   - Token expiration checking and automatic refresh
+   - Unauthorized requests return 401 (authentication enforcement)
+   
+3. **Rate Limiting**
+   - Global: 100 requests / 15 minutes per user/IP
+   - User profile updates: 20 requests / 15 minutes
+   - User deletion: 5 requests / 15 minutes
+   - Admin operations: 10 requests / 15 minutes
+   - Rate limit headers in responses (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset)
+   
+4. **Admin Privilege Protection**
+   - `isAdmin` field cannot be modified via regular user endpoints
+   - Strict Zod schema validation rejects additional fields
+   - Only firstName, lastName, profileImageUrl updatable via user profile
+   - Dedicated admin-only endpoint at `/api/admin/users/:id/role`
+   - Self-demotion prevention (cannot remove last admin)
+   - All privilege escalation attempts logged as CRITICAL events
+   
+5. **Row-Level Security (RLS)**
+   - Application-level RLS with ownership validation
+   - Triple-filter pattern: `id`, `userId`, AND `notebookId` for multi-tenant isolation
+   - Fetch → Validate → Execute pattern for all data operations
+   - Unauthorized access returns 404 (not 403) to prevent resource enumeration
+   - `enforceRowLevelSecurity` middleware on all protected routes
+   
+6. **CSRF Protection**
+   - Token-based CSRF protection for state-changing operations (POST, PUT, PATCH, DELETE)
+   - 1-hour token expiry with secure generation
+   - Timing-safe token comparison prevents timing attacks
+   - Token generation endpoint: `/api/auth/csrf-token`
+   - Applied to user updates, deletions, admin operations
+   
+7. **Security Headers**
+   - X-Frame-Options: DENY (clickjacking protection)
+   - X-Content-Type-Options: nosniff (MIME sniffing protection)
+   - X-XSS-Protection: 1; mode=block
+   - Content-Security-Policy: default-src 'self'
+   - Strict-Transport-Security: max-age=31536000 (HTTPS enforcement)
+   - Referrer-Policy: strict-origin-when-cross-origin
+   - Permissions-Policy: disables unnecessary browser features
+   
+8. **Security Audit Logging**
+   - Comprehensive event logging for security incidents
+   - Event types: AUTH_FAILURE, PRIVILEGE_ESCALATION, UNAUTHORIZED_ACCESS, DATA_BREACH_ATTEMPT, RATE_LIMIT, CSRF_FAILURE
+   - Severity levels: LOW, MEDIUM, HIGH, CRITICAL
+   - Structured JSON logging with timestamps, IPs, and user agents
+
+**Ownership Validation Pattern**: All content operations enforce strict ownership validation using a "Fetch → Validate → Execute" pattern.
+
+**Critical Security Rules**:
+1. All delete/update operations must fetch the record first, validate ownership, then execute.
+2. Delete operations triple-filter by `id`, `userId`, AND `notebookId` for multi-tenant isolation.
+3. Unauthorized access returns 404 (not 403) to prevent information disclosure.
+4. Structured logging is implemented for all ownership denial attempts.
+
+**Security Test Verification**:
+- ✅ SQL injection blocked (400 "Invalid input detected")
+- ✅ XSS attacks blocked (400 "Invalid input detected")
+- ✅ Rate limiting active (headers present and functioning)
+- ✅ Security headers verified (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+- ✅ Authentication enforcement (401 for unauthenticated requests)
+- ✅ Admin field protection (strict schema validation)
+- ✅ Middleware ordering correct (sanitization after body parsing)
+
+**Security Module Files**:
+- `server/security/middleware.ts` - Core security middleware
+- `server/security/userRoutes.ts` - Secure user management endpoints
+- `server/security/test-endpoints.ts` - Security testing endpoints (dev only)
+- `server/security/index.ts` - Module exports
+- `server/app-security.ts` - Security middleware application
+- `SECURITY.md` - Complete security documentation
+- `SECURITY_SUMMARY.md` - Security implementation summary
 
 ## External Dependencies
 
