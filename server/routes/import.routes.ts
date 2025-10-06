@@ -154,8 +154,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
   return { ...baseContent, contentType };
 }
 
-// Start import job
-router.post('/start', upload.single('file'), async (req: any, res) => {
+// Upload and start import job
+router.post('/upload', upload.single('file'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { notebookId } = req.body;
