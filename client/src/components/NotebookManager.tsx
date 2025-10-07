@@ -67,6 +67,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
   const [deletingNotebook, setDeletingNotebook] = useState<Notebook | null>(null);
   const [sharingNotebook, setSharingNotebook] = useState<Notebook | null>(null);
+  const [activeTab, setActiveTab] = useState<'owned' | 'shared'>('owned');
   const [createForm, setCreateForm] = useState<CreateNotebookData>({ name: "", description: "", imageUrl: "" });
   const [editForm, setEditForm] = useState<UpdateNotebookData>({ name: "", description: "", imageUrl: "" });
 
@@ -226,6 +227,11 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
     });
   };
 
+  // Filter notebooks based on active tab
+  const ownedNotebooks = notebooks.filter(n => !(n as any).isShared);
+  const sharedNotebooks = notebooks.filter(n => (n as any).isShared);
+  const displayedNotebooks = activeTab === 'owned' ? ownedNotebooks : sharedNotebooks;
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -241,10 +247,25 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
           </DialogHeader>
           
           <div className="space-y-4">
-            {/* Create New Button */}
+            {/* Tabs and Create Button */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <div className="text-sm text-muted-foreground">
-                {notebooks.length} notebook{notebooks.length !== 1 ? 's' : ''}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={activeTab === 'owned' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setActiveTab('owned')}
+                  data-testid="button-tab-owned"
+                >
+                  My Notebooks ({ownedNotebooks.length})
+                </Button>
+                <Button
+                  variant={activeTab === 'shared' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setActiveTab('shared')}
+                  data-testid="button-tab-shared"
+                >
+                  Shared with Me ({sharedNotebooks.length})
+                </Button>
               </div>
               <Button 
                 onClick={() => setIsCreateOpen(true)}
@@ -270,20 +291,24 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
                     </Card>
                   ))}
                 </>
-              ) : notebooks.length === 0 ? (
+              ) : displayedNotebooks.length === 0 ? (
                 <div className="col-span-full">
                   <Card className="text-center py-8">
                     <CardContent>
                       <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground mb-4">No notebooks yet</p>
-                      <Button onClick={() => setIsCreateOpen(true)}>
-                        Create Your First Notebook
-                      </Button>
+                      <p className="text-muted-foreground mb-4">
+                        {activeTab === 'owned' ? 'No notebooks yet' : 'No shared notebooks'}
+                      </p>
+                      {activeTab === 'owned' && (
+                        <Button onClick={() => setIsCreateOpen(true)}>
+                          Create Your First Notebook
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
               ) : (
-                notebooks.map((notebook) => (
+                displayedNotebooks.map((notebook) => (
                   <Card 
                     key={notebook.id} 
                     className={`group overflow-hidden hover-elevate cursor-pointer transition-all ${
@@ -309,6 +334,14 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
                         <div className="absolute top-2 right-2">
                           <Badge variant="default" data-testid="badge-active-notebook" className="text-xs">
                             Active
+                          </Badge>
+                        </div>
+                      )}
+                      {/* Shared Badge Overlay */}
+                      {(notebook as any).isShared && (
+                        <div className={`absolute top-2 ${activeNotebookId === notebook.id ? 'right-20' : 'right-2'}`}>
+                          <Badge variant="secondary" data-testid={`badge-shared-notebook-${notebook.id}`} className="text-xs">
+                            Shared
                           </Badge>
                         </div>
                       )}
@@ -363,6 +396,14 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
                         <CardDescription className="text-sm line-clamp-2 mb-2">
                           {notebook.description}
                         </CardDescription>
+                      )}
+                      {(notebook as any).isShared && (notebook as any).sharedBy && (
+                        <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                          <span>Shared by {(notebook as any).sharedBy.firstName || (notebook as any).sharedBy.email}</span>
+                          <Badge variant="outline" className="text-[10px] px-1 py-0">
+                            {(notebook as any).sharePermission}
+                          </Badge>
+                        </div>
                       )}
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />

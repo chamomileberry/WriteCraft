@@ -684,20 +684,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserNotebooks(userId: string): Promise<Notebook[]> {
-    // Get owned notebooks
+    // Get owned notebooks with metadata
     const ownedNotebooks = await db
       .select()
       .from(notebooks)
       .where(eq(notebooks.userId, userId))
       .orderBy(desc(notebooks.createdAt));
     
-    // Get shared notebooks
+    // Get shared notebooks with share metadata
     const sharedNotebooks = await db
       .select({
-        notebook: notebooks
+        notebook: notebooks,
+        share: shares,
+        owner: users
       })
       .from(shares)
       .innerJoin(notebooks, eq(shares.resourceId, notebooks.id))
+      .innerJoin(users, eq(notebooks.userId, users.id))
       .where(
         and(
           eq(shares.userId, userId),
@@ -705,10 +708,31 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
+    // Add metadata to notebooks
+    const ownedWithMetadata = ownedNotebooks.map(n => ({
+      ...n,
+      isShared: false,
+      sharedBy: null,
+      sharePermission: null
+    }));
+    
+    const sharedWithMetadata = sharedNotebooks.map(s => ({
+      ...s.notebook,
+      isShared: true,
+      sharedBy: {
+        id: s.owner.id,
+        email: s.owner.email,
+        firstName: s.owner.firstName,
+        lastName: s.owner.lastName,
+        profileImageUrl: s.owner.profileImageUrl
+      },
+      sharePermission: s.share.permission
+    }));
+    
     // Combine and return, removing duplicates
     const allNotebooks = [
-      ...ownedNotebooks,
-      ...sharedNotebooks.map(s => s.notebook)
+      ...ownedWithMetadata,
+      ...sharedWithMetadata
     ];
     
     // Remove duplicates based on id and sort by createdAt
@@ -3930,20 +3954,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserProjects(userId: string): Promise<Project[]> {
-    // Get owned projects
+    // Get owned projects with metadata
     const ownedProjects = await db
       .select()
       .from(projects)
       .where(eq(projects.userId, userId))
       .orderBy(desc(projects.updatedAt));
     
-    // Get shared projects
+    // Get shared projects with share metadata
     const sharedProjects = await db
       .select({
-        project: projects
+        project: projects,
+        share: shares,
+        owner: users
       })
       .from(shares)
       .innerJoin(projects, eq(shares.resourceId, projects.id))
+      .innerJoin(users, eq(projects.userId, users.id))
       .where(
         and(
           eq(shares.userId, userId),
@@ -3951,10 +3978,31 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
+    // Add metadata to projects
+    const ownedWithMetadata = ownedProjects.map(p => ({
+      ...p,
+      isShared: false,
+      sharedBy: null,
+      sharePermission: null
+    }));
+    
+    const sharedWithMetadata = sharedProjects.map(s => ({
+      ...s.project,
+      isShared: true,
+      sharedBy: {
+        id: s.owner.id,
+        email: s.owner.email,
+        firstName: s.owner.firstName,
+        lastName: s.owner.lastName,
+        profileImageUrl: s.owner.profileImageUrl
+      },
+      sharePermission: s.share.permission
+    }));
+    
     // Combine and return, removing duplicates
     const allProjects = [
-      ...ownedProjects,
-      ...sharedProjects.map(s => s.project)
+      ...ownedWithMetadata,
+      ...sharedWithMetadata
     ];
     
     // Remove duplicates based on id and sort by updatedAt

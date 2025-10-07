@@ -36,6 +36,7 @@ export default function ProjectPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const [sharingProject, setSharingProject] = useState<Project | null>(null);
+  const [activeTab, setActiveTab] = useState<'owned' | 'shared'>('owned');
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
@@ -145,7 +146,17 @@ export default function ProjectPage() {
     setViewMode('list');
   };
 
-  const displayedProjects = searchQuery.trim().length > 0 ? searchResults : projects;
+  // Filter projects based on active tab
+  const ownedProjects = (projects as Project[]).filter((p: Project) => !(p as any).isShared);
+  const sharedProjects = (projects as Project[]).filter((p: Project) => (p as any).isShared);
+  const filteredByTab = activeTab === 'owned' ? ownedProjects : sharedProjects;
+  
+  // Apply tab filter to search results too
+  const filteredSearchResults = (searchResults as Project[]).filter((p: Project) => 
+    activeTab === 'owned' ? !(p as any).isShared : (p as any).isShared
+  );
+  
+  const displayedProjects = searchQuery.trim().length > 0 ? filteredSearchResults : filteredByTab;
 
   const handleNewProject = () => {
     createProjectMutation.mutate();
@@ -217,6 +228,26 @@ export default function ProjectPage() {
             </Button>
           </div>
 
+          {/* Tabs */}
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              variant={activeTab === 'owned' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab('owned')}
+              data-testid="button-tab-owned-projects"
+            >
+              My Projects ({ownedProjects.length})
+            </Button>
+            <Button
+              variant={activeTab === 'shared' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab('shared')}
+              data-testid="button-tab-shared-projects"
+            >
+              Shared with Me ({sharedProjects.length})
+            </Button>
+          </div>
+
           {/* Search */}
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -250,15 +281,19 @@ export default function ProjectPage() {
           <div className="text-center py-12">
             <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">
-              {searchQuery.trim().length > 0 ? 'No projects found' : 'No projects yet'}
+              {searchQuery.trim().length > 0 
+                ? 'No projects found' 
+                : activeTab === 'owned' ? 'No projects yet' : 'No shared projects'}
             </h3>
             <p className="text-muted-foreground mb-6">
               {searchQuery.trim().length > 0 
                 ? 'Try a different search term or create a new project'
-                : 'Create your first project to start writing'
+                : activeTab === 'owned' 
+                  ? 'Create your first project to start writing'
+                  : 'No projects have been shared with you yet'
               }
             </p>
-            {searchQuery.trim().length === 0 && (
+            {searchQuery.trim().length === 0 && activeTab === 'owned' && (
               <Button onClick={handleNewProject} data-testid="button-create-first-project">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Your First Project
@@ -276,9 +311,26 @@ export default function ProjectPage() {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                      {project.title}
-                    </CardTitle>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-2 mb-1">
+                        <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors flex-1">
+                          {project.title}
+                        </CardTitle>
+                        {(project as any).isShared && (
+                          <Badge variant="secondary" data-testid={`badge-shared-project-${project.id}`} className="text-xs shrink-0">
+                            Shared
+                          </Badge>
+                        )}
+                      </div>
+                      {(project as any).isShared && (project as any).sharedBy && (
+                        <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                          <span>Shared by {(project as any).sharedBy.firstName || (project as any).sharedBy.email}</span>
+                          <Badge variant="outline" className="text-[10px] px-1 py-0">
+                            {(project as any).sharePermission}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <Button
                         variant="ghost"
