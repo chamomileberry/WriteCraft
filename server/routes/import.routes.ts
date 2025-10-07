@@ -79,6 +79,11 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
     const zip = new AdmZip(zipBuffer);
     const zipEntries = zip.getEntries();
 
+    console.log(`[ZIP Parse] ZIP contains ${zipEntries.length} total entries`);
+    console.log('[ZIP Parse] Entry structure:');
+    const entrySample = zipEntries.slice(0, 10).map(e => e.entryName);
+    console.log('[ZIP Parse] First 10 entries:', entrySample);
+
     let manifestData: any = null;
     const articles: WorldAnvilArticle[] = [];
 
@@ -98,39 +103,53 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
       try {
         const articlesData = JSON.parse(articlesEntry.getData().toString('utf8'));
         if (Array.isArray(articlesData)) {
+          console.log(`[ZIP Parse] Found ${articlesData.length} articles in articles.json (array format)`);
           articles.push(...articlesData);
         } else if (articlesData.articles && Array.isArray(articlesData.articles)) {
+          console.log(`[ZIP Parse] Found ${articlesData.articles.length} articles in articles.json (object format)`);
           articles.push(...articlesData.articles);
+        } else {
+          console.log('[ZIP Parse] articles.json exists but has unexpected format:', Object.keys(articlesData));
         }
       } catch (e) {
-        console.log('Could not parse articles.json');
+        console.log('[ZIP Parse] Could not parse articles.json:', e instanceof Error ? e.message : 'Unknown error');
       }
+    } else {
+      console.log('[ZIP Parse] No articles.json found in ZIP');
     }
 
     // If no articles.json, look for individual JSON files
     if (articles.length === 0) {
-      console.log('No articles.json found, looking for individual article files...');
+      console.log('[ZIP Parse] Looking for individual article files...');
       const articleFiles = zipEntries.filter(entry => 
         !entry.isDirectory && 
         entry.entryName.includes('/articles/') && 
         entry.entryName.endsWith('.json')
       );
       
-      console.log(`Found ${articleFiles.length} individual article files`);
+      console.log(`[ZIP Parse] Found ${articleFiles.length} individual article files`);
       
+      let parsed = 0;
+      let failed = 0;
       articleFiles.forEach(entry => {
         try {
           const data = JSON.parse(entry.getData().toString('utf8'));
           if (data.title || data.id || data.name) {
             articles.push(data);
+            parsed++;
+          } else {
+            console.log(`[ZIP Parse] Skipping ${entry.entryName} - no title/id/name field`);
           }
         } catch (e) {
-          console.log(`Could not parse ${entry.entryName}:`, e instanceof Error ? e.message : 'Unknown error');
+          failed++;
+          console.log(`[ZIP Parse] Could not parse ${entry.entryName}:`, e instanceof Error ? e.message : 'Unknown error');
         }
       });
       
-      console.log(`Successfully parsed ${articles.length} articles from individual files`);
+      console.log(`[ZIP Parse] Successfully parsed ${parsed} articles, failed to parse ${failed} files`);
     }
+
+    console.log(`[ZIP Parse] TOTAL ARTICLES FOUND: ${articles.length}`);
 
     return {
       manifest: manifestData,
@@ -160,6 +179,11 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
   }
   
   const contentType = WORLD_ANVIL_TYPE_MAPPING[typeKey] || 'document';
+  
+  // Log unmapped types to help debug
+  if (!WORLD_ANVIL_TYPE_MAPPING[typeKey] && typeKey !== 'document') {
+    console.log(`[Type Mapping] Unmapped type "${typeKey}" for article "${article.title}" - defaulting to document`);
+  }
 
   // Base fields all content types have
   const baseContent: any = {
@@ -464,8 +488,9 @@ async function processImport(
           console.log(`[Import ${jobId}] ✓ Created condition: ${article.title}`);
         } else {
           // Skip unsupported types for now
-          results.skipped.push(`${article.title} (${contentType})`);
-          console.log(`[Import ${jobId}] ⊘ Skipped (unsupported type): ${article.title} (${contentType})`);
+          const skipReason = `${article.title} (type: ${contentType}, original: ${article.templateType || article.entityClass || 'unknown'})`;
+          results.skipped.push(skipReason);
+          console.log(`[Import ${jobId}] ⊘ Skipped (unsupported type): ${skipReason}`);
         }
 
         // Create saved_items entry for notebook visibility
