@@ -1,5 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, ALL_ETHNICITIES, ALL_DESCRIPTION_TYPES } from './genres.js';
+import { db } from './db.js';
+import { savedItems } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 /*
 <important_code_snippet_instructions>
@@ -1705,17 +1708,17 @@ export async function conversationalChat(
   let notebookContext = '';
   if (notebookId) {
     try {
-      const savedItems = await db
+      const notebookItems = await db
         .select()
-        .from(savedItemsTable)
-        .where(eq(savedItemsTable.notebookId, notebookId))
+        .from(savedItems)
+        .where(eq(savedItems.notebookId, notebookId))
         .limit(50); // Limit to prevent overwhelming context
       
-      if (savedItems.length > 0) {
+      if (notebookItems.length > 0) {
         notebookContext = '\n\nNOTEBOOK CONTEXT: The writer is working in a notebook with the following worldbuilding content. Use this information when answering questions about characters, locations, or other worldbuilding elements:\n\n';
         
         const itemsByType: Record<string, any[]> = {};
-        savedItems.forEach(item => {
+        notebookItems.forEach((item: any) => {
           const type = item.itemType;
           if (!itemsByType[type]) itemsByType[type] = [];
           itemsByType[type].push(item.itemData);
@@ -1806,6 +1809,7 @@ You should feel like a knowledgeable writing mentor who genuinely cares about he
     const contextInfo = documentType === 'manuscript' ? 'manuscript chapter/scene'
       : documentType === 'guide' ? 'writing guide section'
       : documentType === 'section' ? 'project section'
+      : documentType === 'character' ? 'character profile'
       : 'writing project';
     systemPrompt += `
 
@@ -1814,6 +1818,11 @@ CURRENT CONTEXT: The writer is currently working on a ${contextInfo} titled "${d
 ${editorContent.slice(0, 1500)}${editorContent.length > 1500 ? '...' : ''}
 
 Use this context to provide more relevant and specific advice about their current work when appropriate.`;
+  }
+
+  // Add notebook context if available
+  if (notebookContext) {
+    systemPrompt += notebookContext;
   }
 
   try {
