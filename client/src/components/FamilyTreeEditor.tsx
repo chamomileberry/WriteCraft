@@ -269,55 +269,61 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
 
   // Convert members to nodes
   useEffect(() => {
-    if (members.length > 0) {
-      const newNodes: Node[] = members.map((member, index) => ({
-        id: member.id,
-        type: 'familyMember',
-        position: member.positionX && member.positionY 
-          ? { x: member.positionX, y: member.positionY }
-          : { x: index * 200, y: index * 150 }, // Default positioning
-        data: { 
-          member,
-          notebookId,
-          treeId,
-          onEdit: handleEditMember,
-          onAddRelationship: handleAddRelationship,
-          onRemoveMember: handleRemoveMemberFromNode
-        },
-      }));
-      
-      // Apply auto-layout if enabled
-      if (isAutoLayout) {
-        getLayoutedElements(newNodes, edges, {
-          direction: 'DOWN',
-          nodeSpacing: 80,
-          layerSpacing: 150,
-        }).then(({ nodes: layoutedNodes }) => {
-          setNodes(layoutedNodes);
-        });
-      } else {
-        setNodes(newNodes);
-      }
+    if (members.length === 0) {
+      setNodes([]);
+      return;
+    }
+    
+    const newNodes: Node[] = members.map((member, index) => ({
+      id: member.id,
+      type: 'familyMember',
+      position: member.positionX && member.positionY 
+        ? { x: member.positionX, y: member.positionY }
+        : { x: index * 200, y: index * 150 }, // Default positioning
+      data: { 
+        member,
+        notebookId,
+        treeId,
+        onEdit: handleEditMember,
+        onAddRelationship: handleAddRelationship,
+        onRemoveMember: handleRemoveMemberFromNode
+      },
+    }));
+    
+    // Apply auto-layout if enabled
+    if (isAutoLayout) {
+      getLayoutedElements(newNodes, edges, {
+        direction: 'DOWN',
+        nodeSpacing: 80,
+        layerSpacing: 150,
+      }).then(({ nodes: layoutedNodes }) => {
+        setNodes(layoutedNodes);
+      });
+    } else {
+      setNodes(newNodes);
     }
   }, [members, setNodes, isAutoLayout, edges]);
 
   // Convert relationships to edges
   useEffect(() => {
-    if (relationships.length > 0) {
-      const newEdges: Edge[] = relationships.map(rel => ({
-        id: rel.id,
-        source: rel.fromMemberId,
-        target: rel.toMemberId,
-        type: 'familyRelationship',
-        data: {
-          relationship: rel,
-          notebookId,
-          treeId
-        },
-        label: rel.relationshipType === 'custom' ? rel.customLabel : rel.relationshipType,
-      }));
-      setEdges(newEdges);
+    if (relationships.length === 0) {
+      setEdges([]);
+      return;
     }
+    
+    const newEdges: Edge[] = relationships.map(rel => ({
+      id: rel.id,
+      source: rel.fromMemberId,
+      target: rel.toMemberId,
+      type: 'familyRelationship',
+      data: {
+        relationship: rel,
+        notebookId,
+        treeId
+      },
+      label: rel.relationshipType === 'custom' ? rel.customLabel : rel.relationshipType,
+    }));
+    setEdges(newEdges);
   }, [relationships, setEdges]);
 
   // Re-apply layout when toggling to auto-layout mode
