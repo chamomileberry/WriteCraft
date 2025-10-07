@@ -169,14 +169,6 @@ router.post("/generate-field", async (req: any, res) => {
       return res.status(400).json({ error: 'Field label is required' });
     }
     
-    console.log('[AI Field Assist] Generating field:', fieldLabel);
-    console.log('[AI Field Assist] Character context keys:', Object.keys(characterContext || {}).join(', '));
-    if (characterContext.generalDescription) {
-      console.log('[AI Field Assist] General description present:', characterContext.generalDescription.substring(0, 100) + '...');
-    }
-    if (characterContext.characterDescription) {
-      console.log('[AI Field Assist] Character description present:', characterContext.characterDescription.substring(0, 100) + '...');
-    }
 
     // Build context string from character data - include ALL filled fields
     const contextParts: string[] = [];
@@ -236,14 +228,14 @@ router.post("/generate-field", async (req: any, res) => {
     const contextStr = contextParts.length > 0 
       ? `\n\nEXISTING CHARACTER INFORMATION (maintain consistency with these details):\n${contextParts.join('\n')}\n`
       : '';
-    
-    console.log('[AI Field Assist] Context being sent to AI:', contextStr.substring(0, 500));
 
     let prompt = '';
 
     switch (action) {
       case 'generate':
         prompt = `You are a creative writing assistant helping to flesh out a character. Generate compelling content for the "${fieldLabel}" field.${contextStr}
+
+IMPORTANT: The existing character information above provides context for consistency. DO NOT repeat or restate information that's already covered in other fields. Instead, provide NEW details and perspectives that build upon what's already established. Add fresh information, not summaries of existing content.
 
 Return ONLY the generated ${fieldLabel.toLowerCase()} without any explanations, labels, or commentary.${STYLE_INSTRUCTION}`;
         break;
@@ -263,6 +255,8 @@ Return ONLY the improved text without any explanations or commentary.${STYLE_INS
 CURRENT ${fieldLabel.toUpperCase()}:
 ${currentValue}
 
+IMPORTANT: Add NEW details and depth. Don't just repeat what's already in the existing character information - build upon it with fresh perspectives and additional information.
+
 Return ONLY the expanded text without any explanations or commentary.${STYLE_INSTRUCTION}`;
         break;
 
@@ -274,6 +268,8 @@ ${currentValue || '(Empty)'}
 
 USER'S INSTRUCTION:
 ${customPrompt}
+
+IMPORTANT: Use the existing character information for consistency, but DO NOT repeat information that's already covered elsewhere. Provide fresh details that complement what's established.
 
 Follow the user's instruction and return ONLY the modified or generated ${fieldLabel.toLowerCase()} without any explanations or commentary.${STYLE_INSTRUCTION}`;
         break;
