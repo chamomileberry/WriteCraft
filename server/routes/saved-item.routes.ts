@@ -177,26 +177,29 @@ router.get('/:userId', async (req: any, res) => {
   }
 });
 
-// Get saved items for a specific notebook (cleaner endpoint)
-router.get('/notebook/:notebookId', async (req: any, res) => {
+// Get all saved items for a specific notebook
+router.get("/notebook/:notebookId", async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = req.user.claims.sub;
     const { notebookId } = req.params;
-    const itemType = req.query.itemType as string | undefined;
+    const itemType = req.query.type as string | undefined;
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    console.log(`[SavedItems] Fetching items for user ${userId}, notebook ${notebookId}, itemType: ${itemType || 'all'}`);
 
-    console.log(`[SavedItems] Fetching items for user ${userId}, notebook ${notebookId}`);
-    const savedItems = await storage.getUserSavedItemsByNotebook(userId, notebookId, itemType);
-    console.log(`[SavedItems] Found ${savedItems.length} items for notebook ${notebookId}`);
+    const items = await storage.getUserSavedItemsByNotebook(userId, notebookId, itemType);
 
-    res.json(savedItems);
+    console.log(`[SavedItems] Found ${items.length} items for notebook ${notebookId}`);
+    console.log(`[SavedItems] First 5 items:`, items.slice(0, 5).map(item => ({
+      id: item.id,
+      itemType: item.itemType,
+      itemId: item.itemId,
+      notebookId: item.notebookId
+    })));
+
+    res.json(items);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('[SavedItems] Error fetching notebook items:', errorMessage);
-    res.status(500).json({ error: errorMessage });
+    console.error('Error fetching saved items by notebook:', error);
+    res.status(500).json({ error: 'Failed to fetch saved items' });
   }
 });
 
