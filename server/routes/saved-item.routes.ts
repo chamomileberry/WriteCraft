@@ -10,12 +10,12 @@ router.post("/", async (req: any, res) => {
     // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.user.claims.sub;
     const { notebookId, itemType, itemId, itemData } = req.body;
-    
+
     // Validate required fields
     if (!itemType || !itemId) {
       return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
     }
-    
+
     // If notebookId is provided, validate user owns the notebook
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, userId);
@@ -24,7 +24,7 @@ router.post("/", async (req: any, res) => {
         return res.status(404).json({ error: 'Notebook not found' });
       }
     }
-    
+
     const savedItemData = {
       userId,
       notebookId: notebookId || null,
@@ -32,7 +32,7 @@ router.post("/", async (req: any, res) => {
       itemId,
       itemData
     };
-    
+
     const validatedSavedItem = insertSavedItemSchema.parse(savedItemData);
     const savedItem = await storage.saveItem(validatedSavedItem);
     res.json(savedItem);
@@ -43,7 +43,7 @@ router.post("/", async (req: any, res) => {
     }
     // Handle unique constraint violation (duplicate saved item)
     if (error instanceof Error && 'code' in error && (error as any).code === '23505') {
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'This item is already saved in this notebook',
         code: 'DUPLICATE_SAVED_ITEM'
       });
@@ -64,18 +64,18 @@ router.patch("/:id", async (req: any, res) => {
     const userId = req.user.claims.sub;
     const savedItemId = req.params.id;
     const { itemData } = req.body;
-    
+
     if (!itemData) {
       return res.status(400).json({ error: 'Missing required field: itemData' });
     }
-    
+
     // Update the saved item's itemData
     const updatedItem = await storage.updateSavedItemData(savedItemId, userId, itemData);
-    
+
     if (!updatedItem) {
       return res.status(404).json({ error: 'Saved item not found or access denied' });
     }
-    
+
     res.json(updatedItem);
   } catch (error) {
     console.error('Error updating saved item:', error);
@@ -95,7 +95,7 @@ router.delete("/", async (req: any, res) => {
     const userId = req.user.claims.sub;
     // Extract userId from authentication headers for security (ignore client payload)
     const { itemType, itemId, notebookId } = req.body;
-    
+
     console.log('[DELETE] Attempting to delete saved item:', {
       userId,
       itemType,
@@ -103,11 +103,11 @@ router.delete("/", async (req: any, res) => {
       notebookId,
       fullBody: req.body
     });
-    
+
     if (!itemType || !itemId) {
       return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
     }
-    
+
     // If notebookId is provided, validate user owns the notebook
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, userId);
@@ -115,7 +115,7 @@ router.delete("/", async (req: any, res) => {
         console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${userId}, notebookId: ${notebookId}`);
         return res.status(404).json({ error: 'Notebook not found' });
       }
-      
+
       // Delete with notebook validation to prevent cross-notebook deletions
       console.log('[DELETE] Calling unsaveItemFromNotebook with:', { userId, itemType, itemId, notebookId });
       await storage.unsaveItemFromNotebook(userId, itemType, itemId, notebookId);
@@ -126,7 +126,7 @@ router.delete("/", async (req: any, res) => {
       await storage.unsaveItem(userId, itemType, itemId);
       console.log('[DELETE] Delete completed successfully');
     }
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting saved item:', error);
@@ -141,19 +141,20 @@ router.delete("/", async (req: any, res) => {
   }
 });
 
-router.get("/:userId", async (req: any, res) => {
+// Get saved items for a user
+router.get('/:userId', async (req: any, res) => {
   try {
-    // Extract userId from authentication headers for security 
+    // Extract userId from authentication headers for security
     const authenticatedUserId = req.user.claims.sub;
     const requestedUserId = req.params.userId;
     const notebookId = req.query.notebookId as string;
-    
+
     // Validate that authenticated user can only access their own saved items
     if (authenticatedUserId !== requestedUserId) {
       console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, requestedUserId: ${requestedUserId}`);
       return res.status(404).json({ error: 'Saved items not found' });
     }
-    
+
     // If notebookId is provided, validate user owns the notebook
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, authenticatedUserId);
@@ -161,7 +162,7 @@ router.get("/:userId", async (req: any, res) => {
         console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, notebookId: ${notebookId}`);
         return res.status(404).json({ error: 'Notebook not found' });
       }
-      
+
       // Get saved items for specific notebook
       const savedItems = await storage.getUserSavedItemsByNotebook(authenticatedUserId, notebookId);
       res.json(savedItems);
@@ -176,35 +177,59 @@ router.get("/:userId", async (req: any, res) => {
   }
 });
 
+// Get saved items for a specific notebook (cleaner endpoint)
+router.get('/notebook/:notebookId', async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const { notebookId } = req.params;
+    const itemType = req.query.itemType as string | undefined;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    console.log(`[SavedItems] Fetching items for user ${userId}, notebook ${notebookId}`);
+    const savedItems = await storage.getUserSavedItemsByNotebook(userId, notebookId, itemType);
+    console.log(`[SavedItems] Found ${savedItems.length} items for notebook ${notebookId}`);
+
+    res.json(savedItems);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('[SavedItems] Error fetching notebook items:', errorMessage);
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+
 // Sync endpoint to update itemData for all saved_items with current content
 router.post("/sync/:userId", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const requestedUserId = req.params.userId;
-    
+
     // Validate that authenticated user can only sync their own saved items
     if (userId !== requestedUserId) {
       console.warn(`[Security] Unauthorized saved-item sync attempt - userId: ${userId}, requestedUserId: ${requestedUserId}`);
       return res.status(404).json({ error: 'Saved items not found' });
     }
-    
+
     // Get all saved items for this user
     const savedItems = await storage.getUserSavedItems(userId);
-    
+
     const results = {
       total: savedItems.length,
       updated: 0,
       failed: 0,
       errors: [] as string[]
     };
-    
+
     // For each saved item, fetch current data and update itemData
     for (const savedItem of savedItems) {
       try {
         let currentData = null;
-        
+
         console.log(`[Sync] Processing ${savedItem.itemType} ${savedItem.itemId}`);
-        
+
         // Fetch current data based on item type
         switch (savedItem.itemType) {
           case 'character':
@@ -250,9 +275,9 @@ router.post("/sync/:userId", async (req: any, res) => {
             // Skip unknown types
             continue;
         }
-        
+
         console.log(`[Sync] Fetched data for ${savedItem.itemType} ${savedItem.itemId}:`, currentData ? 'found' : 'not found');
-        
+
         if (currentData) {
           // Update the itemData
           await storage.updateSavedItemData(savedItem.id, userId, currentData);
@@ -267,7 +292,7 @@ router.post("/sync/:userId", async (req: any, res) => {
         results.errors.push(`Failed to sync ${savedItem.itemType} ${savedItem.itemId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     res.json(results);
   } catch (error) {
     console.error('Error syncing saved items:', error);

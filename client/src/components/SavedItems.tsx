@@ -152,13 +152,13 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         throw new Error('User not authenticated');
       }
       console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
-      // Use apiRequest to get fresh data
-      const response = await apiRequest('GET', `/api/saved-items/${user.id}?notebookId=${activeNotebookId}`);
+      // Use notebook-specific endpoint to get fresh data
+      const response = await apiRequest('GET', `/api/saved-items/notebook/${activeNotebookId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch saved items: ${response.status}`);
       }
       const data = await response.json() as SavedItem[];
-      console.log('[SavedItems] Fetched', data.length, 'items');
+      console.log('[SavedItems] Fetched', data.length, 'items for notebook', activeNotebookId);
       return data;
     },
     enabled: !!activeNotebookId && !!user?.id, // Only enabled when there's an active notebook and authenticated user
