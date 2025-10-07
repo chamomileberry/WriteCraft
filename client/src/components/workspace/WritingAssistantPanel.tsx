@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
+import { useNotebookStore } from '@/stores/notebookStore';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -77,6 +78,7 @@ export default function WritingAssistantPanel({
   const historyDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { getEditorContext, executeEditorAction } = useWorkspaceStore();
+  const { activeNotebookId } = useNotebookStore();
 
   // Load chat history when component mounts or editor context changes
   useEffect(() => {
@@ -275,7 +277,7 @@ export default function WritingAssistantPanel({
           editorContent: hasEditorContent ? editorContext.content : undefined,
           documentTitle: hasEditorContent ? editorContext.title : undefined,
           documentType: hasEditorContent ? editorContext.type : undefined,
-          notebookId: editorContext.notebookId || undefined
+          notebookId: editorContext.notebookId || activeNotebookId || undefined
         }),
       });
       if (!response.ok) throw new Error('Failed to get chat response');
