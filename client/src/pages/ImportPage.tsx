@@ -317,16 +317,22 @@ export default function ImportPage() {
                             {job.results.skipped.length > 0 && `, ${job.results.skipped.length} skipped`}
                           </span>
                         )}
-                        {(job.status === 'processing' || job.status === 'pending') && job.totalItems > 0 && (
+                        {(job.status === 'processing' || job.status === 'pending') && (
                           <span className="flex items-center gap-2">
                             <Loader2 className="h-3 w-3 animate-spin" />
-                            <span className="font-medium">
-                              {job.itemsProcessed} / {job.totalItems} items processed
-                            </span>
-                            {job.itemsProcessed > 0 && (
-                              <span className="text-xs">
-                                ({Math.round((job.itemsProcessed / job.totalItems) * 100)}%)
-                              </span>
+                            {job.totalItems > 0 ? (
+                              <>
+                                <span className="font-medium">
+                                  {job.itemsProcessed} / {job.totalItems} items
+                                </span>
+                                {job.itemsProcessed > 0 && (
+                                  <span className="text-xs">
+                                    ({Math.round((job.itemsProcessed / job.totalItems) * 100)}%)
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="font-medium">Processing...</span>
                             )}
                           </span>
                         )}

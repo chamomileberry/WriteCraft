@@ -273,12 +273,11 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       description: article.content || article.excerpt || 'Imported from World Anvil',
     };
   } else if (contentType === 'document') {
-    // Ensure title is set from article.title (which is the article's name/title)
-    const title = article.title || article.name || 'Untitled';
+    // Documents need title at the root level, not nested
     return {
       userId,
       notebookId,
-      title: title,
+      title: article.title || article.name || 'Untitled',
       documentType: 'article',
       content: article.content || article.excerpt || 'Imported from World Anvil',
     };
