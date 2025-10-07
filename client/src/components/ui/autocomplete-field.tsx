@@ -52,7 +52,7 @@ interface AutocompleteFieldProps {
   value?: string | string[];
   onChange: (value: string | string[]) => void;
   placeholder?: string;
-  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type" | "family-tree" | "timeline" | "ceremony" | "map" | "music" | "dance" | "law" | "policy" | "potion" | "profession";
+  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type" | "family-tree" | "timeline" | "ceremony" | "map" | "music" | "dance" | "law" | "policy" | "potion" | "profession" | "condition";
   multiple?: boolean;
   disabled?: boolean;
   className?: string;
@@ -124,7 +124,7 @@ export function AutocompleteField({
         name: contentType === 'character' 
           ? `${item.givenName || ''}${item.familyName ? ' ' + item.familyName : ''}`.trim() || item.nickname || 'Unnamed Character'
           : item.name,
-        type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || item.treeType || item.timelineType || item.significance || item.mapType || item.musicalStyle || item.danceStyle || item.lawType || item.policyType || item.potionType || contentType,
+        type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || item.treeType || item.timelineType || item.significance || item.mapType || item.musicalStyle || item.danceStyle || item.lawType || item.policyType || item.potionType || item.conditionType || contentType,
       }));
     },
     enabled: true,
@@ -135,7 +135,7 @@ export function AutocompleteField({
   const { data: resolvedNames = {} } = useQuery({
     queryKey: [`/api/${apiEndpoint}/resolve`, currentValueIds],
     queryFn: async () => {
-      if (currentValueIds.length === 0 || (contentType !== 'profession' && contentType !== 'species')) return {};
+      if (currentValueIds.length === 0 || (contentType !== 'profession' && contentType !== 'species' && contentType !== 'condition')) return {};
       
       const nameMap: { [id: string]: string } = {};
       
@@ -158,7 +158,7 @@ export function AutocompleteField({
       
       return nameMap;
     },
-    enabled: currentValueIds.length > 0 && (contentType === 'profession' || contentType === 'species'),
+    enabled: currentValueIds.length > 0 && (contentType === 'profession' || contentType === 'species' || contentType === 'condition'),
   });
 
   // Create new item mutation
@@ -238,6 +238,18 @@ export function AutocompleteField({
             commonTools: [],
             relatedProfessions: [],
             seasonalWork: false
+          };
+          break;
+        case "condition":
+          payload = { 
+            ...payload, 
+            conditionType: "disease", 
+            description: `Auto-created condition: ${name}`,
+            severity: "moderate",
+            symptoms: [],
+            treatment: "Unknown",
+            duration: "varies",
+            contagious: false
           };
           break;
         default:

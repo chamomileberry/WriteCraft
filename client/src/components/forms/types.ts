@@ -37,7 +37,8 @@ export type FormFieldType =
   | "autocomplete-law"
   | "autocomplete-policy"
   | "autocomplete-potion"
-  | "autocomplete-profession";
+  | "autocomplete-profession"
+  | "autocomplete-condition";
 
 export interface FormField {
   name: string;
