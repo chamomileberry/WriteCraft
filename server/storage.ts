@@ -1,4 +1,4 @@
-import { 
+import {
   type User, type InsertUser, type UpsertUser,
   type Character, type UpdateCharacter, type InsertCharacter,
   type Plot, type InsertPlot,
@@ -68,7 +68,7 @@ import {
   type ChatMessage, type InsertChatMessage,
   type Notebook, type InsertNotebook, type UpdateNotebook,
   type ImportJob, type InsertImportJob, type UpdateImportJob,
-  users, characters, 
+  users, characters,
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
   languages, religions, technologies, weapons, professions, ranks, conditions,
@@ -104,7 +104,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined>;
   searchUsers(query: string): Promise<User[]>;
-  
+
   // Notebook methods
   createNotebook(notebook: InsertNotebook): Promise<Notebook>;
   getNotebook(id: string, userId: string): Promise<Notebook | undefined>;
@@ -112,37 +112,37 @@ export interface IStorage {
   updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined>;
   deleteNotebook(id: string, userId: string): Promise<void>;
   validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean>;
-  
+
   // Import Job methods
   createImportJob(job: InsertImportJob): Promise<ImportJob>;
   getImportJob(id: string, userId: string): Promise<ImportJob | undefined>;
   getUserImportJobs(userId: string): Promise<ImportJob[]>;
   updateImportJob(id: string, updates: UpdateImportJob): Promise<ImportJob | undefined>;
-  
+
   // Generic content ownership validation
   validateContentOwnership<T extends { userId?: string | null, notebookId?: string | null }>(
-    content: T | undefined, 
+    content: T | undefined,
     userId: string
   ): boolean;
-  
+
   // Character methods
   createCharacter(character: InsertCharacter): Promise<Character>;
   getCharacter(id: string, userId: string, notebookId: string): Promise<Character | undefined>;
   getUserCharacters(userId: string, notebookId: string): Promise<Character[]>;
   updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character>;
   deleteCharacter(id: string, userId: string, notebookId: string): Promise<void>;
-  
+
   // Plot methods
   createPlot(plot: InsertPlot): Promise<Plot>;
   getPlot(id: string, userId: string, notebookId: string): Promise<Plot | undefined>;
   getUserPlots(userId: string, notebookId: string): Promise<Plot[]>;
-  
+
   // Prompt methods
   createPrompt(prompt: InsertPrompt): Promise<Prompt>;
   getPrompt(id: string, userId: string, notebookId: string): Promise<Prompt | undefined>;
   getUserPrompts(userId: string, notebookId: string): Promise<Prompt[]>;
   getRandomPrompts(count?: number): Promise<Prompt[]>;
-  
+
   // Location methods
   createLocation(location: InsertLocation): Promise<Location>;
   getLocation(id: string, userId: string, notebookId: string): Promise<Location | undefined>;
@@ -156,7 +156,7 @@ export interface IStorage {
   getUserSettings(userId: string, notebookId: string): Promise<Setting[]>;
   updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting>;
 
-  // Item methods  
+  // Item methods
   createItem(item: InsertItem): Promise<Item>;
   getItem(id: string, userId: string, notebookId: string): Promise<Item | undefined>;
   getUserItems(userId: string, notebookId: string): Promise<Item[]>;
@@ -427,13 +427,13 @@ export interface IStorage {
   getUserFamilyTrees(userId: string, notebookId: string): Promise<FamilyTree[]>;
   updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree>;
   deleteFamilyTree(id: string, userId: string): Promise<void>;
-  
+
   // Family Tree Member methods
   createFamilyTreeMember(member: InsertFamilyTreeMember): Promise<FamilyTreeMember>;
   getFamilyTreeMembers(treeId: string, userId: string): Promise<FamilyTreeMember[]>;
   updateFamilyTreeMember(id: string, userId: string, updates: Partial<InsertFamilyTreeMember>): Promise<FamilyTreeMember>;
   deleteFamilyTreeMember(id: string, userId: string, treeId: string): Promise<void>;
-  
+
   // Family Tree Relationship methods
   createFamilyTreeRelationship(relationship: InsertFamilyTreeRelationship): Promise<FamilyTreeRelationship>;
   getFamilyTreeRelationships(treeId: string, userId: string): Promise<FamilyTreeRelationship[]>;
@@ -542,7 +542,7 @@ export interface IStorage {
   updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project>;
   deleteProject(id: string, userId: string): Promise<void>;
   searchProjects(userId: string, query: string): Promise<Project[]>;
-  
+
   // Project Section methods
   createProjectSection(section: InsertProjectSection): Promise<ProjectSection>;
   getProjectSection(id: string, projectId: string): Promise<ProjectSection | undefined>;
@@ -550,7 +550,7 @@ export interface IStorage {
   updateProjectSection(id: string, projectId: string, updates: Partial<InsertProjectSection>): Promise<ProjectSection>;
   deleteProjectSection(id: string, projectId: string): Promise<void>;
   reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number; parentId?: string | null }[]): Promise<void>;
-  
+
   // Universal search method
   searchAllContent(userId: string, query: string): Promise<any[]>;
 
@@ -585,13 +585,13 @@ export interface IStorage {
   getDocumentNotes(documentId: string, userId: string): Promise<Note[]>;
   updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note>;
   deleteNote(id: string, userId: string): Promise<void>;
-  
+
   // Quick note methods
   createQuickNote(userId: string, title: string, content: string): Promise<Note>;
   getUserQuickNote(userId: string): Promise<Note | undefined>;
   updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note>;
   deleteQuickNote(id: string, userId: string): Promise<void>;
-  
+
   // Chat message methods
   createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(userId: string, projectId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]>;
@@ -660,7 +660,7 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(10);
   }
-  
+
   // Notebook methods
   async createNotebook(notebook: InsertNotebook): Promise<Notebook> {
     const [newNotebook] = await db
@@ -676,11 +676,11 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(notebooks)
       .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
-    
+
     if (notebook) {
       return notebook;
     }
-    
+
     // If not owner, check if shared
     const [sharedNotebook] = await db
       .select({
@@ -695,7 +695,7 @@ export class DatabaseStorage implements IStorage {
           eq(shares.resourceId, id)
         )
       );
-    
+
     return sharedNotebook?.notebook || undefined;
   }
 
@@ -706,7 +706,7 @@ export class DatabaseStorage implements IStorage {
       .from(notebooks)
       .where(eq(notebooks.userId, userId))
       .orderBy(desc(notebooks.createdAt));
-    
+
     // Get shared notebooks with share metadata
     const sharedNotebooks = await db
       .select({
@@ -723,7 +723,7 @@ export class DatabaseStorage implements IStorage {
           eq(shares.resourceType, 'notebook')
         )
       );
-    
+
     // Add metadata to notebooks
     const ownedWithMetadata = ownedNotebooks.map(n => ({
       ...n,
@@ -731,7 +731,7 @@ export class DatabaseStorage implements IStorage {
       sharedBy: null,
       sharePermission: null
     }));
-    
+
     const sharedWithMetadata = sharedNotebooks.map(s => ({
       ...s.notebook,
       isShared: true,
@@ -744,13 +744,13 @@ export class DatabaseStorage implements IStorage {
       },
       sharePermission: s.share.permission
     }));
-    
+
     // Combine and return, removing duplicates
     const allNotebooks = [
       ...ownedWithMetadata,
       ...sharedWithMetadata
     ];
-    
+
     // Remove duplicates based on id and sort by createdAt
     const uniqueNotebooks = Array.from(
       new Map(allNotebooks.map(n => [n.id, n])).values()
@@ -759,7 +759,7 @@ export class DatabaseStorage implements IStorage {
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateB - dateA;
     });
-    
+
     return uniqueNotebooks;
   }
 
@@ -831,14 +831,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   validateContentOwnership<T extends { userId?: string | null, notebookId?: string | null }>(
-    content: T | undefined, 
+    content: T | undefined,
     userId: string
   ): boolean {
     if (!content) return false;
     // Content must have matching userId
     return content.userId === userId;
   }
-  
+
   // Character methods
   async createCharacter(character: InsertCharacter): Promise<Character> {
     const [newCharacter] = await db
@@ -905,7 +905,7 @@ export class DatabaseStorage implements IStorage {
     );
     await db.delete(characters).where(whereClause);
   }
-  
+
   // Plot methods
   async createPlot(plot: InsertPlot): Promise<Plot> {
     const [newPlot] = await db
@@ -929,7 +929,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(plots.userId, userId))
       .orderBy(desc(plots.createdAt));
   }
-  
+
   // Prompt methods
   async createPrompt(prompt: InsertPrompt): Promise<Prompt> {
     const [newPrompt] = await db
@@ -959,7 +959,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`RANDOM()`)
       .limit(count);
   }
-  
+
   // Location methods
   async createLocation(location: InsertLocation): Promise<Location> {
     const [newLocation] = await db
@@ -1141,7 +1141,7 @@ export class DatabaseStorage implements IStorage {
 
   async getOrganization(id: string, userId: string, notebookId: string): Promise<Organization | undefined> {
     const whereClause = and(
-      eq(organizations.id, id), 
+      eq(organizations.id, id),
       eq(organizations.userId, userId),
       eq(organizations.notebookId, notebookId)
     );
@@ -1167,7 +1167,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const whereClause = and(
-      eq(organizations.id, id), 
+      eq(organizations.id, id),
       eq(organizations.userId, userId),
       eq(organizations.notebookId, notebookId)
     );
@@ -1187,7 +1187,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const whereClause = and(
-      eq(organizations.id, id), 
+      eq(organizations.id, id),
       eq(organizations.userId, userId),
       eq(organizations.notebookId, notebookId)
     );
@@ -1266,11 +1266,11 @@ export class DatabaseStorage implements IStorage {
   async updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species> {
     // First, get the species to validate ownership
     const [existing] = await db.select().from(species).where(eq(species.id, id));
-    
+
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
-    
+
     const [updatedSpecies] = await db
       .update(species)
       .set(updates)
@@ -1282,11 +1282,11 @@ export class DatabaseStorage implements IStorage {
   async deleteSpecies(id: string, userId: string): Promise<void> {
     // First, get the species to validate ownership
     const [existing] = await db.select().from(species).where(eq(species.id, id));
-    
+
     if (!this.validateContentOwnership(existing, userId)) {
       throw new Error('Unauthorized: You do not own this content');
     }
-    
+
     await db.delete(species).where(eq(species.id, id));
   }
 
@@ -1301,7 +1301,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCulture(id: string, userId: string, notebookId: string): Promise<Culture | undefined> {
     const whereClause = and(
-      eq(cultures.id, id), 
+      eq(cultures.id, id),
       eq(cultures.userId, userId),
       eq(cultures.notebookId, notebookId)
     );
@@ -1327,7 +1327,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const whereClause = and(
-      eq(cultures.id, id), 
+      eq(cultures.id, id),
       eq(cultures.userId, userId),
       eq(cultures.notebookId, notebookId)
     );
@@ -1347,7 +1347,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const whereClause = and(
-      eq(cultures.id, id), 
+      eq(cultures.id, id),
       eq(cultures.userId, userId),
       eq(cultures.notebookId, notebookId)
     );
@@ -2388,7 +2388,7 @@ export class DatabaseStorage implements IStorage {
 
   async getFaction(id: string, userId: string, notebookId: string): Promise<Faction | undefined> {
     const whereClause = and(
-      eq(factions.id, id), 
+      eq(factions.id, id),
       eq(factions.userId, userId),
       eq(factions.notebookId, notebookId)
     );
@@ -2414,7 +2414,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const whereClause = and(
-      eq(factions.id, id), 
+      eq(factions.id, id),
       eq(factions.userId, userId),
       eq(factions.notebookId, notebookId)
     );
@@ -2434,7 +2434,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const whereClause = and(
-      eq(factions.id, id), 
+      eq(factions.id, id),
       eq(factions.userId, userId),
       eq(factions.notebookId, notebookId)
     );
@@ -3071,7 +3071,7 @@ export class DatabaseStorage implements IStorage {
       .insert(familyTrees)
       .values(familyTree)
       .returning();
-    
+
     // Automatically save to saved_items for notebook display
     if (newFamilyTree.notebookId && newFamilyTree.userId) {
       await this.saveItem({
@@ -3085,7 +3085,7 @@ export class DatabaseStorage implements IStorage {
         }
       });
     }
-    
+
     return newFamilyTree;
   }
 
@@ -3119,7 +3119,7 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(familyTrees.id, id))
       .returning();
-    
+
     // Update saved_items entry if name or description changed
     if (updates.name !== undefined || updates.description !== undefined) {
       await db
@@ -3135,7 +3135,7 @@ export class DatabaseStorage implements IStorage {
           eq(savedItems.itemType, 'familytree')
         ));
     }
-    
+
     return updatedFamilyTree;
   }
 
@@ -3172,7 +3172,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(characters, eq(familyTreeMembers.characterId, characters.id))
       .where(eq(familyTreeMembers.treeId, treeId))
       .orderBy(desc(familyTreeMembers.createdAt));
-    
+
     // Reshape the data to nest character inside member
     const members = rows.map(row => ({
       ...row.family_tree_members,
@@ -3187,7 +3187,7 @@ export class DatabaseStorage implements IStorage {
         dateOfDeath: row.characters.dateOfDeath,
       } : null
     }));
-    
+
     return members;
   }
 
@@ -3197,7 +3197,7 @@ export class DatabaseStorage implements IStorage {
     if (!existing) {
       throw new Error('Member not found');
     }
-    
+
     const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, existing.treeId));
     if (!this.validateContentOwnership(tree, userId)) {
       throw new Error('Unauthorized: You do not own this content');
@@ -3207,7 +3207,7 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(familyTreeMembers.id, id))
       .returning();
-    
+
     return updated;
   }
 
@@ -3251,7 +3251,7 @@ export class DatabaseStorage implements IStorage {
     if (!existing) {
       throw new Error('Relationship not found');
     }
-    
+
     const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, existing.treeId));
     if (!this.validateContentOwnership(tree, userId)) {
       throw new Error('Unauthorized: You do not own this content');
@@ -3261,7 +3261,7 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(familyTreeRelationships.id, id))
       .returning();
-    
+
     return updated;
   }
 
@@ -3851,18 +3851,18 @@ export class DatabaseStorage implements IStorage {
 
   async searchGuides(query: string, category?: string): Promise<Guide[]> {
     const conditions = [];
-    
+
     if (category) {
       conditions.push(eq(guides.category, category));
     }
-    
+
     conditions.push(
       or(
         ilike(guides.title, `%${query}%`),
         ilike(guides.content, `%${query}%`)
       )
     );
-    
+
     return await db.select().from(guides)
       .where(and(...conditions))
       .orderBy(guides.title)
@@ -3912,54 +3912,54 @@ export class DatabaseStorage implements IStorage {
 
   async unsaveItem(userId: string, itemType: string, itemId: string): Promise<void> {
     const conditions = [];
-    
-    // Handle null userId for guest users  
+
+    // Handle null userId for guest users
     if (userId === 'null' || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
-    
+
     conditions.push(eq(savedItems.itemType, itemType));
     conditions.push(eq(savedItems.itemId, itemId));
-    
+
     await db.delete(savedItems).where(and(...conditions));
   }
 
   async getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]> {
     const conditions = [];
-    
+
     // Handle null userId for guest users
     if (userId === 'null') {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
-    
+
     if (itemType) {
       conditions.push(eq(savedItems.itemType, itemType));
     }
-    
+
     const savedItemsData = await db.select().from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
-    
+
     return savedItemsData;
   }
 
   async isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean> {
     const conditions = [];
-    
+
     // Handle null userId for guest users
     if (userId === 'null' || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
-    
+
     conditions.push(eq(savedItems.itemType, itemType));
     conditions.push(eq(savedItems.itemId, itemId));
-    
+
     const [saved] = await db.select().from(savedItems)
       .where(and(...conditions))
       .limit(1);
@@ -3968,63 +3968,63 @@ export class DatabaseStorage implements IStorage {
 
   async unsaveItemFromNotebook(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void> {
     const conditions = [];
-    
-    // Handle null userId for guest users  
+
+    // Handle null userId for guest users
     if (userId === 'null' || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
-    
+
     conditions.push(eq(savedItems.itemType, itemType));
     conditions.push(eq(savedItems.itemId, itemId));
     conditions.push(eq(savedItems.notebookId, notebookId));
-    
+
     await db.delete(savedItems).where(and(...conditions));
   }
 
   async getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]> {
     const conditions = [];
-    
+
     // Handle null userId for guest users
     if (userId === 'null') {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
-    
+
     conditions.push(eq(savedItems.notebookId, notebookId));
-    
+
     if (itemType) {
       conditions.push(eq(savedItems.itemType, itemType));
     }
-    
+
     const savedItemsData = await db.select().from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
-    
+
     return savedItemsData;
   }
 
   async updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined> {
     const conditions = [];
-    
+
     // Verify the saved item belongs to this user
     conditions.push(eq(savedItems.id, savedItemId));
-    
+
     // Handle null userId for guest users
     if (userId === 'null' || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
-    
+
     const [updatedItem] = await db
       .update(savedItems)
       .set({ itemData })
       .where(and(...conditions))
       .returning();
-    
+
     return updatedItem;
   }
 
@@ -4046,11 +4046,11 @@ export class DatabaseStorage implements IStorage {
         eq(projects.id, id),
         eq(projects.userId, userId)
       ));
-    
+
     if (project) {
       return project;
     }
-    
+
     // If not owner, check if shared
     const [sharedProject] = await db
       .select({
@@ -4065,7 +4065,7 @@ export class DatabaseStorage implements IStorage {
           eq(shares.resourceId, id)
         )
       );
-    
+
     return sharedProject?.project || undefined;
   }
 
@@ -4076,7 +4076,7 @@ export class DatabaseStorage implements IStorage {
       .from(projects)
       .where(eq(projects.userId, userId))
       .orderBy(desc(projects.updatedAt));
-    
+
     // Get shared projects with share metadata
     const sharedProjects = await db
       .select({
@@ -4093,7 +4093,7 @@ export class DatabaseStorage implements IStorage {
           eq(shares.resourceType, 'project')
         )
       );
-    
+
     // Add metadata to projects
     const ownedWithMetadata = ownedProjects.map(p => ({
       ...p,
@@ -4101,7 +4101,7 @@ export class DatabaseStorage implements IStorage {
       sharedBy: null,
       sharePermission: null
     }));
-    
+
     const sharedWithMetadata = sharedProjects.map(s => ({
       ...s.project,
       isShared: true,
@@ -4114,13 +4114,13 @@ export class DatabaseStorage implements IStorage {
       },
       sharePermission: s.share.permission
     }));
-    
+
     // Combine and return, removing duplicates
     const allProjects = [
       ...ownedWithMetadata,
       ...sharedWithMetadata
     ];
-    
+
     // Remove duplicates based on id and sort by updatedAt
     const uniqueProjects = Array.from(
       new Map(allProjects.map(p => [p.id, p])).values()
@@ -4129,7 +4129,7 @@ export class DatabaseStorage implements IStorage {
       const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
       return dateB - dateA;
     });
-    
+
     return uniqueProjects;
   }
 
@@ -4142,7 +4142,7 @@ export class DatabaseStorage implements IStorage {
         .trim();
       const words = plainText.split(/\s+/).filter((word: string) => word.length > 0);
       updates.wordCount = words.length;
-      
+
       // Generate excerpt if not provided
       if (!updates.excerpt && plainText.length > 0) {
         updates.excerpt = plainText.substring(0, 150) + (plainText.length > 150 ? '...' : '');
@@ -4160,11 +4160,11 @@ export class DatabaseStorage implements IStorage {
         eq(projects.userId, userId)
       ))
       .returning();
-      
+
     if (!updatedProject) {
       throw new Error('Project not found or access denied');
     }
-    
+
     return updatedProject;
   }
 
@@ -4175,7 +4175,7 @@ export class DatabaseStorage implements IStorage {
         eq(projects.id, id),
         eq(projects.userId, userId)
       ));
-      
+
     if (result.rowCount === 0) {
       throw new Error('Project not found or access denied');
     }
@@ -4254,11 +4254,11 @@ export class DatabaseStorage implements IStorage {
         eq(projectSections.projectId, projectId)
       ))
       .returning();
-      
+
     if (!updatedSection) {
       throw new Error('Section not found');
     }
-    
+
     return updatedSection;
   }
 
@@ -4275,12 +4275,12 @@ export class DatabaseStorage implements IStorage {
     // Update positions (and optionally parentId) for each section
     for (const { id, position, parentId } of sectionOrders) {
       const updates: any = { position, updatedAt: new Date() };
-      
+
       // Only update parentId if it's explicitly provided
       if (parentId !== undefined) {
         updates.parentId = parentId;
       }
-      
+
       await db
         .update(projectSections)
         .set(updates)
@@ -4337,11 +4337,11 @@ export class DatabaseStorage implements IStorage {
           sql`${savedItems.itemData}::text ILIKE ${'%' + trimmedQuery + '%'}`
         ))
         .limit(50);
-      
+
       // Batch fetch all notebooks for better performance
       const notebookIds = Array.from(new Set(savedItemResults.map(item => item.notebookId).filter((id): id is string => Boolean(id))));
       const notebooksMap = new Map<string, string>();
-      
+
       if (notebookIds.length > 0) {
         const notebooksData = await db.select()
           .from(notebooks)
@@ -4349,7 +4349,7 @@ export class DatabaseStorage implements IStorage {
             eq(notebooks.userId, userId),
             inArray(notebooks.id, notebookIds)
           ));
-        
+
         notebooksData.forEach(notebook => {
           notebooksMap.set(notebook.id, notebook.name);
         });
@@ -4435,7 +4435,7 @@ export class DatabaseStorage implements IStorage {
     return uniqueResults.slice(0, 20);
   }
 
-  // Project links methods - TODO: Implement when project link types are available
+  // Project link methods - TODO: Implement when project link types are available
   // Note: Previously called "manuscript links" - renamed to "project links" for clarity
   // async createProjectLink(link: InsertProjectLink): Promise<ProjectLink> {
   //   const [newLink] = await db
@@ -4465,11 +4465,11 @@ export class DatabaseStorage implements IStorage {
   //       eq(projectLinks.userId, userId)
   //     ))
   //     .returning();
-  //   
+  //
   //   if (!updatedLink) {
   //     throw new Error('Project link not found or access denied');
   //   }
-  //   
+  //
   //   return updatedLink;
   // }
 
@@ -4480,7 +4480,7 @@ export class DatabaseStorage implements IStorage {
   //       eq(projectLinks.id, linkId),
   //       eq(projectLinks.userId, userId)
   //     ));
-  //   
+  //
   //   if (result.rowCount === 0) {
   //     throw new Error('Project link not found or access denied');
   //   }
@@ -4508,7 +4508,7 @@ export class DatabaseStorage implements IStorage {
   //       eq(projectLinks.userId, userId)
   //     ))
   //     .orderBy(projectLinks.createdAt);
-  //   
+  //
   //   return backlinks;
   // }
 
@@ -4535,7 +4535,7 @@ export class DatabaseStorage implements IStorage {
       if (!pin.notebookId) {
         throw new Error('Notebook ID is required for pinning content');
       }
-      
+
       // Verify user owns the notebook
       const userNotebook = await db
         .select()
@@ -4545,11 +4545,11 @@ export class DatabaseStorage implements IStorage {
           eq(notebooks.userId, pin.userId)
         ))
         .limit(1);
-      
+
       if (!userNotebook[0]) {
         throw new Error('Notebook not found or access denied');
       }
-      
+
       const [newPin] = await db
         .insert(pinnedContent)
         .values(pin)
@@ -4589,11 +4589,11 @@ export class DatabaseStorage implements IStorage {
       eq(pinnedContent.userId, userId),
       eq(pinnedContent.notebookId, notebookId)
     ];
-    
+
     if (category) {
       conditions.push(eq(pinnedContent.category, category));
     }
-    
+
     return await db
       .select()
       .from(pinnedContent)
@@ -4623,7 +4623,7 @@ export class DatabaseStorage implements IStorage {
         eq(pinnedContent.notebookId, notebookId)
       ))
       .limit(1);
-    
+
     return !!pin;
   }
 
@@ -4649,11 +4649,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserFolders(userId: string, type?: string): Promise<Folder[]> {
     const conditions = [eq(folders.userId, userId)];
-    
+
     if (type) {
       conditions.push(eq(folders.type, type));
     }
-    
+
     return await db
       .select()
       .from(folders)
@@ -4682,12 +4682,12 @@ export class DatabaseStorage implements IStorage {
         eq(folders.userId, userId)
       ))
       .returning();
-    
+
     const updatedFolder = result[0];
     if (!updatedFolder) {
       throw new Error("Folder not found or unauthorized");
     }
-    
+
     return updatedFolder;
   }
 
@@ -4734,11 +4734,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserNotes(userId: string, type?: string): Promise<Note[]> {
     const conditions = [eq(notes.userId, userId)];
-    
+
     if (type) {
       conditions.push(eq(notes.type, type));
     }
-    
+
     return await db
       .select()
       .from(notes)
@@ -4780,11 +4780,11 @@ export class DatabaseStorage implements IStorage {
         eq(notes.userId, userId)
       ))
       .returning();
-    
+
     if (!updatedNote) {
       throw new Error("Note not found or unauthorized");
     }
-    
+
     return updatedNote;
   }
 
@@ -4838,11 +4838,11 @@ export class DatabaseStorage implements IStorage {
         eq(notes.type, 'quick_note')
       ))
       .returning();
-    
+
     if (!updatedNote) {
       throw new Error("Quick note not found or unauthorized");
     }
-    
+
     return updatedNote;
   }
 
@@ -4867,7 +4867,7 @@ export class DatabaseStorage implements IStorage {
 
   async getChatMessages(userId: string, projectId?: string, guideId?: string, limit = 50): Promise<ChatMessage[]> {
     let whereCondition = eq(chatMessages.userId, userId);
-    
+
     if (projectId) {
       whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId))!;
     } else if (guideId) {
@@ -4875,8 +4875,8 @@ export class DatabaseStorage implements IStorage {
     } else {
       // Get general chat messages (not associated with any specific document)
       whereCondition = and(
-        whereCondition, 
-        isNull(chatMessages.projectId), 
+        whereCondition,
+        isNull(chatMessages.projectId),
         isNull(chatMessages.guideId)
       )!;
     }
@@ -4887,13 +4887,13 @@ export class DatabaseStorage implements IStorage {
       .where(whereCondition)
       .orderBy(desc(chatMessages.createdAt))
       .limit(limit);
-    
+
     return messages.reverse(); // Return in chronological order
   }
 
   async deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void> {
     let whereCondition = eq(chatMessages.userId, userId);
-    
+
     if (projectId) {
       whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId))!;
     } else if (guideId) {
@@ -4901,8 +4901,8 @@ export class DatabaseStorage implements IStorage {
     } else {
       // Delete general chat messages (not associated with any specific document)
       whereCondition = and(
-        whereCondition, 
-        isNull(chatMessages.projectId), 
+        whereCondition,
+        isNull(chatMessages.projectId),
         isNull(chatMessages.guideId)
       )!;
     }

@@ -352,11 +352,22 @@ router.post('/upload', upload.single('file'), async (req: any, res) => {
 
     // Get or create a default notebook for imports
     let notebookId = req.body.notebookId;
+    
+    // Validate the notebook exists and belongs to the user
+    if (notebookId) {
+      const notebook = await storage.getNotebook(notebookId, userId);
+      if (!notebook) {
+        console.log(`[Import] Invalid notebookId ${notebookId} for user ${userId}, will create new notebook`);
+        notebookId = null;
+      }
+    }
+    
     if (!notebookId) {
       // Get user's notebooks, use first one or create a default import notebook
       const notebooks = await storage.getUserNotebooks(userId);
       if (notebooks.length > 0) {
         notebookId = notebooks[0].id;
+        console.log(`[Import] Using existing notebook ${notebookId}: ${notebooks[0].name}`);
       } else {
         // Create a default import notebook
         const defaultNotebook = await storage.createNotebook({
@@ -365,8 +376,11 @@ router.post('/upload', upload.single('file'), async (req: any, res) => {
           description: 'Content imported from World Anvil',
         });
         notebookId = defaultNotebook.id;
+        console.log(`[Import] Created new notebook ${notebookId}: ${defaultNotebook.name}`);
       }
     }
+    
+    console.log(`[Import] Final notebookId: ${notebookId} for user: ${userId}`);
 
     // Parse the ZIP file
     const parsed = parseWorldAnvilExport(req.file.buffer);
