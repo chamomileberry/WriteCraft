@@ -19,7 +19,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
-import type { FamilyTree, FamilyTreeMember, FamilyTreeRelationship } from '@shared/schema';
+import type { FamilyTree, FamilyTreeMember, FamilyTreeRelationship, Character } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,6 +31,8 @@ import { CharacterGallery } from './CharacterGallery';
 import { RelationshipSelector, type RelationshipType } from './RelationshipSelector';
 import { InlineMemberDialog } from './InlineMemberDialog';
 import { MemberEditDialog } from './MemberEditDialog';
+import { AddRelationshipDialog, type RelationshipType as AddRelationshipType } from './AddRelationshipDialog';
+import { SelectCharacterDialog } from './SelectCharacterDialog';
 import { getLayoutedElements } from '@/lib/elk-layout';
 
 interface FamilyTreeEditorProps {
@@ -56,6 +58,12 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const [editingMember, setEditingMember] = useState<FamilyTreeMember | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   
+  // Add relationship dialog state
+  const [addRelationshipDialogOpen, setAddRelationshipDialogOpen] = useState(false);
+  const [selectCharacterDialogOpen, setSelectCharacterDialogOpen] = useState(false);
+  const [selectedMemberForRelationship, setSelectedMemberForRelationship] = useState<FamilyTreeMember | null>(null);
+  const [selectedRelationshipType, setSelectedRelationshipType] = useState<AddRelationshipType | null>(null);
+  
   // Tree metadata editing state (for auto-save - task 4)
   const [treeName, setTreeName] = useState('');
   const [treeDescription, setTreeDescription] = useState('');
@@ -66,6 +74,47 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     setEditingMember(member);
     setEditModalOpen(true);
   }, []);
+
+  // Handle add relationship - opens AddRelationshipDialog
+  const handleAddRelationship = useCallback((member: FamilyTreeMember) => {
+    setSelectedMemberForRelationship(member);
+    setAddRelationshipDialogOpen(true);
+  }, []);
+
+  // Handle relationship type selection - close first dialog, open second
+  const onSelectRelationshipType = useCallback((type: AddRelationshipType) => {
+    setSelectedRelationshipType(type);
+    setAddRelationshipDialogOpen(false);
+    setSelectCharacterDialogOpen(true);
+  }, []);
+
+  // Handle selecting existing character (stub for now)
+  const onSelectExisting = useCallback((characterId: string) => {
+    // Backend implementation will be in next step
+    setSelectCharacterDialogOpen(false);
+    setAddRelationshipDialogOpen(false);
+    setSelectedMemberForRelationship(null);
+    setSelectedRelationshipType(null);
+    
+    toast({
+      title: 'Relationship created',
+      description: 'Successfully linked existing character (backend pending)',
+    });
+  }, [toast]);
+
+  // Handle creating new character (stub for now)
+  const onCreateNew = useCallback((name: string) => {
+    // Backend implementation will be in next step
+    setSelectCharacterDialogOpen(false);
+    setAddRelationshipDialogOpen(false);
+    setSelectedMemberForRelationship(null);
+    setSelectedRelationshipType(null);
+    
+    toast({
+      title: 'Character created',
+      description: `Created new character "${name}" (backend pending)`,
+    });
+  }, [toast]);
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(() => ({
@@ -95,6 +144,19 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     queryKey: ['/api/family-trees', treeId, 'relationships'],
     queryFn: () => fetch(`/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`).then(r => r.json()),
     enabled: !!treeId && !!notebookId
+  });
+
+  // Fetch characters for SelectCharacterDialog
+  const { data: characters = [] } = useQuery<Character[]>({
+    queryKey: ['/api/characters'],
+    queryFn: async () => {
+      const response = await fetch(`/api/characters?notebookId=${notebookId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch characters');
+      }
+      return response.json();
+    },
+    enabled: !!notebookId
   });
 
   // Sync tree metadata to local state when tree data loads
@@ -173,7 +235,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           member,
           notebookId,
           treeId,
-          onEdit: handleEditMember
+          onEdit: handleEditMember,
+          onAddRelationship: handleAddRelationship
         },
       }));
       
@@ -765,6 +828,22 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         notebookId={notebookId}
         onSave={handleSaveMemberDetails}
         isLoading={updateMemberMutation.isPending}
+      />
+      
+      <AddRelationshipDialog
+        open={addRelationshipDialogOpen}
+        onOpenChange={setAddRelationshipDialogOpen}
+        member={selectedMemberForRelationship}
+        onSelectRelationshipType={onSelectRelationshipType}
+      />
+      
+      <SelectCharacterDialog
+        open={selectCharacterDialogOpen}
+        onOpenChange={setSelectCharacterDialogOpen}
+        relationshipType={selectedRelationshipType}
+        characters={characters || []}
+        onSelectExisting={onSelectExisting}
+        onCreateNew={onCreateNew}
       />
     </div>
   );
