@@ -105,18 +105,27 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
 
     // If no articles.json, look for individual JSON files
     if (articles.length === 0) {
-      zipEntries.forEach(entry => {
-        if (entry.entryName.endsWith('.json') && !entry.entryName.endsWith('manifest.json')) {
-          try {
-            const data = JSON.parse(entry.getData().toString('utf8'));
-            if (data.title || data.id) {
-              articles.push(data);
-            }
-          } catch (e) {
-            // Skip invalid JSON files
+      console.log('No articles.json found, looking for individual article files...');
+      const articleFiles = zipEntries.filter(entry => 
+        !entry.isDirectory && 
+        entry.entryName.includes('/articles/') && 
+        entry.entryName.endsWith('.json')
+      );
+      
+      console.log(`Found ${articleFiles.length} individual article files`);
+      
+      articleFiles.forEach(entry => {
+        try {
+          const data = JSON.parse(entry.getData().toString('utf8'));
+          if (data.title || data.id || data.name) {
+            articles.push(data);
           }
+        } catch (e) {
+          console.log(`Could not parse ${entry.entryName}:`, e instanceof Error ? e.message : 'Unknown error');
         }
       });
+      
+      console.log(`Successfully parsed ${articles.length} articles from individual files`);
     }
 
     return {
