@@ -152,20 +152,21 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         throw new Error('User not authenticated');
       }
       console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
-      // Use fetch directly with cache: 'no-cache' to force fresh data
-      const response = await fetch(`/api/saved-items/${user.id}?notebookId=${activeNotebookId}`, {
-        credentials: 'include',
-        cache: 'no-cache' // Force bypass of HTTP cache
-      });
+      // Use apiRequest to get fresh data
+      const response = await apiRequest('GET', `/api/saved-items/${user.id}?notebookId=${activeNotebookId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch saved items: ${response.status}`);
       }
-      return await response.json() as SavedItem[];
+      const data = await response.json() as SavedItem[];
+      console.log('[SavedItems] Fetched', data.length, 'items');
+      return data;
     },
     enabled: !!activeNotebookId && !!user?.id, // Only enabled when there's an active notebook and authenticated user
-    staleTime: 0, // Always consider data stale - refetch on mount/focus
-    refetchOnMount: 'always', // Always refetch when component mounts
-    refetchOnWindowFocus: true // Refetch when user returns to tab
+    gcTime: 0, // Don't cache query results at all
+    staleTime: 0, // Always consider data stale
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchInterval: 5000 // Poll every 5 seconds to catch imports
   });
 
   // Fetch quick note separately
@@ -563,6 +564,20 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
               data-testid="input-search-content"
             />
           </div>
+          <Button 
+            variant="outline"
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
+              toast({
+                title: "Refreshing...",
+                description: "Reloading notebook content",
+              });
+            }}
+            className="gap-2"
+          >
+            <Search className="w-4 h-4" />
+            Refresh
+          </Button>
           <Button 
             onClick={() => setIsContentModalOpen(true)}
             className="gap-2"
