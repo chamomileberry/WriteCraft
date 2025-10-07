@@ -975,6 +975,53 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async bulkDeleteCharactersWithIssues(userId: string, notebookId: string): Promise<{ deletedCount: number }> {
+    // Get all characters with issues
+    const baseQuery = and(
+      eq(characters.userId, userId),
+      eq(characters.notebookId, notebookId)
+    );
+
+    // Build condition for characters with any issue
+    const issuesCondition = or(
+      // Missing family name (has given name but no family name)
+      and(
+        isNotNull(characters.givenName),
+        or(
+          isNull(characters.familyName),
+          eq(characters.familyName, '')
+        )
+      ),
+      // Missing description
+      or(
+        isNull(characters.description),
+        eq(characters.description, '')
+      ),
+      // Missing image
+      or(
+        isNull(characters.imageUrl),
+        eq(characters.imageUrl, '')
+      )
+    );
+
+    // Delete characters with issues
+    const deleted = await db.delete(characters)
+      .where(and(baseQuery, issuesCondition))
+      .returning({ id: characters.id });
+
+    // Also delete saved_items entries for these characters
+    if (deleted.length > 0) {
+      const characterIds = deleted.map(c => c.id);
+      await db.delete(savedItems)
+        .where(and(
+          eq(savedItems.itemType, 'character'),
+          inArray(savedItems.itemId, characterIds)
+        ));
+    }
+
+    return { deletedCount: deleted.length };
+  }
+
   async getPotentialDuplicates(userId: string, notebookId: string): Promise<Character[][]> {
     // Helper function to calculate Levenshtein distance
     function levenshteinDistance(str1: string, str2: string): number {

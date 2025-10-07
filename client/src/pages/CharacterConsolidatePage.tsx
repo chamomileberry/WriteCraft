@@ -53,6 +53,9 @@ export default function CharacterConsolidatePage() {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [issueType, setIssueType] = useState<IssueType | null>(null);
   const [fixValue, setFixValue] = useState('');
+  
+  // Delete All confirmation state
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
   // Fetch issues
   const { data: issuesData, isLoading: issuesLoading } = useQuery<IssuesData>({
@@ -114,6 +117,33 @@ export default function CharacterConsolidatePage() {
         description: "Failed to delete character. Please try again.",
         variant: "destructive",
       });
+    },
+  });
+
+  // Bulk delete all characters with issues mutation
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', `/api/admin/characters/bulk-delete-issues?notebookId=${activeNotebookId}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Characters Deleted",
+        description: `Successfully deleted ${data.deletedCount} character${data.deletedCount !== 1 ? 's' : ''} with data issues.`,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/issues?notebookId=${activeNotebookId}`, activeNotebookId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/duplicates?notebookId=${activeNotebookId}`, activeNotebookId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/characters', activeNotebookId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
+      setShowDeleteAllDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "Bulk Delete Failed",
+        description: "Failed to delete characters. Please try again.",
+        variant: "destructive",
+      });
+      setShowDeleteAllDialog(false);
     },
   });
 
@@ -306,6 +336,21 @@ export default function CharacterConsolidatePage() {
               <div>Loading issues...</div>
             ) : (
               <>
+                {/* Delete All Button */}
+                {issuesData && issuesData.stats.totalIssues > 0 && (
+                  <div className="flex justify-end mb-4">
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowDeleteAllDialog(true)}
+                      disabled={bulkDeleteMutation.isPending}
+                      data-testid="button-delete-all-issues"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete All ({issuesData.stats.totalIssues})
+                    </Button>
+                  </div>
+                )}
+
                 {/* Missing Family Names */}
                 {issuesData && issuesData.missingFamilyName.length > 0 && (
                   <div>
@@ -520,6 +565,58 @@ export default function CharacterConsolidatePage() {
               data-testid="button-save-fix"
             >
               {updateMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete All Confirmation Dialog */}
+      <Dialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+        <DialogContent data-testid="dialog-delete-all-confirmation">
+          <DialogHeader>
+            <DialogTitle>Delete All Characters with Issues?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete all {issuesData?.stats.totalIssues || 0} character{issuesData?.stats.totalIssues !== 1 ? 's' : ''} that have missing family names, descriptions, or images.
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-2 py-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Warning:</strong> This will delete:
+                <ul className="mt-2 space-y-1 list-disc list-inside">
+                  {issuesData && issuesData.stats.missingFamilyNameCount > 0 && (
+                    <li>{issuesData.stats.missingFamilyNameCount} character{issuesData.stats.missingFamilyNameCount !== 1 ? 's' : ''} with missing family names</li>
+                  )}
+                  {issuesData && issuesData.stats.missingDescriptionCount > 0 && (
+                    <li>{issuesData.stats.missingDescriptionCount} character{issuesData.stats.missingDescriptionCount !== 1 ? 's' : ''} with missing descriptions</li>
+                  )}
+                  {issuesData && issuesData.stats.missingImageCount > 0 && (
+                    <li>{issuesData.stats.missingImageCount} character{issuesData.stats.missingImageCount !== 1 ? 's' : ''} with missing images</li>
+                  )}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteAllDialog(false)}
+              disabled={bulkDeleteMutation.isPending}
+              data-testid="button-cancel-delete-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => bulkDeleteMutation.mutate()}
+              disabled={bulkDeleteMutation.isPending}
+              data-testid="button-confirm-delete-all"
+            >
+              {bulkDeleteMutation.isPending ? 'Deleting...' : 'Delete All'}
             </Button>
           </DialogFooter>
         </DialogContent>
