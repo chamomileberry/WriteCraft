@@ -168,17 +168,25 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
   // Category is an object, not a string!
   let typeKey = '';
 
-  if (article.templateType) {
-    typeKey = article.templateType.toLowerCase();
-  } else if (article.entityClass) {
+  // Try multiple fields to determine type
+  if (article.entityClass) {
     typeKey = article.entityClass.toLowerCase();
+  } else if (article.templateType) {
+    typeKey = article.templateType.toLowerCase();
+  } else if (article.template && typeof article.template === 'object' && article.template.title) {
+    typeKey = article.template.title.toLowerCase();
   } else if (article.category && typeof article.category === 'object' && article.category.title) {
     typeKey = article.category.title.toLowerCase();
+  } else if (article.type) {
+    typeKey = article.type.toLowerCase();
   } else {
     typeKey = 'document';
   }
 
   const contentType = WORLD_ANVIL_TYPE_MAPPING[typeKey] || 'document';
+
+  // Log the type mapping for debugging
+  console.log(`[Type Mapping] Article "${article.title}": typeKey="${typeKey}" → contentType="${contentType}"`);
 
   // Log unmapped types to help debug
   if (!WORLD_ANVIL_TYPE_MAPPING[typeKey] && typeKey !== 'document') {
@@ -411,10 +419,23 @@ async function processImport(
       const article = parsed.articles[i];
 
       try {
+        // Log article structure for first 3 items to understand the data
+        if (i < 3) {
+          console.log(`[Import ${jobId}] Article ${i + 1} structure:`, JSON.stringify({
+            title: article.title,
+            entityClass: article.entityClass,
+            templateType: article.templateType,
+            template: article.template,
+            category: article.category,
+            type: article.type,
+            availableKeys: Object.keys(article).slice(0, 20)
+          }, null, 2));
+        }
+
         const mapped = mapArticleToContent(article, userId, notebookId);
         const contentType = mapped.contentType || 'document';
 
-        console.log(`[Import ${jobId}] Processing ${i + 1}/${parsed.totalItems}: "${article.title}" (type: ${article.entityClass || article.templateType} → ${contentType})`);
+        console.log(`[Import ${jobId}] Processing ${i + 1}/${parsed.totalItems}: "${article.title}" (type: ${article.entityClass || article.templateType || article.type} → ${contentType})`);
 
         // Import based on content type
         let createdItem: any = null;
