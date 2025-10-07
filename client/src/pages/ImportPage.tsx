@@ -71,6 +71,9 @@ export default function ImportPage() {
       // In a real scenario, you'd also append the activeNotebook.id here if it exists
       if (activeNotebook) {
         formData.append('notebookId', activeNotebook.id);
+        console.log(`[Import] Uploading to notebook: ${activeNotebook.id} (${activeNotebook.name})`);
+      } else {
+        console.warn('[Import] No active notebook selected - import will use default');
       }
 
       const response = await fetch('/api/import/upload', {

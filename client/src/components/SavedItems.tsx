@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -662,6 +662,25 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                   }
                   return newSet;
                 });
+              };
+
+              // Group items by type for better organization
+              const groupedItems = items.reduce((acc, item) => {
+                const type = item.itemType || 'other';
+                if (!acc[type]) {
+                  acc[type] = [];
+                }
+                acc[type].push(item);
+                return acc;
+              }, {} as Record<string, typeof items>);
+
+              const handleItemClick = (item: SavedItem) => {
+                const mapping = getMappingById(item.itemType);
+                if (mapping) {
+                  setLocation(`/${mapping.urlSegment}/${item.itemId}`);
+                } else {
+                  console.warn(`No mapping found for item type: ${item.itemType}`);
+                }
               };
 
               return (

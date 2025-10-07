@@ -470,14 +470,19 @@ async function processImport(
 
         // Create saved_items entry for notebook visibility
         if (createdItem) {
-          const savedItem = await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
-          console.log(`[Import ${jobId}] Created saved_item ${savedItem.id} in notebook ${notebookId}`);
+          try {
+            const savedItem = await storage.saveItem({
+              userId,
+              notebookId,
+              itemType: contentType,
+              itemId: createdItem.id,
+              itemData: createdItem
+            });
+            console.log(`[Import ${jobId}] ✓ Created saved_item ${savedItem.id} for ${contentType} "${article.title}" in notebook ${notebookId}`);
+          } catch (saveError) {
+            console.error(`[Import ${jobId}] ✗ Failed to create saved_item for ${contentType} "${article.title}":`, saveError);
+            // Don't fail the whole import, but log it
+          }
         }
 
         // Update progress every 10 items or on last item
