@@ -301,6 +301,71 @@
    - Empty state handling
    - Keyboard navigation support
 
+### Critical Security Requirements (Non-Optional)
+
+**These security measures MUST be implemented and are not optional:**
+
+1. **Application Data Security:**
+   - All database queries must enforce ownership validation
+   - Use parameterized queries exclusively (no raw SQL)
+   - Validate all IDs and resource references before database operations
+   - Return 404 (not 403) for unauthorized access to prevent enumeration
+   - Implement triple-filtering for delete operations (id + userId + notebookId)
+
+2. **Admin Ownership & Data Security:**
+   - Admin role changes restricted to dedicated admin-only endpoints
+   - Prevent self-demotion of last admin user
+   - Log all admin privilege changes as CRITICAL security events
+   - Admin endpoints must use `requireAdmin` middleware
+   - Never expose admin status in public API responses
+
+3. **User Data & PII Protection:**
+   - Limit exposed user fields to: id, email, firstName, lastName, profileImageUrl
+   - Never return password hashes, session tokens, or internal IDs in API responses
+   - Sanitize user search results (exclude current user, limit fields)
+   - Implement soft delete with data anonymization for user deletion
+   - Validate user ownership before exposing any personal data
+
+4. **Input Validation & Sanitization:**
+   - All inputs must pass through `sanitizeAllInputs` middleware
+   - SQL keyword detection and blocking
+   - String length limits (10,000 chars max)
+   - Array size limits (100 items max)
+   - Prototype pollution prevention (__proto__, constructor, prototype)
+   - XSS prevention using DOMPurify for user-generated HTML
+
+5. **Authentication & Authorization:**
+   - Block test mode bypass in production environments
+   - Validate test user ID format in test environments
+   - Check session expiry on every authenticated request
+   - Regenerate session IDs after privilege changes
+   - Use `secureAuthentication` middleware for all protected routes
+
+6. **CSRF & Request Protection:**
+   - CSRF tokens required for all state-changing operations (POST, PUT, PATCH, DELETE)
+   - Rate limiting active and properly configured
+   - Security headers applied globally
+   - Cookie security: httpOnly, secure, sameSite: 'lax'
+
+**Package.json Limitation Workaround:**
+
+Since the agent cannot modify package.json before deployment, any security enhancements requiring new dependencies should be:
+
+1. **Documented in SECURITY.md** under a new "Pre-Deployment Security Checklist" section
+2. **Added to POST_DEPLOYMENT_SECURITY_TESTS.md** with testing procedures
+3. **Implemented with existing dependencies** where possible as interim solutions
+4. **Flagged with TODO comments** in code with clear instructions for manual implementation
+
+**Security Checklist Document Updates:**
+
+When a security improvement cannot be implemented due to package.json restrictions:
+
+1. Add entry to SECURITY.md "Pre-Deployment Security Checklist" section
+2. Include package name, version, and purpose
+3. Document configuration steps required after installation
+4. Add verification tests to POST_DEPLOYMENT_SECURITY_TESTS.md
+5. Mark with severity level (CRITICAL, HIGH, MEDIUM, LOW)
+
 **This ensures continuous improvement and prevents technical debt accumulation.**
 
 ---

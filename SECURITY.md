@@ -291,3 +291,255 @@ This implementation addresses the following security requirements:
   - Security headers
   - Audit logging
   - Security test endpoints
+
+
+## Pre-Deployment Security Checklist
+
+This section documents security enhancements that require package installation or deployment configuration changes that cannot be automated before the application is officially launched.
+
+### Critical Security Enhancements
+
+#### 1. ✅ Database-Level Row-Level Security (RLS)
+**Status:** Recommended Enhancement  
+**Priority:** HIGH  
+**Current State:** Application-level RLS implemented  
+**Enhancement:** Add PostgreSQL RLS policies for defense-in-depth
+
+**Implementation Steps:**
+```sql
+-- Enable RLS on all user-owned tables
+ALTER TABLE notebooks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE characters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+-- ... (repeat for all content tables)
+
+-- Create policy to restrict access to owner's data
+CREATE POLICY user_isolation_policy ON notebooks
+  FOR ALL
+  USING (user_id = current_setting('app.current_user_id')::text);
+
+-- Repeat for all tables
+```
+
+**Verification:** Run queries as different users to confirm isolation
+
+---
+
+#### 2. ⏳ Multi-Factor Authentication (MFA)
+**Status:** Not Implemented  
+**Priority:** HIGH  
+**Required Package:** `speakeasy` or `otplib`
+
+**Implementation Steps:**
+1. Install MFA library: `npm install speakeasy qrcode`
+2. Add `mfaSecret` and `mfaEnabled` columns to users table
+3. Create `/api/auth/mfa/setup` endpoint to generate QR code
+4. Create `/api/auth/mfa/verify` endpoint for token validation
+5. Modify login flow to require MFA token after password
+6. Store backup codes securely (hashed)
+
+**Verification:** Test MFA setup and login flow with authenticator app
+
+---
+
+#### 3. ⏳ API Key Rotation Policy
+**Status:** Not Implemented  
+**Priority:** MEDIUM  
+**Required Package:** `node-schedule` or built-in cron
+
+**Implementation Steps:**
+1. Add API key expiration tracking to database
+2. Implement scheduled job to rotate keys every 90 days
+3. Send email notifications before expiration
+4. Create `/api/auth/rotate-api-key` endpoint
+5. Log all rotation events to security audit log
+
+**Verification:** Test key rotation and verify old keys are invalidated
+
+---
+
+#### 4. ⏳ Enhanced Session Management
+**Status:** Partial Implementation  
+**Priority:** MEDIUM  
+**Required Package:** `express-session` with Redis store
+
+**Current:** PostgreSQL session store  
+**Enhancement:** Redis for better performance and session management
+
+**Implementation Steps:**
+1. Install Redis: `npm install redis connect-redis`
+2. Set up Redis connection
+3. Configure connect-redis as session store
+4. Implement session timeout policies
+5. Add concurrent session limiting (max 3 devices)
+
+**Verification:** Test session expiry, concurrent sessions, and performance
+
+---
+
+#### 5. ⏳ Intrusion Detection System (IDS)
+**Status:** Not Implemented  
+**Priority:** MEDIUM  
+**Required Package:** Custom middleware + alerting system
+
+**Implementation Steps:**
+1. Create pattern detection for suspicious activity:
+   - Multiple failed login attempts
+   - Rapid API requests from single IP
+   - Attempts to access non-existent resources
+   - SQL injection pattern detection
+2. Implement IP blocking after threshold exceeded
+3. Set up email/SMS alerts for CRITICAL events
+4. Create admin dashboard for security events
+
+**Verification:** Simulate attacks and verify detection + alerting
+
+---
+
+#### 6. ⏳ Content Security Policy (CSP) Enhancement
+**Status:** Basic Implementation  
+**Priority:** MEDIUM  
+**Required Package:** `helmet` (already available)
+
+**Current:** Basic CSP headers  
+**Enhancement:** Strict CSP with nonce-based script execution
+
+**Implementation Steps:**
+1. Generate unique nonce per request
+2. Add nonce to all inline scripts
+3. Update CSP header to use nonce
+4. Remove `unsafe-inline` from script-src
+5. Add CSP violation reporting endpoint
+
+**Verification:** Test all features work with strict CSP, check violation reports
+
+---
+
+#### 7. ⏳ Automated Security Scanning
+**Status:** Not Implemented  
+**Priority:** MEDIUM  
+**Required Package:** `npm audit`, `snyk`, or `retire.js`
+
+**Implementation Steps:**
+1. Install security scanning tool: `npm install -D snyk`
+2. Add pre-commit hook for dependency scanning
+3. Configure CI/CD pipeline security checks
+4. Set up automated vulnerability alerts
+5. Create remediation workflow
+
+**Verification:** Run scan and verify vulnerabilities are detected
+
+---
+
+#### 8. ⏳ Encrypted Secrets Management
+**Status:** Environment Variables  
+**Priority:** HIGH  
+**Required:** Replit Secrets or external secrets manager
+
+**Current:** Environment variables in Replit  
+**Enhancement:** Encrypted secrets with rotation
+
+**Implementation Steps:**
+1. Use Replit Secrets for all sensitive values
+2. Implement secret rotation schedule
+3. Never log or expose secrets in errors
+4. Add secret validation on startup
+5. Document all required secrets
+
+**Verification:** Ensure app starts with all required secrets, test rotation
+
+---
+
+#### 9. ⏳ Backup & Disaster Recovery
+**Status:** Not Implemented  
+**Priority:** HIGH  
+**Required:** Database backup strategy
+
+**Implementation Steps:**
+1. Configure automated PostgreSQL backups
+2. Test backup restoration process
+3. Implement point-in-time recovery
+4. Document recovery procedures
+5. Store backups in secure, separate location
+
+**Verification:** Perform test restoration from backup
+
+---
+
+#### 10. ⏳ Security Headers Enhancement
+**Status:** Basic Implementation  
+**Priority:** LOW  
+**Required Package:** None (enhancement of existing)
+
+**Enhancement Areas:**
+- Add Subresource Integrity (SRI) for CDN resources
+- Implement Certificate Transparency monitoring
+- Add Expect-CT header
+- Enhance Permissions-Policy directives
+
+**Verification:** Check headers with securityheaders.com
+
+---
+
+### Deployment Configuration
+
+#### Rate Limiting Re-enabling
+**Status:** Currently disabled for development  
+**Location:** `server/app-security.ts` lines 22-25
+
+**Before Deployment:**
+1. Uncomment rate limiting middleware
+2. Adjust limits based on expected traffic
+3. Monitor rate limit violations in production
+4. Update documentation
+
+---
+
+### Post-Deployment Testing
+
+After implementing any security enhancement:
+
+1. ✅ Run all tests in `POST_DEPLOYMENT_SECURITY_TESTS.md`
+2. ✅ Verify security audit logs are working
+3. ✅ Test with multiple user accounts
+4. ✅ Perform penetration testing
+5. ✅ Review security headers with online tools
+6. ✅ Monitor for false positives in security alerts
+
+---
+
+### Security Maintenance Schedule
+
+**Daily:**
+- Review security audit logs for CRITICAL events
+- Monitor rate limit violations
+
+**Weekly:**
+- Review failed authentication attempts
+- Check for new CVEs in dependencies
+
+**Monthly:**
+- Rotate API keys and secrets
+- Review and update security policies
+- Run full security audit
+- Test backup restoration
+
+**Quarterly:**
+- Penetration testing
+- Security training for team
+- Update security documentation
+- Review and update incident response plan
+
+---
+
+### Contact & Escalation
+
+For security incidents or questions:
+- **Email:** security@replit.com (replace with your security email)
+- **Escalation:** [Define your escalation process]
+- **On-Call:** [Define your on-call rotation]
+
+---
+
+**Last Updated:** [Current Date]  
+**Next Review:** [Schedule quarterly reviews]
