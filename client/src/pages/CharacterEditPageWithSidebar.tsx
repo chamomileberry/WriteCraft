@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Database, FileText } from "lucide-react";
 import { useNotebookStore } from "@/stores/notebookStore";
+import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 
 export default function CharacterEditPageWithSidebar() {
@@ -19,6 +20,7 @@ export default function CharacterEditPageWithSidebar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'structured' | 'article'>('structured');
 
@@ -46,30 +48,23 @@ export default function CharacterEditPageWithSidebar() {
       if (!notebookId) {
         throw new Error('No notebook ID available for update');
       }
-      const response = await fetch(`/api/characters/${id}?notebookId=${notebookId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update character');
-      }
+      const response = await apiRequest('PATCH', `/api/characters/${id}?notebookId=${notebookId}`, data);
       return response.json();
     },
     onSuccess: async (updatedCharacter) => {
       // Automatically save character to collection when edited
-      try {
-        await apiRequest('POST', '/api/saved-items', {
-          userId: 'demo-user', // Use demo-user for consistency
-          itemType: 'character',
-          itemId: id,
-          notebookId: notebookId
-        });
-      } catch (error) {
-        // Ignore error if already saved (duplicate key error is expected)
-        console.log('Character may already be saved to collection');
+      if (user?.id) {
+        try {
+          await apiRequest('POST', '/api/saved-items', {
+            userId: user.id,
+            itemType: 'character',
+            itemId: id,
+            notebookId: notebookId
+          });
+        } catch (error) {
+          // Ignore error if already saved (duplicate key error is expected)
+          console.log('Character may already be saved to collection');
+        }
       }
       
       toast({
@@ -77,7 +72,11 @@ export default function CharacterEditPageWithSidebar() {
         description: "Your character has been successfully updated and saved to your collection!",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
-      // Issue 3 fix: Invalidate all saved-items queries to refresh with updated character data
+      // Invalidate saved-items with proper query key structure to refresh notebook view
+      if (user?.id && notebookId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user.id, notebookId] });
+      }
+      // Also invalidate general saved-items queries as fallback
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
     onError: (error) => {

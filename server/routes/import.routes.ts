@@ -256,11 +256,12 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     const parts = title.trim().split(/\s+/);
     if (parts.length === 0) return { givenName: '', familyName: '', honorificTitle: '' };
     
-    // Common multi-word honorifics (must be checked first)
+    // Common multi-word honorifics (sorted by length, longest first)
     const multiWordTitles = [
+      'lady in waiting',
       'lord commander', 'high priestess', 'high priest', 'grand master', 'grand duke',
       'grand duchess', 'crown prince', 'crown princess', 'prime minister', 'vice president',
-      'first lady', 'lady in waiting', 'knight commander', 'rear admiral', 'vice admiral'
+      'first lady', 'knight commander', 'rear admiral', 'vice admiral'
     ];
     
     // Common single-word honorifics and titles
@@ -275,12 +276,16 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     let honorificTitle = '';
     let nameStart = 0;
     
-    // Check for multi-word titles first (need at least 2 words)
-    if (parts.length >= 2) {
-      const twoWordCombo = `${parts[0]} ${parts[1]}`.toLowerCase();
-      if (multiWordTitles.includes(twoWordCombo)) {
-        honorificTitle = `${parts[0]} ${parts[1]}`;
-        nameStart = 2;
+    // Check for multi-word titles by comparing each candidate against the start of the title
+    for (const candidate of multiWordTitles) {
+      const candidateWords = candidate.split(/\s+/);
+      if (parts.length >= candidateWords.length) {
+        const titlePrefix = parts.slice(0, candidateWords.length).join(' ').toLowerCase();
+        if (titlePrefix === candidate) {
+          honorificTitle = parts.slice(0, candidateWords.length).join(' ');
+          nameStart = candidateWords.length;
+          break;
+        }
       }
     }
     

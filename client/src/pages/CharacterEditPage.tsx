@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useNotebookStore } from "@/stores/notebookStore";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   ArrowLeft, 
   Save, 
@@ -38,6 +39,7 @@ export default function CharacterEditPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
+  const { user } = useAuth();
 
   // Extract notebookId from query parameters, fallback to active notebook
   const urlParams = new URLSearchParams(window.location.search);
@@ -157,16 +159,7 @@ export default function CharacterEditPage() {
       if (!notebookId) {
         throw new Error('No notebook ID available for update');
       }
-      const response = await fetch(`/api/characters/${id}?notebookId=${notebookId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update character');
-      }
+      const response = await apiRequest('PATCH', `/api/characters/${id}?notebookId=${notebookId}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -175,8 +168,11 @@ export default function CharacterEditPage() {
         description: "Your character has been successfully updated!",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'null'] });
-      // Issue 3 fix: Invalidate all saved-items queries to refresh with updated character data
+      // Invalidate saved-items with proper query key structure to refresh notebook view
+      if (user?.id && notebookId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user.id, notebookId] });
+      }
+      // Also invalidate general saved-items queries as fallback
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
     onError: (error) => {
