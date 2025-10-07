@@ -162,7 +162,10 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       }
       return await response.json() as SavedItem[];
     },
-    enabled: !!activeNotebookId && !!user?.id // Only enabled when there's an active notebook and authenticated user
+    enabled: !!activeNotebookId && !!user?.id, // Only enabled when there's an active notebook and authenticated user
+    staleTime: 0, // Always consider data stale - refetch on mount/focus
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: true // Refetch when user returns to tab
   });
 
   // Fetch quick note separately

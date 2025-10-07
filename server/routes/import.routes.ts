@@ -506,6 +506,8 @@ async function processImport(
       results,
       completedAt: new Date(),
     });
+    
+    console.log(`[Import ${jobId}] Import job completed and marked as completed in database`);
   } catch (error) {
     await storage.updateImportJob(jobId, {
       status: 'failed',
