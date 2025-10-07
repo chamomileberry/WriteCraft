@@ -762,11 +762,35 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                                 Created {new Date(item.createdAt).toLocaleDateString()}
                               </span>
 
-                              {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                  {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
-                                </p>
-                              )}
+                              {(() => {
+                                // For quick notes, use content field
+                                if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
+                                  const content = item.itemData?.content || item.content;
+                                  if (content) {
+                                    return (
+                                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                        {content}
+                                      </p>
+                                    );
+                                  }
+                                }
+
+                                // For other content types, use displayFields mapping
+                                const descriptionField = mapping?.displayFields?.description;
+                                if (descriptionField) {
+                                  const dataSource = fetchedItemData[item.itemId || ''] || item.itemData;
+                                  const description = dataSource?.[descriptionField];
+                                  if (description) {
+                                    return (
+                                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                        {description}
+                                      </p>
+                                    );
+                                  }
+                                }
+
+                                return null;
+                              })()}
 
                               <div className="mt-auto">
                                 <Badge variant="secondary" className="text-xs">
@@ -864,11 +888,35 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                           Created {new Date(item.createdAt).toLocaleDateString()}
                         </span>
 
-                        {((item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)) && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                            {(item.itemType === 'quickNote' || item.contentType === 'quickNote') ? (item.itemData?.content || item.content) : (item.itemData?.description || fetchedItemData[item.itemId || '']?.description)}
-                          </p>
-                        )}
+                        {(() => {
+                          // For quick notes, use content field
+                          if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
+                            const content = item.itemData?.content || item.content;
+                            if (content) {
+                              return (
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                  {content}
+                                </p>
+                              );
+                            }
+                          }
+
+                          // For other content types, use displayFields mapping
+                          const descriptionField = mapping?.displayFields?.description;
+                          if (descriptionField) {
+                            const dataSource = fetchedItemData[item.itemId || ''] || item.itemData;
+                            const description = dataSource?.[descriptionField];
+                            if (description) {
+                              return (
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                  {description}
+                                </p>
+                              );
+                            }
+                          }
+
+                          return null;
+                        })()}
 
                         <div className="mt-auto">
                           <Badge variant="secondary" className="text-xs">
