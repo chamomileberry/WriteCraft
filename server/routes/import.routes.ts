@@ -56,7 +56,8 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'prose': 'document',
   'article': 'document',
   'profession': 'profession',
-  'rank': 'document', // No rank table yet, map to document
+  'rank': 'document', // No rank table, map to document
+  'transportation': 'transportation',
 };
 
 interface WorldAnvilArticle {
@@ -255,6 +256,37 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       documentType: 'article',
       content: article.content || article.excerpt || 'Imported from World Anvil',
     };
+  } else if (contentType === 'language') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'building') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      buildingType: 'other',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'material') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      materialType: 'other',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'transportation') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      transportationType: 'other',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
   }
 
   return { ...baseContent, contentType };
@@ -388,6 +420,22 @@ async function processImport(
           const document = await storage.createDocument(mapped as any);
           results.imported.push(document.id);
           console.log(`[Import ${jobId}] ✓ Created document: ${article.title}`);
+        } else if (contentType === 'language') {
+          const language = await storage.createLanguage(mapped as any);
+          results.imported.push(language.id);
+          console.log(`[Import ${jobId}] ✓ Created language: ${article.title}`);
+        } else if (contentType === 'building') {
+          const building = await storage.createBuilding(mapped as any);
+          results.imported.push(building.id);
+          console.log(`[Import ${jobId}] ✓ Created building: ${article.title}`);
+        } else if (contentType === 'material') {
+          const material = await storage.createMaterial(mapped as any);
+          results.imported.push(material.id);
+          console.log(`[Import ${jobId}] ✓ Created material: ${article.title}`);
+        } else if (contentType === 'transportation') {
+          const transportation = await storage.createTransportation(mapped as any);
+          results.imported.push(transportation.id);
+          console.log(`[Import ${jobId}] ✓ Created transportation: ${article.title}`);
         } else {
           // Skip unsupported types for now
           results.skipped.push(`${article.title} (${contentType})`);
