@@ -34,18 +34,17 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
   let displayDOD: string | null | undefined = member.inlineDateOfDeath;
   
   if (member.character && member.character.id) {
-    // Use character data
-    if (member.character.nickname) {
+    // Use character data - prefer full name, fallback to nickname
+    const parts = [
+      member.character.givenName,
+      member.character.middleName,
+      member.character.familyName
+    ].filter(Boolean);
+    if (parts.length > 0) {
+      displayName = parts.join(' ');
+    } else if (member.character.nickname) {
+      // Fallback to nickname if no full name parts available
       displayName = member.character.nickname;
-    } else {
-      const parts = [
-        member.character.givenName,
-        member.character.middleName,
-        member.character.familyName
-      ].filter(Boolean);
-      if (parts.length > 0) {
-        displayName = parts.join(' ');
-      }
     }
     displayImage = member.character.imageUrl || displayImage;
     displayDOB = member.character.dateOfBirth || displayDOB;
