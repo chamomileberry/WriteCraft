@@ -999,9 +999,19 @@ async function processImport(
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created organization: ${article.title}`);
         } else if (contentType === 'species') {
-          createdItem = await storage.createSpecies(mapped as any);
-          results.imported.push(createdItem.id);
-          console.log(`[Import ${jobId}] ✓ Created species: ${article.title}`);
+          // Check if species with this name already exists in the notebook
+          const existingSpecies = await storage.findSpeciesByName(article.title, notebookId);
+          
+          if (existingSpecies) {
+            // Use existing species instead of creating duplicate
+            createdItem = existingSpecies;
+            console.log(`[Import ${jobId}] ↻ Reusing existing species: ${article.title}`);
+          } else {
+            // Create new species
+            createdItem = await storage.createSpecies(mapped as any);
+            results.imported.push(createdItem.id);
+            console.log(`[Import ${jobId}] ✓ Created species: ${article.title}`);
+          }
         } else if (contentType === 'profession') {
           createdItem = await storage.createProfession(mapped as any);
           results.imported.push(createdItem.id);

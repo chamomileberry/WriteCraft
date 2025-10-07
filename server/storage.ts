@@ -186,6 +186,7 @@ export interface IStorage {
   createSpecies(species: InsertSpecies): Promise<Species>;
   getSpecies(id: string, userId: string, notebookId: string): Promise<Species | undefined>;
   getUserSpecies(userId: string, notebookId: string): Promise<Species[]>;
+  findSpeciesByName(name: string, notebookId: string): Promise<Species | undefined>;
   updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species>;
   deleteSpecies(id: string, userId: string): Promise<void>;
 
@@ -1496,6 +1497,14 @@ export class DatabaseStorage implements IStorage {
         eq(species.notebookId, notebookId)
       ))
       .orderBy(desc(species.createdAt));
+  }
+
+  async findSpeciesByName(name: string, notebookId: string): Promise<Species | undefined> {
+    const [sp] = await db.select().from(species).where(and(
+      eq(species.name, name),
+      eq(species.notebookId, notebookId)
+    ));
+    return sp || undefined;
   }
 
   async updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species> {
