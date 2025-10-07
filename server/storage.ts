@@ -17,6 +17,8 @@ import {
   type Technology, type InsertTechnology,
   type Weapon, type InsertWeapon,
   type Profession, type InsertProfession,
+  type Rank, type InsertRank,
+  type Condition, type InsertCondition,
   type SavedItem, type InsertSavedItem,
   type GeneratedName, type InsertName,
   type Theme, type InsertTheme,
@@ -69,7 +71,7 @@ import {
   users, characters, 
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
-  languages, religions, technologies, weapons, professions,
+  languages, religions, technologies, weapons, professions, ranks, conditions,
   savedItems, names, themes, moods, conflicts, guides, projects, projectSections, projectLinks,
   folders, notes, notebooks, importJobs,
   // Missing content types - Import tables
@@ -243,6 +245,20 @@ export interface IStorage {
   getUserProfessions(userId: string, notebookId: string): Promise<Profession[]>;
   updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession>;
   deleteProfession(id: string, userId: string): Promise<void>;
+
+  // Rank methods
+  createRank(rank: InsertRank): Promise<Rank>;
+  getRank(id: string, userId: string, notebookId: string): Promise<Rank | undefined>;
+  getUserRanks(userId: string, notebookId: string): Promise<Rank[]>;
+  updateRank(id: string, userId: string, updates: Partial<InsertRank>): Promise<Rank>;
+  deleteRank(id: string, userId: string): Promise<void>;
+
+  // Condition methods
+  createCondition(condition: InsertCondition): Promise<Condition>;
+  getCondition(id: string, userId: string, notebookId: string): Promise<Condition | undefined>;
+  getUserConditions(userId: string, notebookId: string): Promise<Condition[]>;
+  updateCondition(id: string, userId: string, updates: Partial<InsertCondition>): Promise<Condition>;
+  deleteCondition(id: string, userId: string): Promise<void>;
 
   // Plant methods
   createPlant(plant: InsertPlant): Promise<Plant>;
@@ -1730,6 +1746,106 @@ export class DatabaseStorage implements IStorage {
     }
 
     await db.delete(professions).where(eq(professions.id, id));
+  }
+
+  // Rank methods
+  async createRank(rank: InsertRank): Promise<Rank> {
+    const [newRank] = await db
+      .insert(ranks)
+      .values(rank)
+      .returning();
+    return newRank;
+  }
+
+  async getRank(id: string, userId: string, notebookId: string): Promise<Rank | undefined> {
+    const [rank] = await db.select().from(ranks).where(and(
+      eq(ranks.id, id),
+      eq(ranks.userId, userId),
+      eq(ranks.notebookId, notebookId)
+    ));
+    return rank || undefined;
+  }
+
+  async getUserRanks(userId: string, notebookId: string): Promise<Rank[]> {
+    return await db.select().from(ranks)
+      .where(and(
+        eq(ranks.userId, userId),
+        eq(ranks.notebookId, notebookId)
+      ))
+      .orderBy(desc(ranks.createdAt));
+  }
+
+  async updateRank(id: string, userId: string, updates: Partial<InsertRank>): Promise<Rank> {
+    const [existing] = await db.select().from(ranks).where(eq(ranks.id, id));
+    if (!this.validateContentOwnership(existing, userId)) {
+      throw new Error('Unauthorized: You do not own this content');
+    }
+
+    const [updatedRank] = await db
+      .update(ranks)
+      .set(updates)
+      .where(eq(ranks.id, id))
+      .returning();
+    return updatedRank;
+  }
+
+  async deleteRank(id: string, userId: string): Promise<void> {
+    const [existing] = await db.select().from(ranks).where(eq(ranks.id, id));
+    if (!this.validateContentOwnership(existing, userId)) {
+      throw new Error('Unauthorized: You do not own this content');
+    }
+
+    await db.delete(ranks).where(eq(ranks.id, id));
+  }
+
+  // Condition methods
+  async createCondition(condition: InsertCondition): Promise<Condition> {
+    const [newCondition] = await db
+      .insert(conditions)
+      .values(condition)
+      .returning();
+    return newCondition;
+  }
+
+  async getCondition(id: string, userId: string, notebookId: string): Promise<Condition | undefined> {
+    const [condition] = await db.select().from(conditions).where(and(
+      eq(conditions.id, id),
+      eq(conditions.userId, userId),
+      eq(conditions.notebookId, notebookId)
+    ));
+    return condition || undefined;
+  }
+
+  async getUserConditions(userId: string, notebookId: string): Promise<Condition[]> {
+    return await db.select().from(conditions)
+      .where(and(
+        eq(conditions.userId, userId),
+        eq(conditions.notebookId, notebookId)
+      ))
+      .orderBy(desc(conditions.createdAt));
+  }
+
+  async updateCondition(id: string, userId: string, updates: Partial<InsertCondition>): Promise<Condition> {
+    const [existing] = await db.select().from(conditions).where(eq(conditions.id, id));
+    if (!this.validateContentOwnership(existing, userId)) {
+      throw new Error('Unauthorized: You do not own this content');
+    }
+
+    const [updatedCondition] = await db
+      .update(conditions)
+      .set(updates)
+      .where(eq(conditions.id, id))
+      .returning();
+    return updatedCondition;
+  }
+
+  async deleteCondition(id: string, userId: string): Promise<void> {
+    const [existing] = await db.select().from(conditions).where(eq(conditions.id, id));
+    if (!this.validateContentOwnership(existing, userId)) {
+      throw new Error('Unauthorized: You do not own this content');
+    }
+
+    await db.delete(conditions).where(eq(conditions.id, id));
   }
 
   // Plant methods

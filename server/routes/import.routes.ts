@@ -45,7 +45,7 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'military': 'militaryunit',
   'myth': 'myth',
   'legend': 'legend',
-  'condition': 'document', // No condition table yet, map to document
+  'condition': 'condition',
   'material': 'material',
   'technology': 'technology',
   'spell': 'spell',
@@ -56,7 +56,7 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'prose': 'document',
   'article': 'document',
   'profession': 'profession',
-  'rank': 'document', // No rank table, map to document
+  'rank': 'rank',
   'transportation': 'transportation',
 };
 
@@ -287,6 +287,22 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       transportationType: 'other',
       description: article.content || article.excerpt || 'Imported from World Anvil',
     };
+  } else if (contentType === 'rank') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      rankType: 'other',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'condition') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      conditionType: 'other',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
   }
 
   return { ...baseContent, contentType };
@@ -436,6 +452,14 @@ async function processImport(
           const transportation = await storage.createTransportation(mapped as any);
           results.imported.push(transportation.id);
           console.log(`[Import ${jobId}] ✓ Created transportation: ${article.title}`);
+        } else if (contentType === 'rank') {
+          const rank = await storage.createRank(mapped as any);
+          results.imported.push(rank.id);
+          console.log(`[Import ${jobId}] ✓ Created rank: ${article.title}`);
+        } else if (contentType === 'condition') {
+          const condition = await storage.createCondition(mapped as any);
+          results.imported.push(condition.id);
+          console.log(`[Import ${jobId}] ✓ Created condition: ${article.title}`);
         } else {
           // Skip unsupported types for now
           results.skipped.push(`${article.title} (${contentType})`);

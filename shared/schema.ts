@@ -1517,6 +1517,56 @@ export const professions = pgTable("professions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Ranks for hierarchical positions and titles
+export const ranks = pgTable("ranks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  rankType: text("rank_type"), // military, nobility, clergy, guild, etc.
+  description: text("description").notNull(),
+  hierarchy: integer("hierarchy"), // Numerical ranking (1 = highest, increasing numbers = lower ranks)
+  authority: text("authority"),
+  responsibilities: text("responsibilities").array(),
+  privileges: text("privileges").array(),
+  insignia: text("insignia"),
+  requirements: text("requirements"),
+  organizationId: text("organization_id"), // Link to organization if applicable
+  superiorRanks: text("superior_ranks").array(),
+  subordinateRanks: text("subordinate_ranks").array(),
+  titleOfAddress: text("title_of_address"), // How to address someone with this rank
+  historicalOrigin: text("historical_origin"),
+  genre: text("genre"),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Conditions for diseases, curses, afflictions, and states
+export const conditions = pgTable("conditions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  conditionType: text("condition_type").notNull(), // disease, curse, affliction, blessing, mutation, etc.
+  description: text("description").notNull(),
+  symptoms: text("symptoms").array(),
+  causes: text("causes").array(),
+  transmission: text("transmission"), // How it spreads
+  duration: text("duration"), // temporary, permanent, chronic, etc.
+  severity: text("severity"), // mild, moderate, severe, fatal
+  effects: text("effects").array(), // Game/narrative effects
+  treatment: text("treatment"),
+  cure: text("cure"),
+  prevention: text("prevention"),
+  complications: text("complications").array(),
+  mortality: text("mortality"), // mortality rate or risk
+  prevalence: text("prevalence"), // How common it is
+  affectedSpecies: text("affected_species").array(),
+  culturalImpact: text("cultural_impact"),
+  historicalOutbreaks: text("historical_outbreaks"),
+  genre: text("genre"),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved items (favorites)
 export const savedItems = pgTable("saved_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -2769,6 +2819,16 @@ export const insertProfessionSchema = createInsertSchema(professions).omit({
   createdAt: true,
 });
 
+export const insertRankSchema = createInsertSchema(ranks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertConditionSchema = createInsertSchema(conditions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
@@ -2978,6 +3038,12 @@ export type InsertPotion = z.infer<typeof insertPotionSchema>;
 export type Potion = typeof potions.$inferSelect;
 export type InsertProfession = z.infer<typeof insertProfessionSchema>;
 export type Profession = typeof professions.$inferSelect;
+
+export type InsertRank = z.infer<typeof insertRankSchema>;
+export type Rank = typeof ranks.$inferSelect;
+
+export type InsertCondition = z.infer<typeof insertConditionSchema>;
+export type Condition = typeof conditions.$inferSelect;
 
 // Import Jobs schemas and types
 export const insertImportJobSchema = createInsertSchema(importJobs).omit({
