@@ -2,8 +2,8 @@ import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { db } from '../db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { users, shares, notebooks, projects, guides } from '@shared/schema';
+import { eq, and, or } from 'drizzle-orm';
 
 // Security configuration
 const SECURITY_CONFIG = {
@@ -375,20 +375,132 @@ export const requireAdmin: RequestHandler = async (req: any, res: Response, next
 };
 
 /**
- * Enhanced row-level security middleware
+ * Helper function to check resource ownership
  */
-export function enforceRowLevelSecurity(resourceType: string): RequestHandler {
+async function checkResourceOwnership(
+  resourceType: string,
+  resourceId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    switch (resourceType) {
+      case 'notebook': {
+        const [notebook] = await db
+          .select()
+          .from(notebooks)
+          .where(and(eq(notebooks.id, resourceId), eq(notebooks.userId, userId)))
+          .limit(1);
+        return !!notebook;
+      }
+      case 'project': {
+        const [project] = await db
+          .select()
+          .from(projects)
+          .where(and(eq(projects.id, resourceId), eq(projects.userId, userId)))
+          .limit(1);
+        return !!project;
+      }
+      case 'guide': {
+        const [guide] = await db
+          .select()
+          .from(guides)
+          .where(and(eq(guides.id, resourceId), eq(guides.userId, userId)))
+          .limit(1);
+        return !!guide;
+      }
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error('[RLS] Error checking resource ownership:', error);
+    return false;
+  }
+}
+
+/**
+ * Enhanced row-level security middleware with shared access support
+ */
+export function enforceRowLevelSecurity(
+  resourceType: string,
+  options?: { 
+    paramName?: string;
+    resolver?: (req: any) => string | null;
+  }
+): RequestHandler {
   return async (req: any, res: Response, next: NextFunction) => {
     const userId = req.user?.claims?.sub;
-    const resourceId = req.params.id;
-    const notebookId = req.query.notebookId || req.body?.notebookId;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     
+    // Resolve resource ID from multiple possible locations
+    let resourceId: string | null = null;
+    
+    if (options?.resolver) {
+      // Use custom resolver if provided
+      resourceId = options.resolver(req);
+    } else {
+      // Try multiple common locations
+      const paramName = options?.paramName || 'id';
+      resourceId = 
+        req.params[paramName] || 
+        req.params.id || 
+        req.params[`${resourceType}Id`] ||
+        req.query[paramName] ||
+        req.query.id ||
+        req.body?.id ||
+        null;
+    }
+    
+    const notebookId = req.query.notebookId || req.body?.notebookId;
+    
     // Log access attempt
-    console.log(`[RLS] User ${userId} attempting to access ${resourceType}:${resourceId}`);
+    console.log(`[RLS] User ${userId} attempting to access ${resourceType}:${resourceId || 'unknown'}`);
+    
+    let permission: string | null = null;
+    let isOwner = false;
+    let hasAccess = false;
+    
+    if (resourceId) {
+      // First check if user owns the resource
+      isOwner = await checkResourceOwnership(resourceType, resourceId, userId);
+      
+      if (isOwner) {
+        hasAccess = true;
+        console.log(`[RLS] User ${userId} is owner of ${resourceType}:${resourceId}`);
+      } else {
+        // Check if resource is shared with the user
+        const [share] = await db
+          .select()
+          .from(shares)
+          .where(
+            and(
+              eq(shares.resourceType, resourceType),
+              eq(shares.resourceId, resourceId),
+              eq(shares.userId, userId)
+            )
+          );
+        
+        if (share) {
+          permission = share.permission;
+          hasAccess = true;
+          console.log(`[RLS] User ${userId} has ${permission} access to shared ${resourceType}:${resourceId}`);
+        }
+      }
+      
+      // If neither owner nor shared, deny access
+      if (!hasAccess) {
+        SecurityAuditLog.log({
+          type: 'UNAUTHORIZED_ACCESS',
+          userId,
+          ip: req.ip,
+          details: `User attempted to access ${resourceType}:${resourceId} without permission`,
+          severity: 'MEDIUM'
+        });
+        return res.status(404).json({ message: "Resource not found" });
+      }
+    }
     
     // Store security context for downstream use
     req.rlsContext = {
@@ -396,11 +508,60 @@ export function enforceRowLevelSecurity(resourceType: string): RequestHandler {
       resourceType,
       resourceId,
       notebookId,
+      permission,
+      isOwner,
       timestamp: Date.now()
     };
     
     next();
   };
+}
+
+/**
+ * Helper function to check if user can access a resource (owner or shared)
+ */
+export async function canAccessResource(
+  userId: string,
+  resourceType: string,
+  resourceId: string,
+  requiredPermission?: 'view' | 'comment' | 'edit'
+): Promise<{ canAccess: boolean; permission: string | null; isOwner: boolean }> {
+  // First check if user owns the resource
+  const isOwner = await checkResourceOwnership(resourceType, resourceId, userId);
+  
+  if (isOwner) {
+    // Owner has full access (implicitly 'edit' permission)
+    return { canAccess: true, permission: 'edit', isOwner: true };
+  }
+  
+  // Check if resource is shared with the user
+  const [share] = await db
+    .select()
+    .from(shares)
+    .where(
+      and(
+        eq(shares.resourceType, resourceType),
+        eq(shares.resourceId, resourceId),
+        eq(shares.userId, userId)
+      )
+    );
+  
+  if (share) {
+    // Check if user has required permission level
+    if (requiredPermission) {
+      const permissionLevels = { view: 1, comment: 2, edit: 3 };
+      const userLevel = permissionLevels[share.permission as keyof typeof permissionLevels] || 0;
+      const requiredLevel = permissionLevels[requiredPermission] || 0;
+      
+      if (userLevel < requiredLevel) {
+        return { canAccess: false, permission: share.permission, isOwner: false };
+      }
+    }
+    
+    return { canAccess: true, permission: share.permission, isOwner: false };
+  }
+  
+  return { canAccess: false, permission: null, isOwner: false };
 }
 
 // Clean up expired rate limit entries periodically
@@ -433,5 +594,6 @@ export default {
   sanitizeAllInputs,
   SecurityAuditLog,
   requireAdmin,
-  enforceRowLevelSecurity
+  enforceRowLevelSecurity,
+  canAccessResource
 };

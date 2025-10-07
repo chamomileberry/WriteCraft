@@ -1,11 +1,51 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { shares, users } from '@shared/schema';
+import { shares, users, notebooks, projects, guides } from '@shared/schema';
 import { insertShareSchema } from '@shared/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { isAuthenticated } from '../replitAuth';
 
 const router = Router();
+
+async function validateResourceOwnership(
+  resourceType: string,
+  resourceId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    switch (resourceType) {
+      case 'notebook': {
+        const [notebook] = await db
+          .select()
+          .from(notebooks)
+          .where(and(eq(notebooks.id, resourceId), eq(notebooks.userId, userId)))
+          .limit(1);
+        return !!notebook;
+      }
+      case 'project': {
+        const [project] = await db
+          .select()
+          .from(projects)
+          .where(and(eq(projects.id, resourceId), eq(projects.userId, userId)))
+          .limit(1);
+        return !!project;
+      }
+      case 'guide': {
+        const [guide] = await db
+          .select()
+          .from(guides)
+          .where(and(eq(guides.id, resourceId), eq(guides.userId, userId)))
+          .limit(1);
+        return !!guide;
+      }
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error('Error validating resource ownership:', error);
+    return false;
+  }
+}
 
 router.post('/shares', isAuthenticated, async (req, res) => {
   try {
@@ -19,6 +59,17 @@ router.post('/shares', isAuthenticated, async (req, res) => {
     
     if (validatedData.userId === validatedData.ownerId) {
       return res.status(400).json({ message: 'Cannot share resource with yourself' });
+    }
+    
+    const ownsResource = await validateResourceOwnership(
+      validatedData.resourceType,
+      validatedData.resourceId,
+      userId
+    );
+    
+    if (!ownsResource) {
+      console.warn(`[Security] Attempted to share unowned resource - userId: ${userId}, resourceType: ${validatedData.resourceType}, resourceId: ${validatedData.resourceId}`);
+      return res.status(404).json({ message: 'Resource not found' });
     }
     
     const [share] = await db.insert(shares).values(validatedData).returning();
