@@ -64,7 +64,8 @@ export default function ImportPage() {
     queryKey: ['/api/import/history'],
     refetchInterval: (data) => {
       // Poll every 2 seconds if there's a processing job
-      const hasProcessingJob = data?.some(job => job.status === 'processing' || job.status === 'pending');
+      if (!data || !Array.isArray(data)) return false;
+      const hasProcessingJob = data.some(job => job.status === 'processing' || job.status === 'pending');
       return hasProcessingJob ? 2000 : false;
     },
   });
