@@ -1,0 +1,919 @@
+> rest-express@1.0.0 dev
+[SECURITY] Security middleware initialized:
+[SECURITY] ✓ Security headers enabled
+[SECURITY] ✓ Rate limiting enabled (1000 req/15min)
+[SECURITY] ✓ Input sanitization enabled
+[SECURITY] ✓ CSRF protection available per route
+[SECURITY] ✓ Row-level security enforced
+1:54:32 PM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+1:54:46 PM [express] GET /api/auth/user 304 in 150ms :: {"id":"33081217","email":"chamomileberry525@…
+1:54:46 PM [express] GET /api/guides 304 in 176ms :: [{"id":"3b20771a-480c-454c-a3aa-f7c97509c6a5","…
+[SavedItems] Fetching items for user 33081217, notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89, itemType: all
+[Storage] Query conditions for notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89: {
+  userId: '33081217',
+  notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89',
+  itemType: 'all'
+}
+[Storage] Query returned 4 items
+[Storage] Sample items: [
+  {
+    itemType: 'familytree',
+    itemId: '5e760494-1c84-4e7a-a1f7-5e0bcb313b99',
+    notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89',
+    userId: '33081217'
+  },
+  {
+    itemType: 'quickNote',
+    itemId: 'saved-note-1759755254049-aoodd4hka',
+    notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89',
+    userId: '33081217'
+  },
+  {
+    itemType: 'character',
+    itemId: '0b6ab955-7cc5-4f94-b322-c153ad78c663',
+    notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89',
+    userId: '33081217'
+  }
+]
+[SavedItems] Found 4 items for notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[SavedItems] First 5 items: [
+  {
+    id: '5afa688a-79a1-4fe2-8c17-885face41faa',
+    itemType: 'familytree',
+    itemId: '5e760494-1c84-4e7a-a1f7-5e0bcb313b99',
+    notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89'
+  },
+  {
+    id: '3dad17ed-4cd4-4099-8afd-51556c93e388',
+    itemType: 'quickNote',
+    itemId: 'saved-note-1759755254049-aoodd4hka',
+    notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89'
+  },
+  {
+    id: '03937597-f568-4a58-8dfb-c51de818f66b',
+    itemType: 'character',
+    itemId: '0b6ab955-7cc5-4f94-b322-c153ad78c663',
+    notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89'
+  },
+  {
+    id: '9f1ccbad-ef5d-40e1-84ab-326a6475473b',
+    itemType: 'quickNote',
+    itemId: 'saved-note-1759514754841-pnidb9mc8',
+    notebookId: '0fe4e254-02d1-4a14-9046-6b3aefe17a89'
+  }
+]
+1:54:51 PM [express] GET /api/saved-items/notebook/0fe4e254-02d1-4a14-9046-6b3aefe17a89 304 in 135ms…
+1:54:51 PM [express] GET /api/quick-note 304 in 131ms :: {"id":"dbdd3796-7fba-40a1-a339-795eb07d9d4d…
+1:54:51 PM [express] GET /api/notebooks 304 in 170ms :: [{"id":"0fe4e254-02d1-4a14-9046-6b3aefe17a89…
+1:54:51 PM [express] GET /api/characters/0b6ab955-7cc5-4f94-b322-c153ad78c663 304 in 70ms :: {"id":"…
+1:54:54 PM [express] GET /api/import/history 200 in 138ms :: [{"id":"359679e0-fbbe-4e89-a595-e99125c…
+[Import] Invalid notebookId notebook-123 for user 33081217, will create new notebook
+[Import] Using existing notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89: The Green Tide
+[Import] Final notebookId: 0fe4e254-02d1-4a14-9046-6b3aefe17a89 for user: 33081217
+[ZIP Parse] ZIP contains 381 total entries
+[ZIP Parse] Entry structure:
+[ZIP Parse] First 10 entries: [
+  'World-The Green Tide-fb5/World-The Green Tide-fb5.json',
+  'World-The Green Tide-fb5/descriptionParsed.html',
+  'World-The Green Tide-fb5/meta.html',
+  'World-The Green Tide-fb5/meta.json',
+  'World-The Green Tide-fb5/articles/Rank-Acolyte-a1e.json',
+  'World-The Green Tide-fb5/articles/Settlement-Aeris Canopy-d47.json',
+  'World-The Green Tide-fb5/articles/Species-Agave-e98.json',
+  'World-The Green Tide-fb5/articles/Species-Amber Bell-059.json',
+  'World-The Green Tide-fb5/articles/Location-Andes Mountains-c11.json',
+  'World-The Green Tide-fb5/articles/Document-Archive Codex-2f2.json'
+]
+[ZIP Parse] No articles.json found in ZIP
+[ZIP Parse] Looking for individual article files...
+[ZIP Parse] Found 166 individual article files
+[ZIP Parse] Successfully parsed 166 articles, failed to parse 0 files
+[ZIP Parse] TOTAL ARTICLES FOUND: 166
+1:55:07 PM [express] POST /api/import/upload 200 in 4487ms :: {"jobId":"3d2722fc-3858-4095-a858-294e…
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Starting import of 166 articles
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Article 1 structure: {
+  "title": "Acolyte",
+  "entityClass": "Rank",
+  "templateType": "rank",
+  "category": {
+    "id": "2a299f37-098e-430d-bc06-c4a46632b580",
+    "title": "Roles/Tiles",
+    "slug": "roles2Ftiles-category",
+    "state": "public",
+    "isWip": null,
+    "isDraft": null,
+    "entityClass": "Category",
+    "icon": "fa-solid fa-folder",
+    "url": "https://www.worldanvil.com/w/the-green-tide-chamomileberry/c/roles2Ftiles-category",
+    "subscribergroups": [],
+    "folderId": null,
+    "tags": null,
+    "updateDate": {
+      "date": "2025-08-29 17:08:08.000000",
+      "timezone_type": 3,
+      "timezone": "Europe/London"
+    }
+  },
+  "type": null,
+  "availableKeys": [
+    "id",
+    "title",
+    "slug",
+    "state",
+    "isWip",
+    "isDraft",
+    "entityClass",
+    "icon",
+    "url",
+    "subscribergroups",
+    "folderId",
+    "tags",
+    "updateDate",
+    "position",
+    "excerpt",
+    "wordcount",
+    "creationDate",
+    "publicationDate",
+    "notificationDate",
+    "likes"
+  ]
+}
+[Type Mapping] Article "Acolyte": typeKey="rank" → contentType="rank"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 1/166: "Acolyte" → rank
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created rank: Acolyte
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 65e38c41-a528-44ab-9527-8bf5a7bfb960 for rank "Acolyte" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Article 2 structure: {
+  "title": "Aeris Canopy",
+  "entityClass": "Settlement",
+  "templateType": "settlement",
+  "category": {
+    "id": "de8bf80c-f6f1-47cd-8a65-887d27ae0248",
+    "title": "Settlements",
+    "slug": "settlements-category",
+    "state": "public",
+    "isWip": null,
+    "isDraft": null,
+    "entityClass": "Category",
+    "icon": "fa-solid fa-folder",
+    "url": "https://www.worldanvil.com/w/the-green-tide-chamomileberry/c/settlements-category",
+    "subscribergroups": [],
+    "folderId": null,
+    "tags": null,
+    "updateDate": {
+      "date": "2025-08-21 21:07:35.000000",
+      "timezone_type": 3,
+      "timezone": "Europe/London"
+    }
+  },
+  "type": null,
+  "availableKeys": [
+    "id",
+    "title",
+    "slug",
+    "state",
+    "isWip",
+    "isDraft",
+    "entityClass",
+    "icon",
+    "url",
+    "subscribergroups",
+    "folderId",
+    "tags",
+    "updateDate",
+    "position",
+    "excerpt",
+    "wordcount",
+    "creationDate",
+    "publicationDate",
+    "notificationDate",
+    "likes"
+  ]
+}
+[Type Mapping] Article "Aeris Canopy": typeKey="settlement" → contentType="settlement"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 2/166: "Aeris Canopy" → settlement
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created settlement: Aeris Canopy
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 1ee22305-8b6e-476e-8048-2a51b02317c0 for settlement "Aeris Canopy" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Article 3 structure: {
+  "title": "Agave",
+  "entityClass": "Species",
+  "templateType": "species",
+  "category": {
+    "id": "12204eff-038a-48cf-897a-1f48c021f231",
+    "title": "Species",
+    "slug": "species-category",
+    "state": "public",
+    "isWip": null,
+    "isDraft": null,
+    "entityClass": "Category",
+    "icon": "fa-solid fa-folder",
+    "url": "https://www.worldanvil.com/w/the-green-tide-chamomileberry/c/species-category",
+    "subscribergroups": [],
+    "folderId": null,
+    "tags": null,
+    "updateDate": {
+      "date": "2025-08-29 13:26:17.000000",
+      "timezone_type": 3,
+      "timezone": "Europe/London"
+    }
+  },
+  "availableKeys": [
+    "id",
+    "title",
+    "slug",
+    "state",
+    "isWip",
+    "isDraft",
+    "entityClass",
+    "icon",
+    "url",
+    "subscribergroups",
+    "folderId",
+    "tags",
+    "updateDate",
+    "position",
+    "excerpt",
+    "wordcount",
+    "creationDate",
+    "publicationDate",
+    "notificationDate",
+    "likes"
+  ]
+}
+[Type Mapping] Article "Agave": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 3/166: "Agave" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Agave
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item ef8b55cd-b263-4326-90c5-3a1cbf675680 for species "Agave" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Amber Bell": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 4/166: "Amber Bell" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Amber Bell
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 4d6c0889-f35d-4ce5-b378-b6f83023a028 for species "Amber Bell" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Andes Mountains": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 5/166: "Andes Mountains" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Andes Mountains
+1:55:07 PM [express] GET /api/import/history 200 in 138ms :: [{"id":"3d2722fc-3858-4095-a858-294e5f3…
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 87aa13b8-9a58-4c1c-a60b-3051bb5251d9 for location "Andes Mountains" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Archive Codex": typeKey="document" → contentType="document"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 6/166: "Archive Codex" → document
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created document: Archive Codex
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item f68a82ef-83d4-4264-b273-9c5b205f1782 for document "Archive Codex" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Armando González": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 7/166: "Armando González" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Armando González
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 479c799f-65b3-4b8a-a166-5e1754dceaf3 for character "Armando González" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Arrow-weed": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 8/166: "Arrow-weed" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Arrow-weed
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item ad8c9cc6-32ce-4dbe-aabc-1b8b534fce69 for species "Arrow-weed" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Ashton Langford": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 9/166: "Ashton Langford" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Ashton Langford
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 053fa18f-2a68-44be-8814-b34e91100f45 for character "Ashton Langford" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Badlands Water Tower": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 10/166: "Badlands Water Tower" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Badlands Water Tower
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0bb9433a-8a8f-4c89-a2a1-48f63ea92f43 for location "Badlands Water Tower" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 10/166 (6%)
+[Type Mapping] Article "Badwater Snail": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 11/166: "Badwater Snail" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Badwater Snail
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 712aba09-5176-4cd9-beae-597e0311ade4 for species "Badwater Snail" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bighorn Sheep": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 12/166: "Bighorn Sheep" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Bighorn Sheep
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a2616fbb-1a8d-4084-bafa-f4a65a1969a6 for species "Bighorn Sheep" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bighorn Sheep": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 13/166: "Bighorn Sheep" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Bighorn Sheep
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 8c67514b-ac88-4b0d-913c-f8007813d55b for species "Bighorn Sheep" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bloom Front": typeKey="law" → contentType="law"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 14/166: "Bloom Front" → law
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created law: Bloom Front
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 42ef1ee6-279e-4de3-af3a-e8d6af9b14d0 for law "Bloom Front" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bloomfrog": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 15/166: "Bloomfrog" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Bloomfrog
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 03d3816e-273b-4a66-8cb4-7400dfd0d315 for species "Bloomfrog" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bone Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 16/166: "Bone Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Bone Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 907071b7-9151-4d5d-b619-632451688df0 for profession "Bone Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bonemender": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 17/166: "Bonemender" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Bonemender
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6574e998-e662-4101-b8f4-2b74d8e0f23d for profession "Bonemender" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bonewright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 18/166: "Bonewright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Bonewright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0587269c-7908-4acf-ac1c-09f6d5e4091e for profession "Bonewright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Bramble Strider": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 19/166: "Bramble Strider" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Bramble Strider
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 244daef7-2684-476c-bd7d-f06d7ee9372e for species "Bramble Strider" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Burro": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 20/166: "Burro" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Burro
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 50f34600-1c55-4255-8c39-cc7c054c2376 for species "Burro" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 20/166 (12%)
+[Type Mapping] Article "Burro Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 21/166: "Burro Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Burro Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 5bf17abd-3978-4abd-a8a7-54dbb3b43674 for profession "Burro Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Burroriders": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 22/166: "Burroriders" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Burroriders
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item be151a3a-d228-4fb2-9298-8a54e405f4fa for profession "Burroriders" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Burrowright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 23/166: "Burrowright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Burrowright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 4363f156-48db-4062-b4e9-38997ba9f341 for profession "Burrowright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Cattails": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 24/166: "Cattails" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Cattails
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 3b731646-6abc-4cd9-b571-e04d628c466b for species "Cattails" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Caucasian": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 25/166: "Caucasian" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Caucasian
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item bd3e93a2-7ec6-4926-ba94-47a427a44bd8 for ethnicity "Caucasian" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Chronic Back Pain": typeKey="condition" → contentType="condition"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 26/166: "Chronic Back Pain" → condition
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created condition: Chronic Back Pain
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item bf094737-c750-4b3b-b743-186cbda87dda for condition "Chronic Back Pain" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Clara Corvain": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 27/166: "Clara Corvain" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Clara Corvain
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item be3f5c7b-d62a-4063-ba99-84d7017e7e21 for character "Clara Corvain" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Common Reed": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 28/166: "Common Reed" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Common Reed
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item ce13cf91-a076-4a1a-bffd-26abd1597d63 for species "Common Reed" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Continental Europe": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 29/166: "Continental Europe" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Continental Europe
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 93c5a852-426c-494e-afe9-e0e34172711c for location "Continental Europe" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Corina Rodenberg": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 30/166: "Corina Rodenberg" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Corina Rodenberg
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 5c17de4a-ca83-48ad-be2f-d372fe54a89e for character "Corina Rodenberg" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 30/166 (18%)
+[Type Mapping] Article "Corvain Hut": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 31/166: "Corvain Hut" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Corvain Hut
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6caa8d00-32c7-40cd-b4df-65e0f67196bd for location "Corvain Hut" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Council Guards": typeKey="rank" → contentType="rank"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 32/166: "Council Guards" → rank
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created rank: Council Guards
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item fa3e1ed7-f070-4a16-b1da-70d9052c091b for rank "Council Guards" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Coyote": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 33/166: "Coyote" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Coyote
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 2c498fc5-6746-47b1-a89c-54f73e3a1019 for species "Coyote" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Date Honey": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 34/166: "Date Honey" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Date Honey
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 3e785ad9-9901-4fc6-8388-d6f8f1b497d8 for item "Date Honey" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Date Palm": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 35/166: "Date Palm" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Date Palm
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 4f9ab5a7-99ce-4d09-b1a8-8496e8bf03c0 for species "Date Palm" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Death Valley": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 36/166: "Death Valley" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Death Valley
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item ed9c15f7-94ff-4063-a199-dd183ba53207 for location "Death Valley" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Desert Purslane": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 37/166: "Desert Purslane" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Desert Purslane
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item d0787cac-d6e6-4e2d-b356-4cb656c6e063 for species "Desert Purslane" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Desert Tortoise": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 38/166: "Desert Tortoise" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Desert Tortoise
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 928a1122-925c-49eb-8660-35dfc253b392 for species "Desert Tortoise" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Desert Wolfberry": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 39/166: "Desert Wolfberry" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Desert Wolfberry
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item f9545506-840e-4f90-b4d7-e5a0f37e6074 for species "Desert Wolfberry" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Dr. Aaron Thorne": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 40/166: "Dr. Aaron Thorne" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Dr. Aaron Thorne
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a105ec3d-c2ad-48b2-8691-5c90d5eea63c for character "Dr. Aaron Thorne" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 40/166 (24%)
+[Type Mapping] Article "Dr. Elan Thorne": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 41/166: "Dr. Elan Thorne" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Dr. Elan Thorne
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 450af267-7c19-4f82-9234-be716a49d223 for character "Dr. Elan Thorne" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Dune Scorpion": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 42/166: "Dune Scorpion" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Dune Scorpion
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 5b0b1680-bef0-419e-8a24-5f4f9fced23d for species "Dune Scorpion" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Dust Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 43/166: "Dust Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Dust Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item ada67306-b1e8-4764-9eff-72f18efc704f for profession "Dust Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Duststrider": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 44/166: "Duststrider" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Duststrider
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 821f11c6-3e65-41e3-b55e-c7bcc24f85d0 for profession "Duststrider" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Dustwright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 45/166: "Dustwright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Dustwright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item b1939f5b-6bda-4e30-8318-bb0daa36b9e7 for profession "Dustwright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Earth Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 46/166: "Earth Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Earth Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 2383406d-f1e9-4033-87fc-21fa0874502c for profession "Earth Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Earthtender": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 47/166: "Earthtender" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Earthtender
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6485d204-e5e5-4648-9b6f-d9cad1f644e9 for profession "Earthtender" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Earthwright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 48/166: "Earthwright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Earthwright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6df66af4-a98a-41ec-81cd-1b474654901e for profession "Earthwright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Eastern Watchtower": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 49/166: "Eastern Watchtower" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Eastern Watchtower
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item de2e2020-617d-45bb-a9dd-36a802900833 for location "Eastern Watchtower" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Espera": typeKey="settlement" → contentType="settlement"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 50/166: "Espera" → settlement
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created settlement: Espera
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item c134f7d6-76e4-4672-bd35-d5944768c9d7 for settlement "Espera" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 50/166 (30%)
+[Type Mapping] Article "Flame Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 51/166: "Flame Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Flame Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 29a9c572-daf0-42c9-831b-afd41bfca933 for profession "Flame Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Flamestoker": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 52/166: "Flamestoker" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Flamestoker
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item f8e1ea52-5cfb-4c88-a70b-10ca3fdb54ea for profession "Flamestoker" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Flamewright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 53/166: "Flamewright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Flamewright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0b4c16c5-5098-49fe-bf6f-c9a6540014fe for profession "Flamewright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Frost Veins": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 54/166: "Frost Veins" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Frost Veins
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item f01b9751-ff15-4681-9596-db534548ad9c for species "Frost Veins" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Frostborne": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 55/166: "Frostborne" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Frostborne
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 594499d4-0103-440d-a634-7e3a0ba81a39 for ethnicity "Frostborne" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Furnace Creek": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 56/166: "Furnace Creek" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Furnace Creek
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item e5a278a2-ab82-407b-aebf-f82b30c81dd4 for location "Furnace Creek" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Gaelic": typeKey="language" → contentType="language"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 57/166: "Gaelic" → language
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created language: Gaelic
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 5bf9d4bd-e88b-4853-9219-5a602db9720f for language "Gaelic" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Garnett McAllister": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 58/166: "Garnett McAllister" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Garnett McAllister
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item c98e6292-94cc-4dac-baef-d8695dc2c33b for character "Garnett McAllister" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "German": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 59/166: "German" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: German
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 03c514ec-5ab3-4611-814d-8ee0b8858d82 for ethnicity "German" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Gilded Sphinx": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 60/166: "Gilded Sphinx" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Gilded Sphinx
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 70c08191-3500-4bbb-b59e-a2b4529021ea for species "Gilded Sphinx" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 60/166 (36%)
+[Type Mapping] Article "Golden Canyon": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 61/166: "Golden Canyon" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Golden Canyon
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item d4690e45-0fba-4014-9df3-db0357677000 for location "Golden Canyon" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Grapevine Mountains": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 62/166: "Grapevine Mountains" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Grapevine Mountains
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 68d3efce-f9f6-4c5b-be59-205add950ba5 for location "Grapevine Mountains" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Grapevine Station": typeKey="settlement" → contentType="settlement"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 63/166: "Grapevine Station" → settlement
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created settlement: Grapevine Station
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item d8f3d128-a2ca-4dfa-a77d-2902d9c0c708 for settlement "Grapevine Station" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Greater Roadrunner": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 64/166: "Greater Roadrunner" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Greater Roadrunner
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 7aff4b29-fa80-4760-9de8-49396563e09b for species "Greater Roadrunner" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Green Sickness": typeKey="condition" → contentType="condition"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 65/166: "Green Sickness" → condition
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created condition: Green Sickness
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a2440382-7887-4ffc-982f-6aef0acd896d for condition "Green Sickness" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Gritstone Cakes": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 66/166: "Gritstone Cakes" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Gritstone Cakes
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item d5931c00-cba7-4ca3-a6fc-72b8488134a2 for item "Gritstone Cakes" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Hearing Loss": typeKey="condition" → contentType="condition"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 67/166: "Hearing Loss" → condition
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created condition: Hearing Loss
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a4445c1b-60ac-4486-9546-a249ce7583d5 for condition "Hearing Loss" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Henrik Rodenberg": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 68/166: "Henrik Rodenberg" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Henrik Rodenberg
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 83ed5f97-7d90-4bc8-aa8b-23a7db148dca for character "Henrik Rodenberg" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Himalayas": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 69/166: "Himalayas" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Himalayas
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 797d64e9-6e01-49b1-b7b7-7ccb2a535d23 for location "Himalayas" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Honey Mesquite Tea": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 70/166: "Honey Mesquite Tea" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Honey Mesquite Tea
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 374d8401-0cb2-423a-8585-a8e05f2b98bf for item "Honey Mesquite Tea" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 70/166 (42%)
+[Type Mapping] Article "Honey Mesquite Tree": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 71/166: "Honey Mesquite Tree" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Honey Mesquite Tree
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a63559f1-5751-43c4-adbf-b4f27807fbe8 for species "Honey Mesquite Tree" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Human": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 72/166: "Human" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Human
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 77e16940-2a3a-40c6-b83d-3f1a5f04b708 for species "Human" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "International Biotech Climate Coalition IBCC": typeKey="organization" → contentType="organization"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 73/166: "International Biotech Climate Coalition IBCC" → organization
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created organization: International Biotech Climate Coalition IBCC
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 5fb3cb7a-9391-40d5-986f-bcae6b03a62e for organization "International Biotech Climate Coalition IBCC" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Inyo Mountains": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 74/166: "Inyo Mountains" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Inyo Mountains
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 94bd2560-eb0c-44ae-b789-97766fa2b16e for location "Inyo Mountains" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Isaac Corvain": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 75/166: "Isaac Corvain" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Isaac Corvain
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6c49a92b-0198-4c73-bbf5-59c3cbc3c07e for character "Isaac Corvain" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Jax Reilly": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 76/166: "Jax Reilly" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Jax Reilly
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 29abfcfb-73ef-4a7d-8b46-7293a2e89188 for character "Jax Reilly" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Juniper Corvain": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 77/166: "Juniper Corvain" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Juniper Corvain
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 1d5df271-0065-466a-82e9-a621ecbe3638 for character "Juniper Corvain" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Keeper": typeKey="rank" → contentType="rank"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 78/166: "Keeper" → rank
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created rank: Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item bd7adc3d-b37f-4458-8536-9434edb782cb for rank "Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Kelp Keeper": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 79/166: "Kelp Keeper" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Kelp Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 985b76e9-0a24-439d-9077-da44074fcb4c for species "Kelp Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Kenna McAllister": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 80/166: "Kenna McAllister" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Kenna McAllister
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 18741114-066d-4acc-b696-37d7eef13a91 for character "Kenna McAllister" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 80/166 (48%)
+[Type Mapping] Article "Las Vegas": typeKey="settlement" → contentType="settlement"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 81/166: "Las Vegas" → settlement
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created settlement: Las Vegas
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 9c27355d-49b6-46fd-a03e-104bcd959e76 for settlement "Las Vegas" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Letharia": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 82/166: "Letharia" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Letharia
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 89764740-998f-44f9-9909-08885bd7437d for species "Letharia" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Letharian": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 83/166: "Letharian" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Letharian
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 784df9fa-8b68-42f2-8f14-70083f6467a5 for ethnicity "Letharian" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Loch Lomond": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 84/166: "Loch Lomond" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Loch Lomond
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 34896b7f-3d9f-4203-9611-3794af42de2a for location "Loch Lomond" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Luca Rodenberg": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 85/166: "Luca Rodenberg" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Luca Rodenberg
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item b2cef965-6f39-4d47-bb96-6b36bc3cfe2f for character "Luca Rodenberg" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Luciana González": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 86/166: "Luciana González" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Luciana González
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a21fa850-7f39-465d-a8e4-34c06356f70c for character "Luciana González" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Maelle Corvain": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 87/166: "Maelle Corvain" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Maelle Corvain
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 240c9ef0-1350-4463-ae9f-ed505c8997b1 for character "Maelle Corvain" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "María González": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 88/166: "María González" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: María González
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item e6767f92-6a9f-4afd-a5d9-6f124c96c0ae for character "María González" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Martina González": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 89/166: "Martina González" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Martina González
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 336c5e86-7c59-4cae-9caa-ed92654cd447 for character "Martina González" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Mesquite Pinole": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 90/166: "Mesquite Pinole" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Mesquite Pinole
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 60a19e5e-bc9d-44c2-9655-a2248b84a8da for item "Mesquite Pinole" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 90/166 (54%)
+[Type Mapping] Article "Mika": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 91/166: "Mika" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Mika
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0467636b-e81c-403d-9399-2180f9fbe79a for character "Mika" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Milan Langford": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 92/166: "Milan Langford" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Milan Langford
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a72b41a7-d8fc-4490-b33a-c4120879af78 for character "Milan Langford" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Mountain Lion": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 93/166: "Mountain Lion" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Mountain Lion
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 30f29346-be44-4dc7-946d-9710c6dc1897 for species "Mountain Lion" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Natural Bridge Canyon": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 94/166: "Natural Bridge Canyon" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Natural Bridge Canyon
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 8072afad-06e7-498d-8c73-5a5ae10ffcfe for location "Natural Bridge Canyon" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Nopales": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 95/166: "Nopales" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Nopales
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 23d60cc4-997b-4f85-a690-dadafdda7080 for item "Nopales" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Northern Archive Station": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 96/166: "Northern Archive Station" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Northern Archive Station
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 3fbe026a-a2fa-403f-add1-4b44c4a47593 for location "Northern Archive Station" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Northern Rocky Mountains": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 97/166: "Northern Rocky Mountains" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Northern Rocky Mountains
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 126d926b-6221-429a-948a-2c5632e58ef2 for location "Northern Rocky Mountains" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Northern Watchtower": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 98/166: "Northern Watchtower" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Northern Watchtower
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item c2cd6b58-eaae-4641-b625-1f16b7f4d058 for location "Northern Watchtower" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Oasis Harvest": typeKey="ritual" → contentType="ritual"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 99/166: "Oasis Harvest" → ritual
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ritual: Oasis Harvest
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 28fa8793-5875-4af1-83c3-f029ca26e4fb for ritual "Oasis Harvest" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Oasis Harvest Loaf": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 100/166: "Oasis Harvest Loaf" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Oasis Harvest Loaf
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 3189ba2a-114b-408b-878a-b94ecf4a5994 for item "Oasis Harvest Loaf" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 100/166 (60%)
+[Type Mapping] Article "Oasis Salad": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 101/166: "Oasis Salad" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Oasis Salad
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6ddd9ea8-6e90-43ef-8cc6-7e09393fd889 for item "Oasis Salad" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Pacific Northwest": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 102/166: "Pacific Northwest" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Pacific Northwest
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 3bebe814-6555-4b24-a5da-b98ab9be5e3e for location "Pacific Northwest" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Panamint Mountains": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 103/166: "Panamint Mountains" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Panamint Mountains
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item d0f38bad-55d0-4766-b0f2-1f2533ff6992 for location "Panamint Mountains" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Phoenix, Arizona": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 104/166: "Phoenix, Arizona" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Phoenix, Arizona
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 48b5f0f9-0c07-4a10-bd88-5d82fa8bf16a for location "Phoenix, Arizona" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Pickleweed": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 105/166: "Pickleweed" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Pickleweed
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item d26736e1-ea1f-4aff-ab51-c3641ffbf3fd for species "Pickleweed" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Piñonada": typeKey="ritual" → contentType="ritual"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 106/166: "Piñonada" → ritual
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ritual: Piñonada
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 78ea9283-09cc-4500-8723-748a638ab575 for ritual "Piñonada" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Pinyon Nut Butter": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 107/166: "Pinyon Nut Butter" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Pinyon Nut Butter
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item c270ba60-a2b5-4e5b-a909-dfcfeb122d9b for item "Pinyon Nut Butter" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Pinyon Nuts": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 108/166: "Pinyon Nuts" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Pinyon Nuts
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 05cab2e2-09e8-4364-bd71-75fb7d099497 for item "Pinyon Nuts" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Pinyon Pine Tree": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 109/166: "Pinyon Pine Tree" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Pinyon Pine Tree
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 35ff00fb-2a71-4f14-9869-8bf9d7f5e399 for species "Pinyon Pine Tree" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Preservation Day": typeKey="ritual" → contentType="ritual"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 110/166: "Preservation Day" → ritual
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ritual: Preservation Day
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 305e78cd-19cb-4abc-9b02-9855466760d3 for ritual "Preservation Day" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 110/166 (66%)
+[Type Mapping] Article "Prickly Pear Cactus": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 111/166: "Prickly Pear Cactus" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Prickly Pear Cactus
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 63ca6f32-0d30-40c8-a582-92a4f0ca557c for species "Prickly Pear Cactus" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Reedweavers": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 112/166: "Reedweavers" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Reedweavers
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6b2429bf-ad81-472e-b0f0-1df97aa34940 for ethnicity "Reedweavers" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Rimeblood": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 113/166: "Rimeblood" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Rimeblood
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 31eb6572-294a-4931-a2b1-160fee5e98d1 for species "Rimeblood" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Rootbound": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 114/166: "Rootbound" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Rootbound
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 1061265e-c72b-423c-a8d3-b004f6a67363 for ethnicity "Rootbound" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Rory Webb": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 115/166: "Rory Webb" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Rory Webb
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item cda7b435-9180-48ec-97bd-2f64ed4b2af0 for character "Rory Webb" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Salt Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 116/166: "Salt Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Salt Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6f909ac8-0f80-4f91-b19a-9b95ac876683 for profession "Salt Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Saltbreakers": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 117/166: "Saltbreakers" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Saltbreakers
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6f162434-1b3a-44f7-99b2-36f2921f7147 for profession "Saltbreakers" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Salted Porridge": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 118/166: "Salted Porridge" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Salted Porridge
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 24e91a08-6e0f-41de-affe-50f7041ad2b5 for item "Salted Porridge" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Saltfolk": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 119/166: "Saltfolk" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Saltfolk
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 9d781711-1b97-4bff-8b70-d6ded35be3be for ethnicity "Saltfolk" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Saltling": typeKey="rank" → contentType="rank"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 120/166: "Saltling" → rank
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created rank: Saltling
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 64ce652f-c8a0-4119-80d0-5077b804bcfb for rank "Saltling" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 120/166 (72%)
+[Type Mapping] Article "Saltwright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 121/166: "Saltwright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Saltwright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 93d10211-d9e7-4059-8f5a-2252c602927a for profession "Saltwright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Scotland": typeKey="organization" → contentType="organization"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 122/166: "Scotland" → organization
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created organization: Scotland
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item e5cabe01-043f-45d7-b004-ef43383a78db for organization "Scotland" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Scottish": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 123/166: "Scottish" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Scottish
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 4530b6eb-e5a1-41c9-8ad0-4cd8f9a54a9f for ethnicity "Scottish" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Seamus McAllister": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 124/166: "Seamus McAllister" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Seamus McAllister
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 5ad2f53d-2568-4f4e-a515-2e20fd4d4c4b for character "Seamus McAllister" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Sidewinder Rattlesnake": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 125/166: "Sidewinder Rattlesnake" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Sidewinder Rattlesnake
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 04aa3e55-7799-4265-ab20-e9d587de1fdf for species "Sidewinder Rattlesnake" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Silvan Langford": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 126/166: "Silvan Langford" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Silvan Langford
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0bc87dbb-ea5e-422c-8758-4da365f99ed1 for character "Silvan Langford" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Southern Watchtower": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 127/166: "Southern Watchtower" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Southern Watchtower
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item a6d75e58-afc6-45c8-9d3d-e37cd9f8d144 for location "Southern Watchtower" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Spirehorn": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 128/166: "Spirehorn" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Spirehorn
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 7c13ed99-fdd9-4a77-b3ae-651a258e65b6 for species "Spirehorn" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Spore Lung": typeKey="condition" → contentType="condition"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 129/166: "Spore Lung" → condition
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created condition: Spore Lung
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 54b363c1-0844-45b7-a15d-2dc35acc4c95 for condition "Spore Lung" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Stone Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 130/166: "Stone Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Stone Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 78a2ee27-ae26-42f0-90fc-2d979e93e28b for profession "Stone Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 130/166 (78%)
+[Type Mapping] Article "Stone Moss": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 131/166: "Stone Moss" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Stone Moss
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item c65c8f22-a976-4284-9f27-b3bab7be07ee for species "Stone Moss" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Stonekeepers": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 132/166: "Stonekeepers" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Stonekeepers
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item ed2fb5f9-1213-4322-b94e-8eb891d1f969 for ethnicity "Stonekeepers" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Stoneshapers": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 133/166: "Stoneshapers" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Stoneshapers
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 53a10d68-daba-49f6-975d-65ccc7454596 for profession "Stoneshapers" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Stonewright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 134/166: "Stonewright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Stonewright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6a1b2a1d-4980-4000-a775-0ae9d19cb94b for profession "Stonewright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Sunstone Jerky": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 135/166: "Sunstone Jerky" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Sunstone Jerky
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item e5fab3f9-1456-46f7-9e01-c21a03d97fc3 for item "Sunstone Jerky" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Sylvia Langford": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 136/166: "Sylvia Langford" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Sylvia Langford
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 15fb9356-50c8-487f-b781-026ae7aceb3e for character "Sylvia Langford" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Archive Collective": typeKey="organization" → contentType="organization"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 137/166: "The Archive Collective" → organization
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created organization: The Archive Collective
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6f60f367-762b-483c-b8e3-dfa768881f1d for organization "The Archive Collective" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Armour Flower": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 138/166: "The Armour Flower" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: The Armour Flower
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 7460eda6-3e1c-4a55-b94f-4933f1e05dbe for species "The Armour Flower" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Badwater Basin": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 139/166: "The Badwater Basin" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: The Badwater Basin
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 46888123-e35b-461d-a1cb-ac813dffd6e6 for location "The Badwater Basin" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Council of Keepers": typeKey="organization" → contentType="organization"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 140/166: "The Council of Keepers" → organization
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created organization: The Council of Keepers
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 3a29245b-5979-45f9-a5df-7a6ec0a85e60 for organization "The Council of Keepers" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 140/166 (84%)
+[Type Mapping] Article "The Hollowed": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 141/166: "The Hollowed" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: The Hollowed
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 191706fa-901d-4268-af78-6735c50b0d78 for species "The Hollowed" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Keeper's Den": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 142/166: "The Keeper's Den" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: The Keeper's Den
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 68f3e90e-de5d-4e34-8644-e38884ee3120 for location "The Keeper's Den" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The North Bastion": typeKey="settlement" → contentType="settlement"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 143/166: "The North Bastion" → settlement
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created settlement: The North Bastion
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item fa953ace-f87b-4b22-b0aa-3f51a434976c for settlement "The North Bastion" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Phoenix Collapse": typeKey="article" → contentType="document"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 144/166: "The Phoenix Collapse" → document
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created document: The Phoenix Collapse
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 3cf6a639-efb4-4035-8895-5fa0548c87e3 for document "The Phoenix Collapse" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Rocky Mountains": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 145/166: "The Rocky Mountains" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: The Rocky Mountains
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 6b3b3cbd-ef06-43a3-9230-0c859da97410 for location "The Rocky Mountains" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Salt Sage": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 146/166: "The Salt Sage" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: The Salt Sage
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 10f99de6-d39e-47fe-b2ef-7b00a326a650 for species "The Salt Sage" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "The Verdancy": typeKey="law" → contentType="law"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 147/166: "The Verdancy" → law
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created law: The Verdancy
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 049d09da-9f9d-4eef-8784-24f786eefac2 for law "The Verdancy" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Thermal Thistle": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 148/166: "Thermal Thistle" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Thermal Thistle
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 8e462d21-ad39-475e-b4b0-c7643550eb5f for species "Thermal Thistle" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Thornjack": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 149/166: "Thornjack" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Thornjack
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0f0f6951-890f-41da-9bfb-70b215ee105d for species "Thornjack" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Thundercap": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 150/166: "Thundercap" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Thundercap
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 2483bcad-5fc0-4414-bad5-b9fba0f4f85f for species "Thundercap" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 150/166 (90%)
+[Type Mapping] Article "Tide Keeper": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 151/166: "Tide Keeper" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Tide Keeper
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item c99f90b8-f763-4aa7-947d-ac7e56043e34 for profession "Tide Keeper" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Tiderunner": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 152/166: "Tiderunner" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Tiderunner
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item ae8e1ee6-7c63-4dd1-a3ea-81d3b961a2af for profession "Tiderunner" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Tidewright": typeKey="profession" → contentType="profession"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 153/166: "Tidewright" → profession
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created profession: Tidewright
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 7a355609-a722-4136-b33a-0cce47f828d1 for profession "Tidewright" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Tunas": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 154/166: "Tunas" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Tunas
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 88c016ea-1366-4602-9c28-5e36e4f4d908 for item "Tunas" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Vaultmen": typeKey="ethnicity" → contentType="ethnicity"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 155/166: "Vaultmen" → ethnicity
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created ethnicity: Vaultmen
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0e493408-7e9e-48d6-a928-2fd7de7842e9 for ethnicity "Vaultmen" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Warden": typeKey="rank" → contentType="rank"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 156/166: "Warden" → rank
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created rank: Warden
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0254e06a-749e-4da6-a4a3-4a0e70ac5529 for rank "Warden" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Western Banded Gecko": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 157/166: "Western Banded Gecko" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Western Banded Gecko
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item b0534619-36a4-4085-82ce-6bc6da471a54 for species "Western Banded Gecko" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Western Europe": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 158/166: "Western Europe" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Western Europe
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item f1a8348d-cad9-417d-8b61-cf929aa364ab for location "Western Europe" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Western Watchtower": typeKey="landmark" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 159/166: "Western Watchtower" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Western Watchtower
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 618fb209-791b-49f1-a6d2-77f8377164f7 for location "Western Watchtower" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Whisper Vines": typeKey="species" → contentType="species"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 160/166: "Whisper Vines" → species
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created species: Whisper Vines
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 25eea651-31dd-4005-b0d3-e21ba52ab234 for species "Whisper Vines" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 160/166 (96%)
+[Type Mapping] Article "Whisperer": typeKey="rank" → contentType="rank"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 161/166: "Whisperer" → rank
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created rank: Whisperer
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 0bd76ab2-3f41-465d-8383-cda2c5130664 for rank "Whisperer" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Wildrose Canyon": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 162/166: "Wildrose Canyon" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Wildrose Canyon
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item e8afb588-8767-48c7-84fc-c8b05814675e for location "Wildrose Canyon" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Wildrose Kilns": typeKey="location" → contentType="location"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 163/166: "Wildrose Kilns" → location
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created location: Wildrose Kilns
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 1b70db9b-4bdb-4655-9346-dc709284b63f for location "Wildrose Kilns" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Wolfberries": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 164/166: "Wolfberries" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Wolfberries
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 02f1c08c-e7bd-4c7d-ae2d-8d1077c3603a for item "Wolfberries" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Yucca": typeKey="item" → contentType="item"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 165/166: "Yucca" → item
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created item: Yucca
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 038336ab-fae2-46bd-b5ad-3e784224d94f for item "Yucca" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Type Mapping] Article "Zachary Webb": typeKey="person" → contentType="character"
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Processing 166/166: "Zachary Webb" → character
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created character: Zachary Webb
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] ✓ Created saved_item 47279396-ce05-4504-9a57-aed14cec4526 for character "Zachary Webb" in notebook 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Progress update: 166/166 (100%)
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Completed: 166 imported, 0 skipped, 0 failed
+[Import 3d2722fc-3858-4095-a858-294e5f35773b] Import job marked as completed in database with status: completed
