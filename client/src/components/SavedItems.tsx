@@ -197,12 +197,24 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
   // Fetch missing or stale item data for entries
   const fetchMissingItemData = async (items: SavedItem[]) => {
-    // Only fetch item data if itemData is missing (for all content types including characters)
-    // Trust the itemData that's already stored in saved_items table
+    // For mutable content types (characters, professions, etc.), always fetch fresh data
+    // For immutable types, only fetch if itemData is missing
+    const mutableTypes = ['character', 'profession', 'species', 'location', 'settlement', 
+                          'organization', 'ethnicity', 'item', 'document', 'language', 
+                          'building', 'material', 'transportation', 'rank', 'condition',
+                          'ritual', 'law'];
+    
     const missingDataItems = items.filter(item => {
       const itemKey = item.itemId || item.id;
-      // Only fetch if itemData is missing and we haven't already fetched it
-      return !item.itemData && itemKey && !fetchedItemsRef.current.has(itemKey);
+      if (!itemKey) return false;
+      
+      // Always fetch fresh data for mutable content types (unless already fetched in this cycle)
+      if (mutableTypes.includes(item.itemType || '')) {
+        return !fetchedItemsRef.current.has(itemKey);
+      }
+      
+      // For immutable types, only fetch if itemData is missing
+      return !item.itemData && !fetchedItemsRef.current.has(itemKey);
     });
 
     if (missingDataItems.length === 0) return;
@@ -216,15 +228,30 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
       try {
         let endpoint = '';
-        if (item.itemType === 'character') {
-          // Include notebookId when fetching character data
-          const notebookIdParam = item.notebookId || activeNotebookId;
-          endpoint = `/api/characters/${item.itemId}?notebookId=${notebookIdParam}`;
-        } else if (item.itemType === 'profession') {
-          // Include notebookId when fetching profession data
-          const notebookIdParam = item.notebookId || activeNotebookId;
-          endpoint = `/api/professions/${item.itemId}?notebookId=${notebookIdParam}`;
-        }
+        const notebookIdParam = item.notebookId || activeNotebookId;
+        
+        // Map content types to their API endpoints
+        const endpointMap: { [key: string]: string } = {
+          'character': `/api/characters/${item.itemId}?notebookId=${notebookIdParam}`,
+          'profession': `/api/professions/${item.itemId}?notebookId=${notebookIdParam}`,
+          'species': `/api/species/${item.itemId}?notebookId=${notebookIdParam}`,
+          'location': `/api/locations/${item.itemId}?notebookId=${notebookIdParam}`,
+          'settlement': `/api/settlements/${item.itemId}?notebookId=${notebookIdParam}`,
+          'organization': `/api/organizations/${item.itemId}?notebookId=${notebookIdParam}`,
+          'ethnicity': `/api/ethnicities/${item.itemId}?notebookId=${notebookIdParam}`,
+          'item': `/api/items/${item.itemId}?notebookId=${notebookIdParam}`,
+          'document': `/api/documents/${item.itemId}?notebookId=${notebookIdParam}`,
+          'language': `/api/languages/${item.itemId}?notebookId=${notebookIdParam}`,
+          'building': `/api/buildings/${item.itemId}?notebookId=${notebookIdParam}`,
+          'material': `/api/materials/${item.itemId}?notebookId=${notebookIdParam}`,
+          'transportation': `/api/transportation/${item.itemId}?notebookId=${notebookIdParam}`,
+          'rank': `/api/ranks/${item.itemId}?notebookId=${notebookIdParam}`,
+          'condition': `/api/conditions/${item.itemId}?notebookId=${notebookIdParam}`,
+          'ritual': `/api/rituals/${item.itemId}?notebookId=${notebookIdParam}`,
+          'law': `/api/laws/${item.itemId}?notebookId=${notebookIdParam}`
+        };
+        
+        endpoint = endpointMap[item.itemType || ''] || '';
 
         if (endpoint) {
           const response = await apiRequest('GET', endpoint);
