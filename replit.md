@@ -51,6 +51,9 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 ### Security & Authorization
 - **Multi-Layer Security Architecture**: Enterprise-grade security implementation protecting against major web vulnerabilities.
 - **Security Layers**: Input Sanitization (SQLi, XSS, Prototype Pollution), Authentication & Access Control, Rate Limiting, Admin Privilege Protection, Row-Level Security (RLS), CSRF Protection, Security Headers, and Security Audit Logging.
+- **XSS Protection**: All user-generated HTML sanitized using DOMPurify (isomorphic-dompurify) before rendering. ProjectViewer uses sanitizeHtml() for rich content. React JSX automatically escapes text fields.
+- **Session Security**: httpOnly, secure, sameSite:'lax' cookies with automatic regeneration after login, preserving returnTo redirect URLs.
+- **Error Handling**: Generic error messages sent to clients (preventing information disclosure) while detailed errors logged server-side for debugging.
 - **Ownership Validation Pattern**: All content operations enforce strict ownership validation using a "Fetch → Validate → Execute" pattern.
 - **Critical Security Rules**: Delete/update operations validate ownership, triple-filter for multi-tenant isolation, and return 404 for unauthorized access to prevent information disclosure.
 
