@@ -161,4 +161,94 @@ ${text}`;
   }
 });
 
+router.post("/generate-field", async (req: any, res) => {
+  try {
+    const { fieldName, fieldLabel, action, customPrompt, currentValue, characterContext } = req.body;
+
+    if (!fieldLabel) {
+      return res.status(400).json({ error: 'Field label is required' });
+    }
+
+    // Build context string from character data
+    const contextParts: string[] = [];
+    if (characterContext.givenName || characterContext.familyName) {
+      const fullName = [characterContext.givenName, characterContext.familyName].filter(Boolean).join(' ');
+      if (fullName) contextParts.push(`Character name: ${fullName}`);
+    }
+    if (characterContext.species) contextParts.push(`Species: ${characterContext.species}`);
+    if (characterContext.occupation) contextParts.push(`Occupation: ${characterContext.occupation}`);
+    if (characterContext.age) contextParts.push(`Age: ${characterContext.age}`);
+    if (characterContext.gender) contextParts.push(`Gender: ${characterContext.gender}`);
+    if (characterContext.personality && characterContext.personality.length > 0) {
+      contextParts.push(`Personality: ${Array.isArray(characterContext.personality) ? characterContext.personality.join(', ') : characterContext.personality}`);
+    }
+
+    const contextStr = contextParts.length > 0 
+      ? `\n\nCHARACTER CONTEXT:\n${contextParts.join('\n')}\n`
+      : '';
+
+    let prompt = '';
+
+    switch (action) {
+      case 'generate':
+        prompt = `You are a creative writing assistant helping to flesh out a character. Generate compelling content for the "${fieldLabel}" field.${contextStr}
+
+Return ONLY the generated ${fieldLabel.toLowerCase()} without any explanations, labels, or commentary.${STYLE_INSTRUCTION}`;
+        break;
+
+      case 'improve':
+        prompt = `You are a creative writing assistant. Improve the following ${fieldLabel.toLowerCase()} by making it more engaging, detailed, and well-written while preserving the core ideas.${contextStr}
+
+CURRENT ${fieldLabel.toUpperCase()}:
+${currentValue}
+
+Return ONLY the improved text without any explanations or commentary.${STYLE_INSTRUCTION}`;
+        break;
+
+      case 'expand':
+        prompt = `You are a creative writing assistant. Expand the following ${fieldLabel.toLowerCase()} with more details, depth, and elaboration while maintaining consistency with the character.${contextStr}
+
+CURRENT ${fieldLabel.toUpperCase()}:
+${currentValue}
+
+Return ONLY the expanded text without any explanations or commentary.${STYLE_INSTRUCTION}`;
+        break;
+
+      case 'custom':
+        prompt = `You are a creative writing assistant helping with a character's ${fieldLabel.toLowerCase()}.${contextStr}
+
+CURRENT ${fieldLabel.toUpperCase()}:
+${currentValue || '(Empty)'}
+
+USER'S INSTRUCTION:
+${customPrompt}
+
+Follow the user's instruction and return ONLY the modified or generated ${fieldLabel.toLowerCase()} without any explanations or commentary.${STYLE_INSTRUCTION}`;
+        break;
+
+      default:
+        return res.status(400).json({ error: 'Invalid action' });
+    }
+
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 2048,
+      messages: [{
+        role: "user",
+        content: prompt
+      }]
+    });
+
+    const generatedText = message.content[0].type === 'text' 
+      ? message.content[0].text.trim()
+      : currentValue || '';
+
+    res.json({ generatedText });
+
+  } catch (error) {
+    console.error('Error in AI field generation:', error);
+    res.status(500).json({ error: 'Failed to generate field content' });
+  }
+});
+
 export default router;
