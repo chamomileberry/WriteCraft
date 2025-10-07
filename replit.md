@@ -47,7 +47,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
     - **AI-Powered Inline Editing**: Grammarly-style AI assistance integrated across all text editors, offering actions like improving, shortening, expanding, fixing grammar, and suggestions using Anthropic's Claude 3.5 Sonnet.
     - **Writing Assistant Panel**: Conversational AI assistant for analyzing text, proofreading, generating questions, and providing writing feedback.
     - **AI Writing Style**: All AI features adhere to comprehensive anti-cliché guidelines to produce human-like, authentic, and expressive writing, avoiding robotic patterns and forbidden phrases.
-    - **World Anvil Import**: Comprehensive import system that parses World Anvil export ZIP files and imports content into WriteCraft notebooks. Supports 11 content types: characters, species, locations, organizations, professions, ethnicities, settlements, rituals, laws, items, and documents. Processes individual JSON article files with proper schema mapping for required fields. Background job processing with progress tracking.
+    - **World Anvil Import**: Comprehensive import system that parses World Anvil export ZIP files and imports content into WriteCraft notebooks. Supports 17 content types: characters, species, locations, organizations, professions, ethnicities, settlements, rituals, laws, items, documents, languages, buildings, materials, transportation, ranks, and conditions. Processes individual JSON article files with proper schema mapping for required fields. Background job processing with progress tracking. Import UI displays granular success/failure details with collapsible error messages showing specific items that failed and why. All imported items automatically create saved_items entries for immediate notebook visibility.
 
 ### Security & Authorization
 - **Multi-Layer Security Architecture**: Enterprise-grade security implementation protecting against major web vulnerabilities.
@@ -63,6 +63,17 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Permission Levels**: View, Comment (future), Edit.
 - **Share Management**: User search, ShareDialog component for managing collaborators, and integrated share buttons.
 - **Security & Access Control**: RLS middleware validates ownership first, then checks shares table for collaborative access. Unauthorized access returns 404.
+
+### Testing & Quality Assurance
+- **Test Framework**: Playwright for end-to-end testing
+- **Import Regression Tests**: Comprehensive test suite (tests/import-regression.spec.ts) validates:
+  - All 17 content types import correctly with saved_items creation
+  - Import job metrics accurately track total/processed item counts
+  - Granular error details preserved for failed items
+  - UI displays detailed success/failure information
+  - Database state verified after import completion
+- **Test Coverage**: Auth flows, image upload, project smoke tests, World Anvil import pipeline
+- **Known Test Limitations**: Current regression tests require reliable test user authentication for full DB assertion coverage. Recommended improvements: authenticated API integration, deterministic failure fixtures, direct DB validation without conditional guards.
 
 ## External Dependencies
 
