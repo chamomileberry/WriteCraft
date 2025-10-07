@@ -3,7 +3,7 @@ import { NodeProps, Handle, Position } from '@xyflow/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, User, Plus } from 'lucide-react';
+import { Edit, User, Plus, Trash2 } from 'lucide-react';
 import type { FamilyTreeMember } from '@shared/schema';
 
 export interface FamilyMemberNodeData {
@@ -23,10 +23,11 @@ export interface FamilyMemberNodeData {
   treeId: string;
   onEdit?: (member: FamilyTreeMember) => void;
   onAddRelationship?: (member: FamilyTreeMember) => void;
+  onRemoveMember?: (member: FamilyTreeMember) => void;
 }
 
 function FamilyMemberNodeComponent({ data }: NodeProps) {
-  const { member, onEdit, onAddRelationship } = data as unknown as FamilyMemberNodeData;
+  const { member, onEdit, onAddRelationship, onRemoveMember } = data as unknown as FamilyMemberNodeData;
   
   // Get display name - prefer character data if available
   let displayName = 'Unknown';
@@ -125,6 +126,20 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
             data-testid={`button-edit-member-${member.id}`}
           >
             <Edit className="w-3.5 h-3.5" />
+          </Button>
+          <Button 
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onRemoveMember) {
+                onRemoveMember(member);
+              }
+            }}
+            data-testid={`button-remove-member-${member.id}`}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>

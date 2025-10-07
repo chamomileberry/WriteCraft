@@ -281,7 +281,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           notebookId,
           treeId,
           onEdit: handleEditMember,
-          onAddRelationship: handleAddRelationship
+          onAddRelationship: handleAddRelationship,
+          onRemoveMember: handleRemoveMemberFromNode
         },
       }));
       
@@ -619,9 +620,40 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     },
   });
 
-  // Handle removing member from tree
+  // Handle removing member from tree (called from CharacterGallery with memberId string)
   const handleRemoveMember = useCallback((memberId: string) => {
     deleteMemberMutation.mutate(memberId);
+  }, [deleteMemberMutation]);
+
+  // Handle removing member from node (called from FamilyMemberNode with member object)
+  const handleRemoveMemberFromNode = useCallback((member: FamilyTreeMember) => {
+    // Get display name for confirmation message
+    const memberWithChar = member as any;
+    let displayName = 'this member';
+    
+    if (memberWithChar.character) {
+      const parts = [
+        memberWithChar.character.givenName,
+        memberWithChar.character.middleName,
+        memberWithChar.character.familyName
+      ].filter(Boolean);
+      if (parts.length > 0) {
+        displayName = parts.join(' ');
+      } else if (memberWithChar.character.nickname) {
+        displayName = memberWithChar.character.nickname;
+      }
+    } else if (member.inlineName) {
+      displayName = member.inlineName;
+    }
+    
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to remove ${displayName} from this family tree? This will also remove their relationships.`
+    );
+    
+    if (confirmed) {
+      deleteMemberMutation.mutate(member.id);
+    }
   }, [deleteMemberMutation]);
 
   // Mutation to update member details
