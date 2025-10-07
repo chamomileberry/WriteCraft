@@ -169,22 +169,63 @@ router.post("/generate-field", async (req: any, res) => {
       return res.status(400).json({ error: 'Field label is required' });
     }
 
-    // Build context string from character data
+    // Build context string from character data - include ALL filled fields
     const contextParts: string[] = [];
-    if (characterContext.givenName || characterContext.familyName) {
-      const fullName = [characterContext.givenName, characterContext.familyName].filter(Boolean).join(' ');
-      if (fullName) contextParts.push(`Character name: ${fullName}`);
-    }
-    if (characterContext.species) contextParts.push(`Species: ${characterContext.species}`);
-    if (characterContext.occupation) contextParts.push(`Occupation: ${characterContext.occupation}`);
-    if (characterContext.age) contextParts.push(`Age: ${characterContext.age}`);
-    if (characterContext.gender) contextParts.push(`Gender: ${characterContext.gender}`);
-    if (characterContext.personality && characterContext.personality.length > 0) {
-      contextParts.push(`Personality: ${Array.isArray(characterContext.personality) ? characterContext.personality.join(', ') : characterContext.personality}`);
+    
+    // Helper to format field name for display
+    const formatFieldName = (key: string): string => {
+      return key
+        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+        .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+        .trim();
+    };
+    
+    // Helper to check if a value has meaningful content
+    const hasContent = (value: any): boolean => {
+      if (value === null || value === undefined || value === '') return false;
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'object') return Object.keys(value).length > 0;
+      return true;
+    };
+    
+    // Prioritize key fields first for better context ordering
+    const priorityFields = ['givenName', 'familyName', 'species', 'age', 'gender', 'occupation'];
+    const fieldOrder = [
+      ...priorityFields,
+      ...Object.keys(characterContext).filter(k => !priorityFields.includes(k) && k !== fieldName)
+    ];
+    
+    for (const key of fieldOrder) {
+      const value = characterContext[key];
+      if (!hasContent(value)) continue;
+      
+      // Special handling for name fields
+      if (key === 'givenName' || key === 'familyName') {
+        const fullName = [characterContext.givenName, characterContext.familyName].filter(Boolean).join(' ');
+        if (fullName && !contextParts.some(p => p.startsWith('Character name:'))) {
+          contextParts.push(`Character name: ${fullName}`);
+        }
+        continue;
+      }
+      
+      // Format the value
+      let formattedValue: string;
+      if (Array.isArray(value)) {
+        formattedValue = value.join(', ');
+      } else if (typeof value === 'object') {
+        formattedValue = JSON.stringify(value);
+      } else {
+        formattedValue = String(value);
+      }
+      
+      // Only include if the value is substantial (not just a single character or number under 100 chars for text fields)
+      if (formattedValue.length > 0) {
+        contextParts.push(`${formatFieldName(key)}: ${formattedValue}`);
+      }
     }
 
     const contextStr = contextParts.length > 0 
-      ? `\n\nCHARACTER CONTEXT:\n${contextParts.join('\n')}\n`
+      ? `\n\nEXISTING CHARACTER INFORMATION (maintain consistency with these details):\n${contextParts.join('\n')}\n`
       : '';
 
     let prompt = '';
