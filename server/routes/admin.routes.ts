@@ -1,23 +1,38 @@
 import { Router } from "express";
 import { storage } from "../storage";
+import { isAuthenticated } from "../replitAuth";
 
 const router = Router();
+
+// Apply authentication middleware to all admin routes
+router.use(isAuthenticated);
 
 // GET /api/admin/characters/issues - Get characters with incomplete data
 router.get("/characters/issues", async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req.user as any)?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const notebookId = req.query.notebookId as string;
+    let notebookId = req.query.notebookId as string;
     if (!notebookId) {
       return res.status(400).json({ error: "notebookId is required" });
     }
 
+    // Workaround: Handle doubled notebook ID (UUID/UUID pattern)
+    if (notebookId.includes('/')) {
+      const parts = notebookId.split('/');
+      notebookId = parts[0]; // Use first part
+      console.log('[AdminRoutes] Fixed doubled notebookId:', notebookId);
+    }
+
+    console.log('[AdminRoutes] Validating notebook access:', { notebookId, userId });
+
     // Validate notebook ownership
     const hasAccess = await storage.validateNotebookOwnership(notebookId, userId);
+    console.log('[AdminRoutes] Notebook access result:', hasAccess);
+    
     if (!hasAccess) {
       return res.status(403).json({ error: "You do not have access to this notebook" });
     }
@@ -44,14 +59,21 @@ router.get("/characters/issues", async (req, res) => {
 // GET /api/admin/characters/duplicates - Get potential duplicate characters
 router.get("/characters/duplicates", async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req.user as any)?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const notebookId = req.query.notebookId as string;
+    let notebookId = req.query.notebookId as string;
     if (!notebookId) {
       return res.status(400).json({ error: "notebookId is required" });
+    }
+
+    // Workaround: Handle doubled notebook ID (UUID/UUID pattern)
+    if (notebookId.includes('/')) {
+      const parts = notebookId.split('/');
+      notebookId = parts[0]; // Use first part
+      console.log('[AdminRoutes] Fixed doubled notebookId:', notebookId);
     }
 
     // Validate notebook ownership

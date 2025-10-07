@@ -44,7 +44,7 @@ type IssueType = 'familyName' | 'description' | 'imageUrl';
 export default function CharacterConsolidatePage() {
   const [, setLocation] = useLocation();
   const { activeNotebookId } = useNotebookStore();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,16 +54,22 @@ export default function CharacterConsolidatePage() {
   const [issueType, setIssueType] = useState<IssueType | null>(null);
   const [fixValue, setFixValue] = useState('');
 
+  // Debug: Log activeNotebookId
+  console.log('[CharacterConsolidatePage] activeNotebookId:', activeNotebookId);
+
   // Fetch issues
+  const issuesQueryKey = `/api/admin/characters/issues?notebookId=${activeNotebookId}`;
+  console.log('[CharacterConsolidatePage] Issues query URL:', issuesQueryKey);
+  
   const { data: issuesData, isLoading: issuesLoading } = useQuery<IssuesData>({
-    queryKey: [`/api/admin/characters/issues?notebookId=${activeNotebookId}`, activeNotebookId],
-    enabled: !!activeNotebookId,
+    queryKey: [issuesQueryKey, activeNotebookId],
+    enabled: !!activeNotebookId && !!user && !authLoading,
   });
 
   // Fetch duplicates
   const { data: duplicatesData, isLoading: duplicatesLoading } = useQuery<DuplicatesData>({
     queryKey: [`/api/admin/characters/duplicates?notebookId=${activeNotebookId}`, activeNotebookId],
-    enabled: !!activeNotebookId,
+    enabled: !!activeNotebookId && !!user && !authLoading,
   });
 
   // Update character mutation

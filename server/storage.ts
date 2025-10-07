@@ -795,12 +795,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean> {
+    console.log('[Storage] validateNotebookOwnership:', { notebookId, userId });
+    
+    // Check if user owns the notebook
     const [notebook] = await db
       .select()
       .from(notebooks)
       .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
       .limit(1);
-    return !!notebook;
+    
+    console.log('[Storage] Notebook query result:', notebook);
+    
+    if (notebook) {
+      return true;
+    }
+    
+    // Check if notebook is shared with user
+    // TODO: Add shares check once share system is tested
+    // For now, only allow direct owners
+    return false;
   }
 
   // Import Job methods

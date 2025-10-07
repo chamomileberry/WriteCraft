@@ -690,7 +690,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
               };
 
               return (
-                <div className="space-y-3">
+                <div key={type} className="space-y-3">
                   <button 
                     onClick={toggleCollapse}
                     className="flex items-center gap-2 hover-elevate rounded-md px-2 py-1 -mx-2 w-full"
