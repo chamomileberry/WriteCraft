@@ -60,6 +60,7 @@ import potionRoutes from "./potion.routes";
 import notebookRoutes from "./notebook.routes";
 import plantRoutes from "./plant.routes";
 import shareRoutes from "./share.routes";
+import conditionRoutes from "./condition.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -128,4 +129,5 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/laws", lawRoutes);
   app.use("/api/policies", policyRoutes);
   app.use("/api/potions", potionRoutes);
+  app.use("/api/conditions", conditionRoutes);
 }

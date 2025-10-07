@@ -38,7 +38,7 @@ export const characterConfig: ContentTypeFormConfig = {
         { name: "height", label: "Height", type: "text", placeholder: "5'8\", 180cm, tall, average, etc.", description: "How tall are they? Include specific measurements or general description" },
         { name: "weight", label: "Weight", type: "text", placeholder: "Build and weight description", description: "Their weight and body mass" },
         { name: "build", label: "Build", type: "textarea", placeholder: "Muscular, slim, stocky, etc.", description: "Their overall body build and physique", rows: 3 },
-        { name: "physicalCondition", label: "Physical Condition", type: "textarea", placeholder: "Fitness level, health status", description: "Their overall physical fitness and health", rows: 3 },
+        { name: "physicalCondition", label: "Physical Condition", type: "autocomplete-condition", multiple: false, placeholder: "Search or select a condition...", description: "Their overall physical fitness and health" },
         { name: "sex", label: "Biological Sex", type: "text", placeholder: "Assigned sex at birth", description: "Their biological sex assigned at birth" },
         { name: "physicalPresentation", label: "Physical Presentation", type: "text", placeholder: "How they present physically", description: "How they present their gender physically" }
       ]

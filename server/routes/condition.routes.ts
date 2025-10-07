@@ -2,6 +2,9 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertConditionSchema } from "@shared/schema";
 import { z } from "zod";
+import { db } from "../db";
+import { conditions } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -81,16 +84,15 @@ router.get("/user/:userId?", async (req: any, res) => {
 router.get("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
     
-    if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
-    }
+    // Fetch condition by ID only
+    const [condition] = await db.select().from(conditions).where(eq(conditions.id, req.params.id));
     
-    const condition = await storage.getCondition(req.params.id, userId, notebookId);
-    if (!condition) {
+    // Validate ownership - return 404 if not found or doesn't belong to user
+    if (!condition || condition.userId !== userId) {
       return res.status(404).json({ error: 'Condition not found' });
     }
+    
     res.json(condition);
   } catch (error) {
     console.error('Error fetching condition:', error);

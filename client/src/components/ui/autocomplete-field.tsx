@@ -142,7 +142,12 @@ export function AutocompleteField({
       // Fetch details for each UUID
       for (const id of currentValueIds) {
         try {
-          const response = await fetch(`/api/${apiEndpoint}/${id}`, {
+          // Only add notebookId for conditions, and only when activeNotebookId exists
+          const queryParam = (contentType === 'condition' && activeNotebookId) 
+            ? `?notebookId=${activeNotebookId}` 
+            : '';
+          const response = await fetch(`/api/${apiEndpoint}/${id}${queryParam}`, {
+            credentials: 'include',
             headers: {
               'X-User-Id': 'demo-user'
             }
@@ -296,8 +301,8 @@ export function AutocompleteField({
       
       // Add the new item to current selection
       const newValue = multiple 
-        ? [...currentValues, contentType === "profession" ? newItem.id : newItem.name]
-        : contentType === "profession" ? newItem.id : newItem.name;
+        ? [...currentValues, (contentType === "profession" || contentType === "condition") ? newItem.id : newItem.name]
+        : (contentType === "profession" || contentType === "condition") ? newItem.id : newItem.name;
       onChange(newValue);
       setSearchValue("");
       setOpen(false);
@@ -309,8 +314,8 @@ export function AutocompleteField({
     setSearchValue("");
     
     if (multiple) {
-      if (contentType === "profession") {
-        // For professions in multiple mode, work with IDs
+      if (contentType === "profession" || contentType === "condition") {
+        // For professions and conditions in multiple mode, work with IDs
         const selectedItem = items.find((item: AutocompleteOption) => item.name === itemName);
         const itemId = selectedItem ? selectedItem.id : itemName;
         
@@ -336,8 +341,8 @@ export function AutocompleteField({
       if (contentType === "location-type" && options) {
         const selectedOption = options.find(opt => opt.label === itemName);
         onChange(selectedOption ? selectedOption.value : itemName);
-      } else if (contentType === "profession" || contentType === "species") {
-        // For professions and species, store the ID but display the name
+      } else if (contentType === "profession" || contentType === "species" || contentType === "condition") {
+        // For professions, species, and conditions, store the ID but display the name
         const selectedItem = items.find((item: AutocompleteOption) => item.name === itemName);
         const newValue = selectedItem ? selectedItem.id : itemName;
         onChange(newValue);
@@ -364,7 +369,7 @@ export function AutocompleteField({
 
   // Helper function to get display name for a value
   const getDisplayName = (val: string) => {
-    if ((contentType === 'profession' || contentType === 'species') && isUUID(val)) {
+    if ((contentType === 'profession' || contentType === 'species' || contentType === 'condition') && isUUID(val)) {
       // Try resolved names cache first
       if (resolvedNames[val]) {
         return resolvedNames[val];
@@ -385,8 +390,8 @@ export function AutocompleteField({
   const availableItems = (items || []).filter((item: AutocompleteOption) => {
     if (!item || !item.name) return false;
     
-    // For professions and species, check against both names and resolved IDs
-    if (contentType === 'profession' || contentType === 'species') {
+    // For professions, species, and conditions, check against both names and resolved IDs
+    if (contentType === 'profession' || contentType === 'species' || contentType === 'condition') {
       return !currentValues.includes(item.name) && !currentValues.includes(item.id);
     };
     
