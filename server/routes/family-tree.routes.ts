@@ -240,11 +240,41 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
     let positionX: number;
     let positionY: number;
     
+    // Get existing relationships for parent positioning logic
+    const existingRelationships = await storage.getFamilyTreeRelationships(treeId, userId);
+    const existingParents = existingRelationships.filter((rel: any) => 
+      rel.toMemberId === relativeMemberId && rel.relationshipType === 'parent'
+    );
+    
     switch (relationshipType) {
       case 'parent':
-        // Above the relative member
-        positionX = relativeX + Math.floor(Math.random() * 200) - 100; // random(-100, 100)
-        positionY = relativeY - 200;
+        // Check if child already has parents
+        
+        if (existingParents.length === 0) {
+          // First parent - center above child
+          positionX = relativeX;
+          positionY = relativeY - 200;
+        } else {
+          // Find the existing parent member to get their position
+          const existingParentIds = existingParents.map((rel: any) => rel.fromMemberId);
+          const parentMembers = members.filter((m: any) => existingParentIds.includes(m.id));
+          
+          // Safety check: ensure we have valid parent members
+          if (parentMembers.length > 0) {
+            // Find rightmost parent
+            const rightmostParent = parentMembers.reduce((rightmost, current) => {
+              return (current.positionX || 0) > (rightmost.positionX || 0) ? current : rightmost;
+            }, parentMembers[0]);
+            
+            // Position new parent to the right of existing parent
+            positionX = (rightmostParent.positionX || 0) + 250;
+            positionY = rightmostParent.positionY || (relativeY - 200);
+          } else {
+            // Fallback to default if parent members not found (data inconsistency)
+            positionX = relativeX;
+            positionY = relativeY - 200;
+          }
+        }
         break;
       case 'child':
         // Below the relative member
@@ -322,6 +352,40 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
     
     const validatedRelationship = insertFamilyTreeRelationshipSchema.parse(relationshipData);
     const savedRelationship = await storage.createFamilyTreeRelationship(validatedRelationship);
+    
+    // Create marriage only when adding exactly the second parent AND no marriage exists yet
+    if (relationshipType === 'parent' && existingParents.length === 1) {
+      const firstParentId = existingParents[0].fromMemberId;
+      
+      // Re-fetch relationships to get the most current state (including the just-created parent relationship)
+      const freshRelationships = await storage.getFamilyTreeRelationships(treeId, userId);
+      
+      // Check if marriage already exists between the two parents
+      const existingMarriage = freshRelationships.find((rel: any) =>
+        rel.relationshipType === 'marriage' &&
+        ((rel.fromMemberId === firstParentId && rel.toMemberId === savedMember.id) ||
+         (rel.fromMemberId === savedMember.id && rel.toMemberId === firstParentId))
+      );
+      
+      if (!existingMarriage) {
+        const marriageData = {
+          treeId,
+          fromMemberId: firstParentId,
+          toMemberId: savedMember.id,
+          relationshipType: 'marriage'
+        };
+        const validatedMarriage = insertFamilyTreeRelationshipSchema.parse(marriageData);
+        
+        try {
+          await storage.createFamilyTreeRelationship(validatedMarriage);
+        } catch (error) {
+          // Ignore duplicate relationship errors (race condition handled)
+          if (error instanceof Error && !error.message.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+    }
     
     // Return both the created member and relationship
     res.json({

@@ -143,6 +143,57 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
           </Button>
         </div>
       </div>
+      
+      {/* Invisible handles for React Flow connections */}
+      <Handle 
+        type="source" 
+        position={Position.Top} 
+        id="top"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        id="bottom"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
+      <Handle 
+        type="source" 
+        position={Position.Left} 
+        id="left"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        id="right"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
+      {/* Also add target handles for bidirectional connections */}
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        id="top-target"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
+      <Handle 
+        type="target" 
+        position={Position.Bottom} 
+        id="bottom-target"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
+      <Handle 
+        type="target" 
+        position={Position.Left} 
+        id="left-target"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
+      <Handle 
+        type="target" 
+        position={Position.Right} 
+        id="right-target"
+        style={{ opacity: 0, pointerEvents: 'none' }}
+      />
     </Card>
   );
 }
