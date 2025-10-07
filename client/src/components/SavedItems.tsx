@@ -197,24 +197,12 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
   // Fetch missing or stale item data for entries
   const fetchMissingItemData = async (items: SavedItem[]) => {
-    // For mutable content types (characters, professions, etc.), always fetch fresh data
-    // For immutable types, only fetch if itemData is missing
-    const mutableTypes = ['character', 'profession', 'species', 'location', 'settlement', 
-                          'organization', 'ethnicity', 'item', 'document', 'language', 
-                          'building', 'material', 'transportation', 'rank', 'condition',
-                          'ritual', 'law'];
-    
+    // Only fetch item data if itemData is missing
+    // Trust the itemData that's already stored in saved_items table
     const missingDataItems = items.filter(item => {
       const itemKey = item.itemId || item.id;
-      if (!itemKey) return false;
-      
-      // Always fetch fresh data for mutable content types (unless already fetched in this cycle)
-      if (mutableTypes.includes(item.itemType || '')) {
-        return !fetchedItemsRef.current.has(itemKey);
-      }
-      
-      // For immutable types, only fetch if itemData is missing
-      return !item.itemData && !fetchedItemsRef.current.has(itemKey);
+      // Only fetch if itemData is missing and we haven't already fetched it
+      return !item.itemData && itemKey && !fetchedItemsRef.current.has(itemKey);
     });
 
     if (missingDataItems.length === 0) return;

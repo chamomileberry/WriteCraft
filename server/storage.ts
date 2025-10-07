@@ -541,6 +541,7 @@ export interface IStorage {
   getSavedItemsByNotebookBatch(userId: string, notebookId: string): Promise<SavedItem[]>;
   isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
   updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined>;
+  updateSavedItemDataByItem(userId: string, itemType: string, itemId: string, notebookId: string, itemData: any): Promise<SavedItem | undefined>;
 
   // Project methods
   createProject(project: InsertProject): Promise<Project>;
@@ -4270,6 +4271,29 @@ export class DatabaseStorage implements IStorage {
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
+
+    const [updatedItem] = await db
+      .update(savedItems)
+      .set({ itemData })
+      .where(and(...conditions))
+      .returning();
+
+    return updatedItem;
+  }
+
+  async updateSavedItemDataByItem(userId: string, itemType: string, itemId: string, notebookId: string, itemData: any): Promise<SavedItem | undefined> {
+    const conditions = [];
+
+    // Find the saved item by userId, itemType, itemId, and notebookId
+    if (userId === 'null' || !userId) {
+      conditions.push(isNull(savedItems.userId));
+    } else {
+      conditions.push(eq(savedItems.userId, userId));
+    }
+    
+    conditions.push(eq(savedItems.itemType, itemType));
+    conditions.push(eq(savedItems.itemId, itemId));
+    conditions.push(eq(savedItems.notebookId, notebookId));
 
     const [updatedItem] = await db
       .update(savedItems)

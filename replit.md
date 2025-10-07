@@ -6,15 +6,17 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
 
 ## Recent Changes
 
-### October 2025 - World Anvil Import & Cache Invalidation Fixes
+### October 2025 - World Anvil Import & Character Update Fixes
 - **Enhanced Name Parsing**: Fixed character name parsing to properly handle multi-word honorific titles (e.g., "Lord Commander", "Lady in waiting", "High Priestess") using prefix-based detection that iterates through title candidates
 - **Improved Field Mapping**: Added comprehensive field name variation checking (firstName/firstname/first_name, etc.) and enhanced image URL fallbacks (portrait/cover/image/images) across all content types
 - **Import Metadata Tracking**: Added importSource and importExternalId fields to character imports for tracing origin and supporting deduplication workflows
-- **Fixed Notebook Cache Bug**: Resolved critical issue where character name updates weren't appearing in notebook view. Fixed by:
-  - Correcting cache invalidation query keys to match SavedItems structure: `['/api/saved-items', user.id, notebookId]`
-  - Replacing hardcoded 'demo-user' with authenticated user ID
-  - Switching from fetch() to apiRequest() for proper authentication headers
-  - Applied fixes to both CharacterEditPage and CharacterEditPageWithSidebar
+- **Fixed Notebook Refresh Bug**: Resolved critical issue where character name updates weren't appearing immediately in notebook view. Root cause: saved_items table stored stale snapshot data. Complete fix:
+  - Backend: Added `updateSavedItemDataByItem()` storage method to update saved_items.itemData when characters are edited
+  - Backend: Character PATCH route now updates saved_items table after updating character
+  - Frontend: Corrected cache invalidation query keys to match SavedItems structure: `['/api/saved-items', user.id, notebookId]`
+  - Frontend: Replaced hardcoded 'demo-user' with authenticated user ID in both CharacterEditPage and CharacterEditPageWithSidebar
+  - Frontend: Switched from fetch() to apiRequest() for proper authentication headers
+  - Result: Character edits now immediately reflect in notebook view without manual refresh
 
 ## User Preferences
 

@@ -320,6 +320,15 @@ router.patch("/:id", async (req: any, res) => {
     const updatesWithUserId = { ...validatedUpdates, userId };
     
     const updatedCharacter = await storage.updateCharacter(req.params.id, userId, updatesWithUserId, notebookId);
+    
+    // Update saved_items itemData so notebook view shows fresh data immediately
+    try {
+      await storage.updateSavedItemDataByItem(userId, 'character', req.params.id, notebookId, updatedCharacter);
+    } catch (error) {
+      console.warn('Failed to update saved item data after character update:', error);
+      // Don't fail the request if this update fails
+    }
+    
     res.json(updatedCharacter);
   } catch (error) {
     console.error('Error updating character:', error);
