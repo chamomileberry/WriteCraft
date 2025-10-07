@@ -396,195 +396,87 @@ async function processImport(
         
         if (contentType === 'character') {
           createdItem = await storage.createCharacter(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created character: ${article.title}`);
         } else if (contentType === 'location') {
           createdItem = await storage.createLocation(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created location: ${article.title}`);
         } else if (contentType === 'organization') {
           createdItem = await storage.createOrganization(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created organization: ${article.title}`);
         } else if (contentType === 'species') {
           createdItem = await storage.createSpecies(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created species: ${article.title}`);
         } else if (contentType === 'profession') {
           createdItem = await storage.createProfession(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created profession: ${article.title}`);
         } else if (contentType === 'ethnicity') {
           createdItem = await storage.createEthnicity(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created ethnicity: ${article.title}`);
         } else if (contentType === 'settlement') {
           createdItem = await storage.createSettlement(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created settlement: ${article.title}`);
         } else if (contentType === 'ritual') {
           createdItem = await storage.createRitual(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created ritual: ${article.title}`);
         } else if (contentType === 'law') {
           createdItem = await storage.createLaw(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created law: ${article.title}`);
         } else if (contentType === 'item') {
           createdItem = await storage.createItem(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created item: ${article.title}`);
         } else if (contentType === 'document') {
           createdItem = await storage.createDocument(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created document: ${article.title}`);
         } else if (contentType === 'language') {
           createdItem = await storage.createLanguage(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created language: ${article.title}`);
         } else if (contentType === 'building') {
           createdItem = await storage.createBuilding(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created building: ${article.title}`);
         } else if (contentType === 'material') {
           createdItem = await storage.createMaterial(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created material: ${article.title}`);
         } else if (contentType === 'transportation') {
           createdItem = await storage.createTransportation(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created transportation: ${article.title}`);
         } else if (contentType === 'rank') {
           createdItem = await storage.createRank(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created rank: ${article.title}`);
         } else if (contentType === 'condition') {
           createdItem = await storage.createCondition(mapped as any);
-          await storage.saveItem({
-            userId,
-            notebookId,
-            itemType: contentType,
-            itemId: createdItem.id,
-            itemData: createdItem
-          });
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created condition: ${article.title}`);
         } else {
           // Skip unsupported types for now
           results.skipped.push(`${article.title} (${contentType})`);
           console.log(`[Import ${jobId}] ⊘ Skipped (unsupported type): ${article.title} (${contentType})`);
+        }
+
+        // Create saved_items entry for notebook visibility
+        if (createdItem) {
+          await storage.saveItem({
+            userId,
+            notebookId,
+            itemType: contentType,
+            itemId: createdItem.id,
+            itemData: createdItem
+          });
         }
 
         // Update progress every 10 items or on last item
