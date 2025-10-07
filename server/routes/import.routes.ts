@@ -4,8 +4,15 @@ import AdmZip from 'adm-zip';
 import { storage } from '../storage';
 import { z } from 'zod';
 import { insertImportJobSchema } from '@shared/schema';
+import { createRateLimiter } from '../security/middleware';
 
 const router = Router();
+
+// Create a stricter rate limiter for import uploads (10 per 15 minutes)
+const uploadRateLimiter = createRateLimiter({
+  maxRequests: 10,
+  windowMs: 15 * 60 * 1000,
+});
 
 // Configure multer for file uploads
 const upload = multer({
@@ -724,8 +731,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
   };
 }
 
-// Upload and start import job
-router.post('/upload', upload.single('file'), async (req: any, res) => {
+// Upload and start import job (with stricter rate limiting)
+router.post('/upload', uploadRateLimiter, upload.single('file'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -811,6 +818,39 @@ async function processImport(
   try {
     await storage.updateImportJob(jobId, { status: 'processing' });
     console.log(`[Import ${jobId}] Starting import of ${parsed.totalItems} articles`);
+
+    // Batch fetch ALL existing saved items for this notebook in ONE query (Issue 1 fix)
+    const existingItems = await storage.getSavedItemsByNotebookBatch(userId, notebookId);
+    console.log(`[Import ${jobId}] Found ${existingItems.length} existing saved items in notebook`);
+
+    // Build in-memory Sets for O(1) duplicate detection
+    // Set 1: Check by itemType:itemId
+    const existingIdsSet = new Set(
+      existingItems.map(item => `${item.itemType}:${item.itemId}`)
+    );
+    // Set 2: Check by itemType:displayName (full name for characters, name for others)
+    const existingTitlesSet = new Set(
+      existingItems
+        .map(item => {
+          const itemType = item.itemType;
+          let displayName = '';
+          
+          if (itemType === 'character' && item.itemData) {
+            const given = item.itemData.givenName || '';
+            const family = item.itemData.familyName || '';
+            displayName = [given, family].filter(Boolean).join(' ').trim();
+          } else if (item.itemData?.name) {
+            displayName = item.itemData.name;
+          } else if (item.itemData?.title) {
+            displayName = item.itemData.title;
+          }
+          
+          return displayName ? `${itemType}:${displayName.toLowerCase().trim()}` : null;
+        })
+        .filter(Boolean) as string[]
+    );
+
+    console.log(`[Import ${jobId}] Built duplicate detection Sets: ${existingIdsSet.size} IDs, ${existingTitlesSet.size} titles`);
 
     for (let i = 0; i < parsed.articles.length; i++) {
       const article = parsed.articles[i];
@@ -935,19 +975,57 @@ async function processImport(
           console.log(`[Import ${jobId}] ⊘ Skipped (unsupported type): ${skipReason}`);
         }
 
-        // Create saved_items entry for notebook visibility
+        // Create saved_items entry for notebook visibility (with duplicate detection)
         if (createdItem) {
           try {
-            const savedItem = await storage.saveItem({
-              userId,
-              notebookId,
-              itemType: contentType,
-              itemId: createdItem.id,
-              itemData: createdItem
-            });
-            console.log(`[Import ${jobId}] ✓ Created saved_item ${savedItem.id} for ${contentType} "${article.title}" in notebook ${notebookId}`);
+            // O(1) duplicate detection using in-memory Sets (Issue 1 & 2 fix)
+            const itemKey = `${contentType}:${createdItem.id}`;
+            
+            // Get display name from created item (full name for characters, name for others)
+            let displayName = '';
+            if (contentType === 'character') {
+              const given = createdItem.givenName || '';
+              const family = createdItem.familyName || '';
+              displayName = [given, family].filter(Boolean).join(' ').trim();
+            } else {
+              displayName = createdItem.name || createdItem.title || '';
+            }
+            const titleKey = displayName ? `${contentType}:${displayName.toLowerCase().trim()}` : null;
+
+            // Check both ID and title for duplicates
+            const isDuplicateById = existingIdsSet.has(itemKey);
+            const isDuplicateByTitle = titleKey ? existingTitlesSet.has(titleKey) : false;
+
+            if (isDuplicateById) {
+              // Skip creating duplicate saved_item (matched by ID)
+              const skipReason = `${article.title} (${contentType}) - already exists in notebook (ID match)`;
+              results.skipped.push(skipReason);
+              console.log(`[Import ${jobId}] ⊘ Skipped duplicate (ID match): ${skipReason}`);
+            } else if (isDuplicateByTitle) {
+              // Skip creating duplicate saved_item (matched by title)
+              const skipReason = `${article.title} (${contentType}) - already exists in notebook (title match)`;
+              results.skipped.push(skipReason);
+              console.log(`[Import ${jobId}] ⊘ Skipped duplicate (title match): ${skipReason}`);
+            } else {
+              // Create new saved_item
+              const savedItem = await storage.saveItem({
+                userId,
+                notebookId,
+                itemType: contentType,
+                itemId: createdItem.id,
+                itemData: createdItem
+              });
+              
+              // Add to Sets to prevent duplicates within same import
+              existingIdsSet.add(itemKey);
+              if (titleKey) {
+                existingTitlesSet.add(titleKey);
+              }
+              
+              console.log(`[Import ${jobId}] ✓ Created saved_item ${savedItem.id} for ${contentType} "${article.title}" in notebook ${notebookId}`);
+            }
           } catch (saveError) {
-            console.error(`[Import ${jobId}] ✗ Failed to create saved_item for ${contentType} "${article.title}":`, saveError);
+            console.error(`[Import ${jobId}] ✗ Failed to check/create saved_item for ${contentType} "${article.title}":`, saveError);
             // Don't fail the whole import, but log it
           }
         }

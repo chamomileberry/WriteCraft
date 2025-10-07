@@ -532,6 +532,7 @@ export interface IStorage {
   unsaveItemFromNotebook(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void>;
   getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]>;
   getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]>;
+  getSavedItemsByNotebookBatch(userId: string, notebookId: string): Promise<SavedItem[]>;
   isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
   updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined>;
 
@@ -4004,6 +4005,24 @@ export class DatabaseStorage implements IStorage {
     const savedItemsData = await db.select().from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
+
+    return savedItemsData;
+  }
+
+  async getSavedItemsByNotebookBatch(userId: string, notebookId: string): Promise<SavedItem[]> {
+    const conditions = [];
+
+    // Handle null userId for guest users
+    if (userId === 'null' || !userId) {
+      conditions.push(isNull(savedItems.userId));
+    } else {
+      conditions.push(eq(savedItems.userId, userId));
+    }
+
+    conditions.push(eq(savedItems.notebookId, notebookId));
+
+    const savedItemsData = await db.select().from(savedItems)
+      .where(and(...conditions));
 
     return savedItemsData;
   }

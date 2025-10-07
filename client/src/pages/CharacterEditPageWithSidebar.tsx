@@ -77,8 +77,8 @@ export default function CharacterEditPageWithSidebar() {
         description: "Your character has been successfully updated and saved to your collection!",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
-      // Invalidate all saved-items queries for this user (covers all notebooks)
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
+      // Issue 3 fix: Invalidate all saved-items queries to refresh with updated character data
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
     onError: (error) => {
       console.error('Error updating character:', error);

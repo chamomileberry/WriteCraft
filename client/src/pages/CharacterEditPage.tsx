@@ -176,6 +176,8 @@ export default function CharacterEditPage() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'null'] });
+      // Issue 3 fix: Invalidate all saved-items queries to refresh with updated character data
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
     },
     onError: (error) => {
       console.error('Error updating character:', error);

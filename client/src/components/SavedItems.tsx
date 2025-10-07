@@ -166,7 +166,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     staleTime: 0, // Always consider data stale
     refetchOnMount: true, // Refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when user returns to tab
-    refetchInterval: 5000 // Poll every 5 seconds to catch imports
+    refetchInterval: 10000 // Poll every 10 seconds to catch imports (reduced from 5s to avoid rate limits)
   });
 
   // Fetch quick note separately
@@ -197,15 +197,11 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
   // Fetch missing or stale item data for entries
   const fetchMissingItemData = async (items: SavedItem[]) => {
-    // Always fetch character data to ensure it's up-to-date
-    // For other types, only fetch if itemData is null
+    // Only fetch item data if itemData is missing (for all content types including characters)
+    // Trust the itemData that's already stored in saved_items table
     const missingDataItems = items.filter(item => {
       const itemKey = item.itemId || item.id;
-      // Always fetch character data to get the latest names
-      if (item.itemType === 'character' && itemKey) {
-        return true;
-      }
-      // For other types, only fetch if missing
+      // Only fetch if itemData is missing and we haven't already fetched it
       return !item.itemData && itemKey && !fetchedItemsRef.current.has(itemKey);
     });
 
@@ -215,11 +211,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
     for (const item of missingDataItems) {
       const itemKey = item.itemId || item.id;
-      // Only mark non-character items as fetched to prevent duplicate fetches
-      // Characters always need fresh data
-      if (item.itemType !== 'character') {
-        fetchedItemsRef.current.add(itemKey);
-      }
+      // Mark as fetched to prevent duplicate fetches
+      fetchedItemsRef.current.add(itemKey);
 
       try {
         let endpoint = '';
