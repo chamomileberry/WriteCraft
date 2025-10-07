@@ -1712,7 +1712,7 @@ export async function conversationalChat(
         .select()
         .from(savedItems)
         .where(eq(savedItems.notebookId, notebookId))
-        .limit(50); // Limit to prevent overwhelming context
+        .limit(200); // Increased limit to capture more notebook content
       
       if (notebookItems.length > 0) {
         notebookContext = '\n\nNOTEBOOK CONTEXT: The writer is working in a notebook with the following worldbuilding content. Use this information when answering questions about characters, locations, or other worldbuilding elements:\n\n';
@@ -1727,12 +1727,13 @@ export async function conversationalChat(
         // Format characters
         if (itemsByType.character) {
           notebookContext += '**Characters:**\n';
-          itemsByType.character.slice(0, 20).forEach((char: any) => {
-            const name = [char.givenName, char.familyName].filter(Boolean).join(' ') || 'Unnamed';
+          itemsByType.character.slice(0, 100).forEach((char: any) => {
+            const name = [char.givenName, char.familyName].filter(Boolean).join(' ') || char.nickname || 'Unnamed';
             const details: string[] = [`• ${name}`];
             if (char.age) details.push(`Age: ${char.age}`);
             if (char.species) details.push(`Species: ${char.species}`);
             if (char.occupation) details.push(`Occupation: ${char.occupation}`);
+            if (char.placeOfBirth) details.push(`Birthplace: ${char.placeOfBirth}`);
             if (char.backstory) details.push(`Background: ${char.backstory.slice(0, 150)}${char.backstory.length > 150 ? '...' : ''}`);
             notebookContext += details.join(', ') + '\n';
           });
