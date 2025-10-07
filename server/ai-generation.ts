@@ -1730,6 +1730,8 @@ export async function conversationalChat(
           itemsByType.character.slice(0, 100).forEach((char: any) => {
             const name = [char.givenName, char.familyName].filter(Boolean).join(' ') || char.nickname || 'Unnamed';
             const details: string[] = [`• ${name}`];
+            if (char.pronouns) details.push(`Pronouns: ${char.pronouns}`);
+            if (char.gender) details.push(`Gender: ${char.gender}`);
             if (char.age) details.push(`Age: ${char.age}`);
             if (char.species) details.push(`Species: ${char.species}`);
             if (char.occupation) details.push(`Occupation: ${char.occupation}`);
