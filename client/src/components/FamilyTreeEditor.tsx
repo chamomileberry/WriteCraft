@@ -716,12 +716,28 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         onConfirm={handleRelationshipConfirm}
         sourceNodeLabel={
           pendingConnection 
-            ? members.find(m => m.id === pendingConnection.source)?.inlineName || 'Character A'
+            ? (() => {
+                const member = members.find(m => m.id === pendingConnection.source);
+                if (!member) return 'Character A';
+                if ((member as any).character) {
+                  const char = (member as any).character;
+                  return [char.givenName, char.familyName].filter(Boolean).join(' ') || 'Unknown Character';
+                }
+                return member.inlineName || 'Unknown Character';
+              })()
             : 'Character A'
         }
         targetNodeLabel={
           pendingConnection 
-            ? members.find(m => m.id === pendingConnection.target)?.inlineName || 'Character B'
+            ? (() => {
+                const member = members.find(m => m.id === pendingConnection.target);
+                if (!member) return 'Character B';
+                if ((member as any).character) {
+                  const char = (member as any).character;
+                  return [char.givenName, char.familyName].filter(Boolean).join(' ') || 'Unknown Character';
+                }
+                return member.inlineName || 'Unknown Character';
+              })()
             : 'Character B'
         }
       />
