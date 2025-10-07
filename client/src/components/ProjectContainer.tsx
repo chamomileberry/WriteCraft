@@ -399,6 +399,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                   onSaveStatusChange={setSaveStatus}
                   onLastSaveTimeChange={setLastSaveTime}
                   onWordCountChange={setWordCount}
+                  readOnly={(project as any)?.isShared && (project as any)?.sharePermission === 'view'}
                 />
               ) : showEmptyState ? (
                 <div className="flex-1 flex items-center justify-center text-center p-8">

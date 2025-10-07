@@ -316,11 +316,18 @@ export default function ProjectPage() {
                         <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors flex-1">
                           {project.title}
                         </CardTitle>
-                        {(project as any).isShared && (
-                          <Badge variant="secondary" data-testid={`badge-shared-project-${project.id}`} className="text-xs shrink-0">
-                            Shared
-                          </Badge>
-                        )}
+                        <div className="flex gap-1 shrink-0">
+                          {(project as any).isShared && (
+                            <Badge variant="secondary" data-testid={`badge-shared-project-${project.id}`} className="text-xs">
+                              Shared
+                            </Badge>
+                          )}
+                          {(project as any).isShared && (project as any).sharePermission === 'view' && (
+                            <Badge variant="outline" data-testid={`badge-readonly-project-${project.id}`} className="text-xs">
+                              Read-Only
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       {(project as any).isShared && (project as any).sharedBy && (
                         <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -332,39 +339,50 @@ export default function ProjectPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          setSharingProject(project);
-                        }}
-                        data-testid={`button-share-project-${project.id}`}
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          handleProjectEdit(project.id);
-                        }}
-                        data-testid={`button-edit-project-${project.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => handleDeleteProject(e, project.id)}
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                        data-testid={`button-delete-project-${project.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {/* Share button only for owned projects */}
+                      {!(project as any).isShared && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            setSharingProject(project);
+                          }}
+                          data-testid={`button-share-project-${project.id}`}
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {/* Edit/Delete buttons only for owned projects or edit permission */}
+                      {(!(project as any).isShared || (project as any).sharePermission === 'edit') && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e: React.MouseEvent) => {
+                              e.stopPropagation();
+                              handleProjectEdit(project.id);
+                            }}
+                            data-testid={`button-edit-project-${project.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          {/* Delete button only for owned projects */}
+                          {!(project as any).isShared && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => handleDeleteProject(e, project.id)}
+                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                              data-testid={`button-delete-project-${project.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

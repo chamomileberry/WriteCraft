@@ -150,10 +150,11 @@ interface SectionEditorProps {
   onSaveStatusChange?: (status: 'saved' | 'saving' | 'unsaved') => void;
   onLastSaveTimeChange?: (time: Date) => void;
   onWordCountChange?: (count: number) => void;
+  readOnly?: boolean;
 }
 
 export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, SectionEditorProps>(
-  ({ projectId, section, onContentChange, onSaveStatusChange, onLastSaveTimeChange, onWordCountChange }, ref) => {
+  ({ projectId, section, onContentChange, onSaveStatusChange, onLastSaveTimeChange, onWordCountChange, readOnly = false }, ref) => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -187,6 +188,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
 
     // Initialize TipTap editor
     const editor = useEditor({
+      editable: !readOnly,
       extensions: [
         StarterKit.configure({
           bulletList: false,
@@ -372,15 +374,24 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
 
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Read-Only Banner */}
+        {readOnly && (
+          <div className="bg-muted/50 border-b px-4 py-2 text-sm text-muted-foreground" data-testid="banner-readonly">
+            <span>This project is shared with you as read-only. You cannot make edits.</span>
+          </div>
+        )}
+
         {/* Toolbar */}
-        <div className="border-b bg-muted/20 p-2">
-          <EditorToolbar editor={editor} title={section.title} />
-        </div>
+        {!readOnly && (
+          <div className="border-b bg-muted/20 p-2">
+            <EditorToolbar editor={editor} title={section.title} />
+          </div>
+        )}
 
         {/* Editor */}
         <div className="flex-1 overflow-auto">
           <EditorContent editor={editor} data-testid="editor-content" />
-          <AIBubbleMenu editor={editor} />
+          {!readOnly && <AIBubbleMenu editor={editor} />}
         </div>
       </div>
     );

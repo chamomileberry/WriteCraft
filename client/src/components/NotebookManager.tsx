@@ -345,47 +345,65 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
                           </Badge>
                         </div>
                       )}
+                      {/* Read-Only Badge for view-only shared items */}
+                      {(notebook as any).isShared && (notebook as any).sharePermission === 'view' && (
+                        <div className="absolute bottom-2 right-2">
+                          <Badge variant="outline" data-testid={`badge-readonly-notebook-${notebook.id}`} className="text-xs">
+                            Read-Only
+                          </Badge>
+                        </div>
+                      )}
                       {/* Action Buttons Overlay */}
                       <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSharingNotebook(notebook);
-                          }}
-                          data-testid={`button-share-notebook-${notebook.id}`}
-                          title="Share notebook"
-                          className="h-8 w-8"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditClick(notebook);
-                          }}
-                          data-testid={`button-edit-notebook-${notebook.id}`}
-                          title="Edit notebook"
-                          className="h-8 w-8"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteClick(notebook);
-                          }}
-                          data-testid={`button-delete-notebook-${notebook.id}`}
-                          title="Delete notebook"
-                          className="h-8 w-8"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {/* Share button only for owned notebooks */}
+                        {!(notebook as any).isShared && (
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSharingNotebook(notebook);
+                            }}
+                            data-testid={`button-share-notebook-${notebook.id}`}
+                            title="Share notebook"
+                            className="h-8 w-8"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {/* Edit/Delete buttons only for owned notebooks or edit permission */}
+                        {(!(notebook as any).isShared || (notebook as any).sharePermission === 'edit') && (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditClick(notebook);
+                              }}
+                              data-testid={`button-edit-notebook-${notebook.id}`}
+                              title="Edit notebook"
+                              className="h-8 w-8"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            {!(notebook as any).isShared && (
+                              <Button
+                                size="icon"
+                                variant="secondary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(notebook);
+                                }}
+                                data-testid={`button-delete-notebook-${notebook.id}`}
+                                title="Delete notebook"
+                                className="h-8 w-8"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                     
