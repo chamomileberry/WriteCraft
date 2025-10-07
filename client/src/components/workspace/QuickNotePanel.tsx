@@ -227,7 +227,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       
       // Then save it to the notebook as a saved item
       const response = await apiRequest('POST', '/api/saved-items', {
-        userId: 'demo-user',
+        userId: userId, // Use the same userId as for quick note operations
         notebookId: activeNotebookId,
         itemType: 'quickNote',
         itemId: uniqueItemId,
