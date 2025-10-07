@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -579,6 +579,17 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
             <Plus className="w-4 h-4" />
             Create New Content
           </Button>
+          {activeNotebookId && (
+            <Button 
+              variant="outline"
+              onClick={() => setLocation('/notebook/consolidate')}
+              className="gap-2"
+              data-testid="button-consolidate-characters"
+            >
+              <AlertCircle className="w-4 h-4" />
+              Data Issues
+            </Button>
+          )}
         </div>
 
         {/* Category Filter Buttons */}
@@ -668,11 +679,13 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
               }, {} as Record<string, typeof items>);
 
               const handleItemClick = (item: SavedItem) => {
-                const mapping = getMappingById(item.itemType);
+                const itemType = item.itemType || item.contentType;
+                if (!itemType) return;
+                const mapping = getMappingById(itemType);
                 if (mapping) {
-                  setLocation(`/${mapping.urlSegment}/${item.itemId}`);
+                  setLocation(`/${mapping.urlSegment}/${item.itemId || item.contentId}`);
                 } else {
-                  console.warn(`No mapping found for item type: ${item.itemType}`);
+                  console.warn(`No mapping found for item type: ${itemType}`);
                 }
               };
 

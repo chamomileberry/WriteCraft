@@ -249,6 +249,9 @@ export const characters = pgTable("characters", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
+  // Import metadata for tracking imported characters
+  importSource: varchar("import_source"), // e.g., "world_anvil", "custom"
+  importExternalId: varchar("import_external_id"), // Original ID from external source
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
