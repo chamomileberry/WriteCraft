@@ -168,6 +168,15 @@ router.post("/generate-field", async (req: any, res) => {
     if (!fieldLabel) {
       return res.status(400).json({ error: 'Field label is required' });
     }
+    
+    console.log('[AI Field Assist] Generating field:', fieldLabel);
+    console.log('[AI Field Assist] Character context keys:', Object.keys(characterContext || {}).join(', '));
+    if (characterContext.generalDescription) {
+      console.log('[AI Field Assist] General description present:', characterContext.generalDescription.substring(0, 100) + '...');
+    }
+    if (characterContext.characterDescription) {
+      console.log('[AI Field Assist] Character description present:', characterContext.characterDescription.substring(0, 100) + '...');
+    }
 
     // Build context string from character data - include ALL filled fields
     const contextParts: string[] = [];
@@ -227,6 +236,8 @@ router.post("/generate-field", async (req: any, res) => {
     const contextStr = contextParts.length > 0 
       ? `\n\nEXISTING CHARACTER INFORMATION (maintain consistency with these details):\n${contextParts.join('\n')}\n`
       : '';
+    
+    console.log('[AI Field Assist] Context being sent to AI:', contextStr.substring(0, 500));
 
     let prompt = '';
 
