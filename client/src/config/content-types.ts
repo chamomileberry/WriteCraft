@@ -19,6 +19,95 @@ export interface ContentType {
   icon: React.ComponentType<{ className?: string }>;
 }
 
+// Content type icon mapping for saved items and other components
+export const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
+  // Quick Notes
+  quickNote: StickyNote,
+  
+  // People & Characters
+  character: User,
+  ethnicity: Users,
+  culture: Globe,
+  profession: Briefcase,
+  familyTree: GitBranch,
+  familytree: GitBranch,
+  rank: Crown,
+  
+  // Places & Locations
+  location: MapPin,
+  settlement: Building,
+  building: Home,
+  geography: Mountain,
+  territory: MapPin,
+  district: Building,
+  city: Building,
+  country: Flag,
+  map: Camera,
+  
+  // Organizations & Groups
+  organization: Building,
+  society: Users,
+  faction: Flag,
+  militaryUnit: Crown,
+  
+  // Creatures & Life
+  species: Star,
+  creature: Star,
+  animal: Circle,
+  plant: TreePine,
+  
+  // Items & Objects
+  item: Package,
+  weapon: Sword,
+  armor: Shield,
+  accessory: Package,
+  clothing: Package,
+  food: UtensilsCrossed,
+  drink: Wine,
+  material: Package,
+  resource: Package,
+  transportation: Car,
+  potion: FlaskConical,
+  
+  // Knowledge & Culture
+  document: FileText,
+  language: Feather,
+  religion: Star,
+  myth: Book,
+  legend: Scroll,
+  tradition: Book,
+  ritual: Star,
+  ceremony: Crown,
+  music: Music,
+  dance: PersonStanding,
+  law: Scale,
+  policy: Policy,
+  
+  // Events & Time
+  event: Clock,
+  timeline: GitBranch,
+  
+  // Nature & Environment
+  condition: Zap,
+  naturalLaw: Calculator,
+  
+  // Technology & Magic
+  technology: Calculator,
+  spell: Sparkles,
+  
+  // Story Elements
+  plot: Theater,
+  conflict: Target,
+  theme: Palette,
+  mood: Smile,
+  prompt: Lightbulb,
+  description: Pencil,
+  setting: Mountain,
+  
+  // Default fallback
+  default: Package
+};
+
 export const CONTENT_TYPES: ContentType[] = [
   // Characters & People
   { id: "character", name: "Character", description: "Create detailed fictional characters", category: "People", icon: User },
