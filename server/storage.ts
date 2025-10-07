@@ -841,10 +841,12 @@ export class DatabaseStorage implements IStorage {
 
   // Character methods
   async createCharacter(character: InsertCharacter): Promise<Character> {
-    const [newCharacter] = await db
-      .insert(characters)
-      .values(character)
-      .returning();
+    // Ensure description field is included if provided
+    const characterData = {
+      ...character,
+      description: character.description || character.backstory || '', // Fallback to backstory if no description
+    };
+    const [newCharacter] = await db.insert(characters).values(characterData).returning();
     return newCharacter;
   }
 
@@ -3999,27 +4001,9 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(savedItems.itemType, itemType));
     }
 
-    console.log(`[Storage] Query conditions for notebook ${notebookId}:`, {
-      userId,
-      notebookId,
-      itemType: itemType || 'all'
-    });
-
     const savedItemsData = await db.select().from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
-
-    console.log(`[Storage] Query returned ${savedItemsData.length} items`);
-    
-    // Log a sample of results for debugging
-    if (savedItemsData.length > 0) {
-      console.log(`[Storage] Sample items:`, savedItemsData.slice(0, 3).map(item => ({
-        itemType: item.itemType,
-        itemId: item.itemId,
-        notebookId: item.notebookId,
-        userId: item.userId
-      })));
-    }
 
     return savedItemsData;
   }
@@ -4750,7 +4734,7 @@ export class DatabaseStorage implements IStorage {
     return note || undefined;
   }
 
-  async getUserNotes(userId: string, type?: string): Promise<Note[]> {
+  async getUserNotes(userId: string, type?: string):Promise<Note[]> {
     const conditions = [eq(notes.userId, userId)];
 
     if (type) {

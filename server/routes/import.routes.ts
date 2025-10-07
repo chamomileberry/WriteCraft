@@ -193,15 +193,124 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     console.log(`[Type Mapping] Unmapped type "${typeKey}" for article "${article.title}" - defaulting to document`);
   }
 
+  // Helper function to strip World Anvil BBCode tags
+  const stripBBCode = (text: string): string => {
+    if (!text) return '';
+    return text
+      .replace(/\[p\]/g, '')
+      .replace(/\[\/p\]/g, '\n\n')
+      .replace(/\[b\]/g, '')
+      .replace(/\[\/b\]/g, '')
+      .replace(/\[i\]/g, '')
+      .replace(/\[\/i\]/g, '')
+      .replace(/\[h[1-6]\|[^\]]+\]/g, '')
+      .replace(/\[\/h[1-6]\]/g, '\n')
+      .replace(/\[ul\]/g, '')
+      .replace(/\[\/ul\]/g, '')
+      .replace(/\[br\]/g, '\n')
+      .replace(/- /g, '• ')
+      .replace(/@\[([^\]]+)\]\([^\)]+\)/g, '$1') // Strip World Anvil links
+      .trim();
+  };
+
+  // Helper function to extract name from title if firstname is missing
+  const extractNameFromTitle = (title: string): string => {
+    if (!title) return '';
+    const parts = title.split(' ');
+    return parts.length > 0 ? parts[0] : '';
+  };
+
   // Add type-specific fields with required fields
   if (contentType === 'character') {
-    return {
-      userId,
-      notebookId,
-      givenName: article.title?.split(' ')[0] || '',
-      familyName: article.title?.split(' ').slice(1).join(' ') || '',
-      backstory: article.content || article.excerpt || '',
+    // Map World Anvil character fields to our schema with comprehensive field mapping
+    const characterData = {
+      // Basic identity
+      givenName: article.firstname || extractNameFromTitle(article.title),
+      familyName: article.lastname || '',
+      middleName: article.middlename || '',
+      maidenName: article.maidenname || '',
+      nickname: article.nickname || '',
+      honorificTitle: article.honorific || '',
+      suffix: article.suffix || '',
+
+      // Core description - map from 'content' field
+      description: stripBBCode(article.content || ''),
+
+      // Physical attributes
+      physicalDescription: stripBBCode(article.physique || ''),
+      facialFeatures: stripBBCode(article.facialFeatures || article.facialfeatures || ''),
+      eyeColor: article.eyes || '',
+      hairColor: article.hair || '',
+      skinTone: article.skin || '',
+      height: article.height || '',
+      weight: article.weight || '',
+      build: stripBBCode(article.physique || ''), // Use physique as build fallback
+      distinctiveBodyFeatures: stripBBCode(article.bodyFeatures || article.bodyfeatures || ''),
+      identifyingMarks: stripBBCode(article.identifyingCharacteristics || article.identifyingcharacteristics || ''),
+      strikingFeatures: stripBBCode(article.identifyingCharacteristics || article.identifyingcharacteristics || ''),
+
+      // Personality and traits
+      backstory: stripBBCode(article.history || ''),
+      motivation: stripBBCode(article.motivation || ''),
+
+      // Abilities and skills
+      supernaturalPowers: stripBBCode(article.specialAbilities || article.specialabilities || ''),
+      specialAbilities: stripBBCode(article.specialAbilities || article.specialabilities || ''),
+      mainSkills: stripBBCode(article.savviesIneptitudes || article.savviesineptitudes || ''),
+      strengths: stripBBCode(article.virtues || ''),
+      characterFlaws: stripBBCode(article.vices || ''),
+
+      // Clothing and appearance
+      typicalAttire: stripBBCode(article.clothing || ''),
+
+      // Demographics
+      age: article.age ? parseInt(article.age) : null,
+      gender: article.gender || '',
+      pronouns: article.pronouns || '',
+      species: article.speciesDisplay || article.speciesdisplay || '',
+
+      // Personal information
+      dateOfBirth: article.dobDisplay || article.dobdisplay || article.dob || '',
+      placeOfBirth: article.birthplace || '',
+      dateOfDeath: article.dodDisplay || article.doddisplay || article.dod || '',
+      placeOfDeath: article.deathplace || '',
+      currentResidence: article.residence || '',
+
+      // Additional traits
+      languages: article.languages ? [stripBBCode(article.languages)] : [],
+      religiousBelief: article.deity || '',
+      education: stripBBCode(article.education || ''),
+      occupation: article.employment || '',
+
+      // Quotes and personality
+      famousQuotes: stripBBCode(article.quotes || ''),
+      likes: stripBBCode(article.likesDislikes || article.likesdislikes || ''),
+
+      // Character development fields from sidepanelcontenttop
+      // This often contains "Character Description" which maps to our general description
+      physicalCondition: stripBBCode(article.sidepanelcontenttop || ''),
+
+      // Mental and emotional traits
+      mentalHealth: stripBBCode(article.mentalTraumas || article.mentaltraumas || ''),
+      intellectualTraits: stripBBCode(article.intellectualCharacteristics || article.intellectualcharacteristics || ''),
+      valuesEthicsMorals: stripBBCode(article.morality || ''),
+
+      // Social aspects
+      presentation: stripBBCode(article.presentation || ''),
+      sexualOrientation: stripBBCode(article.sexuality || ''),
+      genderIdentity: stripBBCode(article.genderidentity || ''),
+
+      // Image mapping - use portrait URL if available
+      imageUrl: article.portrait?.url || '',
+      imageCaption: article.portrait?.title || '',
+
+      // Metadata
+      genre: 'Fantasy', // Default genre for World Anvil imports
+      notebookId: notebookId,
+      userId: userId
     };
+    return characterData;
+
   } else if (contentType === 'species') {
     return {
       userId,
@@ -352,7 +461,7 @@ router.post('/upload', upload.single('file'), async (req: any, res) => {
 
     // Get or create a default notebook for imports
     let notebookId = req.body.notebookId;
-    
+
     // Validate the notebook exists and belongs to the user
     if (notebookId) {
       const notebook = await storage.getNotebook(notebookId, userId);
@@ -361,7 +470,7 @@ router.post('/upload', upload.single('file'), async (req: any, res) => {
         notebookId = null;
       }
     }
-    
+
     if (!notebookId) {
       // Get user's notebooks, use first one or create a default import notebook
       const notebooks = await storage.getUserNotebooks(userId);
@@ -379,7 +488,7 @@ router.post('/upload', upload.single('file'), async (req: any, res) => {
         console.log(`[Import] Created new notebook ${notebookId}: ${defaultNotebook.name}`);
       }
     }
-    
+
     console.log(`[Import] Final notebookId: ${notebookId} for user: ${userId}`);
 
     // Parse the ZIP file
@@ -448,10 +557,10 @@ async function processImport(
 
         const mapped = mapArticleToContent(article, userId, notebookId);
         // Don't extract contentType from mapped - it's not a field, the mapped object IS the data
-        
+
         // Determine content type from the original article
         let contentType = 'document';
-        
+
         if (article.entityClass) {
           contentType = WORLD_ANVIL_TYPE_MAPPING[article.entityClass.toLowerCase()] || 'document';
         } else if (article.templateType) {
@@ -470,6 +579,14 @@ async function processImport(
         let createdItem: any = null;
 
         if (contentType === 'character') {
+          console.log(`[Import ${jobId}] Processing character: ${article.title}`);
+          console.log(`[Import ${jobId}] Mapped fields:`, {
+            givenName: mapped.givenName,
+            familyName: mapped.familyName,
+            description: mapped.description ? `${mapped.description.substring(0, 50)}...` : 'none',
+            imageUrl: mapped.imageUrl || 'none',
+            physicalDescription: mapped.physicalDescription ? 'present' : 'none',
+          });
           createdItem = await storage.createCharacter(mapped as any);
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created character: ${article.title}`);
