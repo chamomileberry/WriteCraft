@@ -120,17 +120,18 @@ router.put("/:id", async (req: any, res) => {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId || req.query.notebookId;
     
-    // Extract only the fields that exist in the schema
-    const familyTreeData = {
-      name: req.body.name,
-      description: req.body.description,
-      layoutMode: req.body.layoutMode,
-      zoom: req.body.zoom,
+    // Extract only the fields that are provided (filter out undefined)
+    const familyTreeData: any = {
       userId,
       notebookId
     };
     
-    const validatedUpdates = insertFamilyTreeSchema.parse(familyTreeData);
+    if (req.body.name !== undefined) familyTreeData.name = req.body.name;
+    if (req.body.description !== undefined) familyTreeData.description = req.body.description;
+    if (req.body.layoutMode !== undefined) familyTreeData.layoutMode = req.body.layoutMode;
+    if (req.body.zoom !== undefined) familyTreeData.zoom = req.body.zoom;
+    
+    const validatedUpdates = insertFamilyTreeSchema.partial().parse(familyTreeData);
     const updatedFamilyTree = await storage.updateFamilyTree(req.params.id, userId, validatedUpdates);
     res.json(updatedFamilyTree);
   } catch (error) {

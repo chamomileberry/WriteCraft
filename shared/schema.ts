@@ -1235,7 +1235,7 @@ export const familyTrees = pgTable("family_trees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description"),
-  layoutMode: text("layout_mode").notNull().default('auto'), // 'auto' or 'manual'
+  layoutMode: text("layout_mode").notNull().default('manual'), // 'auto' or 'manual'
   zoom: real("zoom").default(1),
   panX: real("pan_x").default(0),
   panY: real("pan_y").default(0),

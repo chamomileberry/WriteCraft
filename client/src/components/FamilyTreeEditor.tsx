@@ -42,7 +42,7 @@ interface FamilyTreeEditorProps {
 function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorProps) {
   const { toast } = useToast();
   const { screenToFlowPosition, fitView } = useReactFlow();
-  const [isAutoLayout, setIsAutoLayout] = useState(true);
+  const [isAutoLayout, setIsAutoLayout] = useState(false); // Default to manual mode for draggable nodes
   const prevIsAutoLayout = useRef(isAutoLayout);
   
   // Relationship selector state
@@ -102,12 +102,14 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     if (tree) {
       setTreeName(tree.name || '');
       setTreeDescription(tree.description || '');
+      // Sync layout mode from database
+      setIsAutoLayout(tree.layoutMode === 'auto');
     }
   }, [tree]);
 
   // Mutation to update tree metadata
   const updateTreeMetadata = useMutation({
-    mutationFn: async (data: { name?: string; description?: string }) => {
+    mutationFn: async (data: { name?: string; description?: string; layoutMode?: string }) => {
       return apiRequest(
         'PUT',
         `/api/family-trees/${treeId}?notebookId=${notebookId}`,
@@ -429,6 +431,13 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     }
   }, [nodes, edges, setNodes, toast]);
 
+  // Handle layout mode toggle - save to database
+  const handleToggleLayout = useCallback(() => {
+    const newLayoutMode = isAutoLayout ? 'manual' : 'auto';
+    setIsAutoLayout(!isAutoLayout);
+    updateTreeMetadata.mutate({ layoutMode: newLayoutMode });
+  }, [isAutoLayout, updateTreeMetadata]);
+
   // Mutation to create inline member
   const createInlineMember = useMutation({
     mutationFn: async ({ name, x, y }: { name: string; x: number; y: number }) => {
@@ -691,7 +700,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             <Button
               size="sm"
               variant={isAutoLayout ? "default" : "outline"}
-              onClick={() => setIsAutoLayout(!isAutoLayout)}
+              onClick={handleToggleLayout}
               data-testid="button-toggle-layout"
             >
               <Grid3X3 className="w-4 h-4 mr-2" />
