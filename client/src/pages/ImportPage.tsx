@@ -60,8 +60,13 @@ export default function ImportPage() {
     setLocation('/notebook');
   };
 
-  const { data: importHistory, isLoading: isLoadingHistory } = useQuery<ImportJob[]>({
+  const { data: importHistory, isLoading: isLoadingHistory, refetch: refetchHistory } = useQuery<ImportJob[]>({
     queryKey: ['/api/import/history'],
+    refetchInterval: (data) => {
+      // Poll every 2 seconds if there's a processing job
+      const hasProcessingJob = data?.some(job => job.status === 'processing' || job.status === 'pending');
+      return hasProcessingJob ? 2000 : false;
+    },
   });
 
   const uploadMutation = useMutation({
@@ -311,9 +316,17 @@ export default function ImportPage() {
                             {job.results.skipped.length > 0 && `, ${job.results.skipped.length} skipped`}
                           </span>
                         )}
-                        {job.status === 'processing' && job.totalItems > 0 && (
-                          <span>
-                            {job.itemsProcessed} / {job.totalItems} items
+                        {(job.status === 'processing' || job.status === 'pending') && job.totalItems > 0 && (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span className="font-medium">
+                              {job.itemsProcessed} / {job.totalItems} items processed
+                            </span>
+                            {job.itemsProcessed > 0 && (
+                              <span className="text-xs">
+                                ({Math.round((job.itemsProcessed / job.totalItems) * 100)}%)
+                              </span>
+                            )}
                           </span>
                         )}
                       </div>
@@ -323,10 +336,10 @@ export default function ImportPage() {
                         </p>
                       )}
                     </div>
-                    {job.status === 'completed' && job.totalItems > 0 && (
+                    {job.totalItems > 0 && (
                       <div className="text-right">
                         <Progress 
-                          value={100} 
+                          value={job.status === 'completed' ? 100 : Math.round((job.itemsProcessed / job.totalItems) * 100)} 
                           className="w-24 h-2"
                         />
                       </div>

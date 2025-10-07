@@ -126,9 +126,9 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
         entry.entryName.includes('/articles/') && 
         entry.entryName.endsWith('.json')
       );
-      
+
       console.log(`[ZIP Parse] Found ${articleFiles.length} individual article files`);
-      
+
       let parsed = 0;
       let failed = 0;
       articleFiles.forEach(entry => {
@@ -145,7 +145,7 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
           console.log(`[ZIP Parse] Could not parse ${entry.entryName}:`, e instanceof Error ? e.message : 'Unknown error');
         }
       });
-      
+
       console.log(`[ZIP Parse] Successfully parsed ${parsed} articles, failed to parse ${failed} files`);
     }
 
@@ -167,7 +167,7 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
   // World Anvil uses entityClass (e.g., "Character", "Species") or templateType (e.g., "character", "species")
   // Category is an object, not a string!
   let typeKey = '';
-  
+
   if (article.templateType) {
     typeKey = article.templateType.toLowerCase();
   } else if (article.entityClass) {
@@ -177,9 +177,9 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
   } else {
     typeKey = 'document';
   }
-  
+
   const contentType = WORLD_ANVIL_TYPE_MAPPING[typeKey] || 'document';
-  
+
   // Log unmapped types to help debug
   if (!WORLD_ANVIL_TYPE_MAPPING[typeKey] && typeKey !== 'document') {
     console.log(`[Type Mapping] Unmapped type "${typeKey}" for article "${article.title}" - defaulting to document`);
@@ -273,10 +273,12 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       description: article.content || article.excerpt || 'Imported from World Anvil',
     };
   } else if (contentType === 'document') {
+    // Ensure title is set from article.title (which is the article's name/title)
+    const title = article.title || article.name || 'Untitled';
     return {
       userId,
       notebookId,
-      title: article.title || 'Untitled',
+      title: title,
       documentType: 'article',
       content: article.content || article.excerpt || 'Imported from World Anvil',
     };
@@ -417,7 +419,7 @@ async function processImport(
 
         // Import based on content type
         let createdItem: any = null;
-        
+
         if (contentType === 'character') {
           createdItem = await storage.createCharacter(mapped as any);
           results.imported.push(createdItem.id);
@@ -537,7 +539,7 @@ async function processImport(
       results,
       completedAt: new Date(),
     });
-    
+
     console.log(`[Import ${jobId}] Import job completed and marked as completed in database`);
   } catch (error) {
     await storage.updateImportJob(jobId, {
