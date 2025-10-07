@@ -795,16 +795,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean> {
-    console.log('[Storage] validateNotebookOwnership:', { notebookId, userId });
-    
     // Check if user owns the notebook
     const [notebook] = await db
       .select()
       .from(notebooks)
       .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
       .limit(1);
-    
-    console.log('[Storage] Notebook query result:', notebook);
     
     if (notebook) {
       return true;

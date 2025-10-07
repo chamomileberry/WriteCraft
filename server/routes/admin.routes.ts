@@ -24,14 +24,10 @@ router.get("/characters/issues", async (req, res) => {
     if (notebookId.includes('/')) {
       const parts = notebookId.split('/');
       notebookId = parts[0]; // Use first part
-      console.log('[AdminRoutes] Fixed doubled notebookId:', notebookId);
     }
-
-    console.log('[AdminRoutes] Validating notebook access:', { notebookId, userId });
 
     // Validate notebook ownership
     const hasAccess = await storage.validateNotebookOwnership(notebookId, userId);
-    console.log('[AdminRoutes] Notebook access result:', hasAccess);
     
     if (!hasAccess) {
       return res.status(403).json({ error: "You do not have access to this notebook" });
@@ -73,7 +69,6 @@ router.get("/characters/duplicates", async (req, res) => {
     if (notebookId.includes('/')) {
       const parts = notebookId.split('/');
       notebookId = parts[0]; // Use first part
-      console.log('[AdminRoutes] Fixed doubled notebookId:', notebookId);
     }
 
     // Validate notebook ownership

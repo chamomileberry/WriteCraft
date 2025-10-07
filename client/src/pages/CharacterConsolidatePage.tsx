@@ -54,15 +54,9 @@ export default function CharacterConsolidatePage() {
   const [issueType, setIssueType] = useState<IssueType | null>(null);
   const [fixValue, setFixValue] = useState('');
 
-  // Debug: Log activeNotebookId
-  console.log('[CharacterConsolidatePage] activeNotebookId:', activeNotebookId);
-
   // Fetch issues
-  const issuesQueryKey = `/api/admin/characters/issues?notebookId=${activeNotebookId}`;
-  console.log('[CharacterConsolidatePage] Issues query URL:', issuesQueryKey);
-  
   const { data: issuesData, isLoading: issuesLoading } = useQuery<IssuesData>({
-    queryKey: [issuesQueryKey, activeNotebookId],
+    queryKey: [`/api/admin/characters/issues?notebookId=${activeNotebookId}`, activeNotebookId],
     enabled: !!activeNotebookId && !!user && !authLoading,
   });
 
