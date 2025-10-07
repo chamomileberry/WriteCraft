@@ -31,6 +31,17 @@ function getApiEndpoint(contentType: string): string {
   }
 }
 
+// Helper function to get correct plural form for display
+function getPluralForm(contentType: string): string {
+  switch (contentType) {
+    case 'species': return 'species'; // species is already plural
+    case 'family-tree': return 'family trees';
+    case 'ceremony': return 'ceremonies';
+    case 'policy': return 'policies';
+    default: return `${contentType}s`;
+  }
+}
+
 export interface AutocompleteOption {
   id: string;
   name: string;
@@ -431,7 +442,7 @@ export function AutocompleteField({
         <PopoverContent className="w-[400px] p-0">
           <Command>
             <CommandInput
-              placeholder={`Search ${contentType}s...`}
+              placeholder={`Search ${getPluralForm(contentType)}...`}
               value={searchValue}
               onValueChange={setSearchValue}
               data-testid={`input-search-${contentType}`}
@@ -440,13 +451,13 @@ export function AutocompleteField({
               <CommandEmpty>
                 {isLoading ? "Searching..." : 
                   searchValue.trim() 
-                    ? `No ${contentType}s match "${searchValue}".`
-                    : `No ${contentType}s found. Type to create a new one.`
+                    ? `No ${getPluralForm(contentType)} match "${searchValue}".`
+                    : `No ${getPluralForm(contentType)} found. Type to create a new one.`
                 }
               </CommandEmpty>
               
               {availableItems.length > 0 && (
-                <CommandGroup heading={`Existing ${contentType}s`}>
+                <CommandGroup heading={`Existing ${getPluralForm(contentType)}`}>
                   {availableItems.map((item: AutocompleteOption) => (
                     <CommandItem
                       key={item.id}

@@ -37,8 +37,8 @@ export const characterConfig: ContentTypeFormConfig = {
         { name: "physicalDescription", label: "Overall Physical Description", type: "textarea", placeholder: "Describe their general physical appearance...", description: "A comprehensive description of how they look" },
         { name: "height", label: "Height", type: "text", placeholder: "5'8\", 180cm, tall, average, etc.", description: "How tall are they? Include specific measurements or general description" },
         { name: "weight", label: "Weight", type: "text", placeholder: "Build and weight description", description: "Their weight and body mass" },
-        { name: "build", label: "Build", type: "text", placeholder: "Muscular, slim, stocky, etc.", description: "Their overall body build and physique" },
-        { name: "physicalCondition", label: "Physical Condition", type: "text", placeholder: "Fitness level, health status", description: "Their overall physical fitness and health" },
+        { name: "build", label: "Build", type: "textarea", placeholder: "Muscular, slim, stocky, etc.", description: "Their overall body build and physique", rows: 3 },
+        { name: "physicalCondition", label: "Physical Condition", type: "textarea", placeholder: "Fitness level, health status", description: "Their overall physical fitness and health", rows: 3 },
         { name: "sex", label: "Biological Sex", type: "text", placeholder: "Assigned sex at birth", description: "Their biological sex assigned at birth" },
         { name: "physicalPresentation", label: "Physical Presentation", type: "text", placeholder: "How they present physically", description: "How they present their gender physically" }
       ]
@@ -62,7 +62,7 @@ export const characterConfig: ContentTypeFormConfig = {
       label: "Marks & Features",
       icon: "Zap",
       fields: [
-        { name: "identifyingMarks", label: "Identifying Marks", type: "text", placeholder: "Scars, birthmarks, tattoos, etc.", description: "Permanent marks that identify them" },
+        { name: "identifyingMarks", label: "Identifying Marks", type: "textarea", placeholder: "Scars, birthmarks, tattoos, etc.", description: "Permanent marks that identify them", rows: 3 },
         { name: "marksPiercingsTattoos", label: "Marks, Piercings & Tattoos", type: "textarea", placeholder: "Detailed description of body modifications", description: "All body modifications, tattoos, piercings, and distinctive marks" },
         { name: "distinctiveBodyFeatures", label: "Distinctive Physical Features", type: "textarea", placeholder: "Unique physical characteristics and notable traits", description: "Unique aspects of their physical form and any other distinctive characteristics" },
         { name: "conditions", label: "Physical Conditions", type: "text", placeholder: "Disabilities, chronic conditions", description: "Any physical conditions or disabilities" }
@@ -76,7 +76,6 @@ export const characterConfig: ContentTypeFormConfig = {
         { name: "personality", label: "Core Personality Traits", type: "tags", placeholder: "brave, curious, stubborn...", description: "Key personality traits that define them" },
         { name: "backstory", label: "Backstory", type: "textarea", placeholder: "Character's history and background...", description: "What shaped this character into who they are today?" },
         { name: "motivation", label: "Core Motivation", type: "textarea", placeholder: "What drives this character...", description: "What are their primary goals and desires?" },
-        { name: "flaw", label: "Fatal Flaw", type: "textarea", placeholder: "Character's greatest weakness...", description: "What major flaw could lead to their downfall?" },
         { name: "strength", label: "Greatest Strength", type: "textarea", placeholder: "Character's greatest asset...", description: "What is their most powerful attribute or ability?" },
         { name: "intellectualTraits", label: "Intellectual Traits", type: "textarea", placeholder: "How they think and process information", description: "Their intellectual abilities and thinking patterns" },
         { name: "mentalHealth", label: "Mental Health", type: "textarea", placeholder: "Psychological state and wellbeing", description: "Their mental health status and psychological traits" },
@@ -94,7 +93,7 @@ export const characterConfig: ContentTypeFormConfig = {
         { name: "addictions", label: "Addictions", type: "text", placeholder: "Substances or behaviors they're addicted to", description: "Any addictions they struggle with" },
         { name: "vices", label: "Vices", type: "text", placeholder: "Bad habits and moral failings", description: "Their vices and bad habits" },
         { name: "negativeEvents", label: "Traumatic Events", type: "textarea", placeholder: "Negative experiences that shaped them", description: "Traumatic or negative events in their past" },
-        { name: "likes", label: "Likes & Preferences", type: "text", placeholder: "Things they enjoy", description: "What they like and prefer" },
+        { name: "likes", label: "Likes & Preferences", type: "textarea", placeholder: "Things they enjoy", description: "What they like and prefer", rows: 3 },
         { name: "dislikes", label: "Dislikes & Pet Peeves", type: "text", placeholder: "Things they hate or avoid", description: "What they dislike or find annoying" }
       ]
     },
@@ -103,7 +102,7 @@ export const characterConfig: ContentTypeFormConfig = {
       label: "Skills & Abilities",
       icon: "Star",
       fields: [
-        { name: "mainSkills", label: "Primary Skills", type: "text", placeholder: "Their main areas of expertise", description: "The skills they're most proficient in" },
+        { name: "mainSkills", label: "Primary Skills", type: "textarea", placeholder: "Their main areas of expertise", description: "The skills they're most proficient in", rows: 3 },
         { name: "strengths", label: "Strengths & Positive Qualities", type: "textarea", placeholder: "What they excel at and their positive traits", description: "Areas where they excel, positive traits, and aspects of their character" },
         { name: "proficiencies", label: "Proficiencies", type: "text", placeholder: "Areas of competence", description: "Skills and areas they're competent in" },
         { name: "lackingSkills", label: "Lacking Skills", type: "text", placeholder: "Areas they struggle with", description: "Skills they lack or are poor at" },
