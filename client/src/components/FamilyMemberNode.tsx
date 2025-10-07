@@ -76,52 +76,12 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
       draggable
       onDragStart={handleDragStart}
     >
-      {/* Top handles */}
+      {/* Top handle - for receiving connections from parents */}
       <Handle
         type="target"
-        id="top"
         position={Position.Top}
-        className="w-3 h-3 -translate-x-2"
+        className="w-3 h-3"
         data-testid={`handle-top-target-${member.id}`}
-      />
-      <Handle
-        type="source"
-        id="top-source"
-        position={Position.Top}
-        className="w-3 h-3 translate-x-2"
-        data-testid={`handle-top-source-${member.id}`}
-      />
-      
-      {/* Left handles */}
-      <Handle
-        type="target"
-        id="left"
-        position={Position.Left}
-        className="w-3 h-3 -translate-y-2"
-        data-testid={`handle-left-target-${member.id}`}
-      />
-      <Handle
-        type="source"
-        id="left-source"
-        position={Position.Left}
-        className="w-3 h-3 translate-y-2"
-        data-testid={`handle-left-source-${member.id}`}
-      />
-      
-      {/* Right handles */}
-      <Handle
-        type="target"
-        id="right"
-        position={Position.Right}
-        className="w-3 h-3 -translate-y-2"
-        data-testid={`handle-right-target-${member.id}`}
-      />
-      <Handle
-        type="source"
-        id="right-source"
-        position={Position.Right}
-        className="w-3 h-3 translate-y-2"
-        data-testid={`handle-right-source-${member.id}`}
       />
       
       <div className="flex items-center gap-3">
