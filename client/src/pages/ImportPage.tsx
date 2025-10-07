@@ -13,6 +13,7 @@ import { Upload, FileJson, CheckCircle2, XCircle, Clock, Loader2, ChevronDown, A
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import Header from "@/components/Header";
+import { useNotebookStore } from "@/stores/notebookStore";
 
 interface ImportJob {
   id: string;
@@ -34,16 +35,15 @@ interface ImportJob {
   updatedAt: string;
 }
 
-// Assume activeNotebook is fetched or managed elsewhere and available here.
-// For demonstration, we'll mock it. In a real app, this would come from context or another query.
-const activeNotebook = { id: "notebook-123", name: "Green Tide" }; 
-
 export default function ImportPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { activeNotebookId, getActiveNotebook } = useNotebookStore();
+  
+  const activeNotebook = getActiveNotebook();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -74,7 +74,6 @@ export default function ImportPage() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      // In a real scenario, you'd also append the activeNotebook.id here if it exists
       if (activeNotebook) {
         formData.append('notebookId', activeNotebook.id);
         console.log(`[Import] Uploading to notebook: ${activeNotebook.id} (${activeNotebook.name})`);
@@ -97,6 +96,9 @@ export default function ImportPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/import/history'] });
+      if (activeNotebook) {
+        queryClient.invalidateQueries({ queryKey: ['/api/saved-items/notebook', activeNotebook.id] });
+      }
       setSelectedFile(null);
       setUploadProgress(0);
       toast({
