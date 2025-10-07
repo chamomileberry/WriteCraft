@@ -36,7 +36,16 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'location': 'location',
   'geography': 'location',
   'landmark': 'location',
+  'country': 'location',
+  'nation': 'location',
+  'region': 'location',
+  'continent': 'location',
+  'territory': 'location',
+  'place': 'location',
   'settlement': 'settlement',
+  'city': 'settlement',
+  'town': 'settlement',
+  'village': 'settlement',
   'building': 'building',
   'organization': 'organization',
   'ethnicity': 'ethnicity',
@@ -240,11 +249,39 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     return stringValue.trim();
   };
 
-  // Helper function to extract name from title if firstname is missing
-  const extractNameFromTitle = (title: string): string => {
-    if (!title) return '';
-    const parts = title.split(' ');
-    return parts.length > 0 ? parts[0] : '';
+  // Helper function to extract names from title, handling titles/prefixes
+  const extractNamesFromTitle = (title: string): { givenName: string; familyName: string; honorificTitle: string } => {
+    if (!title) return { givenName: '', familyName: '', honorificTitle: '' };
+    
+    const parts = title.trim().split(/\s+/);
+    if (parts.length === 0) return { givenName: '', familyName: '', honorificTitle: '' };
+    
+    // Common honorifics and titles
+    const titles = ['dr', 'dr.', 'mr', 'mr.', 'mrs', 'mrs.', 'ms', 'ms.', 'miss', 'sir', 'dame', 'lord', 'lady', 'professor', 'prof', 'prof.'];
+    
+    let honorificTitle = '';
+    let nameStart = 0;
+    
+    // Check if first part is a title
+    if (titles.includes(parts[0].toLowerCase().replace(/\.$/, ''))) {
+      honorificTitle = parts[0];
+      nameStart = 1;
+    }
+    
+    const nameParts = parts.slice(nameStart);
+    
+    if (nameParts.length === 0) {
+      return { givenName: '', familyName: '', honorificTitle };
+    } else if (nameParts.length === 1) {
+      return { givenName: nameParts[0], familyName: '', honorificTitle };
+    } else {
+      // First part is given name, rest is family name
+      return { 
+        givenName: nameParts[0], 
+        familyName: nameParts.slice(1).join(' '),
+        honorificTitle 
+      };
+    }
   };
 
   // Helper function to parse array fields (comma or newline separated)
@@ -293,87 +330,99 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
 
   // Add type-specific fields with required fields
   if (contentType === 'character') {
+    // Try multiple field name variations for first/last name
+    const firstNameValue = extractField(article, 'firstname', 'firstName', 'first_name', 'givenName', 'givenname', 'given_name');
+    const lastNameValue = extractField(article, 'lastname', 'lastName', 'last_name', 'familyName', 'familyname', 'family_name', 'surname');
+    const honorificValue = extractField(article, 'honorific', 'title', 'prefix');
+    
+    // If no first/last name found, extract from title
+    const extractedNames = (!firstNameValue && !lastNameValue) ? extractNamesFromTitle(article.title) : { givenName: '', familyName: '', honorificTitle: '' };
+    
     // Map World Anvil character fields to our schema with comprehensive field mapping
     const characterData = {
-      // Basic identity
-      givenName: article.firstname || extractNameFromTitle(article.title),
-      familyName: article.lastname || '',
-      middleName: article.middlename || '',
-      maidenName: article.maidenname || '',
-      nickname: article.nickname || '',
-      honorificTitle: article.honorific || '',
-      suffix: article.suffix || '',
+      // Basic identity - use extracted names as fallback
+      givenName: firstNameValue || extractedNames.givenName || 'Unnamed',
+      familyName: lastNameValue || extractedNames.familyName || '',
+      middleName: extractField(article, 'middlename', 'middleName', 'middle_name') || '',
+      maidenName: extractField(article, 'maidenname', 'maidenName', 'maiden_name') || '',
+      nickname: extractField(article, 'nickname', 'nickName', 'alias') || '',
+      honorificTitle: honorificValue || extractedNames.honorificTitle || '',
+      suffix: extractField(article, 'suffix', 'nameSuffix', 'namesuffix') || '',
 
-      // Core description - map from 'content' field
-      description: stripBBCode(article.content || ''),
+      // Core description - map from 'content' field with multiple fallbacks
+      description: extractField(article, 'content', 'description', 'excerpt', 'summary', 'sidepanelcontenttop'),
 
       // Physical attributes
-      physicalDescription: stripBBCode(article.physique || ''),
-      facialFeatures: stripBBCode(article.facialFeatures || article.facialfeatures || ''),
-      eyeColor: article.eyes || '',
-      hairColor: article.hair || '',
-      skinTone: article.skin || '',
-      height: article.height || '',
-      weight: article.weight || '',
-      build: stripBBCode(article.physique || ''), // Use physique as build fallback
-      distinctiveBodyFeatures: stripBBCode(article.bodyFeatures || article.bodyfeatures || ''),
-      identifyingMarks: stripBBCode(article.identifyingCharacteristics || article.identifyingcharacteristics || ''),
-      strikingFeatures: stripBBCode(article.identifyingCharacteristics || article.identifyingcharacteristics || ''),
+      physicalDescription: extractField(article, 'physique', 'physicalDescription', 'physicaldescription', 'appearance', 'physicalAppearance', 'physicalappearance'),
+      facialFeatures: extractField(article, 'facialFeatures', 'facialfeatures', 'facial_features', 'face'),
+      eyeColor: extractField(article, 'eyes', 'eyeColor', 'eyecolor', 'eye_color'),
+      hairColor: extractField(article, 'hair', 'hairColor', 'haircolor', 'hair_color'),
+      skinTone: extractField(article, 'skin', 'skinTone', 'skintone', 'skin_tone', 'complexion'),
+      height: extractField(article, 'height'),
+      weight: extractField(article, 'weight'),
+      build: extractField(article, 'physique', 'build', 'bodyType', 'bodytype', 'body_type'),
+      distinctiveBodyFeatures: extractField(article, 'bodyFeatures', 'bodyfeatures', 'body_features', 'distinctiveFeatures', 'distinctivefeatures'),
+      identifyingMarks: extractField(article, 'identifyingCharacteristics', 'identifyingcharacteristics', 'identifying_characteristics', 'identifyingMarks', 'identifyingmarks'),
+      strikingFeatures: extractField(article, 'identifyingCharacteristics', 'identifyingcharacteristics', 'strikingFeatures', 'strikingfeatures'),
 
       // Personality and traits
-      backstory: stripBBCode(article.history || ''),
-      motivation: stripBBCode(article.motivation || ''),
+      backstory: extractField(article, 'history', 'backstory', 'background', 'past'),
+      motivation: extractField(article, 'motivation', 'motivations', 'drives', 'goals'),
 
       // Abilities and skills
-      supernaturalPowers: stripBBCode(article.specialAbilities || article.specialabilities || ''),
-      specialAbilities: stripBBCode(article.specialAbilities || article.specialabilities || ''),
-      mainSkills: stripBBCode(article.savviesIneptitudes || article.savviesineptitudes || ''),
-      strengths: stripBBCode(article.virtues || ''),
-      characterFlaws: stripBBCode(article.vices || ''),
+      supernaturalPowers: extractField(article, 'specialAbilities', 'specialabilities', 'special_abilities', 'powers', 'supernaturalPowers', 'supernaturalpowers'),
+      specialAbilities: extractField(article, 'specialAbilities', 'specialabilities', 'special_abilities', 'abilities'),
+      mainSkills: extractField(article, 'savviesIneptitudes', 'savviesineptitudes', 'skills', 'talents'),
+      strengths: extractField(article, 'virtues', 'strengths', 'positiveTraits', 'positivetraits'),
+      characterFlaws: extractField(article, 'vices', 'flaws', 'weaknesses', 'negativeTraits', 'negativetraits'),
 
       // Clothing and appearance
-      typicalAttire: stripBBCode(article.clothing || ''),
+      typicalAttire: extractField(article, 'clothing', 'attire', 'dress', 'outfit'),
 
       // Demographics
       age: article.age ? parseInt(article.age) : null,
-      gender: article.gender || '',
-      pronouns: article.pronouns || '',
-      species: article.speciesDisplay || article.speciesdisplay || '',
+      gender: extractField(article, 'gender', 'sex'),
+      pronouns: extractField(article, 'pronouns'),
+      species: extractField(article, 'speciesDisplay', 'speciesdisplay', 'species', 'race'),
 
       // Personal information
-      dateOfBirth: article.dobDisplay || article.dobdisplay || article.dob || '',
-      placeOfBirth: article.birthplace || '',
-      dateOfDeath: article.dodDisplay || article.doddisplay || article.dod || '',
-      placeOfDeath: article.deathplace || '',
-      currentResidence: article.residence || '',
+      dateOfBirth: extractField(article, 'dobDisplay', 'dobdisplay', 'dob', 'dateOfBirth', 'dateofbirth', 'birthdate'),
+      placeOfBirth: extractField(article, 'birthplace', 'placeOfBirth', 'placeofbirth', 'birthPlace', 'birthplace'),
+      dateOfDeath: extractField(article, 'dodDisplay', 'doddisplay', 'dod', 'dateOfDeath', 'dateofdeath', 'deathdate'),
+      placeOfDeath: extractField(article, 'deathplace', 'placeOfDeath', 'placeofdeath', 'deathPlace'),
+      currentResidence: extractField(article, 'residence', 'currentResidence', 'currentresidence', 'home', 'location'),
 
       // Additional traits
       languages: article.languages ? [stripBBCode(article.languages)] : [],
-      religiousBelief: article.deity || '',
-      education: stripBBCode(article.education || ''),
-      occupation: article.employment || '',
+      religiousBelief: extractField(article, 'deity', 'religion', 'faith', 'belief'),
+      education: extractField(article, 'education', 'schooling', 'training'),
+      occupation: extractField(article, 'employment', 'occupation', 'job', 'profession', 'work'),
 
       // Quotes and personality
-      famousQuotes: stripBBCode(article.quotes || ''),
-      likes: stripBBCode(article.likesDislikes || article.likesdislikes || ''),
+      famousQuotes: extractField(article, 'quotes', 'famousQuotes', 'famousquotes'),
+      likes: extractField(article, 'likesDislikes', 'likesdislikes', 'likes_dislikes', 'preferences'),
 
       // Character development fields from sidepanelcontenttop
-      // This often contains "Character Description" which maps to our general description
-      physicalCondition: stripBBCode(article.sidepanelcontenttop || ''),
+      physicalCondition: extractField(article, 'sidepanelcontenttop', 'physicalCondition', 'physicalcondition'),
 
       // Mental and emotional traits
-      mentalHealth: stripBBCode(article.mentalTraumas || article.mentaltraumas || ''),
-      intellectualTraits: stripBBCode(article.intellectualCharacteristics || article.intellectualcharacteristics || ''),
-      valuesEthicsMorals: stripBBCode(article.morality || ''),
+      mentalHealth: extractField(article, 'mentalTraumas', 'mentaltraumas', 'mental_traumas', 'mentalHealth', 'mentalhealth'),
+      intellectualTraits: extractField(article, 'intellectualCharacteristics', 'intellectualcharacteristics', 'intellectual_characteristics', 'intellect'),
+      valuesEthicsMorals: extractField(article, 'morality', 'values', 'ethics', 'morals'),
 
       // Social aspects
-      presentation: stripBBCode(article.presentation || ''),
-      sexualOrientation: stripBBCode(article.sexuality || ''),
-      genderIdentity: stripBBCode(article.genderidentity || ''),
+      presentation: extractField(article, 'presentation', 'manner', 'demeanor'),
+      sexualOrientation: extractField(article, 'sexuality', 'sexualOrientation', 'sexualorientation', 'sexual_orientation'),
+      genderIdentity: extractField(article, 'genderidentity', 'genderIdentity', 'gender_identity'),
 
-      // Image mapping - use portrait URL if available
-      imageUrl: article.portrait?.url || '',
-      imageCaption: article.portrait?.title || '',
+      // Image mapping - check multiple possible fields
+      imageUrl: extractField(article, 'portrait.url', 'cover.url', 'image.url', 'imageUrl', 'imageurl', 'image_url', 'picture', 'photo') 
+        || article.portrait?.url 
+        || article.cover?.url 
+        || article.image?.url 
+        || article.images?.portrait?.url
+        || '',
+      imageCaption: article.portrait?.title || article.cover?.title || article.image?.title || '',
 
       // Metadata
       genre: 'Fantasy', // Default genre for World Anvil imports
@@ -388,7 +437,7 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       notebookId,
       name: article.title || 'Untitled',
       classification: extractField(article, 'classification', 'category', 'type'),
-      physicalDescription: extractField(article, 'physicalAppearance', 'physicalappearance', 'appearance', 'content', 'description'),
+      physicalDescription: extractField(article, 'physicalAppearance', 'physicalappearance', 'appearance', 'description', 'content', 'excerpt'),
       habitat: extractField(article, 'habitat', 'environment', 'location'),
       behavior: extractField(article, 'behavior', 'behaviour', 'temperament'),
       diet: extractField(article, 'diet', 'food', 'sustenance'),
@@ -400,8 +449,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       culturalTraits: extractField(article, 'culturalTraits', 'culturaltraits', 'culture', 'traditions'),
       reproduction: extractField(article, 'reproduction', 'breeding', 'lifecycle'),
       genre: 'Fantasy',
-      imageUrl: article.portrait?.url || article.image?.url || '',
-      imageCaption: article.portrait?.title || article.image?.title || '',
+      imageUrl: article.portrait?.url || article.cover?.url || article.image?.url || article.images?.portrait?.url || '',
+      imageCaption: article.portrait?.title || article.cover?.title || article.image?.title || '',
     };
   } else if (contentType === 'location') {
     return {
@@ -409,8 +458,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       notebookId,
       name: article.title || 'Untitled',
       locationType: extractField(article, 'locationType', 'locationtype', 'type') || 'other',
-      description: extractField(article, 'description', 'excerpt', 'summary'),
-      geography: extractField(article, 'geography', 'terrain', 'topography', 'landscape', 'content'),
+      description: extractField(article, 'description', 'content', 'excerpt', 'summary'),
+      geography: extractField(article, 'geography', 'terrain', 'topography', 'landscape'),
       climate: extractField(article, 'climate', 'weather'),
       population: extractField(article, 'population', 'demographics', 'inhabitants'),
       government: extractField(article, 'government', 'governance', 'ruling', 'leadership'),
@@ -422,8 +471,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       threats: parseArray(article.threats || article.dangers || article.hazards),
       resources: parseArray(article.resources || article.naturalResources || article.naturalresources),
       genre: 'Fantasy',
-      imageUrl: article.portrait?.url || article.image?.url || '',
-      imageCaption: article.portrait?.title || article.image?.title || '',
+      imageUrl: article.portrait?.url || article.cover?.url || article.image?.url || article.images?.portrait?.url || '',
+      imageCaption: article.portrait?.title || article.cover?.title || article.image?.title || '',
     };
   } else if (contentType === 'organization') {
     return {
@@ -478,8 +527,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       notebookId,
       name: article.title || 'Untitled',
       origin: extractField(article, 'origin', 'homeland', 'birthplace'),
-      physicalTraits: extractField(article, 'physicalTraits', 'physicaltraits', 'appearance', 'physicalAppearance', 'physicalappearance'),
-      culturalTraits: extractField(article, 'culturalTraits', 'culturaltraits', 'culture', 'content'),
+      physicalTraits: extractField(article, 'physicalTraits', 'physicaltraits', 'appearance', 'physicalAppearance', 'physicalappearance', 'description'),
+      culturalTraits: extractField(article, 'culturalTraits', 'culturaltraits', 'culture', 'content', 'description', 'excerpt'),
       traditions: parseArray(article.traditions || article.customs || article.practices),
       language: extractField(article, 'language', 'languages', 'tongue'),
       religion: extractField(article, 'religion', 'faith', 'belief', 'deity'),
@@ -489,8 +538,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       values: parseArray(article.values || article.beliefs),
       customs: parseArray(article.customs || article.practices || article.traditions),
       genre: 'Fantasy',
-      imageUrl: article.portrait?.url || article.image?.url || '',
-      imageCaption: article.portrait?.title || article.image?.title || '',
+      imageUrl: article.portrait?.url || article.cover?.url || article.image?.url || article.images?.portrait?.url || '',
+      imageCaption: article.portrait?.title || article.cover?.title || article.image?.title || '',
     };
   } else if (contentType === 'settlement') {
     return {
@@ -512,6 +561,8 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       landmarks: parseArray(article.landmarks || article.monuments || article.sites),
       districts: parseArray(article.districts || article.quarters || article.wards),
       genre: 'Fantasy',
+      imageUrl: article.portrait?.url || article.cover?.url || article.image?.url || article.images?.portrait?.url || '',
+      imageCaption: article.portrait?.title || article.cover?.title || article.image?.title || '',
     };
   } else if (contentType === 'ritual') {
     return {
