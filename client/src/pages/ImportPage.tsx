@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, FileJson, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
+import Header from "@/components/Header";
 
 interface ImportJob {
   id: string;
@@ -27,7 +29,24 @@ interface ImportJob {
 export default function ImportPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      setLocation(`/search?q=${encodeURIComponent(query)}`);
+    }
+  };
+
+  const handleNavigate = (path: string) => {
+    setLocation(path);
+  };
+
+  const handleCreateNew = () => {
+    setLocation('/notebook');
+  };
 
   const { data: importHistory, isLoading: isLoadingHistory } = useQuery<ImportJob[]>({
     queryKey: ['/api/import/history'],
@@ -120,13 +139,20 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Import from World Anvil</h1>
-        <p className="text-muted-foreground">
-          Import your existing worldbuilding content from World Anvil. Export your world as JSON (requires Guild membership), then upload the ZIP file here.
-        </p>
-      </div>
+    <>
+      <Header 
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+        onCreateNew={handleCreateNew}
+      />
+      <div className="container mx-auto p-6 max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">Import from World Anvil</h1>
+          <p className="text-muted-foreground">
+            Import your existing worldbuilding content from World Anvil. Export your world as JSON (requires Guild membership), then upload the ZIP file here.
+          </p>
+        </div>
 
       <div className="grid gap-6 mb-8">
         <Card>
@@ -275,5 +301,6 @@ export default function ImportPage() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }
