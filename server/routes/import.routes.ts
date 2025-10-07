@@ -470,13 +470,14 @@ async function processImport(
 
         // Create saved_items entry for notebook visibility
         if (createdItem) {
-          await storage.saveItem({
+          const savedItem = await storage.saveItem({
             userId,
             notebookId,
             itemType: contentType,
             itemId: createdItem.id,
             itemData: createdItem
           });
+          console.log(`[Import ${jobId}] Created saved_item ${savedItem.id} in notebook ${notebookId}`);
         }
 
         // Update progress every 10 items or on last item

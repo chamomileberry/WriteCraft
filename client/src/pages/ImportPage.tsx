@@ -34,6 +34,10 @@ interface ImportJob {
   updatedAt: string;
 }
 
+// Assume activeNotebook is fetched or managed elsewhere and available here.
+// For demonstration, we'll mock it. In a real app, this would come from context or another query.
+const activeNotebook = { id: "notebook-123", name: "Green Tide" }; 
+
 export default function ImportPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -64,6 +68,10 @@ export default function ImportPage() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
+      // In a real scenario, you'd also append the activeNotebook.id here if it exists
+      if (activeNotebook) {
+        formData.append('notebookId', activeNotebook.id);
+      }
 
       const response = await fetch('/api/import/upload', {
         method: 'POST',
@@ -113,6 +121,14 @@ export default function ImportPage() {
   };
 
   const handleUpload = () => {
+    if (!activeNotebook) {
+      toast({
+        title: "No notebook selected",
+        description: "Please select or create a notebook before uploading.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (selectedFile) {
       uploadMutation.mutate(selectedFile);
     }
@@ -160,6 +176,20 @@ export default function ImportPage() {
           <p className="text-muted-foreground">
             Import your existing worldbuilding content from World Anvil. Export your world as JSON (requires Guild membership), then upload the ZIP file here.
           </p>
+          {!activeNotebook ? (
+            <Alert className="mt-4" variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Please select or create a notebook first. Imports need a destination notebook.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-900 dark:text-blue-100">
+                📚 Imports will be added to: <strong>{activeNotebook.name}</strong>
+              </p>
+            </div>
+          )}
         </div>
 
       <div className="grid gap-6 mb-8">
@@ -179,13 +209,13 @@ export default function ImportPage() {
                 type="file"
                 accept=".zip"
                 onChange={handleFileSelect}
-                disabled={uploadMutation.isPending}
+                disabled={uploadMutation.isPending || !activeNotebook}
                 data-testid="input-import-file"
                 className="flex-1"
               />
               <Button
                 onClick={handleUpload}
-                disabled={!selectedFile || uploadMutation.isPending}
+                disabled={!selectedFile || uploadMutation.isPending || !activeNotebook}
                 data-testid="button-upload-import"
               >
                 {uploadMutation.isPending ? (
@@ -330,7 +360,7 @@ export default function ImportPage() {
                                 </div>
                               </div>
                             )}
-                            
+
                             {job.results.skipped.length > 0 && (
                               <div>
                                 <h4 className="text-sm font-medium mb-2 text-amber-600 dark:text-amber-400">
