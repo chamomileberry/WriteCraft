@@ -78,7 +78,8 @@ import {
   resources, buildings, animals, transportation, naturalLaws, traditions, rituals,
   familyTrees, familyTreeMembers, familyTreeRelationships, timelines, ceremonies, maps, music, dances, laws, policies, potions,
   type PinnedContent, type InsertPinnedContent, pinnedContent,
-  chatMessages
+  chatMessages,
+  shares
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, isNull, isNotNull, inArray, sql } from "drizzle-orm";
@@ -100,6 +101,7 @@ export interface IStorage {
   createUser(insertUser: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined>;
+  searchUsers(query: string): Promise<User[]>;
   
   // Notebook methods
   createNotebook(notebook: InsertNotebook): Promise<Notebook>;
@@ -627,6 +629,21 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedUser || undefined;
   }
+
+  async searchUsers(query: string): Promise<User[]> {
+    const searchPattern = `%${query.toLowerCase()}%`;
+    return await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          ilike(users.email, searchPattern),
+          ilike(users.firstName, searchPattern),
+          ilike(users.lastName, searchPattern)
+        )
+      )
+      .limit(10);
+  }
   
   // Notebook methods
   async createNotebook(notebook: InsertNotebook): Promise<Notebook> {
@@ -638,19 +655,72 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNotebook(id: string, userId: string): Promise<Notebook | undefined> {
+    // First try to get as owner
     const [notebook] = await db
       .select()
       .from(notebooks)
       .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
-    return notebook || undefined;
+    
+    if (notebook) {
+      return notebook;
+    }
+    
+    // If not owner, check if shared
+    const [sharedNotebook] = await db
+      .select({
+        notebook: notebooks
+      })
+      .from(shares)
+      .innerJoin(notebooks, eq(shares.resourceId, notebooks.id))
+      .where(
+        and(
+          eq(shares.userId, userId),
+          eq(shares.resourceType, 'notebook'),
+          eq(shares.resourceId, id)
+        )
+      );
+    
+    return sharedNotebook?.notebook || undefined;
   }
 
   async getUserNotebooks(userId: string): Promise<Notebook[]> {
-    return await db
+    // Get owned notebooks
+    const ownedNotebooks = await db
       .select()
       .from(notebooks)
       .where(eq(notebooks.userId, userId))
       .orderBy(desc(notebooks.createdAt));
+    
+    // Get shared notebooks
+    const sharedNotebooks = await db
+      .select({
+        notebook: notebooks
+      })
+      .from(shares)
+      .innerJoin(notebooks, eq(shares.resourceId, notebooks.id))
+      .where(
+        and(
+          eq(shares.userId, userId),
+          eq(shares.resourceType, 'notebook')
+        )
+      );
+    
+    // Combine and return, removing duplicates
+    const allNotebooks = [
+      ...ownedNotebooks,
+      ...sharedNotebooks.map(s => s.notebook)
+    ];
+    
+    // Remove duplicates based on id and sort by createdAt
+    const uniqueNotebooks = Array.from(
+      new Map(allNotebooks.map(n => [n.id, n])).values()
+    ).sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+    
+    return uniqueNotebooks;
   }
 
   async updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined> {
@@ -3828,6 +3898,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProject(id: string, userId: string): Promise<Project | undefined> {
+    // First try to get as owner
     const [project] = await db
       .select()
       .from(projects)
@@ -3835,15 +3906,67 @@ export class DatabaseStorage implements IStorage {
         eq(projects.id, id),
         eq(projects.userId, userId)
       ));
-    return project || undefined;
+    
+    if (project) {
+      return project;
+    }
+    
+    // If not owner, check if shared
+    const [sharedProject] = await db
+      .select({
+        project: projects
+      })
+      .from(shares)
+      .innerJoin(projects, eq(shares.resourceId, projects.id))
+      .where(
+        and(
+          eq(shares.userId, userId),
+          eq(shares.resourceType, 'project'),
+          eq(shares.resourceId, id)
+        )
+      );
+    
+    return sharedProject?.project || undefined;
   }
 
   async getUserProjects(userId: string): Promise<Project[]> {
-    return await db
+    // Get owned projects
+    const ownedProjects = await db
       .select()
       .from(projects)
       .where(eq(projects.userId, userId))
       .orderBy(desc(projects.updatedAt));
+    
+    // Get shared projects
+    const sharedProjects = await db
+      .select({
+        project: projects
+      })
+      .from(shares)
+      .innerJoin(projects, eq(shares.resourceId, projects.id))
+      .where(
+        and(
+          eq(shares.userId, userId),
+          eq(shares.resourceType, 'project')
+        )
+      );
+    
+    // Combine and return, removing duplicates
+    const allProjects = [
+      ...ownedProjects,
+      ...sharedProjects.map(s => s.project)
+    ];
+    
+    // Remove duplicates based on id and sort by updatedAt
+    const uniqueProjects = Array.from(
+      new Map(allProjects.map(p => [p.id, p])).values()
+    ).sort((a, b) => {
+      const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return dateB - dateA;
+    });
+    
+    return uniqueProjects;
   }
 
   async updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project> {

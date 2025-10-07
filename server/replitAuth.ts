@@ -127,6 +127,35 @@ export async function setupAuth(app: Express) {
       );
     });
   });
+
+  // User search endpoint for collaboration
+  app.get("/api/auth/users/search", isAuthenticated, async (req: any, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+
+      const users = await storage.searchUsers(query);
+      
+      // Remove sensitive information and current user from results
+      const currentUserId = req.user.claims.sub;
+      const sanitizedUsers = users
+        .filter((u: any) => u.id !== currentUserId)
+        .map((u: any) => ({
+          id: u.id,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          profileImageUrl: u.profileImageUrl,
+        }));
+      
+      res.json(sanitizedUsers);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      res.status(500).json({ error: 'Failed to search users' });
+    }
+  });
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
