@@ -44,8 +44,9 @@ export function getTestApp() {
 }
 
 export async function createTestUser(overrides?: Partial<TestUser>): Promise<TestUser> {
-  const userId = nanoid();
-  const email = overrides?.email || `test-${userId}@example.com`;
+  const randomId = nanoid().toLowerCase().replace(/_/g, '-'); // Ensure lowercase and replace underscores
+  const userId = `test-user-${randomId}`;
+  const email = overrides?.email || `test-${randomId}@example.com`;
   
   const user = await storage.createUser({
     id: userId,
