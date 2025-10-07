@@ -111,9 +111,40 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
+    passport.authenticate(`replitauth:${req.hostname}`, (err: any, user: any) => {
+      if (err) {
+        console.error('[AUTH] Authentication error:', err);
+        return res.redirect("/api/login");
+      }
+      if (!user) {
+        return res.redirect("/api/login");
+      }
+      
+      // Store the return URL before regenerating session
+      const returnTo = (req.session as any).returnTo || "/";
+      
+      // Regenerate session to prevent session fixation attacks
+      req.session.regenerate((regenerateErr) => {
+        if (regenerateErr) {
+          console.error('[AUTH] Session regeneration error:', regenerateErr);
+          return res.redirect("/api/login");
+        }
+        
+        // Restore returnTo after regeneration
+        (req.session as any).returnTo = returnTo;
+        
+        req.logIn(user, (loginErr) => {
+          if (loginErr) {
+            console.error('[AUTH] Login error:', loginErr);
+            return res.redirect("/api/login");
+          }
+          
+          // Clear returnTo and redirect
+          const destination = (req.session as any).returnTo || "/";
+          delete (req.session as any).returnTo;
+          return res.redirect(destination);
+        });
+      });
     })(req, res, next);
   });
 

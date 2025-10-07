@@ -73,8 +73,7 @@ router.post("/", async (req: any, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid project data', details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to create project' });
   }
 });
 
@@ -127,14 +126,13 @@ router.put("/:id", async (req: any, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid project data', details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const projectId = req.params.id || 'unknown';
       console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}`);
       return res.status(404).json({ error: 'Not found' });
     }
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to update project' });
   }
 });
 
@@ -145,14 +143,13 @@ router.delete("/:id", async (req: any, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting project:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const projectId = req.params.id || 'unknown';
       console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}`);
       return res.status(404).json({ error: 'Not found' });
     }
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to delete project' });
   }
 });
 
@@ -224,8 +221,7 @@ router.post("/:projectId/sections", async (req: any, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid section data', details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to create section' });
   }
 });
 
@@ -281,7 +277,6 @@ router.put("/:projectId/sections/:sectionId", async (req: any, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid section data', details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const projectId = req.params.projectId || 'unknown';
@@ -289,7 +284,7 @@ router.put("/:projectId/sections/:sectionId", async (req: any, res) => {
       console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}, sectionId: ${sectionId}`);
       return res.status(404).json({ error: 'Not found' });
     }
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to update section' });
   }
 });
 
@@ -308,7 +303,6 @@ router.delete("/:projectId/sections/:sectionId", async (req: any, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting project section:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const projectId = req.params.projectId || 'unknown';
@@ -316,7 +310,7 @@ router.delete("/:projectId/sections/:sectionId", async (req: any, res) => {
       console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}, sectionId: ${sectionId}`);
       return res.status(404).json({ error: 'Not found' });
     }
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to delete section' });
   }
 });
 
@@ -341,14 +335,13 @@ router.post("/:projectId/sections/reorder", async (req: any, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error reordering project sections:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const projectId = req.params.projectId || 'unknown';
       console.warn(`[Security] Unauthorized project operation - userId: ${userId}, projectId: ${projectId}`);
       return res.status(404).json({ error: 'Not found' });
     }
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to reorder sections' });
   }
 });
 

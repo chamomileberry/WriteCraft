@@ -125,7 +125,8 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
       totalItems: articles.length,
     };
   } catch (error) {
-    throw new Error(`Failed to parse ZIP file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Failed to parse ZIP file:', error);
+    throw new Error('Failed to parse ZIP file');
   }
 }
 
@@ -220,7 +221,7 @@ router.post('/upload', upload.single('file'), async (req: any, res) => {
   } catch (error) {
     console.error('Import start error:', error);
     res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to start import'
+      error: 'Failed to start import'
     });
   }
 });

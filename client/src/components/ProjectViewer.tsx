@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeHtml } from '@/lib/sanitize';
 import type { ProjectSectionWithChildren } from '@shared/schema';
 
 interface ProjectViewerProps {
@@ -311,7 +312,7 @@ export function ProjectViewer({ projectId, onBack, onEdit }: ProjectViewerProps)
               {/* Section content */}
               <div 
                 className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80"
-                dangerouslySetInnerHTML={{ __html: selectedSection.content || '<p class="text-muted-foreground italic">This section has no content yet.</p>' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedSection.content || '<p class="text-muted-foreground italic">This section has no content yet.</p>') }}
                 data-testid="viewer-content"
               />
             </div>

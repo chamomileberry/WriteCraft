@@ -157,8 +157,7 @@ ${text}`;
 
   } catch (error) {
     console.error('Error in AI text improvement:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: `Failed to improve text: ${errorMessage}` });
+    res.status(500).json({ error: 'Failed to improve text' });
   }
 });
 
