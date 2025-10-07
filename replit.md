@@ -4,6 +4,18 @@
 
 WriteCraft is a comprehensive web platform designed to support creative writers with an extensive suite of tools, generators, and educational resources. It provides character generators, plot structure tools, writing prompts, setting builders, and detailed writing guides to enhance the creative process. The platform aims to be a modern, full-stack application with a clean, writer-friendly interface, enhancing the creative workflow for professional writers.
 
+## Recent Changes
+
+### October 2025 - World Anvil Import & Cache Invalidation Fixes
+- **Enhanced Name Parsing**: Fixed character name parsing to properly handle multi-word honorific titles (e.g., "Lord Commander", "Lady in waiting", "High Priestess") using prefix-based detection that iterates through title candidates
+- **Improved Field Mapping**: Added comprehensive field name variation checking (firstName/firstname/first_name, etc.) and enhanced image URL fallbacks (portrait/cover/image/images) across all content types
+- **Import Metadata Tracking**: Added importSource and importExternalId fields to character imports for tracing origin and supporting deduplication workflows
+- **Fixed Notebook Cache Bug**: Resolved critical issue where character name updates weren't appearing in notebook view. Fixed by:
+  - Correcting cache invalidation query keys to match SavedItems structure: `['/api/saved-items', user.id, notebookId]`
+  - Replacing hardcoded 'demo-user' with authenticated user ID
+  - Switching from fetch() to apiRequest() for proper authentication headers
+  - Applied fixes to both CharacterEditPage and CharacterEditPageWithSidebar
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -56,6 +68,8 @@ Documentation: Proactively create documentation for new features, APIs, and syst
             - Ethnicities (13 fields): origin, physicalTraits, culturalTraits, traditions, language, religion, socialStructure, values, customs, images
             - Plus comprehensive mappings for Settlements, Rituals, Laws, Items, Documents, Languages, Buildings, Materials, Transportation, Ranks, and Conditions
         - **Robust Data Processing**: Helper functions handle World Anvil field variations (camelCase, lowercase, Display suffix), parse arrays from comma/newline-separated strings or pre-parsed arrays, strip BBCode formatting from all text fields, extract human-readable values from object-valued fields (title/name/label), and prevent data loss through type-safe conversion of numbers, arrays, and objects.
+        - **Enhanced Name Parsing**: Multi-word honorific detection (Lady in waiting, Lord Commander, High Priestess, etc.) using prefix-based iteration through title candidates to preserve full honorific phrases.
+        - **Import Tracking**: Character imports include importSource='world_anvil' and importExternalId metadata for tracing origin and supporting deduplication workflows.
     - **Character Data Consolidation Tool**: Admin interface at `/notebook/consolidate` for managing character data quality post-import. Features three main panels: (1) Issues Panel showing characters with incomplete data (missing names, descriptions, images) grouped by issue type with Quick Fix modal for inline editing, (2) Duplicates Panel using Levenshtein distance algorithm (0.8 similarity threshold) for fuzzy matching of character names to identify potential duplicates with side-by-side comparison and delete functionality, (3) Stats Summary displaying real-time counts of data issues. Import metadata tracking via `importSource` and `importExternalId` fields enables tracing content origin. Notebook-scoped cache invalidation ensures all views (admin panels, SavedItems, character lists) update immediately after fixes or deletions without manual reload.
 
 ### Security & Authorization
