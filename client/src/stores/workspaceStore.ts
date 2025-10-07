@@ -62,8 +62,9 @@ interface WorkspaceState {
     content: string; // Current editor content as plain text
     htmlContent: string; // Current editor content as HTML
     title: string; // Document title (manuscript/guide name)
-    type: 'manuscript' | 'guide' | 'section' | null; // Type of document being edited
+    type: 'manuscript' | 'guide' | 'section' | 'character' | null; // Type of document being edited
     entityId: string | null; // ID of the document being edited
+    notebookId: string | null; // ID of the notebook (for character/worldbuilding context)
   };
 
   // Editor actions for cross-component communication
@@ -177,7 +178,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         htmlContent: '',
         title: '',
         type: null,
-        entityId: null
+        entityId: null,
+        notebookId: null
       },
       editorActions: null,
 
@@ -678,7 +680,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             htmlContent: '',
             title: '',
             type: null,
-            entityId: null
+            entityId: null,
+            notebookId: null
           }
         });
       },

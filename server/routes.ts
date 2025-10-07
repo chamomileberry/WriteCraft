@@ -633,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/writing-assistant/chat", async (req, res) => {
     try {
-      const { message, conversationHistory, editorContent, documentTitle, documentType } = z.object({ 
+      const { message, conversationHistory, editorContent, documentTitle, documentType, notebookId } = z.object({ 
         message: z.string(), 
         conversationHistory: z.array(z.object({
           role: z.enum(['user', 'assistant']),
@@ -641,10 +641,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })).optional(),
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),
-        documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
+        documentType: z.enum(['manuscript', 'guide', 'project', 'section', 'character']).optional(),
+        notebookId: z.string().optional()
       }).parse(req.body);
       
-      const response = await conversationalChat(message, conversationHistory, editorContent, documentTitle, documentType);
+      const response = await conversationalChat(message, conversationHistory, editorContent, documentTitle, documentType, notebookId);
       res.json({ message: response });
     } catch (error) {
       console.error('Error in conversational chat:', error);

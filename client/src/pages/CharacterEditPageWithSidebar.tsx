@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Database, FileText } from "lucide-react";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useState, useEffect } from "react";
 
 export default function CharacterEditPageWithSidebar() {
   const { id } = useParams();
@@ -21,6 +22,7 @@ export default function CharacterEditPageWithSidebar() {
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
   const { user } = useAuth();
+  const { updateEditorContext, clearEditorContext } = useWorkspaceStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'structured' | 'article'>('structured');
 
@@ -167,6 +169,24 @@ export default function CharacterEditPageWithSidebar() {
   const handleCreateNew = () => {
     setLocation('/notebook');
   };
+
+  // Update editor context for AI Writing Assistant when character loads
+  useEffect(() => {
+    if (character && notebookId) {
+      const characterName = [character.givenName, character.familyName].filter(Boolean).join(' ') || 'Character';
+      updateEditorContext({
+        type: 'character',
+        entityId: id,
+        notebookId: notebookId,
+        title: characterName,
+        content: '', // Characters don't have long-form content, but we pass notebook context
+        htmlContent: ''
+      });
+    }
+    return () => {
+      clearEditorContext();
+    };
+  }, [character, notebookId, id, updateEditorContext, clearEditorContext]);
 
   // Handle missing notebook gracefully
   if (!notebookId) {

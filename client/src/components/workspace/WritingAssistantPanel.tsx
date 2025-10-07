@@ -274,7 +274,8 @@ export default function WritingAssistantPanel({
           conversationHistory: conversationHistory.length > 0 ? conversationHistory : undefined,
           editorContent: hasEditorContent ? editorContext.content : undefined,
           documentTitle: hasEditorContent ? editorContext.title : undefined,
-          documentType: hasEditorContent ? editorContext.type : undefined
+          documentType: hasEditorContent ? editorContext.type : undefined,
+          notebookId: editorContext.notebookId || undefined
         }),
       });
       if (!response.ok) throw new Error('Failed to get chat response');
