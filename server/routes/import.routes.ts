@@ -564,6 +564,7 @@ async function processImport(
         // Update progress every 10 items or on last item
         if ((i + 1) % 10 === 0 || i === parsed.totalItems - 1) {
           const progress = Math.round(((i + 1) / parsed.totalItems) * 100);
+          console.log(`[Import ${jobId}] Progress update: ${i + 1}/${parsed.totalItems} (${progress}%)`);
           await storage.updateImportJob(jobId, {
             processedItems: i + 1,
             progress,
@@ -584,12 +585,13 @@ async function processImport(
     // Mark as completed
     await storage.updateImportJob(jobId, {
       status: 'completed',
+      processedItems: parsed.totalItems,
       progress: 100,
       results,
       completedAt: new Date(),
     });
 
-    console.log(`[Import ${jobId}] Import job completed and marked as completed in database`);
+    console.log(`[Import ${jobId}] Import job marked as completed in database with status: completed`);
   } catch (error) {
     await storage.updateImportJob(jobId, {
       status: 'failed',

@@ -323,16 +323,16 @@ export default function ImportPage() {
                             {job.totalItems > 0 ? (
                               <>
                                 <span className="font-medium">
-                                  {job.itemsProcessed} / {job.totalItems} items
+                                  {job.itemsProcessed || 0} / {job.totalItems} items
                                 </span>
-                                {job.itemsProcessed > 0 && (
+                                {(job.itemsProcessed || 0) > 0 && (
                                   <span className="text-xs">
-                                    ({Math.round((job.itemsProcessed / job.totalItems) * 100)}%)
+                                    ({Math.round(((job.itemsProcessed || 0) / job.totalItems) * 100)}%)
                                   </span>
                                 )}
                               </>
                             ) : (
-                              <span className="font-medium">Processing...</span>
+                              <span className="font-medium">Starting import...</span>
                             )}
                           </span>
                         )}
