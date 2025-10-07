@@ -196,6 +196,151 @@ router.post("/:treeId/members", async (req: any, res) => {
   }
 });
 
+// Add related family member with automatic positioning
+router.post("/:treeId/members/add-related", async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const treeId = req.params.treeId;
+    const { relativeMemberId, relationshipType, characterId, inlineName } = req.body;
+    
+    // Validate tree ownership
+    const tree = await storage.getFamilyTree(treeId, userId, req.body.notebookId || req.query.notebookId);
+    if (!tree) {
+      console.warn(`[Security] Unauthorized tree access attempt - userId: ${userId}, treeId: ${treeId}`);
+      return res.status(404).json({ error: 'Tree not found' });
+    }
+    
+    // Validate required fields
+    if (!relativeMemberId || !relationshipType) {
+      return res.status(400).json({ error: 'relativeMemberId and relationshipType are required' });
+    }
+    
+    // Validate that either characterId or inlineName is provided
+    if (!characterId && !inlineName) {
+      return res.status(400).json({ error: 'Either characterId or inlineName must be provided' });
+    }
+    
+    // Validate relationship type
+    const validRelationshipTypes = ['parent', 'spouse', 'child', 'sibling'];
+    if (!validRelationshipTypes.includes(relationshipType)) {
+      return res.status(400).json({ error: 'Invalid relationship type. Must be one of: parent, spouse, child, sibling' });
+    }
+    
+    // Get the relative member to calculate position
+    const members = await storage.getFamilyTreeMembers(treeId, userId);
+    const relativeMember = members.find((m: any) => m.id === relativeMemberId);
+    
+    if (!relativeMember) {
+      return res.status(404).json({ error: 'Relative member not found' });
+    }
+    
+    // Calculate position based on relationship type
+    const relativeX = relativeMember.positionX || 0;
+    const relativeY = relativeMember.positionY || 0;
+    let positionX: number;
+    let positionY: number;
+    
+    switch (relationshipType) {
+      case 'parent':
+        // Above the relative member
+        positionX = relativeX + Math.floor(Math.random() * 200) - 100; // random(-100, 100)
+        positionY = relativeY - 200;
+        break;
+      case 'child':
+        // Below the relative member
+        positionX = relativeX + Math.floor(Math.random() * 200) - 100; // random(-100, 100)
+        positionY = relativeY + 200;
+        break;
+      case 'spouse':
+        // Same level, beside the relative member
+        positionX = relativeX + 250;
+        positionY = relativeY;
+        break;
+      case 'sibling':
+        // Same level, beside the relative member
+        positionX = relativeX + 200;
+        positionY = relativeY;
+        break;
+      default:
+        positionX = 0;
+        positionY = 0;
+    }
+    
+    // Create the new member
+    const memberData = {
+      treeId,
+      characterId: characterId || null,
+      inlineName: inlineName || null,
+      positionX,
+      positionY
+    };
+    
+    const validatedMember = insertFamilyTreeMemberSchema.parse(memberData);
+    const savedMember = await storage.createFamilyTreeMember(validatedMember);
+    
+    // Create the relationship based on relationship type mapping
+    let relationshipData: any;
+    
+    switch (relationshipType) {
+      case 'parent':
+        // parent → create "parent" relationship FROM new member TO relative
+        relationshipData = {
+          treeId,
+          fromMemberId: savedMember.id,
+          toMemberId: relativeMemberId,
+          relationshipType: 'parent'
+        };
+        break;
+      case 'child':
+        // child → create "parent" relationship FROM relative TO new member
+        relationshipData = {
+          treeId,
+          fromMemberId: relativeMemberId,
+          toMemberId: savedMember.id,
+          relationshipType: 'parent'
+        };
+        break;
+      case 'spouse':
+        // spouse → create "marriage" relationship between them
+        relationshipData = {
+          treeId,
+          fromMemberId: relativeMemberId,
+          toMemberId: savedMember.id,
+          relationshipType: 'marriage'
+        };
+        break;
+      case 'sibling':
+        // sibling → create "sibling" relationship between them
+        relationshipData = {
+          treeId,
+          fromMemberId: relativeMemberId,
+          toMemberId: savedMember.id,
+          relationshipType: 'sibling'
+        };
+        break;
+    }
+    
+    const validatedRelationship = insertFamilyTreeRelationshipSchema.parse(relationshipData);
+    const savedRelationship = await storage.createFamilyTreeRelationship(validatedRelationship);
+    
+    // Return both the created member and relationship
+    res.json({
+      member: savedMember,
+      relationship: savedRelationship
+    });
+  } catch (error) {
+    console.error('Error creating related family tree member:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      console.warn(`[Security] Unauthorized operation - userId: ${req.user?.claims?.sub}`);
+      return res.status(404).json({ error: 'Not found' });
+    }
+    res.status(500).json({ error: 'Failed to create related family tree member' });
+  }
+});
+
 router.get("/:treeId/members", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;

@@ -88,33 +88,78 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     setSelectCharacterDialogOpen(true);
   }, []);
 
-  // Handle selecting existing character (stub for now)
-  const onSelectExisting = useCallback((characterId: string) => {
-    // Backend implementation will be in next step
-    setSelectCharacterDialogOpen(false);
-    setAddRelationshipDialogOpen(false);
-    setSelectedMemberForRelationship(null);
-    setSelectedRelationshipType(null);
-    
-    toast({
-      title: 'Relationship created',
-      description: 'Successfully linked existing character (backend pending)',
-    });
-  }, [toast]);
+  // Mutation to add related family member
+  const addRelatedMember = useMutation({
+    mutationFn: async (data: { 
+      relativeMemberId: string; 
+      relationshipType: AddRelationshipType; 
+      characterId?: string;
+      inlineName?: string;
+    }) => {
+      return apiRequest(
+        'POST',
+        `/api/family-trees/${treeId}/members/add-related`,
+        { ...data, notebookId }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'relationships'] });
+      
+      setSelectCharacterDialogOpen(false);
+      setAddRelationshipDialogOpen(false);
+      setSelectedMemberForRelationship(null);
+      setSelectedRelationshipType(null);
+      
+      toast({
+        title: 'Success',
+        description: 'Related family member added successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to add related member',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
 
-  // Handle creating new character (stub for now)
-  const onCreateNew = useCallback((name: string) => {
-    // Backend implementation will be in next step
-    setSelectCharacterDialogOpen(false);
-    setAddRelationshipDialogOpen(false);
-    setSelectedMemberForRelationship(null);
-    setSelectedRelationshipType(null);
-    
-    toast({
-      title: 'Character created',
-      description: `Created new character "${name}" (backend pending)`,
+  // Handle selecting existing character
+  const onSelectExisting = useCallback((characterId: string) => {
+    if (!selectedMemberForRelationship || !selectedRelationshipType) {
+      toast({
+        title: 'Error',
+        description: 'Missing required information',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    addRelatedMember.mutate({
+      relativeMemberId: selectedMemberForRelationship.id,
+      relationshipType: selectedRelationshipType,
+      characterId: characterId,
     });
-  }, [toast]);
+  }, [selectedMemberForRelationship, selectedRelationshipType, addRelatedMember, toast]);
+
+  // Handle creating new character
+  const onCreateNew = useCallback((name: string) => {
+    if (!selectedMemberForRelationship || !selectedRelationshipType) {
+      toast({
+        title: 'Error',
+        description: 'Missing required information',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    addRelatedMember.mutate({
+      relativeMemberId: selectedMemberForRelationship.id,
+      relationshipType: selectedRelationshipType,
+      inlineName: name,
+    });
+  }, [selectedMemberForRelationship, selectedRelationshipType, addRelatedMember, toast]);
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(() => ({
