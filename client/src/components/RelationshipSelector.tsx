@@ -88,7 +88,7 @@ export function RelationshipSelector({
               <SelectTrigger id="relationship-type" data-testid="select-relationship-type">
                 <SelectValue placeholder="Select relationship type" />
               </SelectTrigger>
-              <SelectContent position="popper" sideOffset={5}>
+              <SelectContent position="popper" sideOffset={5} className="z-[300]">
                 {RELATIONSHIP_TYPES.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
