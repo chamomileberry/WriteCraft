@@ -165,13 +165,38 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     description: article.content || article.excerpt || '',
   };
 
-  // Add type-specific fields
+  // Add type-specific fields with required fields
   if (contentType === 'character') {
     return {
       ...baseContent,
       givenName: article.title?.split(' ')[0] || '',
       familyName: article.title?.split(' ').slice(1).join(' ') || '',
       backstory: article.content || article.excerpt || '',
+    };
+  } else if (contentType === 'species') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      physicalDescription: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'location') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      locationType: 'other',
+      geography: article.content || article.excerpt || '',
+      description: article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'organization') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      organizationType: 'other',
+      purpose: 'Imported from World Anvil',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
     };
   }
 
