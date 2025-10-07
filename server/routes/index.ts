@@ -59,6 +59,7 @@ import policyRoutes from "./policy.routes";
 import potionRoutes from "./potion.routes";
 import notebookRoutes from "./notebook.routes";
 import plantRoutes from "./plant.routes";
+import shareRoutes from "./share.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -76,6 +77,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/saved-items", savedItemRoutes);
   app.use("/api/projects", projectRoutes);
   app.use("/api/notebooks", notebookRoutes);
+  app.use("/api", shareRoutes);
   app.use("/api/names", nameRoutes);
   app.use("/api/conflicts", conflictRoutes);
   app.use("/api/themes", themeRoutes);
