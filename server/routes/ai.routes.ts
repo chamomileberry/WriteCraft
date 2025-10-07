@@ -1,5 +1,8 @@
 import { Router } from "express";
 import Anthropic from "@anthropic-ai/sdk";
+import { db } from "../db";
+import { characters } from "@shared/schema";
+import { and, eq, or, ilike } from "drizzle-orm";
 
 const router = Router();
 
@@ -169,6 +172,61 @@ router.post("/generate-field", async (req: any, res) => {
       return res.status(400).json({ error: 'Field label is required' });
     }
     
+    // If custom prompt provided, search for mentioned characters and include their context
+    let relatedCharactersContext = '';
+    if (customPrompt && characterContext.notebookId) {
+      try {
+        // Extract potential character names from the prompt (words starting with capital letters)
+        const potentialNames = customPrompt.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) || [];
+        
+        if (potentialNames.length > 0) {
+          // Search for characters in the same notebook matching these names
+          const relatedChars = await db.select()
+            .from(characters)
+            .where(
+              and(
+                eq(characters.notebookId, characterContext.notebookId),
+                or(
+                  ...potentialNames.flatMap((name: string) => {
+                    const parts = name.split(' ');
+                    return [
+                      ilike(characters.givenName, `%${name}%`),
+                      ilike(characters.familyName, `%${name}%`),
+                      ...(parts.length > 1 ? [
+                        and(
+                          ilike(characters.givenName, `%${parts[0]}%`),
+                          ilike(characters.familyName, `%${parts[parts.length - 1]}%`)
+                        )
+                      ] : [])
+                    ];
+                  })
+                )
+              )
+            )
+            .limit(3); // Limit to 3 related characters to avoid context overflow
+          
+          if (relatedChars.length > 0) {
+            const relatedContextParts: string[] = [];
+            for (const char of relatedChars) {
+              const charName = [char.givenName, char.familyName].filter(Boolean).join(' ');
+              const charDetails: string[] = [`Name: ${charName}`];
+              
+              if (char.age) charDetails.push(`Age: ${char.age}`);
+              if (char.species) charDetails.push(`Species: ${char.species}`);
+              if (char.occupation) charDetails.push(`Occupation: ${char.occupation}`);
+              if ((char as any).generalDescription) charDetails.push(`Description: ${(char as any).generalDescription}`);
+              
+              relatedContextParts.push(`\n${charName}:\n${charDetails.join('\n')}`);
+            }
+            
+            relatedCharactersContext = `\n\nRELATED CHARACTERS (mentioned in your prompt - maintain consistency with these):\n${relatedContextParts.join('\n')}\n`;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching related characters:', error);
+        // Continue without related characters context
+      }
+    }
 
     // Build context string from character data - include ALL filled fields
     const contextParts: string[] = [];
@@ -261,7 +319,7 @@ Return ONLY the expanded text without any explanations or commentary.${STYLE_INS
         break;
 
       case 'custom':
-        prompt = `You are a creative writing assistant helping with a character's ${fieldLabel.toLowerCase()}.${contextStr}
+        prompt = `You are a creative writing assistant helping with a character's ${fieldLabel.toLowerCase()}.${contextStr}${relatedCharactersContext}
 
 CURRENT ${fieldLabel.toUpperCase()}:
 ${currentValue || '(Empty)'}

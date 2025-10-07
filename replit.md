@@ -10,8 +10,9 @@ WriteCraft is a comprehensive web platform designed to support creative writers 
 - **AI Field Assist Feature**: Implemented context-aware AI generation for character editor form fields with sparkle buttons next to all textarea fields
   - Context Pattern: Uses `getCharacterContext={() => form.getValues()}` to fetch fresh form values on each AI invocation, ensuring AI sees all previously generated content
   - Comprehensive Context: AI receives ALL filled fields as context (not just hardcoded subset), dynamically formatted with field names and values
+  - Related Character Detection: When using custom prompts, AI automatically detects mentioned character names (e.g., "Jaxon"), queries the notebook database, and includes their context for timeline/plot consistency
   - Anti-Repetition: AI prompts explicitly instruct to build upon existing information without repeating content from other fields, providing only fresh details and new perspectives
-  - Actions: Generate (create from scratch), Improve (enhance existing), Expand (add depth), Custom (user-specified prompt)
+  - Actions: Generate (create from scratch), Improve (enhance existing), Expand (add depth), Custom (user-specified prompt with auto-detection of related characters)
   - Implementation: AIFieldAssist component integrates with CharacterEditorWithSidebar, backend route processes context and generates via Anthropic Claude 3.5 Sonnet
 - **Enhanced Name Parsing**: Fixed character name parsing to properly handle multi-word honorific titles (e.g., "Lord Commander", "Lady in waiting", "High Priestess") using prefix-based detection that iterates through title candidates
 - **Improved Field Mapping**: Added comprehensive field name variation checking (firstName/firstname/first_name, etc.) and enhanced image URL fallbacks (portrait/cover/image/images) across all content types
