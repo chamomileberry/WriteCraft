@@ -109,7 +109,7 @@ export default function CharacterEditorWithSidebar({
                     fieldName={field.name}
                     fieldLabel={field.label}
                     currentValue={formField.value ?? ""}
-                    characterContext={form.getValues()}
+                    getCharacterContext={() => form.getValues()}
                     onGenerated={(newValue) => form.setValue(field.name, newValue)}
                   />
                 </div>

@@ -11,7 +11,7 @@ interface AIFieldAssistProps {
   fieldName: string;
   fieldLabel: string;
   currentValue: string;
-  characterContext: Record<string, any>;
+  getCharacterContext: () => Record<string, any>;
   onGenerated: (newValue: string) => void;
 }
 
@@ -21,7 +21,7 @@ export default function AIFieldAssist({
   fieldName,
   fieldLabel,
   currentValue,
-  characterContext,
+  getCharacterContext,
   onGenerated
 }: AIFieldAssistProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +58,9 @@ export default function AIFieldAssist({
     setIsLoading(true);
 
     try {
+      // Get fresh context values including any AI-generated content
+      const characterContext = getCharacterContext();
+      
       const response = await apiRequest('POST', '/api/ai/generate-field', {
         fieldName,
         fieldLabel,
