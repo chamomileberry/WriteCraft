@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { NodeProps, Handle, Position } from '@xyflow/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,14 +76,6 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
       draggable
       onDragStart={handleDragStart}
     >
-      {/* Top handle - for receiving connections from parents */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="w-3 h-3"
-        data-testid={`handle-top-target-${member.id}`}
-      />
-      
       <div className="flex items-center gap-3">
         <Avatar className="w-12 h-12">
           <AvatarImage src={displayImage || undefined} className="object-cover" />
@@ -119,22 +111,6 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
           <Edit className="w-3.5 h-3.5" />
         </Button>
       </div>
-      
-      {/* Bottom handles */}
-      <Handle
-        type="target"
-        id="bottom"
-        position={Position.Bottom}
-        className="w-3 h-3 -translate-x-2"
-        data-testid={`handle-bottom-target-${member.id}`}
-      />
-      <Handle
-        type="source"
-        id="bottom-source"
-        position={Position.Bottom}
-        className="w-3 h-3 translate-x-2"
-        data-testid={`handle-bottom-source-${member.id}`}
-      />
     </Card>
   );
 }
