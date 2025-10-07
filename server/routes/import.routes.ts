@@ -28,6 +28,7 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'person': 'character',
   'location': 'location',
   'geography': 'location',
+  'landmark': 'location',
   'settlement': 'settlement',
   'building': 'building',
   'organization': 'organization',
@@ -44,7 +45,7 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'military': 'militaryunit',
   'myth': 'myth',
   'legend': 'legend',
-  'condition': 'condition',
+  'condition': 'document', // No condition table yet, map to document
   'material': 'material',
   'technology': 'technology',
   'spell': 'spell',
@@ -54,6 +55,8 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'timeline': 'timeline',
   'prose': 'document',
   'article': 'document',
+  'profession': 'profession',
+  'rank': 'document', // No rank table yet, map to document
 };
 
 interface WorldAnvilArticle {
@@ -198,6 +201,60 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       purpose: 'Imported from World Anvil',
       description: article.content || article.excerpt || 'Imported from World Anvil',
     };
+  } else if (contentType === 'profession') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'ethnicity') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      culturalTraits: article.content || article.excerpt || '',
+    };
+  } else if (contentType === 'settlement') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      settlementType: 'town',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'ritual') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      ritualType: 'other',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'law') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      lawType: 'regulation',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'item') {
+    return {
+      userId,
+      notebookId,
+      name: article.title || 'Untitled',
+      itemType: 'other',
+      description: article.content || article.excerpt || 'Imported from World Anvil',
+    };
+  } else if (contentType === 'document') {
+    return {
+      userId,
+      notebookId,
+      title: article.title || 'Untitled',
+      documentType: 'article',
+      content: article.content || article.excerpt || 'Imported from World Anvil',
+    };
   }
 
   return { ...baseContent, contentType };
@@ -288,37 +345,49 @@ async function processImport(
 
         // Import based on content type
         if (contentType === 'character') {
-          const character = await storage.createCharacter({
-            ...mapped,
-            userId,
-            notebookId,
-          });
+          const character = await storage.createCharacter(mapped as any);
           results.imported.push(character.id);
           console.log(`[Import ${jobId}] ✓ Created character: ${article.title}`);
         } else if (contentType === 'location') {
-          const location = await storage.createLocation({
-            ...mapped,
-            userId,
-            notebookId,
-          });
+          const location = await storage.createLocation(mapped as any);
           results.imported.push(location.id);
           console.log(`[Import ${jobId}] ✓ Created location: ${article.title}`);
         } else if (contentType === 'organization') {
-          const org = await storage.createOrganization({
-            ...mapped,
-            userId,
-            notebookId,
-          });
+          const org = await storage.createOrganization(mapped as any);
           results.imported.push(org.id);
           console.log(`[Import ${jobId}] ✓ Created organization: ${article.title}`);
         } else if (contentType === 'species') {
-          const species = await storage.createSpecies({
-            ...mapped,
-            userId,
-            notebookId,
-          });
+          const species = await storage.createSpecies(mapped as any);
           results.imported.push(species.id);
           console.log(`[Import ${jobId}] ✓ Created species: ${article.title}`);
+        } else if (contentType === 'profession') {
+          const profession = await storage.createProfession(mapped as any);
+          results.imported.push(profession.id);
+          console.log(`[Import ${jobId}] ✓ Created profession: ${article.title}`);
+        } else if (contentType === 'ethnicity') {
+          const ethnicity = await storage.createEthnicity(mapped as any);
+          results.imported.push(ethnicity.id);
+          console.log(`[Import ${jobId}] ✓ Created ethnicity: ${article.title}`);
+        } else if (contentType === 'settlement') {
+          const settlement = await storage.createSettlement(mapped as any);
+          results.imported.push(settlement.id);
+          console.log(`[Import ${jobId}] ✓ Created settlement: ${article.title}`);
+        } else if (contentType === 'ritual') {
+          const ritual = await storage.createRitual(mapped as any);
+          results.imported.push(ritual.id);
+          console.log(`[Import ${jobId}] ✓ Created ritual: ${article.title}`);
+        } else if (contentType === 'law') {
+          const law = await storage.createLaw(mapped as any);
+          results.imported.push(law.id);
+          console.log(`[Import ${jobId}] ✓ Created law: ${article.title}`);
+        } else if (contentType === 'item') {
+          const item = await storage.createItem(mapped as any);
+          results.imported.push(item.id);
+          console.log(`[Import ${jobId}] ✓ Created item: ${article.title}`);
+        } else if (contentType === 'document') {
+          const document = await storage.createDocument(mapped as any);
+          results.imported.push(document.id);
+          console.log(`[Import ${jobId}] ✓ Created document: ${article.title}`);
         } else {
           // Skip unsupported types for now
           results.skipped.push(`${article.title} (${contentType})`);

@@ -47,6 +47,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
     - **AI-Powered Inline Editing**: Grammarly-style AI assistance integrated across all text editors, offering actions like improving, shortening, expanding, fixing grammar, and suggestions using Anthropic's Claude 3.5 Sonnet.
     - **Writing Assistant Panel**: Conversational AI assistant for analyzing text, proofreading, generating questions, and providing writing feedback.
     - **AI Writing Style**: All AI features adhere to comprehensive anti-cliché guidelines to produce human-like, authentic, and expressive writing, avoiding robotic patterns and forbidden phrases.
+    - **World Anvil Import**: Comprehensive import system that parses World Anvil export ZIP files and imports content into WriteCraft notebooks. Supports 11 content types: characters, species, locations, organizations, professions, ethnicities, settlements, rituals, laws, items, and documents. Processes individual JSON article files with proper schema mapping for required fields. Background job processing with progress tracking.
 
 ### Security & Authorization
 - **Multi-Layer Security Architecture**: Enterprise-grade security implementation protecting against major web vulnerabilities.
