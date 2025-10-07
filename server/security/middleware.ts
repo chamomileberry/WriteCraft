@@ -251,11 +251,11 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
  */
 export function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
-    // Remove SQL keywords and special characters that could be used for injection
-    // Note: This is a defense-in-depth measure; parameterized queries are the primary defense
-    const sqlKeywords = /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|CREATE|ALTER|EXEC|EXECUTE|SCRIPT|JAVASCRIPT|ALERT|CONFIRM|PROMPT)\b)/gi;
+    // Only flag SQL injection if it looks like actual SQL syntax, not just keywords in prose
+    // Look for SQL patterns with special characters that indicate malicious intent
+    const sqlInjectionPattern = /(';|--;|\*\/|\/\*|xp_|sp_|exec\s*\(|execute\s*\(|union\s+select|insert\s+into|delete\s+from|drop\s+table|update\s+\w+\s+set)/gi;
     
-    if (sqlKeywords.test(input)) {
+    if (sqlInjectionPattern.test(input)) {
       console.warn(`[SECURITY] Potential SQL injection attempt detected: ${input.substring(0, 100)}`);
       throw new Error('Invalid input detected');
     }
