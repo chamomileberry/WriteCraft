@@ -13,6 +13,7 @@ import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ContentHero } from "@/components/ContentHero";
+import AIFieldAssist from "@/components/AIFieldAssist";
 import { 
   ChevronRight, ChevronDown, Menu, X, Wand2 
 } from "lucide-react";
@@ -102,7 +103,16 @@ export default function CharacterEditorWithSidebar({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <div className="flex items-center justify-between gap-2">
+                  <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                  <AIFieldAssist
+                    fieldName={field.name}
+                    fieldLabel={field.label}
+                    currentValue={formField.value ?? ""}
+                    characterContext={form.getValues()}
+                    onGenerated={(newValue) => form.setValue(field.name, newValue)}
+                  />
+                </div>
                 <FormControl>
                   <Textarea 
                     placeholder={field.placeholder}
