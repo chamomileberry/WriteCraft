@@ -193,18 +193,11 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     console.log(`[Type Mapping] Unmapped type "${typeKey}" for article "${article.title}" - defaulting to document`);
   }
 
-  // Base fields all content types have
-  const baseContent: any = {
-    userId,
-    notebookId,
-    name: article.title || 'Untitled',
-    description: article.content || article.excerpt || '',
-  };
-
   // Add type-specific fields with required fields
   if (contentType === 'character') {
     return {
-      ...baseContent,
+      userId,
+      notebookId,
       givenName: article.title?.split(' ')[0] || '',
       familyName: article.title?.split(' ').slice(1).join(' ') || '',
       backstory: article.content || article.excerpt || '',
@@ -338,7 +331,14 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     };
   }
 
-  return { ...baseContent, contentType };
+  // Fallback to document
+  return {
+    userId,
+    notebookId,
+    title: article.title || 'Untitled',
+    documentType: 'article',
+    content: article.content || article.excerpt || 'Imported from World Anvil',
+  };
 }
 
 // Upload and start import job
@@ -433,9 +433,24 @@ async function processImport(
         }
 
         const mapped = mapArticleToContent(article, userId, notebookId);
-        const contentType = mapped.contentType || 'document';
+        // Don't extract contentType from mapped - it's not a field, the mapped object IS the data
+        
+        // Determine content type from the original article
+        let contentType = 'document';
+        
+        if (article.entityClass) {
+          contentType = WORLD_ANVIL_TYPE_MAPPING[article.entityClass.toLowerCase()] || 'document';
+        } else if (article.templateType) {
+          contentType = WORLD_ANVIL_TYPE_MAPPING[article.templateType.toLowerCase()] || 'document';
+        } else if (article.template && typeof article.template === 'object' && article.template.title) {
+          contentType = WORLD_ANVIL_TYPE_MAPPING[article.template.title.toLowerCase()] || 'document';
+        } else if (article.category && typeof article.category === 'object' && article.category.title) {
+          contentType = WORLD_ANVIL_TYPE_MAPPING[article.category.title.toLowerCase()] || 'document';
+        } else if (article.type) {
+          contentType = WORLD_ANVIL_TYPE_MAPPING[article.type.toLowerCase()] || 'document';
+        }
 
-        console.log(`[Import ${jobId}] Processing ${i + 1}/${parsed.totalItems}: "${article.title}" (type: ${article.entityClass || article.templateType || article.type} → ${contentType})`);
+        console.log(`[Import ${jobId}] Processing ${i + 1}/${parsed.totalItems}: "${article.title}" → ${contentType}`);
 
         // Import based on content type
         let createdItem: any = null;
