@@ -256,14 +256,36 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     const parts = title.trim().split(/\s+/);
     if (parts.length === 0) return { givenName: '', familyName: '', honorificTitle: '' };
     
-    // Common honorifics and titles
-    const titles = ['dr', 'dr.', 'mr', 'mr.', 'mrs', 'mrs.', 'ms', 'ms.', 'miss', 'sir', 'dame', 'lord', 'lady', 'professor', 'prof', 'prof.'];
+    // Common multi-word honorifics (must be checked first)
+    const multiWordTitles = [
+      'lord commander', 'high priestess', 'high priest', 'grand master', 'grand duke',
+      'grand duchess', 'crown prince', 'crown princess', 'prime minister', 'vice president',
+      'first lady', 'lady in waiting', 'knight commander', 'rear admiral', 'vice admiral'
+    ];
+    
+    // Common single-word honorifics and titles
+    const singleWordTitles = [
+      'dr', 'dr.', 'mr', 'mr.', 'mrs', 'mrs.', 'ms', 'ms.', 'miss',
+      'sir', 'dame', 'lord', 'lady', 'professor', 'prof', 'prof.',
+      'captain', 'general', 'colonel', 'major', 'admiral', 'commander',
+      'king', 'queen', 'prince', 'princess', 'duke', 'duchess', 'count', 'countess',
+      'baron', 'baroness', 'earl', 'viscount', 'marquess', 'knight'
+    ];
     
     let honorificTitle = '';
     let nameStart = 0;
     
-    // Check if first part is a title
-    if (titles.includes(parts[0].toLowerCase().replace(/\.$/, ''))) {
+    // Check for multi-word titles first (need at least 2 words)
+    if (parts.length >= 2) {
+      const twoWordCombo = `${parts[0]} ${parts[1]}`.toLowerCase();
+      if (multiWordTitles.includes(twoWordCombo)) {
+        honorificTitle = `${parts[0]} ${parts[1]}`;
+        nameStart = 2;
+      }
+    }
+    
+    // If no multi-word title found, check for single-word title
+    if (nameStart === 0 && singleWordTitles.includes(parts[0].toLowerCase().replace(/\.$/, ''))) {
       honorificTitle = parts[0];
       nameStart = 1;
     }
@@ -416,18 +438,26 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       genderIdentity: extractField(article, 'genderidentity', 'genderIdentity', 'gender_identity'),
 
       // Image mapping - check multiple possible fields
-      imageUrl: extractField(article, 'portrait.url', 'cover.url', 'image.url', 'imageUrl', 'imageurl', 'image_url', 'picture', 'photo') 
+      imageUrl: extractField(article, 'imageUrl', 'imageurl', 'image_url', 'picture', 'photo') 
         || article.portrait?.url 
         || article.cover?.url 
         || article.image?.url 
         || article.images?.portrait?.url
         || '',
-      imageCaption: article.portrait?.title || article.cover?.title || article.image?.title || '',
+      imageCaption: extractField(article, 'imageCaption', 'imagecaption', 'image_caption')
+        || article.portrait?.title 
+        || article.cover?.title 
+        || article.image?.title 
+        || '',
 
       // Metadata
       genre: 'Fantasy', // Default genre for World Anvil imports
       notebookId: notebookId,
-      userId: userId
+      userId: userId,
+      
+      // Import tracking
+      importSource: 'world_anvil',
+      importExternalId: article.id || article.uuid || article.externalId || ''
     };
     return characterData;
 
