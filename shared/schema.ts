@@ -36,6 +36,19 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Shares - Collaborative access to notebooks, projects, and guides
+export const shares = pgTable("shares", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  resourceType: text("resource_type").notNull(), // 'notebook', 'project', 'guide'
+  resourceId: varchar("resource_id").notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  permission: text("permission").notNull(), // 'view', 'comment', 'edit'
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueShare: uniqueIndex("shares_unique_idx").on(table.resourceType, table.resourceId, table.userId)
+}));
+
 // Notebooks - Separate world bibles/collections for organizing worldbuilding content
 export const notebooks = pgTable("notebooks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -2445,6 +2458,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+export const insertShareSchema = createInsertSchema(shares).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertNotebookSchema = createInsertSchema(notebooks).omit({
   id: true,
   createdAt: true,
@@ -2794,6 +2812,8 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type InsertShare = z.infer<typeof insertShareSchema>;
+export type Share = typeof shares.$inferSelect;
 export type InsertNotebook = z.infer<typeof insertNotebookSchema>;
 export type UpdateNotebook = z.infer<typeof updateNotebookSchema>;
 export type Notebook = typeof notebooks.$inferSelect;
