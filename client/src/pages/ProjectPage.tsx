@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Search, Edit, Calendar, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, Calendar, FileText, Trash2, Share2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useWorkspaceStore, type PanelDescriptor } from "@/stores/workspaceStore";
@@ -13,6 +13,7 @@ import { ProjectContainer } from "@/components/ProjectContainer";
 import Header from "@/components/Header";
 import ContentTypeModal from "@/components/ContentTypeModal";
 import { getMappingById } from "@shared/contentTypes";
+import { ShareDialog } from "@/components/ShareDialog";
 
 interface Project {
   id: string;
@@ -34,6 +35,7 @@ export default function ProjectPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
+  const [sharingProject, setSharingProject] = useState<Project | null>(null);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
@@ -284,6 +286,18 @@ export default function ProjectPage() {
                         className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
+                          setSharingProject(project);
+                        }}
+                        data-testid={`button-share-project-${project.id}`}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
                           handleProjectEdit(project.id);
                         }}
                         data-testid={`button-edit-project-${project.id}`}
@@ -347,6 +361,18 @@ export default function ProjectPage() {
         onClose={() => setIsContentModalOpen(false)}
         onSelectType={handleSelectContentType}
       />
+      
+      {/* Share Dialog */}
+      {sharingProject && (
+        <ShareDialog
+          open={!!sharingProject}
+          onOpenChange={(open) => !open && setSharingProject(null)}
+          resourceType="project"
+          resourceId={sharingProject.id}
+          resourceName={sharingProject.title}
+          ownerId={sharingProject.userId}
+        />
+      )}
     </div>
   );
 }

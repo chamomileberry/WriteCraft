@@ -23,12 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit2, Trash2, BookOpen, Calendar } from "lucide-react";
+import { Plus, Edit2, Trash2, BookOpen, Calendar, Share2 } from "lucide-react";
 import { useNotebookStore, type Notebook } from "@/stores/notebookStore";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistance } from "date-fns";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { ShareDialog } from "@/components/ShareDialog";
 
 interface NotebookManagerProps {
   isOpen: boolean;
@@ -65,6 +66,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
   const [deletingNotebook, setDeletingNotebook] = useState<Notebook | null>(null);
+  const [sharingNotebook, setSharingNotebook] = useState<Notebook | null>(null);
   const [createForm, setCreateForm] = useState<CreateNotebookData>({ name: "", description: "", imageUrl: "" });
   const [editForm, setEditForm] = useState<UpdateNotebookData>({ name: "", description: "", imageUrl: "" });
 
@@ -317,6 +319,19 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
                           variant="secondary"
                           onClick={(e) => {
                             e.stopPropagation();
+                            setSharingNotebook(notebook);
+                          }}
+                          data-testid={`button-share-notebook-${notebook.id}`}
+                          title="Share notebook"
+                          className="h-8 w-8"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
                             handleEditClick(notebook);
                           }}
                           data-testid={`button-edit-notebook-${notebook.id}`}
@@ -511,6 +526,18 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Share Dialog */}
+      {sharingNotebook && (
+        <ShareDialog
+          open={!!sharingNotebook}
+          onOpenChange={(open) => !open && setSharingNotebook(null)}
+          resourceType="notebook"
+          resourceId={sharingNotebook.id}
+          resourceName={sharingNotebook.name}
+          ownerId={sharingNotebook.userId}
+        />
+      )}
     </>
   );
 }

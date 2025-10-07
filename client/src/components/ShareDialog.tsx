@@ -26,8 +26,11 @@ import { Share2, X, Search, Users } from "lucide-react";
 interface ShareDialogProps {
   resourceType: "notebook" | "project" | "guide";
   resourceId: string;
-  ownerId: string;
+  resourceName?: string;
+  ownerId?: string;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface ShareData {
@@ -55,8 +58,20 @@ interface UserSearchResult {
   profileImageUrl: string | null;
 }
 
-export function ShareDialog({ resourceType, resourceId, ownerId, trigger }: ShareDialogProps) {
-  const [open, setOpen] = useState(false);
+export function ShareDialog({ 
+  resourceType, 
+  resourceId, 
+  resourceName,
+  ownerId, 
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange
+}: ShareDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedPermission, setSelectedPermission] = useState<"view" | "comment" | "edit">("view");
