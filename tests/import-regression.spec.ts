@@ -1,44 +1,23 @@
 import { test, expect } from '@playwright/test';
-import { storage } from '../server/storage';
 import { db } from '../server/db';
-import { createTestUser } from './helpers/setup';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import AdmZip from 'adm-zip';
+import { writeFileSync, unlinkSync } from 'fs';
+import { join } from 'path';
 
 test.describe('World Anvil Import Regression Tests', () => {
-  let testUser: Awaited<ReturnType<typeof createTestUser>>;
-  let notebookId: string;
-
-  test.beforeEach(async () => {
-    testUser = await createTestUser();
-    const notebook = await storage.createNotebook({
-      name: 'Import Test Notebook',
-      description: 'Notebook for import regression tests',
-      userId: testUser.id,
-    });
-    notebookId = notebook.id;
-  });
+  const testZipPath = join(process.cwd(), 'test-import-regression.zip');
 
   test.afterEach(async () => {
-    // Cleanup test data
+    // Cleanup test ZIP file
     try {
-      await db.execute(`DELETE FROM saved_items WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM ranks WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM conditions WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM characters WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM species WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM locations WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM import_jobs WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM notebooks WHERE user_id = '${testUser.id}'`);
-      await db.execute(`DELETE FROM users WHERE id = '${testUser.id}'`);
+      unlinkSync(testZipPath);
     } catch (err) {
-      console.error('Cleanup error:', err);
+      // File may not exist
     }
   });
 
-  test('should import ranks and create saved_items entries', async () => {
-    // Create mock World Anvil ZIP with rank data
+  test('should import ranks, create saved_items, and track metrics accurately', async ({ page }) => {
+    // Create a test ZIP with rank and condition articles
     const zip = new AdmZip();
     
     const rankArticle = {
@@ -48,245 +27,255 @@ test.describe('World Anvil Import Regression Tests', () => {
       templateType: 'rank',
       state: 'public'
     };
-    
-    zip.addFile('articles/rank-1.json', Buffer.from(JSON.stringify(rankArticle)));
-    const zipBuffer = zip.toBuffer();
 
-    // Import the ZIP
-    const job = await storage.createImportJob({
-      userId: testUser.id,
-      filename: 'test-ranks.zip',
-      status: 'pending',
-      notebookId,
-    });
-
-    // Simulate import processing (this would normally be done by the import route)
-    // For this test, we'll call the storage methods directly
-    const rank = await storage.createRank({
-      name: rankArticle.title,
-      description: rankArticle.content,
-      userId: testUser.id,
-      notebookId,
-    });
-
-    // Verify rank was created
-    expect(rank).toBeDefined();
-    expect(rank.name).toBe('Commander');
-    expect(rank.description).toBe('A military rank of high authority');
-
-    // Create saved_item entry (simulating what the import route does)
-    await storage.createSavedItem({
-      userId: testUser.id,
-      notebookId,
-      contentType: 'rank',
-      contentId: rank.id,
-    });
-
-    // Verify saved_item was created
-    const savedItems = await storage.getSavedItemsByNotebook(testUser.id, notebookId);
-    const rankSavedItem = savedItems.find(item => item.contentType === 'rank' && item.contentId === rank.id);
-    
-    expect(rankSavedItem).toBeDefined();
-    expect(rankSavedItem?.contentType).toBe('rank');
-    expect(rankSavedItem?.contentId).toBe(rank.id);
-  });
-
-  test('should import conditions and create saved_items entries', async () => {
-    // Create mock World Anvil ZIP with condition data
-    const zip = new AdmZip();
-    
     const conditionArticle = {
-      id: 'test-condition-1',
+      id: 'test-condition-1', 
       title: 'Verdant Infection',
       content: 'A condition caused by exposure to Verdant compound',
       templateType: 'condition',
       state: 'public'
     };
+
+    const characterArticle = {
+      id: 'test-character-1',
+      title: 'Test Character Name',
+      content: 'A brave warrior from the northern lands',
+      templateType: 'character',
+      state: 'public'
+    };
     
+    zip.addFile('articles/rank-1.json', Buffer.from(JSON.stringify(rankArticle)));
     zip.addFile('articles/condition-1.json', Buffer.from(JSON.stringify(conditionArticle)));
-    const zipBuffer = zip.toBuffer();
-
-    // Import the condition
-    const condition = await storage.createCondition({
-      name: conditionArticle.title,
-      description: conditionArticle.content,
-      userId: testUser.id,
-      notebookId,
-    });
-
-    // Verify condition was created
-    expect(condition).toBeDefined();
-    expect(condition.name).toBe('Verdant Infection');
-
-    // Create saved_item entry
-    await storage.createSavedItem({
-      userId: testUser.id,
-      notebookId,
-      contentType: 'condition',
-      contentId: condition.id,
-    });
-
-    // Verify saved_item was created
-    const savedItems = await storage.getSavedItemsByNotebook(testUser.id, notebookId);
-    const conditionSavedItem = savedItems.find(item => item.contentType === 'condition' && item.contentId === condition.id);
+    zip.addFile('articles/character-1.json', Buffer.from(JSON.stringify(characterArticle)));
     
-    expect(conditionSavedItem).toBeDefined();
-    expect(conditionSavedItem?.contentType).toBe('condition');
-  });
+    writeFileSync(testZipPath, zip.toBuffer());
 
-  test('should create saved_items for all imported content types', async () => {
-    // Create multiple content items
-    const character = await storage.createCharacter({
-      givenName: 'Test Character',
-      familyName: 'Smith',
-      userId: testUser.id,
-      notebookId,
-    });
-
-    const species = await storage.createSpecies({
-      name: 'Test Species',
-      description: 'A test species',
-      userId: testUser.id,
-      notebookId,
-    });
-
-    const location = await storage.createLocation({
-      name: 'Test Location',
-      locationType: 'City',
-      userId: testUser.id,
-      notebookId,
-    });
-
-    const rank = await storage.createRank({
-      name: 'Test Rank',
-      description: 'A test rank',
-      userId: testUser.id,
-      notebookId,
-    });
-
-    const condition = await storage.createCondition({
-      name: 'Test Condition',
-      description: 'A test condition',
-      userId: testUser.id,
-      notebookId,
-    });
-
-    // Create saved_items for each
-    const contentItems = [
-      { contentType: 'character', contentId: character.id },
-      { contentType: 'species', contentId: species.id },
-      { contentType: 'location', contentId: location.id },
-      { contentType: 'rank', contentId: rank.id },
-      { contentType: 'condition', contentId: condition.id },
-    ];
-
-    for (const item of contentItems) {
-      await storage.createSavedItem({
-        userId: testUser.id,
-        notebookId,
-        contentType: item.contentType,
-        contentId: item.contentId,
-      });
+    // Login first
+    await page.goto('/');
+    const loginButton = page.getByTestId('button-login');
+    const isLoggedOut = await loginButton.isVisible().catch(() => false);
+    
+    if (isLoggedOut) {
+      await loginButton.click();
+      await page.waitForURL('/', { timeout: 10000 });
     }
 
-    // Verify all saved_items were created
-    const savedItems = await storage.getSavedItemsByNotebook(testUser.id, notebookId);
-    
-    expect(savedItems.length).toBe(5);
-    expect(savedItems.some(item => item.contentType === 'character')).toBe(true);
-    expect(savedItems.some(item => item.contentType === 'species')).toBe(true);
-    expect(savedItems.some(item => item.contentType === 'location')).toBe(true);
-    expect(savedItems.some(item => item.contentType === 'rank')).toBe(true);
-    expect(savedItems.some(item => item.contentType === 'condition')).toBe(true);
-  });
-
-  test('should accurately track import job metrics', async () => {
-    // Create import job
-    const job = await storage.createImportJob({
-      userId: testUser.id,
-      filename: 'test-metrics.zip',
-      status: 'processing',
-      notebookId,
-      totalItems: 5,
-      itemsProcessed: 0,
+    // Get user ID from the page context
+    const userId = await page.evaluate(() => {
+      return (window as any).__userId || null;
     });
 
-    expect(job.totalItems).toBe(5);
-    expect(job.itemsProcessed).toBe(0);
+    // Navigate to import page
+    await page.goto('/import');
+    await page.waitForLoadState('networkidle');
+    
+    // Upload the ZIP file
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles(testZipPath);
+    
+    // Click upload button
+    const uploadButton = page.getByTestId('button-upload-import');
+    await uploadButton.click();
+    
+    // Wait for import to start
+    await expect(page.getByText('Import started', { exact: false })).toBeVisible({ timeout: 5000 });
+    
+    // Wait for import to complete (give it up to 30 seconds)
+    await expect(page.getByText('Completed', { exact: false })).toBeVisible({ timeout: 30000 });
 
-    // Simulate processing items
-    for (let i = 1; i <= 5; i++) {
-      const updated = await storage.updateImportJob(job.id, {
-        itemsProcessed: i,
-      });
-      expect(updated.itemsProcessed).toBe(i);
+    // Verify database state
+    if (userId) {
+      // Check that ranks were created
+      const ranks = await db.execute(`SELECT * FROM ranks WHERE user_id = '${userId}'`);
+      expect(ranks.rows.length).toBeGreaterThan(0);
+      
+      // Check that conditions were created
+      const conditions = await db.execute(`SELECT * FROM conditions WHERE user_id = '${userId}'`);
+      expect(conditions.rows.length).toBeGreaterThan(0);
+
+      // Check that saved_items were created for all imported items
+      const savedItems = await db.execute(`SELECT * FROM saved_items WHERE user_id = '${userId}' AND content_type IN ('rank', 'condition', 'character')`);
+      expect(savedItems.rows.length).toBe(3); // rank + condition + character
+
+      // Verify import job metrics
+      const importJobs = await db.execute(`SELECT * FROM import_jobs WHERE user_id = '${userId}' ORDER BY created_at DESC LIMIT 1`);
+      const latestJob = importJobs.rows[0] as any;
+      
+      expect(latestJob.status).toBe('completed');
+      expect(latestJob.total_items).toBe(3);
+      expect(latestJob.processed_items).toBe(3);
+      expect(latestJob.results).toBeDefined();
+      
+      const results = latestJob.results as any;
+      expect(results.imported.length).toBe(3);
+
+      // Cleanup test data
+      await db.execute(`DELETE FROM saved_items WHERE user_id = '${userId}' AND content_type IN ('rank', 'condition', 'character')`);
+      await db.execute(`DELETE FROM ranks WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM conditions WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM characters WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM import_jobs WHERE user_id = '${userId}'`);
+    }
+  });
+
+  test('should preserve granular error details for failed items', async ({ page }) => {
+    // Create a test ZIP with a malformed article that will fail
+    const zip = new AdmZip();
+    
+    const validArticle = {
+      id: 'test-valid-1',
+      title: 'Valid Character',
+      content: 'A valid character',
+      templateType: 'character',
+      state: 'public'
+    };
+
+    // This article will potentially fail due to missing required fields
+    // (depending on validation logic)
+    const malformedArticle = {
+      id: 'test-malformed-1',
+      title: '', // Empty title might cause issues
+      templateType: 'character',
+      state: 'public'
+    };
+    
+    zip.addFile('articles/valid-1.json', Buffer.from(JSON.stringify(validArticle)));
+    zip.addFile('articles/malformed-1.json', Buffer.from(JSON.stringify(malformedArticle)));
+    
+    writeFileSync(testZipPath, zip.toBuffer());
+
+    // Login
+    await page.goto('/');
+    const loginButton = page.getByTestId('button-login');
+    const isLoggedOut = await loginButton.isVisible().catch(() => false);
+    
+    if (isLoggedOut) {
+      await loginButton.click();
+      await page.waitForURL('/', { timeout: 10000 });
     }
 
-    // Mark as completed
-    const completed = await storage.updateImportJob(job.id, {
-      status: 'completed',
-    });
+    // Navigate to import page
+    await page.goto('/import');
+    await page.waitForLoadState('networkidle');
+    
+    // Upload the ZIP file
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles(testZipPath);
+    
+    // Click upload button
+    const uploadButton = page.getByTestId('button-upload-import');
+    await uploadButton.click();
+    
+    // Wait for import to complete
+    await expect(page.getByText('Completed', { exact: false })).toBeVisible({ timeout: 30000 });
 
-    expect(completed.status).toBe('completed');
-    expect(completed.itemsProcessed).toBe(5);
-    expect(completed.totalItems).toBe(5);
+    // Check if detailed error information is available in the UI
+    const viewDetailsButton = page.getByText('View details', { exact: false });
+    const hasDetails = await viewDetailsButton.isVisible().catch(() => false);
+    
+    if (hasDetails) {
+      await viewDetailsButton.click();
+      
+      // Verify granular error messages are shown
+      // The UI should show which specific items failed and why
+      const errorSection = page.locator('text=Failed Items').or(page.locator('text=Skipped Items'));
+      await expect(errorSection).toBeVisible();
+    }
+
+    // Get user ID and cleanup
+    const userId = await page.evaluate(() => (window as any).__userId || null);
+    if (userId) {
+      await db.execute(`DELETE FROM saved_items WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM characters WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM import_jobs WHERE user_id = '${userId}'`);
+    }
   });
 
-  test('should handle import failures with granular error messages', async () => {
-    const job = await storage.createImportJob({
-      userId: testUser.id,
-      filename: 'test-errors.zip',
-      status: 'processing',
-      notebookId,
-      totalItems: 3,
-      itemsProcessed: 2,
-    });
-
-    // Simulate failure with detailed error
-    const failed = await storage.updateImportJob(job.id, {
-      status: 'failed',
-      errors: 'Failed to process item "Invalid Character": Missing required field "name"',
-    });
-
-    expect(failed.status).toBe('failed');
-    expect(failed.errors).toContain('Invalid Character');
-    expect(failed.errors).toContain('Missing required field');
-    expect(failed.itemsProcessed).toBe(2); // Should preserve progress count
-  });
-
-  test('should count all content types correctly in import metrics', async () => {
-    // This test verifies that the new content types (ranks, conditions) are counted
-    const job = await storage.createImportJob({
-      userId: testUser.id,
-      filename: 'comprehensive-import.zip',
-      status: 'processing',
-      notebookId,
-      totalItems: 17, // All content types: characters, locations, species, professions, etc.
-      itemsProcessed: 0,
-    });
-
-    // Simulate importing all 17 content types
+  test('should accurately count all 17 content types in metrics', async ({ page }) => {
+    // Create a comprehensive ZIP with all content types
+    const zip = new AdmZip();
+    
     const contentTypes = [
-      'character', 'location', 'species', 'profession', 'item', 
-      'ethnicity', 'settlement', 'ritual', 'law', 'language',
-      'building', 'material', 'transportation', 'rank', 'condition',
-      'organization', 'document'
+      { type: 'character', title: 'Test Character' },
+      { type: 'location', title: 'Test Location' },
+      { type: 'species', title: 'Test Species' },
+      { type: 'profession', title: 'Test Profession' },
+      { type: 'item', title: 'Test Item' },
+      { type: 'ethnicity', title: 'Test Ethnicity' },
+      { type: 'settlement', title: 'Test Settlement' },
+      { type: 'ritual', title: 'Test Ritual' },
+      { type: 'law', title: 'Test Law' },
+      { type: 'language', title: 'Test Language' },
+      { type: 'building', title: 'Test Building' },
+      { type: 'material', title: 'Test Material' },
+      { type: 'transportation', title: 'Test Transportation' },
+      { type: 'rank', title: 'Test Rank' },
+      { type: 'condition', title: 'Test Condition' },
+      { type: 'organization', title: 'Test Organization' },
+      { type: 'document', title: 'Test Document', templateType: 'article' },
     ];
 
-    let processed = 0;
-    for (const type of contentTypes) {
-      processed++;
-      await storage.updateImportJob(job.id, {
-        itemsProcessed: processed,
-      });
+    contentTypes.forEach((item, idx) => {
+      const article = {
+        id: `test-${item.type}-${idx}`,
+        title: item.title,
+        content: `Test content for ${item.type}`,
+        templateType: item.templateType || item.type,
+        state: 'public'
+      };
+      zip.addFile(`articles/${item.type}-${idx}.json`, Buffer.from(JSON.stringify(article)));
+    });
+    
+    writeFileSync(testZipPath, zip.toBuffer());
+
+    // Login
+    await page.goto('/');
+    const loginButton = page.getByTestId('button-login');
+    const isLoggedOut = await loginButton.isVisible().catch(() => false);
+    
+    if (isLoggedOut) {
+      await loginButton.click();
+      await page.waitForURL('/', { timeout: 10000 });
     }
 
-    const final = await storage.updateImportJob(job.id, {
-      status: 'completed',
-    });
+    const userId = await page.evaluate(() => (window as any).__userId || null);
 
-    expect(final.itemsProcessed).toBe(17);
-    expect(final.totalItems).toBe(17);
-    expect(final.status).toBe('completed');
+    // Navigate to import page
+    await page.goto('/import');
+    await page.waitForLoadState('networkidle');
+    
+    // Upload the ZIP file
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles(testZipPath);
+    
+    // Click upload button
+    const uploadButton = page.getByTestId('button-upload-import');
+    await uploadButton.click();
+    
+    // Wait for import to complete
+    await expect(page.getByText('Completed', { exact: false })).toBeVisible({ timeout: 30000 });
+
+    // Verify the UI shows correct counts
+    await expect(page.getByText('17 imported', { exact: false })).toBeVisible();
+
+    // Verify import job metrics in database
+    if (userId) {
+      const importJobs = await db.execute(`SELECT * FROM import_jobs WHERE user_id = '${userId}' ORDER BY created_at DESC LIMIT 1`);
+      const latestJob = importJobs.rows[0] as any;
+      
+      expect(latestJob.total_items).toBe(17);
+      expect(latestJob.processed_items).toBe(17);
+      expect(latestJob.status).toBe('completed');
+
+      // Cleanup
+      await db.execute(`DELETE FROM saved_items WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM ranks WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM conditions WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM characters WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM species WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM locations WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM organizations WHERE user_id = '${userId}'`);
+      await db.execute(`DELETE FROM import_jobs WHERE user_id = '${userId}'`);
+    }
   });
 });

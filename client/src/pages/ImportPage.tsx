@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileJson, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
+import { Upload, FileJson, CheckCircle2, XCircle, Clock, Loader2, ChevronDown, AlertTriangle } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import Header from "@/components/Header";
@@ -21,6 +23,12 @@ interface ImportJob {
   itemsProcessed: number;
   totalItems: number;
   errors: string | null;
+  errorMessage?: string | null;
+  results?: {
+    imported: string[];
+    failed: Array<{ title: string; error: string }>;
+    skipped: string[];
+  } | null;
   metadata: any;
   createdAt: string;
   updatedAt: string;
@@ -249,43 +257,99 @@ export default function ImportPage() {
               {importHistory.map((job) => (
                 <div
                   key={job.id}
-                  className="flex items-center gap-4 p-4 border rounded-lg hover-elevate"
+                  className="border rounded-lg overflow-hidden"
                   data-testid={`import-job-${job.id}`}
                 >
-                  {getStatusIcon(job.status)}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium truncate">{job.filename}</p>
-                      {getStatusBadge(job.status)}
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>
-                        {format(new Date(job.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                      </span>
-                      {job.status === 'completed' && (
+                  <div className="flex items-center gap-4 p-4 hover-elevate">
+                    {getStatusIcon(job.status)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium truncate">{job.filename}</p>
+                        {getStatusBadge(job.status)}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>
-                          {job.itemsProcessed} items imported
+                          {format(new Date(job.createdAt), "MMM d, yyyy 'at' h:mm a")}
                         </span>
-                      )}
-                      {job.status === 'processing' && job.totalItems > 0 && (
-                        <span>
-                          {job.itemsProcessed} / {job.totalItems} items
-                        </span>
+                        {job.status === 'completed' && job.results && (
+                          <span>
+                            {job.results.imported.length} imported
+                            {job.results.failed.length > 0 && `, ${job.results.failed.length} failed`}
+                            {job.results.skipped.length > 0 && `, ${job.results.skipped.length} skipped`}
+                          </span>
+                        )}
+                        {job.status === 'processing' && job.totalItems > 0 && (
+                          <span>
+                            {job.itemsProcessed} / {job.totalItems} items
+                          </span>
+                        )}
+                      </div>
+                      {(job.errors || job.errorMessage) && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                          {job.errors || job.errorMessage}
+                        </p>
                       )}
                     </div>
-                    {job.errors && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                        {job.errors}
-                      </p>
+                    {job.status === 'completed' && job.totalItems > 0 && (
+                      <div className="text-right">
+                        <Progress 
+                          value={100} 
+                          className="w-24 h-2"
+                        />
+                      </div>
                     )}
                   </div>
-                  {job.status === 'completed' && job.totalItems > 0 && (
-                    <div className="text-right">
-                      <Progress 
-                        value={100} 
-                        className="w-24 h-2"
-                      />
-                    </div>
+
+                  {/* Detailed results section */}
+                  {job.status === 'completed' && job.results && (job.results.failed.length > 0 || job.results.skipped.length > 0) && (
+                    <Collapsible>
+                      <div className="border-t">
+                        <CollapsibleTrigger className="flex items-center gap-2 w-full px-4 py-2 text-sm hover-elevate">
+                          <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+                          <span className="text-muted-foreground">
+                            View details ({job.results.failed.length + job.results.skipped.length} items)
+                          </span>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="px-4 pb-4">
+                          <div className="space-y-3 mt-2">
+                            {job.results.failed.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                  Failed Items ({job.results.failed.length})
+                                </h4>
+                                <div className="space-y-2">
+                                  {job.results.failed.map((item, idx) => (
+                                    <Alert key={idx} variant="destructive" className="text-sm">
+                                      <AlertDescription>
+                                        <span className="font-medium">{item.title}:</span>{' '}
+                                        {item.error}
+                                      </AlertDescription>
+                                    </Alert>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {job.results.skipped.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-medium mb-2 text-amber-600 dark:text-amber-400">
+                                  Skipped Items ({job.results.skipped.length})
+                                </h4>
+                                <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                                  {job.results.skipped.slice(0, 10).map((item, idx) => (
+                                    <li key={idx}>{item}</li>
+                                  ))}
+                                  {job.results.skipped.length > 10 && (
+                                    <li className="text-xs">...and {job.results.skipped.length - 10} more</li>
+                                  )}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
                   )}
                 </div>
               ))}
