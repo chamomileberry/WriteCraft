@@ -93,12 +93,6 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   
   // Track node positions before drag starts for accurate history
   const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
-  
-  // Track dragging state to prevent junction recalculation during drag
-  const isDragging = useRef(false);
-  
-  // Track when junctions need recalculation (increments to trigger effect)
-  const [junctionUpdateTrigger, setJunctionUpdateTrigger] = useState(0);
 
   // Handle member edit
   const handleEditMember = useCallback((member: FamilyTreeMember) => {
@@ -416,95 +410,18 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     }
   }, [members, setNodes, isAutoLayout, edges]);
 
-  // Convert relationships to edges with T-junction support
+  // Convert relationships to edges with proper connection points
   useEffect(() => {
-    // Skip junction recalculation during drag to prevent glitchy behavior
-    if (isDragging.current) {
-      return;
-    }
-    
     if (relationships.length === 0) {
       setEdges([]);
-      // Clean up junction nodes when no relationships
-      setNodes(prevNodes => prevNodes.filter(n => !n.id.startsWith('junction-')));
       return;
     }
     
-    // First, build maps of relationships
-    type ChildRelationship = { relationship: FamilyTreeRelationship, targetId: string };
-    const parentChildMap = new Map<string, ChildRelationship[]>();
-    const marriageMap = new Map<string, Set<string>>(); // Track who is married to whom
-    const nonParentChildRels: FamilyTreeRelationship[] = [];
+    const newEdges: Edge[] = [];
     
     relationships.forEach(rel => {
-      if (rel.relationshipType === 'parent') {
-        // Parent relationship: fromMember is parent, toMember is child
-        const children = parentChildMap.get(rel.fromMemberId) || [];
-        children.push({ relationship: rel, targetId: rel.toMemberId });
-        parentChildMap.set(rel.fromMemberId, children);
-      } else if (rel.relationshipType === 'child') {
-        // Child relationship: toMember is parent, fromMember is child
-        const children = parentChildMap.get(rel.toMemberId) || [];
-        children.push({ relationship: rel, targetId: rel.fromMemberId });
-        parentChildMap.set(rel.toMemberId, children);
-      } else if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
-        // Track marriages for junction logic
-        if (!marriageMap.has(rel.fromMemberId)) {
-          marriageMap.set(rel.fromMemberId, new Set());
-        }
-        if (!marriageMap.has(rel.toMemberId)) {
-          marriageMap.set(rel.toMemberId, new Set());
-        }
-        marriageMap.get(rel.fromMemberId)!.add(rel.toMemberId);
-        marriageMap.get(rel.toMemberId)!.add(rel.fromMemberId);
-        nonParentChildRels.push(rel);
-      } else {
-        nonParentChildRels.push(rel);
-      }
-    });
-    
-    // Find shared children for married couples
-    const processedParents = new Set<string>();
-    const marriedCoupleChildren = new Map<string, { parents: string[], children: string[] }>();
-    
-    parentChildMap.forEach((children, parentId) => {
-      if (processedParents.has(parentId)) return;
-      
-      const spouses = marriageMap.get(parentId);
-      if (!spouses || spouses.size === 0) return;
-      
-      // Check if any spouse also has children
-      for (const spouseId of Array.from(spouses)) {
-        const spouseChildren = parentChildMap.get(spouseId);
-        if (!spouseChildren) continue;
-        
-        // Find shared children between married couple
-        const parentChildIds = new Set(children.map(c => c.targetId));
-        const spouseChildIds = new Set(spouseChildren.map(c => c.targetId));
-        const sharedChildIds = Array.from(parentChildIds).filter(id => spouseChildIds.has(id));
-        
-        if (sharedChildIds.length > 0) {
-          // Create a couple key (sorted to ensure consistency)
-          const coupleKey = [parentId, spouseId].sort().join('-');
-          marriedCoupleChildren.set(coupleKey, {
-            parents: [parentId, spouseId],
-            children: sharedChildIds
-          });
-          
-          // Mark both parents as processed
-          processedParents.add(parentId);
-          processedParents.add(spouseId);
-        }
-      }
-    });
-    
-    const newEdges: Edge[] = [];
-    const junctionNodesNeeded = new Map<string, { position: { x: number; y: number } }>();
-    const handledChildren = new Set<string>(); // Track which children have been handled
-    
-    // Create edges for non-parent-child relationships (marriage, sibling, etc.)
-    nonParentChildRels.forEach(rel => {
-      newEdges.push({
+      // Determine connection points based on relationship type
+      const edgeProps: any = {
         id: rel.id,
         source: rel.fromMemberId,
         target: rel.toMemberId,
@@ -515,236 +432,23 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           treeId
         },
         label: rel.relationshipType === 'custom' ? rel.customLabel : rel.relationshipType,
-      });
-    });
-    
-    // Get current nodes for position calculations
-    const currentNodes = getNodes();
-    
-    // Handle married couples with shared children first
-    marriedCoupleChildren.forEach((coupleData, coupleKey) => {
-      const { parents, children: sharedChildIds } = coupleData;
-      const [parent1Id, parent2Id] = parents;
+      };
       
-      // Find parent nodes
-      const parent1Node = currentNodes.find(n => n.id === parent1Id);
-      const parent2Node = currentNodes.find(n => n.id === parent2Id);
-      
-      if (!parent1Node || !parent2Node) return;
-      
-      // Create junction at midpoint of marriage line
-      const junctionId = `junction-married-${coupleKey}`;
-      const junctionX = (parent1Node.position.x + parent2Node.position.x) / 2;
-      const junctionY = (parent1Node.position.y + parent2Node.position.y) / 2 + 100; // 100px below midpoint
-      
-      junctionNodesNeeded.set(junctionId, { position: { x: junctionX, y: junctionY } });
-      
-      // Since we can't connect directly to the marriage edge, we'll create a visual junction
-      // Connect from the junction to both parents with subtle lines
-      // This creates the visual effect of the junction branching from the marriage
-      [parent1Id, parent2Id].forEach(parentId => {
-        newEdges.push({
-          id: `parent-junction-${parentId}-${junctionId}`,
-          source: parentId,
-          target: junctionId,
-          type: 'familyRelationship',
-          data: {
-            relationship: parentChildMap.get(parentId)![0].relationship,
-            notebookId,
-            treeId
-          },
-          label: '',
-          style: { opacity: 0.3, strokeDasharray: '2 2' } // Make these connector edges subtle and dashed
-        });
-      });
-      
-      // Connect junction to all shared children
-      sharedChildIds.forEach(childId => {
-        // Find the original relationship for this child
-        const parent1Rel = parentChildMap.get(parent1Id)?.find(c => c.targetId === childId);
-        const parent2Rel = parentChildMap.get(parent2Id)?.find(c => c.targetId === childId);
-        const relationship = parent1Rel || parent2Rel;
-        
-        if (relationship) {
-          newEdges.push({
-            id: relationship.relationship.id,
-            source: junctionId,
-            target: childId,
-            type: 'familyRelationship',
-            data: {
-              relationship: relationship.relationship,
-              notebookId,
-              treeId
-            },
-            label: relationship.relationship.relationshipType === 'custom' 
-              ? relationship.relationship.customLabel 
-              : relationship.relationship.relationshipType,
-          });
-          
-          handledChildren.add(childId);
-        }
-      });
-      
-      // Handle non-shared children of married parents (adoptive/step children)
-      [parent1Id, parent2Id].forEach(parentId => {
-        const allChildren = parentChildMap.get(parentId) || [];
-        const nonSharedChildren = allChildren.filter(c => !sharedChildIds.includes(c.targetId));
-        
-        nonSharedChildren.forEach(({ relationship, targetId }) => {
-          if (!handledChildren.has(targetId)) {
-            // Direct edge from parent to non-shared child
-            newEdges.push({
-              id: relationship.id,
-              source: parentId,
-              target: targetId,
-              type: 'familyRelationship',
-              data: {
-                relationship,
-                notebookId,
-                treeId
-              },
-              label: relationship.relationshipType === 'custom' 
-                ? relationship.customLabel 
-                : relationship.relationshipType,
-            });
-            
-            handledChildren.add(targetId);
-          }
-        });
-      });
-    });
-    
-    // Handle remaining parents (not married or without shared children)
-    parentChildMap.forEach((children: ChildRelationship[], parentId: string) => {
-      // Skip if already processed as part of a married couple
-      if (processedParents.has(parentId)) return;
-      
-      // Filter out already handled children
-      const unhandledChildren = children.filter(c => !handledChildren.has(c.targetId));
-      if (unhandledChildren.length === 0) return;
-      
-      if (unhandledChildren.length === 1) {
-        // Single child - direct edge
-        const { relationship, targetId } = unhandledChildren[0];
-        newEdges.push({
-          id: relationship.id,
-          source: parentId,
-          target: targetId,
-          type: 'familyRelationship',
-          data: {
-            relationship,
-            notebookId,
-            treeId
-          },
-          label: relationship.relationshipType === 'custom' ? relationship.customLabel : relationship.relationshipType,
-        });
-      } else {
-        // Multiple children - create T-junction for single parent
-        const junctionId = `junction-${parentId}`;
-        
-        // Find parent and child nodes from current nodes array
-        const parentNode = currentNodes.find(n => n.id === parentId);
-        const childNodes = unhandledChildren.map((c: ChildRelationship) => 
-          currentNodes.find(n => n.id === c.targetId)).filter(Boolean) as Node[];
-        
-        if (parentNode && childNodes.length > 0) {
-          // Calculate junction position: below parent, centered between children
-          const avgChildX = childNodes.reduce((sum: number, node: Node) => sum + (node?.position.x || 0), 0) / childNodes.length;
-          const junctionY = parentNode.position.y + 100; // 100px below parent
-          
-          junctionNodesNeeded.set(junctionId, { position: { x: avgChildX, y: junctionY } });
-          
-          // Edge from parent to junction
-          newEdges.push({
-            id: `junction-connector-${junctionId}`,
-            source: parentId,
-            target: junctionId,
-            type: 'familyRelationship',
-            data: {
-              relationship: unhandledChildren[0].relationship,
-              notebookId,
-              treeId
-            },
-            label: '',
-          });
-          
-          // Edges from junction to each child
-          unhandledChildren.forEach(({ relationship, targetId }: ChildRelationship) => {
-            newEdges.push({
-              id: relationship.id,
-              source: junctionId,
-              target: targetId,
-              type: 'familyRelationship',
-              data: {
-                relationship,
-                notebookId,
-                treeId
-              },
-              label: relationship.relationshipType === 'custom' ? relationship.customLabel : relationship.relationshipType,
-            });
-          });
-        }
-      }
-    });
-    
-    // Update junction nodes only if they've changed
-    setNodes(prevNodes => {
-      const existingJunctions = prevNodes.filter(n => n.id.startsWith('junction-'));
-      const withoutJunctions = prevNodes.filter(n => !n.id.startsWith('junction-'));
-      
-      if (junctionNodesNeeded.size === 0 && existingJunctions.length === 0) {
-        // No change needed
-        return prevNodes;
+      if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
+        // Marriage lines connect horizontally (side to side)
+        edgeProps.sourcePosition = 'right';
+        edgeProps.targetPosition = 'left';
+      } else if (rel.relationshipType === 'parent' || rel.relationshipType === 'child' || rel.relationshipType === 'adoption' || rel.relationshipType === 'stepParent' || rel.relationshipType === 'grandparent') {
+        // Parent-child lines connect vertically (bottom to top)
+        edgeProps.sourcePosition = 'bottom';
+        edgeProps.targetPosition = 'top';
       }
       
-      if (junctionNodesNeeded.size === 0) {
-        // Remove all junctions
-        return withoutJunctions;
-      }
-      
-      // Check if junctions have actually changed
-      let hasChanged = existingJunctions.length !== junctionNodesNeeded.size;
-      if (!hasChanged) {
-        // Check positions
-        for (const existingJunction of existingJunctions) {
-          const needed = junctionNodesNeeded.get(existingJunction.id);
-          if (!needed || 
-              existingJunction.position.x !== needed.position.x || 
-              existingJunction.position.y !== needed.position.y) {
-            hasChanged = true;
-            break;
-          }
-        }
-      }
-      
-      if (!hasChanged) {
-        // No change needed
-        return prevNodes;
-      }
-      
-      const newJunctionNodes: Node[] = [];
-      junctionNodesNeeded.forEach((data, junctionId) => {
-        newJunctionNodes.push({
-          id: junctionId,
-          type: 'default',
-          position: data.position,
-          data: { label: '' },
-          style: {
-            width: 1,
-            height: 1,
-            opacity: 0,
-            pointerEvents: 'none',
-          },
-          draggable: false,
-          connectable: false,
-        });
-      });
-      
-      return [...withoutJunctions, ...newJunctionNodes];
+      newEdges.push(edgeProps);
     });
     
     setEdges(newEdges);
-  }, [relationships, setEdges, setNodes, notebookId, treeId, getNodes, junctionUpdateTrigger]);
+  }, [relationships, setEdges, notebookId, treeId]);
 
   // Re-apply layout when toggling to auto-layout mode
   useEffect(() => {
@@ -792,8 +496,6 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   // Handle node drag start - capture position before drag for accurate history
   const onNodeDragStart = useCallback((event: any, node: Node) => {
     if (!isAutoLayout) {
-      // Set dragging flag to prevent junction recalculation
-      isDragging.current = true;
       // Capture the current position before drag starts
       dragStartPositions.current.set(node.id, { x: node.position.x, y: node.position.y });
     }
@@ -817,10 +519,6 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       
       // Clean up the stored position
       dragStartPositions.current.delete(node.id);
-      
-      // Clear dragging flag and trigger junction recalculation
-      isDragging.current = false;
-      setJunctionUpdateTrigger(prev => prev + 1);
       
       updateMemberPosition.mutate({
         memberId: node.id,
