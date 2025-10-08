@@ -7,7 +7,7 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { FileText, User, MapPin, Crown, Copy, Heart, Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
-import { useNotebookStore } from "@/stores/notebookStore";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useToast } from "@/hooks/use-toast";
 import type { GeneratedName } from "@shared/schema";
 
@@ -365,7 +365,9 @@ export default function NameGenerator() {
   const [nameType, setNameType] = useState('character');
   const [culture, setCulture] = useState('');
   const { user } = useAuth();
-  const { activeNotebookId } = useNotebookStore();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating names.'
+  });
   const { toast } = useToast();
 
   // Helper functions to get all name types and ethnicities
@@ -418,21 +420,16 @@ export default function NameGenerator() {
       names, 
       nameType, 
       culture,
-      notebookId: activeNotebookId 
+      notebookId 
     }),
-    validateBeforeGenerate: () => {
-      if (!activeNotebookId) {
-        return 'Please create or select a notebook before generating names.';
-      }
-      return null;
-    },
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (names) => {
       const nameText = `Generated ${getNameTypeLabel()} (${getCultureLabel()}):\n\n${names.map(name => `${name.name}${name.meaning ? ` - ${name.meaning}` : ''}`).join('\n')}`;
       return nameText;
     },
     itemTypeName: 'names',
     userId: user?.id ?? undefined,
-    notebookId: activeNotebookId ?? undefined,
+    notebookId: notebookId ?? undefined,
     invalidateOnSave: [['/api/saved-items', user?.id ?? undefined]],
   });
 

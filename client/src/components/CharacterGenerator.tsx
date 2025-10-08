@@ -9,16 +9,18 @@ import { Separator } from "@/components/ui/separator";
 import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
 import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "@shared/genres";
 import { type Character } from "@shared/schema";
-import { useNotebookStore } from "@/stores/notebookStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 export default function CharacterGenerator() {
   const [genre, setGenre] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [ethnicity, setEthnicity] = useState<string>("");
   const { user } = useAuth();
-  const { activeNotebookId } = useNotebookStore();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating characters.'
+  });
 
   const generator = useGenerator<Character>({
     generateEndpoint: '/api/characters/generate',
@@ -27,17 +29,12 @@ export default function CharacterGenerator() {
       gender: gender || undefined,
       ethnicity: ethnicity || undefined,
       userId: null,
-      notebookId: activeNotebookId
+      notebookId
     }),
     itemTypeName: 'character',
     userId: user?.id ?? undefined,
-    notebookId: activeNotebookId ?? undefined,
-    validateBeforeGenerate: () => {
-      if (!activeNotebookId) {
-        return 'Please create or select a notebook before generating characters.';
-      }
-      return null;
-    },
+    notebookId: notebookId ?? undefined,
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (character) => {
       const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ') || 'Unnamed Character';
       return `**${fullName}** (Age: ${character.age})
@@ -52,7 +49,7 @@ export default function CharacterGenerator() {
       userId: user?.id ?? undefined,
       itemType: 'character',
       itemId: character.id,
-      notebookId: activeNotebookId,
+      notebookId,
       itemData: {
         givenName: character.givenName || '',
         familyName: character.familyName || '',

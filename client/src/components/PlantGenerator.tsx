@@ -8,9 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Leaf, Copy, Save, Shuffle, Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { GENRE_CATEGORIES } from "@shared/genres";
-import { useNotebookStore } from "@/stores/notebookStore";
 import NotebookSwitcher from "./NotebookSwitcher";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 interface Plant {
   id?: string;
@@ -43,24 +43,21 @@ export default function PlantGenerator() {
   const [genreOpen, setGenreOpen] = useState<boolean>(false);
   const [plantTypeOpen, setPlantTypeOpen] = useState<boolean>(false);
   const [genreSearch, setGenreSearch] = useState<string>("");
-  const { activeNotebookId } = useNotebookStore();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating plants.'
+  });
 
   const generator = useGenerator<Plant>({
     generateEndpoint: '/api/plants/generate',
     getGenerateParams: () => ({
       genre: (genre && genre !== 'any') ? genre : undefined,
       type: (plantType && plantType !== 'any') ? plantType : undefined,
-      notebookId: activeNotebookId || undefined
+      notebookId: notebookId || undefined
     }),
     itemTypeName: 'plant',
     userId: 'demo-user',
-    notebookId: activeNotebookId || undefined,
-    validateBeforeGenerate: () => {
-      if (!activeNotebookId) {
-        return 'Please create or select a notebook before generating plants.';
-      }
-      return null;
-    },
+    notebookId: notebookId || undefined,
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (plant) => `**${plant.name}**
 Scientific Name: ${plant.scientificName}
 Type: ${capitalizeWords(plant.type)}
@@ -253,7 +250,7 @@ Hardiness Zone: ${plant.hardinessZone}`,
                         variant="outline" 
                         size="sm" 
                         onClick={generator.saveToCollection}
-                        disabled={generator.isSaving || !currentPlant?.id || !activeNotebookId}
+                        disabled={generator.isSaving || !currentPlant?.id || !notebookId}
                         data-testid="button-save-plant"
                       >
                         {generator.isSaving ? (

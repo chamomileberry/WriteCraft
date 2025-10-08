@@ -6,31 +6,28 @@ import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Label } from "@/components/ui/label";
 import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Brain, Globe } from "lucide-react";
-import { useNotebookStore } from "@/stores/notebookStore";
 import type { Creature } from "@shared/schema";
 import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 export default function CreatureGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedCreatureType, setSelectedCreatureType] = useState<string>("");
-  const { activeNotebookId } = useNotebookStore();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating creatures.'
+  });
 
   const generator = useGenerator<Creature>({
     generateEndpoint: '/api/creatures/generate',
     getGenerateParams: () => ({
       genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
       creatureType: selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : undefined,
-      notebookId: activeNotebookId || null
+      notebookId: notebookId || null
     }),
     itemTypeName: 'creature',
     userId: 'guest',
-    validateBeforeGenerate: () => {
-      if (!activeNotebookId) {
-        return 'Please create or select a notebook before generating creatures.';
-      }
-      return null;
-    },
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (creature) => `**${creature.name}**
       
 **Type:** ${creature.creatureType}

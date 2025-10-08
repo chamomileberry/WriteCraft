@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 export interface UseGeneratorOptions<TResult, TParams = any> {
   /** API endpoint for generation */
@@ -30,6 +31,8 @@ export interface UseGeneratorOptions<TResult, TParams = any> {
   onGenerateSuccess?: (result: TResult) => void;
   /** Optional: Custom error callback after generation */
   onGenerateError?: (error: any) => void;
+  /** Optional: Function to build route to navigate to after successful save (auto-navigates if provided) */
+  buildNavigateRoute?: (result: TResult, savedData: any) => string | null;
 }
 
 export interface UseGeneratorReturn<TResult> {
@@ -63,9 +66,11 @@ export function useGenerator<TResult, TParams = any>({
   invalidateOnSave = [['/api/saved-items']],
   onGenerateSuccess,
   onGenerateError,
+  buildNavigateRoute,
 }: UseGeneratorOptions<TResult, TParams>): UseGeneratorReturn<TResult> {
   const [result, setResult] = useState<TResult | null>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Generation mutation
   const generateMutation = useMutation({
@@ -119,16 +124,29 @@ export function useGenerator<TResult, TParams = any>({
       const response = await apiRequest('POST', saveEndpoint, payload);
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: `${capitalize(itemTypeName)} saved!`,
-        description: `${capitalize(itemTypeName)} has been saved to your collection.`,
-      });
-      
+    onSuccess: (savedData) => {
       // Invalidate specified queries
       invalidateOnSave.forEach(queryKey => {
         queryClient.invalidateQueries({ queryKey });
       });
+      
+      // Check if we should navigate after save
+      const navigateRoute = buildNavigateRoute ? buildNavigateRoute(result!, savedData) : null;
+      
+      if (navigateRoute) {
+        // Auto-navigate to the created item
+        toast({
+          title: `${capitalize(itemTypeName)} saved!`,
+          description: `Navigating to your ${itemTypeName}...`,
+        });
+        setLocation(navigateRoute);
+      } else {
+        // Default: just show success message  
+        toast({
+          title: `${capitalize(itemTypeName)} saved!`,
+          description: `${capitalize(itemTypeName)} has been saved to your collection.`,
+        });
+      }
     },
     onError: (error) => {
       console.error(`Error saving ${itemTypeName}:`, error);
