@@ -59,6 +59,19 @@ Documentation: Proactively create documentation for new features, APIs, and syst
   - **Notebook Context Refactoring** (Oct 2025): 4 generators migrated to centralized notebook validation (Character, Name, Plant, Creature) using `useRequireNotebook` hook for consistent validation and error handling.
   - **User Feedback Standardization** (Oct 2025): All toasts/alerts positioned at top-right with slide-from-top animation for consistent user experience. Generator save operations auto-navigate to created content when route provided.
   - **Security Enhancement**: Removed all hardcoded user IDs ('guest', 'demo-user') from generators; all components now properly integrate with `useAuth` hook for authenticated user context.
+  - **Database-Backed Banned Phrases System** (Oct 2025): Migrated hard-coded AI writing style guidelines to PostgreSQL database with admin-only management:
+    - Created `banned_phrases` table with category (forbidden/transition), phrase text, and isActive boolean
+    - Built admin-only CRUD API endpoints at `/api/admin/banned-phrases` with combined filter support
+    - Implemented dynamic loading utility with 5-minute caching and automatic invalidation on updates
+    - Updated 11+ AI generation functions to use dynamic banned phrases from database
+    - Created admin UI at `/admin/banned-phrases` with search, category filtering, and CRUD operations
+    - Seeded database with 271 banned phrases covering forbidden phrases and transition words
+  - **Character Validation with Fallbacks** (Oct 2025): Comprehensive validation system for AI-generated character data:
+    - Created Zod schema (`aiCharacterSchema`) covering all 50+ character fields with type-safe defaults
+    - Implemented multi-tier fallback system: (1) Strict validation → (2) Field-by-field fallbacks → (3) Minimal valid character
+    - Critical fallbacks: givenName defaults to "Unknown", species defaults to "Human", arrays validated and initialized
+    - Integrated `validateAndApplyFallbacks()` into `generateCharacterWithAI()` for robust AI response handling
+    - Added `getCharacterFullName()` utility for consistent name formatting
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon serverless)
