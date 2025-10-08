@@ -80,6 +80,18 @@ export async function getContentTypeConfig(contentType: string): Promise<Content
     }
   }
 
+  // Try schema-driven config (auto-generated from Drizzle schemas)
+  try {
+    const { getSchemaDrivenConfig } = await import('../schema-driven-configs');
+    const config = getSchemaDrivenConfig(contentType);
+    if (config) {
+      configCache.set(contentType, config);
+      return config;
+    }
+  } catch (error) {
+    console.error(`Failed to load schema-driven config for content type: ${contentType}`, error);
+  }
+
   // Fallback: Try to load from original monolithic file (only loads when needed)
   try {
     const { contentTypeFormConfigs } = await import('../../components/forms/ContentTypeFormConfig');
