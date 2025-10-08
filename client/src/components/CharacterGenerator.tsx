@@ -7,61 +7,49 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "@shared/genres";
 import { type Character } from "@shared/schema";
 import { useNotebookStore } from "@/stores/notebookStore";
-
-// Now using backend data - imported from shared/genres.ts
+import { useGenerator } from "@/hooks/useGenerator";
 
 export default function CharacterGenerator() {
-  const [character, setCharacter] = useState<Character | null>(null);
   const [genre, setGenre] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [ethnicity, setEthnicity] = useState<string>("");
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
 
-  const generateCharacterMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/characters/generate', {
-        genre: genre || undefined,
-        gender: gender || undefined,
-        ethnicity: ethnicity || undefined,
-        userId: null, // For now, no user authentication
-        notebookId: activeNotebookId
-      });
-      return response.json();
+  const generator = useGenerator<Character>({
+    generateEndpoint: '/api/characters/generate',
+    getGenerateParams: () => ({
+      genre: genre || undefined,
+      gender: gender || undefined,
+      ethnicity: ethnicity || undefined,
+      userId: null,
+      notebookId: activeNotebookId
+    }),
+    itemTypeName: 'character',
+    validateBeforeGenerate: () => {
+      if (!activeNotebookId) {
+        return 'Please create or select a notebook before generating characters.';
+      }
+      return null;
     },
-    onSuccess: (data) => {
-      setCharacter(data);
-      console.log('Generated character:', data);
+    formatForClipboard: (character) => {
+      const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ') || 'Unnamed Character';
+      return `**${fullName}** (Age: ${character.age})
+**Occupation:** ${character.occupation}
+**Personality:** ${character.personality?.join(', ') || 'None specified'}
+**Backstory:** ${character.backstory}
+**Motivation:** ${character.motivation}
+**Strength:** ${character.strength}
+**Flaw:** ${character.flaw}`;
     },
-    onError: (error) => {
-      console.error('Error generating character:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate character. Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const saveCharacterMutation = useMutation({
-    mutationFn: async () => {
-      if (!character?.id) return;
-      
+    prepareSavePayload: (character) => {
       if (!activeNotebookId) {
         throw new Error('No active notebook selected');
       }
-      
-      console.log('Saving character:', character);
-      
-      const response = await apiRequest('POST', '/api/saved-items', {
-        userId: 'demo-user', // Use demo-user for consistency
+      return {
+        userId: 'demo-user',
         itemType: 'character',
         itemId: character.id,
         notebookId: activeNotebookId,
@@ -77,63 +65,15 @@ export default function CharacterGenerator() {
           strength: character.strength,
           gender: character.gender
         }
-      });
-      return response.json();
+      };
     },
-    onSuccess: () => {
-      toast({
-        title: "Character saved!",
-        description: "Character has been saved to your collection.",
-      });
-      // Invalidate all saved-items queries for this user (covers all notebooks)
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'demo-user'], exact: false });
+    invalidateOnSave: [['/api/saved-items', 'demo-user']],
+    onGenerateSuccess: (data) => {
+      console.log('Generated character:', data);
     },
-    onError: (error) => {
-      console.error('Error saving character:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save character. Please try again.';
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    }
   });
 
-  const generateCharacter = () => {
-    if (!activeNotebookId) {
-      toast({
-        title: "No Notebook Selected",
-        description: "Please create or select a notebook before generating characters.",
-        variant: "destructive"
-      });
-      return;
-    }
-    generateCharacterMutation.mutate();
-  };
-
-  const copyCharacter = () => {
-    if (!character) return;
-    
-    const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ') || 'Unnamed Character';
-    const text = `**${fullName}** (Age: ${character.age})
-**Occupation:** ${character.occupation}
-**Personality:** ${character.personality?.join(', ') || 'None specified'}
-**Backstory:** ${character.backstory}
-**Motivation:** ${character.motivation}
-**Strength:** ${character.strength}
-**Flaw:** ${character.flaw}`;
-    
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Character copied!",
-      description: "Character details have been copied to your clipboard.",
-    });
-  };
-
-  const saveCharacter = () => {
-    if (!character) return;
-    saveCharacterMutation.mutate();
-  };
+  const character = generator.result;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -186,17 +126,17 @@ export default function CharacterGenerator() {
             />
             
             <Button 
-              onClick={generateCharacter}
-              disabled={generateCharacterMutation.isPending}
+              onClick={generator.generate}
+              disabled={generator.isGenerating}
               data-testid="button-generate-character"
               className="flex-1 sm:flex-none"
             >
-              {generateCharacterMutation.isPending ? (
+              {generator.isGenerating ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Shuffle className="mr-2 h-4 w-4" />
               )}
-              {generateCharacterMutation.isPending ? 'Generating...' : 'Generate Character'}
+              {generator.isGenerating ? 'Generating...' : 'Generate Character'}
             </Button>
           </div>
         </CardContent>
@@ -220,17 +160,17 @@ export default function CharacterGenerator() {
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={copyCharacter} data-testid="button-copy-character">
+                <Button variant="outline" size="sm" onClick={generator.copyToClipboard} data-testid="button-copy-character">
                   <Copy className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={saveCharacter} 
-                  disabled={saveCharacterMutation.isPending || !character?.id}
+                  onClick={generator.saveToCollection} 
+                  disabled={generator.isSaving || !character?.id}
                   data-testid="button-save-character"
                 >
-                  {saveCharacterMutation.isPending ? (
+                  {generator.isSaving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Heart className="h-4 w-4" />
