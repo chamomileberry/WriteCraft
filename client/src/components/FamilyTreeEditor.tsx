@@ -35,7 +35,7 @@ import { InlineMemberDialog } from './InlineMemberDialog';
 import { MemberEditDialog } from './MemberEditDialog';
 import { AddRelationshipDialog, type RelationshipType as AddRelationshipType } from './AddRelationshipDialog';
 import { SelectCharacterDialog } from './SelectCharacterDialog';
-import { getLayoutedElements } from '@/lib/elk-layout';
+import { getLayoutedElements } from '@/lib/dagre-layout';
 
 interface FamilyTreeEditorProps {
   treeId: string;
@@ -46,7 +46,7 @@ interface FamilyTreeEditorProps {
 function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorProps) {
   const { toast } = useToast();
   const { screenToFlowPosition, fitView, setCenter, getNode, getNodes } = useReactFlow();
-  const [isAutoLayout, setIsAutoLayout] = useState(false); // Default to manual mode for draggable nodes
+  const [isAutoLayout, setIsAutoLayout] = useState(true); // Default to auto-layout with Dagre
   const prevIsAutoLayout = useRef(isAutoLayout);
   
   // Relationship selector state
@@ -400,133 +400,25 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     
     // Apply auto-layout if enabled
     if (isAutoLayout) {
-      getLayoutedElements(newNodes, edges, {
-        direction: 'DOWN',
-        nodeSpacing: 80,
-        layerSpacing: 150,
-      }).then(({ nodes: layoutedNodes }) => {
-        setNodes(layoutedNodes);
+      const { nodes: layoutedNodes } = getLayoutedElements(newNodes, edges, {
+        direction: 'TB',
+        nodeSep: 100,
+        rankSep: 150,
       });
+      setNodes(layoutedNodes);
     } else {
       setNodes(newNodes);
     }
   }, [members, setNodes, isAutoLayout, edges]);
 
-  // Convert relationships to edges with proper connection points and T-junctions
+  // Convert relationships to edges
   useEffect(() => {
     if (relationships.length === 0) {
       setEdges([]);
       return;
     }
     
-    const newEdges: Edge[] = [];
-    const junctionNodesToAdd: Node[] = [];
-    
-    // Build maps for marriage and parent-child relationships
-    const marriageMap = new Map<string, Set<string>>(); // person -> spouses
-    const parentChildMap = new Map<string, { targetId: string; relationship: any }[]>(); // parent -> children
-    
-    relationships.forEach(rel => {
-      if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
-        if (!marriageMap.has(rel.fromMemberId)) {
-          marriageMap.set(rel.fromMemberId, new Set());
-        }
-        marriageMap.get(rel.fromMemberId)!.add(rel.toMemberId);
-      } else if (rel.relationshipType === 'parent' || rel.relationshipType === 'child') {
-        if (!parentChildMap.has(rel.fromMemberId)) {
-          parentChildMap.set(rel.fromMemberId, []);
-        }
-        parentChildMap.get(rel.fromMemberId)!.push({ targetId: rel.toMemberId, relationship: rel });
-      }
-    });
-    
-    // Track which parent-child relationships have been handled via T-junctions
-    const handledParentChild = new Set<string>();
-    
-    // Create T-junctions for married couples with shared children
-    const processedCouples = new Set<string>();
-    
-    // Get current nodes to find positions
-    const currentNodes = getNodes();
-    
-    parentChildMap.forEach((children, parent1Id) => {
-      const spouses = marriageMap.get(parent1Id);
-      if (!spouses) return;
-      
-      spouses.forEach(parent2Id => {
-        const coupleKey = [parent1Id, parent2Id].sort().join('-');
-        if (processedCouples.has(coupleKey)) return;
-        processedCouples.add(coupleKey);
-        
-        const parent2Children = parentChildMap.get(parent2Id) || [];
-        const parent1ChildIds = new Set(children.map(c => c.targetId));
-        const sharedChildren = parent2Children.filter(c => parent1ChildIds.has(c.targetId));
-        
-        if (sharedChildren.length > 0) {
-          // Get positions of parents
-          const parent1Node = currentNodes.find(n => n.id === parent1Id);
-          const parent2Node = currentNodes.find(n => n.id === parent2Id);
-          
-          if (parent1Node && parent2Node) {
-            // Create junction node between parents
-            const junctionX = (parent1Node.position.x + parent2Node.position.x) / 2;
-            const junctionY = Math.max(parent1Node.position.y, parent2Node.position.y) + 80;
-            const junctionId = `junction-${coupleKey}`;
-            
-            junctionNodesToAdd.push({
-              id: junctionId,
-              type: 'junction',
-              position: { x: junctionX, y: junctionY },
-              data: {},
-              selectable: false,
-              draggable: false,
-            });
-            
-            // Edge from parent1 bottom to junction
-            newEdges.push({
-              id: `${parent1Id}-${junctionId}`,
-              source: parent1Id,
-              target: junctionId,
-              sourceHandle: 'bottom',
-              targetHandle: 'top',
-              type: 'straight',
-              style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
-            });
-            
-            // Edge from parent2 bottom to junction  
-            newEdges.push({
-              id: `${parent2Id}-${junctionId}`,
-              source: parent2Id,
-              target: junctionId,
-              sourceHandle: 'bottom',
-              targetHandle: 'top',
-              type: 'straight',
-              style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
-            });
-            
-            // Edges from junction to each shared child
-            sharedChildren.forEach(child => {
-              newEdges.push({
-                id: `${junctionId}-${child.targetId}`,
-                source: junctionId,
-                target: child.targetId,
-                sourceHandle: 'bottom',
-                targetHandle: 'top-target',
-                type: 'straight',
-                style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
-              });
-              
-              // Mark these relationships as handled
-              handledParentChild.add(`${parent1Id}-${child.targetId}`);
-              handledParentChild.add(`${parent2Id}-${child.targetId}`);
-            });
-          }
-        }
-      });
-    });
-    
-    // Add edges for all relationships
-    relationships.forEach(rel => {
+    const newEdges: Edge[] = relationships.map(rel => {
       const edgeProps: any = {
         id: rel.id,
         source: rel.fromMemberId,
@@ -544,40 +436,17 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         // Marriage lines connect horizontally (side to side)
         edgeProps.sourceHandle = 'right';
         edgeProps.targetHandle = 'left-target';
-      } else if (rel.relationshipType === 'parent' || rel.relationshipType === 'child') {
-        // Skip parent-child edges that are handled by T-junctions
-        if (handledParentChild.has(`${rel.fromMemberId}-${rel.toMemberId}`)) {
-          return;
-        }
-        // Other parent-child lines connect vertically (bottom to top)
-        edgeProps.sourceHandle = 'bottom';
-        edgeProps.targetHandle = 'top-target';
-      } else if (rel.relationshipType === 'adoption' || rel.relationshipType === 'stepParent' || rel.relationshipType === 'grandparent') {
-        // These always get their own direct vertical line
+      } else {
+        // All other relationships connect vertically (bottom to top)
         edgeProps.sourceHandle = 'bottom';
         edgeProps.targetHandle = 'top-target';
       }
       
-      newEdges.push(edgeProps);
+      return edgeProps;
     });
     
-    // Update junction nodes only if they changed
-    const existingJunctionIds = new Set(currentNodes.filter(n => n.type === 'junction').map(n => n.id));
-    const newJunctionIds = new Set(junctionNodesToAdd.map(n => n.id));
-    
-    const junctionsChanged = 
-      existingJunctionIds.size !== newJunctionIds.size ||
-      Array.from(existingJunctionIds).some(id => !newJunctionIds.has(id));
-    
-    if (junctionsChanged) {
-      setNodes(prev => {
-        const nonJunctionNodes = prev.filter(n => n.type !== 'junction');
-        return [...nonJunctionNodes, ...junctionNodesToAdd];
-      });
-    }
-    
     setEdges(newEdges);
-  }, [relationships, getNodes, setEdges, setNodes, notebookId, treeId]);
+  }, [relationships, setEdges, notebookId, treeId]);
 
   // Re-apply layout when toggling to auto-layout mode
   useEffect(() => {
@@ -585,17 +454,16 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     const isNowAuto = isAutoLayout;
     
     if (wasManual && isNowAuto && nodes.length > 0) {
-      getLayoutedElements(nodes, edges, {
-        direction: 'DOWN',
-        nodeSpacing: 80,
-        layerSpacing: 150,
-      }).then(({ nodes: layoutedNodes }) => {
-        setNodes(layoutedNodes);
+      const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, {
+        direction: 'TB',
+        nodeSep: 100,
+        rankSep: 150,
       });
+      setNodes(layoutedNodes);
     }
     
     prevIsAutoLayout.current = isAutoLayout;
-  }, [isAutoLayout]);
+  }, [isAutoLayout, nodes, edges, setNodes]);
 
   // Update member position mutation with optimistic updates
   const updateMemberPosition = useMutation({
@@ -912,19 +780,18 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     }
   }, []);
 
-  // Handle reset layout - reapply ELK auto-layout
+  // Handle reset layout - reapply Dagre auto-layout
   const handleResetLayout = useCallback(() => {
     if (nodes.length > 0) {
-      getLayoutedElements(nodes, edges, {
-        direction: 'DOWN',
-        nodeSpacing: 80,
-        layerSpacing: 150,
-      }).then(({ nodes: layoutedNodes }) => {
-        setNodes(layoutedNodes);
-        toast({
-          title: 'Layout reset',
-          description: 'Family tree layout has been reset',
-        });
+      const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, {
+        direction: 'TB',
+        nodeSep: 100,
+        rankSep: 150,
+      });
+      setNodes(layoutedNodes);
+      toast({
+        title: 'Layout reset',
+        description: 'Family tree layout has been reset',
       });
     }
   }, [nodes, edges, setNodes, toast]);
