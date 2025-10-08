@@ -601,7 +601,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       
       if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
         edgeProps.sourceHandle = 'right';
-        edgeProps.targetHandle = 'left';
+        edgeProps.targetHandle = 'left-target';
       } else {
         edgeProps.sourceHandle = 'bottom';
         edgeProps.targetHandle = 'top-target';
