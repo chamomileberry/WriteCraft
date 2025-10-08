@@ -453,17 +453,21 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     const wasManual = !prevIsAutoLayout.current;
     const isNowAuto = isAutoLayout;
     
-    if (wasManual && isNowAuto && nodes.length > 0) {
-      const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, {
-        direction: 'TB',
-        nodeSep: 100,
-        rankSep: 150,
-      });
-      setNodes(layoutedNodes);
+    if (wasManual && isNowAuto) {
+      const currentNodes = getNodes();
+      const currentEdges = edges;
+      if (currentNodes.length > 0) {
+        const { nodes: layoutedNodes } = getLayoutedElements(currentNodes, currentEdges, {
+          direction: 'TB',
+          nodeSep: 100,
+          rankSep: 150,
+        });
+        setNodes(layoutedNodes);
+      }
     }
     
     prevIsAutoLayout.current = isAutoLayout;
-  }, [isAutoLayout, nodes, edges, setNodes]);
+  }, [isAutoLayout, getNodes, edges, setNodes]);
 
   // Update member position mutation with optimistic updates
   const updateMemberPosition = useMutation({
