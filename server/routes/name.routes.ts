@@ -65,6 +65,32 @@ router.post("/generate", async (req: any, res) => {
 
 router.post("/", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
+    
+    // Handle both single name and array of names (for bulk save)
+    const { names, nameType, culture, notebookId } = req.body;
+    
+    if (names && Array.isArray(names)) {
+      // Bulk save to saved_items collection
+      const savedItems = [];
+      for (const name of names) {
+        try {
+          const savedItem = await storage.saveItem({
+            userId,
+            itemType: 'name',
+            itemId: name.id,
+            notebookId,
+            itemData: name
+          });
+          savedItems.push(savedItem);
+        } catch (saveError) {
+          console.error('Error saving name to collection:', saveError);
+        }
+      }
+      return res.json({ success: true, count: savedItems.length });
+    }
+    
+    // Single name save (create new name record)
     const validatedName = insertNameSchema.parse(req.body);
     const savedName = await storage.createName(validatedName);
     res.json(savedName);
