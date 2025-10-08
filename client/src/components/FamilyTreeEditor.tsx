@@ -23,7 +23,7 @@ import type { FamilyTree, FamilyTreeMember, FamilyTreeRelationship, Character } 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw, Save, ArrowLeft, Check, AlertCircle, RefreshCw, Search, X, Undo, Redo, Map } from 'lucide-react';
+import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw, Save, ArrowLeft, Check, AlertCircle, RefreshCw, Search, X, Undo, Redo, Map as MapIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
@@ -480,9 +480,9 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           
           junctionNodesNeeded.set(junctionId, { position: { x: avgChildX, y: junctionY } });
           
-          // Edge from parent to junction
+          // Edge from parent to junction (uses synthetic ID as this is a helper edge)
           newEdges.push({
-            id: `${parentId}-to-junction`,
+            id: `junction-connector-${junctionId}`,
             source: parentId,
             target: junctionId,
             type: 'familyRelationship',
@@ -494,10 +494,10 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             label: '',
           });
           
-          // Edges from junction to each child
+          // Edges from junction to each child (preserve original relationship IDs)
           children.forEach(({ relationship, targetId }: ChildRelationship) => {
             newEdges.push({
-              id: `${junctionId}-to-${targetId}`,
+              id: relationship.id, // Preserve original relationship ID
               source: junctionId,
               target: targetId,
               type: 'familyRelationship',
@@ -1329,7 +1329,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
                 title={showMiniMap ? "Hide Mini-Map" : "Show Mini-Map"}
                 className="h-8 w-8"
               >
-                <Map className="w-4 h-4" />
+                <MapIcon className="w-4 h-4" />
               </Button>
               <Button
                 size="sm"
