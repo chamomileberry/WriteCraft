@@ -37,6 +37,12 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Custom Hooks for Code Reuse**:
   - **`useAutosave`**: Specialized auto-save hook for TipTap rich text editors with debouncing, async error handling, and promise cleanup.
   - **`useDebouncedSave`**: Generic debounced auto-save hook with async error handling and promise management for any data type (forms, state, non-TipTap content).
+  - **`useRequireNotebook`** (Oct 2025): Centralized notebook context validation hook providing:
+    - Automatic notebook selection from Zustand store
+    - Validation function for operations requiring notebook context
+    - Configurable error messages
+    - Optional auto-navigation to notebook selection page
+    - Returns `{ notebookId, validateNotebook }` for component use
   - **`useGenerator`**: Unified hook for generator components handling generate/copy/save patterns, with support for:
     - Single results and arrays (via resolveResultId)
     - Custom save endpoints (configurable saveEndpoint)
@@ -44,8 +50,14 @@ Documentation: Proactively create documentation for new features, APIs, and syst
     - Validation before generation
     - Custom clipboard formatting and save payload preparation
     - Consistent error handling and user feedback
+    - Auto-navigation to created content (via buildNavigateRoute)
+  - **`NotebookGuard` Component** (Oct 2025): Wrapper component for pages requiring notebook context, offering two modes:
+    - Full mode: Displays centered card with icon, title, description, and "Select Notebook" button
+    - Minimal mode: Shows compact inline alert banner for existing page layouts
   - **Generator Refactoring**: 8 generators refactored using useGenerator (Character, Plot, Setting, Creature, Conflict, Plant, Description, Name), achieving 22% code reduction (559+ lines saved) while eliminating duplicate logic.
   - **Auto-Save Refactoring**: 4 components migrated to reusable auto-save hooks (ProjectEditor and SectionEditor use useAutosave; FamilyTreeEditor and QuickNotePanel use useDebouncedSave) for consistent auto-save behavior.
+  - **Notebook Context Refactoring** (Oct 2025): 4 generators migrated to centralized notebook validation (Character, Name, Plant, Creature) using `useRequireNotebook` hook for consistent validation and error handling.
+  - **User Feedback Standardization** (Oct 2025): All toasts/alerts positioned at top-right with slide-from-top animation for consistent user experience. Generator save operations auto-navigate to created content when route provided.
   - **Security Enhancement**: Removed all hardcoded user IDs ('guest', 'demo-user') from generators; all components now properly integrate with `useAuth` hook for authenticated user context.
 
 ### Data Storage
