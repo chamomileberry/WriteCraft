@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { EdgeProps, getSmoothStepPath, BaseEdge } from '@xyflow/react';
+import { EdgeProps, getSmoothStepPath, getStraightPath, BaseEdge } from '@xyflow/react';
 import type { FamilyTreeRelationship } from '@shared/schema';
 
 export interface FamilyRelationshipEdgeData {
@@ -18,7 +18,13 @@ function FamilyRelationshipEdgeComponent({
   targetPosition,
   data,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const { relationship } = (data || {}) as unknown as FamilyRelationshipEdgeData;
+  
+  // Use straight path for marriage, smooth step for others
+  const isMarriage = relationship?.relationshipType === 'marriage';
+  const pathFn = isMarriage ? getStraightPath : getSmoothStepPath;
+  
+  const [edgePath, labelX, labelY] = pathFn({
     sourceX,
     sourceY,
     sourcePosition,
@@ -26,8 +32,6 @@ function FamilyRelationshipEdgeComponent({
     targetY,
     targetPosition,
   });
-
-  const { relationship } = (data || {}) as unknown as FamilyRelationshipEdgeData;
   const label = relationship.relationshipType === 'custom' 
     ? relationship.customLabel 
     : relationship.relationshipType;
@@ -44,6 +48,12 @@ function FamilyRelationshipEdgeComponent({
         return { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1.5, strokeDasharray: '5,5' };
       case 'adoption':
         return { stroke: 'hsl(var(--secondary))', strokeWidth: 2, strokeDasharray: '10,5' };
+      case 'stepParent':
+        return { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 2, strokeDasharray: '8,4' };
+      case 'grandparent':
+        return { stroke: 'hsl(var(--foreground))', strokeWidth: 1.5, strokeDasharray: '3,3' };
+      case 'cousin':
+        return { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '5,5' };
       default:
         return { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1 };
     }

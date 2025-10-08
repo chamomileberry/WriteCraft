@@ -221,9 +221,9 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
     }
     
     // Validate relationship type
-    const validRelationshipTypes = ['parent', 'spouse', 'child', 'sibling'];
+    const validRelationshipTypes = ['parent', 'spouse', 'child', 'sibling', 'adoption', 'stepParent', 'grandparent', 'cousin'];
     if (!validRelationshipTypes.includes(relationshipType)) {
-      return res.status(400).json({ error: 'Invalid relationship type. Must be one of: parent, spouse, child, sibling' });
+      return res.status(400).json({ error: 'Invalid relationship type. Must be one of: parent, spouse, child, sibling, adoption, stepParent, grandparent, cousin' });
     }
     
     // Get the relative member to calculate position
@@ -243,7 +243,7 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
     // Get existing relationships for parent positioning logic
     const existingRelationships = await storage.getFamilyTreeRelationships(treeId, userId);
     const existingParents = existingRelationships.filter((rel: any) => 
-      rel.toMemberId === relativeMemberId && rel.relationshipType === 'parent'
+      rel.toMemberId === relativeMemberId && (rel.relationshipType === 'parent' || rel.relationshipType === 'adoption' || rel.relationshipType === 'stepParent')
     );
     
     switch (relationshipType) {
@@ -289,6 +289,56 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
       case 'sibling':
         // Same level, beside the relative member
         positionX = relativeX + 200;
+        positionY = relativeY;
+        break;
+      case 'adoption':
+        // Similar to parent positioning but for adoptive relationships
+        if (existingParents.length === 0) {
+          positionX = relativeX;
+          positionY = relativeY - 200;
+        } else {
+          const existingParentIds = existingParents.map((rel: any) => rel.fromMemberId);
+          const parentMembers = members.filter((m: any) => existingParentIds.includes(m.id));
+          if (parentMembers.length > 0) {
+            const rightmostParent = parentMembers.reduce((rightmost, current) => {
+              return (current.positionX || 0) > (rightmost.positionX || 0) ? current : rightmost;
+            }, parentMembers[0]);
+            positionX = (rightmostParent.positionX || 0) + 250;
+            positionY = rightmostParent.positionY || (relativeY - 200);
+          } else {
+            positionX = relativeX;
+            positionY = relativeY - 200;
+          }
+        }
+        break;
+      case 'stepParent':
+        // Similar to parent/adoption positioning with offset logic
+        if (existingParents.length === 0) {
+          positionX = relativeX;
+          positionY = relativeY - 200;
+        } else {
+          const existingParentIds = existingParents.map((rel: any) => rel.fromMemberId);
+          const parentMembers = members.filter((m: any) => existingParentIds.includes(m.id));
+          if (parentMembers.length > 0) {
+            const rightmostParent = parentMembers.reduce((rightmost, current) => {
+              return (current.positionX || 0) > (rightmost.positionX || 0) ? current : rightmost;
+            }, parentMembers[0]);
+            positionX = (rightmostParent.positionX || 0) + 250;
+            positionY = rightmostParent.positionY || (relativeY - 200);
+          } else {
+            positionX = relativeX;
+            positionY = relativeY - 200;
+          }
+        }
+        break;
+      case 'grandparent':
+        // Above parent level
+        positionX = relativeX;
+        positionY = relativeY - 350;
+        break;
+      case 'cousin':
+        // Same level, offset
+        positionX = relativeX + 250;
         positionY = relativeY;
         break;
       default:
@@ -358,6 +408,42 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
           fromMemberId: relativeMemberId,
           toMemberId: savedMember.id,
           relationshipType: 'sibling'
+        };
+        break;
+      case 'adoption':
+        // adoption → create "adoption" relationship FROM new member TO relative
+        relationshipData = {
+          treeId,
+          fromMemberId: savedMember.id,
+          toMemberId: relativeMemberId,
+          relationshipType: 'adoption'
+        };
+        break;
+      case 'stepParent':
+        // stepParent → create "stepParent" relationship FROM new member TO relative
+        relationshipData = {
+          treeId,
+          fromMemberId: savedMember.id,
+          toMemberId: relativeMemberId,
+          relationshipType: 'stepParent'
+        };
+        break;
+      case 'grandparent':
+        // grandparent → create "grandparent" relationship FROM new member TO relative
+        relationshipData = {
+          treeId,
+          fromMemberId: savedMember.id,
+          toMemberId: relativeMemberId,
+          relationshipType: 'grandparent'
+        };
+        break;
+      case 'cousin':
+        // cousin → create "cousin" relationship between them
+        relationshipData = {
+          treeId,
+          fromMemberId: relativeMemberId,
+          toMemberId: savedMember.id,
+          relationshipType: 'cousin'
         };
         break;
     }
