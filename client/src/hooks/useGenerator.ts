@@ -10,11 +10,15 @@ export interface UseGeneratorOptions<TResult, TParams = any> {
   getGenerateParams: () => TParams;
   /** Name of the item type for messages (e.g., "character", "plot") */
   itemTypeName: string;
+  /** User ID for saving items */
+  userId?: string;
+  /** Notebook ID for saving items (optional) */
+  notebookId?: string;
   /** Optional: Validation before generating (returns error message if invalid) */
   validateBeforeGenerate?: () => string | null;
   /** Optional: Function to format the result for clipboard */
   formatForClipboard?: (result: TResult) => string;
-  /** Optional: Function to prepare save payload */
+  /** Optional: Function to prepare save payload (overrides default userId/notebookId) */
   prepareSavePayload?: (result: TResult) => any;
   /** Optional: Query keys to invalidate after save */
   invalidateOnSave?: any[];
@@ -45,6 +49,8 @@ export function useGenerator<TResult extends { id?: string }, TParams = any>({
   generateEndpoint,
   getGenerateParams,
   itemTypeName,
+  userId = 'demo-user',
+  notebookId,
   validateBeforeGenerate,
   formatForClipboard,
   prepareSavePayload,
@@ -84,13 +90,14 @@ export function useGenerator<TResult extends { id?: string }, TParams = any>({
         throw new Error('No result to save');
       }
 
-      // Use custom prepare function or default payload
+      // Use custom prepare function or build default payload from context
       const payload = prepareSavePayload 
         ? prepareSavePayload(result)
         : {
-            userId: 'demo-user',
+            userId,
             itemType: itemTypeName,
             itemId: result.id,
+            ...(notebookId && { notebookId }),
             itemData: result,
           };
 

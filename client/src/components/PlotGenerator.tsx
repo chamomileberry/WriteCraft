@@ -7,10 +7,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Separator } from "@/components/ui/separator";
 import { BookOpen, Copy, Save, Zap, Loader2, HelpCircle, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import StoryStructureQuiz from "./StoryStructureQuiz";
 import { GENRE_CATEGORIES } from "@shared/genres";
+import { useGenerator } from "@/hooks/useGenerator";
 
 interface PlotStructure {
   id?: string;
@@ -40,77 +39,23 @@ const STORY_STRUCTURES = [
   { value: "seven-point", label: "Seven-Point Story Structure" }
 ];
 
-// Removed local data arrays - now using backend API
-
 export default function PlotGenerator() {
-  const [plot, setPlot] = useState<PlotStructure | null>(null);
   const [genre, setGenre] = useState<string>("");
   const [genreSearchOpen, setGenreSearchOpen] = useState(false);
   const [storyStructure, setStoryStructure] = useState<string>("");
   const [showQuiz, setShowQuiz] = useState<boolean>(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const generatePlotMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/plots/generate', {
-        genre: genre || undefined,
-        storyStructure: storyStructure || undefined,
-        userId: null // For now, no user authentication
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setPlot(data);
-      console.log('Generated plot:', data);
-    },
-    onError: (error) => {
-      console.error('Error generating plot:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate plot. Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const savePlotMutation = useMutation({
-    mutationFn: async () => {
-      if (!plot?.id) return;
-      
-      const response = await apiRequest('POST', '/api/saved-items', {
-        userId: 'guest', // For now, using guest user
-        itemType: 'plot',
-        itemId: plot.id,
-        itemData: plot // Include the complete plot data
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Plot saved!",
-        description: "Plot structure has been saved to your collection.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
-    },
-    onError: (error) => {
-      console.error('Error saving plot:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save plot. Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const generatePlot = () => {
-    generatePlotMutation.mutate();
-  };
-
-  const copyPlot = () => {
-    if (!plot) return;
-    
-    const text = `**Plot Structure**
+  const generator = useGenerator<PlotStructure>({
+    generateEndpoint: '/api/plots/generate',
+    getGenerateParams: () => ({
+      genre: genre || undefined,
+      storyStructure: storyStructure || undefined,
+      userId: null
+    }),
+    itemTypeName: 'plot',
+    userId: 'guest',
+    formatForClipboard: (plot) => `**Plot Structure**
 
 **Theme:** ${plot.theme}
 **Central Conflict:** ${plot.conflict}
@@ -130,19 +75,14 @@ ${plot.setup}
 **Act III - Resolution**
 **Climax:** ${plot.climax}
 
-**Resolution:** ${plot.resolution}`;
-    
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Plot copied!",
-      description: "Plot structure has been copied to your clipboard.",
-    });
-  };
+**Resolution:** ${plot.resolution}`,
+    invalidateOnSave: [['/api/saved-items']],
+    onGenerateSuccess: (data) => {
+      console.log('Generated plot:', data);
+    },
+  });
 
-  const savePlot = () => {
-    if (!plot) return;
-    savePlotMutation.mutate();
-  };
+  const plot = generator.result;
 
   const handleQuizStructureSelect = (structure: string) => {
     setStoryStructure(structure);
@@ -235,17 +175,17 @@ ${plot.setup}
             </div>
             
             <Button 
-              onClick={generatePlot}
-              disabled={generatePlotMutation.isPending}
+              onClick={generator.generate}
+              disabled={generator.isGenerating}
               data-testid="button-generate-plot"
               className="w-full sm:w-auto"
             >
-              {generatePlotMutation.isPending ? (
+              {generator.isGenerating ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Zap className="mr-2 h-4 w-4" />
               )}
-              {generatePlotMutation.isPending ? 'Generating...' : 'Generate Plot'}
+              {generator.isGenerating ? 'Generating...' : 'Generate Plot'}
             </Button>
           </div>
         </CardContent>
@@ -260,17 +200,17 @@ ${plot.setup}
                 <CardDescription>Three-act story framework</CardDescription>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={copyPlot} data-testid="button-copy-plot">
+                <Button variant="outline" size="sm" onClick={generator.copyToClipboard} data-testid="button-copy-plot">
                   <Copy className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={savePlot} 
-                  disabled={savePlotMutation.isPending || !plot?.id}
+                  onClick={generator.saveToCollection} 
+                  disabled={generator.isSaving || !plot?.id}
                   data-testid="button-save-plot"
                 >
-                  {savePlotMutation.isPending ? (
+                  {generator.isSaving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="h-4 w-4" />

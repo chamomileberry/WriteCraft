@@ -28,6 +28,8 @@ export default function CharacterGenerator() {
       notebookId: activeNotebookId
     }),
     itemTypeName: 'character',
+    userId: 'demo-user',
+    notebookId: activeNotebookId,
     validateBeforeGenerate: () => {
       if (!activeNotebookId) {
         return 'Please create or select a notebook before generating characters.';
@@ -44,29 +46,24 @@ export default function CharacterGenerator() {
 **Strength:** ${character.strength}
 **Flaw:** ${character.flaw}`;
     },
-    prepareSavePayload: (character) => {
-      if (!activeNotebookId) {
-        throw new Error('No active notebook selected');
+    prepareSavePayload: (character) => ({
+      userId: 'demo-user',
+      itemType: 'character',
+      itemId: character.id,
+      notebookId: activeNotebookId,
+      itemData: {
+        givenName: character.givenName || '',
+        familyName: character.familyName || '',
+        age: character.age,
+        occupation: character.occupation,
+        personality: character.personality,
+        backstory: character.backstory,
+        motivation: character.motivation,
+        flaw: character.flaw,
+        strength: character.strength,
+        gender: character.gender
       }
-      return {
-        userId: 'demo-user',
-        itemType: 'character',
-        itemId: character.id,
-        notebookId: activeNotebookId,
-        itemData: {
-          givenName: character.givenName || '',
-          familyName: character.familyName || '',
-          age: character.age,
-          occupation: character.occupation,
-          personality: character.personality,
-          backstory: character.backstory,
-          motivation: character.motivation,
-          flaw: character.flaw,
-          strength: character.strength,
-          gender: character.gender
-        }
-      };
-    },
+    }),
     invalidateOnSave: [['/api/saved-items', 'demo-user']],
     onGenerateSuccess: (data) => {
       console.log('Generated character:', data);
