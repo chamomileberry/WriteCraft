@@ -481,6 +481,63 @@ CREATE POLICY user_isolation_policy ON notebooks
 
 ---
 
+#### 11. ⏳ AI Generation Rate Limiting
+**Status:** Uses Global Rate Limit  
+**Priority:** HIGH  
+**Required:** Configuration update in `server/routes/` files
+
+**Current State:** AI generation endpoints use global rate limit (2000 req/15min)  
+**Recommended:** Stricter limits (20-50 requests per 15 minutes)
+
+**Implementation Steps:**
+1. Add specific rate limiter to AI generation routes
+2. Configure in route files: `/api/generate/*`, `/api/ai/*`
+3. Use `createRateLimiter({ maxRequests: 20-50, windowMs: 15 * 60 * 1000 })`
+4. Monitor API usage patterns and adjust accordingly
+
+**Verification:** Test rate limit enforcement on AI endpoints
+
+---
+
+#### 12. ⏳ Search Endpoint Rate Limiting
+**Status:** Uses Global Rate Limit  
+**Priority:** MEDIUM  
+**Required:** Configuration update in search routes
+
+**Current State:** Search endpoints use global rate limit (2000 req/15min)  
+**Recommended:** Moderate limits (100-200 requests per 15 minutes)
+
+**Implementation Steps:**
+1. Add specific rate limiter to search routes
+2. Configure in: `/api/search/*`, `/api/universal-search`
+3. Use `createRateLimiter({ maxRequests: 100-200, windowMs: 15 * 60 * 1000 })`
+
+**Verification:** Test rate limit on search functionality
+
+---
+
+#### 13. ⏳ Production Rate Limit Store (Redis)
+**Status:** In-Memory Map  
+**Priority:** HIGH (for multi-instance deployments)  
+**Required Package:** `redis` or `ioredis`
+
+**Current State:** In-memory Map storage (works for single instance only)  
+**Location:** `server/security/middleware.ts` line 25  
+**Required For:** Multi-instance/load-balanced deployments
+
+**Implementation Steps:**
+1. Install Redis client: `npm install redis`
+2. Replace Map with Redis-backed store in `server/security/middleware.ts`
+3. Configure Redis connection with environment variables
+4. Implement connection retry logic
+5. Add Redis health check to startup
+
+**Verification:** Test rate limiting across multiple server instances
+
+**Note:** Single-instance Replit deployments can continue using in-memory store
+
+---
+
 ### Deployment Configuration
 
 #### Rate Limiting Re-enabling
