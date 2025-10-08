@@ -25,6 +25,10 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **API Design**: RESTful endpoints
 - **Content Generation**: Server-side algorithms for creative writing content.
 
+### Code Organization & Architecture
+- **Shared Constants**: Genre categories, setting types, creature types, ethnicity options, and other shared data constants are centralized in `shared/genres.ts` to maintain clean separation of concerns.
+- **Import Pattern**: Client components import shared constants via `@shared/genres` alias, while server modules use relative paths (`../shared/genres.js`), preventing architectural violations where frontend would directly import from server directories.
+
 ### Data Storage
 - **Database**: PostgreSQL (Neon serverless)
 - **ORM**: Drizzle ORM
