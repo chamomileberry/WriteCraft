@@ -24,6 +24,7 @@ export default function SettingGenerator() {
       settingType: selectedSettingType && selectedSettingType !== "any" ? selectedSettingType : undefined
     }),
     itemTypeName: 'setting',
+    userId: 'guest',
     formatForClipboard: (setting) => `**${setting.name}**
       
 **Location:** ${setting.location}
@@ -42,12 +43,6 @@ ${setting.culturalElements.join(', ')}
 
 **Notable Features:**
 ${setting.notableFeatures.join(', ')}`,
-    prepareSavePayload: (setting) => ({
-      userId: 'guest',
-      itemType: 'setting',
-      itemId: setting.id,
-      itemData: setting
-    }),
     invalidateOnSave: [['/api/saved-items']],
   });
 

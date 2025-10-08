@@ -5,9 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Target, AlertTriangle, Users, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
-import { useToast } from "@/hooks/use-toast";
 import type { Conflict } from "@shared/schema";
+import { useGenerator } from "@/hooks/useGenerator";
 
 const conflictTypes = [
   { value: 'internal', label: 'Internal Conflict' },
@@ -26,65 +25,37 @@ const genres = [
 ];
 
 export default function ConflictGenerator() {
-  const [generatedConflict, setGeneratedConflict] = useState<Conflict | null>(null);
   const [conflictType, setConflictType] = useState('any');
   const [genre, setGenre] = useState('any');
-  const { toast } = useToast();
 
-  const generateMutation = useGenerateMutation<Conflict, void>('/api/conflicts/generate', {
-    transformPayload: () => ({ conflictType, genre }),
-    errorMessage: "Unable to create conflict. Please try again.",
-    onSuccess: (conflict: Conflict) => {
-      setGeneratedConflict(conflict);
-    },
-    invalidateQueries: ['/api/conflicts']
-  });
+  const generator = useGenerator<Conflict>({
+    generateEndpoint: '/api/conflicts/generate',
+    getGenerateParams: () => ({ conflictType, genre }),
+    itemTypeName: 'conflict',
+    userId: 'guest',
+    formatForClipboard: (conflict) => `Conflict: ${conflict.title}
 
-  const saveMutation = useSaveMutation<any, Conflict>('/api/conflicts', {
-    successMessage: "Your conflict has been saved to your collection!",
-    errorMessage: "Unable to save conflict. Please try again.",
-    invalidateQueries: ['/api/conflicts']
-  });
-
-  const handleGenerate = () => {
-    generateMutation.mutate();
-  };
-
-  const handleSave = () => {
-    if (generatedConflict) {
-      saveMutation.mutate(generatedConflict);
-    }
-  };
-
-  const handleCopy = () => {
-    if (generatedConflict) {
-      const conflictText = `Conflict: ${generatedConflict.title}
-
-Type: ${generatedConflict.type}
-Genre: ${generatedConflict.genre || 'General'}
+Type: ${conflict.type}
+Genre: ${conflict.genre || 'General'}
 
 Description:
-${generatedConflict.description}
+${conflict.description}
 
 Stakes:
-${generatedConflict.stakes}
+${conflict.stakes}
 
 Emotional Impact:
-${generatedConflict.emotionalImpact}
+${conflict.emotionalImpact}
 
 Obstacles:
-${generatedConflict.obstacles.join('\n')}
+${conflict.obstacles.join('\n')}
 
 Potential Resolutions:
-${generatedConflict.potentialResolutions.join('\n')}`;
+${conflict.potentialResolutions.join('\n')}`,
+    invalidateOnSave: [['/api/saved-items']],
+  });
 
-      navigator.clipboard.writeText(conflictText);
-      toast({
-        title: "Copied to Clipboard!",
-        description: "Conflict details have been copied to your clipboard.",
-      });
-    }
-  };
+  const generatedConflict = generator.result;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -143,13 +114,13 @@ ${generatedConflict.potentialResolutions.join('\n')}`;
 
       <div className="flex justify-center mb-8">
         <Button 
-          onClick={handleGenerate}
-          disabled={generateMutation.isPending}
+          onClick={generator.generate}
+          disabled={generator.isGenerating}
           size="lg"
           className="px-8 py-6 text-lg"
           data-testid="button-generate-conflict"
         >
-          {generateMutation.isPending ? (
+          {generator.isGenerating ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Creating Conflict...
@@ -173,112 +144,97 @@ ${generatedConflict.potentialResolutions.join('\n')}`;
                   {generatedConflict.title}
                 </CardTitle>
                 <CardDescription className="mt-2 text-base">
-                  <Badge variant="outline" className="mr-2">{generatedConflict.type}</Badge>
-                  {generatedConflict.genre && (
-                    <Badge variant="secondary">{generatedConflict.genre}</Badge>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Badge variant="outline">{generatedConflict.type}</Badge>
+                    {generatedConflict.genre && (
+                      <Badge variant="secondary">{generatedConflict.genre}</Badge>
+                    )}
+                  </div>
                 </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={generator.copyToClipboard}
+                  data-testid="button-copy-conflict"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={generator.saveToCollection}
+                  disabled={generator.isSaving || !generatedConflict?.id}
+                  data-testid="button-save-conflict"
+                >
+                  {generator.isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Heart className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </div>
           </CardHeader>
-          
           <CardContent className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Description</h3>
-              <p className="text-muted-foreground" data-testid="text-conflict-description">
+              <h4 className="font-semibold mb-2 text-lg">Description</h4>
+              <p className="text-muted-foreground leading-relaxed" data-testid="text-conflict-description">
                 {generatedConflict.description}
               </p>
             </div>
 
             <Separator />
 
-            <div>
-              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Stakes
-              </h3>
-              <p className="text-muted-foreground" data-testid="text-conflict-stakes">
-                {generatedConflict.stakes}
-              </p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold mb-2 text-lg flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  Stakes
+                </h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  {generatedConflict.stakes}
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2 text-lg flex items-center gap-2">
+                  <Users className="h-4 w-4 text-chart-3" />
+                  Emotional Impact
+                </h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  {generatedConflict.emotionalImpact}
+                </p>
+              </div>
             </div>
 
+            <Separator />
+
             <div>
-              <h3 className="text-lg font-semibold mb-2">Emotional Impact</h3>
-              <p className="text-muted-foreground" data-testid="text-conflict-emotional-impact">
-                {generatedConflict.emotionalImpact}
-              </p>
+              <h4 className="font-semibold mb-3 text-lg">Obstacles</h4>
+              <ul className="space-y-2">
+                {generatedConflict.obstacles.map((obstacle, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-primary mt-1.5">•</span>
+                    <span className="text-muted-foreground flex-1">{obstacle}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <Separator />
 
             <div>
-              <h3 className="text-lg font-semibold mb-3">Obstacles</h3>
-              <div className="space-y-2">
-                {generatedConflict.obstacles.map((obstacle: string, index: number) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                    <span data-testid={`text-obstacle-${index}`}>{obstacle}</span>
-                  </div>
+              <h4 className="font-semibold mb-3 text-lg">Potential Resolutions</h4>
+              <ul className="space-y-2">
+                {generatedConflict.potentialResolutions.map((resolution, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-chart-4 mt-1.5">→</span>
+                    <span className="text-muted-foreground flex-1">{resolution}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Potential Resolutions</h3>
-              <div className="space-y-2">
-                {generatedConflict.potentialResolutions.map((resolution: string, index: number) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-secondary rounded-full mt-2 flex-shrink-0" />
-                    <span data-testid={`text-resolution-${index}`}>{resolution}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-            
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
-              <Button 
-                onClick={handleSave}
-                disabled={saveMutation.isPending}
-                variant="default"
-                data-testid="button-save-conflict"
-              >
-                {saveMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Heart className="mr-2 h-4 w-4" />
-                    Save Conflict
-                  </>
-                )}
-              </Button>
-              
-              <Button 
-                onClick={handleCopy}
-                variant="outline"
-                data-testid="button-copy-conflict"
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copy Details
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {!generatedConflict && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Target className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Ready to Create Conflict</h3>
-            <p className="text-muted-foreground">
-              Choose your options above and click generate to create engaging story conflicts
-            </p>
           </CardContent>
         </Card>
       )}

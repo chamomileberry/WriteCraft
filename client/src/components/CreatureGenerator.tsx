@@ -6,116 +6,51 @@ import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Label } from "@/components/ui/label";
 import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Brain, Globe } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { useNotebookStore } from "@/stores/notebookStore";
 import type { Creature } from "@shared/schema";
 import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "@shared/genres";
-
-// Now using backend data - imported from shared/genres.ts
+import { useGenerator } from "@/hooks/useGenerator";
 
 export default function CreatureGenerator() {
-  const [generatedCreature, setGeneratedCreature] = useState<Creature | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedCreatureType, setSelectedCreatureType] = useState<string>("");
-  const { toast } = useToast();
   const { activeNotebookId } = useNotebookStore();
 
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/creatures/generate', {
-        genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
-        creatureType: selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : undefined,
-        notebookId: activeNotebookId || null
-      });
-      return await res.json() as Creature;
+  const generator = useGenerator<Creature>({
+    generateEndpoint: '/api/creatures/generate',
+    getGenerateParams: () => ({
+      genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
+      creatureType: selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : undefined,
+      notebookId: activeNotebookId || null
+    }),
+    itemTypeName: 'creature',
+    userId: 'guest',
+    validateBeforeGenerate: () => {
+      if (!activeNotebookId) {
+        return 'Please create or select a notebook before generating creatures.';
+      }
+      return null;
     },
-    onSuccess: (creature: Creature) => {
-      setGeneratedCreature(creature);
-      queryClient.invalidateQueries({ queryKey: ['/api/creatures'] });
-    },
-    onError: (error) => {
-      console.error('Failed to generate creature:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to create creature. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (creature: Creature) => {
-      const res = await apiRequest('POST', '/api/saved-items', {
-        userId: 'guest', // Use guest user for consistency 
-        itemType: 'creature',
-        itemId: creature.id,
-        itemData: creature // Include the complete creature data
-      });
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Creature Saved!",
-        description: "Creature has been saved to your collection.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
-    },
-    onError: (error) => {
-      console.error('Failed to save creature:', error);
-      toast({
-        title: "Save Failed",
-        description: "Unable to save creature. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleGenerate = () => {
-    if (!activeNotebookId) {
-      toast({
-        title: "No Notebook Selected",
-        description: "Please create or select a notebook before generating creatures.",
-        variant: "destructive"
-      });
-      return;
-    }
-    generateMutation.mutate();
-  };
-
-  const handleSave = () => {
-    if (generatedCreature) {
-      saveMutation.mutate(generatedCreature);
-    }
-  };
-
-  const handleCopy = () => {
-    if (generatedCreature) {
-      const creatureText = `**${generatedCreature.name}**
+    formatForClipboard: (creature) => `**${creature.name}**
       
-**Type:** ${generatedCreature.creatureType}
-**Habitat:** ${generatedCreature.habitat}
+**Type:** ${creature.creatureType}
+**Habitat:** ${creature.habitat}
 
 **Physical Description:**
-${generatedCreature.physicalDescription}
+${creature.physicalDescription}
 
 **Behavior:**
-${generatedCreature.behavior}
+${creature.behavior}
 
 **Abilities:**
-${generatedCreature.abilities.join(', ')}
+${creature.abilities.join(', ')}
 
 **Cultural Significance:**
-${generatedCreature.culturalSignificance}`;
+${creature.culturalSignificance}`,
+    invalidateOnSave: [['/api/saved-items']],
+  });
 
-      navigator.clipboard.writeText(creatureText);
-      toast({
-        title: "Copied to Clipboard!",
-        description: "Creature details have been copied to your clipboard.",
-      });
-    }
-  };
+  const generatedCreature = generator.result;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -175,13 +110,13 @@ ${generatedCreature.culturalSignificance}`;
           </div>
 
           <Button 
-            onClick={handleGenerate} 
-            disabled={generateMutation.isPending} 
+            onClick={generator.generate} 
+            disabled={generator.isGenerating} 
             className="w-full" 
             size="lg"
             data-testid="button-generate-creature"
           >
-            {generateMutation.isPending ? (
+            {generator.isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating...
@@ -207,112 +142,89 @@ ${generatedCreature.culturalSignificance}`;
                   {generatedCreature.name}
                 </CardTitle>
                 <CardDescription className="mt-2 text-base">
-                  {generatedCreature.creatureType} • {generatedCreature.habitat}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Badge variant="outline" className="gap-1">
+                      <Globe className="h-3 w-3" />
+                      {generatedCreature.creatureType}
+                    </Badge>
+                    <Badge variant="outline" className="gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {generatedCreature.habitat}
+                    </Badge>
+                  </div>
                 </CardDescription>
-                <div className="flex gap-2 mt-3">
-                  {generatedCreature.genre && (
-                    <Badge variant="outline" data-testid="badge-genre">{generatedCreature.genre}</Badge>
-                  )}
-                  <Badge variant="secondary" data-testid="badge-type">{generatedCreature.creatureType}</Badge>
-                  <Badge variant="secondary" data-testid="badge-habitat">{generatedCreature.habitat}</Badge>
-                </div>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCopy}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={generator.copyToClipboard}
                   data-testid="button-copy-creature"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSave}
-                  disabled={saveMutation.isPending}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={generator.saveToCollection}
+                  disabled={generator.isSaving || !generatedCreature?.id}
                   data-testid="button-save-creature"
                 >
-                  <Heart className="h-4 w-4" />
+                  {generator.isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Heart className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  Habitat
-                </div>
-                <p className="text-sm text-muted-foreground" data-testid="text-habitat">
-                  {generatedCreature.habitat}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Brain className="h-4 w-4 text-muted-foreground" />
-                  Temperament
-                </div>
-                <p className="text-sm text-muted-foreground" data-testid="text-temperament">
-                  {generatedCreature.behavior}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  Size
-                </div>
-                <p className="text-sm text-muted-foreground" data-testid="text-size">
-                  {generatedCreature.creatureType}
-                </p>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Physical Description */}
-            <div className="space-y-3">
-              <h3 className="font-semibold">Physical Description</h3>
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-physical-description">
+            <div>
+              <h4 className="font-semibold mb-2 text-lg flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Physical Description
+              </h4>
+              <p className="text-muted-foreground leading-relaxed">
                 {generatedCreature.physicalDescription}
               </p>
             </div>
 
             <Separator />
 
-            {/* Behavior */}
-            <div className="space-y-3">
-              <h3 className="font-semibold">Behavior</h3>
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-behavior">
+            <div>
+              <h4 className="font-semibold mb-2 text-lg flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                Behavior
+              </h4>
+              <p className="text-muted-foreground leading-relaxed">
                 {generatedCreature.behavior}
               </p>
             </div>
 
             <Separator />
 
-            {/* Abilities and Cultural Significance */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-primary" />
-                  Abilities
-                </h3>
-                <div className="flex flex-wrap gap-2" data-testid="list-abilities">
-                  {generatedCreature.abilities.map((ability, index) => (
-                    <Badge key={index} variant="secondary">
-                      {ability}
-                    </Badge>
-                  ))}
-                </div>
+            <div>
+              <h4 className="font-semibold mb-3 text-lg flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Abilities
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {generatedCreature.abilities.map((ability, idx) => (
+                  <Badge key={idx} variant="secondary">
+                    {ability}
+                  </Badge>
+                ))}
               </div>
-              <div className="space-y-3">
-                <h3 className="font-semibold">Cultural Significance</h3>
-                <p className="text-muted-foreground leading-relaxed" data-testid="text-cultural-significance">
-                  {generatedCreature.culturalSignificance}
-                </p>
-              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="font-semibold mb-2 text-lg">Cultural Significance</h4>
+              <p className="text-muted-foreground leading-relaxed">
+                {generatedCreature.culturalSignificance}
+              </p>
             </div>
           </CardContent>
         </Card>

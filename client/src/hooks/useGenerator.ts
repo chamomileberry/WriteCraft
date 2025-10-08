@@ -14,6 +14,10 @@ export interface UseGeneratorOptions<TResult, TParams = any> {
   userId?: string;
   /** Notebook ID for saving items (optional) */
   notebookId?: string;
+  /** Optional: Custom save endpoint (defaults to '/api/saved-items') */
+  saveEndpoint?: string;
+  /** Optional: Function to resolve ID from result (for save validation) */
+  resolveResultId?: (result: TResult) => string | undefined;
   /** Optional: Validation before generating (returns error message if invalid) */
   validateBeforeGenerate?: () => string | null;
   /** Optional: Function to format the result for clipboard */
@@ -45,12 +49,14 @@ export interface UseGeneratorReturn<TResult> {
   setResult: (result: TResult | null) => void;
 }
 
-export function useGenerator<TResult extends { id?: string }, TParams = any>({
+export function useGenerator<TResult, TParams = any>({
   generateEndpoint,
   getGenerateParams,
   itemTypeName,
   userId = 'demo-user',
   notebookId,
+  saveEndpoint = '/api/saved-items',
+  resolveResultId,
   validateBeforeGenerate,
   formatForClipboard,
   prepareSavePayload,
@@ -86,8 +92,17 @@ export function useGenerator<TResult extends { id?: string }, TParams = any>({
   // Save mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!result?.id) {
+      if (!result) {
         throw new Error('No result to save');
+      }
+
+      // Validate result has ID if resolver provided or if result is an object with id
+      const resultId = resolveResultId 
+        ? resolveResultId(result)
+        : (result as any)?.id;
+
+      if (!resultId && !prepareSavePayload) {
+        throw new Error('No ID found for result');
       }
 
       // Use custom prepare function or build default payload from context
@@ -96,12 +111,12 @@ export function useGenerator<TResult extends { id?: string }, TParams = any>({
         : {
             userId,
             itemType: itemTypeName,
-            itemId: result.id,
+            itemId: resultId,
             ...(notebookId && { notebookId }),
             itemData: result,
           };
 
-      const response = await apiRequest('POST', '/api/saved-items', payload);
+      const response = await apiRequest('POST', saveEndpoint, payload);
       return response.json();
     },
     onSuccess: () => {

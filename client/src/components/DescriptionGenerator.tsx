@@ -6,13 +6,10 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { FileText, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown } from "lucide-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import type { Description } from "@shared/schema";
 import { GENRE_CATEGORIES } from "@shared/genres";
+import { useGenerator } from "@/hooks/useGenerator";
 
-// Comprehensive description type categories
 const DESCRIPTION_TYPE_CATEGORIES = {
   "Equipment & Gear": [
     { value: 'armour', label: 'Armour Description' },
@@ -69,17 +66,33 @@ const DESCRIPTION_TYPE_CATEGORIES = {
   ]
 };
 
-// Now using backend data - imported from shared/genres.ts
-
 export default function DescriptionGenerator() {
-  const [generatedDescription, setGeneratedDescription] = useState<Description | null>(null);
   const [descriptionType, setDescriptionType] = useState('armour');
   const [genre, setGenre] = useState('');
   const [descriptionTypeSearchOpen, setDescriptionTypeSearchOpen] = useState(false);
   const [genreSearchOpen, setGenreSearchOpen] = useState(false);
-  const { toast } = useToast();
 
-  // Helper functions to get all description types and genres
+  const generator = useGenerator<Description>({
+    generateEndpoint: '/api/descriptions/generate',
+    getGenerateParams: () => ({ 
+      descriptionType, 
+      genre: genre || undefined 
+    }),
+    itemTypeName: 'description',
+    userId: 'guest',
+    formatForClipboard: (desc) => `**${desc.title}**
+
+Type: ${desc.descriptionType}
+Genre: ${desc.genre || 'General'}
+
+${desc.content}
+
+Tags: ${desc.tags.join(', ')}`,
+    invalidateOnSave: [['/api/saved-items']],
+  });
+
+  const generatedDescription = generator.result;
+
   const getAllDescriptionTypes = () => {
     return Object.entries(DESCRIPTION_TYPE_CATEGORIES).flatMap(([category, types]) => 
       types.map(type => ({ ...type, category }))
@@ -92,7 +105,6 @@ export default function DescriptionGenerator() {
     );
   };
 
-  // Get display names
   const getDescriptionTypeLabel = () => {
     const allTypes = getAllDescriptionTypes();
     return allTypes.find(type => type.value === descriptionType)?.label || 'Select description type';
@@ -103,96 +115,29 @@ export default function DescriptionGenerator() {
     return allGenres.find(g => g.value === genre)?.label || 'Any genre';
   };
 
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/descriptions/generate', { 
-        descriptionType, 
-        genre: genre || undefined 
-      });
-      return await res.json() as Description;
-    },
-    onSuccess: (description: Description) => {
-      setGeneratedDescription(description);
-      queryClient.invalidateQueries({ queryKey: ['/api/descriptions'] });
-    },
-    onError: (error) => {
-      console.error('Failed to generate description:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to create description. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (description: Description) => {
-      const res = await apiRequest('POST', '/api/saved-items', {
-        userId: 'guest', // Use guest user for consistency with Notebook
-        itemType: 'description',
-        itemId: description.id,
-        itemData: description // Include the complete description data
-      });
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Description Saved!",
-        description: "Your description has been saved to your collection.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', 'guest'] });
-    },
-    onError: () => {
-      toast({
-        title: "Save Failed",
-        description: "Unable to save description. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleGenerate = () => {
-    generateMutation.mutate();
-  };
-
-  const handleSave = () => {
-    if (generatedDescription) {
-      saveMutation.mutate(generatedDescription);
-    }
-  };
-
-  const handleCopy = () => {
-    if (generatedDescription) {
-      const descriptionText = `${generatedDescription.title}\n\n${generatedDescription.content}`;
-      navigator.clipboard.writeText(descriptionText);
-      toast({
-        title: "Copied to Clipboard!",
-        description: "Description has been copied to your clipboard.",
-      });
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">Description Generator</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Generate detailed, immersive descriptions for any element of your story. From armour and weapons to atmospheric conditions and cultural traditions.
+        <h1 className="text-4xl font-serif font-bold mb-4">Description Generator</h1>
+        <p className="text-muted-foreground text-lg">
+          Create vivid and detailed descriptions for your world
         </p>
       </div>
 
-      {/* Controls */}
-      <Card className="mb-6">
+      <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Generation Options</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            Generate Description
+          </CardTitle>
           <CardDescription>
-            Customize your description generation settings
+            Select a type and genre to generate a detailed description
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Description Type</label>
+        <CardContent className="space-y-6">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description Type</label>
               <Popover open={descriptionTypeSearchOpen} onOpenChange={setDescriptionTypeSearchOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -200,7 +145,7 @@ export default function DescriptionGenerator() {
                     role="combobox"
                     aria-expanded={descriptionTypeSearchOpen}
                     className="w-full justify-between"
-                    data-testid="select-description-type"
+                    data-testid="button-description-type-select"
                   >
                     {getDescriptionTypeLabel()}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -208,25 +153,23 @@ export default function DescriptionGenerator() {
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
                   <Command>
-                    <CommandInput placeholder="Search description types..." data-testid="input-description-type-search" />
-                    <CommandList>
-                      <CommandEmpty>No description type found.</CommandEmpty>
+                    <CommandInput placeholder="Search types..." data-testid="input-description-type-search" />
+                    <CommandList className="max-h-60">
+                      <CommandEmpty>No type found.</CommandEmpty>
                       {Object.entries(DESCRIPTION_TYPE_CATEGORIES).map(([category, types]) => (
                         <CommandGroup key={category} heading={category}>
                           {types.map((type) => (
                             <CommandItem
                               key={type.value}
-                              value={type.label}
-                              data-testid={`item-description-type-${type.value}`}
-                              onSelect={() => {
-                                setDescriptionType(type.value);
+                              value={type.value}
+                              onSelect={(currentValue) => {
+                                setDescriptionType(currentValue);
                                 setDescriptionTypeSearchOpen(false);
                               }}
+                              data-testid={`option-description-type-${type.value}`}
                             >
                               <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  descriptionType === type.value ? "opacity-100" : "opacity-0"
-                                }`}
+                                className={`mr-2 h-4 w-4 ${descriptionType === type.value ? "opacity-100" : "opacity-0"}`}
                               />
                               {type.label}
                             </CommandItem>
@@ -238,9 +181,9 @@ export default function DescriptionGenerator() {
                 </PopoverContent>
               </Popover>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Genre (Optional)</label>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Genre (Optional)</label>
               <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -248,7 +191,7 @@ export default function DescriptionGenerator() {
                     role="combobox"
                     aria-expanded={genreSearchOpen}
                     className="w-full justify-between"
-                    data-testid="select-genre"
+                    data-testid="button-genre-select"
                   >
                     {getGenreLabel()}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -257,41 +200,35 @@ export default function DescriptionGenerator() {
                 <PopoverContent className="w-full p-0">
                   <Command>
                     <CommandInput placeholder="Search genres..." data-testid="input-genre-search" />
-                    <CommandList>
+                    <CommandList className="max-h-60">
                       <CommandEmpty>No genre found.</CommandEmpty>
-                      <CommandGroup heading="Any Genre">
-                        <CommandItem
-                          value="Any Genre"
-                          data-testid="item-genre-any"
-                          onSelect={() => {
-                            setGenre('');
-                            setGenreSearchOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              genre === '' ? "opacity-100" : "opacity-0"
-                            }`}
-                          />
-                          Any Genre
-                        </CommandItem>
-                      </CommandGroup>
+                      <CommandItem
+                        value=""
+                        onSelect={() => {
+                          setGenre("");
+                          setGenreSearchOpen(false);
+                        }}
+                        data-testid="option-any-genre"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${genre === "" ? "opacity-100" : "opacity-0"}`}
+                        />
+                        Any genre
+                      </CommandItem>
                       {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
                         <CommandGroup key={category} heading={category}>
                           {genres.map((genreOption) => (
                             <CommandItem
                               key={genreOption}
                               value={genreOption}
-                              data-testid={`item-genre-${genreOption.replace(/[^a-z0-9]/g, '_')}`}
-                              onSelect={() => {
-                                setGenre(genreOption);
+                              onSelect={(currentValue) => {
+                                setGenre(currentValue);
                                 setGenreSearchOpen(false);
                               }}
+                              data-testid={`option-genre-${genreOption}`}
                             >
                               <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  genre === genreOption ? "opacity-100" : "opacity-0"
-                                }`}
+                                className={`mr-2 h-4 w-4 ${genre === genreOption ? "opacity-100" : "opacity-0"}`}
                               />
                               {genreOption}
                             </CommandItem>
@@ -304,119 +241,91 @@ export default function DescriptionGenerator() {
               </Popover>
             </div>
           </div>
+
+          <Button 
+            onClick={generator.generate}
+            disabled={generator.isGenerating}
+            className="w-full"
+            size="lg"
+            data-testid="button-generate-description"
+          >
+            {generator.isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Description
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
-      <div className="flex justify-center mb-8">
-        <Button 
-          onClick={handleGenerate}
-          disabled={generateMutation.isPending}
-          size="lg"
-          className="px-8 py-6 text-lg"
-          data-testid="button-generate-description"
-        >
-          {generateMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Creating Description...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-5 w-5" />
-              Generate Description
-            </>
-          )}
-        </Button>
-      </div>
-
       {generatedDescription && (
-        <Card className="mb-6">
+        <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-primary" />
+                <CardTitle className="text-2xl" data-testid="text-description-title">
                   {generatedDescription.title}
                 </CardTitle>
-                <CardDescription className="mt-2">
-                  {getDescriptionTypeLabel()}
-                  {genre && ` • ${genre}`}
+                <CardDescription className="mt-2 text-base">
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Badge variant="outline">{generatedDescription.descriptionType}</Badge>
+                    {generatedDescription.genre && (
+                      <Badge variant="secondary">{generatedDescription.genre}</Badge>
+                    )}
+                  </div>
                 </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={generator.copyToClipboard}
+                  data-testid="button-copy-description"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={generator.saveToCollection}
+                  disabled={generator.isSaving || !generatedDescription?.id}
+                  data-testid="button-save-description"
+                >
+                  {generator.isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Heart className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </div>
           </CardHeader>
-          
-          <CardContent className="space-y-4">
-            <div className="prose prose-gray dark:prose-invert max-w-none">
-              <p className="text-foreground leading-relaxed whitespace-pre-wrap" data-testid="text-description-content">
+          <CardContent className="space-y-6">
+            <div>
+              <h4 className="font-semibold mb-2 text-lg">Content</h4>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line" data-testid="text-description-content">
                 {generatedDescription.content}
               </p>
             </div>
 
-            {generatedDescription.tags && generatedDescription.tags.length > 0 && (
+            <Separator />
+
+            <div>
+              <h4 className="font-semibold mb-3 text-lg">Tags</h4>
               <div className="flex flex-wrap gap-2">
-                {generatedDescription.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" data-testid={`tag-${index}`}>
+                {generatedDescription.tags.map((tag, idx) => (
+                  <Badge key={idx} variant="secondary">
                     {tag}
                   </Badge>
                 ))}
               </div>
-            )}
-
-            <Separator />
-            
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
-              <Button 
-                onClick={handleSave}
-                disabled={saveMutation.isPending}
-                variant="default"
-                data-testid="button-save-description"
-              >
-                {saveMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Heart className="mr-2 h-4 w-4" />
-                    Save Description
-                  </>
-                )}
-              </Button>
-              
-              <Button 
-                onClick={handleCopy}
-                variant="outline"
-                data-testid="button-copy-description"
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copy to Clipboard
-              </Button>
-
-              <Button 
-                onClick={handleGenerate}
-                variant="outline"
-                disabled={generateMutation.isPending}
-                data-testid="button-regenerate-description"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generate Another
-              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {!generatedDescription && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Ready to Generate Descriptions</h3>
-            <p className="text-muted-foreground">
-              Choose your description type and optional genre, then click generate to create detailed, immersive descriptions for your story
-            </p>
           </CardContent>
         </Card>
       )}

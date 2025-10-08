@@ -28,6 +28,16 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 ### Code Organization & Architecture
 - **Shared Constants**: Genre categories, setting types, creature types, ethnicity options, and other shared data constants are centralized in `shared/genres.ts` to maintain clean separation of concerns.
 - **Import Pattern**: Client components import shared constants via `@shared/genres` alias, while server modules use relative paths (`../shared/genres.js`), preventing architectural violations where frontend would directly import from server directories.
+- **Custom Hooks for Code Reuse**:
+  - **`useDebouncedSave`**: Generic debounced auto-save hook with async error handling and promise management for any data type.
+  - **`useGenerator`**: Unified hook for generator components handling generate/copy/save patterns, with support for:
+    - Single results and arrays (via resolveResultId)
+    - Custom save endpoints (configurable saveEndpoint)
+    - User/notebook context (userId, notebookId parameters)
+    - Validation before generation
+    - Custom clipboard formatting and save payload preparation
+    - Consistent error handling and user feedback
+  - **Generator Refactoring**: 7 generators refactored using useGenerator (Character, Plot, Setting, Creature, Conflict, Plant, Description), achieving 22% code reduction (559 lines saved) while eliminating duplicate logic.
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon serverless)
