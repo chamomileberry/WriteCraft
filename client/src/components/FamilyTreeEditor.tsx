@@ -624,9 +624,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         { positionX: x, positionY: y }
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
-    },
+    // Don't invalidate query - ReactFlow already has the correct position
+    // Refetching causes the node to snap back to old position before DB updates
   });
 
   // Handle node drag start - capture position before drag for accurate history
