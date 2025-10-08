@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { FileText, User, MapPin, Crown, Copy, Heart, Loader2, Sparkles, RefreshCw } from "lucide-react";
-import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
+import { useGenerator } from "@/hooks/useGenerator";
 import { useToast } from "@/hooks/use-toast";
 import type { GeneratedName } from "@shared/schema";
 
@@ -360,7 +360,6 @@ const ETHNICITY_CATEGORIES = {
 };
 
 export default function NameGenerator() {
-  const [generatedNames, setGeneratedNames] = useState<GeneratedName[]>([]);
   const [nameType, setNameType] = useState('character');
   const [culture, setCulture] = useState('');
   const { toast } = useToast();
@@ -406,43 +405,22 @@ export default function NameGenerator() {
     return allEthnicities.find(eth => eth.value === culture)?.label || 'Any culture';
   };
 
-  const generateMutation = useGenerateMutation<GeneratedName[]>('/api/names/generate', {
-    errorMessage: "Unable to create names. Please try again.",
-    onSuccess: (names: GeneratedName[]) => {
-      setGeneratedNames(names);
+  const generator = useGenerator<GeneratedName[]>({
+    generateEndpoint: '/api/names/generate',
+    getGenerateParams: () => ({ nameType, culture }),
+    resolveResultId: (names) => names[0]?.id,
+    saveEndpoint: '/api/names',
+    prepareSavePayload: (names) => ({ names, nameType, culture }),
+    formatForClipboard: (names) => {
+      const nameText = `Generated ${getNameTypeLabel()} (${getCultureLabel()}):\n\n${names.map(name => `${name.name}${name.meaning ? ` - ${name.meaning}` : ''}`).join('\n')}`;
+      return nameText;
     },
-    invalidateQueries: ['/api/names'],
-    transformPayload: () => ({ nameType, culture }),
+    itemTypeName: 'names',
+    userId: 'guest',
+    invalidateOnSave: [['/api/names']],
   });
 
-  const saveMutation = useSaveMutation('/api/names', {
-    successMessage: "Your names have been saved to your collection.",
-    errorMessage: "Unable to save names. Please try again.",
-    invalidateQueries: ['/api/names'],
-    transformPayload: () => ({ names: generatedNames, nameType, culture }),
-  });
-
-  const handleGenerate = () => {
-    generateMutation.mutate({});
-  };
-
-  const handleSave = () => {
-    if (generatedNames.length > 0) {
-      saveMutation.mutate({});
-    }
-  };
-
-  const handleCopy = () => {
-    if (generatedNames.length > 0) {
-      const nameText = `Generated ${getNameTypeLabel()} (${getCultureLabel()}):\n\n${generatedNames.map(name => `${name.name}${name.meaning ? ` - ${name.meaning}` : ''}`).join('\n')}`;
-
-      navigator.clipboard.writeText(nameText);
-      toast({
-        title: "Copied to Clipboard!",
-        description: "Names have been copied to your clipboard.",
-      });
-    }
-  };
+  const generatedNames = generator.result || [];
 
   const getNameTypeIcon = () => {
     switch (nameType) {
@@ -520,13 +498,13 @@ export default function NameGenerator() {
 
       <div className="flex justify-center mb-8">
         <Button 
-          onClick={handleGenerate}
-          disabled={generateMutation.isPending}
+          onClick={generator.generate}
+          disabled={generator.isGenerating}
           size="lg"
           className="px-8 py-6 text-lg"
           data-testid="button-generate-names"
         >
-          {generateMutation.isPending ? (
+          {generator.isGenerating ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Creating Names...
@@ -600,12 +578,12 @@ export default function NameGenerator() {
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
               <Button 
-                onClick={handleSave}
-                disabled={saveMutation.isPending}
+                onClick={generator.saveToCollection}
+                disabled={generator.isSaving}
                 variant="default"
                 data-testid="button-save-names"
               >
-                {saveMutation.isPending ? (
+                {generator.isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
@@ -619,7 +597,7 @@ export default function NameGenerator() {
               </Button>
               
               <Button 
-                onClick={handleCopy}
+                onClick={generator.copyToClipboard}
                 variant="outline"
                 data-testid="button-copy-all-names"
               >
@@ -628,9 +606,9 @@ export default function NameGenerator() {
               </Button>
 
               <Button 
-                onClick={handleGenerate}
+                onClick={generator.generate}
                 variant="outline"
-                disabled={generateMutation.isPending}
+                disabled={generator.isGenerating}
                 data-testid="button-regenerate-names"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
