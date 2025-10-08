@@ -577,51 +577,93 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       newEdges.push(edgeProps);
     });
     
-    // Combine member nodes and junction nodes
-    const allNodes = [...memberNodes, ...junctionNodes];
-    
     // Compute final nodes with layout
-    let finalNodes = allNodes;
+    let finalNodes = [...memberNodes, ...junctionNodes];
     if (isAutoLayout) {
-      const { nodes: layoutedNodes } = getLayoutedElements(allNodes, newEdges, {
+      // Only layout family members with Dagre (not junctions)
+      const { nodes: layoutedMembers } = getLayoutedElements(memberNodes, newEdges, {
         direction: 'TB',
         nodeSep: 100,
         rankSep: 150,
       });
       
-      // Fix junction positions to be exactly on the marriage line between parents
-      finalNodes = layoutedNodes.map(node => {
-        if (node.type === 'junction' && node.data.parent1Id && node.data.parent2Id) {
-          const parent1 = layoutedNodes.find(n => n.id === node.data.parent1Id);
-          const parent2 = layoutedNodes.find(n => n.id === node.data.parent2Id);
+      // Align married couples to the same Y coordinate
+      const coupleAlignments = new Map<string, number>();
+      processedCouples.clear();
+      
+      marriageMap.forEach((spouses, memberId) => {
+        spouses.forEach(spouseId => {
+          const coupleKey = [memberId, spouseId].sort().join('-');
+          if (processedCouples.has(coupleKey)) return;
+          processedCouples.add(coupleKey);
+          
+          const member1 = layoutedMembers.find(n => n.id === memberId);
+          const member2 = layoutedMembers.find(n => n.id === spouseId);
+          
+          if (member1 && member2) {
+            const avgY = (member1.position.y + member2.position.y) / 2;
+            coupleAlignments.set(memberId, avgY);
+            coupleAlignments.set(spouseId, avgY);
+          }
+        });
+      });
+      
+      // Apply alignments
+      const alignedMembers = layoutedMembers.map(node => {
+        const alignedY = coupleAlignments.get(node.id);
+        if (alignedY !== undefined) {
+          return {
+            ...node,
+            position: { x: node.position.x, y: alignedY },
+          };
+        }
+        return node;
+      });
+      
+      // Position junction nodes on the marriage line between aligned parents
+      const positionedJunctions = junctionNodes.map(junctionNode => {
+        if (junctionNode.data.parent1Id && junctionNode.data.parent2Id) {
+          const parent1 = alignedMembers.find(n => n.id === junctionNode.data.parent1Id);
+          const parent2 = alignedMembers.find(n => n.id === junctionNode.data.parent2Id);
           
           if (parent1 && parent2) {
-            // Position junction exactly between parents at same Y level
             return {
-              ...node,
+              ...junctionNode,
               position: {
                 x: (parent1.position.x + parent2.position.x) / 2,
-                y: Math.max(parent1.position.y, parent2.position.y),
+                y: parent1.position.y,
               },
             };
           }
         }
-        return node;
+        return junctionNode;
       });
+      
+      finalNodes = [...alignedMembers, ...positionedJunctions];
     }
     
-    // Only update state if nodes or edges actually changed
-    const nodesChanged = JSON.stringify(finalNodes.map(n => ({ id: n.id, x: n.position.x, y: n.position.y }))) !== 
-                         JSON.stringify(lastComputedNodesRef.current.map(n => ({ id: n.id, x: n.position.x, y: n.position.y })));
-    const edgesChanged = JSON.stringify(newEdges) !== JSON.stringify(lastComputedEdgesRef.current);
+    // Only update state if structure changed (compare IDs and basic structure, not positions)
+    const finalStructure = {
+      nodeIds: finalNodes.map(n => n.id).sort().join(','),
+      edgeIds: newEdges.map(e => e.id).sort().join(','),
+      count: `${finalNodes.length}:${newEdges.length}`
+    };
     
-    if (nodesChanged) {
+    const lastStructure = {
+      nodeIds: lastComputedNodesRef.current.map(n => n.id).sort().join(','),
+      edgeIds: lastComputedEdgesRef.current.map(e => e.id).sort().join(','),
+      count: `${lastComputedNodesRef.current.length}:${lastComputedEdgesRef.current.length}`
+    };
+    
+    const structureChanged = 
+      finalStructure.nodeIds !== lastStructure.nodeIds ||
+      finalStructure.edgeIds !== lastStructure.edgeIds ||
+      finalStructure.count !== lastStructure.count;
+    
+    if (structureChanged || lastComputedNodesRef.current.length === 0) {
       lastComputedNodesRef.current = finalNodes;
-      setNodes(finalNodes);
-    }
-    
-    if (edgesChanged) {
       lastComputedEdgesRef.current = newEdges;
+      setNodes(finalNodes);
       setEdges(newEdges);
     }
   }, [members, relationships, isAutoLayout, setNodes, setEdges, notebookId, treeId]);
