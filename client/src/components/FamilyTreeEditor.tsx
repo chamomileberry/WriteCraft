@@ -93,6 +93,9 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   
   // Track node positions before drag starts for accurate history
   const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  
+  // Track dragging state to prevent junction recalculation during drag
+  const isDragging = useRef(false);
 
   // Handle member edit
   const handleEditMember = useCallback((member: FamilyTreeMember) => {
@@ -618,6 +621,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   // Handle node drag start - capture position before drag for accurate history
   const onNodeDragStart = useCallback((event: any, node: Node) => {
     if (!isAutoLayout) {
+      // Set dragging flag to prevent junction recalculation
+      isDragging.current = true;
       // Capture the current position before drag starts
       dragStartPositions.current.set(node.id, { x: node.position.x, y: node.position.y });
     }
@@ -626,6 +631,9 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   // Handle node drag end - save position and record in history
   const onNodeDragStop = useCallback((event: any, node: Node) => {
     if (!isAutoLayout) {
+      // Clear dragging flag to allow junction recalculation
+      isDragging.current = false;
+      
       // Get old position from drag start (accurate React Flow state)
       const oldPosition = dragStartPositions.current.get(node.id) || { x: 0, y: 0 };
       
