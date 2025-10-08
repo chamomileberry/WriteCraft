@@ -16,18 +16,28 @@ router.post("/generate", async (req: any, res) => {
     
     const { nameType, culture } = generateRequestSchema.parse(req.body);
     
-    // TODO: Extract generator function from main routes.ts file
-    const generatedNames = [{
-      name: `Generated ${nameType} name`,
-      meaning: `A ${culture} ${nameType} name`,
+    // TODO: Implement AI-based name generation
+    // Currently using placeholder names - needs proper generator implementation
+    const placeholderNames = [
+      { prefix: 'Aether', suffix: 'wyn' },
+      { prefix: 'Zeph', suffix: 'iron' },
+      { prefix: 'Lyra', suffix: 'belle' },
+      { prefix: 'Thal', suffix: 'dor' },
+      { prefix: 'Ember', suffix: 'light' },
+      { prefix: 'Kael', suffix: 'storm' },
+      { prefix: 'Syl', suffix: 'andra' },
+      { prefix: 'Mor', suffix: 'gath' },
+    ];
+    
+    const generatedNames = placeholderNames.slice(0, 6).map((placeholder, idx) => ({
+      name: `${placeholder.prefix}${placeholder.suffix}`,
+      meaning: `${culture ? culture + ' ' : ''}${nameType} name ${idx + 1}`,
       nameType,
-      culture,
-      userId: userId || null
-    }];
-    const namesList = generatedNames.map((name: any) => ({
-      ...name,
+      culture: culture || 'generic',
       userId: userId || null
     }));
+    
+    const namesList = generatedNames;
 
     // Create individual names using createName
     const createdNames = [];

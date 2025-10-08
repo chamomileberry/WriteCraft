@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { FileText, User, MapPin, Crown, Copy, Heart, Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import type { GeneratedName } from "@shared/schema";
 
@@ -362,6 +363,7 @@ const ETHNICITY_CATEGORIES = {
 export default function NameGenerator() {
   const [nameType, setNameType] = useState('character');
   const [culture, setCulture] = useState('');
+  const { user } = useAuth();
   const { toast } = useToast();
 
   // Helper functions to get all name types and ethnicities
@@ -416,7 +418,7 @@ export default function NameGenerator() {
       return nameText;
     },
     itemTypeName: 'names',
-    userId: 'guest',
+    userId: user?.id,
     invalidateOnSave: [['/api/names']],
   });
 
