@@ -59,6 +59,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAutosave } from '@/hooks/useAutosave';
 import { useWorkspaceStore, EditorActions } from '@/stores/workspaceStore';
 import { WorkspaceLayout } from './workspace/WorkspaceLayout';
 import { ProjectHeader } from './ProjectHeader';
@@ -194,8 +195,6 @@ const FontSize = Extension.create({
 
 const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projectId, onBack }, ref) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
-  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState('');
   
@@ -213,7 +212,6 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
 
   // Fetch project data
@@ -239,6 +237,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
 
   // Initialize TipTap editor
   const lowlight = createLowlight();
+  const autosaveRef = useRef<{ triggerAutosave: () => void } | null>(null);
   
   const editor = useEditor({
     extensions: [
@@ -361,9 +360,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       },
     },
     onUpdate: ({ editor }) => {
-      setSaveStatus('unsaved');
-      
-      // Update editor context for AI Writing Assistant
+      // Update editor context for AI Writing Assistant (immediate, not debounced)
       const content = editor.getText();
       const htmlContent = editor.getHTML();
       updateEditorContext({
@@ -374,41 +371,38 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         entityId: projectId
       });
       
-      if (autosaveTimeoutRef.current) {
-        clearTimeout(autosaveTimeoutRef.current);
-      }
-      
-      autosaveTimeoutRef.current = setTimeout(() => {
-        saveContent();
-      }, 2000);
+      // Trigger autosave with debouncing (handled by useAutosave hook)
+      autosaveRef.current?.triggerAutosave();
     },
   });
 
-  // Save mutation
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!editor) throw new Error('Editor not initialized');
-      
-      const content = editor.getHTML();
-      const wordCount = editor.storage.characterCount?.words() || 0;
-      const response = await apiRequest('PUT', `/api/projects/${projectId}`, { content, wordCount });
+  // Set up autosave hook for content
+  const autosave = useAutosave({
+    editor,
+    saveDataFunction: () => {
+      if (!editor) return null;
+      return {
+        content: editor.getHTML(),
+        wordCount: editor.storage.characterCount?.words() || 0,
+      };
+    },
+    mutationFunction: async (data) => {
+      const response = await apiRequest('PUT', `/api/projects/${projectId}`, data);
       return response.json();
     },
     onSuccess: () => {
-      setSaveStatus('saved');
-      setLastSaveTime(new Date());
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
     },
-    onError: (error: any) => {
-      setSaveStatus('unsaved');
-      toast({
-        title: "Save failed",
-        description: error.message || "Failed to save project. Please try again.",
-        variant: "destructive"
-      });
-    },
+    debounceMs: 2000,
+    successMessage: 'Project saved successfully',
+    errorMessage: 'Failed to save project. Please try again.',
   });
+
+  // Store autosave reference for use in editor onUpdate
+  useEffect(() => {
+    autosaveRef.current = autosave;
+  }, [autosave]);
 
   // Title update mutation
   const titleMutation = useMutation({
@@ -473,23 +467,12 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   // Expose save function via ref
   useImperativeHandle(ref, () => ({
     saveContent: async () => {
-      await saveMutation.mutateAsync();
+      await autosave.handleSave();
     }
   }));
 
-  const saveContent = useCallback(async () => {
-    if (editor && saveStatus !== 'saving') {
-      setSaveStatus('saving');
-      try {
-        await saveMutation.mutateAsync();
-      } catch (error) {
-        console.error('Save error:', error);
-      }
-    }
-  }, [editor, saveStatus, saveMutation]);
-
   const handleManualSave = () => {
-    saveContent();
+    autosave.handleSave();
   };
 
   // Title editing handlers
@@ -671,8 +654,8 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         <ProjectHeader
           project={project}
           wordCount={editor?.storage.characterCount?.words() || 0}
-          saveStatus={saveStatus}
-          lastSaveTime={lastSaveTime}
+          saveStatus={autosave.saveStatus}
+          lastSaveTime={autosave.lastSaveTime}
           isEditingTitle={isEditingTitle}
           titleInput={titleInput}
           onBack={onBack}
@@ -682,7 +665,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           onTitleCancel={handleTitleCancel}
           onTitleKeyDown={handleTitleKeyDown}
           onManualSave={handleManualSave}
-          isSaving={saveMutation.isPending}
+          isSaving={autosave.isSaving}
         />
 
         {/* Editor Content */}

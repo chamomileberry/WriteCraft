@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw, Save, ArrowLeft, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
 import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
 import { CharacterGallery } from './CharacterGallery';
@@ -64,10 +65,9 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const [selectedMemberForRelationship, setSelectedMemberForRelationship] = useState<FamilyTreeMember | null>(null);
   const [selectedRelationshipType, setSelectedRelationshipType] = useState<AddRelationshipType | null>(null);
   
-  // Tree metadata editing state (for auto-save - task 4)
+  // Tree metadata editing state
   const [treeName, setTreeName] = useState('');
   const [treeDescription, setTreeDescription] = useState('');
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle member edit
   const handleEditMember = useCallback((member: FamilyTreeMember) => {
@@ -235,32 +235,34 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     },
   });
 
-  // Debounced auto-save for tree metadata (name and description)
-  useEffect(() => {
-    if (!tree) return;
-    
-    const nameChanged = treeName !== tree.name;
-    const descriptionChanged = treeDescription !== tree.description;
-    
-    if (!nameChanged && !descriptionChanged) return;
-    
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    
-    saveTimeoutRef.current = setTimeout(() => {
+  // Debounced auto-save for tree metadata using useDebouncedSave hook
+  const metadataSave = useDebouncedSave({
+    getData: () => {
+      if (!tree) return null;
+      
+      const nameChanged = treeName !== tree.name;
+      const descriptionChanged = treeDescription !== tree.description;
+      
+      if (!nameChanged && !descriptionChanged) return null;
+      
       const updates: { name?: string; description?: string } = {};
       if (nameChanged) updates.name = treeName;
       if (descriptionChanged) updates.description = treeDescription;
       
-      updateTreeMetadata.mutate(updates);
-    }, 1000); // 1 second debounce
-    
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
+      return updates;
+    },
+    saveFn: async (data) => {
+      return await updateTreeMetadata.mutateAsync(data);
+    },
+    debounceMs: 1000,
+    showToasts: false, // No toasts for auto-save
+  });
+
+  // Trigger save when treeName or treeDescription changes
+  useEffect(() => {
+    if (tree && (treeName !== tree.name || treeDescription !== tree.description)) {
+      metadataSave.triggerSave();
+    }
   }, [treeName, treeDescription, tree]);
 
   // React Flow state - using generic types as React Flow's TypeScript support for custom data is limited

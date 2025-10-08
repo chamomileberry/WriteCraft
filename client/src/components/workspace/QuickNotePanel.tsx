@@ -10,6 +10,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useNotebookStore } from '@/stores/notebookStore';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { useAutosave } from '@/hooks/useAutosave';
+import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Save, BookmarkPlus, ListChecks, FilePlus } from 'lucide-react';
@@ -94,47 +95,39 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     }
   }, [isInitialLoad, quickNote, editor, panelId, updatePanel]);
 
-  // Debounced title save ref
-  const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Save title changes with debounce (after initial load)
-  useEffect(() => {
-    if (!isInitialLoad && hasBeenSavedOnce && editor && noteTitle !== quickNote?.title) {
-      // Clear existing timeout
-      if (titleSaveTimeoutRef.current) {
-        clearTimeout(titleSaveTimeoutRef.current);
-      }
-      
-      // Debounce title save for 500ms
-      titleSaveTimeoutRef.current = setTimeout(() => {
-        const saveTitle = async () => {
-          try {
-            const response = await apiRequest('POST', '/api/quick-note', {
-              userId,
-              title: noteTitle,
-              content: editor.getHTML(),
-            });
-            const savedNote = await response.json();
-            
-            // Update cache WITHOUT triggering re-fetch
-            queryClient.setQueryData(['/api/quick-note', userId], (old: any) => ({
-              ...old,
-              ...savedNote,
-            }));
-          } catch (error) {
-            console.error('Failed to save title:', error);
-          }
+  // Debounced title save using useDebouncedSave hook
+  const titleSave = useDebouncedSave({
+    getData: () => {
+      if (!isInitialLoad && hasBeenSavedOnce && editor && noteTitle !== quickNote?.title) {
+        return {
+          userId,
+          title: noteTitle,
+          content: editor.getHTML(),
         };
-        saveTitle();
-      }, 500);
-    }
-    
-    return () => {
-      if (titleSaveTimeoutRef.current) {
-        clearTimeout(titleSaveTimeoutRef.current);
       }
-    };
-  }, [noteTitle, isInitialLoad, hasBeenSavedOnce, editor, quickNote?.title, userId, queryClient]);
+      return null;
+    },
+    saveFn: async (data) => {
+      const response = await apiRequest('POST', '/api/quick-note', data);
+      return await response.json();
+    },
+    onSuccess: (savedNote) => {
+      // Update cache WITHOUT triggering re-fetch
+      queryClient.setQueryData(['/api/quick-note', userId], (old: any) => ({
+        ...old,
+        ...savedNote,
+      }));
+    },
+    debounceMs: 500,
+    showToasts: false, // No toasts for title auto-save
+  });
+
+  // Trigger title save when noteTitle changes
+  useEffect(() => {
+    if (!isInitialLoad && hasBeenSavedOnce && noteTitle !== quickNote?.title) {
+      titleSave.triggerSave();
+    }
+  }, [noteTitle, isInitialLoad, hasBeenSavedOnce, quickNote?.title]);
 
   // Save data function for autosave
   const saveDataFunction = useCallback(() => {

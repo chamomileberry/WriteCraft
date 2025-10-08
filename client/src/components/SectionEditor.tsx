@@ -29,6 +29,7 @@ import { createLowlight } from 'lowlight';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAutosave } from '@/hooks/useAutosave';
 import { useWorkspaceStore, EditorActions } from '@/stores/workspaceStore';
 import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import type { ProjectSection } from '@shared/schema';
@@ -157,34 +158,12 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
   ({ projectId, section, onContentChange, onSaveStatusChange, onLastSaveTimeChange, onWordCountChange, readOnly = false }, ref) => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
 
     const lowlight = createLowlight();
 
-    // Save mutation
-    const saveMutation = useMutation({
-      mutationFn: async (content: string) => {
-        const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/${section.id}`, { 
-          content 
-        });
-        return response.json();
-      },
-      onSuccess: () => {
-        onSaveStatusChange?.('saved');
-        onLastSaveTimeChange?.(new Date());
-        onContentChange?.(false);
-        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections', section.id] });
-      },
-      onError: (error: any) => {
-        onSaveStatusChange?.('unsaved');
-        toast({
-          title: "Save failed",
-          description: error.message || "Failed to save section. Please try again.",
-          variant: "destructive"
-        });
-      },
-    });
+    // Create ref for autosave
+    const autosaveRef = useRef<{ triggerAutosave: () => void } | null>(null);
 
     // Initialize TipTap editor
     const editor = useEditor({
@@ -284,14 +263,15 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         },
       },
       onUpdate: ({ editor }) => {
+        // Signal unsaved changes immediately (before debounced save)
         onSaveStatusChange?.('unsaved');
         onContentChange?.(true);
         
-        // Update word count
+        // Update word count (immediate)
         const words = editor.storage.characterCount?.words() || 0;
         onWordCountChange?.(words);
         
-        // Update editor context for AI
+        // Update editor context for AI (immediate, not debounced)
         updateEditorContext({
           content: editor.getText(),
           htmlContent: editor.getHTML(),
@@ -300,16 +280,45 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
           entityId: section.id
         });
         
-        // Auto-save after 2 seconds
-        if (autosaveTimeoutRef.current) {
-          clearTimeout(autosaveTimeoutRef.current);
-        }
-        
-        autosaveTimeoutRef.current = setTimeout(() => {
-          saveContent();
-        }, 2000);
+        // Trigger autosave with debouncing (handled by useAutosave hook)
+        autosaveRef.current?.triggerAutosave();
       },
     });
+
+    // Set up autosave hook for content
+    const autosave = useAutosave({
+      editor,
+      saveDataFunction: () => {
+        if (!editor) return null;
+        return {
+          content: editor.getHTML(),
+          wordCount: editor.storage.characterCount?.words() || 0,
+        };
+      },
+      mutationFunction: async (data) => {
+        const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/${section.id}`, { 
+          content: data.content 
+        });
+        return response.json();
+      },
+      onSuccess: () => {
+        onSaveStatusChange?.('saved');
+        onLastSaveTimeChange?.(new Date());
+        onContentChange?.(false);
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections', section.id] });
+      },
+      onError: (error: any) => {
+        onSaveStatusChange?.('unsaved');
+      },
+      debounceMs: 2000,
+      successMessage: 'Section saved successfully',
+      errorMessage: 'Failed to save section. Please try again.',
+    });
+
+    // Store autosave reference for use in editor onUpdate
+    useEffect(() => {
+      autosaveRef.current = autosave;
+    }, [autosave]);
 
     // Update editor content when section changes
     useEffect(() => {
@@ -354,18 +363,11 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
       };
     }, [clearEditorContext]);
 
-    // Save content function
-    const saveContent = useCallback(async () => {
-      if (editor) {
-        onSaveStatusChange?.('saving');
-        const content = editor.getHTML();
-        await saveMutation.mutateAsync(content);
-      }
-    }, [editor, saveMutation, onSaveStatusChange]);
-
     // Expose save via ref
     useImperativeHandle(ref, () => ({
-      saveContent,
+      saveContent: async () => {
+        await autosave.handleSave();
+      },
     }));
 
     if (!editor) {
