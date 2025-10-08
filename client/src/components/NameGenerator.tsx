@@ -431,9 +431,9 @@ export default function NameGenerator() {
       return nameText;
     },
     itemTypeName: 'names',
-    userId: user?.id,
-    notebookId: activeNotebookId,
-    invalidateOnSave: [['/api/saved-items', user?.id]],
+    userId: user?.id ?? undefined,
+    notebookId: activeNotebookId ?? undefined,
+    invalidateOnSave: [['/api/saved-items', user?.id ?? undefined]],
   });
 
   const generatedNames = generator.result || [];

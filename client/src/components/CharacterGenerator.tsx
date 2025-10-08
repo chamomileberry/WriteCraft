@@ -10,12 +10,14 @@ import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
 import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "@shared/genres";
 import { type Character } from "@shared/schema";
 import { useNotebookStore } from "@/stores/notebookStore";
+import { useAuth } from "@/hooks/useAuth";
 import { useGenerator } from "@/hooks/useGenerator";
 
 export default function CharacterGenerator() {
   const [genre, setGenre] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [ethnicity, setEthnicity] = useState<string>("");
+  const { user } = useAuth();
   const { activeNotebookId } = useNotebookStore();
 
   const generator = useGenerator<Character>({
@@ -28,8 +30,8 @@ export default function CharacterGenerator() {
       notebookId: activeNotebookId
     }),
     itemTypeName: 'character',
-    userId: 'demo-user',
-    notebookId: activeNotebookId,
+    userId: user?.id ?? undefined,
+    notebookId: activeNotebookId ?? undefined,
     validateBeforeGenerate: () => {
       if (!activeNotebookId) {
         return 'Please create or select a notebook before generating characters.';
@@ -47,7 +49,7 @@ export default function CharacterGenerator() {
 **Flaw:** ${character.flaw}`;
     },
     prepareSavePayload: (character) => ({
-      userId: 'demo-user',
+      userId: user?.id ?? undefined,
       itemType: 'character',
       itemId: character.id,
       notebookId: activeNotebookId,
@@ -64,7 +66,7 @@ export default function CharacterGenerator() {
         gender: character.gender
       }
     }),
-    invalidateOnSave: [['/api/saved-items', 'demo-user']],
+    invalidateOnSave: [['/api/saved-items', user?.id ?? undefined]],
     onGenerateSuccess: (data) => {
       console.log('Generated character:', data);
     },
