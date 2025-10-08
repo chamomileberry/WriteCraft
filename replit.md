@@ -28,6 +28,11 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 ### Code Organization & Architecture
 - **Shared Constants**: Genre categories, setting types, creature types, ethnicity options, and other shared data constants are centralized in `shared/genres.ts` to maintain clean separation of concerns.
 - **Import Pattern**: Client components import shared constants via `@shared/genres` alias, while server modules use relative paths (`../shared/genres.js`), preventing architectural violations where frontend would directly import from server directories.
+- **Schema-Driven Form Generator**: Automatic form configuration generation from Drizzle/Zod schemas, reducing duplication and ensuring new database fields automatically appear in forms:
+  - **Schema Analyzer** (`client/src/lib/schema-analyzer.ts`): Introspects Zod schemas to extract field metadata (name, type, constraints, arrays).
+  - **Form Generator** (`client/src/lib/form-generator.ts`): Converts schema metadata + UI hints into complete form configurations with automatic tab grouping and field ordering. Includes safeguard to create "Other Details" tab for unassigned fields when tabs are configured.
+  - **Schema-Driven Configs** (`client/src/configs/schema-driven-configs.ts`): UI customization layer providing field hints (labels, placeholders, tab assignments, autocomplete endpoints) for specific content types.
+  - **4-Layer Config System**: Hierarchical configuration lookup with caching: (1) Static manual configs → (2) Dynamic manual configs → (3) Schema-driven auto-generated configs → (4) Monolithic fallback. New content types (rank, condition) use schema-driven configs without manual form definitions.
 - **Custom Hooks for Code Reuse**:
   - **`useAutosave`**: Specialized auto-save hook for TipTap rich text editors with debouncing, async error handling, and promise cleanup.
   - **`useDebouncedSave`**: Generic debounced auto-save hook with async error handling and promise management for any data type (forms, state, non-TipTap content).

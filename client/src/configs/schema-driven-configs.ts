@@ -212,6 +212,20 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
     icon: 'Coffee',
     defaultTab: 'general',
   }),
+  
+  rank: () => buildConfig(schemas.insertRankSchema, {
+    title: 'Rank Editor',
+    description: 'Create military ranks, nobility titles, and hierarchies',
+    icon: 'Award',
+    defaultTab: 'general',
+  }),
+  
+  condition: () => buildConfig(schemas.insertConditionSchema, {
+    title: 'Condition Editor',
+    description: 'Create diseases, curses, afflictions, and blessings',
+    icon: 'HeartPulse',
+    defaultTab: 'general',
+  }),
 };
 
 /**

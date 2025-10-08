@@ -114,6 +114,7 @@ export const CONTENT_TYPES: ContentType[] = [
   { id: "ethnicity", name: "Ethnicity", description: "Define cultural ethnic groups", category: "People", icon: Users },
   { id: "culture", name: "Culture", description: "Build rich cultural backgrounds", category: "People", icon: Globe },
   { id: "profession", name: "Profession", description: "Create detailed job roles and professions", category: "People", icon: Briefcase },
+  { id: "rank", name: "Rank", description: "Create military ranks, nobility titles, and hierarchies", category: "People", icon: Crown },
   { id: "familyTree", name: "Family Tree", description: "Map family lineages and relationships", category: "People", icon: GitBranch },
   
   // Places & Locations
@@ -181,6 +182,7 @@ export const CONTENT_TYPES: ContentType[] = [
   { id: "technology", name: "Technology", description: "Create innovations and inventions", category: "Science", icon: Lightbulb },
   { id: "spell", name: "Spell", description: "Design magical effects", category: "Science", icon: Zap },
   { id: "naturalLaw", name: "Natural Law", description: "Define world physics and rules", category: "Science", icon: Calculator },
+  { id: "condition", name: "Condition", description: "Create diseases, curses, afflictions, and blessings", category: "Science", icon: Zap },
 ];
 
 // Content categories for organization
