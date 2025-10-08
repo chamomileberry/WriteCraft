@@ -2,7 +2,6 @@ import { ContentTypeFormConfig } from '../types';
 
 // Static imports for frequently used content types (loaded immediately)
 import { characterConfig } from './character';
-import { weaponConfig } from './weapon';
 
 // Import the extracted configs from our new individual files
 import { armorConfig } from '../../../configs/content-types/armor';
@@ -22,9 +21,6 @@ import { conflictConfig } from '../../../configs/content-types/conflict';
 import { themeConfig } from '../../../configs/content-types/theme';
 import { moodConfig } from '../../../configs/content-types/mood';
 import { descriptionConfig } from '../../../configs/content-types/description';
-import { buildingConfig } from '../../../configs/content-types/building';
-import { creatureConfig } from '../../../configs/content-types/creature';
-import { itemConfig } from '../../../configs/content-types/item';
 import { locationConfig } from '../../../configs/content-types/location';
 import { organizationConfig } from '../../../configs/content-types/organization';
 
@@ -34,7 +30,6 @@ import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormCon
 // Static configurations for core content types
 const staticConfigs: Record<string, ContentTypeFormConfig> = {
   character: characterConfig,
-  weapon: weaponConfig,
   armor: armorConfig,
   spell: spellConfig,
   plot: plotConfig,
@@ -52,19 +47,16 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   theme: themeConfig,
   mood: moodConfig,
   description: descriptionConfig,
-  building: buildingConfig,
-  creature: creatureConfig,
-  item: itemConfig,
   location: locationConfig,
   organization: organizationConfig,
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
     Object.entries(originalConfigs).filter(([key]) => ![
-      'character', 'weapon', 'armor', 'spell', 'plot',
+      'character', 'armor', 'spell', 'plot',
       'food', 'drink', 
       'ethnicity', 'familyTree', 'timeline', 'prompt', 'document', 
       'map', 'setting', 'name', 'conflict', 'theme', 'mood', 'description', 
-      'building', 'creature', 'item', 'location', 'organization'
+      'location', 'organization'
     ].includes(key))
   ),
 };
@@ -161,7 +153,6 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
 
 // Re-export individual configs for direct imports if needed
 export { characterConfig } from './character';
-export { weaponConfig } from './weapon';
 export { armorConfig } from '../../../configs/content-types/armor';
 export { spellConfig } from '../../../configs/content-types/spell';
 export { plotConfig } from '../../../configs/content-types/plot';
@@ -179,8 +170,5 @@ export { conflictConfig } from '../../../configs/content-types/conflict';
 export { themeConfig } from '../../../configs/content-types/theme';
 export { moodConfig } from '../../../configs/content-types/mood';
 export { descriptionConfig } from '../../../configs/content-types/description';
-export { buildingConfig } from '../../../configs/content-types/building';
-export { creatureConfig } from '../../../configs/content-types/creature';
-export { itemConfig } from '../../../configs/content-types/item';
 export { locationConfig } from '../../../configs/content-types/location';
 export { organizationConfig } from '../../../configs/content-types/organization';

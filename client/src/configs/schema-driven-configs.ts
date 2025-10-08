@@ -1085,6 +1085,130 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       history: { tab: 'power', order: 6, rows: 4, placeholder: 'Faction history...' },
     },
   }),
+
+  weapon: () => buildConfig(schemas.insertWeaponSchema, {
+    title: 'Weapon Designer',
+    description: 'Create weapons and armaments',
+    icon: 'Sword',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'properties', label: 'Properties & Stats', icon: 'Zap', order: 2 },
+      { id: 'lore', label: 'Lore & History', icon: 'BookOpen', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Weapon Name' },
+      weaponType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Sword, bow, staff, etc.' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      damage: { tab: 'properties', order: 1, placeholder: 'Damage rating' },
+      range: { tab: 'properties', order: 2, placeholder: 'Range or reach' },
+      weight: { tab: 'properties', order: 3, placeholder: 'Weight' },
+      materials: { tab: 'properties', order: 4, placeholder: 'Materials used...' },
+      craftsmanship: { tab: 'properties', order: 5, rows: 3, placeholder: 'Quality and craftsmanship...' },
+      enchantments: { tab: 'properties', order: 6, placeholder: 'Magical enhancements...' },
+      rarity: { tab: 'properties', order: 7, placeholder: 'Common, rare, legendary, etc.' },
+      value: { tab: 'properties', order: 8, placeholder: 'Monetary value' },
+      requirements: { tab: 'properties', order: 9, rows: 2, placeholder: 'Requirements to use...' },
+      maintenance: { tab: 'properties', order: 10, rows: 2, placeholder: 'Maintenance needs...' },
+      
+      history: { tab: 'lore', order: 1, rows: 4, placeholder: 'History and origin...' },
+      imageUrl: { tab: 'lore', order: 2, label: 'Image URL' },
+      imageCaption: { tab: 'lore', order: 3, label: 'Image Caption' },
+      articleContent: { tab: 'lore', order: 4, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
+
+  building: () => buildConfig(schemas.insertBuildingSchema, {
+    title: 'Building Designer',
+    description: 'Create buildings and structures',
+    icon: 'Building',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'details', label: 'Structure Details', icon: 'Home', order: 2 },
+      { id: 'significance', label: 'Significance & Secrets', icon: 'Key', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Building Name' },
+      buildingType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Temple, castle, shop, house, etc.' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      architecture: { tab: 'details', order: 1, rows: 3, placeholder: 'Architectural style...' },
+      materials: { tab: 'details', order: 2, placeholder: 'Building materials...' },
+      purpose: { tab: 'details', order: 3, rows: 2, placeholder: 'Purpose and function...' },
+      capacity: { tab: 'details', order: 4, placeholder: 'Capacity' },
+      defenses: { tab: 'details', order: 5, rows: 2, placeholder: 'Defensive features...' },
+      currentCondition: { tab: 'details', order: 6, label: 'Current Condition', rows: 2, placeholder: 'State of repair...' },
+      location: { tab: 'details', order: 7, placeholder: 'Location' },
+      owner: { tab: 'details', order: 8, placeholder: 'Owner' },
+      
+      history: { tab: 'significance', order: 1, rows: 4, placeholder: 'Building history...' },
+      significance: { tab: 'significance', order: 2, rows: 3, placeholder: 'Cultural or historical significance...' },
+      secrets: { tab: 'significance', order: 3, rows: 3, placeholder: 'Hidden secrets...' },
+    },
+  }),
+
+  creature: () => buildConfig(schemas.insertCreatureSchema, {
+    title: 'Creature Designer',
+    description: 'Create creatures and beings',
+    icon: 'Bug',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'biology', label: 'Biology & Behavior', icon: 'Eye', order: 2 },
+      { id: 'lore', label: 'Lore & Significance', icon: 'Scroll', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Creature Name' },
+      creatureType: { tab: 'basic', order: 2, label: 'Type' },
+      habitat: { tab: 'basic', order: 3, placeholder: 'Where does it live?' },
+      physicalDescription: { tab: 'basic', order: 4, label: 'Physical Description', rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      abilities: { tab: 'biology', order: 1, placeholder: 'Special abilities...' },
+      behavior: { tab: 'biology', order: 2, rows: 4, placeholder: 'Behavior patterns...' },
+      
+      culturalSignificance: { tab: 'lore', order: 1, label: 'Cultural Significance', rows: 4, placeholder: 'Significance in culture...' },
+      imageUrl: { tab: 'lore', order: 2, label: 'Image URL' },
+      imageCaption: { tab: 'lore', order: 3, label: 'Image Caption' },
+      articleContent: { tab: 'lore', order: 4, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
+
+  item: () => buildConfig(schemas.insertItemSchema, {
+    title: 'Item Designer',
+    description: 'Create items and objects',
+    icon: 'Package',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'properties', label: 'Properties & Crafting', icon: 'Sparkles', order: 2 },
+      { id: 'lore', label: 'Lore & History', icon: 'BookOpen', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Item Name' },
+      itemType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Weapon, armor, tool, magic, etc.' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      rarity: { tab: 'properties', order: 1, placeholder: 'Rarity level' },
+      value: { tab: 'properties', order: 2, placeholder: 'Value' },
+      weight: { tab: 'properties', order: 3, placeholder: 'Weight' },
+      properties: { tab: 'properties', order: 4, placeholder: 'Special properties...' },
+      materials: { tab: 'properties', order: 5, placeholder: 'Materials...' },
+      abilities: { tab: 'properties', order: 6, placeholder: 'Special abilities...' },
+      requirements: { tab: 'properties', order: 7, rows: 2, placeholder: 'Requirements to use...' },
+      crafting: { tab: 'properties', order: 8, rows: 3, placeholder: 'How it\'s crafted...' },
+      
+      history: { tab: 'lore', order: 1, rows: 4, placeholder: 'Item history...' },
+      imageUrl: { tab: 'lore', order: 2, label: 'Image URL' },
+      imageCaption: { tab: 'lore', order: 3, label: 'Image Caption' },
+      articleContent: { tab: 'lore', order: 4, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
 };
 
 /**
