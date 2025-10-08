@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, ALL_ETHNICITIES, ALL_DESCRIPTION_TYPES } from './genres.js';
+import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, ALL_ETHNICITIES, ALL_DESCRIPTION_TYPES } from '../shared/genres.js';
 import { db } from './db.js';
 import { savedItems } from '@shared/schema';
 import { eq } from 'drizzle-orm';
