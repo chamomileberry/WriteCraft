@@ -375,19 +375,21 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  // Convert members to nodes
+  // Create nodes and edges together to avoid infinite loops  
   useEffect(() => {
     if (members.length === 0) {
       setNodes([]);
+      setEdges([]);
       return;
     }
     
-    const newNodes: Node[] = members.map((member, index) => ({
+    // Create member nodes
+    const memberNodes: Node[] = members.map((member, index) => ({
       id: member.id,
       type: 'familyMember',
       position: member.positionX && member.positionY 
         ? { x: member.positionX, y: member.positionY }
-        : { x: index * 200, y: index * 150 }, // Default positioning
+        : { x: index * 200, y: index * 150 },
       data: { 
         member,
         notebookId,
@@ -398,27 +400,113 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       },
     }));
     
-    // Apply auto-layout if enabled
-    if (isAutoLayout) {
-      const { nodes: layoutedNodes } = getLayoutedElements(newNodes, edges, {
-        direction: 'TB',
-        nodeSep: 100,
-        rankSep: 150,
-      });
-      setNodes(layoutedNodes);
-    } else {
-      setNodes(newNodes);
-    }
-  }, [members, setNodes, isAutoLayout, edges]);
-
-  // Convert relationships to edges
-  useEffect(() => {
-    if (relationships.length === 0) {
-      setEdges([]);
-      return;
-    }
+    // Build relationship maps
+    const marriageMap = new Map<string, Set<string>>();
+    const parentChildMap = new Map<string, { targetId: string; relationship: any }[]>();
     
-    const newEdges: Edge[] = relationships.map(rel => {
+    relationships.forEach(rel => {
+      if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
+        if (!marriageMap.has(rel.fromMemberId)) {
+          marriageMap.set(rel.fromMemberId, new Set());
+        }
+        marriageMap.get(rel.fromMemberId)!.add(rel.toMemberId);
+      } else if (rel.relationshipType === 'parent' || rel.relationshipType === 'child') {
+        if (!parentChildMap.has(rel.fromMemberId)) {
+          parentChildMap.set(rel.fromMemberId, []);
+        }
+        parentChildMap.get(rel.fromMemberId)!.push({ targetId: rel.toMemberId, relationship: rel });
+      }
+    });
+    
+    // Create junction nodes and edges
+    const junctionNodes: Node[] = [];
+    const newEdges: Edge[] = [];
+    const handledParentChild = new Set<string>();
+    const processedCouples = new Set<string>();
+    
+    parentChildMap.forEach((children, parent1Id) => {
+      const spouses = marriageMap.get(parent1Id);
+      if (!spouses) return;
+      
+      spouses.forEach(parent2Id => {
+        const coupleKey = [parent1Id, parent2Id].sort().join('-');
+        if (processedCouples.has(coupleKey)) return;
+        processedCouples.add(coupleKey);
+        
+        const parent2Children = parentChildMap.get(parent2Id) || [];
+        const parent1ChildIds = new Set(children.map(c => c.targetId));
+        const sharedChildren = parent2Children.filter(c => parent1ChildIds.has(c.targetId));
+        
+        if (sharedChildren.length > 0) {
+          const parent1Node = memberNodes.find(n => n.id === parent1Id);
+          const parent2Node = memberNodes.find(n => n.id === parent2Id);
+          
+          if (parent1Node && parent2Node) {
+            const junctionX = (parent1Node.position.x + parent2Node.position.x) / 2;
+            const junctionY = Math.max(parent1Node.position.y, parent2Node.position.y);
+            const junctionId = `junction-${coupleKey}`;
+            
+            junctionNodes.push({
+              id: junctionId,
+              type: 'junction',
+              position: { x: junctionX, y: junctionY },
+              data: {},
+              selectable: false,
+              draggable: false,
+            });
+            
+            newEdges.push({
+              id: `${parent1Id}-${junctionId}`,
+              source: parent1Id,
+              target: junctionId,
+              sourceHandle: 'right',
+              targetHandle: 'left',
+              type: 'straight',
+              style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
+            });
+            
+            newEdges.push({
+              id: `${junctionId}-${parent2Id}`,
+              source: junctionId,
+              target: parent2Id,
+              sourceHandle: 'right',
+              targetHandle: 'left-target',
+              type: 'straight',
+              style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
+            });
+            
+            sharedChildren.forEach(child => {
+              newEdges.push({
+                id: `${junctionId}-${child.targetId}`,
+                source: junctionId,
+                target: child.targetId,
+                sourceHandle: 'bottom',
+                targetHandle: 'top-target',
+                type: 'straight',
+                style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
+              });
+              
+              handledParentChild.add(`${parent1Id}-${child.targetId}`);
+              handledParentChild.add(`${parent2Id}-${child.targetId}`);
+            });
+          }
+        }
+      });
+    });
+    
+    // Add remaining relationship edges
+    relationships.forEach(rel => {
+      if ((rel.relationshipType === 'parent' || rel.relationshipType === 'child') &&
+          handledParentChild.has(`${rel.fromMemberId}-${rel.toMemberId}`)) {
+        return;
+      }
+      
+      const coupleKey = [rel.fromMemberId, rel.toMemberId].sort().join('-');
+      if ((rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') &&
+          processedCouples.has(coupleKey)) {
+        return;
+      }
+      
       const edgeProps: any = {
         id: rel.id,
         source: rel.fromMemberId,
@@ -433,20 +521,33 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       };
       
       if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
-        // Marriage lines connect horizontally (side to side)
         edgeProps.sourceHandle = 'right';
         edgeProps.targetHandle = 'left-target';
       } else {
-        // All other relationships connect vertically (bottom to top)
         edgeProps.sourceHandle = 'bottom';
         edgeProps.targetHandle = 'top-target';
       }
       
-      return edgeProps;
+      newEdges.push(edgeProps);
     });
     
+    // Combine member nodes and junction nodes
+    const allNodes = [...memberNodes, ...junctionNodes];
+    
+    // Apply layout if enabled
+    if (isAutoLayout) {
+      const { nodes: layoutedNodes } = getLayoutedElements(allNodes, newEdges, {
+        direction: 'TB',
+        nodeSep: 100,
+        rankSep: 150,
+      });
+      setNodes(layoutedNodes);
+    } else {
+      setNodes(allNodes);
+    }
+    
     setEdges(newEdges);
-  }, [relationships, setEdges, notebookId, treeId]);
+  }, [members, relationships, isAutoLayout, setNodes, setEdges, notebookId, treeId]);
 
   // Re-apply layout when toggling to auto-layout mode
   useEffect(() => {

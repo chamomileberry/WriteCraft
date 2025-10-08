@@ -11,14 +11,20 @@ function JunctionNodeComponent({ }: NodeProps) {
         background: 'hsl(var(--foreground))',
       }}
     >
-      {/* Target handle from parents above */}
+      {/* Marriage line passes through horizontally */}
       <Handle 
         type="target" 
-        position={Position.Top} 
-        id="top"
+        position={Position.Left} 
+        id="left"
         style={{ opacity: 0 }}
       />
-      {/* Source handle to children below */}
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        id="right"
+        style={{ opacity: 0 }}
+      />
+      {/* Child line extends downward */}
       <Handle 
         type="source" 
         position={Position.Bottom} 
