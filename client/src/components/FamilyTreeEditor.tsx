@@ -399,27 +399,178 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     }
   }, [members, setNodes, isAutoLayout, edges]);
 
-  // Convert relationships to edges
+  // Convert relationships to edges with T-junction support
   useEffect(() => {
     if (relationships.length === 0) {
       setEdges([]);
+      // Clean up junction nodes when no relationships
+      setNodes(prevNodes => prevNodes.filter(n => !n.id.startsWith('junction-')));
       return;
     }
     
-    const newEdges: Edge[] = relationships.map(rel => ({
-      id: rel.id,
-      source: rel.fromMemberId,
-      target: rel.toMemberId,
-      type: 'familyRelationship',
-      data: {
-        relationship: rel,
-        notebookId,
-        treeId
-      },
-      label: rel.relationshipType === 'custom' ? rel.customLabel : rel.relationshipType,
-    }));
+    // Group parent→child relationships by parent
+    type ChildRelationship = { relationship: FamilyTreeRelationship, targetId: string };
+    const parentChildMap = new Map<string, ChildRelationship[]>();
+    const nonParentChildRels: FamilyTreeRelationship[] = [];
+    
+    relationships.forEach(rel => {
+      if (rel.relationshipType === 'parent') {
+        // Parent relationship: fromMember is parent, toMember is child
+        const children = parentChildMap.get(rel.fromMemberId) || [];
+        children.push({ relationship: rel, targetId: rel.toMemberId });
+        parentChildMap.set(rel.fromMemberId, children);
+      } else if (rel.relationshipType === 'child') {
+        // Child relationship: toMember is parent, fromMember is child
+        const children = parentChildMap.get(rel.toMemberId) || [];
+        children.push({ relationship: rel, targetId: rel.fromMemberId });
+        parentChildMap.set(rel.toMemberId, children);
+      } else {
+        nonParentChildRels.push(rel);
+      }
+    });
+    
+    const newEdges: Edge[] = [];
+    const junctionNodesNeeded = new Map<string, { position: { x: number; y: number } }>();
+    
+    // Create edges for non-parent-child relationships (marriage, sibling, etc.)
+    nonParentChildRels.forEach(rel => {
+      newEdges.push({
+        id: rel.id,
+        source: rel.fromMemberId,
+        target: rel.toMemberId,
+        type: 'familyRelationship',
+        data: {
+          relationship: rel,
+          notebookId,
+          treeId
+        },
+        label: rel.relationshipType === 'custom' ? rel.customLabel : rel.relationshipType,
+      });
+    });
+    
+    // Create edges for parent→child relationships with T-junctions
+    parentChildMap.forEach((children: ChildRelationship[], parentId: string) => {
+      if (children.length === 1) {
+        // Single child - direct edge
+        const { relationship, targetId } = children[0];
+        newEdges.push({
+          id: relationship.id,
+          source: parentId,
+          target: targetId,
+          type: 'familyRelationship',
+          data: {
+            relationship,
+            notebookId,
+            treeId
+          },
+          label: relationship.relationshipType === 'custom' ? relationship.customLabel : relationship.relationshipType,
+        });
+      } else {
+        // Multiple children - create T-junction
+        const junctionId = `junction-${parentId}`;
+        
+        // Find parent and child nodes from current nodes array
+        const parentNode = nodes.find(n => n.id === parentId);
+        const childNodes = children.map((c: ChildRelationship) => nodes.find(n => n.id === c.targetId)).filter(Boolean) as Node[];
+        
+        if (parentNode && childNodes.length > 0) {
+          // Calculate junction position: below parent, centered between children
+          const avgChildX = childNodes.reduce((sum: number, node: Node) => sum + (node?.position.x || 0), 0) / childNodes.length;
+          const junctionY = parentNode.position.y + 100; // 100px below parent
+          
+          junctionNodesNeeded.set(junctionId, { position: { x: avgChildX, y: junctionY } });
+          
+          // Edge from parent to junction
+          newEdges.push({
+            id: `${parentId}-to-junction`,
+            source: parentId,
+            target: junctionId,
+            type: 'familyRelationship',
+            data: {
+              relationship: children[0].relationship,
+              notebookId,
+              treeId
+            },
+            label: '',
+          });
+          
+          // Edges from junction to each child
+          children.forEach(({ relationship, targetId }: ChildRelationship) => {
+            newEdges.push({
+              id: `${junctionId}-to-${targetId}`,
+              source: junctionId,
+              target: targetId,
+              type: 'familyRelationship',
+              data: {
+                relationship,
+                notebookId,
+                treeId
+              },
+              label: relationship.relationshipType === 'custom' ? relationship.customLabel : relationship.relationshipType,
+            });
+          });
+        }
+      }
+    });
+    
+    // Update junction nodes only if they've changed
+    setNodes(prevNodes => {
+      const existingJunctions = prevNodes.filter(n => n.id.startsWith('junction-'));
+      const withoutJunctions = prevNodes.filter(n => !n.id.startsWith('junction-'));
+      
+      if (junctionNodesNeeded.size === 0 && existingJunctions.length === 0) {
+        // No change needed
+        return prevNodes;
+      }
+      
+      if (junctionNodesNeeded.size === 0) {
+        // Remove all junctions
+        return withoutJunctions;
+      }
+      
+      // Check if junctions have actually changed
+      let hasChanged = existingJunctions.length !== junctionNodesNeeded.size;
+      if (!hasChanged) {
+        // Check positions
+        for (const existingJunction of existingJunctions) {
+          const needed = junctionNodesNeeded.get(existingJunction.id);
+          if (!needed || 
+              existingJunction.position.x !== needed.position.x || 
+              existingJunction.position.y !== needed.position.y) {
+            hasChanged = true;
+            break;
+          }
+        }
+      }
+      
+      if (!hasChanged) {
+        // No change needed
+        return prevNodes;
+      }
+      
+      const newJunctionNodes: Node[] = [];
+      junctionNodesNeeded.forEach((data, junctionId) => {
+        newJunctionNodes.push({
+          id: junctionId,
+          type: 'default',
+          position: data.position,
+          data: { label: '' },
+          style: {
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: 'none',
+          },
+          draggable: false,
+          connectable: false,
+        });
+      });
+      
+      return [...withoutJunctions, ...newJunctionNodes];
+    });
+    
     setEdges(newEdges);
-  }, [relationships, setEdges]);
+  }, [relationships, nodes, setEdges, setNodes, notebookId, treeId]);
 
   // Re-apply layout when toggling to auto-layout mode
   useEffect(() => {
