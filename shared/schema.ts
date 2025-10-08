@@ -2813,6 +2813,17 @@ export const insertTimelineSchema = createInsertSchema(timelines).omit({
   createdAt: true,
 });
 
+export const insertTimelineEventSchema = createInsertSchema(timelineEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTimelineRelationshipSchema = createInsertSchema(timelineRelationships).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertCeremonySchema = createInsertSchema(ceremonies).omit({
   id: true,
   createdAt: true,
