@@ -377,6 +377,39 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
+  // Update junction positions when parent nodes are dragged
+  const onNodeDrag = useCallback((_event: any, node: Node) => {
+    if (node.type !== 'familyMember') return;
+    
+    // Find all junction nodes that have this node as a parent
+    setNodes(currentNodes => {
+      return currentNodes.map(n => {
+        if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
+          const isParent = n.data.parent1Id === node.id || n.data.parent2Id === node.id;
+          if (isParent) {
+            const parent1 = n.data.parent1Id === node.id 
+              ? node
+              : currentNodes.find(cn => cn.id === n.data.parent1Id);
+            const parent2 = n.data.parent2Id === node.id
+              ? node
+              : currentNodes.find(cn => cn.id === n.data.parent2Id);
+            
+            if (parent1 && parent2) {
+              return {
+                ...n,
+                position: {
+                  x: (parent1.position.x + parent2.position.x) / 2,
+                  y: Math.max(parent1.position.y, parent2.position.y),
+                },
+              };
+            }
+          }
+        }
+        return n;
+      });
+    });
+  }, [setNodes]);
+
   // Create nodes and edges together to avoid infinite loops  
   useEffect(() => {
     if (members.length === 0) {
@@ -1135,6 +1168,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeDrag={onNodeDrag}
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
