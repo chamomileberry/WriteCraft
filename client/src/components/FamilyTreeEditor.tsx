@@ -23,7 +23,7 @@ import type { FamilyTree, FamilyTreeMember, FamilyTreeRelationship, Character } 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw, Save, ArrowLeft, Check } from 'lucide-react';
+import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw, Save, ArrowLeft, Check, AlertCircle, RefreshCw, Search, X, Undo, Redo, Map } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
@@ -44,7 +44,7 @@ interface FamilyTreeEditorProps {
 
 function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorProps) {
   const { toast } = useToast();
-  const { screenToFlowPosition, fitView } = useReactFlow();
+  const { screenToFlowPosition, fitView, setCenter, getNode } = useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(false); // Default to manual mode for draggable nodes
   const prevIsAutoLayout = useRef(isAutoLayout);
   
@@ -68,6 +68,31 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   // Tree metadata editing state
   const [treeName, setTreeName] = useState('');
   const [treeDescription, setTreeDescription] = useState('');
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<FamilyTreeMember[]>([]);
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
+  
+  // MiniMap visibility state
+  const [showMiniMap, setShowMiniMap] = useState(true);
+  
+  // Undo/Redo history state
+  type HistoryAction = {
+    type: 'move_node' | 'add_relationship' | 'remove_relationship';
+    memberId?: string;
+    oldPosition?: { x: number; y: number };
+    newPosition?: { x: number; y: number };
+    relationshipId?: string;
+    relationshipData?: any;
+  };
+  
+  const [history, setHistory] = useState<HistoryAction[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const MAX_HISTORY = 20;
+  
+  // Track node positions before drag starts for accurate history
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
 
   // Handle member edit
   const handleEditMember = useCallback((member: FamilyTreeMember) => {
@@ -265,6 +290,74 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     }
   }, [treeName, treeDescription, tree]);
 
+  // Search filtering logic
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSelectedSearchIndex(0);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    const results = members.filter(member => {
+      // Search in inline name or character data if available
+      const inlineName = member.inlineName || '';
+      const charData = (member as any).character;
+      const charName = charData ? 
+        [charData.givenName, charData.middleName, charData.familyName, charData.nickname]
+          .filter(Boolean).join(' ') : '';
+      const fullName = (inlineName + ' ' + charName).toLowerCase();
+      return fullName.includes(query);
+    });
+    
+    setSearchResults(results);
+    setSelectedSearchIndex(0);
+  }, [searchQuery, members]);
+  
+  // Pan to search result
+  useEffect(() => {
+    if (searchResults.length > 0 && searchResults[selectedSearchIndex]) {
+      const member = searchResults[selectedSearchIndex];
+      const node = getNode(member.id);
+      if (node) {
+        setCenter(node.position.x + 75, node.position.y + 50, { zoom: 1.5, duration: 400 });
+      }
+    }
+  }, [selectedSearchIndex, searchResults, getNode, setCenter]);
+  
+  // Search navigation handlers
+  const handleNextResult = useCallback(() => {
+    if (searchResults.length > 0) {
+      setSelectedSearchIndex((prev) => (prev + 1) % searchResults.length);
+    }
+  }, [searchResults.length]);
+  
+  const handlePrevResult = useCallback(() => {
+    if (searchResults.length > 0) {
+      setSelectedSearchIndex((prev) => (prev - 1 + searchResults.length) % searchResults.length);
+    }
+  }, [searchResults.length]);
+  
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setSelectedSearchIndex(0);
+  }, []);
+  
+  // Add action to history
+  const addToHistory = useCallback((action: HistoryAction) => {
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(action);
+      if (newHistory.length > MAX_HISTORY) {
+        newHistory.shift();
+        return newHistory;
+      }
+      return newHistory;
+    });
+    setHistoryIndex(prev => Math.min(prev + 1, MAX_HISTORY - 1));
+  }, [historyIndex, MAX_HISTORY]);
+
   // React Flow state - using generic types as React Flow's TypeScript support for custom data is limited
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -360,16 +453,108 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     },
   });
 
-  // Handle node drag end - save position
+  // Handle node drag start - capture position before drag for accurate history
+  const onNodeDragStart = useCallback((event: any, node: Node) => {
+    if (!isAutoLayout) {
+      // Capture the current position before drag starts
+      dragStartPositions.current.set(node.id, { x: node.position.x, y: node.position.y });
+    }
+  }, [isAutoLayout]);
+  
+  // Handle node drag end - save position and record in history
   const onNodeDragStop = useCallback((event: any, node: Node) => {
     if (!isAutoLayout) {
+      // Get old position from drag start (accurate React Flow state)
+      const oldPosition = dragStartPositions.current.get(node.id) || { x: 0, y: 0 };
+      
+      // Only record in history if position actually changed
+      if (oldPosition.x !== node.position.x || oldPosition.y !== node.position.y) {
+        addToHistory({
+          type: 'move_node',
+          memberId: node.id,
+          oldPosition,
+          newPosition: { x: node.position.x, y: node.position.y },
+        });
+      }
+      
+      // Clean up the stored position
+      dragStartPositions.current.delete(node.id);
+      
       updateMemberPosition.mutate({
         memberId: node.id,
         x: node.position.x,
         y: node.position.y,
       });
     }
-  }, [isAutoLayout, updateMemberPosition]);
+  }, [isAutoLayout, updateMemberPosition, addToHistory]);
+  
+  // Undo function - updates local state and persists to database
+  const handleUndo = useCallback(() => {
+    if (historyIndex < 0) return;
+    
+    const action = history[historyIndex];
+    
+    if (action.type === 'move_node' && action.memberId && action.oldPosition) {
+      // Restore old position in local state
+      const node = getNode(action.memberId);
+      if (node) {
+        node.position = action.oldPosition;
+        setNodes(nds => [...nds]); // Trigger re-render
+        
+        // Persist to database
+        updateMemberPosition.mutate({
+          memberId: action.memberId,
+          x: action.oldPosition.x,
+          y: action.oldPosition.y,
+        });
+      }
+    }
+    
+    setHistoryIndex(prev => prev - 1);
+  }, [historyIndex, history, getNode, setNodes, updateMemberPosition]);
+  
+  // Redo function - updates local state and persists to database
+  const handleRedo = useCallback(() => {
+    if (historyIndex >= history.length - 1) return;
+    
+    const action = history[historyIndex + 1];
+    
+    if (action.type === 'move_node' && action.memberId && action.newPosition) {
+      // Apply new position in local state
+      const node = getNode(action.memberId);
+      if (node) {
+        node.position = action.newPosition;
+        setNodes(nds => [...nds]); // Trigger re-render
+        
+        // Persist to database
+        updateMemberPosition.mutate({
+          memberId: action.memberId,
+          x: action.newPosition.x,
+          y: action.newPosition.y,
+        });
+      }
+    }
+    
+    setHistoryIndex(prev => prev + 1);
+  }, [historyIndex, history, getNode, setNodes, updateMemberPosition]);
+  
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          handleUndo();
+        } else if ((e.key === 'y') || (e.key === 'z' && e.shiftKey)) {
+          e.preventDefault();
+          handleRedo();
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   // Handle connection (create relationship)
   const onConnect = useCallback((connection: Connection) => {
@@ -384,23 +569,50 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     }
     
     // Validation: Prevent duplicate relationships
-    const duplicateExists = relationships.some(rel => 
+    const existingRelationship = relationships.find(rel => 
       (rel.fromMemberId === connection.source && rel.toMemberId === connection.target) ||
       (rel.fromMemberId === connection.target && rel.toMemberId === connection.source)
     );
     
-    if (duplicateExists) {
+    if (existingRelationship) {
+      // Highlight the existing edge
+      setEdges(eds => 
+        eds.map(e => 
+          e.id === existingRelationship.id 
+            ? { ...e, animated: true, style: { stroke: '#f59e0b', strokeWidth: 3 } }
+            : e
+        )
+      );
+      
+      // Get member names for better error message
+      const sourceMember = members.find(m => m.id === connection.source);
+      const targetMember = members.find(m => m.id === connection.target);
+      const sourceName = sourceMember?.inlineName || 'this member';
+      const targetName = targetMember?.inlineName || 'the other member';
+      
       toast({
         title: 'Relationship already exists',
-        description: 'A relationship between these family members already exists',
+        description: `${sourceName} and ${targetName} are already connected (${existingRelationship.relationshipType})`,
         variant: 'destructive',
       });
+      
+      // Reset edge highlight after 2 seconds
+      setTimeout(() => {
+        setEdges(eds => 
+          eds.map(e => 
+            e.id === existingRelationship.id 
+              ? { ...e, animated: false, style: undefined }
+              : e
+          )
+        );
+      }, 2000);
+      
       return;
     }
     
     setPendingConnection(connection);
     setSelectorOpen(true);
-  }, [relationships, toast]);
+  }, [relationships, toast, setEdges, members]);
 
   // Mutation to create a new family tree member
   const createMember = useMutation({
@@ -746,6 +958,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
           onDrop={onDrop}
@@ -761,7 +974,22 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         >
           <Background />
           <Controls />
-          <MiniMap />
+          {showMiniMap && (
+            <MiniMap
+              nodeColor={(node) => {
+                // Highlight search results
+                if (searchResults.some(r => r.id === node.id)) {
+                  return '#f59e0b'; // orange for search results
+                }
+                return '#8b5cf6'; // purple for regular nodes
+              }}
+              maskColor="rgba(0, 0, 0, 0.4)"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              }}
+              className="border rounded shadow-lg"
+            />
+          )}
           
           {/* Top-left card for tree name and description */}
           <Panel position="top-left">
@@ -793,26 +1021,112 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
                 data-testid="textarea-tree-description"
               />
               <div className="flex items-center justify-between">
-                <div className="text-xs text-muted-foreground">
-                  {updateTreeMetadata.isPending ? (
-                    <span className="flex items-center gap-1">
-                      <Save className="w-3 h-3 animate-spin" />
+                <div className="text-xs flex-1">
+                  {metadataSave.saveStatus === 'saving' ? (
+                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                      <Loader2 className="w-3 h-3 animate-spin" />
                       Saving...
                     </span>
+                  ) : metadataSave.saveStatus === 'saved' && metadataSave.lastSaveTime ? (
+                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                      <Check className="w-3 h-3" />
+                      Saved {new Date(metadataSave.lastSaveTime).toLocaleTimeString()}
+                    </span>
+                  ) : metadataSave.saveStatus === 'unsaved' ? (
+                    <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                      <AlertCircle className="w-3 h-3" />
+                      Unsaved changes
+                    </span>
                   ) : (
-                    <span>Auto-saving enabled</span>
+                    <span className="text-muted-foreground">Auto-saving enabled</span>
                   )}
                 </div>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={handleManualSave}
-                  disabled={updateTreeMetadata.isPending}
-                  data-testid="button-save-tree"
-                  title="Save Now"
-                >
-                  <Save className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {metadataSave.saveStatus === 'unsaved' && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => metadataSave.saveNow()}
+                      disabled={metadataSave.isSaving}
+                      data-testid="button-retry-save"
+                      title="Retry Save"
+                      className="h-7 w-7"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                    </Button>
+                  )}
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={handleManualSave}
+                    disabled={metadataSave.isSaving}
+                    data-testid="button-save-tree"
+                    title="Save Now"
+                    className="h-7 w-7"
+                  >
+                    <Save className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Panel>
+          
+          {/* Search Panel */}
+          <Panel position="top-center">
+            <div className="bg-card border rounded-lg shadow-lg p-2">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search family members..."
+                    className="pl-8 pr-8 h-8 w-64"
+                    data-testid="input-search-members"
+                  />
+                  {searchQuery && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={handleClearSearch}
+                      className="absolute right-0 top-0 h-8 w-8"
+                      data-testid="button-clear-search"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
+                {searchResults.length > 0 && (
+                  <>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {selectedSearchIndex + 1} of {searchResults.length}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={handlePrevResult}
+                        disabled={searchResults.length === 0}
+                        className="h-7 w-7"
+                        data-testid="button-prev-result"
+                        title="Previous Result"
+                      >
+                        <ArrowLeft className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={handleNextResult}
+                        disabled={searchResults.length === 0}
+                        className="h-7 w-7"
+                        data-testid="button-next-result"
+                        title="Next Result"
+                      >
+                        <ArrowLeft className="w-3 h-3 rotate-180" />
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </Panel>
@@ -827,33 +1141,69 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               <UserPlus className="w-4 h-4 mr-2" />
               Add Member
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => fitView({ padding: 0.2, duration: 400 })}
-              data-testid="button-fit-view"
-            >
-              <Maximize2 className="w-4 h-4 mr-2" />
-              Fit View
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleResetLayout}
-              data-testid="button-reset-layout"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset Layout
-            </Button>
-            <Button
-              size="sm"
-              variant={isAutoLayout ? "default" : "outline"}
-              onClick={handleToggleLayout}
-              data-testid="button-toggle-layout"
-            >
-              <Grid3X3 className="w-4 h-4 mr-2" />
-              {isAutoLayout ? "Auto Layout" : "Manual Layout"}
-            </Button>
+            <div className="flex items-center gap-1 border-l pl-2">
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={handleUndo}
+                disabled={historyIndex < 0}
+                data-testid="button-undo"
+                title="Undo (Ctrl+Z)"
+                className="h-8 w-8"
+              >
+                <Undo className="w-4 h-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={handleRedo}
+                disabled={historyIndex >= history.length - 1}
+                data-testid="button-redo"
+                title="Redo (Ctrl+Y)"
+                className="h-8 w-8"
+              >
+                <Redo className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-1 border-l pl-2">
+              <Button
+                size="icon"
+                variant={showMiniMap ? "default" : "outline"}
+                onClick={() => setShowMiniMap(!showMiniMap)}
+                data-testid="button-toggle-minimap"
+                title={showMiniMap ? "Hide Mini-Map" : "Show Mini-Map"}
+                className="h-8 w-8"
+              >
+                <Map className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => fitView({ padding: 0.2, duration: 400 })}
+                data-testid="button-fit-view"
+              >
+                <Maximize2 className="w-4 h-4 mr-2" />
+                Fit View
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleResetLayout}
+                data-testid="button-reset-layout"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset Layout
+              </Button>
+              <Button
+                size="sm"
+                variant={isAutoLayout ? "default" : "outline"}
+                onClick={handleToggleLayout}
+                data-testid="button-toggle-layout"
+              >
+                <Grid3X3 className="w-4 h-4 mr-2" />
+                {isAutoLayout ? "Auto Layout" : "Manual Layout"}
+              </Button>
+            </div>
           </Panel>
         </ReactFlow>
       </div>
