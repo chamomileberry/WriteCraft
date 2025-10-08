@@ -615,7 +615,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     prevIsAutoLayout.current = isAutoLayout;
   }, [isAutoLayout]);
 
-  // Update member position mutation
+  // Update member position mutation with optimistic updates
   const updateMemberPosition = useMutation({
     mutationFn: async ({ memberId, x, y }: { memberId: string; x: number; y: number }) => {
       return apiRequest(
@@ -624,8 +624,20 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         { positionX: x, positionY: y }
       );
     },
-    // Don't invalidate query - ReactFlow already has the correct position
-    // Refetching causes the node to snap back to old position before DB updates
+    onMutate: async ({ memberId, x, y }) => {
+      // Optimistically update the cached members data
+      queryClient.setQueryData(
+        ['/api/family-trees', treeId, 'members'],
+        (old: FamilyTreeMember[] | undefined) => {
+          if (!old) return old;
+          return old.map(member => 
+            member.id === memberId 
+              ? { ...member, positionX: x, positionY: y }
+              : member
+          );
+        }
+      );
+    },
   });
 
   // Handle node drag start - capture position before drag for accurate history
