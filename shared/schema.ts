@@ -1282,18 +1282,49 @@ export const timelines = pgTable("timelines", {
   timeScale: text("time_scale").notNull(), // years, decades, centuries, millennia, etc.
   startDate: text("start_date"),
   endDate: text("end_date"),
-  majorEvents: text("major_events").array(),
-  keyFigures: text("key_figures").array(),
-  culturalPeriods: text("cultural_periods").array(),
-  wars: text("wars").array(),
-  discoveries: text("discoveries").array(),
-  naturalDisasters: text("natural_disasters").array(),
-  politicalChanges: text("political_changes").array(),
-  technologicalAdvances: text("technological_advances").array(),
+  // View/Display settings
+  viewMode: text("view_mode").default('list'), // 'list', 'visual', or 'gantt'
+  zoom: real("zoom").default(1),
+  panX: real("pan_x").default(0),
+  panY: real("pan_y").default(0),
+  // Metadata
   scope: text("scope"), // global, regional, local, personal, etc.
   genre: text("genre"),
+  // Relationships
   notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Timeline Events - Individual events on a timeline
+export const timelineEvents = pgTable("timeline_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  timelineId: varchar("timeline_id").notNull().references(() => timelines.id, { onDelete: 'cascade' }),
+  title: text("title").notNull(),
+  description: text("description"),
+  eventType: text("event_type"), // battle, discovery, birth, death, meeting, etc.
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date"), // null for point events, has value for range events
+  importance: text("importance").default('moderate'), // major, moderate, minor
+  category: text("category"), // user-defined categories like "Plot", "Character Arc", "World Events"
+  color: text("color"), // hex color for visual timeline
+  icon: text("icon"), // lucide icon name
+  linkedContentId: varchar("linked_content_id"), // ID of linked character, location, etc.
+  linkedContentType: text("linked_content_type"), // 'character', 'location', 'item', etc.
+  positionY: real("position_y"), // vertical position for manual layout in visual mode
+  metadata: jsonb("metadata"), // flexible JSON for custom fields
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Timeline Relationships - Connections between events
+export const timelineRelationships = pgTable("timeline_relationships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  timelineId: varchar("timeline_id").notNull().references(() => timelines.id, { onDelete: 'cascade' }),
+  fromEventId: varchar("from_event_id").notNull().references(() => timelineEvents.id, { onDelete: 'cascade' }),
+  toEventId: varchar("to_event_id").notNull().references(() => timelineEvents.id, { onDelete: 'cascade' }),
+  relationshipType: text("relationship_type").notNull(), // 'causes', 'precedes', 'concurrent', 'related'
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
