@@ -7,6 +7,8 @@ const router = Router();
 
 router.post("/generate", async (req: any, res) => {
   try {
+    const userId = req.user.claims.sub;
+    
     const generateRequestSchema = z.object({
       nameType: z.string(),
       culture: z.string(),
