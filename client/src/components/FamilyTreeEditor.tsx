@@ -44,7 +44,7 @@ interface FamilyTreeEditorProps {
 
 function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorProps) {
   const { toast } = useToast();
-  const { screenToFlowPosition, fitView, setCenter, getNode } = useReactFlow();
+  const { screenToFlowPosition, fitView, setCenter, getNode, getNodes } = useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(false); // Default to manual mode for draggable nodes
   const prevIsAutoLayout = useRef(isAutoLayout);
   
@@ -96,6 +96,9 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   
   // Track dragging state to prevent junction recalculation during drag
   const isDragging = useRef(false);
+  
+  // Track when junctions need recalculation (increments to trigger effect)
+  const [junctionUpdateTrigger, setJunctionUpdateTrigger] = useState(0);
 
   // Handle member edit
   const handleEditMember = useCallback((member: FamilyTreeMember) => {
@@ -488,9 +491,12 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         // Multiple children - create T-junction
         const junctionId = `junction-${parentId}`;
         
+        // Get current nodes from ReactFlow (avoids dependency on nodes state)
+        const currentNodes = getNodes();
+        
         // Find parent and child nodes from current nodes array
-        const parentNode = nodes.find(n => n.id === parentId);
-        const childNodes = children.map((c: ChildRelationship) => nodes.find(n => n.id === c.targetId)).filter(Boolean) as Node[];
+        const parentNode = currentNodes.find(n => n.id === parentId);
+        const childNodes = children.map((c: ChildRelationship) => currentNodes.find(n => n.id === c.targetId)).filter(Boolean) as Node[];
         
         if (parentNode && childNodes.length > 0) {
           // Calculate junction position: below parent, centered between children
@@ -589,7 +595,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     });
     
     setEdges(newEdges);
-  }, [relationships, nodes, setEdges, setNodes, notebookId, treeId]);
+  }, [relationships, setEdges, setNodes, notebookId, treeId, getNodes, junctionUpdateTrigger]);
 
   // Re-apply layout when toggling to auto-layout mode
   useEffect(() => {
@@ -652,9 +658,9 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       // Clean up the stored position
       dragStartPositions.current.delete(node.id);
       
-      // Clear dragging flag and force junction recalculation by triggering a nodes update
+      // Clear dragging flag and trigger junction recalculation
       isDragging.current = false;
-      setNodes(nds => [...nds]); // Trigger re-render to recalculate junctions
+      setJunctionUpdateTrigger(prev => prev + 1);
       
       updateMemberPosition.mutate({
         memberId: node.id,
@@ -662,7 +668,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         y: node.position.y,
       });
     }
-  }, [isAutoLayout, updateMemberPosition, addToHistory, setNodes]);
+  }, [isAutoLayout, updateMemberPosition, addToHistory]);
   
   // Undo function - updates local state and persists to database
   const handleUndo = useCallback(() => {
