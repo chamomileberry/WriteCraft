@@ -5198,4 +5198,8 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// Export the storage facade that delegates to modular repositories
+export { storageFacade as storage } from './repositories/storage.facade';
+
+// Keep DatabaseStorage export for reference/backward compatibility
+export const databaseStorage = new DatabaseStorage();
