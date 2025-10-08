@@ -13,8 +13,6 @@ import { religionConfig } from '../../../configs/content-types/religion';
 import { languageConfig } from '../../../configs/content-types/language';
 import { cultureConfig } from '../../../configs/content-types/culture';
 import { speciesConfig } from '../../../configs/content-types/species';
-import { traditionConfig } from '../../../configs/content-types/tradition';
-import { ritualConfig } from '../../../configs/content-types/ritual';
 import { foodConfig } from '../../../configs/content-types/food';
 import { drinkConfig } from '../../../configs/content-types/drink';
 import { settlementConfig } from '../../../configs/content-types/settlement';
@@ -30,14 +28,9 @@ import { materialConfig } from '../../../configs/content-types/material';
 import { militaryUnitConfig } from '../../../configs/content-types/militaryUnit';
 import { transportationConfig } from '../../../configs/content-types/transportation';
 import { naturalLawConfig } from '../../../configs/content-types/naturalLaw';
-import { mythConfig } from '../../../configs/content-types/myth';
-import { legendConfig } from '../../../configs/content-types/legend';
 import { eventConfig } from '../../../configs/content-types/event';
 import { familyTreeConfig } from '../../../configs/content-types/familyTree';
 import { timelineConfig } from '../../../configs/content-types/timeline';
-import { ceremonyConfig } from '../../../configs/content-types/ceremony';
-import { musicConfig } from '../../../configs/content-types/music';
-import { danceConfig } from '../../../configs/content-types/dance';
 import { promptConfig } from '../../../configs/content-types/prompt';
 import { documentConfig } from '../../../configs/content-types/document';
 import { mapConfig } from '../../../configs/content-types/map';
@@ -68,8 +61,6 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   language: languageConfig,
   culture: cultureConfig,
   species: speciesConfig,
-  tradition: traditionConfig,
-  ritual: ritualConfig,
   food: foodConfig,
   drink: drinkConfig,
   settlement: settlementConfig,
@@ -85,14 +76,9 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   militaryUnit: militaryUnitConfig,
   transportation: transportationConfig,
   naturalLaw: naturalLawConfig,
-  myth: mythConfig,
-  legend: legendConfig,
   event: eventConfig,
   familyTree: familyTreeConfig,
   timeline: timelineConfig,
-  ceremony: ceremonyConfig,
-  music: musicConfig,
-  dance: danceConfig,
   prompt: promptConfig,
   document: documentConfig,
   map: mapConfig,
@@ -111,14 +97,12 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   ...Object.fromEntries(
     Object.entries(originalConfigs).filter(([key]) => ![
       'character', 'weapon', 'armor', 'spell', 'faction', 'plot',
-      'religion', 'language', 'culture', 'species', 'tradition', 'ritual',
-      'food', 'drink', 'settlement', 'society', 'technology', 'animal',
-      'plant', 'resource', 'ethnicity', 'accessory', 'clothing', 'material',
-      'militaryUnit', 'transportation', 'naturalLaw', 'myth', 'legend',
-      'event', 'familyTree', 'timeline', 'ceremony', 'music', 'dance', 'law',
-      'policy', 'potion', 'prompt', 'profession', 'document', 'map',
-      'setting', 'name', 'conflict', 'theme', 'mood', 'description',
-      'building', 'creature', 'item', 'location', 'organization'
+      'religion', 'language', 'culture', 'species', 'food', 'drink', 
+      'settlement', 'society', 'technology', 'animal', 'plant', 'resource', 
+      'ethnicity', 'accessory', 'clothing', 'material', 'militaryUnit', 
+      'transportation', 'naturalLaw', 'event', 'familyTree', 'timeline', 
+      'prompt', 'document', 'map', 'setting', 'name', 'conflict', 'theme', 
+      'mood', 'description', 'building', 'creature', 'item', 'location', 'organization'
     ].includes(key))
   ),
 };
@@ -224,8 +208,6 @@ export { religionConfig } from '../../../configs/content-types/religion';
 export { languageConfig } from '../../../configs/content-types/language';
 export { cultureConfig } from '../../../configs/content-types/culture';
 export { speciesConfig } from '../../../configs/content-types/species';
-export { traditionConfig } from '../../../configs/content-types/tradition';
-export { ritualConfig } from '../../../configs/content-types/ritual';
 export { foodConfig } from '../../../configs/content-types/food';
 export { drinkConfig } from '../../../configs/content-types/drink';
 export { settlementConfig } from '../../../configs/content-types/settlement';
@@ -241,14 +223,9 @@ export { materialConfig } from '../../../configs/content-types/material';
 export { militaryUnitConfig } from '../../../configs/content-types/militaryUnit';
 export { transportationConfig } from '../../../configs/content-types/transportation';
 export { naturalLawConfig } from '../../../configs/content-types/naturalLaw';
-export { mythConfig } from '../../../configs/content-types/myth';
-export { legendConfig } from '../../../configs/content-types/legend';
 export { eventConfig } from '../../../configs/content-types/event';
 export { familyTreeConfig } from '../../../configs/content-types/familyTree';
 export { timelineConfig } from '../../../configs/content-types/timeline';
-export { ceremonyConfig } from '../../../configs/content-types/ceremony';
-export { musicConfig } from '../../../configs/content-types/music';
-export { danceConfig } from '../../../configs/content-types/dance';
 export { promptConfig } from '../../../configs/content-types/prompt';
 export { documentConfig } from '../../../configs/content-types/document';
 export { mapConfig } from '../../../configs/content-types/map';
