@@ -19,8 +19,10 @@ function JunctionEdgeComponent({
   const isVertical = sourcePosition === 'bottom' || sourcePosition === 'top';
   
   if (isHorizontal) {
-    // Marriage edge - pure horizontal line at source Y level
-    path = `M ${sourceX},${sourceY} L ${targetX},${sourceY}`;
+    // Marriage edge - pure horizontal line connecting source to target
+    // Use the average Y to ensure a clean horizontal line even with minor offsets
+    const lineY = (sourceY + targetY) / 2;
+    path = `M ${sourceX},${lineY} L ${targetX},${lineY}`;
   } else if (isVertical) {
     // Parent-child edge - vertical down, then horizontal to target
     // This creates the proper T-junction: straight down from junction, then over to child

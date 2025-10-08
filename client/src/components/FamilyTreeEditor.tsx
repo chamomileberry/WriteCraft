@@ -519,7 +519,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           
           if (parent1Node && parent2Node) {
             const junctionX = (parent1Node.position.x + parent2Node.position.x) / 2;
-            const junctionY = Math.max(parent1Node.position.y, parent2Node.position.y);
+            // Use the same Y as parents (they should be aligned already)
+            const junctionY = parent1Node.position.y;
             const junctionId = `junction-${coupleKey}`;
             
             junctionNodes.push({
