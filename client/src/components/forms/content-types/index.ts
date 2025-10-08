@@ -17,12 +17,7 @@ import { documentConfig } from '../../../configs/content-types/document';
 import { mapConfig } from '../../../configs/content-types/map';
 import { settingConfig } from '../../../configs/content-types/setting';
 import { nameConfig } from '../../../configs/content-types/name';
-import { conflictConfig } from '../../../configs/content-types/conflict';
-import { themeConfig } from '../../../configs/content-types/theme';
-import { moodConfig } from '../../../configs/content-types/mood';
 import { descriptionConfig } from '../../../configs/content-types/description';
-import { locationConfig } from '../../../configs/content-types/location';
-import { organizationConfig } from '../../../configs/content-types/organization';
 
 // Import remaining configs from the original file (temporary until all are split)
 import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormConfig';
@@ -43,20 +38,14 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   map: mapConfig,
   setting: settingConfig,
   name: nameConfig,
-  conflict: conflictConfig,
-  theme: themeConfig,
-  mood: moodConfig,
   description: descriptionConfig,
-  location: locationConfig,
-  organization: organizationConfig,
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
     Object.entries(originalConfigs).filter(([key]) => ![
       'character', 'armor', 'spell', 'plot',
       'food', 'drink', 
       'ethnicity', 'familyTree', 'timeline', 'prompt', 'document', 
-      'map', 'setting', 'name', 'conflict', 'theme', 'mood', 'description', 
-      'location', 'organization'
+      'map', 'setting', 'name', 'description'
     ].includes(key))
   ),
 };
@@ -166,9 +155,4 @@ export { documentConfig } from '../../../configs/content-types/document';
 export { mapConfig } from '../../../configs/content-types/map';
 export { settingConfig } from '../../../configs/content-types/setting';
 export { nameConfig } from '../../../configs/content-types/name';
-export { conflictConfig } from '../../../configs/content-types/conflict';
-export { themeConfig } from '../../../configs/content-types/theme';
-export { moodConfig } from '../../../configs/content-types/mood';
 export { descriptionConfig } from '../../../configs/content-types/description';
-export { locationConfig } from '../../../configs/content-types/location';
-export { organizationConfig } from '../../../configs/content-types/organization';

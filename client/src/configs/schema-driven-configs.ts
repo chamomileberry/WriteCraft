@@ -1209,6 +1209,146 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       articleContent: { tab: 'lore', order: 4, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
   }),
+
+  location: () => buildConfig(schemas.insertLocationSchema, {
+    title: 'Location Designer',
+    description: 'Create locations and places',
+    icon: 'MapPin',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'details', label: 'Details & Features', icon: 'Mountain', order: 2 },
+      { id: 'society', label: 'Society & History', icon: 'Users', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Location Name' },
+      locationType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'City, forest, dungeon, etc.' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      geography: { tab: 'details', order: 1, rows: 3, placeholder: 'Geographic features...' },
+      climate: { tab: 'details', order: 2, rows: 2, placeholder: 'Climate and weather...' },
+      notableFeatures: { tab: 'details', order: 3, placeholder: 'Notable features...' },
+      landmarks: { tab: 'details', order: 4, placeholder: 'Key landmarks...' },
+      resources: { tab: 'details', order: 5, placeholder: 'Available resources...' },
+      threats: { tab: 'details', order: 6, placeholder: 'Dangers and threats...' },
+      
+      population: { tab: 'society', order: 1, placeholder: 'Population size' },
+      government: { tab: 'society', order: 2, rows: 2, placeholder: 'Government type...' },
+      economy: { tab: 'society', order: 3, rows: 2, placeholder: 'Economic system...' },
+      culture: { tab: 'society', order: 4, rows: 3, placeholder: 'Cultural aspects...' },
+      history: { tab: 'society', order: 5, rows: 4, placeholder: 'Historical background...' },
+      imageUrl: { tab: 'society', order: 6, label: 'Image URL' },
+      imageCaption: { tab: 'society', order: 7, label: 'Image Caption' },
+      articleContent: { tab: 'society', order: 8, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
+
+  organization: () => buildConfig(schemas.insertOrganizationSchema, {
+    title: 'Organization Designer',
+    description: 'Create organizations and groups',
+    icon: 'Building2',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'structure', label: 'Structure & Members', icon: 'Network', order: 2 },
+      { id: 'influence', label: 'Influence & Relations', icon: 'Globe', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Organization Name' },
+      organizationType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Guild, faction, government, etc.' },
+      purpose: { tab: 'basic', order: 3, rows: 2 },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      structure: { tab: 'structure', order: 1, rows: 3, placeholder: 'Organizational structure...' },
+      leadership: { tab: 'structure', order: 2, rows: 3, placeholder: 'Leadership hierarchy...' },
+      members: { tab: 'structure', order: 3, rows: 3, placeholder: 'Member information...' },
+      headquarters: { tab: 'structure', order: 4, placeholder: 'Headquarters location' },
+      
+      influence: { tab: 'influence', order: 1, rows: 3, placeholder: 'Sphere of influence...' },
+      resources: { tab: 'influence', order: 2, rows: 2, placeholder: 'Available resources...' },
+      goals: { tab: 'influence', order: 3, rows: 3, placeholder: 'Goals and objectives...' },
+      allies: { tab: 'influence', order: 4, placeholder: 'Allied organizations...' },
+      enemies: { tab: 'influence', order: 5, placeholder: 'Enemy organizations...' },
+      history: { tab: 'influence', order: 6, rows: 4, placeholder: 'Organizational history...' },
+      imageUrl: { tab: 'influence', order: 7, label: 'Image URL' },
+      imageCaption: { tab: 'influence', order: 8, label: 'Image Caption' },
+      articleContent: { tab: 'influence', order: 9, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
+
+  conflict: () => buildConfig(schemas.insertConflictSchema, {
+    title: 'Conflict Designer',
+    description: 'Create conflicts and tensions',
+    icon: 'Zap',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'details', label: 'Conflict Details', icon: 'AlertCircle', order: 2 },
+    ],
+    fieldHints: {
+      title: { tab: 'basic', order: 1 },
+      type: { tab: 'basic', order: 2, placeholder: 'Internal, external, interpersonal, etc.' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      stakes: { tab: 'details', order: 1, rows: 3, placeholder: 'What\'s at stake?' },
+      obstacles: { tab: 'details', order: 2, placeholder: 'Obstacles to overcome...' },
+      potentialResolutions: { tab: 'details', order: 3, label: 'Potential Resolutions', placeholder: 'Possible resolutions...' },
+      emotionalImpact: { tab: 'details', order: 4, label: 'Emotional Impact', rows: 3, placeholder: 'Emotional impact on characters...' },
+      imageUrl: { tab: 'details', order: 5, label: 'Image URL' },
+      imageCaption: { tab: 'details', order: 6, label: 'Image Caption' },
+      articleContent: { tab: 'details', order: 7, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
+
+  theme: () => buildConfig(schemas.insertThemeSchema, {
+    title: 'Theme Designer',
+    description: 'Create themes and messages',
+    icon: 'Lightbulb',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'elements', label: 'Elements & Examples', icon: 'Sparkles', order: 2 },
+    ],
+    fieldHints: {
+      title: { tab: 'basic', order: 1 },
+      description: { tab: 'basic', order: 2, rows: 4 },
+      coreMessage: { tab: 'basic', order: 3, label: 'Core Message', rows: 3, placeholder: 'Central message or idea...' },
+      genre: { tab: 'basic', order: 4 },
+      
+      symbolicElements: { tab: 'elements', order: 1, label: 'Symbolic Elements', placeholder: 'Symbolic elements...' },
+      questions: { tab: 'elements', order: 2, placeholder: 'Questions raised...' },
+      conflicts: { tab: 'elements', order: 3, placeholder: 'Related conflicts...' },
+      examples: { tab: 'elements', order: 4, placeholder: 'Examples in story...' },
+      imageUrl: { tab: 'elements', order: 5, label: 'Image URL' },
+      imageCaption: { tab: 'elements', order: 6, label: 'Image Caption' },
+      articleContent: { tab: 'elements', order: 7, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
+
+  mood: () => buildConfig(schemas.insertMoodSchema, {
+    title: 'Mood Designer',
+    description: 'Create moods and atmospheres',
+    icon: 'CloudRain',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'sensory', label: 'Sensory Details', icon: 'Eye', order: 2 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Mood Name' },
+      description: { tab: 'basic', order: 2, rows: 4 },
+      emotionalTone: { tab: 'basic', order: 3, label: 'Emotional Tone', rows: 3, placeholder: 'Emotional tone and feeling...' },
+      
+      sensoryDetails: { tab: 'sensory', order: 1, label: 'Sensory Details', placeholder: 'Sensory details...' },
+      colorAssociations: { tab: 'sensory', order: 2, label: 'Color Associations', placeholder: 'Associated colors...' },
+      weatherElements: { tab: 'sensory', order: 3, label: 'Weather Elements', placeholder: 'Weather elements...' },
+      lightingEffects: { tab: 'sensory', order: 4, label: 'Lighting Effects', placeholder: 'Lighting effects...' },
+      soundscape: { tab: 'sensory', order: 5, placeholder: 'Sounds and ambient noise...' },
+    },
+  }),
 };
 
 /**

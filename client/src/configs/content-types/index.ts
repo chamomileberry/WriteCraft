@@ -2,14 +2,10 @@ import { ContentTypeFormConfig } from '../../components/forms/types';
 
 // Static imports for frequently used content types (loaded immediately)
 import { characterConfig } from '../../components/forms/content-types/character';
-import { locationConfig } from './location';
-import { organizationConfig } from './organization';
 
 // Static configurations for core content types
 const staticConfigs: Record<string, ContentTypeFormConfig> = {
   character: characterConfig,
-  location: locationConfig,
-  organization: organizationConfig,
 };
 
 // Dynamic import factory for less frequently used content types
