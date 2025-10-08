@@ -11,12 +11,14 @@ function JunctionNodeComponent({ }: NodeProps) {
         background: 'hsl(var(--foreground))',
       }}
     >
+      {/* Target handle from parents above */}
       <Handle 
         type="target" 
         position={Position.Top} 
         id="top"
         style={{ opacity: 0 }}
       />
+      {/* Source handle to children below */}
       <Handle 
         type="source" 
         position={Position.Bottom} 

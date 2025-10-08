@@ -511,7 +511,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
                 source: junctionId,
                 target: child.targetId,
                 sourceHandle: 'bottom',
-                targetHandle: 'top',
+                targetHandle: 'top-target',
                 type: 'straight',
                 style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
               });
@@ -543,7 +543,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
         // Marriage lines connect horizontally (side to side)
         edgeProps.sourceHandle = 'right';
-        edgeProps.targetHandle = 'left';
+        edgeProps.targetHandle = 'left-target';
       } else if (rel.relationshipType === 'parent' || rel.relationshipType === 'child') {
         // Skip parent-child edges that are handled by T-junctions
         if (handledParentChild.has(`${rel.fromMemberId}-${rel.toMemberId}`)) {
@@ -551,11 +551,11 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         }
         // Other parent-child lines connect vertically (bottom to top)
         edgeProps.sourceHandle = 'bottom';
-        edgeProps.targetHandle = 'top';
+        edgeProps.targetHandle = 'top-target';
       } else if (rel.relationshipType === 'adoption' || rel.relationshipType === 'stepParent' || rel.relationshipType === 'grandparent') {
         // These always get their own direct vertical line
         edgeProps.sourceHandle = 'bottom';
-        edgeProps.targetHandle = 'top';
+        edgeProps.targetHandle = 'top-target';
       }
       
       newEdges.push(edgeProps);
