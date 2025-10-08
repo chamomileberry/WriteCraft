@@ -19,7 +19,7 @@ function JunctionNodeComponent({ }: NodeProps) {
         style={{ opacity: 0 }}
       />
       <Handle 
-        type="source" 
+        type="target" 
         position={Position.Right} 
         id="right"
         style={{ opacity: 0 }}

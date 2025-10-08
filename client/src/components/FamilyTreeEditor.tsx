@@ -380,43 +380,76 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  // Update junction positions when parent nodes are dragged
+  // Update junction positions and keep married couples aligned when parent nodes are dragged
   const onNodeDrag = useCallback((_event: any, node: Node) => {
-    if (node.type !== 'familyMember' || isUpdatingJunctions.current) return;
+    if (node.type !== 'familyMember' || isUpdatingJunctions.current || isAutoLayout) return;
     
     isUpdatingJunctions.current = true;
     
-    // Find all junction nodes that have this node as a parent
     setNodes(currentNodes => {
-      const updatedNodes = currentNodes.map(n => {
+      const updatedNodes = [...currentNodes];
+      
+      // First, find and align the spouse to the same Y level
+      const draggedNodeIndex = updatedNodes.findIndex(n => n.id === node.id);
+      if (draggedNodeIndex !== -1) {
+        updatedNodes[draggedNodeIndex] = node;
+      }
+      
+      // Find all junctions that involve this node to identify spouses
+      const spouseIds = new Set<string>();
+      updatedNodes.forEach(n => {
         if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
-          const isParent = n.data.parent1Id === node.id || n.data.parent2Id === node.id;
-          if (isParent) {
-            const parent1 = n.data.parent1Id === node.id 
-              ? node
-              : currentNodes.find(cn => cn.id === n.data.parent1Id);
-            const parent2 = n.data.parent2Id === node.id
-              ? node
-              : currentNodes.find(cn => cn.id === n.data.parent2Id);
+          const junctionData = n.data as { parent1Id: string; parent2Id: string };
+          if (junctionData.parent1Id === node.id) {
+            spouseIds.add(junctionData.parent2Id);
+          } else if (junctionData.parent2Id === node.id) {
+            spouseIds.add(junctionData.parent1Id);
+          }
+        }
+      });
+      
+      // Align all spouses to the same Y coordinate
+      updatedNodes.forEach((n, index) => {
+        if (spouseIds.has(n.id) && n.type === 'familyMember') {
+          updatedNodes[index] = {
+            ...n,
+            position: {
+              x: n.position.x,
+              y: node.position.y, // Align to same Y as dragged node
+            },
+          };
+        }
+      });
+      
+      // Now update all junction nodes that have this node or its spouses as parents
+      updatedNodes.forEach((n, index) => {
+        if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
+          const junctionData = n.data as { parent1Id: string; parent2Id: string };
+          const isInvolved = junctionData.parent1Id === node.id || 
+                           junctionData.parent2Id === node.id || 
+                           spouseIds.has(junctionData.parent1Id) || 
+                           spouseIds.has(junctionData.parent2Id);
+          if (isInvolved) {
+            const parent1 = updatedNodes.find(cn => cn.id === junctionData.parent1Id);
+            const parent2 = updatedNodes.find(cn => cn.id === junctionData.parent2Id);
             
             if (parent1 && parent2) {
-              return {
+              updatedNodes[index] = {
                 ...n,
                 position: {
                   x: (parent1.position.x + parent2.position.x) / 2,
-                  y: Math.max(parent1.position.y, parent2.position.y),
+                  y: parent1.position.y, // Use the aligned Y position
                 },
               };
             }
           }
         }
-        return n;
       });
       
       isUpdatingJunctions.current = false;
       return updatedNodes;
     });
-  }, [setNodes]);
+  }, [setNodes, isAutoLayout]);
 
   // Create nodes and edges together to avoid infinite loops  
   useEffect(() => {
@@ -512,11 +545,11 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             });
             
             newEdges.push({
-              id: `${junctionId}-${parent2Id}`,
-              source: junctionId,
-              target: parent2Id,
-              sourceHandle: 'right',
-              targetHandle: 'left-target',
+              id: `${parent2Id}-${junctionId}`,
+              source: parent2Id,
+              target: junctionId,
+              sourceHandle: 'left',
+              targetHandle: 'right',
               type: 'junction',
               style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
             });
@@ -568,7 +601,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       
       if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
         edgeProps.sourceHandle = 'right';
-        edgeProps.targetHandle = 'left-target';
+        edgeProps.targetHandle = 'left';
       } else {
         edgeProps.sourceHandle = 'bottom';
         edgeProps.targetHandle = 'top-target';
