@@ -10,7 +10,7 @@ import { Zap, Copy, RefreshCw, Heart, Loader2, Check, ChevronsUpDown } from "luc
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { GENRE_CATEGORIES } from "../../../server/genres";
+import { GENRE_CATEGORIES } from "@shared/genres";
 
 interface WritingPrompt {
   id?: string;
@@ -27,7 +27,7 @@ interface WritingPrompt {
 // Removed local data arrays - now using backend API
 const promptTypes = ['Story Starter', 'Character Focus', 'Dialogue', 'Setting', 'Conflict'];
 
-// Now using backend data - imported from server/genres.ts
+// Now using backend data - imported from shared/genres.ts
 const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
 
 export default function WritingPrompts() {

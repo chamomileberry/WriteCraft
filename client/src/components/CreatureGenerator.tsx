@@ -11,9 +11,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNotebookStore } from "@/stores/notebookStore";
 import type { Creature } from "@shared/schema";
-import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "../../../server/genres";
+import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "@shared/genres";
 
-// Now using backend data - imported from server/genres.ts
+// Now using backend data - imported from shared/genres.ts
 
 export default function CreatureGenerator() {
   const [generatedCreature, setGeneratedCreature] = useState<Creature | null>(null);

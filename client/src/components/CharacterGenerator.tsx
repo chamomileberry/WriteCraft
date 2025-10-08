@@ -10,11 +10,11 @@ import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "../../../server/genres";
+import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "@shared/genres";
 import { type Character } from "@shared/schema";
 import { useNotebookStore } from "@/stores/notebookStore";
 
-// Now using backend data - imported from server/genres.ts
+// Now using backend data - imported from shared/genres.ts
 
 export default function CharacterGenerator() {
   const [character, setCharacter] = useState<Character | null>(null);

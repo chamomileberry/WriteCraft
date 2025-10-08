@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import StoryStructureQuiz from "./StoryStructureQuiz";
-import { GENRE_CATEGORIES } from "../../../server/genres";
+import { GENRE_CATEGORIES } from "@shared/genres";
 
 interface PlotStructure {
   id?: string;

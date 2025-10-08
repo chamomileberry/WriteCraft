@@ -10,7 +10,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Description } from "@shared/schema";
-import { GENRE_CATEGORIES } from "../../../server/genres";
+import { GENRE_CATEGORIES } from "@shared/genres";
 
 // Comprehensive description type categories
 const DESCRIPTION_TYPE_CATEGORIES = {
@@ -69,7 +69,7 @@ const DESCRIPTION_TYPE_CATEGORIES = {
   ]
 };
 
-// Now using backend data - imported from server/genres.ts
+// Now using backend data - imported from shared/genres.ts
 
 export default function DescriptionGenerator() {
   const [generatedDescription, setGeneratedDescription] = useState<Description | null>(null);

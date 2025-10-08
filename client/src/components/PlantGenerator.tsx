@@ -10,7 +10,7 @@ import { Leaf, Copy, Save, Shuffle, Loader2, Check, ChevronsUpDown } from "lucid
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { GENRE_CATEGORIES } from "../../../server/genres";
+import { GENRE_CATEGORIES } from "@shared/genres";
 import { useNotebookStore } from "@/stores/notebookStore";
 import NotebookSwitcher from "./NotebookSwitcher";
 
@@ -30,7 +30,7 @@ interface Plant {
   createdAt?: string;
 }
 
-// Now using backend data - imported from server/genres.ts
+// Now using backend data - imported from shared/genres.ts
 const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
 
 // Plant types from user's comprehensive list

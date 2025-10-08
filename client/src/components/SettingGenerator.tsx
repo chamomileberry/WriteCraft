@@ -11,9 +11,9 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Setting } from "@shared/schema";
-import { GENRE_CATEGORIES, SETTING_TYPE_CATEGORIES } from "../../../server/genres";
+import { GENRE_CATEGORIES, SETTING_TYPE_CATEGORIES } from "@shared/genres";
 
-// Now using backend data - imported from server/genres.ts
+// Now using backend data - imported from shared/genres.ts
 
 
 export default function SettingGenerator() {
