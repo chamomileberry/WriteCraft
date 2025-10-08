@@ -453,6 +453,19 @@ export interface IStorage {
   getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]>;
   updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline>;
   deleteTimeline(id: string, userId: string): Promise<void>;
+  
+  // Timeline Event methods
+  createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
+  getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined>;
+  getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]>;
+  updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent>;
+  deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void>;
+
+  // Timeline Relationship methods
+  createTimelineRelationship(relationship: InsertTimelineRelationship): Promise<TimelineRelationship>;
+  getTimelineRelationships(timelineId: string, userId: string): Promise<TimelineRelationship[]>;
+  updateTimelineRelationship(id: string, userId: string, updates: Partial<InsertTimelineRelationship>): Promise<TimelineRelationship>;
+  deleteTimelineRelationship(id: string, userId: string, timelineId: string): Promise<void>;
 
   // Ceremony methods
   createCeremony(ceremony: InsertCeremony): Promise<Ceremony>;
@@ -3522,57 +3535,129 @@ export class DatabaseStorage implements IStorage {
     ));
   }
 
-  // Timeline methods
-  async createTimeline(timeline: InsertTimeline): Promise<Timeline> {
-    const [newTimeline] = await db
-      .insert(timelines)
-      .values(timeline)
-      .returning();
-    return newTimeline;
+// Timeline Event methods
+async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
+  const [newEvent] = await db
+    .insert(timelineEvents)
+    .values(event)
+    .returning();
+  return newEvent;
+}
+
+async getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined> {
+  // First verify the user owns the timeline
+  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
+  if (!this.validateContentOwnership(timeline, userId)) {
+    throw new Error('Unauthorized: You do not own this timeline');
   }
 
-  async getTimeline(id: string, userId: string, notebookId: string): Promise<Timeline | undefined> {
-    const [timeline] = await db.select().from(timelines).where(and(
-      eq(timelines.id, id),
-      eq(timelines.userId, userId),
-      eq(timelines.notebookId, notebookId)
-    ));
-    return timeline || undefined;
+  const [event] = await db.select().from(timelineEvents).where(and(
+    eq(timelineEvents.id, id),
+    eq(timelineEvents.timelineId, timelineId)
+  ));
+  return event || undefined;
+}
+
+async getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]> {
+  // Verify the user owns the timeline
+  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
+  if (!this.validateContentOwnership(timeline, userId)) {
+    throw new Error('Unauthorized: You do not own this timeline');
   }
 
-  async getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]> {
-    return await db.select().from(timelines)
-      .where(and(
-        eq(timelines.userId, userId),
-        eq(timelines.notebookId, notebookId)
-      ))
-      .orderBy(desc(timelines.createdAt));
+  return await db.select().from(timelineEvents)
+    .where(eq(timelineEvents.timelineId, timelineId))
+    .orderBy(timelineEvents.startDate);
+}
+
+async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
+  // Get the event to find its timeline
+  const [existing] = await db.select().from(timelineEvents).where(eq(timelineEvents.id, id));
+  if (!existing) {
+    throw new Error('Timeline event not found');
   }
 
-  async updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
-    // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
-
-    const [updatedTimeline] = await db
-      .update(timelines)
-      .set(updates)
-      .where(eq(timelines.id, id))
-      .returning();
-    return updatedTimeline;
+  // Verify the user owns the timeline
+  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, existing.timelineId));
+  if (!this.validateContentOwnership(timeline, userId)) {
+    throw new Error('Unauthorized: You do not own this timeline');
   }
 
-  async deleteTimeline(id: string, userId: string): Promise<void> {
-    // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
-    }
+  const [updatedEvent] = await db
+    .update(timelineEvents)
+    .set({ ...updates, updatedAt: new Date() })
+    .where(eq(timelineEvents.id, id))
+    .returning();
+  return updatedEvent;
+}
 
-    await db.delete(timelines).where(eq(timelines.id, id));
+async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void> {
+  // Verify the user owns the timeline
+  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
+  if (!this.validateContentOwnership(timeline, userId)) {
+    throw new Error('Unauthorized: You do not own this timeline');
   }
+
+  await db.delete(timelineEvents).where(and(
+    eq(timelineEvents.id, id),
+    eq(timelineEvents.timelineId, timelineId)
+  ));
+}
+
+// Timeline Relationship methods
+  async createTimelineRelationship(relationship: InsertTimelineRelationship): Promise<TimelineRelationship> {
+  const [newRelationship] = await db
+    .insert(timelineRelationships)
+    .values(relationship)
+    .returning();
+  return newRelationship;
+}
+
+  async getTimelineRelationships(timelineId: string, userId: string): Promise<TimelineRelationship[]> {
+  // Verify the user owns the timeline
+  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
+  if (!this.validateContentOwnership(timeline, userId)) {
+    throw new Error('Unauthorized: You do not own this timeline');
+  }
+
+  return await db.select().from(timelineRelationships)
+    .where(eq(timelineRelationships.timelineId, timelineId))
+    .orderBy(desc(timelineRelationships.createdAt));
+}
+
+  async updateTimelineRelationship(id: string, userId: string, updates: Partial<InsertTimelineRelationship>): Promise<TimelineRelationship> {
+  // Get the relationship to find its timeline
+  const [existing] = await db.select().from(timelineRelationships).where(eq(timelineRelationships.id, id));
+  if (!existing) {
+    throw new Error('Timeline relationship not found');
+  }
+
+  // Verify the user owns the timeline
+  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, existing.timelineId));
+  if (!this.validateContentOwnership(timeline, userId)) {
+    throw new Error('Unauthorized: You do not own this timeline');
+  }
+
+  const [updatedRelationship] = await db
+    .update(timelineRelationships)
+    .set(updates)
+    .where(eq(timelineRelationships.id, id))
+    .returning();
+  return updatedRelationship;
+}
+
+  async deleteTimelineRelationship(id: string, userId: string, timelineId: string): Promise<void> {
+  // Verify the user owns the timeline
+  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
+  if (!this.validateContentOwnership(timeline, userId)) {
+    throw new Error('Unauthorized: You do not own this timeline');
+  }
+
+  await db.delete(timelineRelationships).where(and(
+    eq(timelineRelationships.id, id),
+    eq(timelineRelationships.timelineId, timelineId)
+  ));
+}
 
   // Ceremony methods
   async createCeremony(ceremony: InsertCeremony): Promise<Ceremony> {
