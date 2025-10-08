@@ -7,10 +7,7 @@ import { weaponConfig } from './weapon';
 // Import the extracted configs from our new individual files
 import { armorConfig } from '../../../configs/content-types/armor';
 import { spellConfig } from '../../../configs/content-types/spell';
-import { factionConfig } from '../../../configs/content-types/faction';
 import { plotConfig } from '../../../configs/content-types/plot';
-import { religionConfig } from '../../../configs/content-types/religion';
-import { languageConfig } from '../../../configs/content-types/language';
 import { foodConfig } from '../../../configs/content-types/food';
 import { drinkConfig } from '../../../configs/content-types/drink';
 import { ethnicityConfig } from '../../../configs/content-types/ethnicity';
@@ -40,10 +37,7 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   weapon: weaponConfig,
   armor: armorConfig,
   spell: spellConfig,
-  faction: factionConfig,
   plot: plotConfig,
-  religion: religionConfig,
-  language: languageConfig,
   food: foodConfig,
   drink: drinkConfig,
   ethnicity: ethnicityConfig,
@@ -66,8 +60,8 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
     Object.entries(originalConfigs).filter(([key]) => ![
-      'character', 'weapon', 'armor', 'spell', 'faction', 'plot',
-      'religion', 'language', 'food', 'drink', 
+      'character', 'weapon', 'armor', 'spell', 'plot',
+      'food', 'drink', 
       'ethnicity', 'familyTree', 'timeline', 'prompt', 'document', 
       'map', 'setting', 'name', 'conflict', 'theme', 'mood', 'description', 
       'building', 'creature', 'item', 'location', 'organization'
@@ -170,10 +164,7 @@ export { characterConfig } from './character';
 export { weaponConfig } from './weapon';
 export { armorConfig } from '../../../configs/content-types/armor';
 export { spellConfig } from '../../../configs/content-types/spell';
-export { factionConfig } from '../../../configs/content-types/faction';
 export { plotConfig } from '../../../configs/content-types/plot';
-export { religionConfig } from '../../../configs/content-types/religion';
-export { languageConfig } from '../../../configs/content-types/language';
 export { foodConfig } from '../../../configs/content-types/food';
 export { drinkConfig } from '../../../configs/content-types/drink';
 export { ethnicityConfig } from '../../../configs/content-types/ethnicity';

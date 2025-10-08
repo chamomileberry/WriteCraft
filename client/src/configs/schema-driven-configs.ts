@@ -991,6 +991,100 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       conflictingAccounts: { tab: 'impact', order: 5, label: 'Conflicting Accounts', rows: 3, placeholder: 'Different versions of the story...' },
     },
   }),
+
+  religion: () => buildConfig(schemas.insertReligionSchema, {
+    title: 'Religion Designer',
+    description: 'Create belief systems and faiths',
+    icon: 'Church',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'beliefs', label: 'Beliefs & Practices', icon: 'BookOpen', order: 2 },
+      { id: 'organization', label: 'Organization & Influence', icon: 'Users', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Religion Name' },
+      description: { tab: 'basic', order: 2, rows: 4 },
+      genre: { tab: 'basic', order: 3 },
+      
+      beliefs: { tab: 'beliefs', order: 1, placeholder: 'Core beliefs and tenets...' },
+      practices: { tab: 'beliefs', order: 2, placeholder: 'Religious practices and rituals...' },
+      deities: { tab: 'beliefs', order: 3, placeholder: 'Gods, goddesses, or divine beings...' },
+      morality: { tab: 'beliefs', order: 4, rows: 3, placeholder: 'Moral code and ethics...' },
+      afterlife: { tab: 'beliefs', order: 5, rows: 3, placeholder: 'Views on afterlife...' },
+      scriptures: { tab: 'beliefs', order: 6, rows: 3, placeholder: 'Sacred texts and writings...' },
+      ceremonies: { tab: 'beliefs', order: 7, placeholder: 'Ceremonies and celebrations...' },
+      symbols: { tab: 'beliefs', order: 8, placeholder: 'Religious symbols...' },
+      
+      hierarchy: { tab: 'organization', order: 1, rows: 3, placeholder: 'Religious hierarchy and structure...' },
+      followers: { tab: 'organization', order: 2, placeholder: 'Who follows this religion?' },
+      influence: { tab: 'organization', order: 3, rows: 3, placeholder: 'Influence on society...' },
+      history: { tab: 'organization', order: 4, rows: 4, placeholder: 'Religious history...' },
+    },
+  }),
+
+  language: () => buildConfig(schemas.insertLanguageSchema, {
+    title: 'Language Designer',
+    description: 'Create languages and communication systems',
+    icon: 'Languages',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'linguistics', label: 'Linguistics', icon: 'Book', order: 2 },
+      { id: 'culture', label: 'Cultural Context', icon: 'Globe', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Language Name' },
+      family: { tab: 'basic', order: 2, placeholder: 'Language family' },
+      status: { tab: 'basic', order: 3, placeholder: 'Living, dead, constructed, etc.' },
+      speakers: { tab: 'basic', order: 4, placeholder: 'Number of speakers' },
+      regions: { tab: 'basic', order: 5, placeholder: 'Regions where spoken...' },
+      genre: { tab: 'basic', order: 6 },
+      
+      phonology: { tab: 'linguistics', order: 1, rows: 3, placeholder: 'Sound system...' },
+      grammar: { tab: 'linguistics', order: 2, rows: 3, placeholder: 'Grammatical structure...' },
+      vocabulary: { tab: 'linguistics', order: 3, rows: 3, placeholder: 'Vocabulary and word formation...' },
+      writingSystem: { tab: 'linguistics', order: 4, label: 'Writing System', rows: 3, placeholder: 'Writing system...' },
+      commonPhrases: { tab: 'linguistics', order: 5, label: 'Common Phrases', placeholder: 'Common phrases and expressions...' },
+      variations: { tab: 'linguistics', order: 6, placeholder: 'Dialects and variations...' },
+      difficulty: { tab: 'linguistics', order: 7, placeholder: 'Learning difficulty' },
+      
+      culturalContext: { tab: 'culture', order: 1, label: 'Cultural Context', rows: 3, placeholder: 'Cultural significance...' },
+      history: { tab: 'culture', order: 2, rows: 4, placeholder: 'Language history and evolution...' },
+    },
+  }),
+
+  faction: () => buildConfig(schemas.insertFactionSchema, {
+    title: 'Faction Designer',
+    description: 'Create organizations and groups',
+    icon: 'Flag',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'identity', label: 'Identity & Goals', icon: 'Target', order: 2 },
+      { id: 'power', label: 'Power & Relations', icon: 'Swords', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Faction Name' },
+      factionType: { tab: 'basic', order: 2, label: 'Type' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      goals: { tab: 'identity', order: 1, rows: 3, placeholder: 'What are their goals?' },
+      ideology: { tab: 'identity', order: 2, rows: 3, placeholder: 'Ideology and beliefs...' },
+      leadership: { tab: 'identity', order: 3, rows: 3, placeholder: 'Leadership structure...' },
+      members: { tab: 'identity', order: 4, placeholder: 'Who are the members?' },
+      methods: { tab: 'identity', order: 5, rows: 3, placeholder: 'Methods and tactics...' },
+      secrets: { tab: 'identity', order: 6, rows: 3, placeholder: 'Hidden agendas and secrets...' },
+      
+      resources: { tab: 'power', order: 1, rows: 3, placeholder: 'Available resources...' },
+      territory: { tab: 'power', order: 2, rows: 3, placeholder: 'Controlled territory...' },
+      influence: { tab: 'power', order: 3, rows: 3, placeholder: 'Sphere of influence...' },
+      allies: { tab: 'power', order: 4, placeholder: 'Allied factions...' },
+      enemies: { tab: 'power', order: 5, placeholder: 'Enemy factions...' },
+      history: { tab: 'power', order: 6, rows: 4, placeholder: 'Faction history...' },
+    },
+  }),
 };
 
 /**
