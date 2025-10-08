@@ -74,25 +74,25 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.patch("/:id", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const validatedUpdates = insertTimelineSchema.parse(req.body);
-    const updatedTimeline = await storage.updateTimeline(req.params.id, userId, validatedUpdates);
+    const updates = insertTimelineSchema.partial().parse(req.body);
+    
+    const updatedTimeline = await storage.updateTimeline(req.params.id, userId, updates);
     res.json(updatedTimeline);
   } catch (error) {
     console.error('Error updating timeline:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
       console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
       return res.status(404).json({ error: 'Not found' });
     }
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Failed to update timeline' });
   }
 });
 
