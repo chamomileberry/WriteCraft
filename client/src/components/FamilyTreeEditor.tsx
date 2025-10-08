@@ -967,6 +967,10 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           edgeTypes={edgeTypes}
           nodesDraggable={!isAutoLayout}
           nodesConnectable={true}
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            markerEnd: undefined,
+          }}
           fitView
           minZoom={0.1}
           maxZoom={2}

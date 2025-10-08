@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { EdgeProps, getBezierPath, BaseEdge } from '@xyflow/react';
+import { EdgeProps, getSmoothStepPath, BaseEdge } from '@xyflow/react';
 import type { FamilyTreeRelationship } from '@shared/schema';
 
 export interface FamilyRelationshipEdgeData {
@@ -17,9 +17,8 @@ function FamilyRelationshipEdgeComponent({
   sourcePosition,
   targetPosition,
   data,
-  markerEnd,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -52,7 +51,7 @@ function FamilyRelationshipEdgeComponent({
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={getEdgeStyle()} />
+      <BaseEdge id={id} path={edgePath} style={getEdgeStyle()} />
       {label && (
         <text
           x={labelX}
