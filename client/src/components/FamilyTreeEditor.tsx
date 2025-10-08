@@ -283,12 +283,23 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     showToasts: false, // No toasts for auto-save
   });
 
-  // Trigger save when treeName or treeDescription changes
+  // Trigger save when treeName or treeDescription changes (but only after initial sync)
+  const initialSyncDone = useRef(false);
+  
   useEffect(() => {
-    if (tree && (treeName !== tree.name || treeDescription !== tree.description)) {
+    if (!tree) return;
+    
+    // Skip the first sync when component mounts
+    if (!initialSyncDone.current) {
+      initialSyncDone.current = true;
+      return;
+    }
+    
+    // Only trigger save if values actually differ from server
+    if (treeName !== tree.name || treeDescription !== tree.description) {
       metadataSave.triggerSave();
     }
-  }, [treeName, treeDescription, tree]);
+  }, [treeName, treeDescription]);
 
   // Search filtering logic
   useEffect(() => {
