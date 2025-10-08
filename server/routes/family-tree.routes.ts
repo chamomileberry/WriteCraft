@@ -296,17 +296,29 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
         positionY = 0;
     }
     
-    // Create the new member
-    const memberData = {
-      treeId,
-      characterId: characterId || null,
-      inlineName: inlineName || null,
-      positionX,
-      positionY
-    };
+    // Check if this character already exists in the tree (to prevent duplicates)
+    let savedMember;
+    if (characterId) {
+      const existingMember = members.find((m: any) => m.characterId === characterId);
+      if (existingMember) {
+        // Reuse the existing member instead of creating a duplicate
+        savedMember = existingMember;
+      }
+    }
     
-    const validatedMember = insertFamilyTreeMemberSchema.parse(memberData);
-    const savedMember = await storage.createFamilyTreeMember(validatedMember);
+    // Create a new member only if one doesn't already exist
+    if (!savedMember) {
+      const memberData = {
+        treeId,
+        characterId: characterId || null,
+        inlineName: inlineName || null,
+        positionX,
+        positionY
+      };
+      
+      const validatedMember = insertFamilyTreeMemberSchema.parse(memberData);
+      savedMember = await storage.createFamilyTreeMember(validatedMember);
+    }
     
     // Create the relationship based on relationship type mapping
     let relationshipData: any;
