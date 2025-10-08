@@ -415,6 +415,11 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
 
   // Convert relationships to edges with T-junction support
   useEffect(() => {
+    // Skip junction recalculation during drag to prevent glitchy behavior
+    if (isDragging.current) {
+      return;
+    }
+    
     if (relationships.length === 0) {
       setEdges([]);
       // Clean up junction nodes when no relationships
