@@ -430,9 +430,10 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       return;
     }
     
-    // Group parent→child relationships by parent
+    // First, build maps of relationships
     type ChildRelationship = { relationship: FamilyTreeRelationship, targetId: string };
     const parentChildMap = new Map<string, ChildRelationship[]>();
+    const marriageMap = new Map<string, Set<string>>(); // Track who is married to whom
     const nonParentChildRels: FamilyTreeRelationship[] = [];
     
     relationships.forEach(rel => {
@@ -446,13 +447,60 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         const children = parentChildMap.get(rel.toMemberId) || [];
         children.push({ relationship: rel, targetId: rel.fromMemberId });
         parentChildMap.set(rel.toMemberId, children);
+      } else if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
+        // Track marriages for junction logic
+        if (!marriageMap.has(rel.fromMemberId)) {
+          marriageMap.set(rel.fromMemberId, new Set());
+        }
+        if (!marriageMap.has(rel.toMemberId)) {
+          marriageMap.set(rel.toMemberId, new Set());
+        }
+        marriageMap.get(rel.fromMemberId)!.add(rel.toMemberId);
+        marriageMap.get(rel.toMemberId)!.add(rel.fromMemberId);
+        nonParentChildRels.push(rel);
       } else {
         nonParentChildRels.push(rel);
       }
     });
     
+    // Find shared children for married couples
+    const processedParents = new Set<string>();
+    const marriedCoupleChildren = new Map<string, { parents: string[], children: string[] }>();
+    
+    parentChildMap.forEach((children, parentId) => {
+      if (processedParents.has(parentId)) return;
+      
+      const spouses = marriageMap.get(parentId);
+      if (!spouses || spouses.size === 0) return;
+      
+      // Check if any spouse also has children
+      for (const spouseId of Array.from(spouses)) {
+        const spouseChildren = parentChildMap.get(spouseId);
+        if (!spouseChildren) continue;
+        
+        // Find shared children between married couple
+        const parentChildIds = new Set(children.map(c => c.targetId));
+        const spouseChildIds = new Set(spouseChildren.map(c => c.targetId));
+        const sharedChildIds = Array.from(parentChildIds).filter(id => spouseChildIds.has(id));
+        
+        if (sharedChildIds.length > 0) {
+          // Create a couple key (sorted to ensure consistency)
+          const coupleKey = [parentId, spouseId].sort().join('-');
+          marriedCoupleChildren.set(coupleKey, {
+            parents: [parentId, spouseId],
+            children: sharedChildIds
+          });
+          
+          // Mark both parents as processed
+          processedParents.add(parentId);
+          processedParents.add(spouseId);
+        }
+      }
+    });
+    
     const newEdges: Edge[] = [];
     const junctionNodesNeeded = new Map<string, { position: { x: number; y: number } }>();
+    const handledChildren = new Set<string>(); // Track which children have been handled
     
     // Create edges for non-parent-child relationships (marriage, sibling, etc.)
     nonParentChildRels.forEach(rel => {
@@ -470,11 +518,114 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       });
     });
     
-    // Create edges for parent→child relationships with T-junctions
+    // Get current nodes for position calculations
+    const currentNodes = getNodes();
+    
+    // Handle married couples with shared children first
+    marriedCoupleChildren.forEach((coupleData, coupleKey) => {
+      const { parents, children: sharedChildIds } = coupleData;
+      const [parent1Id, parent2Id] = parents;
+      
+      // Find parent nodes
+      const parent1Node = currentNodes.find(n => n.id === parent1Id);
+      const parent2Node = currentNodes.find(n => n.id === parent2Id);
+      
+      if (!parent1Node || !parent2Node) return;
+      
+      // Create junction at midpoint of marriage line
+      const junctionId = `junction-married-${coupleKey}`;
+      const junctionX = (parent1Node.position.x + parent2Node.position.x) / 2;
+      const junctionY = (parent1Node.position.y + parent2Node.position.y) / 2 + 100; // 100px below midpoint
+      
+      junctionNodesNeeded.set(junctionId, { position: { x: junctionX, y: junctionY } });
+      
+      // Since we can't connect directly to the marriage edge, we'll create a visual junction
+      // Connect from the junction to both parents with subtle lines
+      // This creates the visual effect of the junction branching from the marriage
+      [parent1Id, parent2Id].forEach(parentId => {
+        newEdges.push({
+          id: `parent-junction-${parentId}-${junctionId}`,
+          source: parentId,
+          target: junctionId,
+          type: 'familyRelationship',
+          data: {
+            relationship: parentChildMap.get(parentId)![0].relationship,
+            notebookId,
+            treeId
+          },
+          label: '',
+          style: { opacity: 0.3, strokeDasharray: '2 2' } // Make these connector edges subtle and dashed
+        });
+      });
+      
+      // Connect junction to all shared children
+      sharedChildIds.forEach(childId => {
+        // Find the original relationship for this child
+        const parent1Rel = parentChildMap.get(parent1Id)?.find(c => c.targetId === childId);
+        const parent2Rel = parentChildMap.get(parent2Id)?.find(c => c.targetId === childId);
+        const relationship = parent1Rel || parent2Rel;
+        
+        if (relationship) {
+          newEdges.push({
+            id: relationship.relationship.id,
+            source: junctionId,
+            target: childId,
+            type: 'familyRelationship',
+            data: {
+              relationship: relationship.relationship,
+              notebookId,
+              treeId
+            },
+            label: relationship.relationship.relationshipType === 'custom' 
+              ? relationship.relationship.customLabel 
+              : relationship.relationship.relationshipType,
+          });
+          
+          handledChildren.add(childId);
+        }
+      });
+      
+      // Handle non-shared children of married parents (adoptive/step children)
+      [parent1Id, parent2Id].forEach(parentId => {
+        const allChildren = parentChildMap.get(parentId) || [];
+        const nonSharedChildren = allChildren.filter(c => !sharedChildIds.includes(c.targetId));
+        
+        nonSharedChildren.forEach(({ relationship, targetId }) => {
+          if (!handledChildren.has(targetId)) {
+            // Direct edge from parent to non-shared child
+            newEdges.push({
+              id: relationship.id,
+              source: parentId,
+              target: targetId,
+              type: 'familyRelationship',
+              data: {
+                relationship,
+                notebookId,
+                treeId
+              },
+              label: relationship.relationshipType === 'custom' 
+                ? relationship.customLabel 
+                : relationship.relationshipType,
+            });
+            
+            handledChildren.add(targetId);
+          }
+        });
+      });
+    });
+    
+    // Handle remaining parents (not married or without shared children)
     parentChildMap.forEach((children: ChildRelationship[], parentId: string) => {
-      if (children.length === 1) {
+      // Skip if already processed as part of a married couple
+      if (processedParents.has(parentId)) return;
+      
+      // Filter out already handled children
+      const unhandledChildren = children.filter(c => !handledChildren.has(c.targetId));
+      if (unhandledChildren.length === 0) return;
+      
+      if (unhandledChildren.length === 1) {
         // Single child - direct edge
-        const { relationship, targetId } = children[0];
+        const { relationship, targetId } = unhandledChildren[0];
         newEdges.push({
           id: relationship.id,
           source: parentId,
@@ -488,15 +639,13 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           label: relationship.relationshipType === 'custom' ? relationship.customLabel : relationship.relationshipType,
         });
       } else {
-        // Multiple children - create T-junction
+        // Multiple children - create T-junction for single parent
         const junctionId = `junction-${parentId}`;
-        
-        // Get current nodes from ReactFlow (avoids dependency on nodes state)
-        const currentNodes = getNodes();
         
         // Find parent and child nodes from current nodes array
         const parentNode = currentNodes.find(n => n.id === parentId);
-        const childNodes = children.map((c: ChildRelationship) => currentNodes.find(n => n.id === c.targetId)).filter(Boolean) as Node[];
+        const childNodes = unhandledChildren.map((c: ChildRelationship) => 
+          currentNodes.find(n => n.id === c.targetId)).filter(Boolean) as Node[];
         
         if (parentNode && childNodes.length > 0) {
           // Calculate junction position: below parent, centered between children
@@ -505,24 +654,24 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           
           junctionNodesNeeded.set(junctionId, { position: { x: avgChildX, y: junctionY } });
           
-          // Edge from parent to junction (uses synthetic ID as this is a helper edge)
+          // Edge from parent to junction
           newEdges.push({
             id: `junction-connector-${junctionId}`,
             source: parentId,
             target: junctionId,
             type: 'familyRelationship',
             data: {
-              relationship: children[0].relationship,
+              relationship: unhandledChildren[0].relationship,
               notebookId,
               treeId
             },
             label: '',
           });
           
-          // Edges from junction to each child (preserve original relationship IDs)
-          children.forEach(({ relationship, targetId }: ChildRelationship) => {
+          // Edges from junction to each child
+          unhandledChildren.forEach(({ relationship, targetId }: ChildRelationship) => {
             newEdges.push({
-              id: relationship.id, // Preserve original relationship ID
+              id: relationship.id,
               source: junctionId,
               target: targetId,
               type: 'familyRelationship',
