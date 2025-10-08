@@ -437,8 +437,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               updatedNodes[index] = {
                 ...n,
                 position: {
-                  x: (parent1.position.x + parent2.position.x) / 2,
-                  y: parent1.position.y, // Use the aligned Y position
+                  x: (parent1.position.x + parent2.position.x) / 2 - 4, // Offset to center 8x8 node
+                  y: parent1.position.y - 4, // Use the aligned Y position, offset to center
                 },
               };
             }
@@ -523,10 +523,12 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             const junctionY = parent1Node.position.y;
             const junctionId = `junction-${coupleKey}`;
             
+            // Offset junction position so its center (not top-left) aligns with the calculated position
+            // Junction node is 8x8, so offset by 4 to center it
             junctionNodes.push({
               id: junctionId,
               type: 'junction',
-              position: { x: junctionX, y: junctionY },
+              position: { x: junctionX - 4, y: junctionY - 4 },
               data: {
                 parent1Id,
                 parent2Id,
@@ -664,8 +666,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             return {
               ...junctionNode,
               position: {
-                x: (parent1.position.x + parent2.position.x) / 2,
-                y: parent1.position.y,
+                x: (parent1.position.x + parent2.position.x) / 2 - 4, // Offset to center 8x8 node
+                y: parent1.position.y - 4, // Offset to center 8x8 node on marriage line
               },
             };
           }
