@@ -636,9 +636,6 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   // Handle node drag end - save position and record in history
   const onNodeDragStop = useCallback((event: any, node: Node) => {
     if (!isAutoLayout) {
-      // Clear dragging flag to allow junction recalculation
-      isDragging.current = false;
-      
       // Get old position from drag start (accurate React Flow state)
       const oldPosition = dragStartPositions.current.get(node.id) || { x: 0, y: 0 };
       
@@ -655,13 +652,17 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       // Clean up the stored position
       dragStartPositions.current.delete(node.id);
       
+      // Clear dragging flag and force junction recalculation by triggering a nodes update
+      isDragging.current = false;
+      setNodes(nds => [...nds]); // Trigger re-render to recalculate junctions
+      
       updateMemberPosition.mutate({
         memberId: node.id,
         x: node.position.x,
         y: node.position.y,
       });
     }
-  }, [isAutoLayout, updateMemberPosition, addToHistory]);
+  }, [isAutoLayout, updateMemberPosition, addToHistory, setNodes]);
   
   // Undo function - updates local state and persists to database
   const handleUndo = useCallback(() => {
