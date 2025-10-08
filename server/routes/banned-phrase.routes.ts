@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "../db";
 import { bannedPhrases, insertBannedPhraseSchema } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../security/middleware";
 import { clearBannedPhrasesCache } from "../utils/banned-phrases";
 
@@ -17,17 +17,21 @@ router.get("/", async (req, res) => {
     const category = req.query.category as string | undefined;
     const activeOnly = req.query.activeOnly === 'true';
     
-    let query = db.select().from(bannedPhrases);
+    // Build conditions array
+    const conditions = [];
     
     if (category) {
-      query = query.where(eq(bannedPhrases.category, category)) as any;
+      conditions.push(eq(bannedPhrases.category, category));
     }
     
     if (activeOnly) {
-      query = query.where(eq(bannedPhrases.isActive, true)) as any;
+      conditions.push(eq(bannedPhrases.isActive, true));
     }
     
-    const phrases = await query.orderBy(desc(bannedPhrases.createdAt));
+    // Apply combined filters or fetch all
+    const phrases = conditions.length > 0
+      ? await db.select().from(bannedPhrases).where(and(...conditions)).orderBy(desc(bannedPhrases.createdAt))
+      : await db.select().from(bannedPhrases).orderBy(desc(bannedPhrases.createdAt));
     
     res.json(phrases);
   } catch (error) {

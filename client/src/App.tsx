@@ -26,6 +26,7 @@ import GuideEditPageWithSidebar from "@/pages/GuideEditPageWithSidebar";
 import NoteEditPage from "@/pages/NoteEditPage";
 import ImportPage from "@/pages/ImportPage";
 import CharacterConsolidatePage from "@/pages/CharacterConsolidatePage";
+import BannedPhrasesManagement from "@/pages/BannedPhrasesManagement";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -192,6 +193,7 @@ function Router() {
       <Route path="/guides/new" component={GuideEditPage} />
       <Route path="/notebook" component={NotebookPage} />
       <Route path="/notebook/consolidate" component={CharacterConsolidatePage} />
+      <Route path="/admin/banned-phrases" component={BannedPhrasesManagement} />
       <Route path="/import" component={ImportPage} />
       <Route path="/projects" component={ProjectPage} />
       <Route path="/projects/:id/edit" component={ProjectEditPageWithSidebar} />

@@ -4,6 +4,7 @@ import { db } from './db.js';
 import { savedItems } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { getBannedPhrasesInstruction } from './utils/banned-phrases.js';
+import { validateAndApplyFallbacks, getCharacterFullName } from './utils/character-validation.js';
 
 /*
 <important_code_snippet_instructions>
@@ -314,30 +315,20 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       cleanedText = jsonMatch[0];
     }
     
-    const characterData = JSON.parse(cleanedText);
+    const rawCharacterData = JSON.parse(cleanedText);
     
-    // Validate the response structure - check core required fields
-    const requiredFields = ['givenName', 'familyName', 'age', 'occupation', 'personality', 'backstory', 'motivation', 'flaw', 'strength', 'gender', 'height', 'build', 'hairColor', 'eyeColor', 'skinTone', 'facialFeatures', 'identifyingMarks', 'physicalDescription'];
-    for (const field of requiredFields) {
-      if (!(field in characterData)) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-    
-    // Ensure personality is an array
-    if (!Array.isArray(characterData.personality)) {
-      throw new Error('Personality must be an array of traits');
-    }
+    // Validate and apply fallbacks using comprehensive validation
+    const validatedData = validateAndApplyFallbacks(rawCharacterData);
     
     // Set gender based on preference or from AI response
-    characterData.gender = gender || characterData.gender || 'non-binary';
-    
-    // Validate age is reasonable
-    if (typeof characterData.age !== 'number' || characterData.age < 18 || characterData.age > 80) {
-      characterData.age = Math.floor(Math.random() * 52) + 18; // 18-70
+    if (gender) {
+      validatedData.gender = gender;
     }
+    
+    // Log validation success
+    console.log('Character validated successfully:', getCharacterFullName(validatedData));
 
-    return characterData as GeneratedCharacter;
+    return validatedData as unknown as GeneratedCharacter;
   } catch (error) {
     console.error('Anthropic API failed, using fallback generation:', error);
     
