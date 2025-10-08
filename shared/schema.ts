@@ -3090,6 +3090,27 @@ export type Rank = typeof ranks.$inferSelect;
 export type InsertCondition = z.infer<typeof insertConditionSchema>;
 export type Condition = typeof conditions.$inferSelect;
 
+// Banned Phrases - AI writing style guidelines
+export const bannedPhrases = pgTable("banned_phrases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  phrase: text("phrase").notNull(),
+  category: text("category").notNull(), // 'forbidden_phrase', 'banned_transition', 'word_replacement', 'robotic_pattern'
+  replacement: text("replacement"), // For word_replacement category, suggested alternatives
+  isActive: boolean("is_active").default(true),
+  notes: text("notes"), // Optional notes about why it's banned or when to use alternatives
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertBannedPhraseSchema = createInsertSchema(bannedPhrases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBannedPhrase = z.infer<typeof insertBannedPhraseSchema>;
+export type BannedPhrase = typeof bannedPhrases.$inferSelect;
+
 // Import Jobs schemas and types
 export const insertImportJobSchema = createInsertSchema(importJobs).omit({
   id: true,
