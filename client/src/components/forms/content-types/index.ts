@@ -3,49 +3,16 @@ import { ContentTypeFormConfig } from '../types';
 // Static imports for frequently used content types (loaded immediately)
 import { characterConfig } from './character';
 
-// Import the extracted configs from our new individual files
-import { armorConfig } from '../../../configs/content-types/armor';
-import { spellConfig } from '../../../configs/content-types/spell';
-import { plotConfig } from '../../../configs/content-types/plot';
-import { foodConfig } from '../../../configs/content-types/food';
-import { drinkConfig } from '../../../configs/content-types/drink';
-import { ethnicityConfig } from '../../../configs/content-types/ethnicity';
-import { familyTreeConfig } from '../../../configs/content-types/familyTree';
-import { timelineConfig } from '../../../configs/content-types/timeline';
-import { promptConfig } from '../../../configs/content-types/prompt';
-import { documentConfig } from '../../../configs/content-types/document';
-import { mapConfig } from '../../../configs/content-types/map';
-import { settingConfig } from '../../../configs/content-types/setting';
-import { nameConfig } from '../../../configs/content-types/name';
-import { descriptionConfig } from '../../../configs/content-types/description';
-
 // Import remaining configs from the original file (temporary until all are split)
 import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormConfig';
 
 // Static configurations for core content types
 const staticConfigs: Record<string, ContentTypeFormConfig> = {
   character: characterConfig,
-  armor: armorConfig,
-  spell: spellConfig,
-  plot: plotConfig,
-  food: foodConfig,
-  drink: drinkConfig,
-  ethnicity: ethnicityConfig,
-  familyTree: familyTreeConfig,
-  timeline: timelineConfig,
-  prompt: promptConfig,
-  document: documentConfig,
-  map: mapConfig,
-  setting: settingConfig,
-  name: nameConfig,
-  description: descriptionConfig,
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
     Object.entries(originalConfigs).filter(([key]) => ![
-      'character', 'armor', 'spell', 'plot',
-      'food', 'drink', 
-      'ethnicity', 'familyTree', 'timeline', 'prompt', 'document', 
-      'map', 'setting', 'name', 'description'
+      'character'
     ].includes(key))
   ),
 };
@@ -142,17 +109,3 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
 
 // Re-export individual configs for direct imports if needed
 export { characterConfig } from './character';
-export { armorConfig } from '../../../configs/content-types/armor';
-export { spellConfig } from '../../../configs/content-types/spell';
-export { plotConfig } from '../../../configs/content-types/plot';
-export { foodConfig } from '../../../configs/content-types/food';
-export { drinkConfig } from '../../../configs/content-types/drink';
-export { ethnicityConfig } from '../../../configs/content-types/ethnicity';
-export { familyTreeConfig } from '../../../configs/content-types/familyTree';
-export { timelineConfig } from '../../../configs/content-types/timeline';
-export { promptConfig } from '../../../configs/content-types/prompt';
-export { documentConfig } from '../../../configs/content-types/document';
-export { mapConfig } from '../../../configs/content-types/map';
-export { settingConfig } from '../../../configs/content-types/setting';
-export { nameConfig } from '../../../configs/content-types/name';
-export { descriptionConfig } from '../../../configs/content-types/description';

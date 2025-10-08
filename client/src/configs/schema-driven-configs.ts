@@ -1349,6 +1349,257 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       soundscape: { tab: 'sensory', order: 5, placeholder: 'Sounds and ambient noise...' },
     },
   }),
+
+  description: () => buildConfig(schemas.insertDescriptionSchema, {
+    title: 'Description Generator',
+    description: 'Generate vivid descriptions',
+    icon: 'FileText',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Details', icon: 'FileText', order: 1 },
+    ],
+    fieldHints: {
+      title: { tab: 'basic', order: 1 },
+      content: { tab: 'basic', order: 2, rows: 8 },
+      descriptionType: { tab: 'basic', order: 3, label: 'Type', placeholder: 'Armor, weapon, clothing, etc.' },
+      genre: { tab: 'basic', order: 4 },
+      tags: { tab: 'basic', order: 5 },
+    },
+  }),
+
+  name: () => buildConfig(schemas.insertNameSchema, {
+    title: 'Name Generator',
+    description: 'Generate unique names',
+    icon: 'User',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Name Details', icon: 'FileText', order: 1 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1 },
+      meaning: { tab: 'basic', order: 2, rows: 2, placeholder: 'What does the name mean?' },
+      origin: { tab: 'basic', order: 3, rows: 2, placeholder: 'Origin of the name' },
+      nameType: { tab: 'basic', order: 4, label: 'Type', placeholder: 'Character, place, fantasy, etc.' },
+      culture: { tab: 'basic', order: 5, placeholder: 'Cultural background' },
+    },
+  }),
+
+  map: () => buildConfig(schemas.insertMapSchema, {
+    title: 'Map Designer',
+    description: 'Create maps and cartography',
+    icon: 'Map',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'geography', label: 'Geography', icon: 'Mountain', order: 2 },
+      { id: 'features', label: 'Features & Details', icon: 'MapPin', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Map Name' },
+      mapType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'World, regional, city, dungeon, political, etc.' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      scale: { tab: 'geography', order: 1, placeholder: 'Global, continental, regional, local, etc.' },
+      dimensions: { tab: 'geography', order: 2, placeholder: 'Map dimensions' },
+      terrain: { tab: 'geography', order: 3, placeholder: 'Terrain types...' },
+      climate: { tab: 'geography', order: 4, rows: 2, placeholder: 'Climate zones...' },
+      
+      keyLocations: { tab: 'features', order: 1, label: 'Key Locations', placeholder: 'Important locations...' },
+      landmarks: { tab: 'features', order: 2, placeholder: 'Notable landmarks...' },
+      politicalBoundaries: { tab: 'features', order: 3, label: 'Political Boundaries', placeholder: 'Political boundaries...' },
+      traderoutes: { tab: 'features', order: 4, label: 'Trade Routes', placeholder: 'Trade routes...' },
+      dangerZones: { tab: 'features', order: 5, label: 'Danger Zones', placeholder: 'Dangerous areas...' },
+      resources: { tab: 'features', order: 6, placeholder: 'Available resources...' },
+      hiddenFeatures: { tab: 'features', order: 7, label: 'Hidden Features', placeholder: 'Secret or hidden features...' },
+      legends: { tab: 'features', order: 8, placeholder: 'Map legends and symbols...' },
+      mapMaker: { tab: 'features', order: 9, label: 'Map Maker', placeholder: 'Who created this map?' },
+      accuracy: { tab: 'features', order: 10, placeholder: 'Precise, rough, outdated, etc.' },
+    },
+  }),
+
+  setting: () => buildConfig(schemas.insertSettingSchema, {
+    title: 'Setting Generator',
+    description: 'Create settings and environments',
+    icon: 'Globe',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'details', label: 'Details & Atmosphere', icon: 'Cloud', order: 2 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Setting Name' },
+      location: { tab: 'basic', order: 2 },
+      timePeriod: { tab: 'basic', order: 3, label: 'Time Period' },
+      settingType: { tab: 'basic', order: 4, label: 'Type' },
+      description: { tab: 'basic', order: 5, rows: 4 },
+      genre: { tab: 'basic', order: 6 },
+      
+      population: { tab: 'details', order: 1 },
+      climate: { tab: 'details', order: 2, rows: 2 },
+      atmosphere: { tab: 'details', order: 3, rows: 3 },
+      culturalElements: { tab: 'details', order: 4, label: 'Cultural Elements', placeholder: 'Cultural aspects...' },
+      notableFeatures: { tab: 'details', order: 5, label: 'Notable Features', placeholder: 'Notable features...' },
+      imageUrl: { tab: 'details', order: 6, label: 'Image URL' },
+      imageCaption: { tab: 'details', order: 7, label: 'Image Caption' },
+      articleContent: { tab: 'details', order: 8, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
+    },
+  }),
+
+  armor: () => buildConfig(schemas.insertArmorSchema, {
+    title: 'Armor Designer',
+    description: 'Create armor and protective gear',
+    icon: 'Shield',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'properties', label: 'Properties & Stats', icon: 'Shield', order: 2 },
+      { id: 'lore', label: 'Lore & History', icon: 'BookOpen', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Armor Name' },
+      armorType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Light, medium, heavy, shield, etc.' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      protection: { tab: 'properties', order: 1, rows: 2, placeholder: 'Protection level...' },
+      weight: { tab: 'properties', order: 2, placeholder: 'Weight' },
+      materials: { tab: 'properties', order: 3, placeholder: 'Materials used...' },
+      coverage: { tab: 'properties', order: 4, rows: 2, placeholder: 'Body coverage...' },
+      mobility: { tab: 'properties', order: 5, rows: 2, placeholder: 'Impact on mobility...' },
+      enchantments: { tab: 'properties', order: 6, placeholder: 'Magical enhancements...' },
+      craftsmanship: { tab: 'properties', order: 7, rows: 2, placeholder: 'Quality and craftsmanship...' },
+      rarity: { tab: 'properties', order: 8, placeholder: 'Rarity level' },
+      value: { tab: 'properties', order: 9, placeholder: 'Monetary value' },
+      maintenance: { tab: 'properties', order: 10, rows: 2, placeholder: 'Maintenance needs...' },
+      
+      history: { tab: 'lore', order: 1, rows: 4, placeholder: 'History and origin...' },
+    },
+  }),
+
+  spell: () => buildConfig(schemas.insertSpellSchema, {
+    title: 'Spell Designer',
+    description: 'Create spells and magic',
+    icon: 'Wand2',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'mechanics', label: 'Spell Mechanics', icon: 'Sparkles', order: 2 },
+      { id: 'lore', label: 'Lore & Variations', icon: 'BookOpen', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Spell Name' },
+      school: { tab: 'basic', order: 2, placeholder: 'Evocation, divination, etc.' },
+      level: { tab: 'basic', order: 3, placeholder: 'Spell level' },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      components: { tab: 'mechanics', order: 1, placeholder: 'Spell components...' },
+      castingTime: { tab: 'mechanics', order: 2, label: 'Casting Time' },
+      range: { tab: 'mechanics', order: 3 },
+      duration: { tab: 'mechanics', order: 4 },
+      effect: { tab: 'mechanics', order: 5, rows: 3, placeholder: 'Spell effects...' },
+      limitations: { tab: 'mechanics', order: 6, rows: 2, placeholder: 'Limitations and restrictions...' },
+      rarity: { tab: 'mechanics', order: 7, placeholder: 'Spell rarity' },
+      
+      origin: { tab: 'lore', order: 1, rows: 3, placeholder: 'Origin of the spell...' },
+      variations: { tab: 'lore', order: 2, placeholder: 'Spell variations...' },
+      risks: { tab: 'lore', order: 3, rows: 3, placeholder: 'Risks and dangers...' },
+    },
+  }),
+
+  plot: () => buildConfig(schemas.insertPlotSchema, {
+    title: 'Plot Structure Generator',
+    description: 'Create plot structures and story arcs',
+    icon: 'Network',
+    defaultTab: 'structure',
+    tabs: [
+      { id: 'structure', label: 'Story Structure', icon: 'GitBranch', order: 1 },
+      { id: 'elements', label: 'Story Elements', icon: 'Sparkles', order: 2 },
+    ],
+    fieldHints: {
+      setup: { tab: 'structure', order: 1, rows: 3 },
+      incitingIncident: { tab: 'structure', order: 2, label: 'Inciting Incident', rows: 3 },
+      firstPlotPoint: { tab: 'structure', order: 3, label: 'First Plot Point', rows: 3 },
+      midpoint: { tab: 'structure', order: 4, rows: 3 },
+      secondPlotPoint: { tab: 'structure', order: 5, label: 'Second Plot Point', rows: 3 },
+      climax: { tab: 'structure', order: 6, rows: 3 },
+      resolution: { tab: 'structure', order: 7, rows: 3 },
+      
+      theme: { tab: 'elements', order: 1, rows: 2 },
+      conflict: { tab: 'elements', order: 2, rows: 3 },
+      genre: { tab: 'elements', order: 3 },
+      storyStructure: { tab: 'elements', order: 4, label: 'Story Structure', placeholder: 'Three-act, hero\'s journey, etc.' },
+    },
+  }),
+
+  familyTree: () => buildConfig(schemas.insertFamilyTreeSchema, {
+    title: 'Family Tree Designer',
+    description: 'Create family trees and genealogy',
+    icon: 'Users',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Tree Details', icon: 'FileText', order: 1 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Family Tree Name' },
+      description: { tab: 'basic', order: 2, rows: 4 },
+      layoutMode: { tab: 'basic', order: 3, label: 'Layout Mode', placeholder: 'Auto or manual' },
+      zoom: { tab: 'basic', order: 4, placeholder: 'Zoom level (default: 1)' },
+      panX: { tab: 'basic', order: 5, label: 'Pan X', placeholder: 'Horizontal pan position' },
+      panY: { tab: 'basic', order: 6, label: 'Pan Y', placeholder: 'Vertical pan position' },
+    },
+  }),
+
+  timeline: () => buildConfig(schemas.insertTimelineSchema, {
+    title: 'Timeline Designer',
+    description: 'Create timelines and chronologies',
+    icon: 'Calendar',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'events', label: 'Events & Periods', icon: 'Clock', order: 2 },
+      { id: 'changes', label: 'Changes & Advances', icon: 'TrendingUp', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Timeline Name' },
+      description: { tab: 'basic', order: 2, rows: 4 },
+      timelineType: { tab: 'basic', order: 3, label: 'Type', placeholder: 'Historical, character, world, campaign, etc.' },
+      timeScale: { tab: 'basic', order: 4, label: 'Time Scale', placeholder: 'Years, decades, centuries, millennia, etc.' },
+      scope: { tab: 'basic', order: 5, placeholder: 'Global, regional, local, personal, etc.' },
+      genre: { tab: 'basic', order: 6 },
+      
+      startDate: { tab: 'events', order: 1, label: 'Start Date' },
+      endDate: { tab: 'events', order: 2, label: 'End Date' },
+      majorEvents: { tab: 'events', order: 3, label: 'Major Events', placeholder: 'Key events...' },
+      keyFigures: { tab: 'events', order: 4, label: 'Key Figures', placeholder: 'Important figures...' },
+      culturalPeriods: { tab: 'events', order: 5, label: 'Cultural Periods', placeholder: 'Cultural periods...' },
+      wars: { tab: 'events', order: 6, placeholder: 'Wars and conflicts...' },
+      naturalDisasters: { tab: 'events', order: 7, label: 'Natural Disasters', placeholder: 'Natural disasters...' },
+      
+      discoveries: { tab: 'changes', order: 1, placeholder: 'Major discoveries...' },
+      politicalChanges: { tab: 'changes', order: 2, label: 'Political Changes', placeholder: 'Political changes...' },
+      technologicalAdvances: { tab: 'changes', order: 3, label: 'Technological Advances', placeholder: 'Technological advances...' },
+    },
+  }),
+
+  prompt: () => buildConfig(schemas.insertPromptSchema, {
+    title: 'Writing Prompt Generator',
+    description: 'Generate writing prompts',
+    icon: 'FileEdit',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Prompt Details', icon: 'FileText', order: 1 },
+    ],
+    fieldHints: {
+      text: { tab: 'basic', order: 1, rows: 6 },
+      genre: { tab: 'basic', order: 2 },
+      difficulty: { tab: 'basic', order: 3 },
+      type: { tab: 'basic', order: 4 },
+      wordCount: { tab: 'basic', order: 5, label: 'Word Count' },
+      tags: { tab: 'basic', order: 6 },
+    },
+  }),
 };
 
 /**

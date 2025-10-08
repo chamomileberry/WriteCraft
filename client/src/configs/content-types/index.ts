@@ -10,27 +10,8 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
 
 // Dynamic import factory for less frequently used content types
 // This reduces initial bundle size by only loading configs when needed
-const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>> = {
-  spell: () => import('./spell').then(m => m.default || m.spellConfig),
-  food: () => import('./food').then(m => m.default || m.foodConfig),
-  drink: () => import('./drink').then(m => m.default || m.drinkConfig),
-  armor: () => import('./armor').then(m => m.default || m.armorConfig),
-  plot: () => import('./plot').then(m => m.default || m.plotConfig),
-  familyTree: () => import('./familyTree').then(m => m.default || m.familyTreeConfig),
-  // culture: () => import('./culture').then(m => m.default || m.cultureConfig),
-  // society: () => import('./society').then(m => m.default || m.societyConfig),
-  // faction: () => import('./faction').then(m => m.default || m.factionConfig),
-  // settlement: () => import('./settlement').then(m => m.default || m.settlementConfig),
-  // transportation: () => import('./transportation').then(m => m.default || m.transportationConfig),
-  // event: () => import('./event').then(m => m.default || m.eventConfig),
-  // ceremony: () => import('./ceremony').then(m => m.default || m.ceremonyConfig),
-  // music: () => import('./music').then(m => m.default || m.musicConfig),
-  // dance: () => import('./dance').then(m => m.default || m.danceConfig),
-  // law: () => import('./law').then(m => m.default || m.lawConfig),
-  // policy: () => import('./policy').then(m => m.default || m.policyConfig),
-  // potion: () => import('./potion').then(m => m.default || m.potionConfig),
-  // profession: () => import('./profession').then(m => m.default || m.professionConfig),
-};
+// All content types are now schema-driven (except character which is static)
+const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>> = {};
 
 // Cache for dynamically loaded configs to avoid re-loading
 const configCache = new Map<string, ContentTypeFormConfig>();
