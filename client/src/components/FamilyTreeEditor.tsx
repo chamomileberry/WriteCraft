@@ -29,6 +29,7 @@ import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
 import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
 import { JunctionNode } from './JunctionNode';
+import { JunctionEdge } from './JunctionEdge';
 import { CharacterGallery } from './CharacterGallery';
 import { RelationshipSelector, type RelationshipType } from './RelationshipSelector';
 import { InlineMemberDialog } from './InlineMemberDialog';
@@ -50,6 +51,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const prevIsAutoLayout = useRef(isAutoLayout);
   const lastComputedNodesRef = useRef<Node[]>([]);
   const lastComputedEdgesRef = useRef<Edge[]>([]);
+  const isUpdatingJunctions = useRef(false);
   
   // Relationship selector state
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
@@ -197,6 +199,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
 
   const edgeTypes: EdgeTypes = useMemo(() => ({
     familyRelationship: FamilyRelationshipEdge,
+    junction: JunctionEdge,
   }), []);
 
   // Fetch tree data
@@ -379,11 +382,13 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
 
   // Update junction positions when parent nodes are dragged
   const onNodeDrag = useCallback((_event: any, node: Node) => {
-    if (node.type !== 'familyMember') return;
+    if (node.type !== 'familyMember' || isUpdatingJunctions.current) return;
+    
+    isUpdatingJunctions.current = true;
     
     // Find all junction nodes that have this node as a parent
     setNodes(currentNodes => {
-      return currentNodes.map(n => {
+      const updatedNodes = currentNodes.map(n => {
         if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
           const isParent = n.data.parent1Id === node.id || n.data.parent2Id === node.id;
           if (isParent) {
@@ -407,6 +412,9 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         }
         return n;
       });
+      
+      isUpdatingJunctions.current = false;
+      return updatedNodes;
     });
   }, [setNodes]);
 
@@ -499,7 +507,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               target: junctionId,
               sourceHandle: 'right',
               targetHandle: 'left',
-              type: 'straight',
+              type: 'junction',
               style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
             });
             
@@ -509,7 +517,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               target: parent2Id,
               sourceHandle: 'right',
               targetHandle: 'left-target',
-              type: 'straight',
+              type: 'junction',
               style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
             });
             
@@ -520,7 +528,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
                 target: child.targetId,
                 sourceHandle: 'bottom',
                 targetHandle: 'top-target',
-                type: 'straight',
+                type: 'junction',
                 style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
               });
               
