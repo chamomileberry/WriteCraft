@@ -24,7 +24,6 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
 // This reduces initial bundle size by only loading configs when needed
 const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>> = {
   religion: () => import('./religion').then(m => m.default || m.religionConfig),
-  technology: () => import('./technology').then(m => m.default || m.technologyConfig),
   spell: () => import('./spell').then(m => m.default || m.spellConfig),
   food: () => import('./food').then(m => m.default || m.foodConfig),
   drink: () => import('./drink').then(m => m.default || m.drinkConfig),

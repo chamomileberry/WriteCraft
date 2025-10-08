@@ -13,11 +13,7 @@ import { religionConfig } from '../../../configs/content-types/religion';
 import { languageConfig } from '../../../configs/content-types/language';
 import { foodConfig } from '../../../configs/content-types/food';
 import { drinkConfig } from '../../../configs/content-types/drink';
-import { settlementConfig } from '../../../configs/content-types/settlement';
-import { societyConfig } from '../../../configs/content-types/society';
-import { technologyConfig } from '../../../configs/content-types/technology';
 import { ethnicityConfig } from '../../../configs/content-types/ethnicity';
-import { eventConfig } from '../../../configs/content-types/event';
 import { familyTreeConfig } from '../../../configs/content-types/familyTree';
 import { timelineConfig } from '../../../configs/content-types/timeline';
 import { promptConfig } from '../../../configs/content-types/prompt';
@@ -50,11 +46,7 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   language: languageConfig,
   food: foodConfig,
   drink: drinkConfig,
-  settlement: settlementConfig,
-  society: societyConfig,
-  technology: technologyConfig,
   ethnicity: ethnicityConfig,
-  event: eventConfig,
   familyTree: familyTreeConfig,
   timeline: timelineConfig,
   prompt: promptConfig,
@@ -76,8 +68,7 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
     Object.entries(originalConfigs).filter(([key]) => ![
       'character', 'weapon', 'armor', 'spell', 'faction', 'plot',
       'religion', 'language', 'food', 'drink', 
-      'settlement', 'society', 'technology',
-      'ethnicity', 'event', 'familyTree', 'timeline', 'prompt', 'document', 
+      'ethnicity', 'familyTree', 'timeline', 'prompt', 'document', 
       'map', 'setting', 'name', 'conflict', 'theme', 'mood', 'description', 
       'building', 'creature', 'item', 'location', 'organization'
     ].includes(key))
@@ -185,11 +176,7 @@ export { religionConfig } from '../../../configs/content-types/religion';
 export { languageConfig } from '../../../configs/content-types/language';
 export { foodConfig } from '../../../configs/content-types/food';
 export { drinkConfig } from '../../../configs/content-types/drink';
-export { settlementConfig } from '../../../configs/content-types/settlement';
-export { societyConfig } from '../../../configs/content-types/society';
-export { technologyConfig } from '../../../configs/content-types/technology';
 export { ethnicityConfig } from '../../../configs/content-types/ethnicity';
-export { eventConfig } from '../../../configs/content-types/event';
 export { familyTreeConfig } from '../../../configs/content-types/familyTree';
 export { timelineConfig } from '../../../configs/content-types/timeline';
 export { promptConfig } from '../../../configs/content-types/prompt';

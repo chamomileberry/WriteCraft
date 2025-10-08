@@ -866,6 +866,131 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       hardinessZone: { tab: 'botany', order: 5, label: 'Hardiness Zone', placeholder: 'Growing zones...' },
     },
   }),
+
+  settlement: () => buildConfig(schemas.insertSettlementSchema, {
+    title: 'Settlement Designer',
+    description: 'Create cities, towns, and communities',
+    icon: 'Building2',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'governance', label: 'Governance & Economy', icon: 'Landmark', order: 2 },
+      { id: 'features', label: 'Features & Geography', icon: 'Map', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Settlement Name' },
+      settlementType: { tab: 'basic', order: 2, label: 'Type' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      population: { tab: 'governance', order: 1, placeholder: 'Population size' },
+      government: { tab: 'governance', order: 2, rows: 3, placeholder: 'How is it governed?' },
+      economy: { tab: 'governance', order: 3, rows: 3, placeholder: 'Economic system and trade...' },
+      culture: { tab: 'governance', order: 4, rows: 3, placeholder: 'Cultural characteristics...' },
+      history: { tab: 'governance', order: 5, rows: 4, placeholder: 'Settlement history...' },
+      
+      geography: { tab: 'features', order: 1, rows: 3, placeholder: 'Geographical features...' },
+      climate: { tab: 'features', order: 2, placeholder: 'Climate and weather' },
+      defenses: { tab: 'features', order: 3, rows: 3, placeholder: 'Defenses and fortifications...' },
+      resources: { tab: 'features', order: 4, placeholder: 'Available resources...' },
+      threats: { tab: 'features', order: 5, placeholder: 'Threats and dangers...' },
+      landmarks: { tab: 'features', order: 6, placeholder: 'Notable landmarks...' },
+      districts: { tab: 'features', order: 7, placeholder: 'Districts and neighborhoods...' },
+    },
+  }),
+
+  society: () => buildConfig(schemas.insertSocietySchema, {
+    title: 'Society Designer',
+    description: 'Create social structures and civilizations',
+    icon: 'Users',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'structure', label: 'Structure & Culture', icon: 'Network', order: 2 },
+      { id: 'institutions', label: 'Institutions', icon: 'Building', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Society Name' },
+      societyType: { tab: 'basic', order: 2, label: 'Type' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      structure: { tab: 'structure', order: 1, rows: 3, placeholder: 'Social structure and hierarchy...' },
+      leadership: { tab: 'structure', order: 2, rows: 3, placeholder: 'Leadership and power structure...' },
+      laws: { tab: 'structure', order: 3, rows: 3, placeholder: 'Legal system...' },
+      values: { tab: 'structure', order: 4, placeholder: 'Core values...' },
+      customs: { tab: 'structure', order: 5, placeholder: 'Customs and traditions...' },
+      history: { tab: 'structure', order: 6, rows: 4, placeholder: 'Society history...' },
+      
+      economy: { tab: 'institutions', order: 1, rows: 3, placeholder: 'Economic system...' },
+      technology: { tab: 'institutions', order: 2, rows: 3, placeholder: 'Technology level...' },
+      education: { tab: 'institutions', order: 3, rows: 3, placeholder: 'Education system...' },
+      military: { tab: 'institutions', order: 4, rows: 3, placeholder: 'Military organization...' },
+      religion: { tab: 'institutions', order: 5, rows: 3, placeholder: 'Religious institutions...' },
+      arts: { tab: 'institutions', order: 6, rows: 3, placeholder: 'Arts and culture...' },
+    },
+  }),
+
+  technology: () => buildConfig(schemas.insertTechnologySchema, {
+    title: 'Technology Designer',
+    description: 'Create innovations and inventions',
+    icon: 'Cpu',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'mechanics', label: 'Mechanics & Function', icon: 'Cog', order: 2 },
+      { id: 'development', label: 'Development & Impact', icon: 'TrendingUp', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Technology Name' },
+      technologyType: { tab: 'basic', order: 2, label: 'Type' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      function: { tab: 'mechanics', order: 1, rows: 3, placeholder: 'What does it do?' },
+      principles: { tab: 'mechanics', order: 2, rows: 3, placeholder: 'How does it work?' },
+      requirements: { tab: 'mechanics', order: 3, placeholder: 'Requirements to use...' },
+      limitations: { tab: 'mechanics', order: 4, placeholder: 'Limitations and constraints...' },
+      applications: { tab: 'mechanics', order: 5, placeholder: 'Practical applications...' },
+      rarity: { tab: 'mechanics', order: 6 },
+      risks: { tab: 'mechanics', order: 7, rows: 3, placeholder: 'Risks and dangers...' },
+      
+      development: { tab: 'development', order: 1, rows: 3, placeholder: 'How was it developed?' },
+      inventors: { tab: 'development', order: 2, placeholder: 'Who invented it?' },
+      evolution: { tab: 'development', order: 3, rows: 3, placeholder: 'How has it evolved?' },
+    },
+  }),
+
+  event: () => buildConfig(schemas.insertEventSchema, {
+    title: 'Event Designer',
+    description: 'Create historical events and occurrences',
+    icon: 'Calendar',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'details', label: 'Event Details', icon: 'Info', order: 2 },
+      { id: 'impact', label: 'Impact & Legacy', icon: 'Sparkles', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Event Name' },
+      eventType: { tab: 'basic', order: 2, label: 'Type' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      date: { tab: 'details', order: 1, placeholder: 'When did it occur?' },
+      location: { tab: 'details', order: 2, placeholder: 'Where did it happen?' },
+      participants: { tab: 'details', order: 3, placeholder: 'Who was involved?' },
+      duration: { tab: 'details', order: 4, placeholder: 'How long did it last?' },
+      scale: { tab: 'details', order: 5, placeholder: 'Scale of the event' },
+      causes: { tab: 'details', order: 6, rows: 3, placeholder: 'What caused it?' },
+      
+      consequences: { tab: 'impact', order: 1, rows: 3, placeholder: 'What were the results?' },
+      significance: { tab: 'impact', order: 2, rows: 3, placeholder: 'Why is it important?' },
+      legacy: { tab: 'impact', order: 3, rows: 3, placeholder: 'Lasting impact...' },
+      documentation: { tab: 'impact', order: 4, rows: 3, placeholder: 'How is it documented?' },
+      conflictingAccounts: { tab: 'impact', order: 5, label: 'Conflicting Accounts', rows: 3, placeholder: 'Different versions of the story...' },
+    },
+  }),
 };
 
 /**
