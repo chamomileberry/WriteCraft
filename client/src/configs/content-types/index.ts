@@ -23,7 +23,6 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
 // Dynamic import factory for less frequently used content types
 // This reduces initial bundle size by only loading configs when needed
 const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>> = {
-  species: () => import('./species').then(m => m.default || m.speciesConfig),
   religion: () => import('./religion').then(m => m.default || m.religionConfig),
   technology: () => import('./technology').then(m => m.default || m.technologyConfig),
   spell: () => import('./spell').then(m => m.default || m.spellConfig),
@@ -32,7 +31,6 @@ const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>>
   armor: () => import('./armor').then(m => m.default || m.armorConfig),
   plot: () => import('./plot').then(m => m.default || m.plotConfig),
   language: () => import('./language').then(m => m.default || m.languageConfig),
-  plant: () => import('./plant').then(m => m.default || m.plantConfig),
   familyTree: () => import('./familyTree').then(m => m.default || m.familyTreeConfig),
   // culture: () => import('./culture').then(m => m.default || m.cultureConfig),
   // society: () => import('./society').then(m => m.default || m.societyConfig),

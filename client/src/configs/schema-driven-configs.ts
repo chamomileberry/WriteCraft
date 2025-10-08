@@ -780,6 +780,92 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       controversies: { tab: 'applications', order: 6, rows: 3, placeholder: 'Debates or disputes...' },
     },
   }),
+
+  resource: () => buildConfig(schemas.insertResourceSchema, {
+    title: 'Resource Designer',
+    description: 'Create natural, magical, or manufactured resources',
+    icon: 'Gem',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'properties', label: 'Properties & Value', icon: 'Sparkles', order: 2 },
+      { id: 'economics', label: 'Economics & Politics', icon: 'DollarSign', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Resource Name' },
+      resourceType: { tab: 'basic', order: 2, label: 'Type' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      abundance: { tab: 'properties', order: 1, placeholder: 'How plentiful is it?' },
+      location: { tab: 'properties', order: 2, rows: 3, placeholder: 'Where is it found?' },
+      extractionMethod: { tab: 'properties', order: 3, label: 'Extraction Method', rows: 3, placeholder: 'How is it extracted?' },
+      uses: { tab: 'properties', order: 4, placeholder: 'What is it used for?' },
+      value: { tab: 'properties', order: 5, placeholder: 'Economic value' },
+      rarity: { tab: 'properties', order: 6 },
+      renewability: { tab: 'properties', order: 7, placeholder: 'Is it renewable?' },
+      
+      tradeCommodity: { tab: 'economics', order: 1, label: 'Trade Commodity', placeholder: 'Is it traded? How?' },
+      controlledBy: { tab: 'economics', order: 2, label: 'Controlled By', placeholder: 'Who controls this resource?' },
+      conflicts: { tab: 'economics', order: 3, rows: 3, placeholder: 'Conflicts over this resource...' },
+    },
+  }),
+
+  animal: () => buildConfig(schemas.insertAnimalSchema, {
+    title: 'Animal Designer',
+    description: 'Create creatures and wildlife',
+    icon: 'Bird',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'biology', label: 'Biology & Behavior', icon: 'Heart', order: 2 },
+      { id: 'culture', label: 'Cultural Role', icon: 'Users', order: 3 },
+    ],
+    fieldHints: {
+      name: { tab: 'basic', order: 1, label: 'Animal Name' },
+      animalType: { tab: 'basic', order: 2, label: 'Type' },
+      description: { tab: 'basic', order: 3, rows: 4 },
+      genre: { tab: 'basic', order: 4 },
+      
+      habitat: { tab: 'biology', order: 1, rows: 3, placeholder: 'Where does it live?' },
+      diet: { tab: 'biology', order: 2, placeholder: 'What does it eat?' },
+      behavior: { tab: 'biology', order: 3, rows: 3, placeholder: 'How does it behave?' },
+      physicalTraits: { tab: 'biology', order: 4, label: 'Physical Traits', rows: 3, placeholder: 'Physical characteristics...' },
+      size: { tab: 'biology', order: 5, placeholder: 'How big is it?' },
+      domestication: { tab: 'biology', order: 6, rows: 2, placeholder: 'Can it be domesticated?' },
+      intelligence: { tab: 'biology', order: 7, placeholder: 'Intelligence level' },
+      abilities: { tab: 'biology', order: 8, placeholder: 'Special abilities...' },
+      lifecycle: { tab: 'biology', order: 9, rows: 3, placeholder: 'Life cycle and reproduction...' },
+      
+      culturalRole: { tab: 'culture', order: 1, label: 'Cultural Role', rows: 3, placeholder: 'Role in society and culture...' },
+      threats: { tab: 'culture', order: 2, placeholder: 'Threats to this species...' },
+    },
+  }),
+
+  plant: () => buildConfig(schemas.insertPlantSchema, {
+    title: 'Plant Designer',
+    description: 'Create flora and vegetation',
+    icon: 'Leaf',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'botany', label: 'Botany & Habitat', icon: 'Sprout', order: 2 },
+    ],
+    fieldHints: {
+      imageUrl: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2, label: 'Plant Name' },
+      scientificName: { tab: 'basic', order: 3, label: 'Scientific Name' },
+      type: { tab: 'basic', order: 4 },
+      description: { tab: 'basic', order: 5, rows: 4 },
+      genre: { tab: 'basic', order: 6 },
+      
+      characteristics: { tab: 'botany', order: 1, placeholder: 'Key characteristics...' },
+      habitat: { tab: 'botany', order: 2, rows: 3, placeholder: 'Where does it grow?' },
+      careInstructions: { tab: 'botany', order: 3, label: 'Care Instructions', rows: 3, placeholder: 'How to care for it...' },
+      bloomingSeason: { tab: 'botany', order: 4, label: 'Blooming Season' },
+      hardinessZone: { tab: 'botany', order: 5, label: 'Hardiness Zone', placeholder: 'Growing zones...' },
+    },
+  }),
 };
 
 /**

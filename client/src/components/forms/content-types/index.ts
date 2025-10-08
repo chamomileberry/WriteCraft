@@ -11,16 +11,11 @@ import { factionConfig } from '../../../configs/content-types/faction';
 import { plotConfig } from '../../../configs/content-types/plot';
 import { religionConfig } from '../../../configs/content-types/religion';
 import { languageConfig } from '../../../configs/content-types/language';
-import { cultureConfig } from '../../../configs/content-types/culture';
-import { speciesConfig } from '../../../configs/content-types/species';
 import { foodConfig } from '../../../configs/content-types/food';
 import { drinkConfig } from '../../../configs/content-types/drink';
 import { settlementConfig } from '../../../configs/content-types/settlement';
 import { societyConfig } from '../../../configs/content-types/society';
 import { technologyConfig } from '../../../configs/content-types/technology';
-import { animalConfig } from '../../../configs/content-types/animal';
-import { plantConfig } from '../../../configs/content-types/plant';
-import { resourceConfig } from '../../../configs/content-types/resource';
 import { ethnicityConfig } from '../../../configs/content-types/ethnicity';
 import { eventConfig } from '../../../configs/content-types/event';
 import { familyTreeConfig } from '../../../configs/content-types/familyTree';
@@ -53,16 +48,11 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   plot: plotConfig,
   religion: religionConfig,
   language: languageConfig,
-  culture: cultureConfig,
-  species: speciesConfig,
   food: foodConfig,
   drink: drinkConfig,
   settlement: settlementConfig,
   society: societyConfig,
   technology: technologyConfig,
-  animal: animalConfig,
-  plant: plantConfig,
-  resource: resourceConfig,
   ethnicity: ethnicityConfig,
   event: eventConfig,
   familyTree: familyTreeConfig,
@@ -85,8 +75,8 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   ...Object.fromEntries(
     Object.entries(originalConfigs).filter(([key]) => ![
       'character', 'weapon', 'armor', 'spell', 'faction', 'plot',
-      'religion', 'language', 'culture', 'species', 'food', 'drink', 
-      'settlement', 'society', 'technology', 'animal', 'plant', 'resource', 
+      'religion', 'language', 'food', 'drink', 
+      'settlement', 'society', 'technology',
       'ethnicity', 'event', 'familyTree', 'timeline', 'prompt', 'document', 
       'map', 'setting', 'name', 'conflict', 'theme', 'mood', 'description', 
       'building', 'creature', 'item', 'location', 'organization'
@@ -193,16 +183,11 @@ export { factionConfig } from '../../../configs/content-types/faction';
 export { plotConfig } from '../../../configs/content-types/plot';
 export { religionConfig } from '../../../configs/content-types/religion';
 export { languageConfig } from '../../../configs/content-types/language';
-export { cultureConfig } from '../../../configs/content-types/culture';
-export { speciesConfig } from '../../../configs/content-types/species';
 export { foodConfig } from '../../../configs/content-types/food';
 export { drinkConfig } from '../../../configs/content-types/drink';
 export { settlementConfig } from '../../../configs/content-types/settlement';
 export { societyConfig } from '../../../configs/content-types/society';
 export { technologyConfig } from '../../../configs/content-types/technology';
-export { animalConfig } from '../../../configs/content-types/animal';
-export { plantConfig } from '../../../configs/content-types/plant';
-export { resourceConfig } from '../../../configs/content-types/resource';
 export { ethnicityConfig } from '../../../configs/content-types/ethnicity';
 export { eventConfig } from '../../../configs/content-types/event';
 export { familyTreeConfig } from '../../../configs/content-types/familyTree';
