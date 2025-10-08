@@ -38,11 +38,7 @@ import { timelineConfig } from '../../../configs/content-types/timeline';
 import { ceremonyConfig } from '../../../configs/content-types/ceremony';
 import { musicConfig } from '../../../configs/content-types/music';
 import { danceConfig } from '../../../configs/content-types/dance';
-import { lawConfig } from '../../../configs/content-types/law';
-import { policyConfig } from '../../../configs/content-types/policy';
-import { potionConfig } from '../../../configs/content-types/potion';
 import { promptConfig } from '../../../configs/content-types/prompt';
-import { professionConfig } from '../../../configs/content-types/profession';
 import { documentConfig } from '../../../configs/content-types/document';
 import { mapConfig } from '../../../configs/content-types/map';
 import { settingConfig } from '../../../configs/content-types/setting';
@@ -97,11 +93,7 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   ceremony: ceremonyConfig,
   music: musicConfig,
   dance: danceConfig,
-  law: lawConfig,
-  policy: policyConfig,
-  potion: potionConfig,
   prompt: promptConfig,
-  profession: professionConfig,
   document: documentConfig,
   map: mapConfig,
   setting: settingConfig,
@@ -257,11 +249,7 @@ export { timelineConfig } from '../../../configs/content-types/timeline';
 export { ceremonyConfig } from '../../../configs/content-types/ceremony';
 export { musicConfig } from '../../../configs/content-types/music';
 export { danceConfig } from '../../../configs/content-types/dance';
-export { lawConfig } from '../../../configs/content-types/law';
-export { policyConfig } from '../../../configs/content-types/policy';
-export { potionConfig } from '../../../configs/content-types/potion';
 export { promptConfig } from '../../../configs/content-types/prompt';
-export { professionConfig } from '../../../configs/content-types/profession';
 export { documentConfig } from '../../../configs/content-types/document';
 export { mapConfig } from '../../../configs/content-types/map';
 export { settingConfig } from '../../../configs/content-types/setting';
