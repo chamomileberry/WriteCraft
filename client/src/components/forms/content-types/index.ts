@@ -22,12 +22,6 @@ import { animalConfig } from '../../../configs/content-types/animal';
 import { plantConfig } from '../../../configs/content-types/plant';
 import { resourceConfig } from '../../../configs/content-types/resource';
 import { ethnicityConfig } from '../../../configs/content-types/ethnicity';
-import { accessoryConfig } from '../../../configs/content-types/accessory';
-import { clothingConfig } from '../../../configs/content-types/clothing';
-import { materialConfig } from '../../../configs/content-types/material';
-import { militaryUnitConfig } from '../../../configs/content-types/militaryUnit';
-import { transportationConfig } from '../../../configs/content-types/transportation';
-import { naturalLawConfig } from '../../../configs/content-types/naturalLaw';
 import { eventConfig } from '../../../configs/content-types/event';
 import { familyTreeConfig } from '../../../configs/content-types/familyTree';
 import { timelineConfig } from '../../../configs/content-types/timeline';
@@ -70,12 +64,6 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
   plant: plantConfig,
   resource: resourceConfig,
   ethnicity: ethnicityConfig,
-  accessory: accessoryConfig,
-  clothing: clothingConfig,
-  material: materialConfig,
-  militaryUnit: militaryUnitConfig,
-  transportation: transportationConfig,
-  naturalLaw: naturalLawConfig,
   event: eventConfig,
   familyTree: familyTreeConfig,
   timeline: timelineConfig,
@@ -99,10 +87,9 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
       'character', 'weapon', 'armor', 'spell', 'faction', 'plot',
       'religion', 'language', 'culture', 'species', 'food', 'drink', 
       'settlement', 'society', 'technology', 'animal', 'plant', 'resource', 
-      'ethnicity', 'accessory', 'clothing', 'material', 'militaryUnit', 
-      'transportation', 'naturalLaw', 'event', 'familyTree', 'timeline', 
-      'prompt', 'document', 'map', 'setting', 'name', 'conflict', 'theme', 
-      'mood', 'description', 'building', 'creature', 'item', 'location', 'organization'
+      'ethnicity', 'event', 'familyTree', 'timeline', 'prompt', 'document', 
+      'map', 'setting', 'name', 'conflict', 'theme', 'mood', 'description', 
+      'building', 'creature', 'item', 'location', 'organization'
     ].includes(key))
   ),
 };
@@ -217,12 +204,6 @@ export { animalConfig } from '../../../configs/content-types/animal';
 export { plantConfig } from '../../../configs/content-types/plant';
 export { resourceConfig } from '../../../configs/content-types/resource';
 export { ethnicityConfig } from '../../../configs/content-types/ethnicity';
-export { accessoryConfig } from '../../../configs/content-types/accessory';
-export { clothingConfig } from '../../../configs/content-types/clothing';
-export { materialConfig } from '../../../configs/content-types/material';
-export { militaryUnitConfig } from '../../../configs/content-types/militaryUnit';
-export { transportationConfig } from '../../../configs/content-types/transportation';
-export { naturalLawConfig } from '../../../configs/content-types/naturalLaw';
 export { eventConfig } from '../../../configs/content-types/event';
 export { familyTreeConfig } from '../../../configs/content-types/familyTree';
 export { timelineConfig } from '../../../configs/content-types/timeline';

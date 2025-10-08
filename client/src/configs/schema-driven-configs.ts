@@ -596,6 +596,190 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       modernAdaptations: { tab: 'truth', order: 5, label: 'Modern Adaptations', placeholder: 'Modern retellings...' },
     },
   }),
+
+  accessory: () => buildConfig(schemas.insertAccessorySchema, {
+    title: 'Accessory Designer',
+    description: 'Create jewelry, belts, and wearable items',
+    icon: 'Gem',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'details', label: 'Details', icon: 'Sparkles', order: 2 },
+      { id: 'cultural', label: 'Cultural Context', icon: 'Globe', order: 3 },
+    ],
+    fieldHints: {
+      imageUrl: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2, label: 'Accessory Name' },
+      accessoryType: { tab: 'basic', order: 3, label: 'Type' },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      appearance: { tab: 'details', order: 1, rows: 3, placeholder: 'How does it look?' },
+      materials: { tab: 'details', order: 2, endpoint: '/api/materials', multiple: true, placeholder: 'What is it made of?' },
+      functionality: { tab: 'details', order: 3, rows: 3, placeholder: 'What does it do?' },
+      value: { tab: 'details', order: 4, placeholder: 'How much is it worth?' },
+      rarity: { tab: 'details', order: 5 },
+      enchantments: { tab: 'details', order: 6, placeholder: 'Magical properties...' },
+      
+      culturalSignificance: { tab: 'cultural', order: 1, label: 'Cultural Significance', rows: 3 },
+      history: { tab: 'cultural', order: 2, rows: 3, placeholder: 'History and origins...' },
+    },
+  }),
+
+  clothing: () => buildConfig(schemas.insertClothingSchema, {
+    title: 'Clothing Designer',
+    description: 'Create garments and fashion items',
+    icon: 'Shirt',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'design', label: 'Design', icon: 'Palette', order: 2 },
+      { id: 'cultural', label: 'Cultural Context', icon: 'Globe', order: 3 },
+    ],
+    fieldHints: {
+      imageUrl: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2, label: 'Garment Name' },
+      clothingType: { tab: 'basic', order: 3, label: 'Type' },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      style: { tab: 'design', order: 1, placeholder: 'Fashion style...' },
+      colors: { tab: 'design', order: 2, placeholder: 'Primary colors...' },
+      materials: { tab: 'design', order: 3, endpoint: '/api/materials', multiple: true, placeholder: 'Fabrics and materials...' },
+      durability: { tab: 'design', order: 4 },
+      cost: { tab: 'design', order: 5, placeholder: 'How much does it cost?' },
+      
+      socialClass: { tab: 'cultural', order: 1, label: 'Social Class', placeholder: 'Who wears this?' },
+      occasion: { tab: 'cultural', order: 2, placeholder: 'When is it worn?' },
+      climate: { tab: 'cultural', order: 3, placeholder: 'Suitable climate...' },
+      culturalContext: { tab: 'cultural', order: 4, label: 'Cultural Context', rows: 3 },
+    },
+  }),
+
+  material: () => buildConfig(schemas.insertMaterialSchema, {
+    title: 'Material Creator',
+    description: 'Create metals, fabrics, and raw materials',
+    icon: 'Box',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'properties', label: 'Properties', icon: 'Zap', order: 2 },
+      { id: 'production', label: 'Production & Usage', icon: 'Settings', order: 3 },
+    ],
+    fieldHints: {
+      imageUrl: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2, label: 'Material Name' },
+      materialType: { tab: 'basic', order: 3, label: 'Type' },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      properties: { tab: 'properties', order: 1, placeholder: 'Physical properties...' },
+      appearance: { tab: 'properties', order: 2, rows: 3, placeholder: 'How does it look?' },
+      durability: { tab: 'properties', order: 3 },
+      weight: { tab: 'properties', order: 4 },
+      rarity: { tab: 'properties', order: 5 },
+      value: { tab: 'properties', order: 6, placeholder: 'Market value...' },
+      
+      source: { tab: 'production', order: 1, rows: 3, placeholder: 'Where does it come from?' },
+      processing: { tab: 'production', order: 2, rows: 3, placeholder: 'How is it processed?' },
+      uses: { tab: 'production', order: 3, placeholder: 'What is it used for?' },
+    },
+  }),
+
+  militaryUnit: () => buildConfig(schemas.insertMilitaryUnitSchema, {
+    title: 'Military Unit Designer',
+    description: 'Create armed forces and tactical units',
+    icon: 'Shield',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'structure', label: 'Structure & Equipment', icon: 'Users', order: 2 },
+      { id: 'history', label: 'History & Status', icon: 'Book', order: 3 },
+    ],
+    fieldHints: {
+      imageUrl: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2, label: 'Unit Name' },
+      unitType: { tab: 'basic', order: 3, label: 'Type' },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      size: { tab: 'structure', order: 1, placeholder: 'Unit size (number of troops)' },
+      composition: { tab: 'structure', order: 2, rows: 3, placeholder: 'What is the unit made up of?' },
+      commander: { tab: 'structure', order: 3, endpoint: '/api/characters', multiple: false, placeholder: 'Who commands this unit?' },
+      equipment: { tab: 'structure', order: 4, placeholder: 'Weapons and equipment...' },
+      training: { tab: 'structure', order: 5, rows: 3, placeholder: 'How are they trained?' },
+      specializations: { tab: 'structure', order: 6, placeholder: 'Special skills or tactics...' },
+      
+      history: { tab: 'history', order: 1, rows: 4, placeholder: 'Unit history and formation...' },
+      battleRecord: { tab: 'history', order: 2, label: 'Battle Record', rows: 3, placeholder: 'Notable battles and campaigns...' },
+      reputation: { tab: 'history', order: 3, rows: 3, placeholder: 'How are they perceived?' },
+      morale: { tab: 'history', order: 4, placeholder: 'Current morale level' },
+      currentStatus: { tab: 'history', order: 5, label: 'Current Status', placeholder: 'Where are they now?' },
+    },
+  }),
+
+  transportation: () => buildConfig(schemas.insertTransportationSchema, {
+    title: 'Transportation Designer',
+    description: 'Create vehicles and travel methods',
+    icon: 'Ship',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'specs', label: 'Specifications', icon: 'Settings', order: 2 },
+      { id: 'usage', label: 'Operation & Usage', icon: 'Zap', order: 3 },
+    ],
+    fieldHints: {
+      imageUrl: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2, label: 'Vehicle/Transport Name' },
+      transportType: { tab: 'basic', order: 3, label: 'Type' },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      capacity: { tab: 'specs', order: 1, placeholder: 'How many people/cargo?' },
+      speed: { tab: 'specs', order: 2, placeholder: 'How fast does it go?' },
+      range: { tab: 'specs', order: 3, placeholder: 'Travel distance' },
+      rarity: { tab: 'specs', order: 4 },
+      cost: { tab: 'specs', order: 5, placeholder: 'How much does it cost?' },
+      
+      requirements: { tab: 'usage', order: 1, rows: 3, placeholder: 'What is needed to use this?' },
+      operation: { tab: 'usage', order: 2, rows: 3, placeholder: 'How is it operated?' },
+      construction: { tab: 'usage', order: 3, rows: 3, placeholder: 'How is it built?' },
+      advantages: { tab: 'usage', order: 4, placeholder: 'Benefits of using this...' },
+      disadvantages: { tab: 'usage', order: 5, placeholder: 'Drawbacks or limitations...' },
+      culturalSignificance: { tab: 'usage', order: 6, label: 'Cultural Significance', rows: 3 },
+    },
+  }),
+
+  naturalLaw: () => buildConfig(schemas.insertNaturalLawSchema, {
+    title: 'Natural Law Designer',
+    description: 'Create physical, magical, or divine laws',
+    icon: 'Atom',
+    defaultTab: 'basic',
+    tabs: [
+      { id: 'basic', label: 'Basic Info', icon: 'FileText', order: 1 },
+      { id: 'principles', label: 'Principles', icon: 'BookOpen', order: 2 },
+      { id: 'applications', label: 'Applications & Impact', icon: 'Lightbulb', order: 3 },
+    ],
+    fieldHints: {
+      imageUrl: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2, label: 'Law Name' },
+      lawType: { tab: 'basic', order: 3, label: 'Type' },
+      description: { tab: 'basic', order: 4, rows: 4 },
+      genre: { tab: 'basic', order: 5 },
+      
+      scope: { tab: 'principles', order: 1, rows: 3, placeholder: 'What does this law govern?' },
+      principles: { tab: 'principles', order: 2, rows: 4, placeholder: 'Core principles and mechanics...' },
+      exceptions: { tab: 'principles', order: 3, placeholder: 'Exceptions to the law...' },
+      evidence: { tab: 'principles', order: 4, rows: 3, placeholder: 'How is this law proven?' },
+      
+      discovery: { tab: 'applications', order: 1, rows: 3, placeholder: 'How was this discovered?' },
+      applications: { tab: 'applications', order: 2, placeholder: 'Practical applications...' },
+      implications: { tab: 'applications', order: 3, rows: 3, placeholder: 'What are the consequences?' },
+      relatedLaws: { tab: 'applications', order: 4, label: 'Related Laws', placeholder: 'Connected laws...' },
+      understanding: { tab: 'applications', order: 5, rows: 3, placeholder: 'How well is it understood?' },
+      controversies: { tab: 'applications', order: 6, rows: 3, placeholder: 'Debates or disputes...' },
+    },
+  }),
 };
 
 /**
