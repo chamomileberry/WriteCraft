@@ -3,6 +3,7 @@ import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, A
 import { db } from './db.js';
 import { savedItems } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { getBannedPhrasesInstruction } from './utils/banned-phrases.js';
 
 /*
 <important_code_snippet_instructions>
@@ -20,82 +21,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Style instruction to avoid AI-generated clichés and sound more human
-const AVOID_CLICHES_INSTRUCTION = `\n\nCRITICAL STYLE REQUIREMENTS - WRITE LIKE A HUMAN:
-
-ABSOLUTELY FORBIDDEN PHRASES AND WORDS (NEVER use any of these):
-• "provide/gain/offer valuable insights", "indelible mark", "unwavering commitment", "stark reminder", "sheds/shed light on", "nuanced understanding", "multifaceted nature/approach", "complex interplay", "intricate relationship"
-• "potential to revolutionize", "transformative power", "significant milestone/stride/turning point", "unique blend/perspective", "beacon of hope", "pave the way", "casting long shadows", "hung heavy"
-• "at its core", "delve into", "to put it simply", "key takeaway", "from a broader perspective", "generally speaking", "arguably", "to some extent", "broadly speaking"
-• "rich tapestry", "vibrant tapestry", "opens new avenues", "adds a layer of complexity", "fostering a sense", "plays a crucial/pivotal role", "garnered significant attention", "continues to inspire"
-• "seamless/seamlessly", "scalable solution", "cutting-edge", "innovative", "facilitate", "bolster", "streamline", "revolutionize", "leverage", "utilize", "optimize"
-• "navigate/navigating the landscape/complexities", "showcasing", "meticulous", "intriguing", "tapestry", "comprehensive", "testament", "vibrant", "dynamic", "robust"
-• "let's dive in", "take a dive into", "dive into", "deep dive into", "embark on a journey/voyage", "explore the world of", "analyze", "elevate", "excels", "unleash", "harness"
-• "at the end of the day", "it's worth noting that", "it's important to note/consider/remember", "ensure", "it's essential to", "there are a few considerations", "cannot be overstated"
-• "ever-evolving", "rapidly expanding/evolving", "tailored", "underpins", "bustling", "labyrinth", "metropolis", "game-changer", "designed to enhance", "daunting"
-• "the world of", "in today's digital age/world", "when it comes to", "in the realm of", "unlock/unveil the secrets", "in the landscape of", "in the dynamic world of"
-• "reverberate", "remnant", "nestled", "gossamer", "enigma", "whispering", "sights unseen", "sounds unheard"
-• "a journey of", "a multitude of", "a plethora of", "a testament to", "actionable insights", "ample opportunities", "treasure trove", "golden ticket"
-• "paradigm shift", "game changer", "disruptive innovation", "groundbreaking", "state-of-the-art", "next-generation", "thought leadership", "best practices"
-• "synergy/synergistically", "holistic/holistically", "bandwidth", "pain point", "scalable", "data-driven", "customer-centric", "mission-critical"
-• "foster innovation", "driving innovation", "unparalleled", "unprecedented", "revolutionary", "transformative", "strategic alignment", "competitive landscape"
-• "deep understanding", "fresh perspectives", "new heights", "reaching new heights", "uncharted waters", "the road ahead", "the next frontier", "the future of"
-• "captivating", "remarkable", "profound", "invaluable", "exemplary", "commendable", "thriving/thrive", "flourishing", "well-crafted"
-• "fundamentally", "essentially", "accordingly", "consequently" (when overused), "hence", "thereby", "thereof", "therein", "herein", "heretofore", "aforementioned"
-• "linchpin", "epicenter", "cornerstone", "bedrock", "fundamental", "paramount", "critical", "crucial", "essential", "vital" (when overused)
-• "empower/empowering", "enable/enabling", "enhance/enhancing", "amplify", "augment", "enrich/enriches", "illuminate" (when used figuratively)
-• "digital transformation", "cloud-based", "AI-powered", "blockchain-enabled", "industry best practices", "thought leaders", "subject matter experts"
-• "value proposition", "value-added", "roi", "kpis", "deliverables", "stakeholders", "touchpoint", "bandwidth", "synergy"
-• "iteration", "agile", "sprint", "scrum", "mvp", "poc", "roadmap", "deployment", "implementation strategy"
-• "operational excellence", "continuous improvement", "process optimization", "cost optimization", "resource optimization", "performance optimization"
-• "customer satisfaction", "user engagement", "user experience", "brand awareness", "market penetration", "revenue growth"
-• "granular detail/level", "high-level", "low-level", "drill down", "glean insights", "actionable", "impactful"
-• "certainly here are/is", "based on the information provided", "it is worth noting", "it is important to note", "simply put", "to clarify"
-• "with regards to", "with a keen eye on", "whilst", "notwithstanding", "nevertheless", "moving forward", "going forward", "that being said"
-• Any phrase with: "pivotal", "underscore", "realm", "vast", "keen", "fancy", "amongst", "utmost", "myriad", "plethora"
-
-BANNED TRANSITION WORDS (avoid overusing these):
-• Firstly, Moreover, Furthermore, However, Therefore, Consequently, Subsequently, Specifically, Notably, Indeed, Thus, Essentially, Ultimately, Alternatively
-• "Remember that", "As well as", "Despite", "Although", "Due to", "Given that", "In contrast", "Even if", "In order to", "On the other hand"
-• "As previously mentioned", "As a professional", "To summarize", "In summary", "In conclusion", "Promptly"
-
-WORD REPLACEMENTS (use natural alternatives):
-• Instead of "delve into" → use: explore, look into, consider, investigate, check out
-• Instead of "underscore/emphasize" → use: highlight, show, point out, call attention to
-• Instead of "pivotal/crucial/vital" → use: important, key, central
-• Instead of "realm/landscape" → use: area, field, world, space
-• Instead of "harness/leverage/utilize" → use: use, apply, work with
-• Instead of "illuminate/unveil" → use: explain, clarify, reveal, show
-• Instead of "navigate" → use: work through, deal with, handle
-• Instead of "ensure" → use: make sure, see to it
-• Instead of "facilitate" → use: help, make easier, enable
-
-WRITE WITH AUTHENTIC HUMAN VOICE:
-✓ Be diffident and partisan - have opinions, show uncertainty where genuine
-✓ Choose words for emotional resonance and personal connection
-✓ Include personal touches that show individuality and quirks
-✓ Draw from lived experience - use personal anecdotes and emotional nuance when appropriate
-✓ Vary sentence length unpredictably - mix short punchy sentences with longer flowing ones
-✓ Use conversational rhythm that sounds like natural speech
-✓ Include specific concrete details, not vague abstractions
-✓ Write with personality - let emotion and perspective show through
-✓ Embrace natural imperfection over polished prose
-✓ Use unexpected word choices that feel genuine, not academic
-✓ Write like you're talking to someone, not presenting a report
-✓ Be direct and honest - cut the fluff and corporate speak
-✓ Vary your tone - don't maintain the same energy throughout
-✓ Sound clear, creative, nuanced, and expressive
-
-AVOID THESE ROBOTIC PATTERNS:
-✗ Repetitive sentence structures
-✗ Overuse of ANY transition words
-✗ Generic generalizations without specific examples
-✗ Stiff, formal academic tone
-✗ Perfectly balanced and polished phrasing
-✗ Predictable conclusions or summaries
-✗ Suggesting bullet points or lists in the actual content
-✗ Corporate speak and buzzwords
-✗ Overly formal or technical language when simpler words work better`;
+// Note: Banned phrases/style instruction is now loaded dynamically from database via getBannedPhrasesInstruction()
 
 export interface CharacterGenerationOptions {
   genre?: string;
@@ -1171,6 +1097,7 @@ export async function rephraseText(
   documentTitle?: string,
   documentType?: 'manuscript' | 'guide' | 'project' | 'section'
 ): Promise<string> {
+  const styleInstruction = await getBannedPhrasesInstruction();
   const systemPrompt = `You are a professional writing assistant specialized in rephrasing text while maintaining the original meaning. Adapt the tone and style as requested while preserving all key information.
 
 Style instructions:
@@ -1181,7 +1108,7 @@ Style instructions:
 - "creative": Use more engaging, creative language
 - "clear": Focus on clarity and simplicity
 
-Provide only the rephrased text, no explanations or additional formatting.${AVOID_CLICHES_INSTRUCTION}`;
+Provide only the rephrased text, no explanations or additional formatting.${styleInstruction}`;
 
   try {
     const response = await anthropic.messages.create({
@@ -1214,9 +1141,10 @@ export async function proofreadText(
   correctedText: string;
   corrections: { original: string; corrected: string; reason: string }[];
 }> {
+  const styleInstruction = await getBannedPhrasesInstruction();
   const systemPrompt = `You are a professional proofreader and editor. Correct grammar, spelling, punctuation, and style issues while maintaining the author's voice and intent.
 
-Provide corrections and explanations for any changes made.${AVOID_CLICHES_INSTRUCTION}
+Provide corrections and explanations for any changes made.${styleInstruction}
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
@@ -1375,9 +1303,10 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 }
 
 export async function improveText(text: string, instruction: string): Promise<string> {
+  const styleInstruction = await getBannedPhrasesInstruction();
   const systemPrompt = `You are a professional writing assistant. Follow the user's specific instructions to improve the provided text while maintaining the original meaning and voice.
 
-Provide only the improved text, no explanations or additional formatting.${AVOID_CLICHES_INSTRUCTION}`;
+Provide only the improved text, no explanations or additional formatting.${styleInstruction}`;
 
   try {
     const response = await anthropic.messages.create({
@@ -1413,6 +1342,7 @@ export async function generateDescriptionWithAI(options: DescriptionGenerationOp
     throw new Error(`Invalid genre: ${genre}. Must be one of: ${ALL_GENRES.join(', ')}`);
   }
 
+  const styleInstruction = await getBannedPhrasesInstruction();
   const systemPrompt = `You are a creative writing assistant specialized in generating detailed, immersive descriptions for fiction. Your descriptions should be:
 
 1. Vivid and sensory - engage multiple senses to bring the subject to life
@@ -1428,7 +1358,7 @@ DESCRIPTION GUIDELINES:
 - Create atmosphere through word choice and imagery
 - Include unique or memorable details that make the description distinctive
 - Consider how the description fits into a larger narrative context
-- Avoid clichéd or overused descriptive phrases${AVOID_CLICHES_INSTRUCTION}
+- Avoid clichéd or overused descriptive phrases${styleInstruction}
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
@@ -1805,7 +1735,11 @@ CONVERSATION GUIDELINES:
 • Adapt your communication style to match the writer's needs
 • Remember details from the conversation for continuity
 
-You should feel like a knowledgeable writing mentor who genuinely cares about helping writers succeed with their creative projects.${AVOID_CLICHES_INSTRUCTION}`;
+You should feel like a knowledgeable writing mentor who genuinely cares about helping writers succeed with their creative projects.`;
+
+  // Add style instruction dynamically
+  const styleInstruction = await getBannedPhrasesInstruction();
+  systemPrompt += styleInstruction;
 
   // Add context if editor content is available
   if (editorContent && documentTitle) {

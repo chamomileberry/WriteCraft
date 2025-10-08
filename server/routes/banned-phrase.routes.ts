@@ -4,6 +4,7 @@ import { db } from "../db";
 import { bannedPhrases, insertBannedPhraseSchema } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "../security/middleware";
+import { clearBannedPhrasesCache } from "../utils/banned-phrases";
 
 const router = Router();
 
@@ -45,6 +46,9 @@ router.post("/", async (req, res) => {
       .values(validatedData)
       .returning();
     
+    // Clear cache so AI prompts reflect the change
+    clearBannedPhrasesCache();
+    
     res.status(201).json(newPhrase);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -73,6 +77,9 @@ router.patch("/:id", async (req, res) => {
       return res.status(404).json({ error: "Banned phrase not found" });
     }
     
+    // Clear cache so AI prompts reflect the change
+    clearBannedPhrasesCache();
+    
     res.json(updatedPhrase);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -96,6 +103,9 @@ router.delete("/:id", async (req, res) => {
     if (!deletedPhrase) {
       return res.status(404).json({ error: "Banned phrase not found" });
     }
+    
+    // Clear cache so AI prompts reflect the change
+    clearBannedPhrasesCache();
     
     res.json({ message: "Banned phrase deleted successfully" });
   } catch (error) {
