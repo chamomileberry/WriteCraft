@@ -48,6 +48,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const { screenToFlowPosition, fitView, setCenter, getNode, getNodes } = useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(true); // Default to auto-layout with Dagre
   const prevIsAutoLayout = useRef(isAutoLayout);
+  const lastComputedNodesRef = useRef<Node[]>([]);
+  const lastComputedEdgesRef = useRef<Edge[]>([]);
   
   // Relationship selector state
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
@@ -450,7 +452,10 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               id: junctionId,
               type: 'junction',
               position: { x: junctionX, y: junctionY },
-              data: {},
+              data: {
+                parent1Id,
+                parent2Id,
+              },
               selectable: false,
               draggable: false,
             });
@@ -534,19 +539,50 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     // Combine member nodes and junction nodes
     const allNodes = [...memberNodes, ...junctionNodes];
     
-    // Apply layout if enabled
+    // Compute final nodes with layout
+    let finalNodes = allNodes;
     if (isAutoLayout) {
       const { nodes: layoutedNodes } = getLayoutedElements(allNodes, newEdges, {
         direction: 'TB',
         nodeSep: 100,
         rankSep: 150,
       });
-      setNodes(layoutedNodes);
-    } else {
-      setNodes(allNodes);
+      
+      // Fix junction positions to be exactly on the marriage line between parents
+      finalNodes = layoutedNodes.map(node => {
+        if (node.type === 'junction' && node.data.parent1Id && node.data.parent2Id) {
+          const parent1 = layoutedNodes.find(n => n.id === node.data.parent1Id);
+          const parent2 = layoutedNodes.find(n => n.id === node.data.parent2Id);
+          
+          if (parent1 && parent2) {
+            // Position junction exactly between parents at same Y level
+            return {
+              ...node,
+              position: {
+                x: (parent1.position.x + parent2.position.x) / 2,
+                y: Math.max(parent1.position.y, parent2.position.y),
+              },
+            };
+          }
+        }
+        return node;
+      });
     }
     
-    setEdges(newEdges);
+    // Only update state if nodes or edges actually changed
+    const nodesChanged = JSON.stringify(finalNodes.map(n => ({ id: n.id, x: n.position.x, y: n.position.y }))) !== 
+                         JSON.stringify(lastComputedNodesRef.current.map(n => ({ id: n.id, x: n.position.x, y: n.position.y })));
+    const edgesChanged = JSON.stringify(newEdges) !== JSON.stringify(lastComputedEdgesRef.current);
+    
+    if (nodesChanged) {
+      lastComputedNodesRef.current = finalNodes;
+      setNodes(finalNodes);
+    }
+    
+    if (edgesChanged) {
+      lastComputedEdgesRef.current = newEdges;
+      setEdges(newEdges);
+    }
   }, [members, relationships, isAutoLayout, setNodes, setEdges, notebookId, treeId]);
 
   // Re-apply layout when toggling to auto-layout mode
