@@ -21,16 +21,22 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (_req, file, cb) => {
+    const filename = file.originalname.toLowerCase();
     const isZip = file.mimetype === 'application/zip' || 
                   file.mimetype === 'application/x-zip-compressed' || 
-                  file.originalname.toLowerCase().endsWith('.zip');
-    const isJson = file.mimetype === 'application/json' || 
-                   file.originalname.toLowerCase().endsWith('.json');
+                  filename.endsWith('.zip');
+    const isHtml = file.mimetype === 'text/html' || filename.endsWith('.html');
+    const isRtf = file.mimetype === 'application/rtf' || 
+                  file.mimetype === 'text/rtf' || 
+                  filename.endsWith('.rtf');
+    const isDocx = file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                   filename.endsWith('.docx');
+    const isPdf = file.mimetype === 'application/pdf' || filename.endsWith('.pdf');
     
-    if (isZip || isJson) {
+    if (isZip || isHtml || isRtf || isDocx || isPdf) {
       cb(null, true);
     } else {
-      cb(new Error('Only ZIP (World Anvil) or JSON (Campfire) files are allowed'));
+      cb(new Error('Only ZIP (World Anvil) or Campfire document files (HTML, RTF, DOCX, PDF) are allowed'));
     }
   },
 });
