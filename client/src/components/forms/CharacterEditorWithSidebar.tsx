@@ -499,26 +499,10 @@ export default function CharacterEditorWithSidebar({
             <div className="flex-1 overflow-auto">
               <div className="max-w-4xl mx-auto p-6">
                 {activeSection === "identity" && activeTab === "basic" && (
-                  <>
-                    <ContentHero 
-                      imageUrl={form.watch('imageUrl')} 
-                      imageCaption={form.watch('imageCaption')} 
-                    />
-                    <Card className="mb-6">
-                      <CardHeader>
-                        <CardTitle>Character Image</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ImageSelector
-                          value={form.watch('imageUrl') ?? ""}
-                          onChange={(url) => form.setValue('imageUrl', url)}
-                          onFileUpload={handleImageUpload}
-                          label="Upload or generate character image"
-                          showUploadTab={true}
-                        />
-                      </CardContent>
-                    </Card>
-                  </>
+                  <ContentHero 
+                    imageUrl={form.watch('imageUrl')} 
+                    imageCaption={form.watch('imageCaption')} 
+                  />
                 )}
                 {currentTab && currentSection && (
                   <Card className={cn("mb-6", currentSection.color)}>

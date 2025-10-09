@@ -11,6 +11,7 @@ export const characterConfig: ContentTypeFormConfig = {
       label: "Basic Info", 
       icon: "User",
       fields: [
+        createImageField("character"),
         { name: "givenName", label: "Given Name", type: "text", placeholder: "Their first name at birth", description: "The name they were given at birth" },
         { name: "familyName", label: "Family Name", type: "text", placeholder: "Last name or surname", description: "Their family name or surname" },
         { name: "middleName", label: "Middle Name", type: "text", placeholder: "Middle name(s)", description: "Any middle names they have" },
@@ -33,7 +34,6 @@ export const characterConfig: ContentTypeFormConfig = {
       label: "Physical Appearance",
       icon: "Eye", 
       fields: [
-        createImageField("character"),
         { name: "physicalDescription", label: "Overall Physical Description", type: "textarea", placeholder: "Describe their general physical appearance...", description: "A comprehensive description of how they look" },
         { name: "height", label: "Height", type: "text", placeholder: "5'8\", 180cm, tall, average, etc.", description: "How tall are they? Include specific measurements or general description" },
         { name: "weight", label: "Weight", type: "text", placeholder: "Build and weight description", description: "Their weight and body mass" },

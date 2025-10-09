@@ -25,19 +25,19 @@ export const characterSchemaConfig: ContentTypeConfig = {
     commonTabs.background,
   ],
   fieldHints: {
-    // Basic Info tab
-    givenName: { tab: 'basic', order: 1, label: 'Given Name', placeholder: 'Their first name at birth' },
-    familyName: { tab: 'basic', order: 2, label: 'Family Name', placeholder: 'Last name or surname' },
-    middleName: { tab: 'basic', order: 3, label: 'Middle Name', placeholder: 'Middle name(s)' },
-    nickname: { tab: 'basic', order: 4, label: 'Nickname', placeholder: 'What friends call them' },
-    age: { tab: 'basic', order: 5 },
-    gender: { tab: 'basic', order: 6 },
-    species: { tab: 'basic', order: 7, endpoint: '/api/species', multiple: false },
-    occupation: { tab: 'basic', order: 8, endpoint: '/api/professions', multiple: false },
-    description: { tab: 'basic', order: 9, rows: 4, label: 'General Description', placeholder: 'A brief overview of this character...' },
+    // Basic Info tab - image first!
+    imageUrl: { tab: 'basic', order: 1 },
+    givenName: { tab: 'basic', order: 2, label: 'Given Name', placeholder: 'Their first name at birth' },
+    familyName: { tab: 'basic', order: 3, label: 'Family Name', placeholder: 'Last name or surname' },
+    middleName: { tab: 'basic', order: 4, label: 'Middle Name', placeholder: 'Middle name(s)' },
+    nickname: { tab: 'basic', order: 5, label: 'Nickname', placeholder: 'What friends call them' },
+    age: { tab: 'basic', order: 6 },
+    gender: { tab: 'basic', order: 7 },
+    species: { tab: 'basic', order: 8, endpoint: '/api/species', multiple: false },
+    occupation: { tab: 'basic', order: 9, endpoint: '/api/professions', multiple: false },
+    description: { tab: 'basic', order: 10, rows: 4, label: 'General Description', placeholder: 'A brief overview of this character...' },
     
     // Appearance tab
-    imageUrl: { tab: 'appearance', order: 1 },
     imageCaption: { tab: 'appearance', order: 2, hidden: true },
     physicalDescription: { tab: 'appearance', order: 3, rows: 4 },
     height: { tab: 'appearance', order: 4 },
@@ -95,10 +95,10 @@ export const locationSchemaConfig: ContentTypeConfig = {
     { id: 'details', label: 'Details', icon: 'FileText', order: 4 },
   ],
   fieldHints: {
-    name: { tab: 'basic', order: 1, label: 'Location Name' },
-    locationType: { tab: 'basic', order: 2, label: 'Type' },
-    description: { tab: 'basic', order: 3, rows: 4 },
-    imageUrl: { tab: 'basic', order: 4 },
+    imageUrl: { tab: 'basic', order: 1 },
+    name: { tab: 'basic', order: 2, label: 'Location Name' },
+    locationType: { tab: 'basic', order: 3, label: 'Type' },
+    description: { tab: 'basic', order: 4, rows: 4 },
     
     geography: { tab: 'geography', order: 1, rows: 4 },
     climate: { tab: 'geography', order: 2, rows: 3 },
@@ -130,11 +130,11 @@ export const organizationSchemaConfig: ContentTypeConfig = {
     { id: 'details', label: 'Details', icon: 'FileText', order: 3 },
   ],
   fieldHints: {
-    name: { tab: 'basic', order: 1 },
-    organizationType: { tab: 'basic', order: 2, label: 'Type' },
-    purpose: { tab: 'basic', order: 3, rows: 3 },
-    description: { tab: 'basic', order: 4, rows: 4 },
-    imageUrl: { tab: 'basic', order: 5 },
+    imageUrl: { tab: 'basic', order: 1 },
+    name: { tab: 'basic', order: 2 },
+    organizationType: { tab: 'basic', order: 3, label: 'Type' },
+    purpose: { tab: 'basic', order: 4, rows: 3 },
+    description: { tab: 'basic', order: 5, rows: 4 },
     
     structure: { tab: 'structure', order: 1, rows: 4 },
     leadership: { tab: 'structure', order: 2, rows: 3 },
@@ -792,7 +792,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'economics', label: 'Economics & Politics', icon: 'DollarSign', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Resource Name' },
+      name: { tab: 'basic', order: 2, label: 'Resource Name' },
       resourceType: { tab: 'basic', order: 2, label: 'Type' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -822,7 +822,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'culture', label: 'Cultural Role', icon: 'Users', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Animal Name' },
+      name: { tab: 'basic', order: 2, label: 'Animal Name' },
       animalType: { tab: 'basic', order: 2, label: 'Type' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -878,7 +878,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'features', label: 'Features & Geography', icon: 'Map', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Settlement Name' },
+      name: { tab: 'basic', order: 2, label: 'Settlement Name' },
       settlementType: { tab: 'basic', order: 2, label: 'Type' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -910,7 +910,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'institutions', label: 'Institutions', icon: 'Building', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Society Name' },
+      name: { tab: 'basic', order: 2, label: 'Society Name' },
       societyType: { tab: 'basic', order: 2, label: 'Type' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -942,7 +942,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'development', label: 'Development & Impact', icon: 'TrendingUp', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Technology Name' },
+      name: { tab: 'basic', order: 2, label: 'Technology Name' },
       technologyType: { tab: 'basic', order: 2, label: 'Type' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -972,7 +972,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'impact', label: 'Impact & Legacy', icon: 'Sparkles', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Event Name' },
+      name: { tab: 'basic', order: 2, label: 'Event Name' },
       eventType: { tab: 'basic', order: 2, label: 'Type' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1003,7 +1003,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'organization', label: 'Organization & Influence', icon: 'Users', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Religion Name' },
+      name: { tab: 'basic', order: 2, label: 'Religion Name' },
       description: { tab: 'basic', order: 2, rows: 4 },
       genre: { tab: 'basic', order: 3 },
       
@@ -1034,7 +1034,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'culture', label: 'Cultural Context', icon: 'Globe', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Language Name' },
+      name: { tab: 'basic', order: 2, label: 'Language Name' },
       family: { tab: 'basic', order: 2, placeholder: 'Language family' },
       status: { tab: 'basic', order: 3, placeholder: 'Living, dead, constructed, etc.' },
       speakers: { tab: 'basic', order: 4, placeholder: 'Number of speakers' },
@@ -1065,7 +1065,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'power', label: 'Power & Relations', icon: 'Swords', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Faction Name' },
+      name: { tab: 'basic', order: 2, label: 'Faction Name' },
       factionType: { tab: 'basic', order: 2, label: 'Type' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1097,7 +1097,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'lore', label: 'Lore & History', icon: 'BookOpen', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Weapon Name' },
+      name: { tab: 'basic', order: 2, label: 'Weapon Name' },
       weaponType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Sword, bow, staff, etc.' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1114,7 +1114,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       maintenance: { tab: 'properties', order: 10, rows: 2, placeholder: 'Maintenance needs...' },
       
       history: { tab: 'lore', order: 1, rows: 4, placeholder: 'History and origin...' },
-      imageUrl: { tab: 'lore', order: 2, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'lore', order: 3, label: 'Image Caption' },
       articleContent: { tab: 'lore', order: 4, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1131,7 +1131,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'significance', label: 'Significance & Secrets', icon: 'Key', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Building Name' },
+      name: { tab: 'basic', order: 2, label: 'Building Name' },
       buildingType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Temple, castle, shop, house, etc.' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1162,7 +1162,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'lore', label: 'Lore & Significance', icon: 'Scroll', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Creature Name' },
+      name: { tab: 'basic', order: 2, label: 'Creature Name' },
       creatureType: { tab: 'basic', order: 2, label: 'Type' },
       habitat: { tab: 'basic', order: 3, placeholder: 'Where does it live?' },
       physicalDescription: { tab: 'basic', order: 4, label: 'Physical Description', rows: 4 },
@@ -1172,7 +1172,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       behavior: { tab: 'biology', order: 2, rows: 4, placeholder: 'Behavior patterns...' },
       
       culturalSignificance: { tab: 'lore', order: 1, label: 'Cultural Significance', rows: 4, placeholder: 'Significance in culture...' },
-      imageUrl: { tab: 'lore', order: 2, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'lore', order: 3, label: 'Image Caption' },
       articleContent: { tab: 'lore', order: 4, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1189,7 +1189,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'lore', label: 'Lore & History', icon: 'BookOpen', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Item Name' },
+      name: { tab: 'basic', order: 2, label: 'Item Name' },
       itemType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Weapon, armor, tool, magic, etc.' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1204,7 +1204,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       crafting: { tab: 'properties', order: 8, rows: 3, placeholder: 'How it\'s crafted...' },
       
       history: { tab: 'lore', order: 1, rows: 4, placeholder: 'Item history...' },
-      imageUrl: { tab: 'lore', order: 2, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'lore', order: 3, label: 'Image Caption' },
       articleContent: { tab: 'lore', order: 4, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1221,7 +1221,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'society', label: 'Society & History', icon: 'Users', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Location Name' },
+      name: { tab: 'basic', order: 2, label: 'Location Name' },
       locationType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'City, forest, dungeon, etc.' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1238,7 +1238,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       economy: { tab: 'society', order: 3, rows: 2, placeholder: 'Economic system...' },
       culture: { tab: 'society', order: 4, rows: 3, placeholder: 'Cultural aspects...' },
       history: { tab: 'society', order: 5, rows: 4, placeholder: 'Historical background...' },
-      imageUrl: { tab: 'society', order: 6, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'society', order: 7, label: 'Image Caption' },
       articleContent: { tab: 'society', order: 8, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1255,7 +1255,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'influence', label: 'Influence & Relations', icon: 'Globe', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Organization Name' },
+      name: { tab: 'basic', order: 2, label: 'Organization Name' },
       organizationType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Guild, faction, government, etc.' },
       purpose: { tab: 'basic', order: 3, rows: 2 },
       description: { tab: 'basic', order: 4, rows: 4 },
@@ -1272,7 +1272,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       allies: { tab: 'influence', order: 4, placeholder: 'Allied organizations...' },
       enemies: { tab: 'influence', order: 5, placeholder: 'Enemy organizations...' },
       history: { tab: 'influence', order: 6, rows: 4, placeholder: 'Organizational history...' },
-      imageUrl: { tab: 'influence', order: 7, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'influence', order: 8, label: 'Image Caption' },
       articleContent: { tab: 'influence', order: 9, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1288,7 +1288,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'details', label: 'Conflict Details', icon: 'AlertCircle', order: 2 },
     ],
     fieldHints: {
-      title: { tab: 'basic', order: 1 },
+      title: { tab: 'basic', order: 2 },
       type: { tab: 'basic', order: 2, placeholder: 'Internal, external, interpersonal, etc.' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1297,7 +1297,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       obstacles: { tab: 'details', order: 2, placeholder: 'Obstacles to overcome...' },
       potentialResolutions: { tab: 'details', order: 3, label: 'Potential Resolutions', placeholder: 'Possible resolutions...' },
       emotionalImpact: { tab: 'details', order: 4, label: 'Emotional Impact', rows: 3, placeholder: 'Emotional impact on characters...' },
-      imageUrl: { tab: 'details', order: 5, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'details', order: 6, label: 'Image Caption' },
       articleContent: { tab: 'details', order: 7, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1313,7 +1313,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'elements', label: 'Elements & Examples', icon: 'Sparkles', order: 2 },
     ],
     fieldHints: {
-      title: { tab: 'basic', order: 1 },
+      title: { tab: 'basic', order: 2 },
       description: { tab: 'basic', order: 2, rows: 4 },
       coreMessage: { tab: 'basic', order: 3, label: 'Core Message', rows: 3, placeholder: 'Central message or idea...' },
       genre: { tab: 'basic', order: 4 },
@@ -1322,7 +1322,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       questions: { tab: 'elements', order: 2, placeholder: 'Questions raised...' },
       conflicts: { tab: 'elements', order: 3, placeholder: 'Related conflicts...' },
       examples: { tab: 'elements', order: 4, placeholder: 'Examples in story...' },
-      imageUrl: { tab: 'elements', order: 5, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'elements', order: 6, label: 'Image Caption' },
       articleContent: { tab: 'elements', order: 7, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1338,7 +1338,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'sensory', label: 'Sensory Details', icon: 'Eye', order: 2 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Mood Name' },
+      name: { tab: 'basic', order: 2, label: 'Mood Name' },
       description: { tab: 'basic', order: 2, rows: 4 },
       emotionalTone: { tab: 'basic', order: 3, label: 'Emotional Tone', rows: 3, placeholder: 'Emotional tone and feeling...' },
       
@@ -1359,7 +1359,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'basic', label: 'Details', icon: 'FileText', order: 1 },
     ],
     fieldHints: {
-      title: { tab: 'basic', order: 1 },
+      title: { tab: 'basic', order: 2 },
       content: { tab: 'basic', order: 2, rows: 8 },
       descriptionType: { tab: 'basic', order: 3, label: 'Type', placeholder: 'Armor, weapon, clothing, etc.' },
       genre: { tab: 'basic', order: 4 },
@@ -1376,7 +1376,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'basic', label: 'Name Details', icon: 'FileText', order: 1 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1 },
+      name: { tab: 'basic', order: 2 },
       meaning: { tab: 'basic', order: 2, rows: 2, placeholder: 'What does the name mean?' },
       origin: { tab: 'basic', order: 3, rows: 2, placeholder: 'Origin of the name' },
       nameType: { tab: 'basic', order: 4, label: 'Type', placeholder: 'Character, place, fantasy, etc.' },
@@ -1395,7 +1395,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'features', label: 'Features & Details', icon: 'MapPin', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Map Name' },
+      name: { tab: 'basic', order: 2, label: 'Map Name' },
       mapType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'World, regional, city, dungeon, political, etc.' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1428,7 +1428,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'details', label: 'Details & Atmosphere', icon: 'Cloud', order: 2 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Setting Name' },
+      name: { tab: 'basic', order: 2, label: 'Setting Name' },
       location: { tab: 'basic', order: 2 },
       timePeriod: { tab: 'basic', order: 3, label: 'Time Period' },
       settingType: { tab: 'basic', order: 4, label: 'Type' },
@@ -1440,7 +1440,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       atmosphere: { tab: 'details', order: 3, rows: 3 },
       culturalElements: { tab: 'details', order: 4, label: 'Cultural Elements', placeholder: 'Cultural aspects...' },
       notableFeatures: { tab: 'details', order: 5, label: 'Notable Features', placeholder: 'Notable features...' },
-      imageUrl: { tab: 'details', order: 6, label: 'Image URL' },
+      imageUrl: { tab: 'basic', order: 1, label: 'Image URL' },
       imageCaption: { tab: 'details', order: 7, label: 'Image Caption' },
       articleContent: { tab: 'details', order: 8, label: 'Article Content', rows: 6, placeholder: 'Rich content for article format...' },
     },
@@ -1457,7 +1457,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'lore', label: 'Lore & History', icon: 'BookOpen', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Armor Name' },
+      name: { tab: 'basic', order: 2, label: 'Armor Name' },
       armorType: { tab: 'basic', order: 2, label: 'Type', placeholder: 'Light, medium, heavy, shield, etc.' },
       description: { tab: 'basic', order: 3, rows: 4 },
       genre: { tab: 'basic', order: 4 },
@@ -1488,7 +1488,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'lore', label: 'Lore & Variations', icon: 'BookOpen', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Spell Name' },
+      name: { tab: 'basic', order: 2, label: 'Spell Name' },
       school: { tab: 'basic', order: 2, placeholder: 'Evocation, divination, etc.' },
       level: { tab: 'basic', order: 3, placeholder: 'Spell level' },
       description: { tab: 'basic', order: 4, rows: 4 },
@@ -1542,7 +1542,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'basic', label: 'Tree Details', icon: 'FileText', order: 1 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Family Tree Name' },
+      name: { tab: 'basic', order: 2, label: 'Family Tree Name' },
       description: { tab: 'basic', order: 2, rows: 4 },
       layoutMode: { tab: 'basic', order: 3, label: 'Layout Mode', placeholder: 'Auto or manual' },
       zoom: { tab: 'basic', order: 4, placeholder: 'Zoom level (default: 1)' },
@@ -1562,7 +1562,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'changes', label: 'Changes & Advances', icon: 'TrendingUp', order: 3 },
     ],
     fieldHints: {
-      name: { tab: 'basic', order: 1, label: 'Timeline Name' },
+      name: { tab: 'basic', order: 2, label: 'Timeline Name' },
       description: { tab: 'basic', order: 2, rows: 4 },
       timelineType: { tab: 'basic', order: 3, label: 'Type', placeholder: 'Historical, character, world, campaign, etc.' },
       timeScale: { tab: 'basic', order: 4, label: 'Time Scale', placeholder: 'Years, decades, centuries, millennia, etc.' },
@@ -1592,7 +1592,7 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
       { id: 'basic', label: 'Prompt Details', icon: 'FileText', order: 1 },
     ],
     fieldHints: {
-      text: { tab: 'basic', order: 1, rows: 6 },
+      text: { tab: 'basic', order: 2, rows: 6 },
       genre: { tab: 'basic', order: 2 },
       difficulty: { tab: 'basic', order: 3 },
       type: { tab: 'basic', order: 4 },
