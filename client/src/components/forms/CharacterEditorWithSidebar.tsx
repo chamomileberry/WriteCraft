@@ -283,6 +283,7 @@ export default function CharacterEditorWithSidebar({
                     onFileUpload={handleImageUpload}
                     label={field.label}
                     showUploadTab={true}
+                    characterData={form.getValues()}
                   />
                 </FormControl>
                 {field.description && (
