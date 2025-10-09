@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertNameSchema } from "@shared/schema";
 import { z } from "zod";
+import { generateNameWithAI } from "../ai-generation";
 
 const router = Router();
 
@@ -12,36 +13,37 @@ router.post("/generate", async (req: any, res) => {
     const generateRequestSchema = z.object({
       nameType: z.string(),
       culture: z.string(),
+      origin: z.string().optional(),
+      meaning: z.string().optional(),
+      genre: z.string().optional(),
+      notebookId: z.string().optional(),
     });
     
-    const { nameType, culture } = generateRequestSchema.parse(req.body);
+    const { nameType, culture, origin, meaning, genre, notebookId } = generateRequestSchema.parse(req.body);
     
-    // TODO: Implement AI-based name generation
-    // Currently using placeholder names - needs proper generator implementation
-    const placeholderNames = [
-      { prefix: 'Aether', suffix: 'wyn' },
-      { prefix: 'Zeph', suffix: 'iron' },
-      { prefix: 'Lyra', suffix: 'belle' },
-      { prefix: 'Thal', suffix: 'dor' },
-      { prefix: 'Ember', suffix: 'light' },
-      { prefix: 'Kael', suffix: 'storm' },
-      { prefix: 'Syl', suffix: 'andra' },
-      { prefix: 'Mor', suffix: 'gath' },
-    ];
-    
-    const generatedNames = placeholderNames.slice(0, 6).map((placeholder, idx) => ({
-      name: `${placeholder.prefix}${placeholder.suffix}`,
-      meaning: `${culture ? culture + ' ' : ''}${nameType} name ${idx + 1}`,
+    // Generate names using AI
+    const aiGeneratedNames = await generateNameWithAI({
       nameType,
-      culture: culture || 'generic',
-      userId: userId || null
-    }));
+      culture,
+      origin,
+      meaning,
+      genre,
+    });
     
-    const namesList = generatedNames;
+    // Map AI generated names to database format
+    const generatedNames = aiGeneratedNames.map((aiName) => ({
+      name: aiName.name,
+      meaning: aiName.meaning,
+      origin: aiName.origin,
+      nameType,
+      culture,
+      notebookId,
+      userId,
+    }));
 
     // Create individual names using createName
     const createdNames = [];
-    for (const nameData of namesList) {
+    for (const nameData of generatedNames) {
       try {
         const validatedName = insertNameSchema.parse(nameData);
         const savedName = await storage.createName(validatedName);

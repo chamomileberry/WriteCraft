@@ -1786,3 +1786,163 @@ Use this context to provide more relevant and specific advice about their curren
   }
 }
 
+export interface NameGenerationOptions {
+  nameType: string;
+  culture: string;
+  origin?: string;
+  meaning?: string;
+  genre?: string;
+}
+
+export interface GeneratedName {
+  name: string;
+  meaning: string;
+  origin: string;
+}
+
+export async function generateNameWithAI(options: NameGenerationOptions): Promise<GeneratedName[]> {
+  const { nameType, culture, origin, meaning, genre } = options;
+
+  const systemPrompt = `You are a creative name generation specialist with deep knowledge of linguistics, etymology, and cultural naming traditions. Your task is to generate authentic, culturally-appropriate names for creative writing projects.
+
+NAMING GUIDELINES:
+- Generate names that are culturally authentic and appropriate to the specified culture/origin
+- Provide meaningful etymologies that reflect the cultural context
+- Consider the name type (character, place, fantasy, etc.) when generating names
+- Avoid overused or clichéd names unless they fit the cultural context
+- Ensure names are pronounceable and memorable
+- Include variations (given names, surnames, full names as appropriate for the name type)
+- For fantasy names, balance creativity with believability
+- For character names, consider the character's likely background and era
+- For place names, reflect geographical and cultural features
+
+CULTURAL AUTHENTICITY:
+- Research-backed naming conventions from specific cultures
+- Consider historical and regional variations
+- Account for cultural significance and meanings
+- Reflect authentic linguistic patterns
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON array of 6 unique names:
+[
+  {
+    "name": "The actual name",
+    "meaning": "Detailed explanation of the name's meaning and cultural significance",
+    "origin": "Cultural/linguistic origin of the name"
+  }
+]`;
+
+  let userPrompt = `Generate 6 unique ${nameType} names`;
+  
+  if (culture) {
+    userPrompt += ` from ${culture} culture/tradition`;
+  }
+  
+  if (origin) {
+    userPrompt += ` with ${origin} origin`;
+  }
+  
+  if (meaning) {
+    userPrompt += ` that relate to or mean "${meaning}"`;
+  }
+  
+  if (genre) {
+    userPrompt += ` suitable for the ${genre} genre`;
+  }
+  
+  userPrompt += ". Each name should be unique, culturally authentic, and include a detailed meaning. Respond with ONLY the JSON array, no other text.";
+
+  try {
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      system: systemPrompt,
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+
+    // Guard array access
+    if (!response.content || response.content.length === 0) {
+      throw new Error('Empty response from Anthropic API');
+    }
+    
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+
+    let responseText = content.text.trim();
+    
+    // Clean up the response - remove markdown code blocks if present
+    responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    
+    // Try to extract JSON if there's other text
+    const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      responseText = jsonMatch[0];
+    }
+
+    const names = JSON.parse(responseText);
+    
+    // Validate response structure and content
+    if (!Array.isArray(names)) {
+      throw new Error('Invalid response format - expected array of names');
+    }
+    
+    // Validate each name has required fields with strict trimming
+    // Also normalize the names by trimming all fields
+    const validNames = names
+      .filter(name => {
+        if (!name || typeof name !== 'object') return false;
+        
+        const trimmedName = typeof name.name === 'string' ? name.name.trim() : '';
+        const trimmedMeaning = typeof name.meaning === 'string' ? name.meaning.trim() : '';
+        const trimmedOrigin = typeof name.origin === 'string' ? name.origin.trim() : '';
+        
+        return trimmedName.length > 0 && 
+               trimmedMeaning.length > 0 && 
+               trimmedOrigin.length > 0;
+      })
+      .map(name => ({
+        name: name.name.trim(),
+        meaning: name.meaning.trim(),
+        origin: name.origin.trim()
+      }));
+    
+    // Check for uniqueness (case-insensitive)
+    const uniqueNames = Array.from(
+      new Map(validNames.map(name => [name.name.toLowerCase(), name])).values()
+    );
+    
+    // If we don't have exactly 6 unique, valid names, trigger fallback
+    if (uniqueNames.length !== 6) {
+      console.warn(`AI returned ${uniqueNames.length} valid unique names instead of 6, using fallback`);
+      throw new Error('Insufficient valid names from AI');
+    }
+
+    return uniqueNames;
+  } catch (error) {
+    console.error('Error generating names with AI, using fallback:', error);
+    
+    // Fallback: generate deterministic names based on inputs
+    // This ensures we ALWAYS return exactly 6 valid names
+    const fallbackNames: GeneratedName[] = [];
+    const prefixes = ['Aether', 'Zeph', 'Lyra', 'Thal', 'Ember', 'Kael'];
+    const suffixes = ['wyn', 'iron', 'belle', 'dor', 'light', 'storm'];
+    
+    const safeCulture = culture || 'Traditional';
+    const safeNameType = nameType || 'character';
+    const safeMeaning = meaning || 'strength and wisdom';
+    const safeOrigin = origin || safeCulture;
+    
+    for (let i = 0; i < 6; i++) {
+      fallbackNames.push({
+        name: `${prefixes[i]}${suffixes[i]}`,
+        meaning: `${safeCulture} ${safeNameType} name meaning "${safeMeaning}"`,
+        origin: safeOrigin
+      });
+    }
+    
+    console.log(`Fallback generated ${fallbackNames.length} names`);
+    return fallbackNames;
+  }
+}
+
