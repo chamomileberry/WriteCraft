@@ -71,7 +71,7 @@ router.post("/generate", async (req: any, res) => {
     console.log("[Ideogram] Generating image with prompt:", validated.prompt);
 
     // Generate image with Ideogram V3 Turbo
-    const output = await replicate.run(
+    let output = await replicate.run(
       "ideogram-ai/ideogram-v3-turbo",
       {
         input: {
@@ -83,6 +83,107 @@ router.post("/generate", async (req: any, res) => {
         }
       }
     ) as any;
+
+    // Handle ReadableStream or async iterable response
+    if (output && typeof output === 'object') {
+      let fullData = '';
+      
+      // Check for Web ReadableStream
+      if ('getReader' in output) {
+        console.log("[Ideogram] Output is a ReadableStream, consuming stream...");
+        const reader = output.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          fullData += decoder.decode(value, { stream: true });
+        }
+        fullData += decoder.decode(); // Flush any remaining bytes
+      }
+      // Check for async iterable (Node.js streams)
+      else if (Symbol.asyncIterator in output) {
+        console.log("[Ideogram] Output is an async iterable, consuming...");
+        const chunks: Buffer[] = [];
+        
+        for await (const chunk of output as any) {
+          // Handle both Uint8Array and Buffer chunks
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        
+        // Concatenate all chunks and decode
+        fullData = Buffer.concat(chunks).toString('utf-8');
+      }
+      
+      // If we consumed a stream, parse it
+      if (fullData) {
+        try {
+          // Handle newline-delimited JSON (SSE format)
+          const lines = fullData.trim().split('\n').filter(line => line.trim());
+          let finalOutput = null;
+          
+          for (let line of lines) {
+            // Strip SSE prefix (e.g., "data: {...}")
+            if (line.startsWith('data:')) {
+              line = line.substring(5).trim();
+            }
+            
+            // Skip empty lines or non-JSON content
+            if (!line || line.startsWith(':') || line.startsWith('event:')) {
+              continue;
+            }
+            
+            try {
+              const parsed = JSON.parse(line);
+              
+              // Only update finalOutput if this envelope contains actual output data
+              let potentialOutput = null;
+              
+              // 1. Event envelope: { event: "output", data: { output: [...] } }
+              if (parsed.event === 'output' && parsed.data) {
+                potentialOutput = parsed.data.output ?? parsed.data;
+              }
+              // 2. Direct data envelope: { data: { output: [...] } }
+              else if (parsed.data?.output) {
+                potentialOutput = parsed.data.output;
+              }
+              // 3. Prediction envelope: { output: [...] }
+              else if (parsed.output) {
+                potentialOutput = parsed.output;
+              }
+              // 4. Direct array
+              else if (Array.isArray(parsed)) {
+                potentialOutput = parsed;
+              }
+              
+              // Only update if we found valid output data
+              if (potentialOutput) {
+                finalOutput = potentialOutput;
+                console.log("[Ideogram] Found output data in stream");
+              }
+            } catch (lineError) {
+              // Skip invalid JSON lines
+              console.warn("[Ideogram] Skipping invalid JSON line:", line.substring(0, 100));
+            }
+          }
+          
+          if (finalOutput) {
+            output = finalOutput;
+            console.log("[Ideogram] Stream decoded and parsed successfully");
+          } else {
+            console.error("[Ideogram] No valid output found in stream");
+            return res.status(500).json({ 
+              error: "Failed to parse image generation response" 
+            });
+          }
+        } catch (e) {
+          console.error("[Ideogram] Failed to parse stream data:", e);
+          return res.status(500).json({ 
+            error: "Failed to parse image generation response" 
+          });
+        }
+      }
+    }
 
     // Extract the image URL from the output
     // Ideogram returns an array of objects with structure: { url: string, revised_prompt?: string }
