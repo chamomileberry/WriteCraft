@@ -2726,6 +2726,16 @@ export class ContentRepository extends BaseRepository {
     return quickNote || undefined;
   }
 
+  async getQuickNoteById(id: string, userId: string): Promise<Note | undefined> {
+    const [quickNote] = await db.select().from(notes)
+      .where(and(
+        eq(notes.id, id),
+        eq(notes.userId, userId),
+        eq(notes.type, 'quick_note')
+      ));
+    return quickNote || undefined;
+  }
+
   async updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note> {
     const [updatedNote] = await db.update(notes)
       .set({ ...updates, updatedAt: new Date() })

@@ -1638,6 +1638,10 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserQuickNote(userId);
   }
 
+  async getQuickNoteById(id: string, userId: string): Promise<Note | undefined> {
+    return await contentRepository.getQuickNoteById(id, userId);
+  }
+
   async updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note> {
     return await contentRepository.updateQuickNote(id, userId, updates);
   }

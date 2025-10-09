@@ -613,6 +613,7 @@ export interface IStorage {
   // Quick note methods
   createQuickNote(userId: string, title: string, content: string): Promise<Note>;
   getUserQuickNote(userId: string): Promise<Note | undefined>;
+  getQuickNoteById(id: string, userId: string): Promise<Note | undefined>;
   updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note>;
   deleteQuickNote(id: string, userId: string): Promise<void>;
 
@@ -5197,6 +5198,18 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       ))
       .orderBy(desc(notes.updatedAt))
       .limit(1);
+    return quickNote || undefined;
+  }
+
+  async getQuickNoteById(id: string, userId: string): Promise<Note | undefined> {
+    const [quickNote] = await db
+      .select()
+      .from(notes)
+      .where(and(
+        eq(notes.id, id),
+        eq(notes.userId, userId),
+        eq(notes.type, 'quick_note')
+      ));
     return quickNote || undefined;
   }
 

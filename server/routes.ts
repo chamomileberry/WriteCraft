@@ -492,6 +492,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fetch a specific quick note by ID
+  app.get("/api/quick-note/:id", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const quickNote = await storage.getQuickNoteById(id, userId);
+      if (!quickNote) {
+        return res.status(404).json({ error: 'Quick note not found' });
+      }
+      
+      res.json(quickNote);
+    } catch (error) {
+      console.error('Error fetching quick note:', error);
+      res.status(500).json({ error: 'Failed to fetch quick note' });
+    }
+  });
+
+  // Update a specific quick note by ID
+  app.put("/api/quick-note/:id", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { title, content } = req.body;
+      
+      const updatedNote = await storage.updateQuickNote(id, userId, { title, content });
+      res.json(updatedNote);
+    } catch (error) {
+      console.error('Error updating quick note:', error);
+      if (error instanceof Error && error.message === "Quick note not found or unauthorized") {
+        return res.status(404).json({ error: 'Quick note not found' });
+      }
+      res.status(500).json({ error: 'Failed to update quick note' });
+    }
+  });
+
   app.delete("/api/quick-note", async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
