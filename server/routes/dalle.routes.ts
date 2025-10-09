@@ -69,7 +69,9 @@ router.post("/generate", async (req, res) => {
       // Handle async iterator (ReadableStream)
       const items: string[] = [];
       for await (const item of output as AsyncIterable<any>) {
-        items.push(item);
+        // Ensure we convert each item to a string
+        const urlString = typeof item === "string" ? item : String(item);
+        items.push(urlString);
       }
       if (items.length === 0) {
         console.error("[Flux] Empty stream response");
@@ -85,16 +87,17 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Validate the URL
-    if (!imageUrl || !imageUrl.startsWith("http")) {
-      console.error("[Flux] Invalid image URL:", imageUrl);
+    // Ensure imageUrl is a string and validate the URL
+    const finalImageUrl = String(imageUrl);
+    if (!finalImageUrl || typeof finalImageUrl !== "string" || !finalImageUrl.startsWith("http")) {
+      console.error("[Flux] Invalid image URL:", finalImageUrl, typeof finalImageUrl);
       return res.status(500).json({ 
         error: "Failed to generate image: invalid URL" 
       });
     }
 
     res.json({
-      imageUrl: imageUrl,
+      imageUrl: finalImageUrl,
       revisedPrompt: undefined, // Flux doesn't provide revised prompts like DALL-E
     });
   } catch (error: any) {
