@@ -57,7 +57,7 @@ router.post("/generate", async (req, res) => {
       }
     );
 
-    // Flux returns either a single URL string or an array of URLs
+    // Flux can return: a string URL, an array of URLs, or an async iterator (ReadableStream)
     // Extract the first valid URL
     let imageUrl: string;
     
@@ -65,6 +65,19 @@ router.post("/generate", async (req, res) => {
       imageUrl = output[0];
     } else if (typeof output === "string") {
       imageUrl = output;
+    } else if (output && typeof output === "object" && Symbol.asyncIterator in output) {
+      // Handle async iterator (ReadableStream)
+      const items: string[] = [];
+      for await (const item of output as AsyncIterable<any>) {
+        items.push(item);
+      }
+      if (items.length === 0) {
+        console.error("[Flux] Empty stream response");
+        return res.status(500).json({ 
+          error: "Failed to generate image: empty response" 
+        });
+      }
+      imageUrl = items[0];
     } else {
       console.error("[Flux] Unexpected output format:", output);
       return res.status(500).json({ 
