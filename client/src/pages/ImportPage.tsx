@@ -21,7 +21,7 @@ interface ImportJob {
   notebookId: string | null;
   filename: string;
   status: "pending" | "processing" | "completed" | "failed";
-  itemsProcessed: number;
+  processedItems: number;
   totalItems: number;
   errors: string | null;
   errorMessage?: string | null;
