@@ -472,11 +472,13 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             if (spouse2Update) parent2Pos = spouse2Update.position;
             
             if (parent1Pos && parent2Pos) {
-              // Get node widths for accurate junction positioning
+              // Get node dimensions for accurate junction positioning
               const parent1Node = currentNodes.find(cn => cn.id === junctionData.parent1Id);
               const parent2Node = currentNodes.find(cn => cn.id === junctionData.parent2Id);
               const parent1Width = parent1Node?.measured?.width || parent1Node?.width || 200;
               const parent2Width = parent2Node?.measured?.width || parent2Node?.width || 200;
+              const parent1Height = parent1Node?.measured?.height || parent1Node?.height || 80;
+              const parent2Height = parent2Node?.measured?.height || parent2Node?.height || 80;
               
               // Determine which parent is on the left vs right based on X position
               const isParent1Left = parent1Pos.x < parent2Pos.x;
@@ -487,7 +489,11 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               // Calculate junction X based on actual handle positions (edges, not centers)
               // Left parent's right handle: x + width, Right parent's left handle: x
               const junctionX = (leftParentPos.x + leftParentWidth + rightParentPos.x) / 2;
-              const junctionY = parent1Pos.y;
+              
+              // Calculate junction Y as average of both parents' vertical centers (where handles are)
+              const parent1CenterY = parent1Pos.y + (parent1Height / 2);
+              const parent2CenterY = parent2Pos.y + (parent2Height / 2);
+              const junctionY = (parent1CenterY + parent2CenterY) / 2;
               
               additionalChanges.push({
                 id: n.id,
@@ -576,9 +582,11 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           const parent2Node = memberNodes.find(n => n.id === parent2Id);
           
           if (parent1Node && parent2Node) {
-            // Get node widths (use measured width if available, fallback to 200px min-width)
+            // Get node dimensions (use measured dimensions if available, fallback to defaults)
             const parent1Width = parent1Node.measured?.width || parent1Node.width || 200;
             const parent2Width = parent2Node.measured?.width || parent2Node.width || 200;
+            const parent1Height = parent1Node.measured?.height || parent1Node.height || 80;
+            const parent2Height = parent2Node.measured?.height || parent2Node.height || 80;
             
             // Determine which parent is on the left vs right based on X position
             const isParent1Left = parent1Node.position.x < parent2Node.position.x;
@@ -592,8 +600,10 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             // Left parent's right handle: x + width, Right parent's left handle: x
             const junctionX = (leftParentNode.position.x + leftParentWidth + rightParentNode.position.x) / 2;
             
-            // Junction Y should be level with parents (no offset needed)
-            const junctionY = parent1Node.position.y;
+            // Calculate junction Y as average of both parents' vertical centers (where handles are)
+            const parent1CenterY = parent1Node.position.y + (parent1Height / 2);
+            const parent2CenterY = parent2Node.position.y + (parent2Height / 2);
+            const junctionY = (parent1CenterY + parent2CenterY) / 2;
             const junctionId = `junction-${coupleKey}`;
             
             // Offset junction position so its center (not top-left) aligns with the calculated position
@@ -738,9 +748,11 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           const parent2 = alignedMembers.find(n => n.id === junctionNode.data.parent2Id);
           
           if (parent1 && parent2) {
-            // Get node widths for accurate junction positioning
+            // Get node dimensions for accurate junction positioning
             const parent1Width = parent1.measured?.width || parent1.width || 200;
             const parent2Width = parent2.measured?.width || parent2.width || 200;
+            const parent1Height = parent1.measured?.height || parent1.height || 80;
+            const parent2Height = parent2.measured?.height || parent2.height || 80;
             
             // Determine which parent is on the left vs right based on X position
             const isParent1Left = parent1.position.x < parent2.position.x;
@@ -751,7 +763,11 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             // Calculate junction X based on actual handle positions (edges, not centers)
             // Left parent's right handle: x + width, Right parent's left handle: x
             const junctionX = (leftParent.position.x + leftParentWidth + rightParent.position.x) / 2;
-            const junctionY = parent1.position.y;
+            
+            // Calculate junction Y as average of both parents' vertical centers (where handles are)
+            const parent1CenterY = parent1.position.y + (parent1Height / 2);
+            const parent2CenterY = parent2.position.y + (parent2Height / 2);
+            const junctionY = (parent1CenterY + parent2CenterY) / 2;
             
             return {
               ...junctionNode,
