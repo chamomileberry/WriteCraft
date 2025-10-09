@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { uploadImageFile } from "@/lib/image-upload-utils";
 import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { ContentTypeFormConfig, FormField } from "./types";
@@ -62,6 +62,8 @@ export default function CharacterEditorWithSidebar({
     defaultValues,
   });
 
+  // Subscribe to live form data for ImageSelector
+  const liveFormData = useWatch({ control: form.control });
 
   const handleSubmit = (data: any) => {
     onSubmit(data);
@@ -283,7 +285,7 @@ export default function CharacterEditorWithSidebar({
                     onFileUpload={handleImageUpload}
                     label={field.label}
                     showUploadTab={true}
-                    characterData={form.getValues()}
+                    characterData={liveFormData}
                   />
                 </FormControl>
                 {field.description && (
