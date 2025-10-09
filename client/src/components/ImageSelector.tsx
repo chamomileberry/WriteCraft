@@ -95,9 +95,7 @@ export function ImageSelector({
       onChange(data.imageUrl);
       toast({
         title: "Image generated successfully",
-        description: data.revisedPrompt 
-          ? `DALL-E refined your prompt: "${data.revisedPrompt.substring(0, 100)}${data.revisedPrompt.length > 100 ? '...' : ''}"`
-          : "Your AI-generated image is ready",
+        description: "Your AI-generated image is ready",
       });
     },
     onError: (error: any) => {
@@ -323,8 +321,8 @@ export function ImageSelector({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="standard">Standard ($0.04)</SelectItem>
-                      <SelectItem value="hd">HD ($0.08-$0.12)</SelectItem>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="hd">HD</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -363,14 +361,10 @@ export function ImageSelector({
                 ) : (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Generate with DALL-E 3
+                    Generate with AI
                   </>
                 )}
               </Button>
-
-              <p className="text-xs text-muted-foreground text-center">
-                Powered by OpenAI's DALL-E 3. Images are generated on-demand and costs are pay-as-you-go.
-              </p>
             </div>
           </TabsContent>
         )}

@@ -1,11 +1,16 @@
 import { Router } from "express";
-import OpenAI from "openai";
+import Replicate from "replicate";
 import { z } from "zod";
 
 const router = Router();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Validate API token is configured
+if (!process.env.REPLICATE_API_TOKEN) {
+  console.error("[Flux] REPLICATE_API_TOKEN environment variable is not set");
+}
+
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN || "",
 });
 
 const generateImageSchema = z.object({
@@ -14,33 +19,73 @@ const generateImageSchema = z.object({
   size: z.enum(["1024x1024", "1024x1792", "1792x1024"]).default("1024x1024"),
 });
 
+// Map size to aspect ratio for Flux
+function sizeToAspectRatio(size: string): string {
+  const mapping: Record<string, string> = {
+    "1024x1024": "1:1",    // Square
+    "1024x1792": "9:16",   // Portrait
+    "1792x1024": "16:9",   // Landscape
+  };
+  return mapping[size] || "1:1";
+}
+
+// Map quality to output quality (0-100)
+function qualityToOutputQuality(quality: string): number {
+  return quality === "hd" ? 95 : 80;
+}
+
 router.post("/generate", async (req, res) => {
   try {
+    // Check if API token is configured
+    if (!process.env.REPLICATE_API_TOKEN) {
+      return res.status(500).json({
+        error: "Image generation service is not configured. Please contact support."
+      });
+    }
+
     const validated = generateImageSchema.parse(req.body);
 
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: validated.prompt,
-      n: 1,
-      quality: validated.quality,
-      size: validated.size,
-      response_format: "url",
-    });
+    const output = await replicate.run(
+      "black-forest-labs/flux-1.1-pro",
+      {
+        input: {
+          prompt: validated.prompt,
+          aspect_ratio: sizeToAspectRatio(validated.size),
+          output_format: "webp",
+          output_quality: qualityToOutputQuality(validated.quality),
+        }
+      }
+    );
 
-    const imageData = response.data?.[0];
+    // Flux returns either a single URL string or an array of URLs
+    // Extract the first valid URL
+    let imageUrl: string;
     
-    if (!imageData?.url) {
+    if (Array.isArray(output)) {
+      imageUrl = output[0];
+    } else if (typeof output === "string") {
+      imageUrl = output;
+    } else {
+      console.error("[Flux] Unexpected output format:", output);
       return res.status(500).json({ 
-        error: "Failed to generate image" 
+        error: "Failed to generate image: unexpected response format" 
+      });
+    }
+
+    // Validate the URL
+    if (!imageUrl || !imageUrl.startsWith("http")) {
+      console.error("[Flux] Invalid image URL:", imageUrl);
+      return res.status(500).json({ 
+        error: "Failed to generate image: invalid URL" 
       });
     }
 
     res.json({
-      imageUrl: imageData.url,
-      revisedPrompt: imageData.revised_prompt,
+      imageUrl: imageUrl,
+      revisedPrompt: undefined, // Flux doesn't provide revised prompts like DALL-E
     });
   } catch (error: any) {
-    console.error("[DALL-E] Generation error:", error);
+    console.error("[Flux] Generation error:", error);
     
     if (error.name === "ZodError") {
       return res.status(400).json({ 
@@ -49,19 +94,13 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    if (error.status === 400) {
-      return res.status(400).json({ 
-        error: error.message || "Bad request to OpenAI API" 
-      });
-    }
-
-    if (error.status === 401) {
+    if (error.message?.includes("Incorrect API key")) {
       return res.status(500).json({ 
         error: "API key configuration error" 
       });
     }
 
-    if (error.status === 429) {
+    if (error.message?.includes("rate limit")) {
       return res.status(429).json({ 
         error: "Rate limit exceeded. Please try again in a moment." 
       });
