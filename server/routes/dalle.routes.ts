@@ -23,22 +23,20 @@ const generateImageSchema = z.object({
 
 // Map size and quality to resolution for Ideogram
 function sizeAndQualityToResolution(size: string, quality: string): string {
-  // Ideogram V3 Turbo expects specific pixel dimensions
-  // Map our size options to valid Ideogram resolutions
   const isHD = quality === "hd";
   
   const mapping: Record<string, { standard: string; hd: string }> = {
     "1024x1024": { 
-      standard: "1024x1024",  // Square standard
-      hd: "1024x1024"         // Square HD (same size, better quality)
+      standard: "1024x1024",
+      hd: "1024x1024"
     },
     "1024x1792": { 
-      standard: "640x1152",   // Portrait standard (9:16 aspect ratio)
-      hd: "768x1344"          // Portrait HD (9:16 aspect ratio, higher resolution)
+      standard: "640x1152",
+      hd: "768x1344"
     },
     "1792x1024": { 
-      standard: "1152x640",   // Landscape standard (16:9 aspect ratio)
-      hd: "1536x640"          // Landscape HD (16:9 aspect ratio, higher resolution)
+      standard: "1152x640",
+      hd: "1536x640"
     },
   };
   
@@ -49,16 +47,15 @@ function sizeAndQualityToResolution(size: string, quality: string): string {
 // Map size to aspect ratio for Ideogram
 function sizeToAspectRatio(size: string): string {
   const mapping: Record<string, string> = {
-    "1024x1024": "1:1",     // Square
-    "1024x1792": "9:16",    // Portrait
-    "1792x1024": "16:9",    // Landscape
+    "1024x1024": "1:1",
+    "1024x1792": "9:16",
+    "1792x1024": "16:9",
   };
   return mapping[size] || "1:1";
 }
 
 router.post("/generate", async (req: any, res) => {
   try {
-    // Check if API token is configured
     if (!process.env.REPLICATE_API_TOKEN) {
       return res.status(500).json({
         error: "Image generation service is not configured. Please contact support."
@@ -70,7 +67,7 @@ router.post("/generate", async (req: any, res) => {
 
     console.log("[Ideogram] Generating image with prompt:", validated.prompt);
 
-    // Generate image with Ideogram V3 Turbo
+    // Generate image with Ideogram V3 Turbo - this streams raw image bytes
     let output = await replicate.run(
       "ideogram-ai/ideogram-v3-turbo",
       {
@@ -84,158 +81,67 @@ router.post("/generate", async (req: any, res) => {
       }
     ) as any;
 
-    // Handle ReadableStream or async iterable response
-    if (output && typeof output === 'object') {
-      let fullData = '';
-      
-      // Check for Web ReadableStream
-      if ('getReader' in output) {
-        console.log("[Ideogram] Output is a ReadableStream, consuming stream...");
-        const reader = output.getReader();
-        const decoder = new TextDecoder();
-        
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          fullData += decoder.decode(value, { stream: true });
-        }
-        fullData += decoder.decode(); // Flush any remaining bytes
-      }
-      // Check for async iterable (Node.js streams)
-      else if (Symbol.asyncIterator in output) {
-        console.log("[Ideogram] Output is an async iterable, consuming...");
-        const chunks: Buffer[] = [];
-        
-        for await (const chunk of output as any) {
-          // Handle both Uint8Array and Buffer chunks
-          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        }
-        
-        // Concatenate all chunks and decode
-        fullData = Buffer.concat(chunks).toString('utf-8');
-      }
-      
-      // If we consumed a stream, parse it
-      if (fullData) {
-        try {
-          // Handle newline-delimited JSON (SSE format)
-          const lines = fullData.trim().split('\n').filter(line => line.trim());
-          let finalOutput = null;
-          
-          for (let line of lines) {
-            // Strip SSE prefix (e.g., "data: {...}")
-            if (line.startsWith('data:')) {
-              line = line.substring(5).trim();
-            }
-            
-            // Skip empty lines or non-JSON content
-            if (!line || line.startsWith(':') || line.startsWith('event:')) {
-              continue;
-            }
-            
-            try {
-              const parsed = JSON.parse(line);
-              
-              // Only update finalOutput if this envelope contains actual output data
-              let potentialOutput = null;
-              
-              // 1. Event envelope: { event: "output", data: { output: [...] } }
-              if (parsed.event === 'output' && parsed.data) {
-                potentialOutput = parsed.data.output ?? parsed.data;
-              }
-              // 2. Direct data envelope: { data: { output: [...] } }
-              else if (parsed.data?.output) {
-                potentialOutput = parsed.data.output;
-              }
-              // 3. Prediction envelope: { output: [...] }
-              else if (parsed.output) {
-                potentialOutput = parsed.output;
-              }
-              // 4. Direct array
-              else if (Array.isArray(parsed)) {
-                potentialOutput = parsed;
-              }
-              
-              // Only update if we found valid output data
-              if (potentialOutput) {
-                finalOutput = potentialOutput;
-                console.log("[Ideogram] Found output data in stream");
-              }
-            } catch (lineError) {
-              // Skip invalid JSON lines
-              console.warn("[Ideogram] Skipping invalid JSON line:", line.substring(0, 100));
-            }
-          }
-          
-          if (finalOutput) {
-            output = finalOutput;
-            console.log("[Ideogram] Stream decoded and parsed successfully");
-          } else {
-            console.error("[Ideogram] No valid output found in stream");
-            return res.status(500).json({ 
-              error: "Failed to parse image generation response" 
-            });
-          }
-        } catch (e) {
-          console.error("[Ideogram] Failed to parse stream data:", e);
-          return res.status(500).json({ 
-            error: "Failed to parse image generation response" 
-          });
-        }
-      }
-    }
+    console.log("[Ideogram] Output type:", typeof output, "has getReader:", 'getReader' in (output || {}), "has asyncIterator:", Symbol.asyncIterator in (output || {}));
 
-    // Extract the image URL from the output
-    // Ideogram returns an array of objects with structure: { url: string, revised_prompt?: string }
-    let tempImageUrl: string;
-    let revisedPrompt: string | undefined;
+    // Handle streaming response - Replicate streams raw image bytes
+    let imageBuffer: Buffer;
     
-    if (Array.isArray(output) && output.length > 0) {
-      const firstOutput = output[0];
-      if (typeof firstOutput === "object" && firstOutput !== null) {
-        // Ideogram V3 Turbo returns objects with url property
-        tempImageUrl = firstOutput.url || firstOutput.image_url;
-        revisedPrompt = firstOutput.revised_prompt;
-      } else if (typeof firstOutput === "string") {
-        // Fallback for string URLs
-        tempImageUrl = firstOutput;
-      } else {
-        console.error("[Ideogram] Unexpected output format:", output);
-        return res.status(500).json({ 
-          error: "Failed to generate image: unexpected response format" 
-        });
+    if (output && typeof output === 'object' && 'getReader' in output) {
+      // ReadableStream - collect binary chunks
+      console.log("[Ideogram] Output is a ReadableStream, collecting image bytes...");
+      const reader = output.getReader();
+      const chunks: Uint8Array[] = [];
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
       }
-    } else if (typeof output === "string") {
-      tempImageUrl = output;
-    } else {
-      console.error("[Ideogram] Unexpected output format:", output);
+      
+      // Calculate total length and concatenate
+      const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+      imageBuffer = Buffer.concat(chunks.map(chunk => Buffer.from(chunk)));
+      console.log("[Ideogram] Image stream collected, size:", imageBuffer.length, "bytes");
+    }
+    else if (output && typeof output === 'object' && Symbol.asyncIterator in output) {
+      // Async iterable - collect binary chunks
+      console.log("[Ideogram] Output is an async iterable, collecting image bytes...");
+      const chunks: Buffer[] = [];
+      
+      for await (const chunk of output as any) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      
+      imageBuffer = Buffer.concat(chunks);
+      console.log("[Ideogram] Image stream collected, size:", imageBuffer.length, "bytes");
+    }
+    else {
+      // Not a stream - this shouldn't happen with Ideogram but handle it
+      console.error("[Ideogram] Unexpected output format (not a stream):", typeof output);
       return res.status(500).json({ 
-        error: "Failed to generate image: unexpected response format" 
+        error: "Unexpected response format from image generation service" 
       });
     }
 
-    // Validate the temporary URL
-    if (!tempImageUrl || typeof tempImageUrl !== "string" || !tempImageUrl.startsWith("http")) {
-      console.error("[Ideogram] Invalid image URL:", tempImageUrl);
+    // Validate we got image data
+    if (!imageBuffer || imageBuffer.length === 0) {
+      console.error("[Ideogram] No image data received");
       return res.status(500).json({ 
-        error: "Failed to generate image: invalid URL" 
+        error: "No image data received from generation service" 
       });
     }
 
-    console.log("[Ideogram] Image generated, downloading from:", tempImageUrl);
-
-    // Download the image from Replicate
-    const imageResponse = await fetch(tempImageUrl);
-    if (!imageResponse.ok) {
-      console.error("[Ideogram] Failed to download image:", imageResponse.status);
-      return res.status(500).json({ 
-        error: "Failed to download generated image" 
-      });
+    // Detect content type from magic bytes
+    let contentType = 'image/webp'; // default
+    if (imageBuffer[0] === 0xFF && imageBuffer[1] === 0xD8) {
+      contentType = 'image/jpeg';
+    } else if (imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50) {
+      contentType = 'image/png';
+    } else if (imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49) {
+      contentType = 'image/webp';
     }
 
-    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-    const contentType = imageResponse.headers.get('content-type') || 'image/webp';
-    console.log("[Ideogram] Image downloaded, size:", imageBuffer.length, "bytes, type:", contentType);
+    console.log("[Ideogram] Image received, size:", imageBuffer.length, "bytes, type:", contentType);
 
     // Get upload URL from object storage
     const objectStorageService = new ObjectStorageService();
@@ -244,7 +150,7 @@ router.post("/generate", async (req: any, res) => {
 
     console.log("[Ideogram] Uploading to object storage:", objectPath);
 
-    // Upload to object storage with original content type
+    // Upload to object storage
     const uploadResponse = await fetch(uploadURL, {
       method: 'PUT',
       body: imageBuffer,
@@ -260,7 +166,7 @@ router.post("/generate", async (req: any, res) => {
       });
     }
 
-    // Set ACL policy for the uploaded image using the storage path
+    // Set ACL policy for the uploaded image
     const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
     await setObjectAclPolicy(objectFile, {
       owner: userId,
@@ -272,7 +178,7 @@ router.post("/generate", async (req: any, res) => {
 
     res.json({
       imageUrl: objectPath,
-      revisedPrompt: revisedPrompt,
+      revisedPrompt: undefined, // Ideogram doesn't provide this when streaming
     });
   } catch (error: any) {
     console.error("[Ideogram] Generation error:", error);
@@ -283,19 +189,7 @@ router.post("/generate", async (req: any, res) => {
         details: error.errors 
       });
     }
-
-    if (error.message?.includes("Incorrect API key")) {
-      return res.status(500).json({ 
-        error: "API key configuration error" 
-      });
-    }
-
-    if (error.message?.includes("rate limit")) {
-      return res.status(429).json({ 
-        error: "Rate limit exceeded. Please try again in a moment." 
-      });
-    }
-
+    
     res.status(500).json({ 
       error: "Failed to generate image" 
     });
