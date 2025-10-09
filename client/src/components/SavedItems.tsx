@@ -370,7 +370,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const handleEdit = (item: SavedItem) => {
     // Open Quick Note panel for editing
     if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-      openQuickNote();
+      const noteId = item.itemId || item.contentId || item.id;
+      openQuickNote(noteId);
       return;
     }
 
