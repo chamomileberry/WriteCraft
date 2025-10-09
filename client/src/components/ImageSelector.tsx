@@ -141,17 +141,28 @@ export function ImageSelector({
         )}
 
         <TabsContent value="stock" className="space-y-4">
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <div className="flex gap-2">
             <Input
               placeholder="Search for images..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSearch(e);
+                }
+              }}
               data-testid="input-search-pexels"
             />
-            <Button type="submit" size="icon" data-testid="button-search-pexels">
+            <Button 
+              type="button" 
+              size="icon" 
+              onClick={handleSearch}
+              data-testid="button-search-pexels"
+            >
               <Search className="h-4 w-4" />
             </Button>
-          </form>
+          </div>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
