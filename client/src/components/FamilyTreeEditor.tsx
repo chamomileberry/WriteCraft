@@ -599,7 +599,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     const memberNodes: Node[] = members.map((member, index) => ({
       id: member.id,
       type: 'familyMember',
-      position: member.positionX && member.positionY 
+      position: member.positionX != null && member.positionY != null
         ? { x: member.positionX, y: member.positionY }
         : { x: index * 200, y: index * 150 },
       data: { 
