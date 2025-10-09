@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileJson, CheckCircle2, XCircle, Clock, Loader2, ChevronDown, AlertTriangle } from "lucide-react";
+import { Upload, FileJson, CheckCircle2, XCircle, Clock, Loader2, ChevronDown, AlertTriangle, FileArchive } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import Header from "@/components/Header";
@@ -36,7 +36,7 @@ interface ImportJob {
 }
 
 export default function ImportPage() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [, setLocation] = useLocation();
@@ -71,12 +71,17 @@ export default function ImportPage() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (files: File[]) => {
       const formData = new FormData();
-      formData.append('file', file);
+      
+      // Append all files with the same field name
+      files.forEach(file => {
+        formData.append('file', file);
+      });
+      
       if (activeNotebook) {
         formData.append('notebookId', activeNotebook.id);
-        console.log(`[Import] Uploading to notebook: ${activeNotebook.id} (${activeNotebook.name})`);
+        console.log(`[Import] Uploading ${files.length} file(s) to notebook: ${activeNotebook.id} (${activeNotebook.name})`);
       } else {
         console.warn('[Import] No active notebook selected - import will use default');
       }
@@ -99,11 +104,11 @@ export default function ImportPage() {
       if (activeNotebook) {
         queryClient.invalidateQueries({ queryKey: ['/api/saved-items/notebook', activeNotebook.id] });
       }
-      setSelectedFile(null);
+      setSelectedFiles([]);
       setUploadProgress(0);
       toast({
         title: "Import started",
-        description: "Your World Anvil content is being imported. This may take a few minutes.",
+        description: "Your content is being imported. This may take a few minutes.",
       });
     },
     onError: (error: Error) => {
@@ -117,17 +122,24 @@ export default function ImportPage() {
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.name.endsWith('.zip')) {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      // Validate all files are either .zip or .json (case-insensitive)
+      const invalidFiles = files.filter(file => {
+        const lowerName = file.name.toLowerCase();
+        return !lowerName.endsWith('.zip') && !lowerName.endsWith('.json');
+      });
+      
+      if (invalidFiles.length > 0) {
         toast({
           title: "Invalid file type",
-          description: "Please select a ZIP file from World Anvil export.",
+          description: "Please select only ZIP (World Anvil) or JSON (Campfire) files.",
           variant: "destructive",
         });
         return;
       }
-      setSelectedFile(file);
+      
+      setSelectedFiles(files);
     }
   };
 
@@ -140,8 +152,8 @@ export default function ImportPage() {
       });
       return;
     }
-    if (selectedFile) {
-      uploadMutation.mutate(selectedFile);
+    if (selectedFiles.length > 0) {
+      uploadMutation.mutate(selectedFiles);
     }
   };
 
@@ -183,9 +195,9 @@ export default function ImportPage() {
       />
       <div className="container mx-auto p-6 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Import from World Anvil</h1>
+          <h1 className="text-4xl font-bold mb-2">Import Content</h1>
           <p className="text-muted-foreground">
-            Import your existing worldbuilding content from World Anvil. Export your world as JSON (requires Guild membership), then upload the ZIP file here.
+            Import your existing worldbuilding content from World Anvil (ZIP) or Campfire (JSON files). Select one or more files to import.
           </p>
           {!activeNotebook ? (
             <Alert className="mt-4" variant="destructive">
@@ -208,17 +220,18 @@ export default function ImportPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              Upload World Anvil Export
+              Upload Import Files
             </CardTitle>
             <CardDescription>
-              Select the ZIP file from your World Anvil JSON export
+              Select ZIP file(s) from World Anvil or JSON file(s) from Campfire
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <Input
                 type="file"
-                accept=".zip"
+                accept=".zip,.json"
+                multiple
                 onChange={handleFileSelect}
                 disabled={uploadMutation.isPending || !activeNotebook}
                 data-testid="input-import-file"
@@ -226,7 +239,7 @@ export default function ImportPage() {
               />
               <Button
                 onClick={handleUpload}
-                disabled={!selectedFile || uploadMutation.isPending || !activeNotebook}
+                disabled={selectedFiles.length === 0 || uploadMutation.isPending || !activeNotebook}
                 data-testid="button-upload-import"
               >
                 {uploadMutation.isPending ? (
@@ -243,13 +256,26 @@ export default function ImportPage() {
               </Button>
             </div>
 
-            {selectedFile && (
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                <FileJson className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm flex-1">{selectedFile.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                </span>
+            {selectedFiles.length > 0 && (
+              <div className="space-y-2">
+                {selectedFiles.map((file, index) => {
+                  const isZip = file.name.toLowerCase().endsWith('.zip');
+                  const FileIcon = isZip ? FileArchive : FileJson;
+                  const fileType = isZip ? 'World Anvil ZIP' : 'Campfire JSON';
+                  
+                  return (
+                    <div key={index} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                      <FileIcon className="h-5 w-5 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">{fileType}</p>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -266,17 +292,29 @@ export default function ImportPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>How to Export from World Anvil</CardTitle>
+            <CardTitle>Export Instructions</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-              <li>Log in to your World Anvil account (Guild membership required for JSON export)</li>
-              <li>Go to your world's dashboard</li>
-              <li>Click on "Export" in the left sidebar</li>
-              <li>Select "JSON Export" format</li>
-              <li>Download the generated ZIP file</li>
-              <li>Upload the ZIP file using the form above</li>
-            </ol>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-medium mb-2">World Anvil (ZIP)</h3>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                <li>Log in to your World Anvil account (Guild membership required)</li>
+                <li>Go to your world's dashboard</li>
+                <li>Click on "Export" in the left sidebar</li>
+                <li>Select "JSON Export" format</li>
+                <li>Download the generated ZIP file</li>
+                <li>Upload the ZIP file using the form above</li>
+              </ol>
+            </div>
+            <div>
+              <h3 className="font-medium mb-2">Campfire (JSON)</h3>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                <li>Open Campfire and go to your project</li>
+                <li>Navigate to each module (Characters, Locations, etc.)</li>
+                <li>Export each module as JSON</li>
+                <li>Select all exported JSON files and upload them together</li>
+              </ol>
+            </div>
           </CardContent>
         </Card>
       </div>
