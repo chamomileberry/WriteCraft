@@ -37,6 +37,12 @@ import { MemberEditDialog } from './MemberEditDialog';
 import { AddRelationshipDialog, type RelationshipType as AddRelationshipType } from './AddRelationshipDialog';
 import { SelectCharacterDialog } from './SelectCharacterDialog';
 import { getLayoutedElements } from '@/lib/dagre-layout';
+import { 
+  calculateJunctionPosition, 
+  calculateSpouseAlignedY, 
+  calculateCoupleAlignment,
+  type ParentNodeWithDimensions 
+} from '@/lib/junction-positioning';
 
 interface FamilyTreeEditorProps {
   treeId: string;
@@ -428,17 +434,17 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       });
       
       // Align spouses to the same vertical center (not just top edge)
+      // Uses calculateSpouseAlignedY utility to ensure consistent alignment logic
       spouseIds.forEach(spouseId => {
         if (!processedSpouses.has(spouseId)) {
           processedSpouses.add(spouseId);
           const spouseNode = currentNodes.find(n => n.id === spouseId);
           if (spouseNode) {
-            // Get heights to calculate center alignment
-            const draggedHeight = draggedNode.measured?.height || draggedNode.height || 80;
-            const spouseHeight = spouseNode.measured?.height || spouseNode.height || 80;
-            
-            // Calculate spouse Y so vertical centers align: draggedY + (draggedHeight - spouseHeight) / 2
-            const spouseY = newPosition.y + (draggedHeight - spouseHeight) / 2;
+            const spouseY = calculateSpouseAlignedY(
+              draggedNode as ParentNodeWithDimensions,
+              spouseNode as ParentNodeWithDimensions,
+              newPosition
+            );
             
             additionalChanges.push({
               id: spouseId,
@@ -482,36 +488,32 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             if (spouse2Update) parent2Pos = spouse2Update.position;
             
             if (parent1Pos && parent2Pos) {
-              // Get node dimensions for accurate junction positioning
+              // Get parent nodes with updated positions for junction calculation
               const parent1Node = currentNodes.find(cn => cn.id === junctionData.parent1Id);
               const parent2Node = currentNodes.find(cn => cn.id === junctionData.parent2Id);
-              const parent1Width = parent1Node?.measured?.width || parent1Node?.width || 200;
-              const parent2Width = parent2Node?.measured?.width || parent2Node?.width || 200;
-              const parent1Height = parent1Node?.measured?.height || parent1Node?.height || 80;
-              const parent2Height = parent2Node?.measured?.height || parent2Node?.height || 80;
               
-              // Determine which parent is on the left vs right based on X position
-              const isParent1Left = parent1Pos.x < parent2Pos.x;
-              const leftParentPos = isParent1Left ? parent1Pos : parent2Pos;
-              const rightParentPos = isParent1Left ? parent2Pos : parent1Pos;
-              const leftParentWidth = isParent1Left ? parent1Width : parent2Width;
-              
-              // Calculate junction X based on actual handle positions (edges, not centers)
-              // Left parent's right handle: x + width, Right parent's left handle: x
-              const junctionX = (leftParentPos.x + leftParentWidth + rightParentPos.x) / 2;
-              
-              // Calculate junction Y at parent vertical center (spouses are center-aligned, so both are same)
-              const junctionY = parent1Pos.y + (parent1Height / 2);
-              
-              additionalChanges.push({
-                id: n.id,
-                type: 'position',
-                position: {
-                  x: junctionX - 4, // Offset X to center 8x8 junction node
-                  y: junctionY, // Y stays level with parents
-                },
-                dragging: true,
-              });
+              if (parent1Node && parent2Node) {
+                // Create nodes with updated positions for junction calculation
+                const parent1WithPos = { ...parent1Node, position: parent1Pos };
+                const parent2WithPos = { ...parent2Node, position: parent2Pos };
+                
+                // Calculate junction position using utility (parents are aligned during drag)
+                const junction = calculateJunctionPosition(
+                  parent1WithPos as ParentNodeWithDimensions,
+                  parent2WithPos as ParentNodeWithDimensions,
+                  true // Parents are center-aligned during drag
+                );
+                
+                additionalChanges.push({
+                  id: n.id,
+                  type: 'position',
+                  position: {
+                    x: junction.x - 4, // Offset X to center 8x8 junction node
+                    y: junction.y, // Y stays level with aligned parents
+                  },
+                  dragging: true,
+                });
+              }
             }
           }
         }
@@ -590,36 +592,23 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           const parent2Node = memberNodes.find(n => n.id === parent2Id);
           
           if (parent1Node && parent2Node) {
-            // Get node dimensions (use measured dimensions if available, fallback to defaults)
-            const parent1Width = parent1Node.measured?.width || parent1Node.width || 200;
-            const parent2Width = parent2Node.measured?.width || parent2Node.width || 200;
-            const parent1Height = parent1Node.measured?.height || parent1Node.height || 80;
-            const parent2Height = parent2Node.measured?.height || parent2Node.height || 80;
+            // Calculate junction position using utility (parents may not be aligned initially)
+            const junction = calculateJunctionPosition(
+              parent1Node as ParentNodeWithDimensions,
+              parent2Node as ParentNodeWithDimensions,
+              false // Parents may not be center-aligned at initial creation
+            );
             
-            // Determine which parent is on the left vs right based on X position
-            const isParent1Left = parent1Node.position.x < parent2Node.position.x;
-            const leftParentId = isParent1Left ? parent1Id : parent2Id;
-            const rightParentId = isParent1Left ? parent2Id : parent1Id;
-            const leftParentNode = isParent1Left ? parent1Node : parent2Node;
-            const rightParentNode = isParent1Left ? parent2Node : parent1Node;
-            const leftParentWidth = isParent1Left ? parent1Width : parent2Width;
-            
-            // Calculate junction X based on actual handle positions (edges, not centers)
-            // Left parent's right handle: x + width, Right parent's left handle: x
-            const junctionX = (leftParentNode.position.x + leftParentWidth + rightParentNode.position.x) / 2;
-            
-            // Calculate junction Y as average of both parents' vertical centers (where handles are)
-            const parent1CenterY = parent1Node.position.y + (parent1Height / 2);
-            const parent2CenterY = parent2Node.position.y + (parent2Height / 2);
-            const junctionY = (parent1CenterY + parent2CenterY) / 2;
             const junctionId = `junction-${coupleKey}`;
+            const leftParentId = junction.leftParentId;
+            const rightParentId = junction.rightParentId;
             
             // Offset junction position so its center (not top-left) aligns with the calculated position
             // Junction node is 8x8, so offset X by 4 to center it, but Y stays aligned with parents
             junctionNodes.push({
               id: junctionId,
               type: 'junction',
-              position: { x: junctionX - 4, y: junctionY },
+              position: { x: junction.x - 4, y: junction.y },
               data: {
                 parent1Id,
                 parent2Id,
@@ -717,7 +706,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       });
       
       // Align married couples to the same vertical center (not just top edge)
-      const coupleAlignments = new Map<string, { y: number; height: number }>();
+      // Uses calculateCoupleAlignment utility to ensure consistent alignment logic
+      const coupleAlignments = new Map<string, { y: number }>();
       processedCouples.clear();
       
       marriageMap.forEach((spouses, memberId) => {
@@ -730,17 +720,14 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           const member2 = layoutedMembers.find(n => n.id === spouseId);
           
           if (member1 && member2) {
-            const height1 = member1.measured?.height || member1.height || 80;
-            const height2 = member2.measured?.height || member2.height || 80;
+            const alignment = calculateCoupleAlignment(
+              member1 as ParentNodeWithDimensions,
+              member2 as ParentNodeWithDimensions
+            );
             
-            // Calculate vertical centers
-            const center1Y = member1.position.y + (height1 / 2);
-            const center2Y = member2.position.y + (height2 / 2);
-            const avgCenterY = (center1Y + center2Y) / 2;
-            
-            // Store aligned Y positions (avgCenterY - height/2 for each)
-            coupleAlignments.set(memberId, { y: avgCenterY - (height1 / 2), height: height1 });
-            coupleAlignments.set(spouseId, { y: avgCenterY - (height2 / 2), height: height2 });
+            // Store aligned Y positions for both members
+            coupleAlignments.set(memberId, { y: alignment.parent1Y });
+            coupleAlignments.set(spouseId, { y: alignment.parent2Y });
           }
         });
       });
@@ -758,36 +745,25 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       });
       
       // Position junction nodes on the marriage line between aligned parents
+      // Uses calculateJunctionPosition utility to ensure consistent positioning logic
       const positionedJunctions = junctionNodes.map(junctionNode => {
         if (junctionNode.data.parent1Id && junctionNode.data.parent2Id) {
           const parent1 = alignedMembers.find(n => n.id === junctionNode.data.parent1Id);
           const parent2 = alignedMembers.find(n => n.id === junctionNode.data.parent2Id);
           
           if (parent1 && parent2) {
-            // Get node dimensions for accurate junction positioning
-            const parent1Width = parent1.measured?.width || parent1.width || 200;
-            const parent2Width = parent2.measured?.width || parent2.width || 200;
-            const parent1Height = parent1.measured?.height || parent1.height || 80;
-            const parent2Height = parent2.measured?.height || parent2.height || 80;
-            
-            // Determine which parent is on the left vs right based on X position
-            const isParent1Left = parent1.position.x < parent2.position.x;
-            const leftParent = isParent1Left ? parent1 : parent2;
-            const rightParent = isParent1Left ? parent2 : parent1;
-            const leftParentWidth = isParent1Left ? parent1Width : parent2Width;
-            
-            // Calculate junction X based on actual handle positions (edges, not centers)
-            // Left parent's right handle: x + width, Right parent's left handle: x
-            const junctionX = (leftParent.position.x + leftParentWidth + rightParent.position.x) / 2;
-            
-            // Calculate junction Y at parent vertical center (spouses are center-aligned, so both are same)
-            const junctionY = parent1.position.y + (parent1Height / 2);
+            // Calculate junction position using utility (parents are aligned in auto-layout)
+            const junction = calculateJunctionPosition(
+              parent1 as ParentNodeWithDimensions,
+              parent2 as ParentNodeWithDimensions,
+              true // Parents are center-aligned during auto-layout
+            );
             
             return {
               ...junctionNode,
               position: {
-                x: junctionX - 4, // Offset X to center 8x8 junction node
-                y: junctionY, // Y stays level with parents
+                x: junction.x - 4, // Offset X to center 8x8 junction node
+                y: junction.y, // Y stays level with aligned parents
               },
             };
           }
