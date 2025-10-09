@@ -466,7 +466,8 @@ export default function ImportPage() {
             <div className="text-center py-12">
               <FileJson className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                No import history yet. Upload your first World Anvil export to get started.
+                No world-building import history yet. Upload your export to get started. Supported file 
+                types: ZIP (World Anvil), HTML, RTF, DOCX, PDF (Campfire)
               </p>
             </div>
           )}
