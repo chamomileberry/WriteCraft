@@ -68,6 +68,7 @@ export default function ImportPage() {
       const hasProcessingJob = data.some(job => job.status === 'processing' || job.status === 'pending');
       return hasProcessingJob ? 2000 : false;
     },
+    refetchOnWindowFocus: true,
   });
 
   const uploadMutation = useMutation({
@@ -104,6 +105,8 @@ export default function ImportPage() {
       if (activeNotebook) {
         queryClient.invalidateQueries({ queryKey: ['/api/saved-items/notebook', activeNotebook.id] });
       }
+      // Immediately refetch to get the latest import status
+      refetchHistory();
       setSelectedFiles([]);
       setUploadProgress(0);
       toast({
