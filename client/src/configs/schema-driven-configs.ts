@@ -176,6 +176,10 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
     description: 'Create species and races for your world',
     icon: 'Dna',
     defaultTab: 'general',
+    fieldHints: {
+      imageUrl: { tab: 'general', order: 1 },
+      name: { tab: 'general', order: 2 },
+    },
   }),
   
   ethnicity: () => buildConfig(schemas.insertEthnicitySchema, {
@@ -190,6 +194,10 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
     description: 'Create cultural groups and traditions',
     icon: 'Globe',
     defaultTab: 'general',
+    fieldHints: {
+      imageUrl: { tab: 'general', order: 1 },
+      name: { tab: 'general', order: 2 },
+    },
   }),
   
   document: () => buildConfig(schemas.insertDocumentSchema, {
@@ -211,6 +219,10 @@ export const schemaDrivenConfigs: Record<string, () => ContentTypeFormConfig> = 
     description: 'Create beverages and drinks',
     icon: 'Coffee',
     defaultTab: 'general',
+    fieldHints: {
+      imageUrl: { tab: 'general', order: 1 },
+      name: { tab: 'general', order: 2 },
+    },
   }),
   
   rank: () => buildConfig(schemas.insertRankSchema, {
