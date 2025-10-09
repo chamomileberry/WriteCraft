@@ -5,6 +5,10 @@ import { storage } from '../storage';
 import { z } from 'zod';
 import { insertImportJobSchema } from '@shared/schema';
 import { createRateLimiter } from '../security/middleware';
+import * as cheerio from 'cheerio';
+import mammoth from 'mammoth';
+import pdfParse from 'pdf-parse';
+import rtfParser from 'rtf-parser';
 
 const router = Router();
 
