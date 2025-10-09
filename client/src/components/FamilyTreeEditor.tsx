@@ -500,10 +500,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               // Left parent's right handle: x + width, Right parent's left handle: x
               const junctionX = (leftParentPos.x + leftParentWidth + rightParentPos.x) / 2;
               
-              // Calculate junction Y as average of both parents' vertical centers (where handles are)
-              const parent1CenterY = parent1Pos.y + (parent1Height / 2);
-              const parent2CenterY = parent2Pos.y + (parent2Height / 2);
-              const junctionY = (parent1CenterY + parent2CenterY) / 2;
+              // Calculate junction Y at parent vertical center (spouses are center-aligned, so both are same)
+              const junctionY = parent1Pos.y + (parent1Height / 2);
               
               additionalChanges.push({
                 id: n.id,
@@ -718,8 +716,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         rankSep: 150,
       });
       
-      // Align married couples to the same Y coordinate
-      const coupleAlignments = new Map<string, number>();
+      // Align married couples to the same vertical center (not just top edge)
+      const coupleAlignments = new Map<string, { y: number; height: number }>();
       processedCouples.clear();
       
       marriageMap.forEach((spouses, memberId) => {
@@ -732,20 +730,28 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           const member2 = layoutedMembers.find(n => n.id === spouseId);
           
           if (member1 && member2) {
-            const avgY = (member1.position.y + member2.position.y) / 2;
-            coupleAlignments.set(memberId, avgY);
-            coupleAlignments.set(spouseId, avgY);
+            const height1 = member1.measured?.height || member1.height || 80;
+            const height2 = member2.measured?.height || member2.height || 80;
+            
+            // Calculate vertical centers
+            const center1Y = member1.position.y + (height1 / 2);
+            const center2Y = member2.position.y + (height2 / 2);
+            const avgCenterY = (center1Y + center2Y) / 2;
+            
+            // Store aligned Y positions (avgCenterY - height/2 for each)
+            coupleAlignments.set(memberId, { y: avgCenterY - (height1 / 2), height: height1 });
+            coupleAlignments.set(spouseId, { y: avgCenterY - (height2 / 2), height: height2 });
           }
         });
       });
       
       // Apply alignments
       const alignedMembers = layoutedMembers.map(node => {
-        const alignedY = coupleAlignments.get(node.id);
-        if (alignedY !== undefined) {
+        const alignment = coupleAlignments.get(node.id);
+        if (alignment !== undefined) {
           return {
             ...node,
-            position: { x: node.position.x, y: alignedY },
+            position: { x: node.position.x, y: alignment.y },
           };
         }
         return node;
@@ -774,10 +780,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             // Left parent's right handle: x + width, Right parent's left handle: x
             const junctionX = (leftParent.position.x + leftParentWidth + rightParent.position.x) / 2;
             
-            // Calculate junction Y as average of both parents' vertical centers (where handles are)
-            const parent1CenterY = parent1.position.y + (parent1Height / 2);
-            const parent2CenterY = parent2.position.y + (parent2Height / 2);
-            const junctionY = (parent1CenterY + parent2CenterY) / 2;
+            // Calculate junction Y at parent vertical center (spouses are center-aligned, so both are same)
+            const junctionY = parent1.position.y + (parent1Height / 2);
             
             return {
               ...junctionNode,
