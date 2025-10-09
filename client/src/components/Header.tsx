@@ -264,8 +264,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {isMobile && hasPanels && isInManuscriptEditor() && <MobileMenuButton />}
-
             <Button 
               variant="ghost" 
               size="icon" 
@@ -277,9 +275,13 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                 }
               }}
               data-testid="button-menu"
+              title="Menu"
+              aria-label="Menu"
             >
               <Menu className="h-4 w-4" />
             </Button>
+            
+            {isMobile && hasPanels && isInManuscriptEditor() && <MobileMenuButton />}
           </div>
         </div>
       </div>
