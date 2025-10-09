@@ -12,6 +12,9 @@ import * as rtfParser from 'rtf-parser';
 
 const router = Router();
 
+// Helper to handle pdf-parse's default export in ESM
+const pdfParseFn = (pdfParse as any).default || pdfParse;
+
 // Create a stricter rate limiter for import uploads (10 per 15 minutes)
 const uploadRateLimiter = createRateLimiter({
   maxRequests: 10,
@@ -369,7 +372,7 @@ async function parseCampfirePDF(pdfBuffer: Buffer, filename: string): Promise<Wo
   console.log(`[Campfire PDF] Processing file: ${filename}`);
   
   try {
-    const data = await pdfParse(pdfBuffer);
+    const data = await pdfParseFn(pdfBuffer);
     const text = data.text;
     
     // Convert PDF text to HTML-like structure
