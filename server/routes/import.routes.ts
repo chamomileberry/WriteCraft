@@ -138,7 +138,7 @@ function parseCampfireHTML(htmlBuffer: Buffer, filename: string): WorldAnvilArti
     }
   }
   
-  // Extract physical traits
+  // Extract physical traits (with fallback for simplified HTML)
   const physicalTraits: { facialFeatures?: string[]; physicalFeatures?: string[] } = {};
   const physicalPanel = $('h3:contains("Physical Traits")').next('.list-panel');
   if (physicalPanel.length) {
@@ -159,9 +159,34 @@ function parseCampfireHTML(htmlBuffer: Buffer, filename: string): WorldAnvilArti
         if (trait) physicalTraits.physicalFeatures!.push(trait);
       });
     }
+  } else {
+    // Fallback: Look for simplified HTML structure
+    const physicalHeader = $('h3').filter((_i: number, el: any) => {
+      const text = $(el).text().toLowerCase();
+      return text.includes('physical') && text.includes('trait');
+    });
+    if (physicalHeader.length) {
+      physicalTraits.facialFeatures = [];
+      physicalTraits.physicalFeatures = [];
+      
+      // Collect following paragraphs until next h3
+      let currentEl = physicalHeader.next();
+      while (currentEl.length && currentEl.prop('tagName')?.toLowerCase() !== 'h3') {
+        const text = currentEl.text().trim();
+        if (text && currentEl.prop('tagName')?.toLowerCase() === 'p') {
+          // Check if it's a facial or physical feature
+          if (text.toLowerCase().includes('facial') || text.toLowerCase().includes('face')) {
+            physicalTraits.facialFeatures.push(text);
+          } else {
+            physicalTraits.physicalFeatures.push(text);
+          }
+        }
+        currentEl = currentEl.next();
+      }
+    }
   }
   
-  // Extract personality traits
+  // Extract personality traits (with fallback for simplified HTML)
   const personalityTraits: string[] = [];
   const personalityPanel = $('h3:contains("Personality Traits")').next('.list-panel');
   if (personalityPanel.length) {
@@ -169,9 +194,26 @@ function parseCampfireHTML(htmlBuffer: Buffer, filename: string): WorldAnvilArti
       const trait = $(el).text().trim();
       if (trait) personalityTraits.push(trait);
     });
+  } else {
+    // Fallback: Look for simplified HTML structure
+    const personalityHeader = $('h3').filter((_i: number, el: any) => {
+      const text = $(el).text().toLowerCase();
+      return text.includes('personality') && text.includes('trait');
+    });
+    if (personalityHeader.length) {
+      // Collect following paragraphs until next h3
+      let currentEl = personalityHeader.next();
+      while (currentEl.length && currentEl.prop('tagName')?.toLowerCase() !== 'h3') {
+        const text = currentEl.text().trim();
+        if (text && currentEl.prop('tagName')?.toLowerCase() === 'p') {
+          personalityTraits.push(text);
+        }
+        currentEl = currentEl.next();
+      }
+    }
   }
   
-  // Extract basic information fields
+  // Extract basic information fields (with fallback for simplified HTML)
   const basicInfo: { [key: string]: string } = {};
   const basicPanel = $('h3:contains("Basic Information")').next('.custom-panel');
   if (basicPanel.length) {
@@ -182,6 +224,29 @@ function parseCampfireHTML(htmlBuffer: Buffer, filename: string): WorldAnvilArti
         basicInfo[label] = value;
       }
     });
+  } else {
+    // Fallback: Look for simplified HTML structure (p > strong: value)
+    const basicHeader = $('h3').filter((_i: number, el: any) => {
+      const text = $(el).text().toLowerCase();
+      return text.includes('basic') && text.includes('information');
+    });
+    if (basicHeader.length) {
+      // Collect following paragraphs until next h3
+      let currentEl = basicHeader.next();
+      while (currentEl.length && currentEl.prop('tagName')?.toLowerCase() !== 'h3') {
+        if (currentEl.prop('tagName')?.toLowerCase() === 'p') {
+          const strongEl = currentEl.find('strong').first();
+          if (strongEl.length) {
+            const label = strongEl.text().replace(':', '').trim();
+            const value = currentEl.text().replace(strongEl.text(), '').replace(':', '').trim();
+            if (label && value) {
+              basicInfo[label] = value;
+            }
+          }
+        }
+        currentEl = currentEl.next();
+      }
+    }
   }
   
   // Extract embedded image (base64)
@@ -224,9 +289,10 @@ function parseCampfireHTML(htmlBuffer: Buffer, filename: string): WorldAnvilArti
   return [article];
 }
 
-// Parse Campfire RTF export (convert to text and extract data)
+// Parse Campfire RTF export (convert to HTML then parse)
 async function parseCampfireRTF(rtfBuffer: Buffer, filename: string): Promise<WorldAnvilArticle[]> {
   const rtfParser = require('rtf-parser');
+  const cheerio = require('cheerio');
   
   console.log(`[Campfire RTF] Processing file: ${filename}`);
   
@@ -238,41 +304,45 @@ async function parseCampfireRTF(rtfBuffer: Buffer, filename: string): Promise<Wo
         return;
       }
       
-      // Extract text content from RTF document
-      const extractText = (content: any[]): string => {
+      // Convert RTF document to HTML-like structure
+      const convertToHtml = (content: any[], depth: number = 0): string => {
         if (!content) return '';
+        
         return content.map((item: any) => {
-          if (typeof item === 'string') return item;
-          if (item.content) return extractText(item.content);
+          if (typeof item === 'string') {
+            // Clean up text
+            return item.trim();
+          }
+          if (item.content) {
+            // Check if this looks like a header (short text, might be bold)
+            const text = convertToHtml(item.content, depth + 1);
+            const isBold = item.style?.bold || item.style?.b;
+            const isShort = text.length < 100;
+            
+            if (isBold && isShort && text.length > 0) {
+              // Treat as header
+              return `<h3>${text}</h3>`;
+            } else if (text.includes(':')) {
+              // Might be a key-value pair
+              const parts = text.split(':');
+              if (parts[0].length < 50) {
+                return `<p><strong>${parts[0]}</strong>: ${parts.slice(1).join(':')}</p>`;
+              }
+            }
+            return `<p>${text}</p>`;
+          }
           return '';
-        }).join(' ');
+        }).join('\n');
       };
       
-      const fullText = extractText(doc.content);
+      const htmlContent = convertToHtml(doc.content);
       
-      // Simple text-based extraction (similar to HTML but from plain text)
-      const lines = fullText.split('\n').map((l: string) => l.trim()).filter((l: string) => l);
+      // Now parse the HTML content using cheerio (same logic as HTML parser)
+      const $ = cheerio.load(htmlContent);
+      const htmlBuffer = Buffer.from(htmlContent, 'utf8');
       
-      const characterName = lines[0] || 'Unnamed Character';
-      const bio = lines.find((l: string) => l.length > 50) || '';
-      
-      console.log(`[Campfire RTF] Extracted text from: ${characterName}`);
-      
-      const article: WorldAnvilArticle = {
-        id: `campfire-character-rtf-${Date.now()}`,
-        title: characterName,
-        content: fullText,
-        excerpt: bio.substring(0, 200),
-        entityClass: 'character',
-        templateType: 'character',
-        tags: ['campfire-import', 'rtf'],
-        campfireData: {
-          fullName: characterName,
-          bio,
-        },
-      };
-      
-      resolve([article]);
+      // Use the HTML parser to extract structured data
+      parseCampfireHTML(htmlBuffer, filename).then(resolve).catch(reject);
     });
   });
 }
@@ -296,9 +366,10 @@ async function parseCampfireDOCX(docxBuffer: Buffer, filename: string): Promise<
   }
 }
 
-// Parse Campfire PDF export (extract text)
+// Parse Campfire PDF export (extract text and convert to HTML structure)
 async function parseCampfirePDF(pdfBuffer: Buffer, filename: string): Promise<WorldAnvilArticle[]> {
   const pdfParse = require('pdf-parse');
+  const cheerio = require('cheerio');
   
   console.log(`[Campfire PDF] Processing file: ${filename}`);
   
@@ -306,27 +377,39 @@ async function parseCampfirePDF(pdfBuffer: Buffer, filename: string): Promise<Wo
     const data = await pdfParse(pdfBuffer);
     const text = data.text;
     
+    // Convert PDF text to HTML-like structure
     const lines = text.split('\n').map((l: string) => l.trim()).filter((l: string) => l);
-    const characterName = lines[0] || 'Unnamed Character';
-    const bio = lines.find((l: string) => l.length > 50) || '';
     
-    console.log(`[Campfire PDF] Extracted ${lines.length} lines of text`);
+    let htmlContent = '';
+    for (const line of lines) {
+      // Check if line looks like a section header (short, possibly all caps or title case)
+      const isHeader = line.length < 50 && 
+                      (line === line.toUpperCase() || 
+                       line.split(' ').every((w: string) => w[0] === w[0]?.toUpperCase()));
+      
+      if (isHeader) {
+        htmlContent += `<h3>${line}</h3>\n`;
+      } else if (line.includes(':')) {
+        // Line contains colon, might be key-value pair
+        const colonIndex = line.indexOf(':');
+        const key = line.substring(0, colonIndex).trim();
+        const value = line.substring(colonIndex + 1).trim();
+        
+        if (key.length < 50 && value.length > 0) {
+          htmlContent += `<p><strong>${key}</strong>: ${value}</p>\n`;
+        } else {
+          htmlContent += `<p>${line}</p>\n`;
+        }
+      } else {
+        htmlContent += `<p>${line}</p>\n`;
+      }
+    }
     
-    const article: WorldAnvilArticle = {
-      id: `campfire-character-pdf-${Date.now()}`,
-      title: characterName,
-      content: text,
-      excerpt: bio.substring(0, 200),
-      entityClass: 'character',
-      templateType: 'character',
-      tags: ['campfire-import', 'pdf'],
-      campfireData: {
-        fullName: characterName,
-        bio,
-      },
-    };
+    console.log(`[Campfire PDF] Converted ${lines.length} lines to HTML structure`);
     
-    return [article];
+    // Use the HTML parser to extract structured data
+    const htmlBuffer = Buffer.from(htmlContent, 'utf8');
+    return parseCampfireHTML(htmlBuffer, filename);
   } catch (error) {
     console.error(`[Campfire PDF] Parse error:`, error);
     throw new Error(`Failed to parse PDF file: ${filename}`);
