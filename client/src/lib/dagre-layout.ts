@@ -15,8 +15,8 @@ export function getLayoutedElements(
   const {
     direction = 'TB',
     nodeWidth = 160,
-    nodeHeight = 240,
-    rankSep = 360,
+    nodeHeight = 200,
+    rankSep = 320,
     nodeSep = 100,
   } = options;
 

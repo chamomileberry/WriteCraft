@@ -73,12 +73,12 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
 
   return (
     <Card 
-      className="p-3 w-[160px] hover-elevate cursor-move" 
+      className="p-3 w-[160px] h-[200px] hover-elevate cursor-move" 
       data-testid={`node-member-${member.id}`}
       draggable
       onDragStart={handleDragStart}
     >
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-2 h-full justify-between">
         <Avatar className="w-20 h-20 rounded-2xl">
           <AvatarImage src={displayImage || undefined} className="object-cover" />
           <AvatarFallback className="rounded-2xl">
@@ -88,14 +88,16 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
         
         <div className="w-full text-center space-y-1">
           <h4 className="font-medium text-sm leading-tight">{displayName}</h4>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-muted-foreground min-h-[16px]">
             {displayDOB && displayDOD ? (
               <div>{displayDOB} - {displayDOD}</div>
             ) : displayDOB ? (
               <div>Born {displayDOB}</div>
             ) : displayDOD ? (
               <div>Died {displayDOD}</div>
-            ) : null}
+            ) : (
+              <div>&nbsp;</div>
+            )}
           </div>
         </div>
         
