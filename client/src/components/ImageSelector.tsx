@@ -1,11 +1,15 @@
 import { useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Search, Upload, Loader2, ExternalLink, ImageIcon } from "lucide-react";
+import { Search, Upload, Loader2, ExternalLink, ImageIcon, Sparkles } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 
 interface PexelsPhoto {
@@ -40,6 +44,12 @@ interface ImageSelectorProps {
   onFileUpload?: (file: File) => Promise<string>;
   label?: string;
   showUploadTab?: boolean;
+  showAIGenerateTab?: boolean;
+}
+
+interface AIGenerateResponse {
+  imageUrl: string;
+  revisedPrompt?: string;
 }
 
 export function ImageSelector({ 
@@ -47,15 +57,24 @@ export function ImageSelector({
   onChange, 
   onFileUpload,
   label = "Image",
-  showUploadTab = true
+  showUploadTab = true,
+  showAIGenerateTab = true
 }: ImageSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
-  const [selectedTab, setSelectedTab] = useState<string>(showUploadTab ? "upload" : "stock");
+  const [selectedTab, setSelectedTab] = useState<string>(
+    showUploadTab ? "upload" : showAIGenerateTab ? "ai-generate" : "stock"
+  );
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // AI Generation state
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiQuality, setAiQuality] = useState<"standard" | "hd">("standard");
+  const [aiSize, setAiSize] = useState<"1024x1024" | "1024x1792" | "1792x1024">("1024x1024");
+  const { toast } = useToast();
 
   // Fetch curated photos by default, or search results if query exists
   const { data: pexelsData, isLoading } = useQuery<PexelsResponse>({
@@ -64,6 +83,30 @@ export function ImageSelector({
       : ['/api/pexels/curated'],
     enabled: selectedTab === "stock",
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // AI image generation mutation
+  const aiGenerateMutation = useMutation({
+    mutationFn: async (params: { prompt: string; quality: string; size: string }) => {
+      const response = await apiRequest("POST", "/api/dalle/generate", params);
+      return await response.json() as AIGenerateResponse;
+    },
+    onSuccess: (data: AIGenerateResponse) => {
+      onChange(data.imageUrl);
+      toast({
+        title: "Image generated successfully",
+        description: data.revisedPrompt 
+          ? `DALL-E refined your prompt: "${data.revisedPrompt.substring(0, 100)}${data.revisedPrompt.length > 100 ? '...' : ''}"`
+          : "Your AI-generated image is ready",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Generation failed",
+        description: error.message || "Failed to generate image. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -76,6 +119,23 @@ export function ImageSelector({
   const handleSelectPexelsImage = (photo: PexelsPhoto) => {
     // Use the large version for quality
     onChange(photo.src.large);
+  };
+
+  const handleAIGenerate = () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        title: "Prompt required",
+        description: "Please enter a description for the image you want to generate.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    aiGenerateMutation.mutate({
+      prompt: aiPrompt,
+      quality: aiQuality,
+      size: aiSize,
+    });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,11 +219,19 @@ export function ImageSelector({
       {label && <Label>{label}</Label>}
       
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full" style={{ gridTemplateColumns: showUploadTab ? '1fr 1fr' : '1fr' }}>
+        <TabsList className="grid w-full" style={{ 
+          gridTemplateColumns: `repeat(${[showUploadTab, showAIGenerateTab, true].filter(Boolean).length}, 1fr)` 
+        }}>
           {showUploadTab && (
             <TabsTrigger value="upload" data-testid="tab-upload-image">
               <Upload className="h-4 w-4 mr-2" />
               Upload
+            </TabsTrigger>
+          )}
+          {showAIGenerateTab && (
+            <TabsTrigger value="ai-generate" data-testid="tab-ai-generate">
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Generate
             </TabsTrigger>
           )}
           <TabsTrigger value="stock" data-testid="tab-stock-images">
@@ -223,6 +291,86 @@ export function ImageSelector({
                   Selected: {uploadedFile.name}
                 </p>
               )}
+            </div>
+          </TabsContent>
+        )}
+
+        {showAIGenerateTab && (
+          <TabsContent value="ai-generate" className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="ai-prompt">Image Description</Label>
+                <Textarea
+                  id="ai-prompt"
+                  placeholder="Describe the image you want to generate... (e.g., 'A fantasy character portrait of an elven warrior with silver hair')"
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  rows={4}
+                  disabled={aiGenerateMutation.isPending}
+                  data-testid="textarea-ai-prompt"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="ai-quality">Quality</Label>
+                  <Select
+                    value={aiQuality}
+                    onValueChange={(value) => setAiQuality(value as "standard" | "hd")}
+                    disabled={aiGenerateMutation.isPending}
+                  >
+                    <SelectTrigger id="ai-quality" data-testid="select-ai-quality">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard ($0.04)</SelectItem>
+                      <SelectItem value="hd">HD ($0.08-$0.12)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="ai-size">Size</Label>
+                  <Select
+                    value={aiSize}
+                    onValueChange={(value) => setAiSize(value as "1024x1024" | "1024x1792" | "1792x1024")}
+                    disabled={aiGenerateMutation.isPending}
+                  >
+                    <SelectTrigger id="ai-size" data-testid="select-ai-size">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1024x1024">Square (1024×1024)</SelectItem>
+                      <SelectItem value="1024x1792">Portrait (1024×1792)</SelectItem>
+                      <SelectItem value="1792x1024">Landscape (1792×1024)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleAIGenerate}
+                disabled={aiGenerateMutation.isPending || !aiPrompt.trim()}
+                className="w-full"
+                data-testid="button-generate-ai-image"
+              >
+                {aiGenerateMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating... (this may take 10-20 seconds)
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate with DALL-E 3
+                  </>
+                )}
+              </Button>
+
+              <p className="text-xs text-muted-foreground text-center">
+                Powered by OpenAI's DALL-E 3. Images are generated on-demand and costs are pay-as-you-go.
+              </p>
             </div>
           </TabsContent>
         )}
