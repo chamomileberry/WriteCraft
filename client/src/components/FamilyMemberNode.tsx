@@ -73,36 +73,36 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
 
   return (
     <Card 
-      className="p-3 min-w-[200px] hover-elevate cursor-move" 
+      className="p-3 w-[160px] hover-elevate cursor-move" 
       data-testid={`node-member-${member.id}`}
       draggable
       onDragStart={handleDragStart}
     >
-      <div className="flex items-center gap-3">
-        <Avatar className="w-12 h-12">
+      <div className="flex flex-col items-center gap-2">
+        <Avatar className="w-20 h-20 rounded-2xl">
           <AvatarImage src={displayImage || undefined} className="object-cover" />
-          <AvatarFallback>
-            {initials || <User className="w-6 h-6" />}
+          <AvatarFallback className="rounded-2xl">
+            {initials || <User className="w-10 h-10" />}
           </AvatarFallback>
         </Avatar>
         
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{displayName}</h4>
-          <div className="text-xs text-muted-foreground space-y-0.5">
-            {displayDOB && (
-              <div>b. {displayDOB}</div>
-            )}
-            {displayDOD && (
-              <div>d. {displayDOD}</div>
-            )}
+        <div className="w-full text-center space-y-1">
+          <h4 className="font-medium text-sm leading-tight">{displayName}</h4>
+          <div className="text-xs text-muted-foreground">
+            {displayDOB && displayDOD ? (
+              <div>{displayDOB} - {displayDOD}</div>
+            ) : displayDOB ? (
+              <div>Born {displayDOB}</div>
+            ) : displayDOD ? (
+              <div>Died {displayDOD}</div>
+            ) : null}
           </div>
         </div>
         
-        <div className="flex gap-1">
+        <div className="flex gap-1 w-full justify-center">
           <Button 
             size="icon"
             variant="ghost"
-            className="h-7 w-7"
             onClick={(e) => {
               e.stopPropagation();
               if (onAddRelationship) {
@@ -111,12 +111,11 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
             }}
             data-testid={`button-add-relationship-${member.id}`}
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
           </Button>
           <Button 
             size="icon"
             variant="ghost"
-            className="h-7 w-7"
             onClick={(e) => {
               e.stopPropagation();
               if (onEdit) {
@@ -125,12 +124,11 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
             }}
             data-testid={`button-edit-member-${member.id}`}
           >
-            <Edit className="w-3.5 h-3.5" />
+            <Edit className="w-4 h-4" />
           </Button>
           <Button 
             size="icon"
             variant="ghost"
-            className="h-7 w-7"
             onClick={(e) => {
               e.stopPropagation();
               if (onRemoveMember) {
@@ -139,7 +137,7 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
             }}
             data-testid={`button-remove-member-${member.id}`}
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
