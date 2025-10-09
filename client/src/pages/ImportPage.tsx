@@ -378,11 +378,11 @@ export default function ImportPage() {
                             {job.totalItems > 0 ? (
                               <>
                                 <span className="font-medium">
-                                  {job.itemsProcessed || 0} / {job.totalItems} items
+                                  {job.processedItems || 0} / {job.totalItems} items
                                 </span>
-                                {(job.itemsProcessed || 0) > 0 && (
+                                {(job.processedItems || 0) > 0 && (
                                   <span className="text-xs">
-                                    ({Math.round(((job.itemsProcessed || 0) / job.totalItems) * 100)}%)
+                                    ({Math.round(((job.processedItems || 0) / job.totalItems) * 100)}%)
                                   </span>
                                 )}
                               </>
@@ -401,7 +401,7 @@ export default function ImportPage() {
                     {job.totalItems > 0 && (
                       <div className="text-right">
                         <Progress 
-                          value={job.status === 'completed' ? 100 : Math.round((job.itemsProcessed / job.totalItems) * 100)} 
+                          value={job.status === 'completed' ? 100 : Math.round((job.processedItems / job.totalItems) * 100)} 
                           className="w-24 h-2"
                         />
                       </div>
