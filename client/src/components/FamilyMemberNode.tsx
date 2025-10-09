@@ -72,36 +72,38 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
   };
 
   return (
-    <Card 
-      className="p-3 w-[160px] min-h-[220px] hover-elevate cursor-move" 
-      data-testid={`node-member-${member.id}`}
-      draggable
-      onDragStart={handleDragStart}
-    >
-      <div className="flex flex-col items-center gap-2">
-        <Avatar className="w-20 h-20 rounded-2xl">
-          <AvatarImage src={displayImage || undefined} className="object-cover" />
-          <AvatarFallback className="rounded-2xl">
-            {initials || <User className="w-10 h-10" />}
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="w-full text-center space-y-1 flex-1 flex flex-col justify-center">
-          <h4 className="font-medium text-sm leading-tight">{displayName}</h4>
-          <div className="text-xs text-muted-foreground">
-            {displayDOB && displayDOD ? (
-              <div>{displayDOB} - {displayDOD}</div>
-            ) : displayDOB ? (
-              <div>Born {displayDOB}</div>
-            ) : displayDOD ? (
-              <div>Died {displayDOD}</div>
-            ) : (
-              <div className="h-4"></div>
-            )}
+    <>
+      <Card 
+        className="p-3 w-[160px] min-h-[220px] hover-elevate cursor-move flex flex-col" 
+        data-testid={`node-member-${member.id}`}
+        draggable
+        onDragStart={handleDragStart}
+      >
+        <div className="flex flex-col items-center gap-2 flex-1">
+          <Avatar className="w-20 h-20 rounded-2xl">
+            <AvatarImage src={displayImage || undefined} className="object-cover" />
+            <AvatarFallback className="rounded-2xl">
+              {initials || <User className="w-10 h-10" />}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="w-full text-center space-y-1 flex-1 flex flex-col justify-center">
+            <h4 className="font-medium text-sm leading-tight">{displayName}</h4>
+            <div className="text-xs text-muted-foreground">
+              {displayDOB && displayDOD ? (
+                <div>{displayDOB} - {displayDOD}</div>
+              ) : displayDOB ? (
+                <div>{displayDOB}</div>
+              ) : displayDOD ? (
+                <div>d. {displayDOD}</div>
+              ) : (
+                <div className="h-4"></div>
+              )}
+            </div>
           </div>
         </div>
         
-        <div className="flex gap-1 w-full justify-center">
+        <div className="flex gap-1 w-full justify-center mt-2">
           <Button 
             size="icon"
             variant="ghost"
@@ -142,7 +144,7 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
-      </div>
+      </Card>
       
       {/* Invisible handles for React Flow connections */}
       <Handle 
@@ -194,7 +196,7 @@ function FamilyMemberNodeComponent({ data }: NodeProps) {
         id="right-target"
         style={{ opacity: 0, pointerEvents: 'none' }}
       />
-    </Card>
+    </>
   );
 }
 
