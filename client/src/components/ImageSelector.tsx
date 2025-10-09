@@ -45,6 +45,7 @@ interface ImageSelectorProps {
   label?: string;
   showUploadTab?: boolean;
   showAIGenerateTab?: boolean;
+  characterData?: any; // Character data to auto-generate image prompts
 }
 
 interface AIGenerateResponse {
@@ -58,7 +59,8 @@ export function ImageSelector({
   onFileUpload,
   label = "Image",
   showUploadTab = true,
-  showAIGenerateTab = true
+  showAIGenerateTab = true,
+  characterData
 }: ImageSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
@@ -106,6 +108,70 @@ export function ImageSelector({
       });
     },
   });
+
+  // Build image prompt from character data
+  const buildCharacterImagePrompt = () => {
+    if (!characterData) return "";
+    
+    const parts: string[] = [];
+    
+    // Age and gender
+    if (characterData.age) parts.push(`${characterData.age}-year-old`);
+    if (characterData.gender) parts.push(characterData.gender);
+    
+    // Species/ethnicity
+    if (characterData.species) parts.push(characterData.species);
+    else if (characterData.ethnicity) parts.push(characterData.ethnicity);
+    
+    // Physical description
+    const physicalTraits: string[] = [];
+    if (characterData.hairColor && characterData.hairStyle) {
+      physicalTraits.push(`${characterData.hairStyle} ${characterData.hairColor} hair`);
+    } else if (characterData.hairColor) {
+      physicalTraits.push(`${characterData.hairColor} hair`);
+    }
+    
+    if (characterData.eyeColor) physicalTraits.push(`${characterData.eyeColor} eyes`);
+    if (characterData.skinTone) physicalTraits.push(`${characterData.skinTone} skin`);
+    if (characterData.build) physicalTraits.push(`${characterData.build} build`);
+    
+    if (characterData.height) {
+      physicalTraits.push(`${characterData.height} tall`);
+    }
+    
+    // Combine parts
+    let prompt = parts.join(" ");
+    if (physicalTraits.length > 0) {
+      prompt += " with " + physicalTraits.join(", ");
+    }
+    
+    // Add distinctive features
+    if (characterData.facialFeatures) {
+      prompt += `, ${characterData.facialFeatures}`;
+    }
+    if (characterData.identifyingMarks) {
+      prompt += `, ${characterData.identifyingMarks}`;
+    }
+    
+    return prompt.trim();
+  };
+
+  const handleUseCharacterDetails = () => {
+    const generatedPrompt = buildCharacterImagePrompt();
+    if (generatedPrompt) {
+      setAiPrompt(generatedPrompt);
+      toast({
+        title: "Prompt generated",
+        description: "Character details have been added to the prompt. You can edit it before generating.",
+      });
+    } else {
+      toast({
+        title: "No character details",
+        description: "Fill in some character details first to auto-generate a prompt.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,7 +363,22 @@ export function ImageSelector({
           <TabsContent value="ai-generate" className="space-y-4">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="ai-prompt">Image Description</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="ai-prompt">Image Description</Label>
+                  {characterData && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUseCharacterDetails}
+                      disabled={aiGenerateMutation.isPending}
+                      data-testid="button-use-character-details"
+                    >
+                      <Sparkles className="mr-2 h-3 w-3" />
+                      Use Character Details
+                    </Button>
+                  )}
+                </div>
                 <Textarea
                   id="ai-prompt"
                   placeholder="Describe the image you want to generate... (e.g., 'A fantasy character portrait of an elven warrior with silver hair')"
