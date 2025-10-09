@@ -56,7 +56,9 @@ export function ImageSelector({
 
   // Fetch curated photos by default, or search results if query exists
   const { data: pexelsData, isLoading } = useQuery<PexelsResponse>({
-    queryKey: activeSearch ? ['/api/pexels/search', activeSearch] : ['/api/pexels/curated'],
+    queryKey: activeSearch 
+      ? [`/api/pexels/search?query=${encodeURIComponent(activeSearch)}`] 
+      : ['/api/pexels/curated'],
     enabled: selectedTab === "stock",
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
