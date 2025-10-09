@@ -31,17 +31,31 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const { activeNotebookId } = useNotebookStore();
   const { currentLayout, updatePanel } = useWorkspaceStore();
 
-  // Get the panel title from workspace store
+  // Get the panel title and metadata from workspace store
   const panel = currentLayout.panels.find(p => p.id === panelId);
   const noteTitle = panel?.title || 'Quick Note';
+  const noteId = panel?.metadata?.noteId; // Get saved note ID if editing a saved note
 
   // Using guest user for consistency with other components in this demo app
   const userId = 'guest'; 
 
-  // Fetch existing quick note
+  // Fetch existing quick note (either scratch pad or specific saved note)
   const { data: quickNote, isLoading } = useQuery({
-    queryKey: ['/api/quick-note', userId],
+    queryKey: noteId ? ['/api/quick-note', noteId] : ['/api/quick-note', userId],
     queryFn: async () => {
+      // If editing a saved note, fetch it by ID
+      if (noteId) {
+        const response = await fetch(`/api/quick-note/${noteId}`, {
+          credentials: 'include'
+        });
+        if (response.status === 404) {
+          return null;
+        }
+        if (!response.ok) throw new Error('Failed to fetch saved note');
+        return response.json();
+      }
+      
+      // Otherwise fetch the scratch pad quick note
       const response = await fetch(`/api/quick-note?userId=${userId}`, {
         credentials: 'include'
       });
@@ -108,12 +122,19 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       return null;
     },
     saveFn: async (data) => {
+      // If editing a saved note, use PUT to update it
+      if (noteId) {
+        const response = await apiRequest('PUT', `/api/quick-note/${noteId}`, data);
+        return await response.json();
+      }
+      // Otherwise, use POST to create/update scratch pad note
       const response = await apiRequest('POST', '/api/quick-note', data);
       return await response.json();
     },
     onSuccess: (savedNote) => {
       // Update cache WITHOUT triggering re-fetch
-      queryClient.setQueryData(['/api/quick-note', userId], (old: any) => ({
+      const cacheKey = noteId ? ['/api/quick-note', noteId] : ['/api/quick-note', userId];
+      queryClient.setQueryData(cacheKey, (old: any) => ({
         ...old,
         ...savedNote,
       }));
@@ -141,9 +162,15 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
 
   // Mutation function for autosave - returns parsed JSON
   const mutationFunction = useCallback(async (data: any) => {
+    // If editing a saved note, use PUT to update it
+    if (noteId) {
+      const response = await apiRequest('PUT', `/api/quick-note/${noteId}`, data);
+      return await response.json();
+    }
+    // Otherwise, use POST to create/update scratch pad note
     const response = await apiRequest('POST', '/api/quick-note', data);
     return await response.json();
-  }, []);
+  }, [noteId]);
 
   // Set up autosave using the hook
   const { saveStatus, handleSave, setupAutosave, isSaving } = useAutosave({
@@ -159,11 +186,12 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       setHasBeenSavedOnce(true);
       
       // Silently update the cache without triggering re-renders
-      queryClient.setQueryData(['/api/quick-note', userId], (old: any) => {
+      const cacheKey = noteId ? ['/api/quick-note', noteId] : ['/api/quick-note', userId];
+      queryClient.setQueryData(cacheKey, (old: any) => {
         // Merge new data with old to preserve all fields and prevent re-renders
         return {
           ...old,
-          id: savedNote.id || old?.id || `quick-note-${userId}`,
+          id: savedNote.id || old?.id || noteId || `quick-note-${userId}`,
           userId: userId,
           title: savedNote.title || old?.title || 'Quick Note',
           content: savedNote.content,

@@ -18,6 +18,7 @@ export interface PanelDescriptor {
   contentType?: string;  // For generic content detail panels (weapons, locations, etc.)
   notebookId?: string;  // For characters and other notebook-scoped entities
   data?: any;
+  metadata?: { noteId?: string; [key: string]: any };  // Additional metadata for panels
   // Tab system
   mode: 'tabbed' | 'floating' | 'split' | 'docked';
   regionId: 'main' | 'split' | 'docked' | 'floating';
@@ -95,7 +96,7 @@ interface WorkspaceState {
 
   // Quick note methods
   toggleQuickNote: () => void;
-  openQuickNote: () => void;
+  openQuickNote: (noteId?: string) => void;
   closeQuickNote: () => void;
   isQuickNoteOpen: () => boolean;
   minimizePanel: (panelId: string) => void;
@@ -529,7 +530,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         }
       },
 
-      openQuickNote: () => {
+      openQuickNote: (noteId?: string) => {
         const state = get();
         const existingQuickNote = state.currentLayout.panels.find(p => p.type === 'quickNote');
 
@@ -549,11 +550,20 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             mode: 'floating',
             regionId: 'floating',
             position: { x: xPosition, y: yPosition },
-            size: { width: panelWidth, height: panelHeight }
+            size: { width: panelWidth, height: panelHeight },
+            metadata: noteId ? { noteId } : undefined
           };
 
           get().addPanel(quickNotePanel);
         } else {
+          // If opening a different saved note, update the panel metadata
+          if (noteId && existingQuickNote.metadata?.noteId !== noteId) {
+            get().updatePanel(existingQuickNote.id, { 
+              metadata: { noteId },
+              title: 'Loading...'
+            });
+          }
+          
           // If minimized, restore it first
           if (existingQuickNote.minimized) {
             get().restorePanel(existingQuickNote.id);
