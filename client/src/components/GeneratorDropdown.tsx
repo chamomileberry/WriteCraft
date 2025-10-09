@@ -18,7 +18,7 @@ interface GeneratorDropdownProps {
   onSelectGenerator: (generator: GeneratorType) => void;
 }
 
-const GENERATORS = [
+export const GENERATORS = [
   { id: 'name-generator' as const, label: 'Name Generator', icon: Wand2 },
   { id: 'character-generator' as const, label: 'Character Generator', icon: User },
   { id: 'setting-generator' as const, label: 'Setting Generator', icon: MapPin },

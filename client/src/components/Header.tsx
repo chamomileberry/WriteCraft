@@ -1,4 +1,4 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useMobileWorkspaceMenu } from "@/components/workspace/WorkspaceShell";
-import { GeneratorDropdown } from "@/components/GeneratorDropdown";
+import { GeneratorDropdown, GENERATORS } from "@/components/GeneratorDropdown";
 import { GeneratorModals, GeneratorType } from "@/components/GeneratorModals";
 
 interface HeaderProps {
@@ -23,6 +23,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] = useState(false);
   const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
@@ -330,17 +331,42 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               Projects
             </button>
-            <button 
-              onClick={() => {
-                setLocation('/generators');
-                setIsMobileMenuOpen(false);
-                setIsMobileSearchOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
-              data-testid="mobile-link-generators"
-            >
-              Generators
-            </button>
+            
+            <div className="space-y-2">
+              <button 
+                onClick={() => setIsMobileGeneratorsExpanded(!isMobileGeneratorsExpanded)}
+                className="flex items-center justify-between w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+                data-testid="mobile-link-generators"
+              >
+                <span>Generators</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isMobileGeneratorsExpanded ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isMobileGeneratorsExpanded && (
+                <div className="pl-4 space-y-2">
+                  {GENERATORS.map((generator) => {
+                    const Icon = generator.icon;
+                    return (
+                      <button
+                        key={generator.id}
+                        onClick={() => {
+                          setActiveGenerator(generator.id);
+                          setIsMobileMenuOpen(false);
+                          setIsMobileSearchOpen(false);
+                          setIsMobileGeneratorsExpanded(false);
+                        }}
+                        className="flex items-center gap-2 w-full text-left text-sm text-foreground hover:text-primary transition-colors py-2"
+                        data-testid={`mobile-${generator.id}`}
+                      >
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        <span>{generator.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            
             <button 
               onClick={() => {
                 setLocation('/guides');
