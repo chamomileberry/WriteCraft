@@ -8,6 +8,8 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useMobileWorkspaceMenu } from "@/components/workspace/WorkspaceShell";
+import { GeneratorDropdown } from "@/components/GeneratorDropdown";
+import { GeneratorModals, GeneratorType } from "@/components/GeneratorModals";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -21,6 +23,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   
@@ -119,13 +122,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </button>
 
           <nav className="hidden md:flex items-center gap-8 flex-shrink-0">
-            <button 
-              onClick={() => setLocation('/generators')}
-              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
-              data-testid="link-generators"
-            >
-              Generators
-            </button>
+            <GeneratorDropdown onSelectGenerator={setActiveGenerator} />
             <button 
               onClick={() => setLocation('/guides')}
               className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
@@ -369,6 +366,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </div>
         </div>
       )}
+
+      <GeneratorModals 
+        activeGenerator={activeGenerator} 
+        onClose={() => setActiveGenerator(null)} 
+      />
     </header>
   );
 }
