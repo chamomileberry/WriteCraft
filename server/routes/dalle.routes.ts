@@ -21,6 +21,31 @@ const generateImageSchema = z.object({
   size: z.enum(["1024x1024", "1024x1792", "1792x1024"]).default("1024x1024"),
 });
 
+// Map size and quality to resolution for Ideogram
+function sizeAndQualityToResolution(size: string, quality: string): string {
+  // Ideogram V3 Turbo expects specific pixel dimensions
+  // Map our size options to valid Ideogram resolutions
+  const isHD = quality === "hd";
+  
+  const mapping: Record<string, { standard: string; hd: string }> = {
+    "1024x1024": { 
+      standard: "1024x1024",  // Square standard
+      hd: "1024x1024"         // Square HD (same size, better quality)
+    },
+    "1024x1792": { 
+      standard: "640x1152",   // Portrait standard (9:16 aspect ratio)
+      hd: "768x1344"          // Portrait HD (9:16 aspect ratio, higher resolution)
+    },
+    "1792x1024": { 
+      standard: "1152x640",   // Landscape standard (16:9 aspect ratio)
+      hd: "1536x640"          // Landscape HD (16:9 aspect ratio, higher resolution)
+    },
+  };
+  
+  const resolution = mapping[size];
+  return isHD ? resolution.hd : resolution.standard;
+}
+
 // Map size to aspect ratio for Ideogram
 function sizeToAspectRatio(size: string): string {
   const mapping: Record<string, string> = {
@@ -29,11 +54,6 @@ function sizeToAspectRatio(size: string): string {
     "1792x1024": "16:9",    // Landscape
   };
   return mapping[size] || "1:1";
-}
-
-// Map quality to resolution for Ideogram
-function qualityToResolution(quality: string): string {
-  return quality === "hd" ? "RESOLUTION_1024" : "RESOLUTION_512";
 }
 
 router.post("/generate", async (req: any, res) => {
@@ -57,7 +77,7 @@ router.post("/generate", async (req: any, res) => {
         input: {
           prompt: validated.prompt,
           aspect_ratio: sizeToAspectRatio(validated.size),
-          resolution: qualityToResolution(validated.quality),
+          resolution: sizeAndQualityToResolution(validated.size, validated.quality),
           style_type: "Auto",
           magic_prompt_option: "Auto",
         }
