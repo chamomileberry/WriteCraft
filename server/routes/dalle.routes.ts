@@ -1,12 +1,14 @@
 import { Router } from "express";
 import Replicate from "replicate";
 import { z } from "zod";
+import { ObjectStorageService } from "../objectStorage";
+import { setObjectAclPolicy } from "../objectAcl";
 
 const router = Router();
 
 // Validate API token is configured
 if (!process.env.REPLICATE_API_TOKEN) {
-  console.error("[Flux] REPLICATE_API_TOKEN environment variable is not set");
+  console.error("[Ideogram] REPLICATE_API_TOKEN environment variable is not set");
 }
 
 const replicate = new Replicate({
@@ -19,19 +21,19 @@ const generateImageSchema = z.object({
   size: z.enum(["1024x1024", "1024x1792", "1792x1024"]).default("1024x1024"),
 });
 
-// Map size to aspect ratio for Flux
+// Map size to aspect ratio for Ideogram
 function sizeToAspectRatio(size: string): string {
   const mapping: Record<string, string> = {
-    "1024x1024": "1:1",    // Square
-    "1024x1792": "9:16",   // Portrait
-    "1792x1024": "16:9",   // Landscape
+    "1024x1024": "1:1",     // Square
+    "1024x1792": "9:16",    // Portrait
+    "1792x1024": "16:9",    // Landscape
   };
   return mapping[size] || "1:1";
 }
 
-// Map quality to output quality (0-100)
-function qualityToOutputQuality(quality: string): number {
-  return quality === "hd" ? 95 : 80;
+// Map quality to resolution for Ideogram
+function qualityToResolution(quality: string): string {
+  return quality === "hd" ? "RESOLUTION_1024" : "RESOLUTION_512";
 }
 
 router.post("/generate", async (req, res) => {
@@ -44,58 +46,119 @@ router.post("/generate", async (req, res) => {
     }
 
     const validated = generateImageSchema.parse(req.body);
+    const userId = (req as any).session?.userId;
 
-    // Create a prediction and wait for it to complete
-    const prediction = await replicate.predictions.create({
-      version: "bf0a10f127d2d87f6b1f39e8dce2e8d40b760ac4b95f36e52e3c1d8c5e7ddfb7",
-      input: {
-        prompt: validated.prompt,
-        aspect_ratio: sizeToAspectRatio(validated.size),
-        output_format: "webp",
-        output_quality: qualityToOutputQuality(validated.quality),
-      }
-    });
-
-    // Wait for the prediction to complete
-    const finalPrediction = await replicate.wait(prediction);
-
-    // Check if generation was successful
-    if (finalPrediction.status !== "succeeded") {
-      console.error("[Flux] Generation failed:", finalPrediction.status, finalPrediction.error);
-      return res.status(500).json({ 
-        error: finalPrediction.error || "Failed to generate image" 
-      });
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
     }
 
+    console.log("[Ideogram] Generating image with prompt:", validated.prompt);
+
+    // Generate image with Ideogram V3 Turbo
+    const output = await replicate.run(
+      "ideogram-ai/ideogram-v3-turbo",
+      {
+        input: {
+          prompt: validated.prompt,
+          aspect_ratio: sizeToAspectRatio(validated.size),
+          resolution: qualityToResolution(validated.quality),
+          style_type: "Auto",
+          magic_prompt_option: "Auto",
+        }
+      }
+    ) as any;
+
     // Extract the image URL from the output
-    const output = finalPrediction.output;
-    let imageUrl: string;
+    // Ideogram returns an array of objects with structure: { url: string, revised_prompt?: string }
+    let tempImageUrl: string;
+    let revisedPrompt: string | undefined;
     
     if (Array.isArray(output) && output.length > 0) {
-      imageUrl = output[0];
+      const firstOutput = output[0];
+      if (typeof firstOutput === "object" && firstOutput !== null) {
+        // Ideogram V3 Turbo returns objects with url property
+        tempImageUrl = firstOutput.url || firstOutput.image_url;
+        revisedPrompt = firstOutput.revised_prompt;
+      } else if (typeof firstOutput === "string") {
+        // Fallback for string URLs
+        tempImageUrl = firstOutput;
+      } else {
+        console.error("[Ideogram] Unexpected output format:", output);
+        return res.status(500).json({ 
+          error: "Failed to generate image: unexpected response format" 
+        });
+      }
     } else if (typeof output === "string") {
-      imageUrl = output;
+      tempImageUrl = output;
     } else {
-      console.error("[Flux] Unexpected output format:", output);
+      console.error("[Ideogram] Unexpected output format:", output);
       return res.status(500).json({ 
         error: "Failed to generate image: unexpected response format" 
       });
     }
 
-    // Validate the URL
-    if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
-      console.error("[Flux] Invalid image URL:", imageUrl);
+    // Validate the temporary URL
+    if (!tempImageUrl || typeof tempImageUrl !== "string" || !tempImageUrl.startsWith("http")) {
+      console.error("[Ideogram] Invalid image URL:", tempImageUrl);
       return res.status(500).json({ 
         error: "Failed to generate image: invalid URL" 
       });
     }
 
+    console.log("[Ideogram] Image generated, downloading from:", tempImageUrl);
+
+    // Download the image from Replicate
+    const imageResponse = await fetch(tempImageUrl);
+    if (!imageResponse.ok) {
+      console.error("[Ideogram] Failed to download image:", imageResponse.status);
+      return res.status(500).json({ 
+        error: "Failed to download generated image" 
+      });
+    }
+
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    const contentType = imageResponse.headers.get('content-type') || 'image/webp';
+    console.log("[Ideogram] Image downloaded, size:", imageBuffer.length, "bytes, type:", contentType);
+
+    // Get upload URL from object storage
+    const objectStorageService = new ObjectStorageService();
+    const { uploadURL, objectId } = await objectStorageService.getObjectEntityUploadURL();
+    const objectPath = `/objects/uploads/${objectId}`;
+
+    console.log("[Ideogram] Uploading to object storage:", objectPath);
+
+    // Upload to object storage with original content type
+    const uploadResponse = await fetch(uploadURL, {
+      method: 'PUT',
+      body: imageBuffer,
+      headers: {
+        'Content-Type': contentType,
+      }
+    });
+
+    if (!uploadResponse.ok) {
+      console.error("[Ideogram] Failed to upload to storage:", uploadResponse.status);
+      return res.status(500).json({ 
+        error: "Failed to save generated image" 
+      });
+    }
+
+    // Set ACL policy for the uploaded image using the storage path
+    const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
+    await setObjectAclPolicy(objectFile, {
+      owner: userId,
+      visibility: "private",
+      aclRules: [],
+    });
+
+    console.log("[Ideogram] Image successfully saved to:", objectPath);
+
     res.json({
-      imageUrl: imageUrl,
-      revisedPrompt: undefined, // Flux doesn't provide revised prompts like DALL-E
+      imageUrl: objectPath,
+      revisedPrompt: revisedPrompt,
     });
   } catch (error: any) {
-    console.error("[Flux] Generation error:", error);
+    console.error("[Ideogram] Generation error:", error);
     
     if (error.name === "ZodError") {
       return res.status(400).json({ 
