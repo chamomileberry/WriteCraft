@@ -664,8 +664,29 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
     return [];
   };
 
+  // Map of common field name variations to Campfire's title case format (hoisted for performance)
+  const campfireFieldMap: { [key: string]: string[] } = {
+    'age': ['Age'],
+    'occupation': ['Occupation', 'Job', 'Profession'],
+    'pronouns': ['Pronouns'],
+    'gender': ['Gender', 'Sex'],
+    'species': ['Species', 'Race'],
+    'dateofbirth': ['Date of Birth', 'Birth Date', 'Birthday'],
+    'dateofdeath': ['Date of Death', 'Death Date'],
+    'placeofbirth': ['Place of Birth', 'Birthplace'],
+    'placeofdeath': ['Place of Death'],
+    'residence': ['Residence', 'Home', 'Location'],
+    'height': ['Height'],
+    'weight': ['Weight'],
+    'eyes': ['Eye Color', 'Eyes'],
+    'hair': ['Hair Color', 'Hair'],
+    'skin': ['Skin Tone', 'Skin', 'Complexion'],
+  };
+
   // Helper function to safely extract field with multiple name attempts
+  // Checks both top-level article properties (World Anvil) and nested Campfire data
   const extractField = (article: any, ...fieldNames: string[]): string => {
+    // Step 1: Check top-level article properties (World Anvil format)
     for (const name of fieldNames) {
       if (article[name] !== undefined && article[name] !== null) {
         const value = article[name];
@@ -682,6 +703,28 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
         return stripBBCode(value);
       }
     }
+    
+    // Step 2: Check Campfire nested data structure (if exists)
+    if (article.campfireData?.basicInfo) {
+      const basicInfo = article.campfireData.basicInfo;
+      
+      // Try to find matching Campfire field
+      for (const name of fieldNames) {
+        const normalized = name.toLowerCase().replace(/[_\s]/g, '');
+        const campfireVariants = campfireFieldMap[normalized] || [
+          // Also try title case and capitalized versions
+          name.charAt(0).toUpperCase() + name.slice(1),
+          name.split(/[_\s]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        ];
+        
+        for (const variant of campfireVariants) {
+          if (basicInfo[variant] !== undefined && basicInfo[variant] !== null) {
+            return stripBBCode(basicInfo[variant]);
+          }
+        }
+      }
+    }
+    
     return '';
   };
 
