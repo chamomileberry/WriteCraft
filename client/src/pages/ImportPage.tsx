@@ -124,16 +124,20 @@ export default function ImportPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      // Validate all files are either .zip or .json (case-insensitive)
+      // Validate all files are ZIP (World Anvil) or document formats (Campfire: HTML, RTF, DOCX, PDF)
       const invalidFiles = files.filter(file => {
         const lowerName = file.name.toLowerCase();
-        return !lowerName.endsWith('.zip') && !lowerName.endsWith('.json');
+        return !lowerName.endsWith('.zip') && 
+               !lowerName.endsWith('.html') && 
+               !lowerName.endsWith('.rtf') &&
+               !lowerName.endsWith('.docx') &&
+               !lowerName.endsWith('.pdf');
       });
       
       if (invalidFiles.length > 0) {
         toast({
           title: "Invalid file type",
-          description: "Please select only ZIP (World Anvil) or JSON (Campfire) files.",
+          description: "Please select ZIP (World Anvil) or Campfire document files (HTML, RTF, DOCX, PDF).",
           variant: "destructive",
         });
         return;
@@ -197,7 +201,7 @@ export default function ImportPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Import Content</h1>
           <p className="text-muted-foreground">
-            Import your existing worldbuilding content from World Anvil (ZIP) or Campfire (JSON files). Select one or more files to import.
+            Import your existing worldbuilding content from World Anvil (ZIP) or Campfire (HTML, RTF, DOCX, PDF). Select one or more files to import.
           </p>
           {!activeNotebook ? (
             <Alert className="mt-4" variant="destructive">
@@ -223,14 +227,14 @@ export default function ImportPage() {
               Upload Import Files
             </CardTitle>
             <CardDescription>
-              Select ZIP file(s) from World Anvil or JSON file(s) from Campfire
+              Select ZIP file(s) from World Anvil or Campfire document files (HTML, RTF, DOCX, PDF)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <Input
                 type="file"
-                accept=".zip,.json"
+                accept=".zip,.html,.rtf,.docx,.pdf"
                 multiple
                 onChange={handleFileSelect}
                 disabled={uploadMutation.isPending || !activeNotebook}
@@ -259,9 +263,20 @@ export default function ImportPage() {
             {selectedFiles.length > 0 && (
               <div className="space-y-2">
                 {selectedFiles.map((file, index) => {
-                  const isZip = file.name.toLowerCase().endsWith('.zip');
+                  const fileName = file.name.toLowerCase();
+                  const isZip = fileName.endsWith('.zip');
+                  const isHtml = fileName.endsWith('.html');
+                  const isRtf = fileName.endsWith('.rtf');
+                  const isDocx = fileName.endsWith('.docx');
+                  const isPdf = fileName.endsWith('.pdf');
+                  
                   const FileIcon = isZip ? FileArchive : FileJson;
-                  const fileType = isZip ? 'World Anvil ZIP' : 'Campfire JSON';
+                  let fileType = 'Unknown';
+                  if (isZip) fileType = 'World Anvil ZIP';
+                  else if (isHtml) fileType = 'Campfire HTML';
+                  else if (isRtf) fileType = 'Campfire RTF';
+                  else if (isDocx) fileType = 'Campfire DOCX';
+                  else if (isPdf) fileType = 'Campfire PDF';
                   
                   return (
                     <div key={index} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
@@ -307,12 +322,12 @@ export default function ImportPage() {
               </ol>
             </div>
             <div>
-              <h3 className="font-medium mb-2">Campfire (JSON)</h3>
+              <h3 className="font-medium mb-2">Campfire (Documents)</h3>
               <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
                 <li>Open Campfire and go to your project</li>
                 <li>Navigate to each module (Characters, Locations, etc.)</li>
-                <li>Export each module as JSON</li>
-                <li>Select all exported JSON files and upload them together</li>
+                <li>Export each module as HTML, RTF, DOCX, or PDF</li>
+                <li>Select all exported document files and upload them together</li>
               </ol>
             </div>
           </CardContent>
