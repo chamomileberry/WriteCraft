@@ -594,9 +594,15 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               draggable: false,
             });
             
+            // Determine which parent is on the left vs right based on X position
+            const isParent1Left = parent1Node.position.x < parent2Node.position.x;
+            const leftParentId = isParent1Left ? parent1Id : parent2Id;
+            const rightParentId = isParent1Left ? parent2Id : parent1Id;
+            
+            // Left parent uses 'right' handle (line goes right toward junction)
             newEdges.push({
-              id: `${parent1Id}-${junctionId}`,
-              source: parent1Id,
+              id: `${leftParentId}-${junctionId}`,
+              source: leftParentId,
               target: junctionId,
               sourceHandle: 'right',
               targetHandle: 'left',
@@ -604,9 +610,10 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
             });
             
+            // Right parent uses 'left' handle (line goes left toward junction)
             newEdges.push({
-              id: `${parent2Id}-${junctionId}`,
-              source: parent2Id,
+              id: `${rightParentId}-${junctionId}`,
+              source: rightParentId,
               target: junctionId,
               sourceHandle: 'left',
               targetHandle: 'right',
