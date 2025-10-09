@@ -773,6 +773,7 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
         || article.cover?.url 
         || article.image?.url 
         || article.images?.portrait?.url
+        || article.campfireData?.image
         || '',
       imageCaption: extractField(article, 'imageCaption', 'imagecaption', 'image_caption')
         || article.portrait?.title 
