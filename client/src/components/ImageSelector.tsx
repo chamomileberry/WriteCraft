@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Search, Upload, Loader2, ExternalLink } from "lucide-react";
+import { Search, Upload, Loader2, ExternalLink, ImageIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface PexelsPhoto {
   id: number;
@@ -53,6 +54,8 @@ export function ImageSelector({
   const [selectedTab, setSelectedTab] = useState<string>(showUploadTab ? "upload" : "stock");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch curated photos by default, or search results if query exists
   const { data: pexelsData, isLoading } = useQuery<PexelsResponse>({
@@ -98,6 +101,59 @@ export function ImageSelector({
     }
   };
 
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isUploading) return;
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isUploading) return;
+    if (e.currentTarget === e.target) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (isUploading) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+
+    if (!imageFile) {
+      return;
+    }
+
+    setUploadedFile(imageFile);
+    
+    if (onFileUpload) {
+      setIsUploading(true);
+      try {
+        const url = await onFileUpload(imageFile);
+        onChange(url);
+      } catch (error) {
+        console.error('Upload failed:', error);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      const objectUrl = URL.createObjectURL(imageFile);
+      onChange(objectUrl);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {label && <Label>{label}</Label>}
@@ -118,23 +174,52 @@ export function ImageSelector({
 
         {showUploadTab && (
           <TabsContent value="upload" className="space-y-4">
-            <div className="border-2 border-dashed rounded-lg p-8 text-center">
-              <Input
+            <div 
+              className={cn(
+                "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+                isDragging 
+                  ? "border-primary bg-primary/10" 
+                  : "border-border bg-muted/50"
+              )}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground mb-4">
+                {isDragging ? 'Drop image here' : 'Drag and drop an image, or choose a file'}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                data-testid="button-upload-file"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Choose File
+                  </>
+                )}
+              </Button>
+              <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
+                className="hidden"
                 disabled={isUploading}
-                className="max-w-sm mx-auto"
                 data-testid="input-upload-image"
               />
-              {isUploading && (
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Uploading...
-                </div>
-              )}
               {uploadedFile && !isUploading && (
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-4 text-sm text-muted-foreground">
                   Selected: {uploadedFile.name}
                 </p>
               )}
