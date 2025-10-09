@@ -36,7 +36,7 @@ function qualityToResolution(quality: string): string {
   return quality === "hd" ? "RESOLUTION_1024" : "RESOLUTION_512";
 }
 
-router.post("/generate", async (req, res) => {
+router.post("/generate", async (req: any, res) => {
   try {
     // Check if API token is configured
     if (!process.env.REPLICATE_API_TOKEN) {
@@ -46,11 +46,7 @@ router.post("/generate", async (req, res) => {
     }
 
     const validated = generateImageSchema.parse(req.body);
-    const userId = (req as any).session?.userId;
-
-    if (!userId) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    const userId = req.user.claims.sub;
 
     console.log("[Ideogram] Generating image with prompt:", validated.prompt);
 
