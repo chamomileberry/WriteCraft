@@ -21,10 +21,16 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype === 'application/zip' || file.originalname.endsWith('.zip')) {
+    const isZip = file.mimetype === 'application/zip' || 
+                  file.mimetype === 'application/x-zip-compressed' || 
+                  file.originalname.toLowerCase().endsWith('.zip');
+    const isJson = file.mimetype === 'application/json' || 
+                   file.originalname.toLowerCase().endsWith('.json');
+    
+    if (isZip || isJson) {
       cb(null, true);
     } else {
-      cb(new Error('Only ZIP files are allowed'));
+      cb(new Error('Only ZIP (World Anvil) or JSON (Campfire) files are allowed'));
     }
   },
 });
@@ -76,6 +82,37 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   'transportation': 'transportation',
 };
 
+// Campfire module type mapping to WriteCraft types
+const CAMPFIRE_TYPE_MAPPING: { [key: string]: string } = {
+  'character': 'character',
+  'characters': 'character',
+  'location': 'location',
+  'locations': 'location',
+  'place': 'location',
+  'places': 'location',
+  'item': 'item',
+  'items': 'item',
+  'species': 'species',
+  'races': 'species',
+  'organization': 'organization',
+  'organizations': 'organization',
+  'faction': 'organization',
+  'factions': 'organization',
+  'event': 'event',
+  'events': 'event',
+  'religion': 'religion',
+  'religions': 'religion',
+  'language': 'language',
+  'languages': 'language',
+  'magic': 'spell',
+  'spell': 'spell',
+  'spells': 'spell',
+  'document': 'document',
+  'lore': 'document',
+  'note': 'document',
+  'notes': 'document',
+};
+
 interface WorldAnvilArticle {
   id: string;
   title: string;
@@ -87,6 +124,135 @@ interface WorldAnvilArticle {
   state?: string;
   tags?: string | string[];
   [key: string]: any;
+}
+
+interface CampfireModule {
+  [key: string]: any;
+}
+
+// Detect Campfire module type based on JSON structure
+function detectCampfireModuleType(data: any): string {
+  // If it's an array, analyze the first item
+  const sample = Array.isArray(data) ? data[0] : data;
+  
+  if (!sample || typeof sample !== 'object') {
+    console.log('[Campfire] Cannot detect type - invalid data structure');
+    return 'document';
+  }
+
+  // Check for explicit type field
+  if (sample.type) {
+    const typeKey = sample.type.toLowerCase();
+    if (CAMPFIRE_TYPE_MAPPING[typeKey]) {
+      console.log(`[Campfire] Detected type from 'type' field: ${typeKey} → ${CAMPFIRE_TYPE_MAPPING[typeKey]}`);
+      return CAMPFIRE_TYPE_MAPPING[typeKey];
+    }
+  }
+
+  // Check for module name field
+  if (sample.module || sample.moduleName) {
+    const moduleKey = (sample.module || sample.moduleName).toLowerCase();
+    if (CAMPFIRE_TYPE_MAPPING[moduleKey]) {
+      console.log(`[Campfire] Detected type from 'module' field: ${moduleKey} → ${CAMPFIRE_TYPE_MAPPING[moduleKey]}`);
+      return CAMPFIRE_TYPE_MAPPING[moduleKey];
+    }
+  }
+
+  // Analyze field patterns to detect character
+  const hasCharacterFields = (
+    ('age' in sample || 'gender' in sample || 'species' in sample || 'race' in sample) ||
+    ('firstName' in sample && 'lastName' in sample) ||
+    ('personality' in sample || 'appearance' in sample)
+  );
+  if (hasCharacterFields) {
+    console.log('[Campfire] Detected character based on field patterns');
+    return 'character';
+  }
+
+  // Analyze field patterns to detect location
+  const hasLocationFields = (
+    ('climate' in sample || 'terrain' in sample || 'geography' in sample) ||
+    ('population' in sample && 'type' in sample) ||
+    ('coordinates' in sample || 'region' in sample)
+  );
+  if (hasLocationFields) {
+    console.log('[Campfire] Detected location based on field patterns');
+    return 'location';
+  }
+
+  // Analyze field patterns to detect item
+  const hasItemFields = (
+    ('weight' in sample || 'value' in sample || 'rarity' in sample) ||
+    ('material' in sample || 'durability' in sample) ||
+    ('cost' in sample && 'type' in sample)
+  );
+  if (hasItemFields) {
+    console.log('[Campfire] Detected item based on field patterns');
+    return 'item';
+  }
+
+  // Analyze field patterns to detect organization
+  const hasOrganizationFields = (
+    ('members' in sample || 'leader' in sample || 'headquarters' in sample) ||
+    ('motto' in sample || 'goals' in sample) ||
+    ('founded' in sample && 'type' in sample)
+  );
+  if (hasOrganizationFields) {
+    console.log('[Campfire] Detected organization based on field patterns');
+    return 'organization';
+  }
+
+  // Default to document
+  console.log('[Campfire] Could not detect specific type, defaulting to document');
+  return 'document';
+}
+
+// Parse Campfire JSON export and convert to article format
+function parseCampfireJSON(jsonBuffer: Buffer, filename: string) {
+  try {
+    const jsonData = JSON.parse(jsonBuffer.toString('utf8'));
+    console.log(`[Campfire Parse] Processing file: ${filename}`);
+    
+    // Detect the module type
+    const detectedType = detectCampfireModuleType(jsonData);
+    console.log(`[Campfire Parse] Detected type: ${detectedType}`);
+    
+    // Convert to array if it's a single object
+    const items = Array.isArray(jsonData) ? jsonData : [jsonData];
+    
+    // Convert Campfire items to WorldAnvilArticle-like format for processing
+    const articles: WorldAnvilArticle[] = items.map((item, index) => {
+      // Extract name/title - Campfire can use various field names
+      const title = item.name || item.title || item.label || `Untitled ${detectedType} ${index + 1}`;
+      
+      // Extract description/content
+      const content = item.description || item.content || item.notes || item.details || '';
+      
+      // Build article object
+      return {
+        id: item.id || `campfire-${detectedType}-${index}`,
+        title,
+        content,
+        excerpt: item.summary || item.excerpt || '',
+        entityClass: detectedType,
+        templateType: detectedType,
+        tags: item.tags || [],
+        // Preserve original Campfire data for field mapping
+        ...item,
+      };
+    });
+    
+    console.log(`[Campfire Parse] Converted ${articles.length} items from ${filename}`);
+    
+    return {
+      articles,
+      totalItems: articles.length,
+      source: 'campfire',
+    };
+  } catch (error) {
+    console.error(`[Campfire Parse] Failed to parse ${filename}:`, error);
+    throw new Error(`Failed to parse Campfire JSON file: ${filename}`);
+  }
 }
 
 // Parse World Anvil export and map to WriteCraft structure
@@ -818,12 +984,12 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
 }
 
 // Upload and start import job (with stricter rate limiting)
-router.post('/upload', uploadRateLimiter, upload.single('file'), async (req: any, res) => {
+router.post('/upload', uploadRateLimiter, upload.array('file'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
     }
 
     // Get or create a default notebook for imports
@@ -858,26 +1024,57 @@ router.post('/upload', uploadRateLimiter, upload.single('file'), async (req: any
 
     console.log(`[Import] Final notebookId: ${notebookId} for user: ${userId}`);
 
-    // Parse the ZIP file
-    const parsed = parseWorldAnvilExport(req.file.buffer);
+    // Process all uploaded files
+    const allArticles: WorldAnvilArticle[] = [];
+    let importSource = 'unknown';
+    const files = req.files as Express.Multer.File[];
+
+    for (const file of files) {
+      const isZip = file.mimetype === 'application/zip' || 
+                    file.mimetype === 'application/x-zip-compressed' || 
+                    file.originalname.toLowerCase().endsWith('.zip');
+      const isJson = file.mimetype === 'application/json' || 
+                     file.originalname.toLowerCase().endsWith('.json');
+
+      if (isZip) {
+        console.log(`[Import] Processing World Anvil ZIP: ${file.originalname}`);
+        const parsed = parseWorldAnvilExport(file.buffer);
+        allArticles.push(...parsed.articles);
+        importSource = 'world_anvil';
+      } else if (isJson) {
+        console.log(`[Import] Processing Campfire JSON: ${file.originalname}`);
+        const parsed = parseCampfireJSON(file.buffer, file.originalname);
+        allArticles.push(...parsed.articles);
+        // Use 'campfire' as source if any JSON files are present
+        if (importSource === 'unknown' || importSource === 'campfire') {
+          importSource = 'campfire';
+        } else {
+          importSource = 'mixed'; // Mixed World Anvil and Campfire
+        }
+      } else {
+        console.warn(`[Import] Unknown file type: ${file.originalname}`);
+      }
+    }
+
+    console.log(`[Import] Total articles from all files: ${allArticles.length}`);
 
     // Create import job
     const job = await storage.createImportJob({
       userId,
       notebookId,
-      source: 'world_anvil',
+      source: importSource,
       status: 'pending',
-      totalItems: parsed.totalItems,
+      totalItems: allArticles.length,
       processedItems: 0,
       progress: 0,
     });
 
     // Start processing in background
-    processImport(job.id, parsed, userId, notebookId).catch(console.error);
+    processImport(job.id, { articles: allArticles, totalItems: allArticles.length }, userId, notebookId).catch(console.error);
 
     res.json({
       jobId: job.id,
-      totalItems: parsed.totalItems,
+      totalItems: allArticles.length,
       status: 'processing',
     });
   } catch (error) {
