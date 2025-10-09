@@ -377,79 +377,120 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   }, [historyIndex, MAX_HISTORY]);
 
   // React Flow state - using generic types as React Flow's TypeScript support for custom data is limited
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [nodes, setNodes, defaultOnNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  // Update junction positions and keep married couples aligned when parent nodes are dragged
-  const onNodeDrag = useCallback((_event: any, node: Node) => {
-    if (node.type !== 'familyMember' || isUpdatingJunctions.current || isAutoLayout) return;
+  // Custom onNodesChange that enhances React Flow's default behavior with junction/spouse updates
+  const onNodesChange = useCallback((changes: any[]) => {
+    // Skip if in auto-layout mode or already updating
+    if (isAutoLayout || isUpdatingJunctions.current) {
+      defaultOnNodesChange(changes);
+      return;
+    }
+    
+    // Find position changes for family member nodes
+    const positionChanges = changes.filter(
+      change => change.type === 'position' && change.dragging
+    );
+    
+    if (positionChanges.length === 0) {
+      // No dragging happening, just apply changes normally
+      defaultOnNodesChange(changes);
+      return;
+    }
     
     isUpdatingJunctions.current = true;
     
-    setNodes(currentNodes => {
-      const updatedNodes = [...currentNodes];
+    // Get current nodes to calculate dependent positions
+    const currentNodes = nodes;
+    const additionalChanges: any[] = [];
+    const processedSpouses = new Set<string>();
+    
+    // For each node being dragged, calculate spouse and junction updates
+    positionChanges.forEach(change => {
+      const draggedNode = currentNodes.find(n => n.id === change.id);
+      if (!draggedNode || draggedNode.type !== 'familyMember') return;
       
-      // First, find and align the spouse to the same Y level
-      const draggedNodeIndex = updatedNodes.findIndex(n => n.id === node.id);
-      if (draggedNodeIndex !== -1) {
-        updatedNodes[draggedNodeIndex] = node;
-      }
+      const newPosition = change.position;
+      if (!newPosition) return;
       
-      // Find all junctions that involve this node to identify spouses
+      // Find all junctions involving this node to identify spouses
       const spouseIds = new Set<string>();
-      updatedNodes.forEach(n => {
+      currentNodes.forEach(n => {
         if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
           const junctionData = n.data as { parent1Id: string; parent2Id: string };
-          if (junctionData.parent1Id === node.id) {
+          if (junctionData.parent1Id === change.id) {
             spouseIds.add(junctionData.parent2Id);
-          } else if (junctionData.parent2Id === node.id) {
+          } else if (junctionData.parent2Id === change.id) {
             spouseIds.add(junctionData.parent1Id);
           }
         }
       });
       
-      // Align all spouses to the same Y coordinate
-      updatedNodes.forEach((n, index) => {
-        if (spouseIds.has(n.id) && n.type === 'familyMember') {
-          updatedNodes[index] = {
-            ...n,
+      // Align spouses to the same Y coordinate
+      spouseIds.forEach(spouseId => {
+        if (!processedSpouses.has(spouseId)) {
+          processedSpouses.add(spouseId);
+          additionalChanges.push({
+            id: spouseId,
+            type: 'position',
             position: {
-              x: n.position.x,
-              y: node.position.y, // Align to same Y as dragged node
+              x: currentNodes.find(n => n.id === spouseId)?.position.x,
+              y: newPosition.y,
             },
-          };
+            dragging: true,
+          });
         }
       });
       
-      // Now update all junction nodes that have this node or its spouses as parents
-      updatedNodes.forEach((n, index) => {
+      // Update junction positions for this node and its spouses
+      currentNodes.forEach(n => {
         if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
           const junctionData = n.data as { parent1Id: string; parent2Id: string };
-          const isInvolved = junctionData.parent1Id === node.id || 
-                           junctionData.parent2Id === node.id || 
-                           spouseIds.has(junctionData.parent1Id) || 
-                           spouseIds.has(junctionData.parent2Id);
-          if (isInvolved) {
-            const parent1 = updatedNodes.find(cn => cn.id === junctionData.parent1Id);
-            const parent2 = updatedNodes.find(cn => cn.id === junctionData.parent2Id);
+          const isInvolved = 
+            junctionData.parent1Id === change.id || 
+            junctionData.parent2Id === change.id || 
+            spouseIds.has(junctionData.parent1Id) || 
+            spouseIds.has(junctionData.parent2Id);
             
-            if (parent1 && parent2) {
-              updatedNodes[index] = {
-                ...n,
+          if (isInvolved) {
+            // Calculate new junction position based on updated parent positions
+            let parent1Pos = currentNodes.find(cn => cn.id === junctionData.parent1Id)?.position;
+            let parent2Pos = currentNodes.find(cn => cn.id === junctionData.parent2Id)?.position;
+            
+            // Use new position if this parent is being dragged
+            if (junctionData.parent1Id === change.id) {
+              parent1Pos = newPosition;
+            } else if (junctionData.parent2Id === change.id) {
+              parent2Pos = newPosition;
+            }
+            
+            // Check if spouse position is in additionalChanges
+            const spouse1Update = additionalChanges.find(c => c.id === junctionData.parent1Id);
+            const spouse2Update = additionalChanges.find(c => c.id === junctionData.parent2Id);
+            if (spouse1Update) parent1Pos = spouse1Update.position;
+            if (spouse2Update) parent2Pos = spouse2Update.position;
+            
+            if (parent1Pos && parent2Pos) {
+              additionalChanges.push({
+                id: n.id,
+                type: 'position',
                 position: {
-                  x: (parent1.position.x + parent2.position.x) / 2 - 4, // Offset to center 8x8 node
-                  y: parent1.position.y - 4, // Use the aligned Y position, offset to center
+                  x: (parent1Pos.x + parent2Pos.x) / 2 - 4, // Center 8x8 node
+                  y: parent1Pos.y - 4, // Align and center vertically
                 },
-              };
+                dragging: true,
+              });
             }
           }
         }
       });
-      
-      isUpdatingJunctions.current = false;
-      return updatedNodes;
     });
-  }, [setNodes, isAutoLayout]);
+    
+    // Apply all changes together in one atomic update
+    defaultOnNodesChange([...changes, ...additionalChanges]);
+    isUpdatingJunctions.current = false;
+  }, [nodes, defaultOnNodesChange, isAutoLayout]);
 
   // Create nodes and edges together to avoid infinite loops  
   useEffect(() => {
@@ -1254,7 +1295,6 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeDrag={onNodeDrag}
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
