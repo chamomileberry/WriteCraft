@@ -22,7 +22,7 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     displayFields: {
       title: "givenName",
       subtitle: "occupation",
-      description: "backstory",
+      description: "description",
       badges: ["gender", "genre"]
     }
   },
