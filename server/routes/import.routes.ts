@@ -503,8 +503,8 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
   }
 }
 
-// Map World Anvil article to WriteCraft content
-function mapArticleToContent(article: WorldAnvilArticle, userId: string, notebookId: string) {
+// Map World Anvil/Campfire article to WriteCraft content
+function mapArticleToContent(article: WorldAnvilArticle, userId: string, notebookId: string, importSource: string = 'world_anvil') {
   // World Anvil uses entityClass (e.g., "Character", "Species") or templateType (e.g., "character", "species")
   // Category is an object, not a string!
   let typeKey = '';
@@ -787,7 +787,7 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
       userId: userId,
       
       // Import tracking
-      importSource: 'world_anvil',
+      importSource: importSource,
       importExternalId: article.id || article.uuid || article.externalId || ''
     };
     return characterData;
@@ -1262,7 +1262,7 @@ router.post('/upload', uploadRateLimiter, upload.array('file'), async (req: any,
     });
 
     // Start processing in background
-    processImport(job.id, { articles: allArticles, totalItems: allArticles.length }, userId, notebookId).catch(console.error);
+    processImport(job.id, { articles: allArticles, totalItems: allArticles.length }, userId, notebookId, importSource).catch(console.error);
 
     res.json({
       jobId: job.id,
@@ -1282,7 +1282,8 @@ async function processImport(
   jobId: string,
   parsed: { articles: WorldAnvilArticle[]; totalItems: number },
   userId: string,
-  notebookId: string
+  notebookId: string,
+  importSource: string
 ) {
   const results = {
     imported: [] as string[],
@@ -1344,7 +1345,7 @@ async function processImport(
           }, null, 2));
         }
 
-        const mapped = mapArticleToContent(article, userId, notebookId);
+        const mapped = mapArticleToContent(article, userId, notebookId, importSource);
         // Don't extract contentType from mapped - it's not a field, the mapped object IS the data
 
         // Determine content type from the original article
