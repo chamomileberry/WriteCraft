@@ -23,7 +23,7 @@ interface CharacterGalleryProps {
 }
 
 export function CharacterGallery({ notebookId, existingMembers = [], onRemoveMember }: CharacterGalleryProps) {
-  const { data: characters = [], isLoading } = useQuery<Character[]>({
+  const { data: rawCharacters = [], isLoading } = useQuery<Character[]>({
     queryKey: ['/api/characters', notebookId],
     queryFn: async () => {
       const response = await fetch(`/api/characters?notebookId=${notebookId}`, {
@@ -32,8 +32,18 @@ export function CharacterGallery({ notebookId, existingMembers = [], onRemoveMem
       if (!response.ok) throw new Error('Failed to fetch characters');
       return response.json();
     },
-    enabled: !!notebookId
+    enabled: !!notebookId,
+    staleTime: 0,  // Always fetch fresh data
+    gcTime: 0,      // Don't cache results
   });
+  
+  // Deduplicate characters by ID (in case database has duplicates)
+  const characters = rawCharacters.reduce((acc: Character[], character) => {
+    if (!acc.find(c => c.id === character.id)) {
+      acc.push(character);
+    }
+    return acc;
+  }, []);
 
   const getDisplayName = (character: Character): string => {
     if (character.nickname) return character.nickname;

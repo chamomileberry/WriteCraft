@@ -282,8 +282,8 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   });
 
   // Fetch characters for SelectCharacterDialog
-  const { data: characters = [] } = useQuery<Character[]>({
-    queryKey: ['/api/characters'],
+  const { data: rawCharacters = [] } = useQuery<Character[]>({
+    queryKey: ['/api/characters', notebookId],
     queryFn: async () => {
       const response = await fetch(`/api/characters?notebookId=${notebookId}`);
       if (!response.ok) {
@@ -291,8 +291,18 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       }
       return response.json();
     },
-    enabled: !!notebookId
+    enabled: !!notebookId,
+    staleTime: 0,  // Always fetch fresh data
+    gcTime: 0,      // Don't cache results
   });
+  
+  // Deduplicate characters by ID (in case database has duplicates)
+  const characters = rawCharacters.reduce((acc: Character[], character) => {
+    if (!acc.find(c => c.id === character.id)) {
+      acc.push(character);
+    }
+    return acc;
+  }, []);
 
   // Sync tree metadata to local state when tree data loads
   useEffect(() => {
