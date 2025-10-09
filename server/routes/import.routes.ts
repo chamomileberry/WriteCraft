@@ -7,8 +7,8 @@ import { insertImportJobSchema } from '@shared/schema';
 import { createRateLimiter } from '../security/middleware';
 import * as cheerio from 'cheerio';
 import mammoth from 'mammoth';
-import pdfParse from 'pdf-parse';
-import rtfParser from 'rtf-parser';
+import * as pdfParse from 'pdf-parse';
+import * as rtfParser from 'rtf-parser';
 
 const router = Router();
 
@@ -122,7 +122,6 @@ interface CampfireCharacterData {
 
 // Parse Campfire HTML export and extract character data
 function parseCampfireHTML(htmlBuffer: Buffer, filename: string): WorldAnvilArticle[] {
-  const cheerio = require('cheerio');
   const $ = cheerio.load(htmlBuffer.toString('utf8'));
   
   console.log(`[Campfire HTML] Processing file: ${filename}`);
@@ -295,9 +294,6 @@ function parseCampfireHTML(htmlBuffer: Buffer, filename: string): WorldAnvilArti
 
 // Parse Campfire RTF export (convert to HTML then parse)
 async function parseCampfireRTF(rtfBuffer: Buffer, filename: string): Promise<WorldAnvilArticle[]> {
-  const rtfParser = require('rtf-parser');
-  const cheerio = require('cheerio');
-  
   console.log(`[Campfire RTF] Processing file: ${filename}`);
   
   return new Promise((resolve, reject) => {
@@ -353,8 +349,6 @@ async function parseCampfireRTF(rtfBuffer: Buffer, filename: string): Promise<Wo
 
 // Parse Campfire DOCX export (convert to HTML then parse)
 async function parseCampfireDOCX(docxBuffer: Buffer, filename: string): Promise<WorldAnvilArticle[]> {
-  const mammoth = require('mammoth');
-  
   console.log(`[Campfire DOCX] Processing file: ${filename}`);
   
   try {
@@ -372,9 +366,6 @@ async function parseCampfireDOCX(docxBuffer: Buffer, filename: string): Promise<
 
 // Parse Campfire PDF export (extract text and convert to HTML structure)
 async function parseCampfirePDF(pdfBuffer: Buffer, filename: string): Promise<WorldAnvilArticle[]> {
-  const pdfParse = require('pdf-parse');
-  const cheerio = require('cheerio');
-  
   console.log(`[Campfire PDF] Processing file: ${filename}`);
   
   try {
