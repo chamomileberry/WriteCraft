@@ -44,6 +44,58 @@ import {
   type ParentNodeWithDimensions 
 } from '@/lib/junction-positioning';
 
+/**
+ * CRITICAL: Family Tree Junction Positioning Logic
+ * 
+ * This component manages family tree visualization with proper genealogical structure.
+ * The most critical aspect is ensuring horizontal marriage lines with centered child branches.
+ * 
+ * THREE CRITICAL REQUIREMENTS:
+ * 
+ * 1. SPOUSE VERTICAL CENTER ALIGNMENT:
+ *    - When spouses are married (have shared children), their VERTICAL CENTERS must align
+ *    - This is NOT the same as aligning top edges - cards can have different heights
+ *    - If top edges are aligned but heights differ, marriage line will be sloped ❌
+ *    - Uses: calculateSpouseAlignedY() and calculateCoupleAlignment() utilities
+ * 
+ * 2. JUNCTION X FROM HANDLE EDGES:
+ *    - Junction X must be calculated from actual handle connection points (edges, not centers)
+ *    - Left parent's handle is at: x + width (right edge)
+ *    - Right parent's handle is at: x (left edge) 
+ *    - Junction X = (leftParentX + leftWidth + rightParentX) / 2
+ *    - Using node centers instead of edges causes off-center child lines ❌
+ * 
+ * 3. JUNCTION Y FROM PARENT CENTERS:
+ *    - Junction Y must align with parent vertical centers (where left/right handles are)
+ *    - If parents aligned: use either parent's center (they're the same)
+ *    - If parents not aligned: average both centers
+ *    - Uses: calculateJunctionPosition() utility with areParentsAligned flag
+ * 
+ * CRITICAL LOCATIONS (all use utilities in junction-positioning.ts):
+ * 
+ * A. Drag Handler (~line 439-520):
+ *    - When dragging a spouse, align partner's vertical center
+ *    - Recalculate junction position with areParentsAligned: true
+ * 
+ * B. Initial Junction Creation (~line 597-614):
+ *    - Calculate junction position for newly created junctions
+ *    - Use areParentsAligned: false (parents may not be aligned yet)
+ * 
+ * C. Auto-Layout (~line 711-775):
+ *    - Align married couples' vertical centers first
+ *    - Then calculate junction positions with areParentsAligned: true
+ * 
+ * SINGLE SOURCE OF TRUTH:
+ * All positioning logic is centralized in client/src/lib/junction-positioning.ts
+ * - calculateJunctionPosition(): Calculates junction X,Y coordinates
+ * - calculateSpouseAlignedY(): Aligns spouse vertical center during drag
+ * - calculateCoupleAlignment(): Aligns couples during auto-layout
+ * - Runtime validation in dev mode warns of positioning errors
+ * 
+ * DO NOT modify positioning logic inline - update the utility functions instead!
+ * This ensures all three code paths use identical, tested, validated logic.
+ */
+
 interface FamilyTreeEditorProps {
   treeId: string;
   notebookId: string;
