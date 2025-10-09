@@ -345,7 +345,12 @@ async function parseCampfireRTF(rtfBuffer: Buffer, filename: string): Promise<Wo
       const htmlBuffer = Buffer.from(htmlContent, 'utf8');
       
       // Use the HTML parser to extract structured data
-      parseCampfireHTML(htmlBuffer, filename).then(resolve).catch(reject);
+      try {
+        const result = parseCampfireHTML(htmlBuffer, filename);
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
     });
   });
 }
@@ -1310,15 +1315,16 @@ async function processImport(
         .map(item => {
           const itemType = item.itemType;
           let displayName = '';
+          const data = item.itemData as any;
           
-          if (itemType === 'character' && item.itemData) {
-            const given = item.itemData.givenName || '';
-            const family = item.itemData.familyName || '';
+          if (itemType === 'character' && data) {
+            const given = data.givenName || '';
+            const family = data.familyName || '';
             displayName = [given, family].filter(Boolean).join(' ').trim();
-          } else if (item.itemData?.name) {
-            displayName = item.itemData.name;
-          } else if (item.itemData?.title) {
-            displayName = item.itemData.title;
+          } else if (data?.name) {
+            displayName = data.name;
+          } else if (data?.title) {
+            displayName = data.title;
           }
           
           return displayName ? `${itemType}:${displayName.toLowerCase().trim()}` : null;
@@ -1370,14 +1376,15 @@ async function processImport(
 
         if (contentType === 'character') {
           console.log(`[Import ${jobId}] Processing character: ${article.title}`);
+          const charData = mapped as any;
           console.log(`[Import ${jobId}] Mapped fields:`, {
-            givenName: mapped.givenName,
-            familyName: mapped.familyName,
-            description: mapped.description ? `${mapped.description.substring(0, 50)}...` : 'none',
-            imageUrl: mapped.imageUrl || 'none',
-            physicalDescription: mapped.physicalDescription ? 'present' : 'none',
+            givenName: charData.givenName,
+            familyName: charData.familyName,
+            description: charData.description ? `${charData.description.substring(0, 50)}...` : 'none',
+            imageUrl: charData.imageUrl || 'none',
+            physicalDescription: charData.physicalDescription ? 'present' : 'none',
           });
-          createdItem = await storage.createCharacter(mapped as any);
+          createdItem = await storage.createCharacter(charData);
           results.imported.push(createdItem.id);
           console.log(`[Import ${jobId}] ✓ Created character: ${article.title}`);
         } else if (contentType === 'location') {
