@@ -427,19 +427,29 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         }
       });
       
-      // Align spouses to the same Y coordinate
+      // Align spouses to the same vertical center (not just top edge)
       spouseIds.forEach(spouseId => {
         if (!processedSpouses.has(spouseId)) {
           processedSpouses.add(spouseId);
-          additionalChanges.push({
-            id: spouseId,
-            type: 'position',
-            position: {
-              x: currentNodes.find(n => n.id === spouseId)?.position.x,
-              y: newPosition.y,
-            },
-            dragging: true,
-          });
+          const spouseNode = currentNodes.find(n => n.id === spouseId);
+          if (spouseNode) {
+            // Get heights to calculate center alignment
+            const draggedHeight = draggedNode.measured?.height || draggedNode.height || 80;
+            const spouseHeight = spouseNode.measured?.height || spouseNode.height || 80;
+            
+            // Calculate spouse Y so vertical centers align: draggedY + (draggedHeight - spouseHeight) / 2
+            const spouseY = newPosition.y + (draggedHeight - spouseHeight) / 2;
+            
+            additionalChanges.push({
+              id: spouseId,
+              type: 'position',
+              position: {
+                x: spouseNode.position.x,
+                y: spouseY,
+              },
+              dragging: true,
+            });
+          }
         }
       });
       
