@@ -11,13 +11,15 @@ import { Label } from "@/components/ui/label";
 import { FormField as FormFieldComponent, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
-import { ImageUpload } from "@/components/ui/image-upload";
+import { ImageSelector } from "@/components/ImageSelector";
 import { ContentHero } from "@/components/ContentHero";
 import AIFieldAssist from "@/components/AIFieldAssist";
 import { 
   ChevronRight, ChevronDown, Menu, X, Wand2 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { uploadImageFile } from "@/lib/image-upload-utils";
+import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
@@ -48,6 +50,7 @@ export default function CharacterEditorWithSidebar({
   const [activeTab, setActiveTab] = useState("basic");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["identity"]));
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { toast } = useToast();
 
   // Use memoized form utilities
 
@@ -62,6 +65,24 @@ export default function CharacterEditorWithSidebar({
 
   const handleSubmit = (data: any) => {
     onSubmit(data);
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const url = await uploadImageFile(file, { visibility: 'private' });
+      toast({
+        title: 'Upload successful',
+        description: 'Your image has been uploaded',
+      });
+      return url;
+    } catch (error) {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to upload image',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
   const toggleSection = (sectionId: string) => {
@@ -256,22 +277,12 @@ export default function CharacterEditorWithSidebar({
             render={({ field: formField }) => (
               <FormItem>
                 <FormControl>
-                  <ImageUpload
+                  <ImageSelector
                     value={formField.value ?? ""}
                     onChange={formField.onChange}
-                    onCaptionChange={
-                      field.showCaption && field.captionFieldName
-                        ? (caption) => form.setValue(field.captionFieldName!, caption)
-                        : undefined
-                    }
-                    caption={
-                      field.showCaption && field.captionFieldName
-                        ? form.watch(field.captionFieldName)
-                        : undefined
-                    }
+                    onFileUpload={handleImageUpload}
                     label={field.label}
-                    accept={field.accept}
-                    maxFileSize={field.maxFileSize}
+                    showUploadTab={true}
                   />
                 </FormControl>
                 {field.description && (

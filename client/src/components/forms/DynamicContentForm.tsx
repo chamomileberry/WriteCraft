@@ -19,8 +19,10 @@ import { z } from "zod";
 import { FormField as FormFieldConfig, ContentTypeFormConfig } from './types';
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
-import { ImageUpload } from "@/components/ui/image-upload";
+import { ImageSelector } from "@/components/ImageSelector";
 import { ContentHero } from "@/components/ContentHero";
+import { uploadImageFile } from "@/lib/image-upload-utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface DynamicContentFormProps {
   config: ContentTypeFormConfig;
@@ -170,6 +172,7 @@ export default function DynamicContentForm({
   isCreating
 }: DynamicContentFormProps) {
   const [activeTab, setActiveTab] = useState((config.tabs || [])[0]?.id || "basic");
+  const { toast } = useToast();
   
   // Generate form validation schema from config
   // This ensures validation matches the actual form fields, not the full database schema
@@ -184,6 +187,24 @@ export default function DynamicContentForm({
 
   const handleSubmit = (data: any) => {
     onSubmit(data);
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const url = await uploadImageFile(file, { visibility: 'private' });
+      toast({
+        title: 'Upload successful',
+        description: 'Your image has been uploaded',
+      });
+      return url;
+    } catch (error) {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to upload image',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
   // Render individual field
@@ -340,22 +361,12 @@ export default function DynamicContentForm({
             render={({ field: formField }) => (
               <FormItem>
                 <FormControl>
-                  <ImageUpload
+                  <ImageSelector
                     value={formField.value ?? ""}
                     onChange={formField.onChange}
-                    onCaptionChange={
-                      field.showCaption && field.captionFieldName
-                        ? (caption) => form.setValue(field.captionFieldName!, caption)
-                        : undefined
-                    }
-                    caption={
-                      field.showCaption && field.captionFieldName
-                        ? form.watch(field.captionFieldName)
-                        : undefined
-                    }
+                    onFileUpload={handleImageUpload}
                     label={field.label}
-                    accept={field.accept}
-                    maxFileSize={field.maxFileSize}
+                    showUploadTab={true}
                   />
                 </FormControl>
                 {field.description && (

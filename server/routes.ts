@@ -5,6 +5,7 @@ import { registerDomainRoutes } from "./routes/index";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import aiRoutes from "./routes/ai.routes";
 import importRoutes from "./routes/import.routes";
+import pexelsRoutes from "./routes/pexels.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { 
   insertCharacterSchema, 
@@ -81,6 +82,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register import routes
   app.use("/api/import", isAuthenticated, importRoutes);
+
+  // Register Pexels stock image routes
+  app.use("/api/pexels", isAuthenticated, pexelsRoutes);
 
   // Serve uploaded objects with optional access control
   // NOTE: World-building content and avatars are publicly accessible via UUID protection.
