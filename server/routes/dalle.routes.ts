@@ -45,41 +45,36 @@ router.post("/generate", async (req, res) => {
 
     const validated = generateImageSchema.parse(req.body);
 
-    const output = await replicate.run(
-      "black-forest-labs/flux-1.1-pro",
-      {
-        input: {
-          prompt: validated.prompt,
-          aspect_ratio: sizeToAspectRatio(validated.size),
-          output_format: "webp",
-          output_quality: qualityToOutputQuality(validated.quality),
-        }
+    // Create a prediction and wait for it to complete
+    const prediction = await replicate.predictions.create({
+      version: "bf0a10f127d2d87f6b1f39e8dce2e8d40b760ac4b95f36e52e3c1d8c5e7ddfb7",
+      input: {
+        prompt: validated.prompt,
+        aspect_ratio: sizeToAspectRatio(validated.size),
+        output_format: "webp",
+        output_quality: qualityToOutputQuality(validated.quality),
       }
-    );
+    });
 
-    // Flux can return: a string URL, an array of URLs, or an async iterator (ReadableStream)
-    // Extract the first valid URL
+    // Wait for the prediction to complete
+    const finalPrediction = await replicate.wait(prediction);
+
+    // Check if generation was successful
+    if (finalPrediction.status !== "succeeded") {
+      console.error("[Flux] Generation failed:", finalPrediction.status, finalPrediction.error);
+      return res.status(500).json({ 
+        error: finalPrediction.error || "Failed to generate image" 
+      });
+    }
+
+    // Extract the image URL from the output
+    const output = finalPrediction.output;
     let imageUrl: string;
     
-    if (Array.isArray(output)) {
+    if (Array.isArray(output) && output.length > 0) {
       imageUrl = output[0];
     } else if (typeof output === "string") {
       imageUrl = output;
-    } else if (output && typeof output === "object" && Symbol.asyncIterator in output) {
-      // Handle async iterator (ReadableStream)
-      const items: string[] = [];
-      for await (const item of output as AsyncIterable<any>) {
-        // Ensure we convert each item to a string
-        const urlString = typeof item === "string" ? item : String(item);
-        items.push(urlString);
-      }
-      if (items.length === 0) {
-        console.error("[Flux] Empty stream response");
-        return res.status(500).json({ 
-          error: "Failed to generate image: empty response" 
-        });
-      }
-      imageUrl = items[0];
     } else {
       console.error("[Flux] Unexpected output format:", output);
       return res.status(500).json({ 
@@ -87,17 +82,16 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Ensure imageUrl is a string and validate the URL
-    const finalImageUrl = String(imageUrl);
-    if (!finalImageUrl || typeof finalImageUrl !== "string" || !finalImageUrl.startsWith("http")) {
-      console.error("[Flux] Invalid image URL:", finalImageUrl, typeof finalImageUrl);
+    // Validate the URL
+    if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+      console.error("[Flux] Invalid image URL:", imageUrl);
       return res.status(500).json({ 
         error: "Failed to generate image: invalid URL" 
       });
     }
 
     res.json({
-      imageUrl: finalImageUrl,
+      imageUrl: imageUrl,
       revisedPrompt: undefined, // Flux doesn't provide revised prompts like DALL-E
     });
   } catch (error: any) {
