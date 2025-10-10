@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  GeneratorDialog,
+  GeneratorDialogContent,
+  GeneratorDialogHeader,
+  GeneratorDialogTitle,
+} from "@/components/ui/generator-dialog";
 import CharacterGenerator from "@/components/CharacterGenerator";
 import PlotGenerator from "@/components/PlotGenerator";
 import SettingGenerator from "@/components/SettingGenerator";
@@ -72,15 +77,15 @@ export function GeneratorModals({ activeGenerator, onClose }: GeneratorModalsPro
   if (!activeGenerator) return null;
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-6xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>{GENERATOR_TITLES[activeGenerator]}</DialogTitle>
-        </DialogHeader>
+    <GeneratorDialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <GeneratorDialogContent className="max-w-6xl max-h-[90vh]">
+        <GeneratorDialogHeader>
+          <GeneratorDialogTitle>{GENERATOR_TITLES[activeGenerator]}</GeneratorDialogTitle>
+        </GeneratorDialogHeader>
         <div className="mt-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
           {renderGenerator()}
         </div>
-      </DialogContent>
-    </Dialog>
+      </GeneratorDialogContent>
+    </GeneratorDialog>
   );
 }

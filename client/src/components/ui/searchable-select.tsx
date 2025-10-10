@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useGeneratorDialogContext } from "@/components/ui/generator-dialog";
 
 interface SearchableSelectOption {
   value: string;
@@ -54,6 +55,7 @@ export function SearchableSelect({
   emptyLabel = "Any"
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
+  const dialogContainer = useGeneratorDialogContext();
 
   const defaultFormatLabel = (val: string) => {
     if (!val) return "";
@@ -139,7 +141,7 @@ export function SearchableSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0">
+      <PopoverContent className="w-[400px] p-0" container={dialogContainer}>
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList className="max-h-60">
