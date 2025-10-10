@@ -592,82 +592,6 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         )}
       </div>
 
-      {/* Search and Filters */}
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search your content by name, type, or category..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-              data-testid="input-search-content"
-            />
-          </div>
-          <Button 
-            variant="outline"
-            onClick={() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
-              toast({
-                title: "Refreshing...",
-                description: "Reloading notebook content",
-              });
-            }}
-            className="gap-2"
-          >
-            <Search className="w-4 h-4" />
-            Refresh
-          </Button>
-          <Button 
-            onClick={() => setIsContentModalOpen(true)}
-            className="gap-2"
-            data-testid="button-create-new-content"
-          >
-            <Plus className="w-4 h-4" />
-            Create New Content
-          </Button>
-          {activeNotebookId && (
-            <Button 
-              variant="outline"
-              onClick={() => setLocation('/notebook/consolidate')}
-              className="gap-2"
-              data-testid="button-consolidate-characters"
-            >
-              <AlertCircle className="w-4 h-4" />
-              Data Issues
-            </Button>
-          )}
-        </div>
-
-        {/* Category Filter Buttons */}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedCategory === null ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(null)}
-            data-testid="filter-all-categories"
-          >
-            All Categories ({totalItems})
-          </Button>
-          {Object.entries(CONTENT_CATEGORIES).map(([category, types]) => {
-            const count = categoryStats[category] || 0;
-            return (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                disabled={count === 0}
-                data-testid={`filter-category-${category.toLowerCase()}`}
-              >
-                {category} ({count})
-              </Button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
@@ -678,6 +602,82 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
             Recent ({filteredItems.filter(item => new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length})
           </TabsTrigger>
         </TabsList>
+
+        {/* Search and Filters - moved below tabs for quick access */}
+        <div className="space-y-4 mt-4">
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search your content by name, type, or category..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-content"
+              />
+            </div>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
+                toast({
+                  title: "Refreshing...",
+                  description: "Reloading notebook content",
+                });
+              }}
+              className="gap-2"
+            >
+              <Search className="w-4 h-4" />
+              Refresh
+            </Button>
+            <Button 
+              onClick={() => setIsContentModalOpen(true)}
+              className="gap-2"
+              data-testid="button-create-new-content"
+            >
+              <Plus className="w-4 h-4" />
+              Create New Content
+            </Button>
+            {activeNotebookId && (
+              <Button 
+                variant="outline"
+                onClick={() => setLocation('/notebook/consolidate')}
+                className="gap-2"
+                data-testid="button-consolidate-characters"
+              >
+                <AlertCircle className="w-4 h-4" />
+                Data Issues
+              </Button>
+            )}
+          </div>
+
+          {/* Category Filter Buttons */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedCategory === null ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory(null)}
+              data-testid="filter-all-categories"
+            >
+              All Categories ({totalItems})
+            </Button>
+            {Object.entries(CONTENT_CATEGORIES).map(([category, types]) => {
+              const count = categoryStats[category] || 0;
+              return (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category)}
+                  disabled={count === 0}
+                  data-testid={`filter-category-${category.toLowerCase()}`}
+                >
+                  {category} ({count})
+                </Button>
+              );
+            })}
+          </div>
+        </div>
 
         <TabsContent value="all" className="space-y-6">
           {Object.keys(groupedItems).length === 0 ? (
