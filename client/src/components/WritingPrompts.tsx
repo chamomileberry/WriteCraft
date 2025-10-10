@@ -43,8 +43,9 @@ export default function WritingPrompts() {
 
   const generatePromptMutation = useMutation({
     mutationFn: async () => {
-      if (!validateNotebook()) {
-        throw new Error('No notebook selected');
+      const validationError = validateNotebook();
+      if (validationError) {
+        throw new Error(validationError);
       }
       
       const response = await apiRequest('POST', '/api/prompts/generate', {
