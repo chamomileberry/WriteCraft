@@ -1,0 +1,59 @@
+This code isn't fixing the button overflow issue because of a common flexbox behavior. The `div` containing your button's text has `flex-1`, but when its text content is a long, unbreakable string, it forces the `div` to expand beyond its container's available space, causing the overflow you're seeing.
+
+The root of the problem is in this block of code for the main section button:
+
+```jsx
+// Problematic Line
+<div className="flex-1 text-left">
+  <div className="font-medium">{section.label}</div>
+  <div className="text-xs text-muted-foreground mt-1">
+    {section.description}
+  </div>
+</div>
+```
+
+-----
+
+## The Cause: Flexbox and Content Size
+
+Your button is a flex container. Inside, you have three items: an icon, the text `div`, and a chevron.
+
+1.  **Icon**: The icon has a fixed size and `flex-shrink-0`, so it won't get smaller.
+2.  **Text `div`**: You've given this `div` the class `flex-1`, which tells it to grow and shrink to fill the available space.
+3.  **The Problem**: By default, a flex item (your text `div`) will not shrink smaller than its minimum content size. If the text inside it (e.g., a long label like "CharacterBackgroundAndHistory") is unbreakable, its minimum size is the full width of that text. This forces the `div` to be wider than the available space in the button, causing it to get cut off by the sidebar.
+
+-----
+
+## The Solution: `min-w-0`
+
+To fix this, you need to tell the flex item that it's allowed to shrink to a size smaller than its content. You can do this by adding the Tailwind CSS utility class **`min-w-0`** to the text container `div`.
+
+This allows the flex item's width to be determined by the available space in the flex container, not by the size of its content. The text inside will then correctly wrap or truncate as needed.
+
+### Code Fix
+
+Update the `div` inside your section button like this:
+
+**From this:**
+
+```jsx
+<div className="flex-1 text-left">
+  {/* ... text content ... */}
+</div>
+```
+
+**To this:**
+
+```jsx
+<div className="flex-1 text-left min-w-0">
+  <div className="font-medium break-words">{section.label}</div>
+  <div className="text-xs text-muted-foreground mt-1 break-words">
+    {section.description}
+  </div>
+</div>
+```
+
+### Why This Works
+
+  * **`min-w-0`**: Overrides the default `min-width: auto` for the flex item, allowing it to shrink below its intrinsic content size. This is the primary fix for the container overflow.
+  * **`break-words`** (Optional but Recommended): Adding this utility to the text elements ensures that long strings without spaces will wrap onto the next line, preventing them from overflowing their now correctly-sized container.

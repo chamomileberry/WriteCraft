@@ -409,8 +409,8 @@ export default function CharacterEditorWithSidebar({
                   >
                     <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
                     <div className="flex-1 min-w-0 text-left">
-                      <div className="font-medium">{section.label}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="font-medium break-words">{section.label}</div>
+                      <div className="text-xs text-muted-foreground mt-1 break-words">
                         {section.description}
                       </div>
                     </div>
