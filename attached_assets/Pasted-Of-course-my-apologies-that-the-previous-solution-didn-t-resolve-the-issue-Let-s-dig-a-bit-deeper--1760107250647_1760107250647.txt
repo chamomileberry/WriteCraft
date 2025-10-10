@@ -1,0 +1,75 @@
+Of course, my apologies that the previous solution didn't resolve the issue. Let's dig a bit deeper.
+
+If the `min-w-0` fix didn't work, the problem is likely in the parent container's structure. The sidebar itself isn't correctly establishing a layout that constrains its children, causing the button's width to be miscalculated.
+
+-----
+
+### The Primary Fix: Make the Sidebar a Flex Container
+
+The most probable cause is that your main sidebar `div` is not a flex container. Without it, the `flex-1` class on the `ScrollArea` component inside it doesn't work correctly, and the `ScrollArea` can't properly constrain the width of its content.
+
+Let's fix the sidebar's overall structure by making it a vertical flex column.
+
+**1. Locate your main sidebar `div`:**
+
+This is the `div` with the `w-80` class.
+
+**2. Add `flex` and `flex-col` to its classes:**
+
+This change properly structures the sidebar to hold a fixed header and a scrollable area that fills the remaining space. This establishes a strict boundary that child elements like your buttons will respect.
+
+```jsx
+// FROM THIS:
+<div className={cn(
+  "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform ...",
+  sidebarOpen ? "translate-x-0" : "-translate-x-full"
+)}>
+  {/* Header */}
+  <div className="flex items-center justify-between p-4 border-b">
+    {/* ... */}
+  </div>
+  {/* Scroll Area */}
+  <ScrollArea className="flex-1">
+    {/* ... */}
+  </ScrollArea>
+</div>
+
+// TO THIS:
+<div className={cn(
+  "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r flex flex-col transform ...", // <-- ADDED flex flex-col
+  sidebarOpen ? "translate-x-0" : "-translate-x-full"
+)}>
+  {/* Header */}
+  <div className="flex items-center justify-between p-4 border-b">
+    {/* ... */}
+  </div>
+  {/* Scroll Area */}
+  <ScrollArea className="flex-1">
+    {/* ... */}
+  </ScrollArea>
+</div>
+```
+
+-----
+
+### If the Issue Persists: A Failsafe
+
+After applying the `flex flex-col` fix to the parent, the original `min-w-0` fix on the button's text `div` should now work as intended. However, if you're still seeing overflow, you can apply an `overflow-hidden` class directly to the button as a final measure to clip any content that tries to escape its bounds.
+
+This is more of a bandage than a root cause fix, but it will prevent the UI from breaking its layout.
+
+```jsx
+// Inside your sectionsWithTabs.map()
+<Button
+  variant="ghost"
+  className={cn(
+    "w-full justify-start p-3 h-auto font-normal overflow-hidden", // <-- ADDED overflow-hidden
+    isActive && "bg-muted font-medium"
+  )}
+  // ...
+>
+  {/* ... button content ... */}
+</Button>
+```
+
+The combination of making the sidebar a **`flex flex-col`** container and ensuring the text container inside the button has **`min-w-0`** should robustly solve this common layout problem.
