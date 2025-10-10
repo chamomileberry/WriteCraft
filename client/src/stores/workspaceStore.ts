@@ -96,7 +96,7 @@ interface WorkspaceState {
 
   // Quick note methods
   toggleQuickNote: () => void;
-  openQuickNote: (noteId?: string) => void;
+  openQuickNote: (noteId?: string, savedNoteData?: any) => void;
   closeQuickNote: () => void;
   isQuickNoteOpen: () => boolean;
   minimizePanel: (panelId: string) => void;
@@ -530,7 +530,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         }
       },
 
-      openQuickNote: (noteId?: string) => {
+      openQuickNote: (noteId?: string, savedNoteData?: any) => {
         const state = get();
         const existingQuickNote = state.currentLayout.panels.find(p => p.type === 'quickNote');
 
@@ -546,12 +546,12 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           const quickNotePanel: PanelDescriptor = {
             id: `quick-note-${nanoid()}`,
             type: 'quickNote',
-            title: 'Quick Note',
+            title: savedNoteData?.title || 'Quick Note',
             mode: 'floating',
             regionId: 'floating',
             position: { x: xPosition, y: yPosition },
             size: { width: panelWidth, height: panelHeight },
-            metadata: noteId ? { noteId } : undefined
+            metadata: noteId ? { noteId, savedNoteData } : undefined
           };
 
           get().addPanel(quickNotePanel);
@@ -559,8 +559,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           // If opening a different saved note, update the panel metadata
           if (noteId && existingQuickNote.metadata?.noteId !== noteId) {
             get().updatePanel(existingQuickNote.id, { 
-              metadata: { noteId },
-              title: 'Loading...'
+              metadata: { noteId, savedNoteData },
+              title: savedNoteData?.title || 'Loading...'
             });
           }
           

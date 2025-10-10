@@ -39,23 +39,13 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Using guest user for consistency with other components in this demo app
   const userId = 'guest'; 
 
-  // Fetch existing quick note (either scratch pad or specific saved note)
+  // Get saved note data from panel metadata if editing a saved note
+  const savedNoteData = panel?.metadata?.savedNoteData;
+  
+  // Fetch scratch pad quick note (only when not editing a saved note)
   const { data: quickNote, isLoading } = useQuery({
-    queryKey: noteId ? ['/api/quick-note', noteId] : ['/api/quick-note', userId],
+    queryKey: ['/api/quick-note', userId],
     queryFn: async () => {
-      // If editing a saved note, fetch it by ID
-      if (noteId) {
-        const response = await fetch(`/api/quick-note/${noteId}`, {
-          credentials: 'include'
-        });
-        if (response.status === 404) {
-          return null;
-        }
-        if (!response.ok) throw new Error('Failed to fetch saved note');
-        return response.json();
-      }
-      
-      // Otherwise fetch the scratch pad quick note
       const response = await fetch(`/api/quick-note?userId=${userId}`, {
         credentials: 'include'
       });
@@ -65,6 +55,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       if (!response.ok) throw new Error('Failed to fetch quick note');
       return response.json();
     },
+    enabled: !noteId, // Only fetch scratch pad if not editing a saved note
   });
 
   // Initialize TipTap editor with minimal extensions
@@ -96,23 +87,39 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
 
   // Load quick note data ONLY on initial load to prevent cursor jumping
   useEffect(() => {
-    if (isInitialLoad && quickNote && editor && !editor.isDestroyed) {
-      const serverContent = quickNote.content || '';
-      editor.commands.setContent(serverContent);
-      setHasBeenSavedOnce(true);
-      setIsInitialLoad(false);
-      
-      // Update workspace panel title to match the loaded note title (only on initial load)
-      if (quickNote.title && quickNote.title !== 'Quick Note') {
-        updatePanel(panelId, { title: quickNote.title });
+    if (isInitialLoad && editor && !editor.isDestroyed) {
+      // If editing a saved note, use savedNoteData from metadata
+      if (savedNoteData) {
+        const serverContent = savedNoteData.content || '';
+        editor.commands.setContent(serverContent);
+        setHasBeenSavedOnce(true);
+        setIsInitialLoad(false);
+        
+        // Update workspace panel title to match the loaded note title
+        if (savedNoteData.title && savedNoteData.title !== 'Quick Note') {
+          updatePanel(panelId, { title: savedNoteData.title });
+        }
+      } 
+      // Otherwise, load from scratch pad
+      else if (quickNote) {
+        const serverContent = quickNote.content || '';
+        editor.commands.setContent(serverContent);
+        setHasBeenSavedOnce(true);
+        setIsInitialLoad(false);
+        
+        // Update workspace panel title to match the loaded note title
+        if (quickNote.title && quickNote.title !== 'Quick Note') {
+          updatePanel(panelId, { title: quickNote.title });
+        }
       }
     }
-  }, [isInitialLoad, quickNote, editor, panelId, updatePanel]);
+  }, [isInitialLoad, quickNote, savedNoteData, editor, panelId, updatePanel]);
 
   // Debounced title save using useDebouncedSave hook
   const titleSave = useDebouncedSave({
     getData: () => {
-      if (!isInitialLoad && hasBeenSavedOnce && editor && noteTitle !== quickNote?.title) {
+      const currentTitle = noteId && savedNoteData ? savedNoteData.title : quickNote?.title;
+      if (!isInitialLoad && hasBeenSavedOnce && editor && noteTitle !== currentTitle) {
         return {
           userId,
           title: noteTitle,
@@ -122,22 +129,36 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       return null;
     },
     saveFn: async (data) => {
-      // If editing a saved note, use PUT to update it
+      // If editing a saved note, update the saved item directly
       if (noteId) {
-        const response = await apiRequest('PUT', `/api/quick-note/${noteId}`, data);
-        return await response.json();
+        const savedItemResponse = await apiRequest('PUT', `/api/saved-items/${noteId}`, {
+          itemData: {
+            title: data.title,
+            content: data.content
+          }
+        });
+        return await savedItemResponse.json();
       }
       // Otherwise, use POST to create/update scratch pad note
       const response = await apiRequest('POST', '/api/quick-note', data);
       return await response.json();
     },
-    onSuccess: (savedNote) => {
+    onSuccess: (savedData) => {
       // Update cache WITHOUT triggering re-fetch
-      const cacheKey = noteId ? ['/api/quick-note', noteId] : ['/api/quick-note', userId];
-      queryClient.setQueryData(cacheKey, (old: any) => ({
-        ...old,
-        ...savedNote,
-      }));
+      if (noteId) {
+        // Update saved note data in panel metadata
+        updatePanel(panelId, { 
+          metadata: { 
+            noteId,
+            savedNoteData: savedData.itemData || savedData
+          }
+        });
+      } else {
+        queryClient.setQueryData(['/api/quick-note', userId], (old: any) => ({
+          ...old,
+          ...savedData,
+        }));
+      }
     },
     debounceMs: 500,
     showToasts: false, // No toasts for title auto-save
@@ -162,10 +183,15 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
 
   // Mutation function for autosave - returns parsed JSON
   const mutationFunction = useCallback(async (data: any) => {
-    // If editing a saved note, use PUT to update it
+    // If editing a saved note, update the saved item directly
     if (noteId) {
-      const response = await apiRequest('PUT', `/api/quick-note/${noteId}`, data);
-      return await response.json();
+      const savedItemResponse = await apiRequest('PUT', `/api/saved-items/${noteId}`, {
+        itemData: {
+          title: data.title,
+          content: data.content
+        }
+      });
+      return await savedItemResponse.json();
     }
     // Otherwise, use POST to create/update scratch pad note
     const response = await apiRequest('POST', '/api/quick-note', data);
@@ -181,24 +207,33 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     successMessage: 'Quick note saved',
     errorMessage: 'Failed to save quick note',
     invalidateQueries: [], // Don't invalidate queries during auto-save to prevent re-renders
-    onSuccess: (savedNote) => {
+    onSuccess: (savedData) => {
       // Mark as saved for both new and existing notes
       setHasBeenSavedOnce(true);
       
       // Silently update the cache without triggering re-renders
-      const cacheKey = noteId ? ['/api/quick-note', noteId] : ['/api/quick-note', userId];
-      queryClient.setQueryData(cacheKey, (old: any) => {
-        // Merge new data with old to preserve all fields and prevent re-renders
-        return {
-          ...old,
-          id: savedNote.id || old?.id || noteId || `quick-note-${userId}`,
-          userId: userId,
-          title: savedNote.title || old?.title || 'Quick Note',
-          content: savedNote.content,
-          createdAt: savedNote.createdAt || old?.createdAt || new Date().toISOString(),
-          updatedAt: savedNote.updatedAt || new Date().toISOString()
-        };
-      });
+      if (noteId) {
+        // Update saved note data in panel metadata
+        updatePanel(panelId, { 
+          metadata: { 
+            noteId,
+            savedNoteData: savedData.itemData || savedData
+          }
+        });
+      } else {
+        queryClient.setQueryData(['/api/quick-note', userId], (old: any) => {
+          // Merge new data with old to preserve all fields and prevent re-renders
+          return {
+            ...old,
+            id: savedData.id || old?.id || `quick-note-${userId}`,
+            userId: userId,
+            title: savedData.title || old?.title || 'Quick Note',
+            content: savedData.content,
+            createdAt: savedData.createdAt || old?.createdAt || new Date().toISOString(),
+            updatedAt: savedData.updatedAt || new Date().toISOString()
+          };
+        });
+      }
     },
   });
 
@@ -237,48 +272,48 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         throw new Error('Editor not ready');
       }
       
-      // First, ensure the quick note is saved
-      const data = saveDataFunction();
-      if (data) {
-        await apiRequest('POST', '/api/quick-note', data);
-      }
+      const isEditingExistingSaved = !!noteId; // Check if editing an existing saved note
       
-      // Generate a unique ID for this saved note
-      const uniqueItemId = `saved-note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Then save it to the notebook as a saved item
+      // Save it to the notebook as a saved item with content in itemData
       const response = await apiRequest('POST', '/api/saved-items', {
-        userId: userId, // Use the same userId as for quick note operations
+        userId: userId,
         notebookId: activeNotebookId,
         itemType: 'quickNote',
-        itemId: uniqueItemId,
+        itemId: noteId || `quick-note-${Date.now()}`, // Use noteId if exists, otherwise generate one
         itemData: {
           title: noteTitle,
           content: editor.getHTML()
         }
       });
-      return response.json();
+      const savedItem = await response.json();
+      return { savedItem, isNewNote: !isEditingExistingSaved };
     },
-    onSuccess: async () => {
-      // Clear the quick note after saving to notebook
-      if (editor) {
+    onSuccess: async ({ savedItem, isNewNote }) => {
+      // Only clear if this was the scratch pad (not editing an existing saved note)
+      if (isNewNote && editor) {
         editor.commands.setContent('');
         setHasBeenSavedOnce(false);
         
-        // Clear the content in the database too
+        // Clear the scratch pad in the database
         await apiRequest('POST', '/api/quick-note', {
           userId,
           title: 'Quick Note',
           content: ''
         });
         
-        // Update cache to reflect cleared content
+        // Update cache to reflect cleared scratch pad
         queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
           if (oldData) {
-            return { ...oldData, content: '' };
+            return { ...oldData, content: '', title: 'Quick Note' };
           }
           return oldData;
         });
+        
+        // Close the quick note panel after saving from scratch pad
+        const quickNotePanel = currentLayout.panels.find(p => p.id === panelId);
+        if (quickNotePanel) {
+          updatePanel(panelId, { metadata: undefined, title: 'Quick Note' });
+        }
       }
       
       // Invalidate saved items to show the new note in the notebook
@@ -286,7 +321,9 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       
       toast({
         title: 'Saved to Notebook',
-        description: 'Your note has been saved and the quick note is ready for new content.',
+        description: isNewNote 
+          ? 'Your note has been saved and the quick note is ready for new content.'
+          : 'Your note has been saved to the notebook.',
       });
     },
     onError: (error) => {

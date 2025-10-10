@@ -370,8 +370,16 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const handleEdit = (item: SavedItem) => {
     // Open Quick Note panel for editing
     if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-      const noteId = item.itemId || item.contentId || item.id;
-      openQuickNote(noteId);
+      // Pass the saved item ID and the itemData for the quick note panel to load
+      const noteId = item.id; // Use saved item ID as noteId
+      const savedNoteData = item.itemData || { 
+        title: item.title || 'Quick Note', 
+        content: item.content || '' 
+      };
+      
+      // Use workspace store to open quick note with saved data in metadata
+      const { openQuickNote } = useWorkspaceStore.getState();
+      openQuickNote(noteId, savedNoteData);
       return;
     }
 
