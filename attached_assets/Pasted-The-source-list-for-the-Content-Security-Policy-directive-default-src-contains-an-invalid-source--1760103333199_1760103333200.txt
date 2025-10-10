@@ -1,0 +1,131 @@
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+stallwart.build.js:1 stallwart: failed ping 1
+WriteCraft:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+WriteCraft:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+WriteCraft:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+_app-f849e390fb9a7482.js:28 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+vendors.bundle.js:2 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+_app-f849e390fb9a7482.js:28 [LaunchDarkly] LaunchDarkly client initialized
+framework-5fba8771666081cf.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'battery'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-5fba8771666081cf.js:1
+framework-5fba8771666081cf.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-5fba8771666081cf.js:1
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+(index):49 Refused to load the stylesheet 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap' because it violates the following Content Security Policy directive: "style-src 'self' 'unsafe-inline'". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback.
+
+(index):1 Refused to load the script 'https://replit.com/public/js/replit-dev-banner.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+_app-f849e390fb9a7482.js:28 task queue exceeded allotted deadline by 25ms
+(anonymous) @ _app-f849e390fb9a7482.js:28
+workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+onIframeLoad @ workspace_iframe.html?initialPath=%2F&id=%3Ar21%3A:142
+injected.js:27 [tiptap warn]: Duplicate extension names found: ['underline']. This can lead to issues.
+(anonymous) @ injected.js:27
+injected.js:27 [QuickNotePanel] Fetching saved quick notes: /api/saved-items?userId=33081217&notebookId=0fe4e254-02d1-4a14-9046-6b3aefe17a89&itemType=quickNote
+injected.js:27 [QuickNotePanel] Debug: Object
+WriteCraft:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+injected.js:27 [QuickNotePanel] Response status: 200
+injected.js:27 [QuickNotePanel] Debug: Object
+injected.js:27 [QuickNotePanel] Debug: Object
+injected.js:27 [QuickNotePanel] Debug: Object
+injected.js:27 [tiptap warn]: Duplicate extension names found: ['underline']. This can lead to issues.
+(anonymous) @ injected.js:27
+injected.js:27 [QuickNotePanel] Fetching saved quick notes: /api/saved-items?userId=33081217&notebookId=0fe4e254-02d1-4a14-9046-6b3aefe17a89&itemType=quickNote
+injected.js:27 [QuickNotePanel] Debug: ObjectactiveNotebookId: "0fe4e254-02d1-4a14-9046-6b3aefe17a89"dropdownNotebookId: "0fe4e254-02d1-4a14-9046-6b3aefe17a89"hasActiveNotebook: truehasSavedNoteData: falsenoteId: undefinedsavedNoteNotebookId: undefinedsavedNotesCount: 0[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()
+injected.js:27 [QuickNotePanel] Debug: ObjectactiveNotebookId: "0fe4e254-02d1-4a14-9046-6b3aefe17a89"dropdownNotebookId: "0fe4e254-02d1-4a14-9046-6b3aefe17a89"hasActiveNotebook: truehasSavedNoteData: falsenoteId: undefinedsavedNoteNotebookId: undefinedsavedNotesCount: 0[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()
+injected.js:27 [QuickNotePanel] Debug: ObjectactiveNotebookId: "0fe4e254-02d1-4a14-9046-6b3aefe17a89"dropdownNotebookId: "0fe4e254-02d1-4a14-9046-6b3aefe17a89"hasActiveNotebook: truehasSavedNoteData: falsenoteId: undefinedsavedNoteNotebookId: undefinedsavedNotesCount: 0[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()
+injected.js:27 [QuickNotePanel] Response status: 200
+injected.js:27 [QuickNotePanel] Debug: Object
+injected.js:27 [QuickNotePanel] Debug: Object
+(index):1 Refused to load the stylesheet 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap' because it violates the following Content Security Policy directive: "style-src 'self' 'unsafe-inline'". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback.
+
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 3
+stallwart.build.js:1 stallwart: failed ping 4
