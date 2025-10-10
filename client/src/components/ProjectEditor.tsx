@@ -67,7 +67,66 @@ import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
-import FileHandler from '@tiptap/extension-file-handler';
+
+// Image upload paste handler extension - runs at high priority
+const ImageUploadPaste = (uploadHandler: (file: File) => Promise<string>, toastFn: any) => Extension.create({
+  name: 'imageUploadPaste',
+  
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('imageUploadPaste'),
+        props: {
+          handlePaste(view, event, slice) {
+            const items = event.clipboardData?.items;
+            if (!items) return false;
+
+            // Check for image files in clipboard
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type.startsWith('image/')) {
+                const file = items[i].getAsFile();
+                if (!file) continue;
+
+                // Prevent default paste behavior
+                event.preventDefault();
+
+                if (file.size > 5 * 1024 * 1024) {
+                  toastFn({
+                    title: 'Image too large',
+                    description: 'Image must be less than 5MB',
+                    variant: 'destructive'
+                  });
+                  return true;
+                }
+
+                // Upload and insert
+                uploadHandler(file)
+                  .then((url) => {
+                    const { schema, tr } = view.state;
+                    const node = schema.nodes.image.create({ src: url });
+                    const transaction = tr.replaceSelectionWith(node);
+                    view.dispatch(transaction);
+                  })
+                  .catch((error) => {
+                    console.error('Image upload error:', error);
+                    toastFn({
+                      title: 'Failed to upload image',
+                      description: 'Could not upload image. Please try again.',
+                      variant: 'destructive'
+                    });
+                  });
+
+                return true;
+              }
+            }
+
+            return false;
+          },
+        },
+      }),
+    ];
+  },
+});
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -333,60 +392,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         },
         suggestion,
       }),
-      Image.extend({
-        addProseMirrorPlugins() {
-          return [
-            new Plugin({
-              key: new PluginKey('imageDropPaste'),
-              props: {
-                handlePaste: (view, event) => {
-                  const items = event.clipboardData?.items;
-                  if (!items) return false;
-
-                  for (let i = 0; i < items.length; i++) {
-                    const item = items[i];
-                    if (item.type.startsWith('image/')) {
-                      event.preventDefault();
-                      
-                      const file = item.getAsFile();
-                      if (!file) continue;
-
-                      if (file.size > 5 * 1024 * 1024) {
-                        toast({
-                          title: 'Image too large',
-                          description: 'Image must be less than 5MB',
-                          variant: 'destructive'
-                        });
-                        return true;
-                      }
-
-                      handleImageUpload(file)
-                        .then((url) => {
-                          const { schema } = view.state;
-                          const node = schema.nodes.image.create({ src: url });
-                          const tr = view.state.tr.replaceSelectionWith(node);
-                          view.dispatch(tr);
-                        })
-                        .catch((error) => {
-                          console.error('Image upload error:', error);
-                          toast({
-                            title: 'Failed to upload image',
-                            description: 'Could not upload image. Please try again.',
-                            variant: 'destructive'
-                          });
-                        });
-
-                      return true;
-                    }
-                  }
-
-                  return false;
-                },
-              },
-            }),
-          ];
-        },
-      }).configure({
+      Image.configure({
         HTMLAttributes: {
           class: 'rounded-lg max-w-full h-auto',
         },
@@ -418,6 +424,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         mode: 'all',
       }),
       Typography,
+      ImageUploadPaste(handleImageUpload, toast),
       AISuggestionsExtension,
     ],
     content: project?.content || '',
