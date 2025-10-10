@@ -786,7 +786,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                             </div>
 
                             {/* Right side - Content */}
-                            <div className="flex-1 min-w-0 flex flex-col pr-8">
+                            <div className="flex-1 min-w-0 flex flex-col pr-8 pb-12">
                               <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-content-${item.id}`}>
                                 {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                               </h3>
@@ -922,7 +922,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                       </div>
 
                       {/* Right side - Content */}
-                      <div className="flex-1 min-w-0 flex flex-col pr-8">
+                      <div className="flex-1 min-w-0 flex flex-col pr-8 pb-12">
                         <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-recent-${item.id}`}>
                           {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
                         </h3>
