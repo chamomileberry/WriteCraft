@@ -385,7 +385,7 @@ export default function CharacterEditorWithSidebar({
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="p-4 space-y-2">
+          <div className="px-2 py-4 space-y-2">
             {sectionsWithTabs.map((section) => {
               const isExpanded = expandedSections.has(section.id);
               const isActive = activeSection === section.id;
