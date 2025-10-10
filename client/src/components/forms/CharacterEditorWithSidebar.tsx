@@ -384,15 +384,15 @@ export default function CharacterEditorWithSidebar({
           </Button>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="px-2 py-4 space-y-2">
+        <ScrollArea className="flex-1 w-full">
+          <div className="px-2 py-4 space-y-2 w-full">
             {sectionsWithTabs.map((section) => {
               const isExpanded = expandedSections.has(section.id);
               const isActive = activeSection === section.id;
               const Icon = section.icon;
 
               return (
-                <div key={section.id}>
+                <div key={section.id} className="w-full max-w-full">
                   <Button
                     variant="ghost"
                     className={cn(
