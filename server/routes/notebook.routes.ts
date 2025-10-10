@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertNotebookSchema, updateNotebookSchema } from "@shared/schema";
 import { z } from "zod";
+import { validateInput } from "../security/middleware";
 
 const router = Router();
 
@@ -23,19 +24,15 @@ router.get("/", async (req: any, res) => {
 });
 
 // Create a new notebook
-router.post("/", async (req: any, res) => {
+router.post("/", validateInput(insertNotebookSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookData = { ...req.body, userId };
     
-    const validatedNotebook = insertNotebookSchema.parse(notebookData);
-    const savedNotebook = await storage.createNotebook(validatedNotebook);
+    const savedNotebook = await storage.createNotebook(notebookData);
     res.json(savedNotebook);
   } catch (error) {
     console.error('Error creating notebook:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid notebook data', details: error.errors });
-    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
   }
@@ -57,13 +54,12 @@ router.get("/:id", async (req: any, res) => {
 });
 
 // Update a notebook
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", validateInput(updateNotebookSchema), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updateData = { ...req.body, userId };
     
-    const validatedUpdates = updateNotebookSchema.parse(updateData);
-    const updatedNotebook = await storage.updateNotebook(req.params.id, userId, validatedUpdates);
+    const updatedNotebook = await storage.updateNotebook(req.params.id, userId, updateData);
     
     if (!updatedNotebook) {
       return res.status(404).json({ error: 'Notebook not found' });
@@ -72,9 +68,6 @@ router.put("/:id", async (req: any, res) => {
     res.json(updatedNotebook);
   } catch (error) {
     console.error('Error updating notebook:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid notebook data', details: error.errors });
-    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';

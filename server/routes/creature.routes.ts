@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { insertCreatureSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateCreatureWithAI } from "../ai-generation";
+import { validateInput } from "../security/middleware";
 
 const router = Router();
 
@@ -99,20 +100,14 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.patch("/:id", async (req: any, res) => {
+router.patch("/:id", validateInput(insertCreatureSchema.omit({ userId: true }).partial()), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    // Validate the request body
-    const validatedUpdates = insertCreatureSchema.partial().parse(req.body);
-    
-    const updatedCreature = await storage.updateCreature(req.params.id, userId, validatedUpdates);
+    const updatedCreature = await storage.updateCreature(req.params.id, userId, req.body);
     res.json(updatedCreature);
   } catch (error) {
     console.error('Error updating creature:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';

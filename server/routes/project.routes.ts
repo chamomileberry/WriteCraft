@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertProjectSchema, insertProjectSectionSchema, type ProjectSection, type ProjectSectionWithChildren } from "@shared/schema";
 import { z } from "zod";
+import { validateInput } from "../security/middleware";
 
 const router = Router();
 
@@ -60,19 +61,15 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.post("/", async (req: any, res) => {
+router.post("/", validateInput(insertProjectSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const projectData = { ...req.body, userId };
 
-    const validatedProject = insertProjectSchema.parse(projectData);
-    const savedProject = await storage.createProject(validatedProject);
+    const savedProject = await storage.createProject(projectData);
     res.json(savedProject);
   } catch (error) {
     console.error('Error creating project:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid project data', details: error.errors });
-    }
     res.status(500).json({ error: 'Failed to create project' });
   }
 });
@@ -108,13 +105,12 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", validateInput(insertProjectSchema.omit({ userId: true }).partial()), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updateData = { ...req.body, userId };
 
-    const validatedUpdates = insertProjectSchema.partial().parse(updateData);
-    const updatedProject = await storage.updateProject(req.params.id, userId, validatedUpdates);
+    const updatedProject = await storage.updateProject(req.params.id, userId, updateData);
 
     if (!updatedProject) {
       return res.status(404).json({ error: 'Project not found' });
@@ -123,9 +119,6 @@ router.put("/:id", async (req: any, res) => {
     res.json(updatedProject);
   } catch (error) {
     console.error('Error updating project:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid project data', details: error.errors });
-    }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const projectId = req.params.id || 'unknown';
@@ -187,7 +180,7 @@ router.get("/:projectId/sections", async (req: any, res) => {
   }
 });
 
-router.post("/:projectId/sections", async (req: any, res) => {
+router.post("/:projectId/sections", validateInput(insertProjectSectionSchema.omit({ projectId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId } = req.params;
@@ -213,14 +206,10 @@ router.post("/:projectId/sections", async (req: any, res) => {
     }
 
     const sectionData = { ...req.body, projectId };
-    const validatedSection = insertProjectSectionSchema.parse(sectionData);
-    const savedSection = await storage.createProjectSection(validatedSection);
+    const savedSection = await storage.createProjectSection(sectionData);
     res.json(savedSection);
   } catch (error) {
     console.error('Error creating project section:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid section data', details: error.errors });
-    }
     res.status(500).json({ error: 'Failed to create section' });
   }
 });
@@ -248,7 +237,7 @@ router.get("/:projectId/sections/:sectionId", async (req: any, res) => {
   }
 });
 
-router.put("/:projectId/sections/:sectionId", async (req: any, res) => {
+router.put("/:projectId/sections/:sectionId", validateInput(insertProjectSectionSchema.omit({ projectId: true }).partial()), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId, sectionId } = req.params;
@@ -259,8 +248,7 @@ router.put("/:projectId/sections/:sectionId", async (req: any, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const validatedUpdates = insertProjectSectionSchema.partial().parse(req.body);
-    const updatedSection = await storage.updateProjectSection(sectionId, projectId, validatedUpdates);
+    const updatedSection = await storage.updateProjectSection(sectionId, projectId, req.body);
 
     if (!updatedSection) {
       return res.status(404).json({ error: 'Section not found' });
@@ -274,9 +262,6 @@ router.put("/:projectId/sections/:sectionId", async (req: any, res) => {
     res.json(updatedSection);
   } catch (error) {
     console.error('Error updating project section:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid section data', details: error.errors });
-    }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       const projectId = req.params.projectId || 'unknown';

@@ -4,6 +4,7 @@ import { insertCharacterSchema, updateCharacterSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateCharacterWithAI, generateCharacterFieldWithAI } from "../ai-generation";
 import { generateArticleForContent } from "../article-generation";
+import { validateInput } from "../security/middleware";
 
 const router = Router();
 
@@ -199,7 +200,7 @@ router.post("/:id/generate-field", async (req: any, res) => {
 });
 
 // Create character manually (from comprehensive form)
-router.post("/", async (req: any, res) => {
+router.post("/", validateInput(insertCharacterSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     // Extract userId from header for security (override client payload)
     const userId = req.user.claims.sub;
@@ -218,16 +219,10 @@ router.post("/", async (req: any, res) => {
     }
     
     const fullCharacterData = { ...characterData, userId, notebookId };
-    
-    // Validate the request body using the insert schema
-    const validatedCharacter = insertCharacterSchema.parse(fullCharacterData);
-    const savedCharacter = await storage.createCharacter(validatedCharacter);
+    const savedCharacter = await storage.createCharacter(fullCharacterData);
     res.json(savedCharacter);
   } catch (error) {
     console.error('Error creating character:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid character data', details: error.errors });
-    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
   }

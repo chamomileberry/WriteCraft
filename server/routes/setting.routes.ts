@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { insertSettingSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateSettingWithAI } from "../ai-generation";
+import { validateInput } from "../security/middleware";
 
 const router = Router();
 
@@ -60,7 +61,7 @@ router.post("/generate", async (req: any, res) => {
   }
 });
 
-router.post("/", async (req: any, res) => {
+router.post("/", validateInput(insertSettingSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     // Extract userId from header for security
     const userId = req.user.claims.sub;
@@ -76,16 +77,10 @@ router.post("/", async (req: any, res) => {
     }
     
     const settingData = { ...req.body, userId };
-    
-    // Validate the request body using the insert schema
-    const validatedSetting = insertSettingSchema.parse(settingData);
-    const savedSetting = await storage.createSetting(validatedSetting);
+    const savedSetting = await storage.createSetting(settingData);
     res.json(savedSetting);
   } catch (error) {
     console.error('Error creating setting:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid setting data', details: error.errors });
-    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
   }
