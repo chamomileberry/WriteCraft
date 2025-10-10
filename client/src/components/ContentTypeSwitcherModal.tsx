@@ -46,7 +46,7 @@ export function ContentTypeSwitcherModal({
       const response = await apiRequest(
         "PATCH",
         `/api/saved-items/${savedItemId}/type`,
-        { newType }
+        { newItemType: newType }
       );
 
       if (!response.ok) {
