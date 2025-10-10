@@ -5,15 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Target, AlertTriangle, Users, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import type { Conflict, Notebook } from "@shared/schema";
+import type { Conflict } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useNotebookStore } from "@/stores/notebookStore";
-import { useToast } from "@/hooks/use-toast";
 
 const CONFLICT_TYPE_CATEGORIES = {
   "Conflict Types": ['any', 'internal', 'external', 'interpersonal', 'societal']
@@ -44,11 +40,9 @@ export default function ConflictGenerator() {
   const [conflictType, setConflictType] = useState('any');
   const [genre, setGenre] = useState('any');
   const { user } = useAuth();
-  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating conflicts.'
   });
-  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Conflict>({
     generateEndpoint: '/api/conflicts/generate',
@@ -81,33 +75,6 @@ ${conflict.potentialResolutions.join('\n')}`,
 
   const generatedConflict = generator.result;
 
-  // Quick create mutation
-  const quickCreateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
-        name: 'Untitled Notebook',
-        description: ''
-      });
-      const data = await response.json();
-      return data as Notebook;
-    },
-    onSuccess: (newNotebook: Notebook) => {
-      setNotebooks([...notebooks, newNotebook]);
-      setActiveNotebook(newNotebook.id);
-      toast({
-        title: "Notebook Created",
-        description: "Your new notebook is ready to use.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create notebook. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
@@ -126,9 +93,7 @@ ${conflict.potentialResolutions.join('\n')}`,
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GeneratorNotebookControls
-            onQuickCreate={() => quickCreateMutation.mutate()}
-          />
+          <GeneratorNotebookControls />
           
           <div className="grid md:grid-cols-2 gap-4 mt-6">
             <div>

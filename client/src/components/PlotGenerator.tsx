@@ -11,10 +11,6 @@ import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useNotebookStore } from "@/stores/notebookStore";
-import type { Notebook } from "@shared/schema";
 
 interface PlotStructure {
   id?: string;
@@ -66,7 +62,6 @@ export default function PlotGenerator() {
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating plots.'
   });
-  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<PlotStructure>({
     generateEndpoint: '/api/plots/generate',
@@ -117,32 +112,6 @@ ${plot.setup}
     });
   };
 
-  // Quick create mutation
-  const quickCreateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
-        name: 'Untitled Notebook',
-        description: ''
-      });
-      const data = await response.json();
-      return data as Notebook;
-    },
-    onSuccess: (newNotebook: Notebook) => {
-      setNotebooks([...notebooks, newNotebook]);
-      setActiveNotebook(newNotebook.id);
-      toast({
-        title: "Notebook Created",
-        description: "Your new notebook is ready to use.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create notebook. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -170,9 +139,7 @@ ${plot.setup}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GeneratorNotebookControls
-            onQuickCreate={() => quickCreateMutation.mutate()}
-          />
+          <GeneratorNotebookControls />
           
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-4">

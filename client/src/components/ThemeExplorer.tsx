@@ -5,15 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Lightbulb, HelpCircle, Target, BookOpen, Copy, Heart, Loader2 } from "lucide-react";
-import type { Theme, Notebook } from "@shared/schema";
+import type { Theme } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useNotebookStore } from "@/stores/notebookStore";
-import { useToast } from "@/hooks/use-toast";
 
 const GENRE_CATEGORIES = {
   "Fiction": ['literary', 'fantasy', 'romance', 'thriller', 'sci-fi', 'historical', 'contemporary']
@@ -22,11 +18,9 @@ const GENRE_CATEGORIES = {
 export default function ThemeExplorer() {
   const [genre, setGenre] = useState('');
   const { user } = useAuth();
-  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before exploring themes.'
   });
-  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Theme>({
     generateEndpoint: '/api/themes/generate',
@@ -61,33 +55,6 @@ ${theme.examples.join('\n')}`,
 
   const generatedTheme = generator.result;
 
-  // Quick create mutation
-  const quickCreateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
-        name: 'Untitled Notebook',
-        description: ''
-      });
-      const data = await response.json();
-      return data as Notebook;
-    },
-    onSuccess: (newNotebook: Notebook) => {
-      setNotebooks([...notebooks, newNotebook]);
-      setActiveNotebook(newNotebook.id);
-      toast({
-        title: "Notebook Created",
-        description: "Your new notebook is ready to use.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create notebook. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -98,9 +65,7 @@ ${theme.examples.join('\n')}`,
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GeneratorNotebookControls
-            onQuickCreate={() => quickCreateMutation.mutate()}
-          />
+          <GeneratorNotebookControls />
           
           <div className="space-y-4 mt-6">
             <div>

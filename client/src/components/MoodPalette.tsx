@@ -9,9 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import type { Mood, Notebook } from "@shared/schema";
+import type { Mood } from "@shared/schema";
 
 export default function MoodPalette() {
   const [generatedMood, setGeneratedMood] = useState<Mood | null>(null);
@@ -79,32 +77,6 @@ ${generatedMood.soundscape.join('\n')}`;
     }
   };
 
-  // Quick create mutation
-  const quickCreateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
-        name: 'Untitled Notebook',
-        description: ''
-      });
-      const data = await response.json();
-      return data as Notebook;
-    },
-    onSuccess: (newNotebook: Notebook) => {
-      setNotebooks([...notebooks, newNotebook]);
-      setActiveNotebook(newNotebook.id);
-      toast({
-        title: "Notebook Created",
-        description: "Your new notebook is ready to use.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create notebook. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -123,9 +95,7 @@ ${generatedMood.soundscape.join('\n')}`;
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GeneratorNotebookControls
-            onQuickCreate={() => quickCreateMutation.mutate()}
-          />
+          <GeneratorNotebookControls />
           
           <p className="text-sm text-muted-foreground">Click generate to create a mood palette with evocative sensory details.</p>
           

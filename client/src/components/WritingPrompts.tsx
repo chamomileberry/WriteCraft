@@ -12,8 +12,6 @@ import { GENRE_CATEGORIES } from "@shared/genres";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
-import { useNotebookStore } from "@/stores/notebookStore";
-import type { Notebook } from "@shared/schema";
 
 interface WritingPrompt {
   id?: string;
@@ -41,32 +39,6 @@ export default function WritingPrompts() {
   const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating prompts.'
-  });
-  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
-
-  const quickCreateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
-        name: 'Untitled Notebook',
-        description: ''
-      });
-      return response.json();
-    },
-    onSuccess: (newNotebook) => {
-      setNotebooks([...notebooks, newNotebook]);
-      setActiveNotebook(newNotebook.id);
-      toast({
-        title: "Notebook Created",
-        description: "Your new notebook is ready to use.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create notebook. Please try again.",
-        variant: "destructive",
-      });
-    },
   });
 
   const generatePromptMutation = useMutation({
@@ -190,7 +162,7 @@ ${currentPrompt.text}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GeneratorNotebookControls onQuickCreate={() => quickCreateMutation.mutate()} />
+          <GeneratorNotebookControls />
           
           <div className="space-y-4 mt-6">
             <div>

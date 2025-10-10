@@ -10,10 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useToast } from "@/hooks/use-toast";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useNotebookStore } from "@/stores/notebookStore";
-import type { GeneratedName, Notebook } from "@shared/schema";
+import type { GeneratedName } from "@shared/schema";
 
 // Comprehensive name type categories
 const NAME_TYPE_CATEGORIES = {
@@ -458,26 +455,6 @@ export default function NameGenerator() {
 
   const NameIcon = getNameTypeIcon();
 
-  const quickCreateMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error('User not authenticated');
-      const notebook: Partial<Notebook> = {
-        title: 'Quick Notes',
-        userId: user.id,
-        isDefault: false
-      };
-      const res = await apiRequest<Notebook>('POST', '/api/notebooks', notebook);
-      return res;
-    },
-    onSuccess: (notebook) => {
-      useNotebookStore.getState().setActiveNotebook(notebook.id);
-      toast({
-        title: "Notebook created",
-        description: `"${notebook.title}" has been created and selected.`,
-      });
-    },
-  });
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -488,9 +465,7 @@ export default function NameGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GeneratorNotebookControls
-            onQuickCreate={() => quickCreateMutation.mutate()}
-          />
+          <GeneratorNotebookControls />
           
           <div className="space-y-4 mt-6">
             <div className="grid md:grid-cols-2 gap-4">

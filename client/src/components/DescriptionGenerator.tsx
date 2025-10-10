@@ -5,16 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { FileText, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import type { Description, Notebook } from "@shared/schema";
+import type { Description } from "@shared/schema";
 import { GENRE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useNotebookStore } from "@/stores/notebookStore";
-import { useToast } from "@/hooks/use-toast";
 
 const DESCRIPTION_TYPE_CATEGORIES = {
   "Equipment & Gear": [
@@ -114,11 +110,9 @@ export default function DescriptionGenerator() {
   const [descriptionType, setDescriptionType] = useState('armour');
   const [genre, setGenre] = useState('');
   const { user } = useAuth();
-  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating descriptions.'
   });
-  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Description>({
     generateEndpoint: '/api/descriptions/generate',
@@ -144,32 +138,6 @@ Tags: ${desc.tags.join(', ')}`,
 
   const generatedDescription = generator.result;
 
-  // Quick create mutation
-  const quickCreateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
-        name: 'Untitled Notebook',
-        description: ''
-      });
-      return response.json();
-    },
-    onSuccess: (newNotebook) => {
-      setNotebooks([...notebooks, newNotebook]);
-      setActiveNotebook(newNotebook.id);
-      toast({
-        title: "Notebook Created",
-        description: "Your new notebook is ready to use.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create notebook. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
@@ -190,9 +158,7 @@ Tags: ${desc.tags.join(', ')}`,
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <GeneratorNotebookControls
-            onQuickCreate={() => quickCreateMutation.mutate()}
-          />
+          <GeneratorNotebookControls />
           
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
