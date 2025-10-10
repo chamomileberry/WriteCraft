@@ -169,7 +169,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     staleTime: 0, // Always consider data stale
     refetchOnMount: true, // Refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when user returns to tab
-    refetchInterval: 10000 // Poll every 10 seconds to catch imports (reduced from 5s to avoid rate limits)
+    refetchInterval: 60000 // Poll every 60 seconds to catch imports (reduced frequency for better performance)
   });
 
   // Fetch quick note separately
@@ -842,13 +842,6 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                                 >
                                   <Copy className="w-3 h-3" />
                                 </Button>
-                                {activeNotebookId && (
-                                  <ContentTypeSwitcher
-                                    savedItemId={item.id}
-                                    currentType={item.itemType || item.contentType || 'unknown'}
-                                    notebookId={activeNotebookId}
-                                  />
-                                )}
                                 <Button
                                   size="sm"
                                   variant="ghost"
@@ -975,13 +968,6 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                           >
                             <Copy className="w-3 h-3" />
                           </Button>
-                          {activeNotebookId && (
-                            <ContentTypeSwitcher
-                              savedItemId={item.id}
-                              currentType={item.itemType || item.contentType || 'unknown'}
-                              notebookId={activeNotebookId}
-                            />
-                          )}
                           <Button
                             size="sm"
                             variant="ghost"
