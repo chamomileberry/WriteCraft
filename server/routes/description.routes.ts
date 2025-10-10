@@ -2,8 +2,26 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertDescriptionSchema } from "@shared/schema";
 import { z } from "zod";
+import { generateDescriptionWithAI } from "../ai-generation";
 
 const router = Router();
+
+router.post("/generate", async (req: any, res) => {
+  try {
+    const { descriptionType, genre, userId, notebookId } = req.body;
+    
+    const generatedDescription = await generateDescriptionWithAI({
+      descriptionType,
+      genre
+    });
+
+    res.json(generatedDescription);
+  } catch (error) {
+    console.error('Error generating description:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: errorMessage });
+  }
+});
 
 router.post("/", async (req: any, res) => {
   try {

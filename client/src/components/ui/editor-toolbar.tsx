@@ -8,6 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useMobileDetection } from '@/hooks/useMobileDetection';
 import {
@@ -119,6 +121,17 @@ export function EditorToolbar({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Stock photo states
+  const [stockSearchQuery, setStockSearchQuery] = useState('');
+  const [stockImages, setStockImages] = useState<any[]>([]);
+  const [searchingStock, setSearchingStock] = useState(false);
+  const [selectedStockImage, setSelectedStockImage] = useState('');
+  
+  // AI generation states
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [generatingAI, setGeneratingAI] = useState(false);
+  const [generatedAIImage, setGeneratedAIImage] = useState('');
 
   // Toolbar functions
   const toggleBold = () => {
@@ -283,6 +296,135 @@ export function EditorToolbar({
 
   const handleRemoveImagePreview = () => {
     setImagePreviewUrl('');
+  };
+
+  const handleStockSearch = async () => {
+    if (!stockSearchQuery.trim()) {
+      toast({
+        title: 'Enter search query',
+        description: 'Please enter keywords to search for stock photos',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setSearchingStock(true);
+    try {
+      const response = await fetch('/api/stock-images/search', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          query: stockSearchQuery,
+          limit: 12
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to search stock images');
+      }
+
+      const data = await response.json();
+      setStockImages(data.images || []);
+      
+      if (data.images?.length === 0) {
+        toast({
+          title: 'No results',
+          description: 'No stock photos found for your query. Try different keywords.',
+        });
+      }
+    } catch (error) {
+      console.error('Stock search error:', error);
+      toast({
+        title: 'Search failed',
+        description: 'Failed to search stock photos. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSearchingStock(false);
+    }
+  };
+
+  const handleStockImageSelect = (imageUrl: string) => {
+    setSelectedStockImage(imageUrl);
+  };
+
+  const handleStockImageInsert = () => {
+    if (selectedStockImage) {
+      editor?.chain().focus().setImage({ src: selectedStockImage }).run();
+      setImageDialogOpen(false);
+      setStockSearchQuery('');
+      setStockImages([]);
+      setSelectedStockImage('');
+      toast({
+        title: "Image added",
+        description: "The stock photo has been successfully inserted."
+      });
+    }
+  };
+
+  const handleGenerateAI = async () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        title: 'Enter prompt',
+        description: 'Please describe the image you want to generate',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setGeneratingAI(true);
+    try {
+      const response = await fetch('/api/dalle/generate', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          prompt: aiPrompt,
+          quality: 'standard',
+          size: '1024x1024'
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate image');
+      }
+
+      const data = await response.json();
+      setGeneratedAIImage(data.imageUrl);
+      
+      toast({
+        title: 'Image generated',
+        description: 'Your AI-generated image is ready'
+      });
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      toast({
+        title: 'Generation failed',
+        description: error.message || 'Failed to generate image. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setGeneratingAI(false);
+    }
+  };
+
+  const handleAIImageInsert = () => {
+    if (generatedAIImage) {
+      editor?.chain().focus().setImage({ src: generatedAIImage }).run();
+      setImageDialogOpen(false);
+      setAiPrompt('');
+      setGeneratedAIImage('');
+      toast({
+        title: "Image added",
+        description: "The AI-generated image has been successfully inserted."
+      });
+    }
   };
 
   const handleVideoSubmit = () => {
@@ -1191,110 +1333,259 @@ export function EditorToolbar({
 
       {/* Image Dialog */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Insert Image</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            {imagePreviewUrl ? (
-              <div className="relative inline-block max-w-full">
-                <img 
-                  src={imagePreviewUrl} 
-                  alt="Preview" 
-                  className="max-w-full h-auto max-h-64 rounded-lg border"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={handleRemoveImagePreview}
-                  data-testid="button-remove-image-preview"
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="upload" data-testid="tab-upload">Upload File</TabsTrigger>
+              <TabsTrigger value="stock" data-testid="tab-stock">Stock Photos</TabsTrigger>
+              <TabsTrigger value="ai" data-testid="tab-ai">AI Generate</TabsTrigger>
+            </TabsList>
+            
+            {/* Tab 1: Upload File */}
+            <TabsContent value="upload" className="space-y-4">
+              {imagePreviewUrl ? (
+                <div className="relative inline-block max-w-full">
+                  <img 
+                    src={imagePreviewUrl} 
+                    alt="Preview" 
+                    className="max-w-full h-auto max-h-64 rounded-lg border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={handleRemoveImagePreview}
+                    data-testid="button-remove-image-preview"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50">
+                    <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Upload an image or enter a URL
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        data-testid="button-upload-file-editor"
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Choose File
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handleImageFileChange}
+                      className="hidden"
+                      capture="environment"
+                      data-testid="input-file-editor"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or enter URL
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="image-url">Image URL</Label>
+                    <Input
+                      id="image-url"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      onKeyDown={(e) => e.key === 'Enter' && !uploadingImage && handleImageSubmit()}
+                      disabled={uploadingImage}
+                      data-testid="input-image-url-editor"
+                    />
+                  </div>
+                </>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  setImageDialogOpen(false);
+                  setImageUrl('');
+                  setImagePreviewUrl('');
+                }}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleImageSubmit}
+                  disabled={!imagePreviewUrl && !imageUrl.trim()}
+                  data-testid="button-insert-image-editor"
                 >
-                  <X className="h-4 w-4" />
+                  Insert Image
+                </Button>
+              </DialogFooter>
+            </TabsContent>
+            
+            {/* Tab 2: Stock Photos */}
+            <TabsContent value="stock" className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search stock photos..."
+                  value={stockSearchQuery}
+                  onChange={(e) => setStockSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleStockSearch()}
+                  disabled={searchingStock}
+                  data-testid="input-stock-search"
+                />
+                <Button 
+                  onClick={handleStockSearch}
+                  disabled={searchingStock || !stockSearchQuery.trim()}
+                  data-testid="button-stock-search"
+                >
+                  {searchingStock ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    'Search'
+                  )}
                 </Button>
               </div>
-            ) : (
-              <>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50">
-                  <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Upload an image or enter a URL
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      data-testid="button-upload-file-editor"
-                    >
-                      {uploadingImage ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="mr-2 h-4 w-4" />
-                          Choose File
-                        </>
-                      )}
-                    </Button>
+              
+              {stockImages.length > 0 && (
+                <>
+                  <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1">
+                    {stockImages.map((image, index) => (
+                      <div
+                        key={index}
+                        className={`relative cursor-pointer rounded-lg border-2 transition-all hover-elevate ${
+                          selectedStockImage === image.url 
+                            ? 'border-primary ring-2 ring-primary' 
+                            : 'border-transparent'
+                        }`}
+                        onClick={() => handleStockImageSelect(image.url)}
+                        data-testid={`stock-image-${index}`}
+                      >
+                        <img 
+                          src={image.url} 
+                          alt={image.alt || `Stock photo ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
-                    onChange={handleImageFileChange}
-                    className="hidden"
-                    capture="environment"
-                    data-testid="input-file-editor"
+                  
+                  {selectedStockImage && (
+                    <div className="border rounded-lg p-2">
+                      <img 
+                        src={selectedStockImage} 
+                        alt="Selected preview" 
+                        className="max-w-full h-auto max-h-48 mx-auto rounded"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  setImageDialogOpen(false);
+                  setStockSearchQuery('');
+                  setStockImages([]);
+                  setSelectedStockImage('');
+                }}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleStockImageInsert}
+                  disabled={!selectedStockImage}
+                  data-testid="button-insert-stock-image"
+                >
+                  Insert Image
+                </Button>
+              </DialogFooter>
+            </TabsContent>
+            
+            {/* Tab 3: AI Generate */}
+            <TabsContent value="ai" className="space-y-4">
+              <div>
+                <Label htmlFor="ai-prompt">Describe the image you want to generate</Label>
+                <Textarea
+                  id="ai-prompt"
+                  placeholder="A serene mountain landscape at sunset with a lake in the foreground..."
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  disabled={generatingAI}
+                  className="min-h-24 mt-2"
+                  data-testid="textarea-ai-prompt"
+                />
+              </div>
+              
+              <Button 
+                onClick={handleGenerateAI}
+                disabled={generatingAI || !aiPrompt.trim()}
+                className="w-full"
+                data-testid="button-generate-ai"
+              >
+                {generatingAI ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Image...
+                  </>
+                ) : (
+                  'Generate Image'
+                )}
+              </Button>
+              
+              {generatedAIImage && (
+                <div className="border rounded-lg p-4">
+                  <img 
+                    src={generatedAIImage} 
+                    alt="AI generated" 
+                    className="max-w-full h-auto max-h-64 mx-auto rounded-lg"
                   />
                 </div>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <Separator />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or enter URL
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="image-url">Image URL</Label>
-                  <Input
-                    id="image-url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    onKeyDown={(e) => e.key === 'Enter' && !uploadingImage && handleImageSubmit()}
-                    disabled={uploadingImage}
-                    data-testid="input-image-url-editor"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setImageDialogOpen(false);
-              setImageUrl('');
-              setImagePreviewUrl('');
-            }}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleImageSubmit}
-              disabled={!imagePreviewUrl && !imageUrl.trim()}
-              data-testid="button-insert-image-editor"
-            >
-              Insert Image
-            </Button>
-          </DialogFooter>
+              )}
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  setImageDialogOpen(false);
+                  setAiPrompt('');
+                  setGeneratedAIImage('');
+                }}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleAIImageInsert}
+                  disabled={!generatedAIImage}
+                  data-testid="button-insert-ai-image"
+                >
+                  Insert Image
+                </Button>
+              </DialogFooter>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

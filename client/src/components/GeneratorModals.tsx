@@ -14,6 +14,7 @@ import ThemeExplorer from "@/components/ThemeExplorer";
 import MoodPalette from "@/components/MoodPalette";
 import PlantGenerator from "@/components/PlantGenerator";
 import DescriptionGenerator from "@/components/DescriptionGenerator";
+import WritingPrompts from "@/components/WritingPrompts";
 
 export type GeneratorType = 
   | 'character-generator'
@@ -26,6 +27,7 @@ export type GeneratorType =
   | 'mood-palette'
   | 'plant-generator'
   | 'description-generator'
+  | 'writing-prompts'
   | null;
 
 interface GeneratorModalsProps {
@@ -44,6 +46,7 @@ const GENERATOR_TITLES: Record<Exclude<GeneratorType, null>, string> = {
   'mood-palette': 'Mood Palette',
   'plant-generator': 'Plant Generator',
   'description-generator': 'Description Generator',
+  'writing-prompts': 'Writing Prompts',
 };
 
 export function GeneratorModals({ activeGenerator, onClose }: GeneratorModalsProps) {
@@ -69,6 +72,8 @@ export function GeneratorModals({ activeGenerator, onClose }: GeneratorModalsPro
         return <PlantGenerator />;
       case 'description-generator':
         return <DescriptionGenerator />;
+      case 'writing-prompts':
+        return <WritingPrompts />;
       default:
         return null;
     }

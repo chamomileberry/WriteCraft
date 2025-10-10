@@ -10,6 +10,7 @@ import {
   Palette,
   Smile,
   Sparkles,
+  Lightbulb,
   ChevronDown
 } from "lucide-react";
 import { GeneratorType } from "./GeneratorModals";
@@ -29,6 +30,7 @@ export const GENERATORS = [
   { id: 'theme-explorer' as const, label: 'Theme Explorer', icon: Sparkles },
   { id: 'mood-palette' as const, label: 'Mood Palette', icon: Palette },
   { id: 'description-generator' as const, label: 'Description Generator', icon: Smile },
+  { id: 'writing-prompts' as const, label: 'Writing Prompts', icon: Lightbulb },
 ];
 
 export function GeneratorDropdown({ onSelectGenerator }: GeneratorDropdownProps) {

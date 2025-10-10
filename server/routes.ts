@@ -7,6 +7,7 @@ import aiRoutes from "./routes/ai.routes";
 import importRoutes from "./routes/import.routes";
 import pexelsRoutes from "./routes/pexels.routes";
 import dalleRoutes from "./routes/dalle.routes";
+import stockImagesRoutes from "./routes/stock-images.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { 
   insertCharacterSchema, 
@@ -86,6 +87,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Pexels stock image routes
   app.use("/api/pexels", isAuthenticated, pexelsRoutes);
+
+  // Register stock images routes
+  app.use("/api/stock-images", isAuthenticated, stockImagesRoutes);
 
   // Register DALL-E 3 AI image generation routes
   app.use("/api/dalle", isAuthenticated, dalleRoutes);

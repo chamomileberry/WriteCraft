@@ -151,10 +151,9 @@ Tags: ${desc.tags.join(', ')}`,
         name: 'Untitled Notebook',
         description: ''
       });
-      const data = await response.json();
-      return data as Notebook;
+      return response.json();
     },
-    onSuccess: (newNotebook: Notebook) => {
+    onSuccess: (newNotebook) => {
       setNotebooks([...notebooks, newNotebook]);
       setActiveNotebook(newNotebook.id);
       toast({

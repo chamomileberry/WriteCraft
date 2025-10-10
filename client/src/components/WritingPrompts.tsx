@@ -2,15 +2,18 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
-import { Zap, Copy, RefreshCw, Heart, Loader2, Check, ChevronsUpDown } from "lucide-react";
+import { Zap, Copy, RefreshCw, Heart, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { GENRE_CATEGORIES } from "@shared/genres";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useAuth } from "@/hooks/useAuth";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { useNotebookStore } from "@/stores/notebookStore";
+import type { Notebook } from "@shared/schema";
 
 interface WritingPrompt {
   id?: string;
@@ -24,27 +27,59 @@ interface WritingPrompt {
   createdAt?: string;
 }
 
-// Removed local data arrays - now using backend API
-const promptTypes = ['Story Starter', 'Character Focus', 'Dialogue', 'Setting', 'Conflict'];
-
-// Now using backend data - imported from shared/genres.ts
-const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
+const PROMPT_TYPE_CATEGORIES = {
+  "Prompt Types": ['Story Starter', 'Character Focus', 'Dialogue', 'Setting', 'Conflict']
+};
 
 export default function WritingPrompts() {
   const [currentPrompt, setCurrentPrompt] = useState<WritingPrompt | null>(null);
   const [genre, setGenre] = useState<string>("");
   const [promptType, setPromptType] = useState<string>("");
   const [savedPrompts, setSavedPrompts] = useState<WritingPrompt[]>([]);
-  const [genreOpen, setGenreOpen] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating prompts.'
+  });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
+
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      return response.json();
+    },
+    onSuccess: (newNotebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const generatePromptMutation = useMutation({
     mutationFn: async () => {
+      if (!validateNotebook()) {
+        throw new Error('No notebook selected');
+      }
+      
       const response = await apiRequest('POST', '/api/prompts/generate', {
         genre: (genre && genre !== 'any') ? genre : undefined,
         type: (promptType && promptType !== 'any') ? promptType : undefined,
-        userId: null // For now, no user authentication
+        userId: user?.id,
+        notebookId
       });
       return response.json();
     },
@@ -67,18 +102,18 @@ export default function WritingPrompts() {
       if (!currentPrompt?.id) return;
       
       const response = await apiRequest('POST', '/api/saved-items', {
-        userId: 'guest', // For now, using guest user
+        userId: user?.id,
         itemType: 'prompt',
         itemId: currentPrompt.id,
-        itemData: currentPrompt // Include the complete prompt data
+        itemData: currentPrompt,
+        notebookId
       });
       return response.json();
     },
     onSuccess: () => {
-      // Also add to local saved prompts
       if (currentPrompt) {
         setSavedPrompts(prev => {
-          const updated = [currentPrompt, ...prev].slice(0, 10); // Keep last 10
+          const updated = [currentPrompt, ...prev].slice(0, 10);
           return updated;
         });
       }
@@ -99,7 +134,7 @@ export default function WritingPrompts() {
     }
   });
 
-  const generatePrompt = () => {
+  const handleGenerate = () => {
     generatePromptMutation.mutate();
   };
 
@@ -149,101 +184,61 @@ ${currentPrompt.text}
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            Writing Prompt Generator
-          </CardTitle>
+          <CardTitle>Writing Prompt Generator</CardTitle>
           <CardDescription>
             Get inspired with creative writing prompts tailored to your preferred genre and style
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-4">
-            <Popover open={genreOpen} onOpenChange={setGenreOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={genreOpen}
-                  className="w-full justify-between"
-                  data-testid="select-prompt-genre"
-                >
-                  {genre
-                    ? ALL_GENRES.find((g) => g === genre) || genre
-                    : "Any genre"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
-                  <CommandInput placeholder="Search genres..." />
-                  <CommandList>
-                    <CommandEmpty>No genre found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem
-                        value=""
-                        onSelect={() => {
-                          setGenre("");
-                          setGenreOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${genre === "" ? "opacity-100" : "opacity-0"}`}
-                        />
-                        Any Genre
-                      </CommandItem>
-                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                        <div key={category}>
-                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                            {category}
-                          </div>
-                          {genres.map((genreOption) => (
-                            <CommandItem
-                              key={genreOption}
-                              value={genreOption}
-                              onSelect={(currentValue) => {
-                                setGenre(currentValue === genre ? "" : currentValue);
-                                setGenreOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${genre === genreOption ? "opacity-100" : "opacity-0"}`}
-                              />
-                              {genreOption}
-                            </CommandItem>
-                          ))}
-                        </div>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            
-            <Select value={promptType} onValueChange={setPromptType}>
-              <SelectTrigger data-testid="select-prompt-type">
-                <SelectValue placeholder="Any type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any Type</SelectItem>
-                {promptTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
+        <CardContent>
+          <GeneratorNotebookControls onQuickCreate={() => quickCreateMutation.mutate()} />
+          
+          <div className="space-y-4 mt-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Genre</label>
+              <SearchableSelect
+                value={genre}
+                onValueChange={setGenre}
+                categorizedOptions={GENRE_CATEGORIES}
+                placeholder="Any Genre"
+                searchPlaceholder="Search genres..."
+                emptyText="No genre found."
+                testId="select-prompt-genre"
+                allowEmpty={true}
+                emptyLabel="Any Genre"
+                formatLabel={(value) => value}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Prompt Type</label>
+              <SearchableSelect
+                value={promptType}
+                onValueChange={setPromptType}
+                categorizedOptions={PROMPT_TYPE_CATEGORIES}
+                placeholder="Any Type"
+                searchPlaceholder="Search prompt types..."
+                emptyText="No type found."
+                testId="select-prompt-type"
+                allowEmpty={true}
+                emptyLabel="Any Type"
+                formatLabel={(value) => value}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
             <Button 
-              onClick={generatePrompt}
+              onClick={handleGenerate}
               disabled={generatePromptMutation.isPending}
               data-testid="button-generate-prompt"
-              className="w-full"
             >
               {generatePromptMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
               ) : (
-                <Zap className="mr-2 h-4 w-4" />
+                "Generate Prompt"
               )}
-              {generatePromptMutation.isPending ? 'Generating...' : 'Generate Prompt'}
             </Button>
           </div>
         </CardContent>
@@ -271,7 +266,7 @@ ${currentPrompt.text}
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={generatePrompt}
+                  onClick={handleGenerate}
                   disabled={generatePromptMutation.isPending}
                   data-testid="button-refresh-prompt"
                 >

@@ -1,6 +1,5 @@
 import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +9,7 @@ import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useMobileWorkspaceMenu } from "@/components/workspace/WorkspaceShell";
 import { GeneratorDropdown, GENERATORS } from "@/components/GeneratorDropdown";
 import { GeneratorModals, GeneratorType } from "@/components/GeneratorModals";
+import { CommandPalette } from "@/components/CommandPalette";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -19,12 +19,11 @@ interface HeaderProps {
 }
 
 export default function Header({ onSearch, searchQuery = "", onNavigate, onCreateNew }: HeaderProps) {
-  const [searchValue, setSearchValue] = useState(searchQuery);
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] = useState(false);
   const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   
@@ -85,28 +84,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     document.documentElement.classList.toggle('dark', isDarkMode);
   }, []);
 
-  useEffect(() => {
-    setSearchValue(searchQuery);
-  }, [searchQuery]);
-
   const toggleTheme = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
     localStorage.setItem('theme', newTheme ? 'dark' : 'light');
     document.documentElement.classList.toggle('dark', newTheme);
     console.log('Theme toggled to:', newTheme ? 'dark' : 'light');
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchValue.trim())}`);
-    } else {
-      setLocation('/search');
-    }
-    onSearch?.(searchValue);
-    setIsMobileSearchOpen(false);
-    console.log('Search triggered:', searchValue);
   };
 
   return (
@@ -148,34 +131,13 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {/* Desktop Search Bar - Larger and more prominent */}
-            <form onSubmit={handleSearch} className="hidden lg:flex items-center">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10 w-64 lg:w-72"
-                  data-testid="input-search-desktop"
-                />
-              </div>
-            </form>
-
-            {/* Mobile/Tablet Search Icon */}
+            {/* Search Button - Opens Command Palette */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => {
-                setIsMobileSearchOpen(!isMobileSearchOpen);
-                if (!isMobileSearchOpen) {
-                  setIsMobileMenuOpen(false); // Close menu when opening search
-                }
-              }}
-              className="lg:hidden"
-              data-testid="button-search-mobile"
-              title="Search"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              data-testid="button-search"
+              title="Search (⌘K)"
               aria-label="Search"
             >
               <Search className="h-4 w-4" />
@@ -265,12 +227,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               variant="ghost" 
               size="icon" 
               className="md:hidden" 
-              onClick={() => {
-                setIsMobileMenuOpen(!isMobileMenuOpen);
-                if (!isMobileMenuOpen) {
-                  setIsMobileSearchOpen(false); // Close search when opening menu
-                }
-              }}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               data-testid="button-menu"
               title="Menu"
               aria-label="Menu"
@@ -283,28 +240,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
         </div>
       </div>
 
-      {/* Mobile/Tablet Search Dropdown */}
-      {isMobileSearchOpen && (
-        <div className="lg:hidden bg-background border-b border-border">
-          <div className="px-4 py-4">
-            <form onSubmit={handleSearch} className="w-full">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10 w-full"
-                  data-testid="input-search-mobile"
-                  autoFocus
-                />
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-b border-border max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-4 py-4 space-y-4">
@@ -312,7 +247,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 onNavigate?.('notebook');
                 setIsMobileMenuOpen(false);
-                setIsMobileSearchOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-notebook"
@@ -323,7 +257,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 onNavigate?.('projects');
                 setIsMobileMenuOpen(false);
-                setIsMobileSearchOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-projects"
@@ -351,7 +284,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                         onClick={() => {
                           setActiveGenerator(generator.id);
                           setIsMobileMenuOpen(false);
-                          setIsMobileSearchOpen(false);
                           setIsMobileGeneratorsExpanded(false);
                         }}
                         className="flex items-center gap-2 w-full text-left text-sm text-foreground hover:text-primary transition-colors py-2"
@@ -370,7 +302,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={() => {
                 setLocation('/guides');
                 setIsMobileMenuOpen(false);
-                setIsMobileSearchOpen(false);
               }}
               className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
               data-testid="mobile-link-guides"
@@ -384,6 +315,11 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       <GeneratorModals 
         activeGenerator={activeGenerator} 
         onClose={() => setActiveGenerator(null)} 
+      />
+
+      <CommandPalette 
+        open={isCommandPaletteOpen} 
+        onOpenChange={setIsCommandPaletteOpen} 
       />
     </header>
   );
