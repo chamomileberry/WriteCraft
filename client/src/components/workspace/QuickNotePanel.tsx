@@ -11,6 +11,7 @@ import { useNotebookStore } from '@/stores/notebookStore';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -38,14 +39,15 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const queryClient = useQueryClient();
   const { activeNotebookId } = useNotebookStore();
   const { currentLayout, updatePanel } = useWorkspaceStore();
+  const { user } = useAuth();
 
   // Get the panel title and metadata from workspace store
   const panel = currentLayout.panels.find(p => p.id === panelId);
   const noteTitle = panel?.title || 'Quick Note';
   const noteId = panel?.metadata?.noteId; // Get saved note ID if editing a saved note
 
-  // Using guest user for consistency with other components in this demo app
-  const userId = 'guest'; 
+  // Get user ID from auth context
+  const userId = user?.id || 'guest'; 
 
   // Get saved note data from panel metadata if editing a saved note
   const savedNoteData = panel?.metadata?.savedNoteData;
