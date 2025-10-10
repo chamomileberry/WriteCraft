@@ -343,6 +343,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   
   const editor = useEditor({
     extensions: [
+      ImageUploadPaste(handleImageUpload, toast),
       StarterKit.configure({
         bulletList: false,
         orderedList: false,
@@ -424,7 +425,6 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         mode: 'all',
       }),
       Typography,
-      ImageUploadPaste(handleImageUpload, toast),
       AISuggestionsExtension,
     ],
     content: project?.content || '',
@@ -471,7 +471,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         content,
         htmlContent,
         title: project?.title || 'Untitled Project',
-        type: 'project',
+        type: 'section',
         entityId: projectId
       });
       
@@ -530,7 +530,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         content,
         htmlContent,
         title: project.title || 'Untitled Project',
-        type: 'project',
+        type: 'section',
         entityId: projectId
       });
     }
@@ -760,14 +760,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           wordCount={editor?.storage.characterCount?.words() || 0}
           saveStatus={autosave.saveStatus}
           lastSaveTime={autosave.lastSaveTime}
-          isEditingTitle={isEditingTitle}
-          titleInput={titleInput}
           onBack={onBack}
-          onTitleClick={handleTitleClick}
-          onTitleChange={setTitleInput}
-          onTitleSave={handleTitleSave}
-          onTitleCancel={handleTitleCancel}
-          onTitleKeyDown={handleTitleKeyDown}
           onManualSave={handleManualSave}
           isSaving={autosave.isSaving}
         />
