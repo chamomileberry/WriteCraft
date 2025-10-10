@@ -180,7 +180,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     saveFn: async (data) => {
       // If editing a saved note, update the saved item directly
       if (noteId) {
-        const savedItemResponse = await apiRequest('PUT', `/api/saved-items/${noteId}`, {
+        const savedItemResponse = await apiRequest('PATCH', `/api/saved-items/${noteId}`, {
           itemData: {
             title: data.title,
             content: data.content
@@ -234,7 +234,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const mutationFunction = useCallback(async (data: any) => {
     // If editing a saved note, update the saved item directly
     if (noteId) {
-      const savedItemResponse = await apiRequest('PUT', `/api/saved-items/${noteId}`, {
+      const savedItemResponse = await apiRequest('PATCH', `/api/saved-items/${noteId}`, {
         itemData: {
           title: data.title,
           content: data.content
