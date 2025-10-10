@@ -17,6 +17,7 @@ import { useNotebookStore } from "@/stores/notebookStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import NotebookSwitcher from "./NotebookSwitcher";
 import ContentTypeModal from "./ContentTypeModal";
+import ContentTypeSidebar from "./ContentTypeSidebar";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
@@ -99,6 +100,7 @@ interface SavedItemsProps {
 export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNotebookPopoverOpenChange }: SavedItemsProps = {}) {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
@@ -419,6 +421,11 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     return null;
   };
 
+  // Handler for item selection from sidebar
+  const handleSidebarItemSelect = (item: SavedItem) => {
+    handleEdit(item);
+  };
+
   // Filter all items (saved items + quick note)
   const filteredItems = allItems.filter(item => {
     const type = item.contentType || item.itemType || 'unknown';
@@ -434,7 +441,9 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     const matchesCategory = !selectedCategory || 
       (CONTENT_CATEGORIES[selectedCategory]?.includes(type));
 
-    return matchesSearch && matchesTab && matchesCategory;
+    const matchesType = !selectedType || type === selectedType;
+
+    return matchesSearch && matchesTab && matchesCategory && matchesType;
   });
 
   // Group items by type for better organization
@@ -532,27 +541,39 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const activeNotebook = getActiveNotebook();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <BookOpen className="h-8 w-8 text-primary" />
-            Writing Notebook
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Your saved characters, locations, plots, and creative content
-          </p>
-          <div className="flex gap-4 mt-3">
-            <Badge variant="secondary" data-testid="stat-total-items">
-              {totalItems} Total Items
-            </Badge>
-            <Badge variant="outline" data-testid="stat-recent-items">
-              {recentItems} This Week
-            </Badge>
+    <div className="flex h-full gap-0">
+      {/* Content Type Sidebar */}
+      <ContentTypeSidebar
+        items={allItems}
+        selectedType={selectedType}
+        onSelectType={setSelectedType}
+        onSelectItem={handleSidebarItemSelect}
+        className="w-64 flex-shrink-0"
+      />
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-auto">
+        <div className="space-y-6 p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <BookOpen className="h-8 w-8 text-primary" />
+                Writing Notebook
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Your saved characters, locations, plots, and creative content
+              </p>
+              <div className="flex gap-4 mt-3">
+                <Badge variant="secondary" data-testid="stat-total-items">
+                  {totalItems} Total Items
+                </Badge>
+                <Badge variant="outline" data-testid="stat-recent-items">
+                  {recentItems} This Week
+                </Badge>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
       {/* Notebook Switcher */}
       <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -955,11 +976,13 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         </TabsContent>
       </Tabs>
 
-      <ContentTypeModal 
-        isOpen={isContentModalOpen}
-        onClose={() => setIsContentModalOpen(false)}
-        onSelectType={handleContentTypeSelect}
-      />
+          <ContentTypeModal 
+            isOpen={isContentModalOpen}
+            onClose={() => setIsContentModalOpen(false)}
+            onSelectType={handleContentTypeSelect}
+          />
+        </div>
+      </div>
     </div>
   );
 }
