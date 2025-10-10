@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import * as SelectPrimitive from "@radix-ui/react-select";
 import {
   Select,
   SelectContent,
@@ -121,7 +122,7 @@ export function ContentTypeSwitcherModal({
               <SelectTrigger data-testid="select-new-type">
                 <SelectValue placeholder="Select a type" />
               </SelectTrigger>
-              <SelectContent className="max-h-[400px] z-[100]" position="popper" sideOffset={5}>
+              <SelectContent className="max-h-[400px] z-[300]" position="popper" sideOffset={5}>
                 {Object.entries(groupedTypes).map(([category, types]) => (
                   <SelectGroup key={category}>
                     <SelectLabel>{category}</SelectLabel>
