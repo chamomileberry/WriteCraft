@@ -456,6 +456,52 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       attributes: {
         class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] px-6 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
       },
+      handlePaste: (view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+
+        // Check if there are any image files in the clipboard
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            
+            const file = item.getAsFile();
+            if (!file) continue;
+
+            // Check file size
+            if (file.size > 5 * 1024 * 1024) {
+              toast({
+                title: 'Image too large',
+                description: 'Image must be less than 5MB',
+                variant: 'destructive'
+              });
+              return true;
+            }
+
+            // Upload and insert the image
+            handleImageUpload(file)
+              .then((url) => {
+                const { schema } = view.state;
+                const node = schema.nodes.image.create({ src: url });
+                const tr = view.state.tr.replaceSelectionWith(node);
+                view.dispatch(tr);
+              })
+              .catch((error) => {
+                console.error('Image upload error:', error);
+                toast({
+                  title: 'Failed to upload image',
+                  description: 'Could not upload image. Please try again.',
+                  variant: 'destructive'
+                });
+              });
+
+            return true;
+          }
+        }
+
+        return false;
+      },
       handleKeyDown: (view, event) => {
         if (event.key === 'Tab') {
           event.preventDefault();
