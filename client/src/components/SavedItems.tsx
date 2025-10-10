@@ -18,6 +18,7 @@ import { useWorkspaceStore } from "@/stores/workspaceStore";
 import NotebookSwitcher from "./NotebookSwitcher";
 import ContentTypeModal from "./ContentTypeModal";
 import ContentTypeSidebar from "./ContentTypeSidebar";
+import { ContentTypeSwitcher } from "./ContentTypeSwitcher";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
@@ -841,6 +842,13 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                                 >
                                   <Copy className="w-3 h-3" />
                                 </Button>
+                                {activeNotebookId && (
+                                  <ContentTypeSwitcher
+                                    savedItemId={item.id}
+                                    currentType={item.itemType || item.contentType || 'unknown'}
+                                    notebookId={activeNotebookId}
+                                  />
+                                )}
                                 <Button
                                   size="sm"
                                   variant="ghost"
@@ -949,8 +957,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                           </Badge>
                         </div>
 
-                        {/* Action button - hidden until hover */}
-                        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Action buttons - hidden until hover */}
+                        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -958,6 +966,30 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                             data-testid={`button-edit-recent-${item.id}`}
                           >
                             <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleCopy(item)}
+                            data-testid={`button-copy-recent-${item.id}`}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                          {activeNotebookId && (
+                            <ContentTypeSwitcher
+                              savedItemId={item.id}
+                              currentType={item.itemType || item.contentType || 'unknown'}
+                              notebookId={activeNotebookId}
+                            />
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleUnsave(item)}
+                            disabled={unsaveMutation.isPending}
+                            data-testid={`button-delete-recent-${item.id}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
