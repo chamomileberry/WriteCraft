@@ -18,7 +18,7 @@ import { useWorkspaceStore } from "@/stores/workspaceStore";
 import NotebookSwitcher from "./NotebookSwitcher";
 import ContentTypeModal from "./ContentTypeModal";
 import ContentTypeSidebar from "./ContentTypeSidebar";
-import { ContentTypeSwitcher } from "./ContentTypeSwitcher";
+import { ContentTypeSwitcherModal } from "./ContentTypeSwitcherModal";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
@@ -842,6 +842,14 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                                 >
                                   <Copy className="w-3 h-3" />
                                 </Button>
+                                {activeNotebookId && (
+                                  <ContentTypeSwitcherModal
+                                    savedItemId={item.id}
+                                    currentType={item.itemType || item.contentType || 'unknown'}
+                                    notebookId={activeNotebookId}
+                                    userId={user?.id}
+                                  />
+                                )}
                                 <Button
                                   size="sm"
                                   variant="ghost"
@@ -968,6 +976,14 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                           >
                             <Copy className="w-3 h-3" />
                           </Button>
+                          {activeNotebookId && (
+                            <ContentTypeSwitcherModal
+                              savedItemId={item.id}
+                              currentType={item.itemType || item.contentType || 'unknown'}
+                              notebookId={activeNotebookId}
+                              userId={user?.id}
+                            />
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
