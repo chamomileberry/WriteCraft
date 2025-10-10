@@ -67,7 +67,7 @@ import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
-import { ImageUploadExtension } from '@/lib/image-upload-extension';
+import FileHandler from '@tiptap/extension-file-handler';
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -365,19 +365,76 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       }),
       Typography,
       AISuggestionsExtension,
-      ImageUploadExtension.configure({
-        onUpload: handleImageUpload,
-        onError: (error) => {
-          console.error('Image upload error:', error);
-          toast({
-            title: 'Failed to upload image',
-            description: error.message === 'Image too large' 
-              ? 'Image must be less than 5MB'
-              : 'Could not upload image. Please try again.',
-            variant: 'destructive'
-          });
+      FileHandler.configure({
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+        onDrop: async (currentEditor, files, pos) => {
+          for (const file of files) {
+            if (file.size > 5 * 1024 * 1024) {
+              toast({
+                title: 'Image too large',
+                description: 'Image must be less than 5MB',
+                variant: 'destructive'
+              });
+              continue;
+            }
+
+            try {
+              const url = await handleImageUpload(file);
+              currentEditor
+                .chain()
+                .insertContentAt(pos, {
+                  type: 'image',
+                  attrs: {
+                    src: url,
+                  },
+                })
+                .focus()
+                .run();
+            } catch (error) {
+              console.error('Image upload error:', error);
+              toast({
+                title: 'Failed to upload image',
+                description: 'Could not upload image. Please try again.',
+                variant: 'destructive'
+              });
+            }
+          }
+          return true;
         },
-        maxFileSize: 5 * 1024 * 1024,
+        onPaste: async (currentEditor, files) => {
+          for (const file of files) {
+            if (file.size > 5 * 1024 * 1024) {
+              toast({
+                title: 'Image too large',
+                description: 'Image must be less than 5MB',
+                variant: 'destructive'
+              });
+              continue;
+            }
+
+            try {
+              const url = await handleImageUpload(file);
+              currentEditor
+                .chain()
+                .insertContentAt(currentEditor.state.selection.anchor, {
+                  type: 'image',
+                  attrs: {
+                    src: url,
+                  },
+                })
+                .focus()
+                .run();
+            } catch (error) {
+              console.error('Image upload error:', error);
+              toast({
+                title: 'Failed to upload image',
+                description: 'Could not upload image. Please try again.',
+                variant: 'destructive'
+              });
+            }
+          }
+          return true;
+        },
       }),
     ],
     content: project?.content || '',
