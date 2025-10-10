@@ -75,13 +75,21 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const { data: savedQuickNotes = [] } = useQuery({
     queryKey: ['/api/saved-items', { userId, notebookId: dropdownNotebookId, itemType: 'quickNote' }],
     queryFn: async () => {
-      if (!dropdownNotebookId) return [];
-      const response = await fetch(
-        `/api/saved-items?userId=${userId}&notebookId=${dropdownNotebookId}&itemType=quickNote`,
-        { credentials: 'include' }
-      );
-      if (!response.ok) return [];
-      return response.json();
+      if (!dropdownNotebookId) {
+        console.log('[QuickNotePanel] No dropdownNotebookId, returning empty array');
+        return [];
+      }
+      const url = `/api/saved-items?userId=${userId}&notebookId=${dropdownNotebookId}&itemType=quickNote`;
+      console.log('[QuickNotePanel] Fetching saved quick notes:', url);
+      const response = await fetch(url, { credentials: 'include' });
+      console.log('[QuickNotePanel] Response status:', response.status);
+      if (!response.ok) {
+        console.log('[QuickNotePanel] Response not ok, returning empty array');
+        return [];
+      }
+      const data = await response.json();
+      console.log('[QuickNotePanel] Fetched quick notes:', data.length, 'items');
+      return data;
     },
     enabled: !!dropdownNotebookId,
   });
