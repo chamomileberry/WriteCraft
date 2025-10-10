@@ -101,10 +101,10 @@ export function GeneratorDropdown({ onSelectGenerator }: GeneratorDropdownProps)
       
       {isOpen && (
         <div 
-          className="absolute top-full left-0 mt-2 w-64 bg-popover border border-border rounded-md shadow-lg z-50"
+          className="absolute top-full left-0 pt-2 w-64 z-50"
           aria-label="Generator options"
         >
-          <div className="p-2">
+          <div className="bg-popover border border-border rounded-md shadow-lg p-2">
             <div className="text-xs font-semibold text-muted-foreground px-2 py-1.5">
               Quick Access
             </div>
