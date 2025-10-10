@@ -10,8 +10,13 @@ import { SectionEditor } from './SectionEditor';
 import { GeneratorDropdown, GENERATORS } from './GeneratorDropdown';
 import { GeneratorModals, GeneratorType } from './GeneratorModals';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, BookOpen, Moon, Sun, StickyNote, Sparkles, Menu, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Loader2, ArrowLeft, BookOpen, Moon, Sun, StickyNote, Sparkles, Menu, ChevronDown, Plus, Search, User, Settings, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from 'wouter';
 import type { ProjectSectionWithChildren } from '@shared/schema';
 
 interface ProjectContainerProps {
@@ -29,6 +34,9 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
   
   // Theme toggle state - must be at top level before any conditional returns
   const [isDark, setIsDark] = useState(() => {
@@ -252,6 +260,24 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
     });
   };
 
+  // User initials for avatar
+  const userInitials = user ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || user.email?.[0]?.toUpperCase() || "U" : "U";
+
+  // Search handler
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      setLocation(`/search?q=${encodeURIComponent(searchValue.trim())}`);
+    } else {
+      setLocation('/search');
+    }
+  };
+
+  // Create new handler
+  const handleCreateNew = () => {
+    setLocation('/notebook');
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Global Navigation Header */}
@@ -295,7 +321,47 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {/* Desktop Search Bar */}
+              <form onSubmit={handleSearch} className="hidden lg:flex items-center">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search..."
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    className="pl-10 w-64"
+                    data-testid="input-search-desktop"
+                  />
+                </div>
+              </form>
+
+              {/* Mobile Search Icon */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSearch}
+                className="lg:hidden"
+                data-testid="button-search-mobile"
+                title="Search"
+                aria-label="Search"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+
+              {/* Create Button */}
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleCreateNew}
+                className="flex bg-primary hover:bg-primary/90 text-primary-foreground"
+                data-testid="button-create-new"
+              >
+                <Plus className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Create</span>
+              </Button>
+              
               {/* Quick Note Button */}
               <Button
                 variant="ghost"
@@ -334,6 +400,43 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
               >
                 {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
+
+              {/* User Profile Avatar */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" data-testid="button-user-menu">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.profileImageUrl || undefined} />
+                      <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setLocation('/account')} data-testid="menu-account">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Account</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation('/import')} data-testid="menu-import">
+                    <Upload className="mr-2 h-4 w-4" />
+                    <span>Import Data</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => { window.location.href = '/api/auth/logout'; }} data-testid="menu-logout">
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Button 
                 variant="ghost" 
