@@ -85,12 +85,14 @@ export function ContentTypeSwitcher({
           disabled={updateTypeMutation.isPending}
           data-testid={`button-change-type-${savedItemId}`}
         >
-          {updateTypeMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <ArrowLeftRight className="h-4 w-4" />
-          )}
-          <span className="ml-2">Change Type</span>
+          <>
+            {updateTypeMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowLeftRight className="h-4 w-4" />
+            )}
+            <span className="ml-2">Change Type</span>
+          </>
         </Button>
       </SelectTrigger>
       <SelectContent className="max-h-[400px]">
