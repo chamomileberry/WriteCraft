@@ -731,7 +731,12 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                 if (!itemType) return;
                 const mapping = getMappingById(itemType);
                 if (mapping) {
-                  setLocation(`/${mapping.urlSegment}/${item.itemId || item.contentId}`);
+                  // Include notebookId query parameter for all content navigation
+                  const itemId = item.itemId || item.contentId;
+                  const url = activeNotebookId 
+                    ? `/${mapping.urlSegment}/${itemId}?notebookId=${activeNotebookId}`
+                    : `/${mapping.urlSegment}/${itemId}`;
+                  setLocation(url);
                 } else {
                   console.warn(`No mapping found for item type: ${itemType}`);
                 }
