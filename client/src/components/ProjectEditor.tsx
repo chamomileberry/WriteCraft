@@ -368,6 +368,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       FileHandler.configure({
         allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
         onDrop: async (currentEditor, files, pos) => {
+          console.log('FileHandler onDrop called with files:', files);
           for (const file of files) {
             if (file.size > 5 * 1024 * 1024) {
               toast({
@@ -379,7 +380,9 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
             }
 
             try {
+              console.log('Uploading file:', file.name);
               const url = await handleImageUpload(file);
+              console.log('Upload successful, URL:', url);
               currentEditor
                 .chain()
                 .insertContentAt(pos, {
@@ -401,7 +404,15 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           }
           return true;
         },
-        onPaste: async (currentEditor, files) => {
+        onPaste: async (currentEditor, files, htmlContent) => {
+          console.log('FileHandler onPaste called with files:', files, 'htmlContent:', htmlContent);
+          
+          // If there's HTML content with an image, let TipTap handle it
+          if (htmlContent) {
+            console.log('Has HTML content, returning false to let TipTap handle it');
+            return false;
+          }
+          
           for (const file of files) {
             if (file.size > 5 * 1024 * 1024) {
               toast({
@@ -413,7 +424,9 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
             }
 
             try {
+              console.log('Uploading pasted file:', file.name);
               const url = await handleImageUpload(file);
+              console.log('Upload successful, URL:', url);
               currentEditor
                 .chain()
                 .insertContentAt(currentEditor.state.selection.anchor, {
