@@ -53,6 +53,19 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Determine which notebook to use for the dropdown - prefer saved note's notebook, fall back to active notebook
   const dropdownNotebookId = savedNoteData?.notebookId || activeNotebookId;
   
+  // Debug logging
+  useEffect(() => {
+    console.log('[QuickNotePanel] Debug:', {
+      noteId,
+      hasActiveNotebook: !!activeNotebookId,
+      activeNotebookId,
+      hasSavedNoteData: !!savedNoteData,
+      savedNoteNotebookId: savedNoteData?.notebookId,
+      dropdownNotebookId,
+      savedNotesCount: savedQuickNotes?.length || 0
+    });
+  }, [noteId, activeNotebookId, savedNoteData, dropdownNotebookId, savedQuickNotes]);
+  
   // Fetch scratch pad quick note (only when not editing a saved note)
   const { data: quickNote, isLoading } = useQuery({
     queryKey: ['/api/quick-note', userId],
