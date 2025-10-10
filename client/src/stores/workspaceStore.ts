@@ -497,7 +497,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 
       getFloatingPanels: () => {
         const state = get();
-        return state.currentLayout.panels.filter(p => p.mode === 'floating');
+        return state.currentLayout.panels.filter(p => p.mode === 'floating' && !p.minimized);
       },
 
       getActiveTab: (regionId: 'main' | 'split' = 'main') => {

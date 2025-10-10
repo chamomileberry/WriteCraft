@@ -71,9 +71,6 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   const writingAssistantClearChatFunctions = useRef<{ [panelId: string]: () => void }>({});
   const writingAssistantToggleHistoryFunctions = useRef<{ [panelId: string]: () => void }>({});
   
-  // Only render floating panels that are not minimized (tabbed panels are rendered in tab bars)
-  const floatingPanels = currentLayout.panels.filter(panel => panel.mode === 'floating' && !panel.minimized);
-  
   // Get docked panels for sidebar
   const dockedPanels = currentLayout.panels.filter(panel => panel.mode === 'docked' && !panel.minimized);
 
