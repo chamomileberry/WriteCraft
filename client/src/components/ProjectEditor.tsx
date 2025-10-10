@@ -407,12 +407,13 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         onPaste: async (currentEditor, files, htmlContent) => {
           console.log('FileHandler onPaste called with files:', files, 'htmlContent:', htmlContent);
           
-          // If there's HTML content with an image, let TipTap handle it
-          if (htmlContent) {
-            console.log('Has HTML content, returning false to let TipTap handle it');
+          // If there are no files, let TipTap handle the HTML content
+          if (!files || files.length === 0) {
+            console.log('No files to handle, letting TipTap handle HTML content');
             return false;
           }
           
+          // We have files to upload, so handle them ourselves
           for (const file of files) {
             if (file.size > 5 * 1024 * 1024) {
               toast({
