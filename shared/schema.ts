@@ -1311,7 +1311,8 @@ export const timelineEvents = pgTable("timeline_events", {
   icon: text("icon"), // lucide icon name
   linkedContentId: varchar("linked_content_id"), // ID of linked character, location, etc.
   linkedContentType: text("linked_content_type"), // 'character', 'location', 'item', etc.
-  positionY: real("position_y"), // vertical position for manual layout in visual mode
+  positionX: real("position_x"), // horizontal position for canvas layout
+  positionY: real("position_y"), // vertical position for canvas layout
   metadata: jsonb("metadata"), // flexible JSON for custom fields
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -3067,6 +3068,10 @@ export type InsertFamilyTreeRelationship = z.infer<typeof insertFamilyTreeRelati
 export type FamilyTreeRelationship = typeof familyTreeRelationships.$inferSelect;
 export type InsertTimeline = z.infer<typeof insertTimelineSchema>;
 export type Timeline = typeof timelines.$inferSelect;
+export type InsertTimelineEvent = z.infer<typeof insertTimelineEventSchema>;
+export type TimelineEvent = typeof timelineEvents.$inferSelect;
+export type InsertTimelineRelationship = z.infer<typeof insertTimelineRelationshipSchema>;
+export type TimelineRelationship = typeof timelineRelationships.$inferSelect;
 export type InsertCeremony = z.infer<typeof insertCeremonySchema>;
 export type Ceremony = typeof ceremonies.$inferSelect;
 export type InsertMap = z.infer<typeof insertMapSchema>;

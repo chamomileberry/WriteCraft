@@ -58,6 +58,8 @@ import {
   type FamilyTreeMember, type InsertFamilyTreeMember,
   type FamilyTreeRelationship, type InsertFamilyTreeRelationship,
   type Timeline, type InsertTimeline,
+  type TimelineEvent, type InsertTimelineEvent,
+  type TimelineRelationship, type InsertTimelineRelationship,
   type Ceremony, type InsertCeremony,
   type Map, type InsertMap,
   type Music, type InsertMusic,
@@ -1675,6 +1677,44 @@ export class StorageFacade implements IStorage {
 
   async deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void> {
     await contentRepository.deleteChatHistory(userId, projectId, guideId);
+  }
+
+  // Timeline Event methods  
+  async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
+    return await contentRepository.createTimelineEvent(event);
+  }
+
+  async getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined> {
+    return await contentRepository.getTimelineEvent(id, userId, timelineId);
+  }
+
+  async getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]> {
+    return await contentRepository.getTimelineEvents(timelineId, userId);
+  }
+
+  async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
+    return await contentRepository.updateTimelineEvent(id, userId, updates);
+  }
+
+  async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void> {
+    await contentRepository.deleteTimelineEvent(id, userId, timelineId);
+  }
+
+  // Timeline Relationship methods
+  async createTimelineRelationship(relationship: InsertTimelineRelationship): Promise<TimelineRelationship> {
+    return await contentRepository.createTimelineRelationship(relationship);
+  }
+
+  async getTimelineRelationships(timelineId: string, userId: string): Promise<TimelineRelationship[]> {
+    return await contentRepository.getTimelineRelationships(timelineId, userId);
+  }
+
+  async updateTimelineRelationship(id: string, userId: string, updates: Partial<InsertTimelineRelationship>): Promise<TimelineRelationship> {
+    return await contentRepository.updateTimelineRelationship(id, userId, updates);
+  }
+
+  async deleteTimelineRelationship(id: string, userId: string, timelineId: string): Promise<void> {
+    await contentRepository.deleteTimelineRelationship(id, userId, timelineId);
   }
 }
 

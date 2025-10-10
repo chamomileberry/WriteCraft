@@ -784,6 +784,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Timeline routes
+  app.get("/api/timelines/:id", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { notebookId } = req.query;
+
+      if (!notebookId) {
+        return res.status(400).json({ error: 'Notebook ID is required' });
+      }
+
+      const timeline = await storage.getTimeline(id, userId, notebookId as string);
+      if (!timeline) {
+        return res.status(404).json({ error: 'Timeline not found' });
+      }
+
+      res.json(timeline);
+    } catch (error) {
+      console.error('Error fetching timeline:', error);
+      res.status(500).json({ error: 'Failed to fetch timeline' });
+    }
+  });
+
+  // Timeline Event routes
+  app.get("/api/timeline-events", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { timelineId, notebookId } = req.query;
+
+      if (!timelineId || !notebookId) {
+        return res.status(400).json({ error: 'Timeline ID and Notebook ID are required' });
+      }
+
+      const events = await storage.getTimelineEvents(timelineId as string, userId);
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching timeline events:', error);
+      res.status(500).json({ error: 'Failed to fetch timeline events' });
+    }
+  });
+
+  app.post("/api/timeline-events", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { timelineId, notebookId, userId: _ignored, createdAt: _ignored2, updatedAt: _ignored3, id: _ignored4, ...eventData } = req.body;
+
+      if (!timelineId || !notebookId) {
+        return res.status(400).json({ error: 'Timeline ID and Notebook ID are required' });
+      }
+
+      // Verify timeline ownership before creating event
+      const timeline = await storage.getTimeline(timelineId, userId, notebookId);
+      if (!timeline) {
+        return res.status(404).json({ error: 'Timeline not found or access denied' });
+      }
+
+      // Server-side assignment of immutable fields
+      const event = await storage.createTimelineEvent({
+        ...eventData,
+        timelineId,
+        // Server assigns createdAt/updatedAt automatically via DB defaults
+      });
+      res.status(201).json(event);
+    } catch (error) {
+      console.error('Error creating timeline event:', error);
+      res.status(400).json({ error: 'Failed to create timeline event' });
+    }
+  });
+
+  app.patch("/api/timeline-events/:id", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const event = await storage.updateTimelineEvent(id, userId, updates);
+      res.json(event);
+    } catch (error) {
+      console.error('Error updating timeline event:', error);
+      res.status(500).json({ error: 'Failed to update timeline event' });
+    }
+  });
+
+  app.delete("/api/timeline-events/:id", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { timelineId } = req.query;
+
+      if (!timelineId) {
+        return res.status(400).json({ error: 'Timeline ID is required' });
+      }
+
+      await storage.deleteTimelineEvent(id, userId, timelineId as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting timeline event:', error);
+      res.status(500).json({ error: 'Failed to delete timeline event' });
+    }
+  });
+
+  // Timeline Relationship routes
+  app.get("/api/timeline-relationships", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { timelineId, notebookId } = req.query;
+
+      if (!timelineId || !notebookId) {
+        return res.status(400).json({ error: 'Timeline ID and Notebook ID are required' });
+      }
+
+      const relationships = await storage.getTimelineRelationships(timelineId as string, userId);
+      res.json(relationships);
+    } catch (error) {
+      console.error('Error fetching timeline relationships:', error);
+      res.status(500).json({ error: 'Failed to fetch timeline relationships' });
+    }
+  });
+
+  app.post("/api/timeline-relationships", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { timelineId, notebookId, createdAt: _ignored, id: _ignored2, ...relationshipData } = req.body;
+
+      if (!timelineId || !notebookId) {
+        return res.status(400).json({ error: 'Timeline ID and Notebook ID are required' });
+      }
+
+      // Verify timeline ownership before creating relationship
+      const timeline = await storage.getTimeline(timelineId, userId, notebookId);
+      if (!timeline) {
+        return res.status(404).json({ error: 'Timeline not found or access denied' });
+      }
+
+      // Server-side assignment of immutable fields
+      const relationship = await storage.createTimelineRelationship({
+        ...relationshipData,
+        timelineId,
+        // Server assigns createdAt automatically via DB defaults
+      });
+      res.status(201).json(relationship);
+    } catch (error) {
+      console.error('Error creating timeline relationship:', error);
+      res.status(400).json({ error: 'Failed to create timeline relationship' });
+    }
+  });
+
+  app.delete("/api/timeline-relationships/:id", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { timelineId } = req.query;
+
+      if (!timelineId) {
+        return res.status(400).json({ error: 'Timeline ID is required' });
+      }
+
+      await storage.deleteTimelineRelationship(id, userId, timelineId as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting timeline relationship:', error);
+      res.status(500).json({ error: 'Failed to delete timeline relationship' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

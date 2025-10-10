@@ -27,6 +27,7 @@ import NoteEditPage from "@/pages/NoteEditPage";
 import ImportPage from "@/pages/ImportPage";
 import CharacterConsolidatePage from "@/pages/CharacterConsolidatePage";
 import BannedPhrasesManagement from "@/pages/BannedPhrasesManagement";
+import TimelineViewPage from "@/pages/TimelineViewPage";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -209,6 +210,7 @@ function Router() {
       <Route path="/characters/:id/edit-sidebar" component={CharacterEditPageWithSidebar} />
       <Route path="/settings" component={SettingPage} />
       <Route path="/creatures" component={CreaturePage} />
+      <Route path="/timelines/:id" component={TimelineViewPage} />
       <Route path="/editor/:type/:id" component={EditorPage} />
       <Route path="/:type/:id/edit" component={EditorPage} />
       {/* Fallback to 404 */}
