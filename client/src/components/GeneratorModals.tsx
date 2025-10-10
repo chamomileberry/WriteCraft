@@ -73,11 +73,11 @@ export function GeneratorModals({ activeGenerator, onClose }: GeneratorModalsPro
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{GENERATOR_TITLES[activeGenerator]}</DialogTitle>
         </DialogHeader>
-        <div className="mt-4">
+        <div className="mt-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
           {renderGenerator()}
         </div>
       </DialogContent>
