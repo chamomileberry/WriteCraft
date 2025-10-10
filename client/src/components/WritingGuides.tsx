@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Clock, Star, Search, Filter, Loader2, Plus, Edit3, Trash2, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Clock, Search, Filter, Loader2, Plus, Edit3, Trash2, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -223,10 +223,6 @@ export default function WritingGuides() {
                   <CardTitle className="text-lg group-hover:text-primary transition-colors">
                     {guide.title}
                   </CardTitle>
-                </div>
-                <div className="flex items-center gap-1 text-chart-3">
-                  <Star className="h-4 w-4 fill-current" />
-                  <span className="text-sm">{guide.rating}</span>
                 </div>
               </div>
               <CardDescription>{guide.description}</CardDescription>
