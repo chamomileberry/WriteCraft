@@ -3,7 +3,7 @@ import {
   Star, Globe, Users, Flag, Crown, Target, Scroll, Lightbulb, Package, Home, Palette, 
   PaintBucket, Car, Calculator, Feather, Sparkles, Circle, GitBranch, Clock, Camera, 
   Music, PersonStanding, Scale, FileText as Policy, FlaskConical, Briefcase, TreePine, 
-  Mountain, StickyNote, Theater, Smile, Hash, Pencil, FilePlus
+  Mountain, StickyNote, Theater, Smile, Hash, Pencil, FilePlus, Rabbit
 } from "lucide-react";
 
 /**
@@ -52,7 +52,7 @@ export const CONTENT_TYPE_ICONS: { [key: string]: React.ComponentType<{ classNam
   
   // Creatures & Life
   species: Star,
-  creature: Star,
+  creature: Rabbit,
   animal: Circle,
   plant: TreePine,
   
@@ -132,7 +132,7 @@ export const CONTENT_TYPES: ContentType[] = [
   
   // Creatures & Life
   { id: "species", name: "Species", description: "Design unique sapient species", category: "Life", icon: Star },
-  { id: "creature", name: "Creature", description: "Create monsters and fantastical beings", category: "Life", icon: Star },
+  { id: "creature", name: "Creature", description: "Create monsters and fantastical beings", category: "Life", icon: Rabbit },
   { id: "animal", name: "Animal", description: "Create fauna for your world", category: "Life", icon: Circle },
   { id: "plant", name: "Plant", description: "Design flora and vegetation", category: "Life", icon: TreePine },
   
