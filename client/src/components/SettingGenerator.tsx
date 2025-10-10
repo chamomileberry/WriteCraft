@@ -10,21 +10,30 @@ import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Check, Chevr
 import type { Setting } from "@shared/schema";
 import { GENRE_CATEGORIES, SETTING_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useAuth } from "@/hooks/useAuth";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 export default function SettingGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedSettingType, setSelectedSettingType] = useState<string>("");
   const [genreSearchOpen, setGenreSearchOpen] = useState(false);
   const [settingTypeSearchOpen, setSettingTypeSearchOpen] = useState(false);
+  const { user } = useAuth();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating settings.'
+  });
 
   const generator = useGenerator<Setting>({
     generateEndpoint: '/api/settings/generate',
     getGenerateParams: () => ({
       genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
-      settingType: selectedSettingType && selectedSettingType !== "any" ? selectedSettingType : undefined
+      settingType: selectedSettingType && selectedSettingType !== "any" ? selectedSettingType : undefined,
+      notebookId
     }),
     itemTypeName: 'setting',
-    userId: 'guest',
+    userId: user?.id ?? undefined,
+    notebookId: notebookId ?? undefined,
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (setting) => `**${setting.name}**
       
 **Location:** ${setting.location}

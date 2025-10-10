@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Lightbulb, HelpCircle, Target, BookOpen, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import type { Theme } from "@shared/schema";
+import { useGenerator } from "@/hooks/useGenerator";
+import { useAuth } from "@/hooks/useAuth";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 const genres = [
   { value: 'any', label: 'Any Genre' },
@@ -22,91 +22,44 @@ const genres = [
 ];
 
 export default function ThemeExplorer() {
-  const [generatedTheme, setGeneratedTheme] = useState<Theme | null>(null);
   const [genre, setGenre] = useState('any');
-  const { toast } = useToast();
-
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/themes/generate', { genre });
-      return await res.json() as Theme;
-    },
-    onSuccess: (theme: Theme) => {
-      setGeneratedTheme(theme);
-      queryClient.invalidateQueries({ queryKey: ['/api/themes'] });
-    },
-    onError: (error) => {
-      console.error('Failed to generate theme:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to create theme. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const { user } = useAuth();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before exploring themes.'
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (theme: Theme) => {
-      const res = await apiRequest('POST', '/api/themes', theme);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Theme Saved!",
-        description: "Your theme has been saved to your collection.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/themes'] });
-    },
-    onError: () => {
-      toast({
-        title: "Save Failed",
-        description: "Unable to save theme. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
+  const generator = useGenerator<Theme>({
+    generateEndpoint: '/api/themes/generate',
+    getGenerateParams: () => ({ genre, notebookId }),
+    itemTypeName: 'theme',
+    userId: user?.id ?? undefined,
+    notebookId: notebookId ?? undefined,
+    validateBeforeGenerate: validateNotebook,
+    formatForClipboard: (theme) => `Theme: ${theme.title}
 
-  const handleGenerate = () => {
-    generateMutation.mutate();
-  };
-
-  const handleSave = () => {
-    if (generatedTheme) {
-      saveMutation.mutate(generatedTheme);
-    }
-  };
-
-  const handleCopy = () => {
-    if (generatedTheme) {
-      const themeText = `Theme: ${generatedTheme.title}
-
-Genre: ${generatedTheme.genre || 'General'}
+Genre: ${theme.genre || 'General'}
 
 Description:
-${generatedTheme.description}
+${theme.description}
 
 Core Message:
-${generatedTheme.coreMessage}
+${theme.coreMessage}
 
 Symbolic Elements:
-${generatedTheme.symbolicElements.join('\n')}
+${theme.symbolicElements.join('\n')}
 
 Key Questions:
-${generatedTheme.questions.join('\n')}
+${theme.questions.join('\n')}
 
 Related Conflicts:
-${generatedTheme.conflicts.join('\n')}
+${theme.conflicts.join('\n')}
 
 Literary Examples:
-${generatedTheme.examples.join('\n')}`;
+${theme.examples.join('\n')}`,
+    invalidateOnSave: [['/api/saved-items']],
+  });
 
-      navigator.clipboard.writeText(themeText);
-      toast({
-        title: "Copied to Clipboard!",
-        description: "Theme details have been copied to your clipboard.",
-      });
-    }
-  };
+  const generatedTheme = generator.result;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -146,13 +99,13 @@ ${generatedTheme.examples.join('\n')}`;
 
       <div className="flex justify-center mb-8">
         <Button 
-          onClick={handleGenerate}
-          disabled={generateMutation.isPending}
+          onClick={generator.generate}
+          disabled={generator.isGenerating}
           size="lg"
           className="px-8 py-6 text-lg"
           data-testid="button-generate-theme"
         >
-          {generateMutation.isPending ? (
+          {generator.isGenerating ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Exploring Themes...
@@ -263,12 +216,12 @@ ${generatedTheme.examples.join('\n')}`;
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
               <Button 
-                onClick={handleSave}
-                disabled={saveMutation.isPending}
+                onClick={generator.saveToCollection}
+                disabled={generator.isSaving}
                 variant="default"
                 data-testid="button-save-theme"
               >
-                {saveMutation.isPending ? (
+                {generator.isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
@@ -282,7 +235,7 @@ ${generatedTheme.examples.join('\n')}`;
               </Button>
               
               <Button 
-                onClick={handleCopy}
+                onClick={generator.copyToClipboard}
                 variant="outline"
                 data-testid="button-copy-theme"
               >

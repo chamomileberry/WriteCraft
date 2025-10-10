@@ -9,6 +9,8 @@ import { FileText, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown } from 
 import type { Description } from "@shared/schema";
 import { GENRE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useAuth } from "@/hooks/useAuth";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 const DESCRIPTION_TYPE_CATEGORIES = {
   "Equipment & Gear": [
@@ -71,15 +73,22 @@ export default function DescriptionGenerator() {
   const [genre, setGenre] = useState('');
   const [descriptionTypeSearchOpen, setDescriptionTypeSearchOpen] = useState(false);
   const [genreSearchOpen, setGenreSearchOpen] = useState(false);
+  const { user } = useAuth();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating descriptions.'
+  });
 
   const generator = useGenerator<Description>({
     generateEndpoint: '/api/descriptions/generate',
     getGenerateParams: () => ({ 
       descriptionType, 
-      genre: genre || undefined 
+      genre: genre || undefined,
+      notebookId
     }),
     itemTypeName: 'description',
-    userId: 'guest',
+    userId: user?.id ?? undefined,
+    notebookId: notebookId ?? undefined,
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (desc) => `**${desc.title}**
 
 Type: ${desc.descriptionType}

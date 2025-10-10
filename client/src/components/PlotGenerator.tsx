@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import StoryStructureQuiz from "./StoryStructureQuiz";
 import { GENRE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useAuth } from "@/hooks/useAuth";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 interface PlotStructure {
   id?: string;
@@ -45,16 +47,23 @@ export default function PlotGenerator() {
   const [storyStructure, setStoryStructure] = useState<string>("");
   const [showQuiz, setShowQuiz] = useState<boolean>(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating plots.'
+  });
 
   const generator = useGenerator<PlotStructure>({
     generateEndpoint: '/api/plots/generate',
     getGenerateParams: () => ({
       genre: genre || undefined,
       storyStructure: storyStructure || undefined,
-      userId: null
+      userId: null,
+      notebookId
     }),
     itemTypeName: 'plot',
-    userId: 'guest',
+    userId: user?.id ?? undefined,
+    notebookId: notebookId ?? undefined,
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (plot) => `**Plot Structure**
 
 **Theme:** ${plot.theme}

@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Target, AlertTriangle, Users, Copy, Heart, Loader2, Sparkles } from "lucide-react";
 import type { Conflict } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
+import { useAuth } from "@/hooks/useAuth";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 
 const conflictTypes = [
   { value: 'internal', label: 'Internal Conflict' },
@@ -27,12 +29,18 @@ const genres = [
 export default function ConflictGenerator() {
   const [conflictType, setConflictType] = useState('any');
   const [genre, setGenre] = useState('any');
+  const { user } = useAuth();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating conflicts.'
+  });
 
   const generator = useGenerator<Conflict>({
     generateEndpoint: '/api/conflicts/generate',
-    getGenerateParams: () => ({ conflictType, genre }),
+    getGenerateParams: () => ({ conflictType, genre, notebookId }),
     itemTypeName: 'conflict',
-    userId: 'guest',
+    userId: user?.id ?? undefined,
+    notebookId: notebookId ?? undefined,
+    validateBeforeGenerate: validateNotebook,
     formatForClipboard: (conflict) => `Conflict: ${conflict.title}
 
 Type: ${conflict.type}
