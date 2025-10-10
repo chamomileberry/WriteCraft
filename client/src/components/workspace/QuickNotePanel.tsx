@@ -50,6 +50,9 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Get saved note data from panel metadata if editing a saved note
   const savedNoteData = panel?.metadata?.savedNoteData;
   
+  // Determine which notebook to use for the dropdown - prefer saved note's notebook, fall back to active notebook
+  const dropdownNotebookId = savedNoteData?.notebookId || activeNotebookId;
+  
   // Fetch scratch pad quick note (only when not editing a saved note)
   const { data: quickNote, isLoading } = useQuery({
     queryKey: ['/api/quick-note', userId],
@@ -66,19 +69,19 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     enabled: !noteId, // Only fetch scratch pad if not editing a saved note
   });
 
-  // Fetch all saved quick notes from the active notebook for the dropdown
+  // Fetch all saved quick notes from the notebook for the dropdown
   const { data: savedQuickNotes = [] } = useQuery({
-    queryKey: ['/api/saved-items', { userId, notebookId: activeNotebookId, itemType: 'quickNote' }],
+    queryKey: ['/api/saved-items', { userId, notebookId: dropdownNotebookId, itemType: 'quickNote' }],
     queryFn: async () => {
-      if (!activeNotebookId) return [];
+      if (!dropdownNotebookId) return [];
       const response = await fetch(
-        `/api/saved-items?userId=${userId}&notebookId=${activeNotebookId}&itemType=quickNote`,
+        `/api/saved-items?userId=${userId}&notebookId=${dropdownNotebookId}&itemType=quickNote`,
         { credentials: 'include' }
       );
       if (!response.ok) return [];
       return response.json();
     },
-    enabled: !!activeNotebookId,
+    enabled: !!dropdownNotebookId,
   });
 
   // Initialize TipTap editor with minimal extensions
@@ -383,9 +386,11 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Handler to switch to a different saved note
   const handleSwitchNote = (savedItem: any) => {
     const newNoteId = savedItem.id;
-    const newSavedNoteData = savedItem.itemData || { 
-      title: savedItem.title || 'Quick Note', 
-      content: savedItem.content || '' 
+    const newSavedNoteData = {
+      ...(savedItem.itemData || {}),
+      title: savedItem.itemData?.title || savedItem.title || 'Quick Note',
+      content: savedItem.itemData?.content || savedItem.content || '',
+      notebookId: savedItem.notebookId // Preserve notebook ID for dropdown
     };
     
     // Update panel metadata to load the selected note

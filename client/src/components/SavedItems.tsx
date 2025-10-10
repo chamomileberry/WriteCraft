@@ -374,7 +374,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       const noteId = item.id; // Use saved item ID as noteId
       const savedNoteData = item.itemData || { 
         title: item.title || 'Quick Note', 
-        content: item.content || '' 
+        content: item.content || '',
+        notebookId: item.notebookId // Include notebook ID for dropdown
       };
       
       // Use workspace store to open quick note with saved data in metadata
