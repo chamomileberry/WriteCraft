@@ -62,6 +62,13 @@ const getImageUrl = (item: SavedItem, actualItemData?: any): string | null => {
   return dataSource?.imageUrl || null;
 };
 
+// Helper function to get description from item data
+const getDescription = (item: SavedItem, actualItemData?: any): string | null => {
+  const dataSource = actualItemData || item.itemData;
+  // Try different common description fields
+  return dataSource?.description || dataSource?.backstory || dataSource?.content || null;
+};
+
 interface SavedItem {
   id: string;
   userId: string;
@@ -848,6 +855,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                                     currentType={item.itemType || item.contentType || 'unknown'}
                                     notebookId={activeNotebookId}
                                     userId={user?.id}
+                                    itemName={getDisplayName(item, fetchedItemData[item.id])}
+                                    itemDescription={getDescription(item, fetchedItemData[item.id]) || undefined}
                                   />
                                 )}
                                 <Button
@@ -982,6 +991,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                               currentType={item.itemType || item.contentType || 'unknown'}
                               notebookId={activeNotebookId}
                               userId={user?.id}
+                              itemName={getDisplayName(item, fetchedItemData[item.id])}
+                              itemDescription={getDescription(item, fetchedItemData[item.id]) || undefined}
                             />
                           )}
                           <Button

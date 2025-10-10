@@ -29,6 +29,8 @@ interface ContentTypeSwitcherModalProps {
   currentType: string;
   notebookId: string;
   userId?: string;
+  itemName?: string;
+  itemDescription?: string;
 }
 
 export function ContentTypeSwitcherModal({
@@ -36,6 +38,8 @@ export function ContentTypeSwitcherModal({
   currentType,
   notebookId,
   userId,
+  itemName,
+  itemDescription,
 }: ContentTypeSwitcherModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<string>(currentType);
@@ -111,8 +115,20 @@ export function ContentTypeSwitcherModal({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Change Item Type</DialogTitle>
-          <DialogDescription>
-            Current type: {currentTypeInfo?.name || currentType}
+          <DialogDescription className="space-y-1">
+            {itemName && (
+              <div className="font-medium text-foreground">
+                {itemName}
+              </div>
+            )}
+            {itemDescription && (
+              <div className="text-sm line-clamp-2">
+                {itemDescription}
+              </div>
+            )}
+            <div className="text-sm">
+              Current type: <span className="font-medium">{currentTypeInfo?.name || currentType}</span>
+            </div>
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
