@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
+import { Extension } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -161,8 +162,8 @@ const FontSize = Extension.create({
         attributes: {
           fontSize: {
             default: null,
-            parseHTML: element => element.style.fontSize.replace(/['"+]/g, ''),
-            renderHTML: attributes => {
+            parseHTML: (element: HTMLElement) => element.style.fontSize.replace(/['"+]/g, ''),
+            renderHTML: (attributes: Record<string, any>) => {
               if (!attributes.fontSize) {
                 return {}
               }
@@ -177,12 +178,12 @@ const FontSize = Extension.create({
   },
   addCommands() {
     return {
-      setFontSize: fontSize => ({ chain }) => {
+      setFontSize: (fontSize: string) => ({ chain }: any) => {
         return chain()
           .setMark('textStyle', { fontSize: fontSize })
           .run()
       },
-      unsetFontSize: () => ({ chain }) => {
+      unsetFontSize: () => ({ chain }: any) => {
         return chain()
           .setMark('textStyle', { fontSize: null })
           .removeEmptyTextStyle()
@@ -278,6 +279,51 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
 
     const { objectPath: finalPath } = await finalizeResponse.json();
     return finalPath;
+  };
+
+  // Handle paste events for image uploads
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items || !editor) return;
+
+    // Check for image files in clipboard
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (!file) continue;
+
+        // Prevent default paste behavior
+        e.preventDefault();
+
+        // Check file size
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: 'Image too large',
+            description: 'Image must be less than 5MB',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        // Upload and insert image
+        try {
+          const imageUrl = await handleImageUpload(file);
+          editor.chain().focus().setImage({ src: imageUrl }).run();
+          toast({
+            title: 'Image uploaded',
+            description: 'Screenshot pasted successfully'
+          });
+        } catch (error) {
+          console.error('Image upload error:', error);
+          toast({
+            title: 'Upload failed',
+            description: 'Could not upload image. Please try again.',
+            variant: 'destructive'
+          });
+        }
+        return;
+      }
+    }
   };
   
   const editor = useEditor({
@@ -829,7 +875,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           </div>
 
           {/* **REFINED**: Main editor area with focus mode support */}
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto" onPaste={handlePaste}>
             <EditorContent editor={editor} />
             <AIBubbleMenu editor={editor} />
           </div>
