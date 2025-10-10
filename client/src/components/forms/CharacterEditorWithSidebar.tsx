@@ -396,7 +396,7 @@ export default function CharacterEditorWithSidebar({
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full justify-start px-3 py-2 h-auto font-normal overflow-hidden",
+                      "w-full justify-start px-3 py-2 h-auto font-normal overflow-hidden whitespace-normal",
                       isActive && "bg-muted font-medium"
                     )}
                     onClick={() => {
