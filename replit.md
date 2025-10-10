@@ -13,9 +13,8 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 
 ### Frontend
 - **Framework**: React with TypeScript
-- **Styling**: Tailwind CSS with a custom design system
-- **UI Components**: Radix UI primitives (shadcn/ui) for accessibility
-- **State Management**: TanStack Query for server state, Zustand for client state
+- **Styling**: Tailwind CSS with a custom design system, Radix UI primitives (shadcn/ui) for accessibility
+- **State Management**: TanStack Query for server state, Zustand for client state (with custom hooks for abstraction)
 - **Routing**: Wouter
 - **Build Tool**: Vite
 
@@ -26,52 +25,16 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Content Generation**: Server-side algorithms for creative writing content.
 
 ### Code Organization & Architecture
-- **Shared Constants**: Genre categories, setting types, creature types, ethnicity options, and other shared data constants are centralized in `shared/genres.ts` to maintain clean separation of concerns.
-- **Import Pattern**: Client components import shared constants via `@shared/genres` alias, while server modules use relative paths (`../shared/genres.js`), preventing architectural violations where frontend would directly import from server directories.
-- **Schema-Driven Form Generator**: Automatic form configuration generation from Drizzle/Zod schemas, eliminating 53+ manual form configurations and ensuring new database fields automatically appear in forms:
-  - **Schema Analyzer** (`client/src/lib/schema-analyzer.ts`): Introspects Zod schemas to extract field metadata (name, type, constraints, arrays).
-  - **Form Generator** (`client/src/lib/form-generator.ts`): Converts schema metadata + UI hints into complete form configurations with automatic tab grouping and field ordering. Includes safeguard to create "Other Details" tab for unassigned fields when tabs are configured.
-  - **Schema-Driven Configs** (`client/src/configs/schema-driven-configs.ts`): UI customization layer providing field hints (labels, placeholders, tab assignments, autocomplete endpoints) for 54 content types.
-  - **4-Layer Config System**: Hierarchical configuration lookup with caching: (1) Static manual configs → (2) Dynamic manual configs → (3) Schema-driven auto-generated configs → (4) Monolithic fallback.
-  - **Migration Complete (Oct 2025)**: 54 content types successfully migrated to schema-driven system: document, ethnicity, culture, species, rank, condition, food, drink, resource, animal, plant, event, society, settlement, technology, religion, language, faction, weapon, building, creature, item, location, organization, conflict, theme, mood, description, name, map, setting, armor, spell, plot, familyTree, timeline, prompt, vehicle, clothing, disease, title, quest, artifact, flora, fauna, mineral, weather, disaster, custom, projectItem, projectFolder, quickNote. Only 'character' remains manual by design due to complex custom UI requirements.
-- **Custom Hooks for Code Reuse**:
-  - **`useAutosave`**: Specialized auto-save hook for TipTap rich text editors with debouncing, async error handling, and promise cleanup.
-  - **`useDebouncedSave`**: Generic debounced auto-save hook with async error handling and promise management for any data type (forms, state, non-TipTap content).
-  - **`useRequireNotebook`** (Oct 2025): Centralized notebook context validation hook providing:
-    - Automatic notebook selection from Zustand store
-    - Validation function for operations requiring notebook context
-    - Configurable error messages
-    - Optional auto-navigation to notebook selection page
-    - Returns `{ notebookId, validateNotebook }` for component use
-  - **`useGenerator`**: Unified hook for generator components handling generate/copy/save patterns, with support for:
-    - Single results and arrays (via resolveResultId)
-    - Custom save endpoints (configurable saveEndpoint)
-    - User/notebook context (userId, notebookId parameters)
-    - Validation before generation
-    - Custom clipboard formatting and save payload preparation
-    - Consistent error handling and user feedback
-    - Auto-navigation to created content (via buildNavigateRoute)
-  - **`NotebookGuard` Component** (Oct 2025): Wrapper component for pages requiring notebook context, offering two modes:
-    - Full mode: Displays centered card with icon, title, description, and "Select Notebook" button
-    - Minimal mode: Shows compact inline alert banner for existing page layouts
-  - **Generator Refactoring**: 8 generators refactored using useGenerator (Character, Plot, Setting, Creature, Conflict, Plant, Description, Name), achieving 22% code reduction (559+ lines saved) while eliminating duplicate logic.
-  - **Auto-Save Refactoring**: 4 components migrated to reusable auto-save hooks (ProjectEditor and SectionEditor use useAutosave; FamilyTreeEditor and QuickNotePanel use useDebouncedSave) for consistent auto-save behavior.
-  - **Notebook Context Refactoring** (Oct 2025): 4 generators migrated to centralized notebook validation (Character, Name, Plant, Creature) using `useRequireNotebook` hook for consistent validation and error handling.
-  - **User Feedback Standardization** (Oct 2025): All toasts/alerts positioned at top-right with slide-from-top animation for consistent user experience. Generator save operations auto-navigate to created content when route provided.
-  - **Security Enhancement**: Removed all hardcoded user IDs ('guest', 'demo-user') from generators; all components now properly integrate with `useAuth` hook for authenticated user context.
-  - **Database-Backed Banned Phrases System** (Oct 2025): Migrated hard-coded AI writing style guidelines to PostgreSQL database with admin-only management:
-    - Created `banned_phrases` table with category (forbidden/transition), phrase text, and isActive boolean
-    - Built admin-only CRUD API endpoints at `/api/admin/banned-phrases` with combined filter support
-    - Implemented dynamic loading utility with 5-minute caching and automatic invalidation on updates
-    - Updated 11+ AI generation functions to use dynamic banned phrases from database
-    - Created admin UI at `/admin/banned-phrases` with search, category filtering, and CRUD operations
-    - Seeded database with 271 banned phrases covering forbidden phrases and transition words
-  - **Character Validation with Fallbacks** (Oct 2025): Comprehensive validation system for AI-generated character data:
-    - Created Zod schema (`aiCharacterSchema`) covering all 50+ character fields with type-safe defaults
-    - Implemented multi-tier fallback system: (1) Strict validation → (2) Field-by-field fallbacks → (3) Minimal valid character
-    - Critical fallbacks: givenName defaults to "Unknown", species defaults to "Human", arrays validated and initialized
-    - Integrated `validateAndApplyFallbacks()` into `generateCharacterWithAI()` for robust AI response handling
-    - Added `getCharacterFullName()` utility for consistent name formatting
+- **Shared Constants**: Centralized for genres, settings, etc., with distinct import patterns for client and server.
+- **Centralized API Layer**: All API calls consolidated by domain in `client/src/lib/api.ts` for maintainability and type-safety.
+- **Custom Zustand Hooks**: Abstraction layer for Zustand stores providing clean, organized state access and preventing re-render issues.
+- **Schema-Driven Form Generator**: Automatic form configuration generation from Drizzle/Zod schemas, eliminating manual configurations and ensuring new database fields automatically appear in forms. This includes a 4-layer config system for UI customization.
+- **Custom Hooks for Code Reuse**: `useAutosave` (TipTap), `useDebouncedSave` (generic), `useRequireNotebook` (context validation), `useGenerator` (unified generator logic).
+- **NotebookGuard Component**: Wrapper for pages requiring notebook context, providing guided user experience.
+- **User Feedback Standardization**: Consistent toast notifications and auto-navigation post-generation/save.
+- **Security Enhancements**: Integration with `useAuth` hook for authenticated user context; removal of hardcoded user IDs.
+- **Database-Backed Banned Phrases System**: Dynamic loading of AI writing style guidelines from PostgreSQL with admin management and caching.
+- **Character Validation with Fallbacks**: Comprehensive Zod schema-based validation for AI-generated character data with multi-tier fallback system for robustness.
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon serverless)
@@ -79,41 +42,28 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Schema**: Tables for users, generated content, guides, and user collections.
 
 ### Design System & Theming
-- **Color Palette**: Professional writer-focused colors (purple primary, teal secondary, orange accents)
-- **Theming**: Dark/Light mode with CSS custom properties
+- **Color Palette**: Professional writer-focused colors (purple primary, teal secondary, orange accents).
+- **Theming**: Dark/Light mode with CSS custom properties.
 - **Typography**: Hierarchical font sizing with serif headings and sans-serif body text.
 
 ### Key Features
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
-- **Account Management**: User profiles and secure access control.
-- **Content Management**:
-    - **Notebook System**: User-created notebooks for organizing worldbuilding content with responsive display.
-    - **Generator System**: Modular content generation (characters, plots, settings, names, conflicts, themes, moods).
-    - **Writing Guides**: Structured educational content with categories and search, featuring admin-only management.
-    - **Hierarchical Project System**: Project management with unlimited folder nesting, pages (sections), rich text editor (TipTap), auto-save, media insertion, and export capabilities.
-    - **Enhanced Character Editor**: Responsive sidebar navigation for character details.
-    - **AI-Powered Inline Editing**: Grammarly-style AI assistance integrated across all text editors, offering actions like improving, shortening, expanding, fixing grammar, and suggestions using Anthropic's Claude 3.5 Sonnet. Includes context-aware AI generation for character editor form fields with sparkle buttons, comprehensive context provision to AI, related character detection, and anti-repetition instructions.
-    - **Writing Assistant Panel**: Conversational AI assistant for analyzing text, proofreading, generating questions, and providing writing feedback.
-    - **AI Writing Style**: All AI features adhere to comprehensive anti-cliché guidelines to produce human-like, authentic, and expressive writing.
-    - **World Anvil Import**: Comprehensive import system that parses World Anvil export ZIP files and imports 17 content types into WriteCraft notebooks. Features extensive field mapping, robust data processing (BBCode stripping, type-safe conversions, enhanced name parsing for honorifics), background job processing, and granular error reporting.
-    - **Character Data Consolidation Tool**: Admin interface for managing character data quality post-import, including identification of incomplete data, duplicate detection using Levenshtein distance, and real-time stats.
+- **Content Management**: Notebook system, modular generator system, writing guides, hierarchical project system with rich text editor (TipTap), enhanced character editor.
+- **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, writing assistant panel, and adherence to anti-cliché guidelines.
+- **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping, robust processing, and error reporting.
+- **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
 
 ### Security & Authorization
-- **Multi-Layer Security Architecture**: Enterprise-grade security protecting against major web vulnerabilities including Input Sanitization (SQLi, XSS, Prototype Pollution), Authentication & Access Control, Rate Limiting, Admin Privilege Protection, Row-Level Security (RLS), CSRF Protection, Security Headers, and Security Audit Logging.
-- **XSS Protection**: All user-generated HTML sanitized using DOMPurify.
-- **Session Security**: httpOnly, secure, sameSite:'lax' cookies with automatic regeneration.
-- **Error Handling**: Generic error messages to clients; detailed errors logged server-side.
-- **Ownership Validation Pattern**: All content operations enforce strict ownership validation using a "Fetch → Validate → Execute" pattern.
-- **Critical Security Rules**: Delete/update operations validate ownership, triple-filter for multi-tenant isolation, and return 404 for unauthorized access.
+- **Multi-Layer Security Architecture**: Protection against SQLi, XSS, Prototype Pollution, robust authentication, access control, rate limiting, RLS, CSRF protection, and security headers.
+- **XSS Protection**: DOMPurify for all user-generated HTML.
+- **Session Security**: httpOnly, secure, sameSite:'lax' cookies.
+- **Ownership Validation Pattern**: Strict "Fetch → Validate → Execute" for all content operations.
 
 ### Collaboration & Sharing System
-- **Multi-User Collaboration**: Comprehensive sharing system enabling co-authors, writing groups, and mentors/students to collaborate on notebooks and projects with granular permission controls (View, Comment, Edit).
-- **Security & Access Control**: RLS middleware validates ownership then checks shares table for collaborative access.
+- **Multi-User Collaboration**: Granular permission controls (View, Comment, Edit) for notebooks and projects, enforced via RLS middleware.
 
 ### Testing & Quality Assurance
-- **Test Framework**: Playwright for end-to-end testing.
-- **Import Regression Tests**: Comprehensive test suite for World Anvil import pipeline, validating all content types, metrics, error details, and UI display.
-- **Test Coverage**: Auth flows, image upload, project smoke tests, World Anvil import pipeline.
+- **Test Framework**: Playwright for end-to-end testing, with comprehensive regression tests for the World Anvil import pipeline.
 
 ## External Dependencies
 
