@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
-import { Extension } from '@tiptap/core';
-import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state';
+import { NodeSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
@@ -67,66 +66,6 @@ import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
-
-// Image upload paste handler extension - runs at high priority
-const ImageUploadPaste = (uploadHandler: (file: File) => Promise<string>, toastFn: any) => Extension.create({
-  name: 'imageUploadPaste',
-  
-  addProseMirrorPlugins() {
-    return [
-      new Plugin({
-        key: new PluginKey('imageUploadPaste'),
-        props: {
-          handlePaste(view, event, slice) {
-            const items = event.clipboardData?.items;
-            if (!items) return false;
-
-            // Check for image files in clipboard
-            for (let i = 0; i < items.length; i++) {
-              if (items[i].type.startsWith('image/')) {
-                const file = items[i].getAsFile();
-                if (!file) continue;
-
-                // Prevent default paste behavior
-                event.preventDefault();
-
-                if (file.size > 5 * 1024 * 1024) {
-                  toastFn({
-                    title: 'Image too large',
-                    description: 'Image must be less than 5MB',
-                    variant: 'destructive'
-                  });
-                  return true;
-                }
-
-                // Upload and insert
-                uploadHandler(file)
-                  .then((url) => {
-                    const { schema, tr } = view.state;
-                    const node = schema.nodes.image.create({ src: url });
-                    const transaction = tr.replaceSelectionWith(node);
-                    view.dispatch(transaction);
-                  })
-                  .catch((error) => {
-                    console.error('Image upload error:', error);
-                    toastFn({
-                      title: 'Failed to upload image',
-                      description: 'Could not upload image. Please try again.',
-                      variant: 'destructive'
-                    });
-                  });
-
-                return true;
-              }
-            }
-
-            return false;
-          },
-        },
-      }),
-    ];
-  },
-});
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -343,7 +282,6 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   
   const editor = useEditor({
     extensions: [
-      ImageUploadPaste(handleImageUpload, toast),
       StarterKit.configure({
         bulletList: false,
         orderedList: false,
