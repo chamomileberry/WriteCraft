@@ -3,10 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Label } from "@/components/ui/label";
-import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown, Cloud } from "lucide-react";
+import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Cloud } from "lucide-react";
 import type { Setting, Notebook } from "@shared/schema";
 import { GENRE_CATEGORIES, SETTING_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
@@ -21,12 +20,12 @@ import { useToast } from "@/hooks/use-toast";
 export default function SettingGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedSettingType, setSelectedSettingType] = useState<string>("");
-  const [genreSearchOpen, setGenreSearchOpen] = useState(false);
-  const [settingTypeSearchOpen, setSettingTypeSearchOpen] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating settings.'
   });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Setting>({
     generateEndpoint: '/api/settings/generate',
@@ -62,6 +61,33 @@ ${setting.notableFeatures.join(', ')}`,
 
   const generatedSetting = generator.result;
 
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
@@ -83,124 +109,44 @@ ${setting.notableFeatures.join(', ')}`,
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
           {/* Genre Selection */}
           <div className="space-y-2">
             <Label>Genre (Optional)</Label>
-            <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={genreSearchOpen}
-                  className="w-full justify-between"
-                  data-testid="button-genre-select"
-                >
-                  {selectedGenre ? selectedGenre : "Any Genre"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search genres..." data-testid="input-genre-search" />
-                  <CommandList>
-                    <CommandEmpty>No genre found.</CommandEmpty>
-                    <CommandItem
-                      value=""
-                      onSelect={() => {
-                        setSelectedGenre("");
-                        setGenreSearchOpen(false);
-                      }}
-                      data-testid="option-any-genre"
-                    >
-                      <Check
-                        className={`mr-2 h-4 w-4 ${selectedGenre === "" ? "opacity-100" : "opacity-0"}`}
-                      />
-                      Any Genre
-                    </CommandItem>
-                    {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                      <CommandGroup key={category} heading={category}>
-                        {genres.map((genre) => (
-                          <CommandItem
-                            key={genre}
-                            value={genre}
-                            onSelect={(currentValue) => {
-                              setSelectedGenre(currentValue === selectedGenre ? "" : currentValue);
-                              setGenreSearchOpen(false);
-                            }}
-                            data-testid={`option-genre-${genre}`}
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${selectedGenre === genre ? "opacity-100" : "opacity-0"}`}
-                            />
-                            {genre}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <SearchableSelect
+              value={selectedGenre}
+              onValueChange={setSelectedGenre}
+              categorizedOptions={GENRE_CATEGORIES}
+              placeholder="Any Genre"
+              searchPlaceholder="Search genres..."
+              emptyText="No genre found."
+              className="w-full justify-between"
+              testId="button-genre-select"
+              allowEmpty={true}
+              emptyLabel="Any Genre"
+              formatLabel={(value) => value}
+            />
           </div>
 
           {/* Setting Type Selection */}
           <div className="space-y-2">
             <Label>Setting Type (Optional)</Label>
-            <Popover open={settingTypeSearchOpen} onOpenChange={setSettingTypeSearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={settingTypeSearchOpen}
-                  className="w-full justify-between"
-                  data-testid="button-setting-type-select"
-                >
-                  {selectedSettingType ? selectedSettingType : "Any Setting Type"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search setting types..." data-testid="input-setting-type-search" />
-                  <CommandList>
-                    <CommandEmpty>No setting type found.</CommandEmpty>
-                    <CommandItem
-                      value=""
-                      onSelect={() => {
-                        setSelectedSettingType("");
-                        setSettingTypeSearchOpen(false);
-                      }}
-                      data-testid="option-any-setting-type"
-                    >
-                      <Check
-                        className={`mr-2 h-4 w-4 ${selectedSettingType === "" ? "opacity-100" : "opacity-0"}`}
-                      />
-                      Any Setting Type
-                    </CommandItem>
-                    {Object.entries(SETTING_TYPE_CATEGORIES).map(([category, settingTypes]) => (
-                      <CommandGroup key={category} heading={category}>
-                        {settingTypes.map((settingType) => (
-                          <CommandItem
-                            key={settingType}
-                            value={settingType}
-                            onSelect={(currentValue) => {
-                              setSelectedSettingType(currentValue === selectedSettingType ? "" : currentValue);
-                              setSettingTypeSearchOpen(false);
-                            }}
-                            data-testid={`option-setting-type-${settingType}`}
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${selectedSettingType === settingType ? "opacity-100" : "opacity-0"}`}
-                            />
-                            {settingType}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <SearchableSelect
+              value={selectedSettingType}
+              onValueChange={setSelectedSettingType}
+              categorizedOptions={SETTING_TYPE_CATEGORIES}
+              placeholder="Any Setting Type"
+              searchPlaceholder="Search setting types..."
+              emptyText="No setting type found."
+              className="w-full justify-between"
+              testId="button-setting-type-select"
+              allowEmpty={true}
+              emptyLabel="Any Setting Type"
+              formatLabel={(value) => value}
+            />
           </div>
 
           <Button 

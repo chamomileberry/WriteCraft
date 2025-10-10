@@ -2,37 +2,53 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Target, AlertTriangle, Users, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import type { Conflict } from "@shared/schema";
+import type { Conflict, Notebook } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import { useToast } from "@/hooks/use-toast";
 
-const conflictTypes = [
-  { value: 'internal', label: 'Internal Conflict' },
-  { value: 'external', label: 'External Conflict' },
-  { value: 'interpersonal', label: 'Interpersonal Conflict' },
-  { value: 'societal', label: 'Societal Conflict' }
-];
+const CONFLICT_TYPE_CATEGORIES = {
+  "Conflict Types": ['any', 'internal', 'external', 'interpersonal', 'societal']
+};
 
-const genres = [
-  { value: 'any', label: 'Any Genre' },
-  { value: 'fantasy', label: 'Fantasy' },
-  { value: 'romance', label: 'Romance' },
-  { value: 'thriller', label: 'Thriller' },
-  { value: 'drama', label: 'Drama' },
-  { value: 'sci-fi', label: 'Science Fiction' }
-];
+const CONFLICT_TYPE_LABELS: Record<string, string> = {
+  'any': 'Any Type',
+  'internal': 'Internal Conflict',
+  'external': 'External Conflict',
+  'interpersonal': 'Interpersonal Conflict',
+  'societal': 'Societal Conflict'
+};
+
+const GENRE_CATEGORIES = {
+  "Genres": ['any', 'fantasy', 'romance', 'thriller', 'drama', 'sci-fi']
+};
+
+const GENRE_LABELS: Record<string, string> = {
+  'any': 'Any Genre',
+  'fantasy': 'Fantasy',
+  'romance': 'Romance',
+  'thriller': 'Thriller',
+  'drama': 'Drama',
+  'sci-fi': 'Science Fiction'
+};
 
 export default function ConflictGenerator() {
   const [conflictType, setConflictType] = useState('any');
   const [genre, setGenre] = useState('any');
   const { user } = useAuth();
+  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating conflicts.'
   });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Conflict>({
     generateEndpoint: '/api/conflicts/generate',
@@ -65,6 +81,33 @@ ${conflict.potentialResolutions.join('\n')}`,
 
   const generatedConflict = generator.result;
 
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
@@ -83,38 +126,37 @@ ${conflict.potentialResolutions.join('\n')}`,
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
+          <div className="grid md:grid-cols-2 gap-4 mt-6">
             <div>
               <label className="block text-sm font-medium mb-2">Conflict Type</label>
-              <Select value={conflictType} onValueChange={setConflictType}>
-                <SelectTrigger data-testid="select-conflict-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any Type</SelectItem>
-                  {conflictTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={conflictType}
+                onValueChange={setConflictType}
+                categorizedOptions={CONFLICT_TYPE_CATEGORIES}
+                placeholder="Any Type"
+                searchPlaceholder="Search types..."
+                emptyText="No type found."
+                testId="select-conflict-type"
+                formatLabel={(value) => CONFLICT_TYPE_LABELS[value] || value}
+              />
             </div>
             
             <div>
               <label className="block text-sm font-medium mb-2">Genre</label>
-              <Select value={genre} onValueChange={setGenre}>
-                <SelectTrigger data-testid="select-genre">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {genres.map(genre => (
-                    <SelectItem key={genre.value} value={genre.value}>
-                      {genre.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={genre}
+                onValueChange={setGenre}
+                categorizedOptions={GENRE_CATEGORIES}
+                placeholder="Any Genre"
+                searchPlaceholder="Search genres..."
+                emptyText="No genre found."
+                testId="select-genre"
+                formatLabel={(value) => GENRE_LABELS[value] || value}
+              />
             </div>
           </div>
         </CardContent>

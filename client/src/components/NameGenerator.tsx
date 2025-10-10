@@ -458,82 +458,95 @@ export default function NameGenerator() {
 
   const NameIcon = getNameTypeIcon();
 
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">Name Generator</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Find perfect names for characters, places, and fantasy elements. Generate culturally appropriate names with meanings.
-        </p>
-      </div>
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      const notebook: Partial<Notebook> = {
+        title: 'Quick Notes',
+        userId: user.id,
+        isDefault: false
+      };
+      const res = await apiRequest<Notebook>('POST', '/api/notebooks', notebook);
+      return res;
+    },
+    onSuccess: (notebook) => {
+      useNotebookStore.getState().setActiveNotebook(notebook.id);
+      toast({
+        title: "Notebook created",
+        description: `"${notebook.title}" has been created and selected.`,
+      });
+    },
+  });
 
-      {/* Controls */}
-      <Card className="mb-6">
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Card>
         <CardHeader>
-          <CardTitle>Generation Options</CardTitle>
+          <CardTitle>Name Generator</CardTitle>
           <CardDescription>
-            Customize your name generation settings
+            Find perfect names for characters, places, and fantasy elements. Generate culturally appropriate names with meanings.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Name Type</label>
-              <SearchableSelect
-                value={nameType}
-                onValueChange={setNameType}
-                placeholder="Select name type..."
-                categorizedOptions={getNameTypeCategorizedOptions()}
-                testId="select-name-type"
-                formatLabel={(value) => {
-                  const allTypes = getAllNameTypes();
-                  return allTypes.find(type => type.value === value)?.label || value;
-                }}
-              />
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
+          <div className="space-y-4 mt-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Name Type</label>
+                <SearchableSelect
+                  value={nameType}
+                  onValueChange={setNameType}
+                  placeholder="Select name type..."
+                  categorizedOptions={getNameTypeCategorizedOptions()}
+                  testId="select-name-type"
+                  formatLabel={(value) => {
+                    const allTypes = getAllNameTypes();
+                    return allTypes.find(type => type.value === value)?.label || value;
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Cultural Style</label>
+                <SearchableSelect
+                  value={culture}
+                  onValueChange={setCulture}
+                  placeholder="Any culture..."
+                  categorizedOptions={getEthnicityCategorizedOptions()}
+                  testId="select-culture"
+                  allowEmpty={true}
+                  emptyLabel="Any Culture"
+                  formatLabel={(value) => {
+                    if (!value) return "Any Culture";
+                    const allEthnicities = getAllEthnicities();
+                    return allEthnicities.find(eth => eth.value === value)?.label || value;
+                  }}
+                />
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Cultural Style</label>
-              <SearchableSelect
-                value={culture}
-                onValueChange={setCulture}
-                placeholder="Any culture..."
-                categorizedOptions={getEthnicityCategorizedOptions()}
-                testId="select-culture"
-                allowEmpty={true}
-                emptyLabel="Any Culture"
-                formatLabel={(value) => {
-                  if (!value) return "Any Culture";
-                  const allEthnicities = getAllEthnicities();
-                  return allEthnicities.find(eth => eth.value === value)?.label || value;
-                }}
-              />
-            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button 
+              onClick={generator.generate}
+              disabled={generator.isGenerating}
+              data-testid="button-generate-names"
+            >
+              {generator.isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                "Generate Names"
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
-
-      <div className="flex justify-center mb-8">
-        <Button 
-          onClick={generator.generate}
-          disabled={generator.isGenerating}
-          size="lg"
-          className="px-8 py-6 text-lg"
-          data-testid="button-generate-names"
-        >
-          {generator.isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Creating Names...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-5 w-5" />
-              Generate Names
-            </>
-          )}
-        </Button>
-      </div>
 
       {generatedNames.length > 0 && (
         <Card className="mb-6">

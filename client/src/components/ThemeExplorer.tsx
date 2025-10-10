@@ -2,33 +2,25 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Lightbulb, HelpCircle, Target, BookOpen, Copy, Heart, Loader2 } from "lucide-react";
 import type { Theme, Notebook } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
-import { GeneratorLayout } from "@/components/GeneratorLayout";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { useToast } from "@/hooks/use-toast";
 
-const genres = [
-  { value: 'any', label: 'Any Genre' },
-  { value: 'literary', label: 'Literary Fiction' },
-  { value: 'fantasy', label: 'Fantasy' },
-  { value: 'romance', label: 'Romance' },
-  { value: 'thriller', label: 'Thriller' },
-  { value: 'sci-fi', label: 'Science Fiction' },
-  { value: 'historical', label: 'Historical Fiction' },
-  { value: 'contemporary', label: 'Contemporary Fiction' }
-];
+const GENRE_CATEGORIES = {
+  "Fiction": ['literary', 'fantasy', 'romance', 'thriller', 'sci-fi', 'historical', 'contemporary']
+};
 
 export default function ThemeExplorer() {
-  const [genre, setGenre] = useState('any');
+  const [genre, setGenre] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
@@ -97,51 +89,53 @@ ${theme.examples.join('\n')}`,
   });
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">Theme Explorer</h1>
-        <p className="text-muted-foreground">
-          Discover and develop meaningful themes for your narrative
-        </p>
-      </div>
-
-      <Card className="mb-6">
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Card>
         <CardHeader>
-          <CardTitle>Generation Options</CardTitle>
+          <CardTitle>Theme Explorer</CardTitle>
           <CardDescription>
-            Choose your preferred genre for thematic exploration
+            Discover and develop meaningful themes for your narrative
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GeneratorLayout
-            onGenerate={generator.generate}
-            generateButtonText="Explore Themes"
-            isGenerating={generator.isGenerating}
-            generateButtonTestId="button-generate-theme"
-            notebookControls={
-              <GeneratorNotebookControls
-                onQuickCreate={() => quickCreateMutation.mutate()}
-                quickCreateLabel="Create Notebook"
-                quickCreateTestId="button-quick-create-notebook"
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
+          <div className="space-y-4 mt-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Genre (Optional)</label>
+              <SearchableSelect
+                value={genre}
+                onValueChange={setGenre}
+                categorizedOptions={GENRE_CATEGORIES}
+                placeholder="Any Genre"
+                searchPlaceholder="Search genres..."
+                emptyText="No genre found."
+                testId="select-theme-genre"
+                allowEmpty={true}
+                emptyLabel="Any Genre"
+                formatLabel={(value) => value}
               />
-            }
-          >
-            <div className="max-w-md">
-              <label className="block text-sm font-medium mb-2">Genre</label>
-              <Select value={genre} onValueChange={setGenre}>
-                <SelectTrigger data-testid="select-theme-genre">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {genres.map(genre => (
-                    <SelectItem key={genre.value} value={genre.value}>
-                      {genre.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
-          </GeneratorLayout>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button 
+              onClick={generator.generate}
+              disabled={generator.isGenerating}
+              data-testid="button-generate-theme"
+            >
+              {generator.isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                "Explore Themes"
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -273,17 +267,6 @@ ${theme.examples.join('\n')}`,
         </Card>
       )}
 
-      {!generatedTheme && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Lightbulb className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Ready to Explore Themes</h3>
-            <p className="text-muted-foreground">
-              Choose your genre and click generate to discover meaningful themes for your story
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

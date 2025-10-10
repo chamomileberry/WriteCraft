@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Copy, Save, Zap, Loader2, HelpCircle, Check, ChevronsUpDown } from "lucide-react";
+import { BookOpen, Copy, Save, Zap, Loader2, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import StoryStructureQuiz from "./StoryStructureQuiz";
 import { GENRE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import type { Notebook } from "@shared/schema";
 
 interface PlotStructure {
   id?: string;
@@ -30,20 +33,32 @@ interface PlotStructure {
   createdAt?: string;
 }
 
-const STORY_STRUCTURES = [
-  { value: "three-act", label: "Three-Act Structure" },
-  { value: "freytag", label: "Freytag's Pyramid" },
-  { value: "hero-journey", label: "The Hero's Journey" },
-  { value: "story-circle", label: "The Story Circle" },
-  { value: "snowflake", label: "The Snowflake Method" },
-  { value: "fichtean", label: "Fichtean Curve" },
-  { value: "save-cat", label: "Save the Cat Beat Sheet" },
-  { value: "seven-point", label: "Seven-Point Story Structure" }
-];
+const STORY_STRUCTURE_CATEGORIES = {
+  "Story Structures": [
+    "three-act",
+    "freytag",
+    "hero-journey",
+    "story-circle",
+    "snowflake",
+    "fichtean",
+    "save-cat",
+    "seven-point"
+  ]
+};
+
+const STORY_STRUCTURE_LABELS: Record<string, string> = {
+  "three-act": "Three-Act Structure",
+  "freytag": "Freytag's Pyramid",
+  "hero-journey": "The Hero's Journey",
+  "story-circle": "The Story Circle",
+  "snowflake": "The Snowflake Method",
+  "fichtean": "Fichtean Curve",
+  "save-cat": "Save the Cat Beat Sheet",
+  "seven-point": "Seven-Point Story Structure"
+};
 
 export default function PlotGenerator() {
   const [genre, setGenre] = useState<string>("");
-  const [genreSearchOpen, setGenreSearchOpen] = useState(false);
   const [storyStructure, setStoryStructure] = useState<string>("");
   const [showQuiz, setShowQuiz] = useState<boolean>(false);
   const { toast } = useToast();
@@ -51,6 +66,7 @@ export default function PlotGenerator() {
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating plots.'
   });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<PlotStructure>({
     generateEndpoint: '/api/plots/generate',
@@ -97,9 +113,36 @@ ${plot.setup}
     setStoryStructure(structure);
     toast({
       title: "Structure selected!",
-      description: `${STORY_STRUCTURES.find(s => s.value === structure)?.label} has been selected for your plot.`,
+      description: `${STORY_STRUCTURE_LABELS[structure]} has been selected for your plot.`,
     });
   };
+
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -127,60 +170,39 @@ ${plot.setup}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-4">
-              <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={genreSearchOpen}
-                    className="sm:w-48 justify-between"
-                    data-testid="select-plot-genre"
-                  >
-                    {genre ? genre.charAt(0).toUpperCase() + genre.slice(1) : "Select genre..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search genres..." />
-                    <CommandList className="max-h-60">
-                      <CommandEmpty>No genre found.</CommandEmpty>
-                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {genres.map((genreOption) => (
-                            <CommandItem
-                              key={genreOption}
-                              value={genreOption}
-                              onSelect={() => {
-                                setGenre(genreOption);
-                                setGenreSearchOpen(false);
-                              }}
-                            >
-                              <Check className={`mr-2 h-4 w-4 ${genre === genreOption ? "opacity-100" : "opacity-0"}`} />
-                              {genreOption.charAt(0).toUpperCase() + genreOption.slice(1)}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <SearchableSelect
+                value={genre}
+                onValueChange={setGenre}
+                categorizedOptions={GENRE_CATEGORIES}
+                placeholder="Select genre..."
+                searchPlaceholder="Search genres..."
+                emptyText="No genre found."
+                className="sm:w-48 justify-between"
+                testId="select-plot-genre"
+                allowEmpty={true}
+                emptyLabel="Any Genre"
+                formatLabel={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+              />
               
-              <Select value={storyStructure} onValueChange={setStoryStructure}>
-                <SelectTrigger className="sm:w-56" data-testid="select-story-structure">
-                  <SelectValue placeholder="Select story structure" />
-                </SelectTrigger>
-                <SelectContent>
-                  {STORY_STRUCTURES.map((structure) => (
-                    <SelectItem key={structure.value} value={structure.value}>
-                      {structure.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={storyStructure}
+                onValueChange={setStoryStructure}
+                categorizedOptions={STORY_STRUCTURE_CATEGORIES}
+                placeholder="Select story structure"
+                searchPlaceholder="Search structures..."
+                emptyText="No structure found."
+                className="sm:w-56 justify-between"
+                testId="select-story-structure"
+                allowEmpty={true}
+                emptyLabel="Any Structure"
+                formatLabel={(value) => STORY_STRUCTURE_LABELS[value] || value}
+              />
             </div>
             
             <Button 

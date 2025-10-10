@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
@@ -117,61 +116,76 @@ export default function CharacterGenerator() {
             Create unique, detailed characters with rich backstories and motivations
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <GeneratorNotebookControls
             onQuickCreate={() => quickCreateMutation.mutate()}
-            quickCreateLabel="Create Notebook"
-            quickCreateTestId="button-quick-create-notebook"
           />
-          <div className="flex flex-col sm:flex-row gap-4">
-            <SearchableSelect
-              value={genre}
-              onValueChange={setGenre}
-              categorizedOptions={GENRE_CATEGORIES}
-              placeholder="Select genre..."
-              searchPlaceholder="Search genres..."
-              emptyText="No genre found."
-              className="sm:w-48 justify-between"
-              testId="select-genre"
-            />
+          
+          <div className="space-y-4 mt-6">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Genre (Optional)</label>
+                <SearchableSelect
+                  value={genre}
+                  onValueChange={setGenre}
+                  categorizedOptions={GENRE_CATEGORIES}
+                  placeholder="Any genre..."
+                  searchPlaceholder="Search genres..."
+                  emptyText="No genre found."
+                  testId="select-genre"
+                  allowEmpty={true}
+                  emptyLabel="Any Genre"
+                />
+              </div>
 
-            <Select value={gender} onValueChange={setGender}>
-              <SelectTrigger className="sm:w-48" data-testid="select-gender">
-                <SelectValue placeholder="Select gender identity" />
-              </SelectTrigger>
-              <SelectContent>
-                {GENDER_IDENTITIES.map((genderOption) => (
-                  <SelectItem key={genderOption} value={genderOption}>
-                    {genderOption.charAt(0).toUpperCase() + genderOption.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <div>
+                <label className="block text-sm font-medium mb-2">Gender (Optional)</label>
+                <SearchableSelect
+                  value={gender}
+                  onValueChange={setGender}
+                  categorizedOptions={{ "Gender Identities": GENDER_IDENTITIES }}
+                  placeholder="Any gender..."
+                  searchPlaceholder="Search gender identities..."
+                  emptyText="No gender identity found."
+                  testId="select-gender"
+                  allowEmpty={true}
+                  emptyLabel="Any Gender"
+                  formatLabel={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                />
+              </div>
 
-            <SearchableSelect
-              value={ethnicity}
-              onValueChange={setEthnicity}
-              categorizedOptions={ETHNICITY_CATEGORIES}
-              placeholder="Select ethnicity..."
-              searchPlaceholder="Search ethnicities..."
-              emptyText="No ethnicity found."
-              className="sm:w-48 justify-between"
-              testId="select-ethnicity"
-              formatLabel={(value) => value}
-            />
-            
+              <div>
+                <label className="block text-sm font-medium mb-2">Ethnicity (Optional)</label>
+                <SearchableSelect
+                  value={ethnicity}
+                  onValueChange={setEthnicity}
+                  categorizedOptions={ETHNICITY_CATEGORIES}
+                  placeholder="Any ethnicity..."
+                  searchPlaceholder="Search ethnicities..."
+                  emptyText="No ethnicity found."
+                  testId="select-ethnicity"
+                  allowEmpty={true}
+                  emptyLabel="Any Ethnicity"
+                  formatLabel={(value) => value}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
             <Button 
               onClick={generator.generate}
               disabled={generator.isGenerating}
               data-testid="button-generate-character"
-              className="flex-1 sm:flex-none"
             >
               {generator.isGenerating ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
               ) : (
-                <Shuffle className="mr-2 h-4 w-4" />
+                "Generate Character"
               )}
-              {generator.isGenerating ? 'Generating...' : 'Generate Character'}
             </Button>
           </div>
         </CardContent>

@@ -21,9 +21,11 @@ export default function CreatureGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedCreatureType, setSelectedCreatureType] = useState<string>("");
   const { user } = useAuth();
+  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating creatures.'
   });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Creature>({
     generateEndpoint: '/api/creatures/generate',
@@ -57,6 +59,33 @@ ${creature.culturalSignificance}`,
 
   const generatedCreature = generator.result;
 
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
@@ -78,6 +107,10 @@ ${creature.culturalSignificance}`,
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
           {/* Genre Selection */}
           <div className="space-y-2">
             <Label>Genre (Optional)</Label>

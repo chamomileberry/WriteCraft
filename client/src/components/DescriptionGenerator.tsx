@@ -3,80 +3,122 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { FileText, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown } from "lucide-react";
-import type { Description } from "@shared/schema";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { FileText, Copy, Heart, Loader2, Sparkles } from "lucide-react";
+import type { Description, Notebook } from "@shared/schema";
 import { GENRE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import { useToast } from "@/hooks/use-toast";
 
 const DESCRIPTION_TYPE_CATEGORIES = {
   "Equipment & Gear": [
-    { value: 'armour', label: 'Armour Description' },
-    { value: 'weapon', label: 'Weapon Description' },
-    { value: 'clothing', label: 'Clothing Description' },
-    { value: 'uniform', label: 'Uniform Description' },
-    { value: 'wand', label: 'Wand Description' },
-    { value: 'item', label: 'Item Description' },
-    { value: 'material', label: 'Material Description' }
+    'armour',
+    'weapon',
+    'clothing',
+    'uniform',
+    'wand',
+    'item',
+    'material'
   ],
   "Medical & Health": [
-    { value: 'disease', label: 'Disease Description' },
-    { value: 'illness', label: 'Illness Description' },
-    { value: 'condition', label: 'Condition Description' },
-    { value: 'ailment', label: 'Ailment Description' },
-    { value: 'poison', label: 'Poison Description' },
-    { value: 'potion', label: 'Potion Description' },
-    { value: 'mental_health', label: 'Mental Health Description' }
+    'disease',
+    'illness',
+    'condition',
+    'ailment',
+    'poison',
+    'potion',
+    'mental_health'
   ],
   "Environment & Atmosphere": [
-    { value: 'atmospheric', label: 'Atmospheric Description' },
-    { value: 'climate', label: 'Climate Description' },
-    { value: 'weather', label: 'Weather Description' },
-    { value: 'storm', label: 'Storm Description' }
+    'atmospheric',
+    'climate',
+    'weather',
+    'storm'
   ],
   "Culture & Society": [
-    { value: 'holiday', label: 'Holiday Description' },
-    { value: 'tradition', label: 'Tradition Description' },
-    { value: 'ritual', label: 'Ritual Description' },
-    { value: 'religion', label: 'Religion Description' },
-    { value: 'society', label: 'Society Description' },
-    { value: 'law', label: 'Law Description' }
+    'holiday',
+    'tradition',
+    'ritual',
+    'religion',
+    'society',
+    'law'
   ],
   "Combat & Skills": [
-    { value: 'martial_art', label: 'Martial Art Description' },
-    { value: 'spell', label: 'Spell Description' }
+    'martial_art',
+    'spell'
   ],
   "Emotional & Psychological": [
-    { value: 'dying', label: 'Dying Description' },
-    { value: 'pain', label: 'Pain Description' },
-    { value: 'tragedy', label: 'Tragedy Description' },
-    { value: 'trauma', label: 'Trauma Description' },
-    { value: 'hysteria', label: 'Hysteria Description' }
+    'dying',
+    'pain',
+    'tragedy',
+    'trauma',
+    'hysteria'
   ],
   "Mystical & Prophetic": [
-    { value: 'prophecy', label: 'Prophecy Description' }
+    'prophecy'
   ],
   "Food & Consumables": [
-    { value: 'food', label: 'Food Description' },
-    { value: 'drink', label: 'Drink Description' }
+    'food',
+    'drink'
   ],
   "Literature & Media": [
-    { value: 'book', label: 'Book Description' }
+    'book'
   ]
+};
+
+const DESCRIPTION_TYPE_LABELS: Record<string, string> = {
+  'armour': 'Armour Description',
+  'weapon': 'Weapon Description',
+  'clothing': 'Clothing Description',
+  'uniform': 'Uniform Description',
+  'wand': 'Wand Description',
+  'item': 'Item Description',
+  'material': 'Material Description',
+  'disease': 'Disease Description',
+  'illness': 'Illness Description',
+  'condition': 'Condition Description',
+  'ailment': 'Ailment Description',
+  'poison': 'Poison Description',
+  'potion': 'Potion Description',
+  'mental_health': 'Mental Health Description',
+  'atmospheric': 'Atmospheric Description',
+  'climate': 'Climate Description',
+  'weather': 'Weather Description',
+  'storm': 'Storm Description',
+  'holiday': 'Holiday Description',
+  'tradition': 'Tradition Description',
+  'ritual': 'Ritual Description',
+  'religion': 'Religion Description',
+  'society': 'Society Description',
+  'law': 'Law Description',
+  'martial_art': 'Martial Art Description',
+  'spell': 'Spell Description',
+  'dying': 'Dying Description',
+  'pain': 'Pain Description',
+  'tragedy': 'Tragedy Description',
+  'trauma': 'Trauma Description',
+  'hysteria': 'Hysteria Description',
+  'prophecy': 'Prophecy Description',
+  'food': 'Food Description',
+  'drink': 'Drink Description',
+  'book': 'Book Description'
 };
 
 export default function DescriptionGenerator() {
   const [descriptionType, setDescriptionType] = useState('armour');
   const [genre, setGenre] = useState('');
-  const [descriptionTypeSearchOpen, setDescriptionTypeSearchOpen] = useState(false);
-  const [genreSearchOpen, setGenreSearchOpen] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating descriptions.'
   });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Description>({
     generateEndpoint: '/api/descriptions/generate',
@@ -102,27 +144,32 @@ Tags: ${desc.tags.join(', ')}`,
 
   const generatedDescription = generator.result;
 
-  const getAllDescriptionTypes = () => {
-    return Object.entries(DESCRIPTION_TYPE_CATEGORIES).flatMap(([category, types]) => 
-      types.map(type => ({ ...type, category }))
-    );
-  };
-
-  const getAllGenres = () => {
-    return Object.entries(GENRE_CATEGORIES).flatMap(([category, genres]) => 
-      genres.map(genre => ({ value: genre, label: genre, category }))
-    );
-  };
-
-  const getDescriptionTypeLabel = () => {
-    const allTypes = getAllDescriptionTypes();
-    return allTypes.find(type => type.value === descriptionType)?.label || 'Select description type';
-  };
-
-  const getGenreLabel = () => {
-    const allGenres = getAllGenres();
-    return allGenres.find(g => g.value === genre)?.label || 'Any genre';
-  };
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -144,110 +191,41 @@ Tags: ${desc.tags.join(', ')}`,
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Description Type</label>
-              <Popover open={descriptionTypeSearchOpen} onOpenChange={setDescriptionTypeSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={descriptionTypeSearchOpen}
-                    className="w-full justify-between"
-                    data-testid="button-description-type-select"
-                  >
-                    {getDescriptionTypeLabel()}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search types..." data-testid="input-description-type-search" />
-                    <CommandList className="max-h-60">
-                      <CommandEmpty>No type found.</CommandEmpty>
-                      {Object.entries(DESCRIPTION_TYPE_CATEGORIES).map(([category, types]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {types.map((type) => (
-                            <CommandItem
-                              key={type.value}
-                              value={type.value}
-                              onSelect={(currentValue) => {
-                                setDescriptionType(currentValue);
-                                setDescriptionTypeSearchOpen(false);
-                              }}
-                              data-testid={`option-description-type-${type.value}`}
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${descriptionType === type.value ? "opacity-100" : "opacity-0"}`}
-                              />
-                              {type.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <SearchableSelect
+                value={descriptionType}
+                onValueChange={setDescriptionType}
+                categorizedOptions={DESCRIPTION_TYPE_CATEGORIES}
+                placeholder="Select description type"
+                searchPlaceholder="Search types..."
+                emptyText="No type found."
+                className="w-full justify-between"
+                testId="button-description-type-select"
+                formatLabel={(value) => DESCRIPTION_TYPE_LABELS[value] || value}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Genre (Optional)</label>
-              <Popover open={genreSearchOpen} onOpenChange={setGenreSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={genreSearchOpen}
-                    className="w-full justify-between"
-                    data-testid="button-genre-select"
-                  >
-                    {getGenreLabel()}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search genres..." data-testid="input-genre-search" />
-                    <CommandList className="max-h-60">
-                      <CommandEmpty>No genre found.</CommandEmpty>
-                      <CommandItem
-                        value=""
-                        onSelect={() => {
-                          setGenre("");
-                          setGenreSearchOpen(false);
-                        }}
-                        data-testid="option-any-genre"
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${genre === "" ? "opacity-100" : "opacity-0"}`}
-                        />
-                        Any genre
-                      </CommandItem>
-                      {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {genres.map((genreOption) => (
-                            <CommandItem
-                              key={genreOption}
-                              value={genreOption}
-                              onSelect={(currentValue) => {
-                                setGenre(currentValue);
-                                setGenreSearchOpen(false);
-                              }}
-                              data-testid={`option-genre-${genreOption}`}
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${genre === genreOption ? "opacity-100" : "opacity-0"}`}
-                              />
-                              {genreOption}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <SearchableSelect
+                value={genre}
+                onValueChange={setGenre}
+                categorizedOptions={GENRE_CATEGORIES}
+                placeholder="Any genre"
+                searchPlaceholder="Search genres..."
+                emptyText="No genre found."
+                className="w-full justify-between"
+                testId="button-genre-select"
+                allowEmpty={true}
+                emptyLabel="Any genre"
+                formatLabel={(value) => value}
+              />
             </div>
           </div>
 

@@ -3,11 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Palette, Eye, Ear, Sun, Cloud, Copy, Heart, Loader2 } from "lucide-react";
+import { Palette, Eye, Ear, Sun, Cloud, Copy, Heart, Loader2, Sparkles } from "lucide-react";
 import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
 import { useToast } from "@/hooks/use-toast";
 import { useNotebookStore } from "@/stores/notebookStore";
-import { GeneratorLayout } from "@/components/GeneratorLayout";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useMutation } from "@tanstack/react-query";
@@ -123,22 +122,32 @@ ${generatedMood.soundscape.join('\n')}`;
             Create evocative sensory details to immerse your readers
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <GeneratorLayout
-            onGenerate={handleGenerate}
-            generateButtonText="Generate Mood Palette"
-            isGenerating={generateMutation.isPending}
-            generateButtonTestId="button-generate-mood"
-            notebookControls={
-              <GeneratorNotebookControls
-                onQuickCreate={() => quickCreateMutation.mutate()}
-                quickCreateLabel="Create Notebook"
-                quickCreateTestId="button-quick-create-notebook"
-              />
-            }
+        <CardContent className="space-y-4">
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+          />
+          
+          <p className="text-sm text-muted-foreground">Click generate to create a mood palette with evocative sensory details.</p>
+          
+          <Button 
+            onClick={handleGenerate}
+            disabled={generateMutation.isPending}
+            className="w-full"
+            size="lg"
+            data-testid="button-generate-mood"
           >
-            <p className="text-sm text-muted-foreground">Click generate to create a mood palette with evocative sensory details.</p>
-          </GeneratorLayout>
+            {generateMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Mood Palette
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
