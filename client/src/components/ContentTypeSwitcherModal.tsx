@@ -121,7 +121,7 @@ export function ContentTypeSwitcherModal({
               <SelectTrigger data-testid="select-new-type">
                 <SelectValue placeholder="Select a type" />
               </SelectTrigger>
-              <SelectContent className="max-h-[400px]">
+              <SelectContent className="max-h-[400px] z-[100]" position="popper" sideOffset={5}>
                 {Object.entries(groupedTypes).map(([category, types]) => (
                   <SelectGroup key={category}>
                     <SelectLabel>{category}</SelectLabel>
