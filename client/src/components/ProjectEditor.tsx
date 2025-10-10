@@ -365,91 +365,6 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       }),
       Typography,
       AISuggestionsExtension,
-      FileHandler.configure({
-        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-        onDrop: async (currentEditor, files, pos) => {
-          console.log('FileHandler onDrop called with files:', files);
-          for (const file of files) {
-            if (file.size > 5 * 1024 * 1024) {
-              toast({
-                title: 'Image too large',
-                description: 'Image must be less than 5MB',
-                variant: 'destructive'
-              });
-              continue;
-            }
-
-            try {
-              console.log('Uploading file:', file.name);
-              const url = await handleImageUpload(file);
-              console.log('Upload successful, URL:', url);
-              currentEditor
-                .chain()
-                .insertContentAt(pos, {
-                  type: 'image',
-                  attrs: {
-                    src: url,
-                  },
-                })
-                .focus()
-                .run();
-            } catch (error) {
-              console.error('Image upload error:', error);
-              toast({
-                title: 'Failed to upload image',
-                description: 'Could not upload image. Please try again.',
-                variant: 'destructive'
-              });
-            }
-          }
-          return true;
-        },
-        onPaste: async (currentEditor, files, htmlContent) => {
-          console.log('FileHandler onPaste called with files:', files, 'htmlContent:', htmlContent);
-          
-          // If there are no files, let TipTap handle the HTML content
-          if (!files || files.length === 0) {
-            console.log('No files to handle, letting TipTap handle HTML content');
-            return false;
-          }
-          
-          // We have files to upload, so handle them ourselves
-          for (const file of files) {
-            if (file.size > 5 * 1024 * 1024) {
-              toast({
-                title: 'Image too large',
-                description: 'Image must be less than 5MB',
-                variant: 'destructive'
-              });
-              continue;
-            }
-
-            try {
-              console.log('Uploading pasted file:', file.name);
-              const url = await handleImageUpload(file);
-              console.log('Upload successful, URL:', url);
-              currentEditor
-                .chain()
-                .insertContentAt(currentEditor.state.selection.anchor, {
-                  type: 'image',
-                  attrs: {
-                    src: url,
-                  },
-                })
-                .focus()
-                .run();
-            } catch (error) {
-              console.error('Image upload error:', error);
-              toast({
-                title: 'Failed to upload image',
-                description: 'Could not upload image. Please try again.',
-                variant: 'destructive'
-              });
-            }
-          }
-          return true;
-        },
-      }),
     ],
     content: project?.content || '',
     editorProps: {
@@ -457,17 +372,31 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] px-6 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
       },
       handlePaste: (view, event) => {
+        console.log('Custom handlePaste called');
         const items = event.clipboardData?.items;
-        if (!items) return false;
+        if (!items) {
+          console.log('No clipboard items');
+          return false;
+        }
 
+        console.log('Clipboard items:', items.length);
+        
         // Check if there are any image files in the clipboard
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
+          console.log('Clipboard item type:', item.type);
+          
           if (item.type.startsWith('image/')) {
+            console.log('Found image in clipboard');
             event.preventDefault();
             
             const file = item.getAsFile();
-            if (!file) continue;
+            if (!file) {
+              console.log('Could not get file from clipboard item');
+              continue;
+            }
+            
+            console.log('Got file from clipboard:', file.name, file.size);
 
             // Check file size
             if (file.size > 5 * 1024 * 1024) {
@@ -479,9 +408,11 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
               return true;
             }
 
+            console.log('Starting upload...');
             // Upload and insert the image
             handleImageUpload(file)
               .then((url) => {
+                console.log('Upload successful, inserting image with URL:', url);
                 const { schema } = view.state;
                 const node = schema.nodes.image.create({ src: url });
                 const tr = view.state.tr.replaceSelectionWith(node);
@@ -500,6 +431,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           }
         }
 
+        console.log('No images found in clipboard');
         return false;
       },
       handleKeyDown: (view, event) => {
