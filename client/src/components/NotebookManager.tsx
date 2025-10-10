@@ -24,8 +24,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Edit2, Trash2, BookOpen, Calendar, Share2 } from "lucide-react";
-import { useNotebookStore, type Notebook } from "@/stores/notebookStore";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { type Notebook } from "@/stores/notebookStore";
+import { useNotebooks, useActiveNotebookId, useNotebookActions } from "@/hooks/useNotebookHooks";
+import { notebooksApi } from "@/lib/api";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistance } from "date-fns";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -52,15 +54,17 @@ interface UpdateNotebookData {
 
 export default function NotebookManager({ isOpen, onClose, onNotebookCreated, openInCreateMode = false }: NotebookManagerProps) {
   const { toast } = useToast();
+  
+  // Use custom hooks for cleaner code
+  const notebooks = useNotebooks();
+  const activeNotebookId = useActiveNotebookId();
   const { 
-    notebooks, 
-    activeNotebookId, 
     setNotebooks, 
     addNotebook, 
     updateNotebook, 
     removeNotebook, 
     setActiveNotebook 
-  } = useNotebookStore();
+  } = useNotebookActions();
 
   // Local state for modals and forms
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -82,8 +86,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
   const { isLoading, error } = useQuery({
     queryKey: ['/api/notebooks'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/notebooks');
-      const notebooks = await response.json() as Notebook[];
+      const notebooks = await notebooksApi.list();
       setNotebooks(notebooks);
       return notebooks;
     },
@@ -92,10 +95,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
 
   // Create notebook mutation
   const createMutation = useMutation({
-    mutationFn: async (data: CreateNotebookData) => {
-      const response = await apiRequest('POST', '/api/notebooks', data);
-      return response.json() as Promise<Notebook>;
-    },
+    mutationFn: (data: CreateNotebookData) => notebooksApi.create(data),
     onSuccess: (newNotebook) => {
       addNotebook(newNotebook);
       
@@ -134,10 +134,8 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
 
   // Update notebook mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateNotebookData }) => {
-      const response = await apiRequest('PUT', `/api/notebooks/${id}`, data);
-      return response.json() as Promise<Notebook>;
-    },
+    mutationFn: ({ id, data }: { id: string; data: UpdateNotebookData }) => 
+      notebooksApi.update(id, data),
     onSuccess: (updatedNotebook) => {
       updateNotebook(updatedNotebook.id, updatedNotebook);
       setEditingNotebook(null);
@@ -162,10 +160,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
 
   // Delete notebook mutation
   const deleteMutation = useMutation({
-    mutationFn: async (notebookId: string) => {
-      const response = await apiRequest('DELETE', `/api/notebooks/${notebookId}`);
-      return response.json();
-    },
+    mutationFn: (notebookId: string) => notebooksApi.delete(notebookId),
     onSuccess: (_, notebookId) => {
       removeNotebook(notebookId);
       setDeletingNotebook(null);

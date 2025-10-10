@@ -552,12 +552,12 @@ export const quickNotesApi = {
     return res.json();
   },
 
-  create: async (data: { content: string }) => {
+  create: async (data: { title?: string; content: string }) => {
     const res = await apiRequest('POST', '/api/quick-note', data);
     return res.json();
   },
 
-  update: async (id: string, updates: { content: string }) => {
+  update: async (id: string, updates: { title?: string; content: string }) => {
     const res = await apiRequest('PUT', `/api/quick-note/${id}`, updates);
     return res.json();
   },

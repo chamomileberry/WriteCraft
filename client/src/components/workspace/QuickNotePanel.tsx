@@ -6,9 +6,9 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { useNotebookStore } from '@/stores/notebookStore';
-import { useWorkspaceStore } from '@/stores/workspaceStore';
+import { quickNotesApi, savedItemsApi } from '@/lib/api';
+import { useActiveNotebookId } from '@/hooks/useNotebookHooks';
+import { useWorkspaceLayout, useUpdatePanel } from '@/hooks/useWorkspaceHooks';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,8 +37,11 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { activeNotebookId } = useNotebookStore();
-  const { currentLayout, updatePanel } = useWorkspaceStore();
+  
+  // Use custom hooks for cleaner code
+  const activeNotebookId = useActiveNotebookId();
+  const currentLayout = useWorkspaceLayout();
+  const updatePanel = useUpdatePanel();
   const { user } = useAuth();
 
   // Get the panel title and metadata from workspace store
@@ -180,17 +183,15 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     saveFn: async (data) => {
       // If editing a saved note, update the saved item directly
       if (noteId) {
-        const savedItemResponse = await apiRequest('PATCH', `/api/saved-items/${noteId}`, {
+        return await savedItemsApi.update(noteId, {
           itemData: {
             title: data.title,
             content: data.content
           }
         });
-        return await savedItemResponse.json();
       }
       // Otherwise, use POST to create/update scratch pad note
-      const response = await apiRequest('POST', '/api/quick-note', data);
-      return await response.json();
+      return await quickNotesApi.create(data);
     },
     onSuccess: (savedData) => {
       // Update cache WITHOUT triggering re-fetch
@@ -234,17 +235,15 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const mutationFunction = useCallback(async (data: any) => {
     // If editing a saved note, update the saved item directly
     if (noteId) {
-      const savedItemResponse = await apiRequest('PATCH', `/api/saved-items/${noteId}`, {
+      return await savedItemsApi.update(noteId, {
         itemData: {
           title: data.title,
           content: data.content
         }
       });
-      return await savedItemResponse.json();
     }
     // Otherwise, use POST to create/update scratch pad note
-    const response = await apiRequest('POST', '/api/quick-note', data);
-    return await response.json();
+    return await quickNotesApi.create(data);
   }, [noteId]);
 
   // Set up autosave using the hook
@@ -324,7 +323,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       const isEditingExistingSaved = !!noteId; // Check if editing an existing saved note
       
       // Save it to the notebook as a saved item with content in itemData
-      const response = await apiRequest('POST', '/api/saved-items', {
+      const savedItem = await savedItemsApi.create({
         userId: userId,
         notebookId: activeNotebookId,
         itemType: 'quickNote',
@@ -334,7 +333,6 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
           content: editor.getHTML()
         }
       });
-      const savedItem = await response.json();
       return { savedItem, isNewNote: !isEditingExistingSaved };
     },
     onSuccess: async ({ savedItem, isNewNote }) => {
@@ -344,8 +342,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         setHasBeenSavedOnce(false);
         
         // Clear the scratch pad in the database
-        await apiRequest('POST', '/api/quick-note', {
-          userId,
+        await quickNotesApi.create({
           title: 'Quick Note',
           content: ''
         });
@@ -489,7 +486,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
           const data = saveDataFunction();
           if (data) {
             try {
-              await apiRequest('POST', '/api/quick-note', data);
+              await quickNotesApi.create(data);
               await new Promise(resolve => setTimeout(resolve, 100));
             } catch (error) {
               console.error('Failed to save before exporting:', error);

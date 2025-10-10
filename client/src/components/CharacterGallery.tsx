@@ -3,6 +3,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { User } from 'lucide-react';
+import { charactersApi } from '@/lib/api';
 
 interface Character {
   id: string;
@@ -25,13 +26,7 @@ interface CharacterGalleryProps {
 export function CharacterGallery({ notebookId, existingMembers = [], onRemoveMember }: CharacterGalleryProps) {
   const { data: rawCharacters = [], isLoading } = useQuery<Character[]>({
     queryKey: ['/api/characters', notebookId],
-    queryFn: async () => {
-      const response = await fetch(`/api/characters?notebookId=${notebookId}`, {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch characters');
-      return response.json();
-    },
+    queryFn: () => charactersApi.list(notebookId),
     enabled: !!notebookId,
     staleTime: 0,  // Always fetch fresh data
     gcTime: 0,      // Don't cache results
