@@ -60,6 +60,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
   }, [fetchedNotebooks, setNotebooks]);
   
   // Auto-select active notebook when modal opens, or single notebook if only one exists
+  // Also update when activeNotebookId changes (e.g., after creating a new notebook)
   useEffect(() => {
     if (isOpen) {
       if (activeNotebookId) {
@@ -69,6 +70,13 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
       }
     }
   }, [isOpen, activeNotebookId, notebooks]);
+  
+  // Reset selectedNotebookId when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedNotebookId("");
+    }
+  }, [isOpen]);
   
   // Auto-open NotebookManager when no notebooks exist
   useEffect(() => {

@@ -33,9 +33,10 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const { toast } = useToast();
   const { activeNotebookId } = useNotebookStore();
 
-  // Auto-create family trees when creating new ones to bypass the form
+  // Auto-create family trees and timelines when creating new ones to bypass the form
   useEffect(() => {
-    async function autoCreateFamilyTree() {
+    async function autoCreateContent() {
+      // Handle family tree auto-creation
       if ((contentType === 'familyTree' || contentType === 'familytree') && contentId === 'new') {
         const urlParams = new URLSearchParams(window.location.search);
         const urlNotebookId = urlParams.get('notebookId');
@@ -76,9 +77,56 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           onBack();
         }
       }
+      
+      // Handle timeline auto-creation and redirect to canvas view
+      if (contentType === 'timeline' && contentId === 'new') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlNotebookId = urlParams.get('notebookId');
+        const notebookId = urlNotebookId || activeNotebookId;
+        
+        if (!notebookId) {
+          toast({
+            title: "No Notebook Selected",
+            description: "Please select a notebook before creating a timeline.",
+            variant: "destructive"
+          });
+          onBack();
+          return;
+        }
+        
+        try {
+          const timestamp = new Date().toLocaleDateString();
+          const response = await apiRequest('POST', '/api/timelines', {
+            name: `New Timeline ${timestamp}`,
+            description: 'A timeline for tracking events',
+            timelineType: 'Character',
+            timeScale: 'Years',
+            notebookId
+          });
+          
+          const result = await response.json();
+          
+          if (result?.id) {
+            // Navigate directly to canvas view
+            setLocation(`/timelines/${result.id}?notebookId=${notebookId}`);
+            toast({
+              title: "Timeline Created",
+              description: "Your timeline is ready. Start adding events!",
+            });
+          }
+        } catch (error) {
+          console.error('Error creating timeline:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create timeline. Please try again.",
+            variant: "destructive"
+          });
+          onBack();
+        }
+      }
     }
     
-    autoCreateFamilyTree();
+    autoCreateContent();
   }, [contentType, contentId, activeNotebookId, toast, onBack, setLocation]);
 
   // Load content type configuration
