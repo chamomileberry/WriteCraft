@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BookOpen, Settings, Plus, ChevronDown } from "lucide-react";
+import { BookOpen, Settings, Plus, ChevronDown, Zap } from "lucide-react";
 import { useNotebookStore, type Notebook } from "@/stores/notebookStore";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import NotebookManager from "./NotebookManager";
 
 interface NotebookSwitcherProps {
@@ -19,6 +20,7 @@ interface NotebookSwitcherProps {
 export default function NotebookSwitcher({ className, showActiveInfo = true, showHeader = false, isPopoverOpen: externalPopoverOpen, onPopoverOpenChange }: NotebookSwitcherProps) {
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [internalPopoverOpen, setInternalPopoverOpen] = useState(false);
+  const { toast } = useToast();
   
   // Use external control if provided, otherwise use internal state
   const isPopoverOpen = externalPopoverOpen !== undefined ? externalPopoverOpen : internalPopoverOpen;
@@ -79,6 +81,42 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
     setIsManagerOpen(true);
   };
 
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      return response.json() as Promise<Notebook>;
+    },
+    onSuccess: (newNotebook) => {
+      // Update local state
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['/api/notebooks'] });
+      
+      toast({
+        title: 'Notebook Created',
+        description: 'Your new notebook is ready. You can rename it anytime.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating notebook:', error);
+      toast({
+        title: 'Creation Failed',
+        description: 'Failed to create notebook. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleQuickCreate = () => {
+    quickCreateMutation.mutate();
+  };
+
   // Get other notebooks (excluding the active one)
   const otherNotebooks = notebooks.filter(n => n.id !== activeNotebookId);
 
@@ -113,6 +151,17 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
               data-testid="button-manage-notebooks"
             >
               <Settings className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={handleQuickCreate}
+              disabled={quickCreateMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+              data-testid="button-quick-create-notebook"
+            >
+              <Zap className="h-4 w-4" />
+              Quick Create
             </Button>
             <Button
               onClick={handleOpenCreateWithClose}
