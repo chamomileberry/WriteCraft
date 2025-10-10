@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
-import { NodeSelection } from '@tiptap/pm/state';
+import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
@@ -333,10 +333,64 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
         },
         suggestion,
       }),
-      Image.configure({
+      Image.extend({
+        addProseMirrorPlugins() {
+          return [
+            new Plugin({
+              key: new PluginKey('imageDropPaste'),
+              props: {
+                handlePaste: (view, event) => {
+                  const items = event.clipboardData?.items;
+                  if (!items) return false;
+
+                  for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.type.startsWith('image/')) {
+                      event.preventDefault();
+                      
+                      const file = item.getAsFile();
+                      if (!file) continue;
+
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast({
+                          title: 'Image too large',
+                          description: 'Image must be less than 5MB',
+                          variant: 'destructive'
+                        });
+                        return true;
+                      }
+
+                      handleImageUpload(file)
+                        .then((url) => {
+                          const { schema } = view.state;
+                          const node = schema.nodes.image.create({ src: url });
+                          const tr = view.state.tr.replaceSelectionWith(node);
+                          view.dispatch(tr);
+                        })
+                        .catch((error) => {
+                          console.error('Image upload error:', error);
+                          toast({
+                            title: 'Failed to upload image',
+                            description: 'Could not upload image. Please try again.',
+                            variant: 'destructive'
+                          });
+                        });
+
+                      return true;
+                    }
+                  }
+
+                  return false;
+                },
+              },
+            }),
+          ];
+        },
+      }).configure({
         HTMLAttributes: {
           class: 'rounded-lg max-w-full h-auto',
         },
+        allowBase64: false,
       }),
       TiptapTable.configure({
         resizable: true,
@@ -370,69 +424,6 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
     editorProps: {
       attributes: {
         class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] px-6 py-4 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/80',
-      },
-      handlePaste: (view, event) => {
-        console.log('Custom handlePaste called');
-        const items = event.clipboardData?.items;
-        if (!items) {
-          console.log('No clipboard items');
-          return false;
-        }
-
-        console.log('Clipboard items:', items.length);
-        
-        // Check if there are any image files in the clipboard
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
-          console.log('Clipboard item type:', item.type);
-          
-          if (item.type.startsWith('image/')) {
-            console.log('Found image in clipboard');
-            event.preventDefault();
-            
-            const file = item.getAsFile();
-            if (!file) {
-              console.log('Could not get file from clipboard item');
-              continue;
-            }
-            
-            console.log('Got file from clipboard:', file.name, file.size);
-
-            // Check file size
-            if (file.size > 5 * 1024 * 1024) {
-              toast({
-                title: 'Image too large',
-                description: 'Image must be less than 5MB',
-                variant: 'destructive'
-              });
-              return true;
-            }
-
-            console.log('Starting upload...');
-            // Upload and insert the image
-            handleImageUpload(file)
-              .then((url) => {
-                console.log('Upload successful, inserting image with URL:', url);
-                const { schema } = view.state;
-                const node = schema.nodes.image.create({ src: url });
-                const tr = view.state.tr.replaceSelectionWith(node);
-                view.dispatch(tr);
-              })
-              .catch((error) => {
-                console.error('Image upload error:', error);
-                toast({
-                  title: 'Failed to upload image',
-                  description: 'Could not upload image. Please try again.',
-                  variant: 'destructive'
-                });
-              });
-
-            return true;
-          }
-        }
-
-        console.log('No images found in clipboard');
-        return false;
       },
       handleKeyDown: (view, event) => {
         if (event.key === 'Tab') {
