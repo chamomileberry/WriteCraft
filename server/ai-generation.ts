@@ -967,7 +967,18 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   "tags": ["tag1", "tag2", "tag3"]
 }`;
 
-  let userPrompt = "Generate a creative, original writing prompt that will inspire engaging fiction.";
+  // Add timestamp-based seed for uniqueness
+  const randomSeed = Date.now() % 10000;
+  const uniqueConstraints = [
+    "Focus on an unusual perspective or narrator",
+    "Include a surprising twist on a familiar concept", 
+    "Explore an unconventional setting or time period",
+    "Center on an unexpected emotional conflict",
+    "Feature a unique cultural or historical element"
+  ];
+  const randomConstraint = uniqueConstraints[randomSeed % uniqueConstraints.length];
+  
+  let userPrompt = `Generate a creative, original writing prompt that will inspire engaging fiction. ${randomConstraint}.`;
   
   if (genre) {
     userPrompt += ` The prompt should be suitable for the ${genre} genre.`;
