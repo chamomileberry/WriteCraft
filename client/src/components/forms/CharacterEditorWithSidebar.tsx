@@ -368,7 +368,7 @@ export default function CharacterEditorWithSidebar({
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 flex flex-col",
+        "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 flex flex-col overflow-hidden",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
@@ -396,7 +396,7 @@ export default function CharacterEditorWithSidebar({
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full justify-start p-3 h-auto font-normal",
+                      "w-full justify-start px-3 py-2 h-auto font-normal",
                       isActive && "bg-muted font-medium"
                     )}
                     onClick={() => {
