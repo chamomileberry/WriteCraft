@@ -24,8 +24,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Edit2, Trash2, BookOpen, Calendar, Share2 } from "lucide-react";
-import { type Notebook } from "@/stores/notebookStore";
-import { useNotebooks, useActiveNotebookId, useNotebookActions } from "@/hooks/useNotebookHooks";
+import { type Notebook, useNotebookStore } from "@/stores/notebookStore";
+import { useNotebooks, useActiveNotebookId } from "@/hooks/useNotebookHooks";
 import { notebooksApi } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -58,13 +58,13 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
   // Use custom hooks for cleaner code
   const notebooks = useNotebooks();
   const activeNotebookId = useActiveNotebookId();
-  const { 
-    setNotebooks, 
-    addNotebook, 
-    updateNotebook, 
-    removeNotebook, 
-    setActiveNotebook 
-  } = useNotebookActions();
+  
+  // Use individual action hooks to avoid re-render issues
+  const setNotebooks = useNotebookStore(state => state.setNotebooks);
+  const addNotebook = useNotebookStore(state => state.addNotebook);
+  const updateNotebook = useNotebookStore(state => state.updateNotebook);
+  const removeNotebook = useNotebookStore(state => state.removeNotebook);
+  const setActiveNotebook = useNotebookStore(state => state.setActiveNotebook);
 
   // Local state for modals and forms
   const [isCreateOpen, setIsCreateOpen] = useState(false);

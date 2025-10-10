@@ -1,4 +1,5 @@
 import { useWorkspaceStore, PanelDescriptor, WorkspaceLayout, EditorActions } from '@/stores/workspaceStore';
+import { shallow } from 'zustand/shallow';
 
 /**
  * Custom hooks for Workspace Store
@@ -144,7 +145,7 @@ export function usePanelActions() {
     focusPanel: state.focusPanel,
     minimizePanel: state.minimizePanel,
     restorePanel: state.restorePanel,
-  }));
+  }), shallow);
 }
 
 /**
@@ -204,7 +205,7 @@ export function useTabActions() {
     setActiveTab: state.setActiveTab,
     toggleSplitMode: state.toggleSplitMode,
     reorderTabs: state.reorderTabs,
-  }));
+  }), shallow);
 }
 
 /**
@@ -260,7 +261,7 @@ export function useDockingActions() {
   return useWorkspaceStore((state) => ({
     dockPanel: state.dockPanel,
     undockPanel: state.undockPanel,
-  }));
+  }), shallow);
 }
 
 /**
@@ -289,7 +290,7 @@ export function useQuickNoteActions() {
     toggleQuickNote: state.toggleQuickNote,
     openQuickNote: state.openQuickNote,
     closeQuickNote: state.closeQuickNote,
-  }));
+  }), shallow);
 }
 
 /**
@@ -326,7 +327,7 @@ export function useEditorContextActions() {
     clearEditorContext: state.clearEditorContext,
     registerEditorActions: state.registerEditorActions,
     executeEditorAction: state.executeEditorAction,
-  }));
+  }), shallow);
 }
 
 /**
@@ -369,7 +370,7 @@ export function useMobileDrawerActions() {
     toggleMobileDrawer: state.toggleMobileDrawer,
     openMobileDrawer: state.openMobileDrawer,
     closeMobileDrawer: state.closeMobileDrawer,
-  }));
+  }), shallow);
 }
 
 /**
@@ -404,7 +405,7 @@ export function useLayoutActions() {
   return useWorkspaceStore((state) => ({
     saveLayout: state.saveLayout,
     resetLayout: state.resetLayout,
-  }));
+  }), shallow);
 }
 
 /**

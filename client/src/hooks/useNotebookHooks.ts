@@ -1,4 +1,5 @@
 import { useNotebookStore, Notebook } from '@/stores/notebookStore';
+import { shallow } from 'zustand/shallow';
 
 /**
  * Custom hooks for Notebook Store
@@ -50,6 +51,7 @@ export function useNotebooksLoading(): boolean {
 /**
  * Get all notebook actions
  * Use this when you need multiple actions in a component
+ * Uses shallow equality to prevent unnecessary re-renders
  */
 export function useNotebookActions() {
   return useNotebookStore((state) => ({
@@ -59,7 +61,7 @@ export function useNotebookActions() {
     updateNotebook: state.updateNotebook,
     removeNotebook: state.removeNotebook,
     setLoadingNotebooks: state.setLoadingNotebooks,
-  }));
+  }), shallow);
 }
 
 /**
