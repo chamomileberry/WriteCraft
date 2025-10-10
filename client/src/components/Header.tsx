@@ -1,4 +1,4 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -145,13 +145,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               Projects
             </button>
-            <button 
-              onClick={() => setLocation('/import')}
-              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
-              data-testid="link-import"
-            >
-              Import
-            </button>
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -257,6 +250,10 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setLocation('/import')} data-testid="menu-import">
+                  <Upload className="mr-2 h-4 w-4" />
+                  <span>Import</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLocation('/account')} data-testid="menu-account-settings">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Account Settings</span>
@@ -379,17 +376,6 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               data-testid="mobile-link-guides"
             >
               Guides
-            </button>
-            <button 
-              onClick={() => {
-                setLocation('/import');
-                setIsMobileMenuOpen(false);
-                setIsMobileSearchOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
-              data-testid="mobile-link-import"
-            >
-              Import
             </button>
           </div>
         </div>
