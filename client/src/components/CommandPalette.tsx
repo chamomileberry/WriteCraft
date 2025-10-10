@@ -20,6 +20,7 @@ interface SearchResult {
   type: string;
   category?: string;
   content?: string;
+  notebookId?: string;
 }
 
 interface CommandPaletteProps {
@@ -114,18 +115,24 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   }, [selectedIndex, allResults, onOpenChange]);
 
   const handleResultClick = (result: SearchResult) => {
+    // Build URL with notebookId if available
+    const notebookParam = result.notebookId ? `?notebookId=${result.notebookId}` : '';
+    
     // Navigate based on content type
     switch (result.type) {
       case 'guide':
         setLocation(`/guides/${result.id}`);
         break;
       case 'manuscript':
-        setLocation(`/manuscripts/${result.id}/edit`);
+        setLocation(`/manuscripts/${result.id}/edit${notebookParam}`);
+        break;
+      case 'project':
+        setLocation(`/projects/${result.id}`);
         break;
       default:
         const mapping = getMappingById(result.type);
         if (mapping) {
-          setLocation(`/editor/${mapping.urlSegment}/${result.id}`);
+          setLocation(`/editor/${mapping.urlSegment}/${result.id}${notebookParam}`);
         } else {
           setLocation('/notebook');
         }
