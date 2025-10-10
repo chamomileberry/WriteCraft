@@ -332,7 +332,8 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
                       {/* Active Badge Overlay */}
                       {activeNotebookId === notebook.id && (
                         <div className="absolute top-2 right-2">
-                          <Badge variant="default" data-testid="badge-active-notebook" className="text-xs">
+                          <Badge variant="default" data-testid="badge-active-notebook" className="text-xs flex items-center gap-1">
+                            <BookOpen className="h-3 w-3" />
                             Active
                           </Badge>
                         </div>
