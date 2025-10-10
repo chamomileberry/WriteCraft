@@ -90,6 +90,44 @@ router.patch("/:id", async (req: any, res) => {
   }
 });
 
+router.patch("/:id/type", async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const savedItemId = req.params.id;
+    const { newItemType } = req.body;
+
+    if (!newItemType) {
+      return res.status(400).json({ error: 'Missing required field: newItemType' });
+    }
+
+    // Validate the new item type is a valid content type
+    const validTypes = ['character', 'location', 'item', 'organization', 'conflict', 'theme', 'mood', 'description', 'name', 'map', 'setting', 'armor', 'spell', 'plot', 'familyTree', 'timeline', 'prompt', 'vehicle', 'clothing', 'disease', 'title', 'quest', 'artifact', 'flora', 'fauna', 'mineral', 'weather', 'disaster', 'custom', 'projectItem', 'projectFolder', 'quickNote', 'creature', 'plant', 'animal', 'food', 'drink', 'resource', 'event', 'society', 'settlement', 'technology', 'religion', 'language', 'faction', 'weapon', 'building', 'ethnicity', 'culture', 'species', 'rank', 'condition', 'document'];
+    
+    if (!validTypes.includes(newItemType)) {
+      return res.status(400).json({ error: 'Invalid item type' });
+    }
+
+    // Update the saved item's itemType
+    const updatedItem = await storage.updateSavedItemType(savedItemId, userId, newItemType);
+
+    if (!updatedItem) {
+      return res.status(404).json({ error: 'Saved item not found or access denied' });
+    }
+
+    res.json(updatedItem);
+  } catch (error) {
+    console.error('Error updating saved item type:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      const userId = req.user?.claims?.sub || 'unknown';
+      const savedItemId = req.params.id || 'unknown';
+      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`);
+      return res.status(404).json({ error: 'Not found' });
+    }
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 router.delete("/", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;

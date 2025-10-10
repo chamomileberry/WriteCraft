@@ -10,10 +10,12 @@ import type { Creature } from "@shared/schema";
 import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CreatureGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [selectedCreatureType, setSelectedCreatureType] = useState<string>("");
+  const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating creatures.'
   });
@@ -23,10 +25,11 @@ export default function CreatureGenerator() {
     getGenerateParams: () => ({
       genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
       creatureType: selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : undefined,
-      notebookId: notebookId || null
+      notebookId: notebookId || undefined
     }),
     itemTypeName: 'creature',
-    userId: 'guest',
+    userId: user?.id,
+    notebookId: notebookId || undefined,
     validateBeforeGenerate: validateNotebook,
     formatForClipboard: (creature) => `**${creature.name}**
       

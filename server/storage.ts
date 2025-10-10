@@ -558,6 +558,7 @@ export interface IStorage {
   isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
   updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined>;
   updateSavedItemDataByItem(userId: string, itemType: string, itemId: string, notebookId: string, itemData: any): Promise<SavedItem | undefined>;
+  updateSavedItemType(savedItemId: string, userId: string, newItemType: string): Promise<SavedItem | undefined>;
 
   // Project methods
   createProject(project: InsertProject): Promise<Project>;
@@ -4395,6 +4396,28 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     const [updatedItem] = await db
       .update(savedItems)
       .set({ itemData })
+      .where(and(...conditions))
+      .returning();
+
+    return updatedItem;
+  }
+
+  async updateSavedItemType(savedItemId: string, userId: string, newItemType: string): Promise<SavedItem | undefined> {
+    const conditions = [];
+
+    // Verify the saved item belongs to this user
+    conditions.push(eq(savedItems.id, savedItemId));
+
+    // Handle null userId for guest users
+    if (userId === 'null' || !userId) {
+      conditions.push(isNull(savedItems.userId));
+    } else {
+      conditions.push(eq(savedItems.userId, userId));
+    }
+
+    const [updatedItem] = await db
+      .update(savedItems)
+      .set({ itemType: newItemType })
       .where(and(...conditions))
       .returning();
 

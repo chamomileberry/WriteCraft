@@ -25,7 +25,6 @@ interface ContentTypeSidebarProps {
   items: SavedItem[];
   selectedType: string | null;
   onSelectType: (type: string | null) => void;
-  onSelectItem: (item: SavedItem) => void;
   className?: string;
 }
 
@@ -36,7 +35,6 @@ interface ContentTypeGroup {
     name: string;
     icon: React.ComponentType<{ className?: string }>;
     count: number;
-    items: SavedItem[];
   }[];
 }
 
@@ -44,30 +42,25 @@ export default function ContentTypeSidebar({
   items,
   selectedType,
   onSelectType,
-  onSelectItem,
   className
 }: ContentTypeSidebarProps) {
-  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
   // Group items by content type and category
   const groupedTypes = useMemo(() => {
-    const typeMap = new Map<string, SavedItem[]>();
+    const typeMap = new Map<string, number>();
     
-    // Group items by type
+    // Count items by type
     items.forEach(item => {
       const itemType = item.itemType || item.contentType || 'unknown';
-      if (!typeMap.has(itemType)) {
-        typeMap.set(itemType, []);
-      }
-      typeMap.get(itemType)!.push(item);
+      typeMap.set(itemType, (typeMap.get(itemType) || 0) + 1);
     });
 
     // Create grouped structure by category
     const categoryMap = new Map<string, ContentTypeGroup['types']>();
     
     CONTENT_TYPES.forEach(contentType => {
-      const itemsForType = typeMap.get(contentType.id) || [];
+      const count = typeMap.get(contentType.id) || 0;
       
       if (!categoryMap.has(contentType.category)) {
         categoryMap.set(contentType.category, []);
@@ -77,8 +70,7 @@ export default function ContentTypeSidebar({
         id: contentType.id,
         name: contentType.name,
         icon: contentType.icon,
-        count: itemsForType.length,
-        items: itemsForType
+        count
       });
     });
 
@@ -98,16 +90,6 @@ export default function ContentTypeSidebar({
     return groups;
   }, [items]);
 
-  const toggleTypeExpansion = (typeId: string) => {
-    const newExpanded = new Set(expandedTypes);
-    if (newExpanded.has(typeId)) {
-      newExpanded.delete(typeId);
-    } else {
-      newExpanded.add(typeId);
-    }
-    setExpandedTypes(newExpanded);
-  };
-
   const toggleCategoryCollapse = (category: string) => {
     const newCollapsed = new Set(collapsedCategories);
     if (newCollapsed.has(category)) {
@@ -123,24 +105,7 @@ export default function ContentTypeSidebar({
       onSelectType(null); // Deselect if already selected
     } else {
       onSelectType(typeId);
-      // Auto-expand when selecting
-      setExpandedTypes(prev => new Set(prev).add(typeId));
     }
-  };
-
-  const getItemDisplayName = (item: SavedItem): string => {
-    if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-      return item.itemData?.title || item.title || 'Quick Note';
-    }
-    
-    if (item.itemType === 'character') {
-      const givenName = item.itemData?.givenName || '';
-      const familyName = item.itemData?.familyName || '';
-      const fullName = [givenName, familyName].filter(Boolean).join(' ').trim();
-      return fullName || item.itemData?.name || 'Untitled Character';
-    }
-    
-    return item.itemData?.name || item.title || 'Untitled';
   };
 
   const totalCount = items.length;
@@ -212,61 +177,22 @@ export default function ContentTypeSidebar({
                   if (type.count === 0) return null;
                   
                   const Icon = type.icon;
-                  const isExpanded = expandedTypes.has(type.id);
                   const isSelected = selectedType === type.id;
 
                   return (
-                    <div key={type.id} className="ml-4 space-y-0.5">
-                      {/* Type Button */}
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant={isSelected ? "secondary" : "ghost"}
-                          className="flex-1 justify-start h-auto py-1.5 px-2"
-                          onClick={() => handleTypeClick(type.id)}
-                          data-testid={`button-type-${type.id}`}
-                        >
-                          <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span className="text-sm flex-1 text-left truncate">{type.name}</span>
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {type.count}
-                          </Badge>
-                        </Button>
-                        
-                        {type.count > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 flex-shrink-0"
-                            onClick={() => toggleTypeExpansion(type.id)}
-                            data-testid={`button-expand-${type.id}`}
-                          >
-                            {isExpanded ? (
-                              <ChevronDown className="h-3 w-3" />
-                            ) : (
-                              <ChevronRight className="h-3 w-3" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Individual Items */}
-                      {isExpanded && type.items.length > 0 && (
-                        <div className="ml-6 space-y-0.5 mt-0.5">
-                          {type.items.map(item => (
-                            <Button
-                              key={item.id}
-                              variant="ghost"
-                              className="w-full justify-start h-auto py-1.5 px-2 text-xs"
-                              onClick={() => onSelectItem(item)}
-                              data-testid={`button-item-${item.id}`}
-                            >
-                              <span className="truncate text-left">
-                                {getItemDisplayName(item)}
-                              </span>
-                            </Button>
-                          ))}
-                        </div>
-                      )}
+                    <div key={type.id} className="ml-4">
+                      <Button
+                        variant={isSelected ? "secondary" : "ghost"}
+                        className="w-full justify-start h-auto py-1.5 px-2"
+                        onClick={() => handleTypeClick(type.id)}
+                        data-testid={`button-type-${type.id}`}
+                      >
+                        <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="text-sm flex-1 text-left truncate">{type.name}</span>
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          {type.count}
+                        </Badge>
+                      </Button>
                     </div>
                   );
                 })}

@@ -1478,6 +1478,20 @@ export class StorageFacade implements IStorage {
     return updated || undefined;
   }
 
+  async updateSavedItemType(savedItemId: string, userId: string, newItemType: string): Promise<SavedItem | undefined> {
+    const [updated] = await db.update(savedItems)
+      .set({ 
+        itemType: newItemType,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(savedItems.id, savedItemId),
+        eq(savedItems.userId, userId)
+      ))
+      .returning();
+    return updated || undefined;
+  }
+
   // Project methods
   async createProject(project: InsertProject): Promise<Project> {
     return await this.projectRepository.createProject(project);

@@ -421,11 +421,6 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     return null;
   };
 
-  // Handler for item selection from sidebar
-  const handleSidebarItemSelect = (item: SavedItem) => {
-    handleEdit(item);
-  };
-
   // Filter all items (saved items + quick note)
   const filteredItems = allItems.filter(item => {
     const type = item.contentType || item.itemType || 'unknown';
@@ -547,7 +542,6 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         items={allItems}
         selectedType={selectedType}
         onSelectType={setSelectedType}
-        onSelectItem={handleSidebarItemSelect}
         className="w-64 flex-shrink-0"
       />
 
