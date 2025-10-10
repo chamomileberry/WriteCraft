@@ -152,6 +152,9 @@ export interface PromptGenerationOptions {
 
 export interface GeneratedPrompt {
   text: string;
+  difficulty?: string;
+  wordCount?: string;
+  tags?: string[];
 }
 
 export interface DescriptionGenerationOptions {
@@ -958,7 +961,10 @@ PROMPT GUIDELINES:
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
 {
-  "text": "Your original, compelling writing prompt here"
+  "text": "Your original, compelling writing prompt here",
+  "difficulty": "beginner|intermediate|advanced",
+  "wordCount": "estimated word count like '500-1000' or '2000-5000'",
+  "tags": ["tag1", "tag2", "tag3"]
 }`;
 
   let userPrompt = "Generate a creative, original writing prompt that will inspire engaging fiction.";
@@ -996,7 +1002,13 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       throw new Error('Invalid prompt structure returned from AI');
     }
 
-    return generatedPrompt;
+    // Ensure all required fields have values
+    return {
+      text: generatedPrompt.text,
+      difficulty: generatedPrompt.difficulty || 'intermediate',
+      wordCount: generatedPrompt.wordCount || '500-1000',
+      tags: Array.isArray(generatedPrompt.tags) ? generatedPrompt.tags : []
+    };
   } catch (error) {
     console.error('Error generating prompt with AI:', error);
     throw new Error('Failed to generate prompt with AI');

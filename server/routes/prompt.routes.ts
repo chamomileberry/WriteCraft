@@ -32,8 +32,11 @@ router.post("/generate", async (req: any, res) => {
     
     const prompt = {
       text: aiPrompt.text,
-      genre: genre || null,
-      promptType: type || null,
+      genre: genre || 'general',
+      type: type || 'general',
+      difficulty: aiPrompt.difficulty || 'intermediate',
+      wordCount: aiPrompt.wordCount || '500-1000',
+      tags: aiPrompt.tags || [],
       userId: userId,
       notebookId: notebookId || null
     };
