@@ -13,7 +13,15 @@ import { useAutosave } from '@/hooks/useAutosave';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Save, BookmarkPlus, ListChecks, FilePlus } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import { Save, BookmarkPlus, ListChecks, FilePlus, ChevronDown } from 'lucide-react';
 import QuickNoteBubbleMenu from './QuickNoteBubbleMenu';
 
 interface QuickNotePanelProps {
@@ -56,6 +64,21 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       return response.json();
     },
     enabled: !noteId, // Only fetch scratch pad if not editing a saved note
+  });
+
+  // Fetch all saved quick notes from the active notebook for the dropdown
+  const { data: savedQuickNotes = [] } = useQuery({
+    queryKey: ['/api/saved-items', { userId, notebookId: activeNotebookId, itemType: 'quickNote' }],
+    queryFn: async () => {
+      if (!activeNotebookId) return [];
+      const response = await fetch(
+        `/api/saved-items?userId=${userId}&notebookId=${activeNotebookId}&itemType=quickNote`,
+        { credentials: 'include' }
+      );
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!activeNotebookId,
   });
 
   // Initialize TipTap editor with minimal extensions
@@ -357,6 +380,78 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     saveToNotebookMutation.mutate();
   };
 
+  // Handler to switch to a different saved note
+  const handleSwitchNote = (savedItem: any) => {
+    const newNoteId = savedItem.id;
+    const newSavedNoteData = savedItem.itemData || { 
+      title: savedItem.title || 'Quick Note', 
+      content: savedItem.content || '' 
+    };
+    
+    // Update panel metadata to load the selected note
+    updatePanel(panelId, { 
+      metadata: { 
+        noteId: newNoteId, 
+        savedNoteData: newSavedNoteData 
+      },
+      title: newSavedNoteData.title || 'Quick Note'
+    });
+    
+    // Set content in editor
+    if (editor && !editor.isDestroyed) {
+      editor.commands.setContent(newSavedNoteData.content || '');
+      setIsInitialLoad(false);
+      setHasBeenSavedOnce(true);
+    }
+  };
+
+  // Handler to switch back to scratch pad
+  const handleSwitchToScratchPad = async () => {
+    // Clear metadata to go back to scratch pad mode (this will re-enable the query)
+    updatePanel(panelId, { 
+      metadata: undefined,
+      title: 'Quick Note'
+    });
+    
+    // Reset to initial load state so the effect can load scratch pad when query completes
+    setIsInitialLoad(true);
+    
+    // Fetch scratch pad note directly if we don't have it cached
+    try {
+      const response = await fetch(`/api/quick-note?userId=${userId}`, {
+        credentials: 'include'
+      });
+      
+      let scratchPadNote = null;
+      if (response.ok) {
+        scratchPadNote = await response.json();
+      }
+      
+      // Update cache
+      queryClient.setQueryData(['/api/quick-note', userId], scratchPadNote);
+      
+      // Load scratch pad content into editor
+      if (editor && !editor.isDestroyed) {
+        editor.commands.setContent(scratchPadNote?.content || '');
+        setIsInitialLoad(false);
+        setHasBeenSavedOnce(!!scratchPadNote?.content);
+        
+        // Update title
+        if (scratchPadNote?.title && scratchPadNote.title !== 'Quick Note') {
+          updatePanel(panelId, { title: scratchPadNote.title });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load scratch pad:', error);
+      // On error, just clear the editor
+      if (editor && !editor.isDestroyed) {
+        editor.commands.setContent('');
+        setIsInitialLoad(false);
+        setHasBeenSavedOnce(false);
+      }
+    }
+  };
+
   // Register save function with parent component
   useEffect(() => {
     if (onRegisterSaveFunction && editor) {
@@ -457,6 +552,64 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         
         {/* Icon-based toolbar */}
         <div className="flex items-center justify-center gap-2">
+          {/* Note switcher dropdown - only show if there are saved notes */}
+          {savedQuickNotes.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800 text-xs"
+                  data-testid="button-switch-note"
+                >
+                  {noteId ? (
+                    <>
+                      <span className="max-w-[100px] truncate">{noteTitle}</span>
+                      <ChevronDown className="ml-1 w-3 h-3" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Scratch Pad</span>
+                      <ChevronDown className="ml-1 w-3 h-3" />
+                    </>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Saved Quick Notes</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {!noteId && (
+                  <DropdownMenuItem disabled className="text-xs opacity-70">
+                    <span className="font-medium">● Scratch Pad (current)</span>
+                  </DropdownMenuItem>
+                )}
+                {noteId && (
+                  <DropdownMenuItem 
+                    onClick={handleSwitchToScratchPad}
+                    className="text-xs"
+                    data-testid="menu-item-scratch-pad"
+                  >
+                    Scratch Pad
+                  </DropdownMenuItem>
+                )}
+                {savedQuickNotes.map((savedNote: any) => (
+                  <DropdownMenuItem
+                    key={savedNote.id}
+                    onClick={() => handleSwitchNote(savedNote)}
+                    disabled={noteId === savedNote.id}
+                    className="text-xs"
+                    data-testid={`menu-item-note-${savedNote.id}`}
+                  >
+                    {noteId === savedNote.id && <span className="mr-1">●</span>}
+                    <span className={noteId === savedNote.id ? 'font-medium' : ''}>
+                      {savedNote.itemData?.title || savedNote.title || 'Untitled Note'}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
