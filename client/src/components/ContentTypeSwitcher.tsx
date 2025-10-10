@@ -78,23 +78,20 @@ export function ContentTypeSwitcher({
       onValueChange={handleTypeChange}
       disabled={updateTypeMutation.isPending}
     >
-      <SelectTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={updateTypeMutation.isPending}
-          data-testid={`button-change-type-${savedItemId}`}
-        >
-          <>
-            {updateTypeMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <ArrowLeftRight className="h-4 w-4" />
-            )}
-            <span className="ml-2">Change Type</span>
-          </>
-        </Button>
-      </SelectTrigger>
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={updateTypeMutation.isPending}
+        onClick={() => setIsOpen(true)}
+        data-testid={`button-change-type-${savedItemId}`}
+      >
+        {updateTypeMutation.isPending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <ArrowLeftRight className="h-4 w-4" />
+        )}
+        <span className="ml-2">Change Type</span>
+      </Button>
       <SelectContent className="max-h-[400px]">
         {Object.entries(groupedTypes).map(([category, types]) => (
           <SelectGroup key={category}>
