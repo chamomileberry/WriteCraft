@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
@@ -67,6 +67,7 @@ import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
+import { ImageUploadExtension } from '@/lib/image-upload-extension';
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -239,6 +240,48 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   const lowlight = createLowlight();
   const autosaveRef = useRef<{ triggerAutosave: () => void } | null>(null);
   
+  // Image upload handler
+  const handleImageUpload = async (file: File): Promise<string> => {
+    // Get presigned upload URL
+    const uploadUrlResponse = await fetch('/api/upload/image', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!uploadUrlResponse.ok) {
+      throw new Error('Failed to get upload URL');
+    }
+
+    const { uploadURL, objectPath } = await uploadUrlResponse.json();
+
+    // Upload file to object storage
+    const uploadResponse = await fetch(uploadURL, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type }
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Upload failed');
+    }
+
+    // Finalize upload
+    const finalizeResponse = await fetch('/api/upload/finalize', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ objectPath })
+    });
+
+    if (!finalizeResponse.ok) {
+      throw new Error('Failed to finalize upload');
+    }
+
+    const { objectPath: finalPath } = await finalizeResponse.json();
+    return finalPath;
+  };
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -322,6 +365,20 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       }),
       Typography,
       AISuggestionsExtension,
+      ImageUploadExtension.configure({
+        onUpload: handleImageUpload,
+        onError: (error) => {
+          console.error('Image upload error:', error);
+          toast({
+            title: 'Failed to upload image',
+            description: error.message === 'Image too large' 
+              ? 'Image must be less than 5MB'
+              : 'Could not upload image. Please try again.',
+            variant: 'destructive'
+          });
+        },
+        maxFileSize: 5 * 1024 * 1024,
+      }),
     ],
     content: project?.content || '',
     editorProps: {
@@ -356,99 +413,6 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
             return true;
           }
         }
-        return false;
-      },
-      handlePaste: (view, event) => {
-        const items = event.clipboardData?.items;
-        if (!items) return false;
-
-        // Check if any clipboard item is an image
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.indexOf('image') !== -1) {
-            event.preventDefault();
-            
-            const file = items[i].getAsFile();
-            if (!file) continue;
-
-            // Check file size (5MB max)
-            const maxFileSize = 5 * 1024 * 1024;
-            if (file.size > maxFileSize) {
-              toast({
-                title: 'Image too large',
-                description: 'Pasted image must be less than 5MB',
-                variant: 'destructive'
-              });
-              return true;
-            }
-
-            // Capture editor reference before async operation
-            const currentEditor = view;
-
-            // Upload and insert the image
-            (async () => {
-              try {
-                // Get presigned upload URL
-                const uploadUrlResponse = await fetch('/api/upload/image', {
-                  method: 'POST',
-                  credentials: 'include',
-                  headers: { 'Content-Type': 'application/json' }
-                });
-
-                if (!uploadUrlResponse.ok) {
-                  throw new Error('Failed to get upload URL');
-                }
-
-                const { uploadURL, objectPath } = await uploadUrlResponse.json();
-
-                // Upload file to object storage
-                const uploadResponse = await fetch(uploadURL, {
-                  method: 'PUT',
-                  body: file,
-                  headers: { 'Content-Type': file.type }
-                });
-
-                if (!uploadResponse.ok) {
-                  throw new Error('Upload failed');
-                }
-
-                // Finalize upload
-                const finalizeResponse = await fetch('/api/upload/finalize', {
-                  method: 'POST',
-                  credentials: 'include',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ objectPath })
-                });
-
-                if (!finalizeResponse.ok) {
-                  throw new Error('Failed to finalize upload');
-                }
-
-                const { objectPath: finalPath } = await finalizeResponse.json();
-
-                // Insert image into editor using ProseMirror transaction
-                const { state, dispatch } = currentEditor;
-                const node = state.schema.nodes.image.create({ src: finalPath });
-                const tr = state.tr.insert(state.selection.from, node);
-                dispatch(tr);
-
-                toast({
-                  title: 'Image pasted',
-                  description: 'Your image has been inserted successfully'
-                });
-              } catch (error) {
-                console.error('Paste image error:', error);
-                toast({
-                  title: 'Failed to paste image',
-                  description: 'Could not upload pasted image. Please try again.',
-                  variant: 'destructive'
-                });
-              }
-            })();
-            
-            return true;
-          }
-        }
-        
         return false;
       },
     },
