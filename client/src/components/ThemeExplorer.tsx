@@ -4,11 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Lightbulb, HelpCircle, Target, BookOpen, Copy, Heart, Loader2, Sparkles } from "lucide-react";
-import type { Theme } from "@shared/schema";
+import { Lightbulb, HelpCircle, Target, BookOpen, Copy, Heart, Loader2 } from "lucide-react";
+import type { Theme, Notebook } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { GeneratorLayout } from "@/components/GeneratorLayout";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import { useToast } from "@/hooks/use-toast";
 
 const genres = [
   { value: 'any', label: 'Any Genre' },
@@ -24,9 +30,11 @@ const genres = [
 export default function ThemeExplorer() {
   const [genre, setGenre] = useState('any');
   const { user } = useAuth();
+  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before exploring themes.'
   });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Theme>({
     generateEndpoint: '/api/themes/generate',
@@ -61,16 +69,42 @@ ${theme.examples.join('\n')}`,
 
   const generatedTheme = generator.result;
 
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">Theme Explorer</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Discover and develop meaningful themes for your narrative. Generate deep thematic elements that resonate with readers.
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Theme Explorer</h1>
+        <p className="text-muted-foreground">
+          Discover and develop meaningful themes for your narrative
         </p>
       </div>
 
-      {/* Controls */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Generation Options</CardTitle>
@@ -79,45 +113,37 @@ ${theme.examples.join('\n')}`,
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="max-w-md">
-            <label className="block text-sm font-medium mb-2">Genre</label>
-            <Select value={genre} onValueChange={setGenre}>
-              <SelectTrigger data-testid="select-theme-genre">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {genres.map(genre => (
-                  <SelectItem key={genre.value} value={genre.value}>
-                    {genre.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <GeneratorLayout
+            onGenerate={generator.generate}
+            generateButtonText="Explore Themes"
+            isGenerating={generator.isGenerating}
+            generateButtonTestId="button-generate-theme"
+            notebookControls={
+              <GeneratorNotebookControls
+                onQuickCreate={() => quickCreateMutation.mutate()}
+                quickCreateLabel="Create Notebook"
+                quickCreateTestId="button-quick-create-notebook"
+              />
+            }
+          >
+            <div className="max-w-md">
+              <label className="block text-sm font-medium mb-2">Genre</label>
+              <Select value={genre} onValueChange={setGenre}>
+                <SelectTrigger data-testid="select-theme-genre">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {genres.map(genre => (
+                    <SelectItem key={genre.value} value={genre.value}>
+                      {genre.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </GeneratorLayout>
         </CardContent>
       </Card>
-
-      <div className="flex justify-center mb-8">
-        <Button 
-          onClick={generator.generate}
-          disabled={generator.isGenerating}
-          size="lg"
-          className="px-8 py-6 text-lg"
-          data-testid="button-generate-theme"
-        >
-          {generator.isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Exploring Themes...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-5 w-5" />
-              Explore Themes
-            </>
-          )}
-        </Button>
-      </div>
 
       {generatedTheme && (
         <Card className="mb-6">

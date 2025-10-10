@@ -8,19 +8,26 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
 import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "@shared/genres";
-import { type Character } from "@shared/schema";
+import { type Character, type Notebook } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CharacterGenerator() {
   const [genre, setGenre] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [ethnicity, setEthnicity] = useState<string>("");
   const { user } = useAuth();
+  const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating characters.'
   });
+  const { notebooks, setNotebooks, setActiveNotebook } = useNotebookStore();
 
   const generator = useGenerator<Character>({
     generateEndpoint: '/api/characters/generate',
@@ -71,6 +78,33 @@ export default function CharacterGenerator() {
 
   const character = generator.result;
 
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -84,6 +118,11 @@ export default function CharacterGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <GeneratorNotebookControls
+            onQuickCreate={() => quickCreateMutation.mutate()}
+            quickCreateLabel="Create Notebook"
+            quickCreateTestId="button-quick-create-notebook"
+          />
           <div className="flex flex-col sm:flex-row gap-4">
             <SearchableSelect
               value={genre}

@@ -6,11 +6,16 @@ import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Label } from "@/components/ui/label";
 import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Brain, Globe } from "lucide-react";
-import type { Creature } from "@shared/schema";
+import type { Creature, Notebook } from "@shared/schema";
 import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useAuth } from "@/hooks/useAuth";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CreatureGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");

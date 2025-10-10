@@ -3,16 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Palette, Eye, Ear, Sun, Cloud, Copy, Heart, Loader2, Sparkles } from "lucide-react";
+import { Palette, Eye, Ear, Sun, Cloud, Copy, Heart, Loader2 } from "lucide-react";
 import { useGenerateMutation, useSaveMutation } from "@/hooks/useApiMutation";
 import { useToast } from "@/hooks/use-toast";
 import { useNotebookStore } from "@/stores/notebookStore";
-import type { Mood } from "@shared/schema";
+import { GeneratorLayout } from "@/components/GeneratorLayout";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { Mood, Notebook } from "@shared/schema";
 
 export default function MoodPalette() {
   const [generatedMood, setGeneratedMood] = useState<Mood | null>(null);
   const { toast } = useToast();
-  const { activeNotebookId } = useNotebookStore();
+  const { notebooks, setNotebooks, setActiveNotebook, activeNotebookId } = useNotebookStore();
+  const { notebookId, validateNotebook } = useRequireNotebook({
+    errorMessage: 'Please create or select a notebook before generating moods.'
+  });
 
   const generateMutation = useGenerateMutation<Mood>('/api/moods/generate', {
     errorMessage: "Unable to create mood palette. Please try again.",
@@ -29,6 +37,7 @@ export default function MoodPalette() {
   });
 
   const handleGenerate = () => {
+    if (!validateNotebook()) return;
     generateMutation.mutate({ notebookId: activeNotebookId });
   };
 
@@ -71,36 +80,67 @@ ${generatedMood.soundscape.join('\n')}`;
     }
   };
 
+  // Quick create mutation
+  const quickCreateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: 'Untitled Notebook',
+        description: ''
+      });
+      const data = await response.json();
+      return data as Notebook;
+    },
+    onSuccess: (newNotebook: Notebook) => {
+      setNotebooks([...notebooks, newNotebook]);
+      setActiveNotebook(newNotebook.id);
+      toast({
+        title: "Notebook Created",
+        description: "Your new notebook is ready to use.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">Mood Palette</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Set the perfect tone and atmosphere for your scenes. Generate evocative sensory details to immerse your readers.
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Mood Palette</h1>
+        <p className="text-muted-foreground">
+          Set the perfect tone and atmosphere for your scenes
         </p>
       </div>
 
-      <div className="flex justify-center mb-8">
-        <Button 
-          onClick={handleGenerate}
-          disabled={generateMutation.isPending}
-          size="lg"
-          className="px-8 py-6 text-lg"
-          data-testid="button-generate-mood"
-        >
-          {generateMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Creating Mood...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-5 w-5" />
-              Generate Mood Palette
-            </>
-          )}
-        </Button>
-      </div>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Generate Mood Palette</CardTitle>
+          <CardDescription>
+            Create evocative sensory details to immerse your readers
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GeneratorLayout
+            onGenerate={handleGenerate}
+            generateButtonText="Generate Mood Palette"
+            isGenerating={generateMutation.isPending}
+            generateButtonTestId="button-generate-mood"
+            notebookControls={
+              <GeneratorNotebookControls
+                onQuickCreate={() => quickCreateMutation.mutate()}
+                quickCreateLabel="Create Notebook"
+                quickCreateTestId="button-quick-create-notebook"
+              />
+            }
+          >
+            <p className="text-sm text-muted-foreground">Click generate to create a mood palette with evocative sensory details.</p>
+          </GeneratorLayout>
+        </CardContent>
+      </Card>
 
       {generatedMood && (
         <Card className="mb-6">
@@ -194,8 +234,8 @@ ${generatedMood.soundscape.join('\n')}`;
               <div className="space-y-2">
                 {generatedMood.soundscape.map((sound: string, index: number) => (
                   <div key={index} className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                    <span data-testid={`text-sound-${index}`}>{sound}</span>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
+                    <span data-testid={`text-soundscape-${index}`}>{sound}</span>
                   </div>
                 ))}
               </div>
@@ -219,7 +259,7 @@ ${generatedMood.soundscape.join('\n')}`;
                 ) : (
                   <>
                     <Heart className="mr-2 h-4 w-4" />
-                    Save Mood Palette
+                    Save Mood
                   </>
                 )}
               </Button>
@@ -243,7 +283,7 @@ ${generatedMood.soundscape.join('\n')}`;
             <Palette className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Ready to Create Atmosphere</h3>
             <p className="text-muted-foreground">
-              Click generate to create a rich mood palette for your scene
+              Click generate to create an evocative mood palette for your scene
             </p>
           </CardContent>
         </Card>

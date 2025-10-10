@@ -7,11 +7,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Check, ChevronsUpDown, Cloud } from "lucide-react";
-import type { Setting } from "@shared/schema";
+import type { Setting, Notebook } from "@shared/schema";
 import { GENRE_CATEGORIES, SETTING_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");

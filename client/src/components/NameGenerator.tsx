@@ -9,7 +9,11 @@ import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useToast } from "@/hooks/use-toast";
-import type { GeneratedName } from "@shared/schema";
+import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useNotebookStore } from "@/stores/notebookStore";
+import type { GeneratedName, Notebook } from "@shared/schema";
 
 // Comprehensive name type categories
 const NAME_TYPE_CATEGORIES = {
