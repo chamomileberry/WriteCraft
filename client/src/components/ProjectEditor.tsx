@@ -381,6 +381,9 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
               return true;
             }
 
+            // Capture editor reference before async operation
+            const currentEditor = view;
+
             // Upload and insert the image
             (async () => {
               try {
@@ -422,8 +425,11 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
 
                 const { objectPath: finalPath } = await finalizeResponse.json();
 
-                // Insert image into editor
-                editor?.chain().focus().setImage({ src: finalPath }).run();
+                // Insert image into editor using ProseMirror transaction
+                const { state, dispatch } = currentEditor;
+                const node = state.schema.nodes.image.create({ src: finalPath });
+                const tr = state.tr.insert(state.selection.from, node);
+                dispatch(tr);
 
                 toast({
                   title: 'Image pasted',

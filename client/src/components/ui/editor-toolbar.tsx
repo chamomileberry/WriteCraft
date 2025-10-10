@@ -1366,10 +1366,32 @@ export function EditorToolbar({
                 </div>
               ) : (
                 <>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50">
+                  <div 
+                    className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      const file = e.dataTransfer?.files?.[0];
+                      if (file && file.type.startsWith('image/')) {
+                        // Create a synthetic event with the dropped file
+                        // Note: We can't use DataTransfer constructor (not available in Firefox)
+                        const syntheticEvent = {
+                          target: {
+                            files: [file] as any, // Minimal FileList-like object
+                          }
+                        };
+                        handleImageFileChange(syntheticEvent as any);
+                      }
+                    }}
+                  >
                     <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground mb-4">
-                      Upload an image or enter a URL
+                      Drag and drop an image here, or click to browse
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
                       <Button
