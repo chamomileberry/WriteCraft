@@ -3539,6 +3539,73 @@ export class DatabaseStorage implements IStorage {
     ));
   }
 
+  // Timeline methods
+  async createTimeline(timeline: InsertTimeline): Promise<Timeline> {
+    const [newTimeline] = await db
+      .insert(timelines)
+      .values(timeline)
+      .returning();
+
+    // Automatically save to saved_items for notebook display
+    if (newTimeline.notebookId && newTimeline.userId) {
+      await this.saveItem({
+        userId: newTimeline.userId,
+        notebookId: newTimeline.notebookId,
+        itemType: 'timeline',
+        itemId: newTimeline.id,
+        itemData: {
+          name: newTimeline.name,
+          description: newTimeline.description
+        }
+      });
+    }
+
+    return newTimeline;
+  }
+
+  async getTimeline(id: string, userId: string, notebookId: string): Promise<Timeline | undefined> {
+    const [timeline] = await db.select().from(timelines).where(and(
+      eq(timelines.id, id),
+      eq(timelines.userId, userId),
+      eq(timelines.notebookId, notebookId)
+    ));
+    return timeline || undefined;
+  }
+
+  async getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]> {
+    return await db.select().from(timelines)
+      .where(and(
+        eq(timelines.userId, userId),
+        eq(timelines.notebookId, notebookId)
+      ))
+      .orderBy(desc(timelines.createdAt));
+  }
+
+  async updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
+    // Validate ownership
+    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
+    if (!this.validateContentOwnership(existing, userId)) {
+      throw new Error('Unauthorized: You do not own this content');
+    }
+
+    const [updatedTimeline] = await db
+      .update(timelines)
+      .set(updates)
+      .where(eq(timelines.id, id))
+      .returning();
+    return updatedTimeline;
+  }
+
+  async deleteTimeline(id: string, userId: string): Promise<void> {
+    // Validate ownership
+    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
+    if (!this.validateContentOwnership(existing, userId)) {
+      throw new Error('Unauthorized: You do not own this content');
+    }
+
+    await db.delete(timelines).where(eq(timelines.id, id));
+  }
+
 // Timeline Event methods
 async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
   const [newEvent] = await db

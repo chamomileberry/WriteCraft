@@ -414,7 +414,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     const mapping = getMappingById(contentTypeId);
     if (mapping) {
       const notebookParam = activeNotebookId ? `?notebookId=${activeNotebookId}` : '';
-      setLocation(`/${mapping.urlSegment}/new${notebookParam}`);
+      // Navigate to editor route (not direct content route) to allow auto-creation logic
+      setLocation(`/editor/${mapping.urlSegment}/new${notebookParam}`);
     }
     setIsContentModalOpen(false);
   };

@@ -785,6 +785,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline routes
+  app.post("/api/timelines", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { notebookId, ...timelineData } = req.body;
+
+      if (!notebookId) {
+        return res.status(400).json({ error: 'Notebook ID is required' });
+      }
+
+      const timeline = await storage.createTimeline({
+        ...timelineData,
+        userId,
+        notebookId
+      });
+
+      res.json(timeline);
+    } catch (error) {
+      console.error('Error creating timeline:', error);
+      res.status(500).json({ error: 'Failed to create timeline' });
+    }
+  });
+
   app.get("/api/timelines/:id", async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

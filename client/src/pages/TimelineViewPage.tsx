@@ -12,8 +12,9 @@ export default function TimelineViewPage() {
   const { id } = useParams();
   const [location, setLocation] = useLocation();
 
-  // Extract notebookId from query parameters using wouter's location
-  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  // Extract notebookId from query parameters using window.location.search
+  // Note: wouter's location doesn't include query params, so we use window.location
+  const searchParams = new URLSearchParams(window.location.search);
   const notebookId = searchParams.get('notebookId');
 
   // Fetch timeline data

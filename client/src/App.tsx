@@ -210,9 +210,9 @@ function Router() {
       <Route path="/characters/:id/edit-sidebar" component={CharacterEditPageWithSidebar} />
       <Route path="/settings" component={SettingPage} />
       <Route path="/creatures" component={CreaturePage} />
-      <Route path="/timelines/:id" component={TimelineViewPage} />
       <Route path="/editor/:type/:id" component={EditorPage} />
       <Route path="/:type/:id/edit" component={EditorPage} />
+      <Route path="/timelines/:id" component={TimelineViewPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
