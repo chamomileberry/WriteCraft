@@ -87,49 +87,6 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     enabled: !!timelineId && !!notebookId,
   });
 
-  // Convert events to nodes
-  useEffect(() => {
-    if (!events) return;
-
-    const newNodes = events.map((event: TimelineEvent, index: number) => ({
-      id: event.id,
-      type: 'timelineEvent',
-      position: {
-        x: (event.positionX !== null && event.positionX !== undefined) ? event.positionX : index * 300,
-        y: (event.positionY !== null && event.positionY !== undefined) ? event.positionY : 100,
-      },
-      data: {
-        event,
-        notebookId,
-        timelineId,
-        onEdit: handleEditEvent,
-        onDelete: handleDeleteEvent,
-        onAddRelationship: handleAddRelationship,
-      } as TimelineEventNodeData,
-    })) as Node[];
-
-    setNodes(newNodes);
-  }, [events, notebookId, timelineId]);
-
-  // Convert relationships to edges
-  useEffect(() => {
-    if (!relationships || !events) return;
-
-    const newEdges = relationships.map((rel: TimelineRelationship) => ({
-      id: rel.id,
-      source: rel.fromEventId,
-      target: rel.toEventId,
-      type: 'timelineRelationship',
-      data: {
-        relationship: rel,
-        notebookId,
-        timelineId,
-      } as TimelineRelationshipEdgeData,
-    })) as Edge[];
-
-    setEdges(newEdges);
-  }, [relationships, events, notebookId, timelineId]);
-
   // Delete event mutation
   const deleteEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
@@ -201,7 +158,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     },
   });
 
-  // Handlers
+  // Handlers - DEFINED BEFORE useEffects that use them
   const handleEditEvent = useCallback((event: TimelineEvent) => {
     setSelectedEvent(event);
     setIsEventDialogOpen(true);
@@ -211,7 +168,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     if (confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
       deleteEventMutation.mutate(event.id);
     }
-  }, [deleteEventMutation]);
+  }, []);
 
   const handleAddRelationship = useCallback((event: TimelineEvent) => {
     setSelectedEvent(event);
@@ -221,6 +178,49 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       description: 'Relationship creation dialog is being built',
     });
   }, [toast]);
+
+  // Convert events to nodes
+  useEffect(() => {
+    if (!events) return;
+
+    const newNodes = events.map((event: TimelineEvent, index: number) => ({
+      id: event.id,
+      type: 'timelineEvent',
+      position: {
+        x: (event.positionX !== null && event.positionX !== undefined) ? event.positionX : index * 300,
+        y: (event.positionY !== null && event.positionY !== undefined) ? event.positionY : 100,
+      },
+      data: {
+        event,
+        notebookId,
+        timelineId,
+        onEdit: handleEditEvent,
+        onDelete: handleDeleteEvent,
+        onAddRelationship: handleAddRelationship,
+      } as TimelineEventNodeData,
+    })) as Node[];
+
+    setNodes(newNodes);
+  }, [events, notebookId, timelineId, handleEditEvent, handleDeleteEvent, handleAddRelationship]);
+
+  // Convert relationships to edges
+  useEffect(() => {
+    if (!relationships || !events) return;
+
+    const newEdges = relationships.map((rel: TimelineRelationship) => ({
+      id: rel.id,
+      source: rel.fromEventId,
+      target: rel.toEventId,
+      type: 'timelineRelationship',
+      data: {
+        relationship: rel,
+        notebookId,
+        timelineId,
+      } as TimelineRelationshipEdgeData,
+    })) as Edge[];
+
+    setEdges(newEdges);
+  }, [relationships, events, notebookId, timelineId]);
 
   // Handle connection creation
   const onConnect = useCallback(

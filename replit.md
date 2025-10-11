@@ -49,6 +49,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 ### Key Features
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
 - **Content Management**: Notebook system, modular generator system, writing guides, hierarchical project system with rich text editor (TipTap), enhanced character editor.
+- **Timeline Canvas** (Oct 2025): Visual timeline builder using ReactFlow for drag-and-drop event organization with auto-layout, relationship edges, and content linking. Features auto-creation workflow (modal → instant canvas view), event CRUD operations, position persistence, and type-based visual indicators.
 - **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, writing assistant panel, and adherence to anti-cliché guidelines.
 - **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping, robust processing, and error reporting.
 - **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
