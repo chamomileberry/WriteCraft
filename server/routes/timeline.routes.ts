@@ -19,8 +19,16 @@ router.post("/", async (req: any, res) => {
       }
     }
     
-    const validatedTimeline = insertTimelineSchema.parse(req.body);
-    const savedTimeline = await storage.createTimeline(validatedTimeline);
+    // Validate request body (without userId - it comes from session)
+    const validatedData = insertTimelineSchema.omit({ userId: true }).parse(req.body);
+    
+    // Inject userId from session
+    const timelineData = {
+      ...validatedData,
+      userId
+    };
+    
+    const savedTimeline = await storage.createTimeline(timelineData);
     res.json(savedTimeline);
   } catch (error) {
     console.error('Error saving timeline:', error);

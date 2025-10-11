@@ -790,19 +790,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { notebookId, ...timelineData } = req.body;
 
+      console.log('[POST /api/timelines] Raw request body:', req.body);
+      console.log('[POST /api/timelines] Extracted:', { userId, notebookId, timelineData });
+
       if (!notebookId) {
         return res.status(400).json({ error: 'Notebook ID is required' });
       }
 
-      const timeline = await storage.createTimeline({
+      const dataToInsert = {
         ...timelineData,
         userId,
         notebookId
-      });
+      };
+      
+      console.log('[POST /api/timelines] Data to insert:', dataToInsert);
 
+      const timeline = await storage.createTimeline(dataToInsert);
+
+      console.log('[POST /api/timelines] Created timeline:', { id: timeline.id, userId: timeline.userId, notebookId: timeline.notebookId });
       res.json(timeline);
     } catch (error) {
-      console.error('Error creating timeline:', error);
+      console.error('[POST /api/timelines] Error:', error);
       res.status(500).json({ error: 'Failed to create timeline' });
     }
   });
@@ -813,11 +821,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { notebookId } = req.query;
 
+      console.log('[GET /api/timelines/:id] Fetching timeline:', { id, userId, notebookId });
+
       if (!notebookId) {
         return res.status(400).json({ error: 'Notebook ID is required' });
       }
 
       const timeline = await storage.getTimeline(id, userId, notebookId as string);
+      
+      console.log('[GET /api/timelines/:id] Query result:', timeline ? `Found timeline ${timeline.id}` : 'Timeline not found');
+      
       if (!timeline) {
         return res.status(404).json({ error: 'Timeline not found' });
       }

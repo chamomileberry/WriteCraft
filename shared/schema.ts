@@ -1291,8 +1291,8 @@ export const timelines = pgTable("timelines", {
   scope: text("scope"), // global, regional, local, personal, etc.
   genre: text("genre"),
   // Relationships
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
