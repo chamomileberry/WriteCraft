@@ -37,6 +37,10 @@ export const users = pgTable("users", {
   grandfatheredTier: varchar("grandfathered_tier"),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   trialUsed: boolean("trial_used").default(false),
+  // Multi-Factor Authentication (MFA) fields
+  mfaEnabled: boolean("mfa_enabled").default(false),
+  mfaSecret: text("mfa_secret"), // Encrypted TOTP secret
+  backupCodes: text("backup_codes").array(), // Hashed backup codes for account recovery
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

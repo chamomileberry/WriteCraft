@@ -9,7 +9,9 @@ import pexelsRoutes from "./routes/pexels.routes";
 import dalleRoutes from "./routes/dalle.routes";
 import stockImagesRoutes from "./routes/stock-images.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
+import mfaRoutes from "./routes/mfa.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { createRateLimiter } from "./security";
 import { 
   insertCharacterSchema, 
   updateCharacterSchema,
@@ -57,6 +59,13 @@ import {
   conversationalChat
 } from "./ai-generation";
 
+// Search endpoint rate limiting: 150 requests per 15 minutes
+// Prevents search abuse while allowing reasonable usage
+const searchRateLimiter = createRateLimiter({ 
+  maxRequests: 150, 
+  windowMs: 15 * 60 * 1000 
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth (must be before other routes)
   await setupAuth(app);
@@ -70,6 +79,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // - Security audit logging
   const { default: secureUserRoutes } = await import('./security/userRoutes');
   app.use('/api', secureUserRoutes);
+  
+  // Register MFA (Multi-Factor Authentication) routes
+  app.use("/api/auth/mfa", mfaRoutes);
   
   // Register security test endpoints (development only)
   if (process.env.NODE_ENV !== 'production') {
@@ -229,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Universal search endpoint
-  app.get("/api/search", async (req: any, res) => {
+  app.get("/api/search", searchRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const query = req.query.q as string || '';

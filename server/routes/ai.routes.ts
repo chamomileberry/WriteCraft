@@ -4,14 +4,22 @@ import { db } from "../db";
 import { characters } from "@shared/schema";
 import { and, eq, or, ilike } from "drizzle-orm";
 import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
+import { createRateLimiter } from "../security";
 
 const router = Router();
+
+// AI generation rate limiting: 30 requests per 15 minutes
+// This protects against API abuse and controls costs
+const aiRateLimiter = createRateLimiter({ 
+  maxRequests: 30, 
+  windowMs: 15 * 60 * 1000 
+});
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-router.post("/improve-text", async (req: any, res) => {
+router.post("/improve-text", aiRateLimiter, async (req: any, res) => {
   try {
     const { text, action, customPrompt } = req.body;
 
@@ -92,7 +100,7 @@ ${text}`;
   }
 });
 
-router.post("/generate-field", async (req: any, res) => {
+router.post("/generate-field", aiRateLimiter, async (req: any, res) => {
   try {
     const { fieldName, fieldLabel, action, customPrompt, currentValue, characterContext } = req.body;
 
