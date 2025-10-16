@@ -281,6 +281,15 @@ This implementation addresses the following security requirements:
 
 ## Version History
 
+- v2.0.0 - Advanced Security Features (October 2025)
+  - Multi-factor authentication (TOTP-based 2FA with backup codes)
+  - Intrusion Detection System (SQL/XSS detection, IP blocking)
+  - API key rotation tracking (90-day rotation with admin dashboard)
+  - Content Security Policy with nonce-based script execution
+  - Redis-backed session management with concurrent device limiting
+  - Distributed rate limiting (AI: 30/15min, Search: 150/15min)
+  - Enhanced security headers (HSTS, COOP, COEP, CORP)
+
 - v1.0.0 - Initial security implementation
   - Enhanced authentication with test mode protection
   - Row-level security enforcement
