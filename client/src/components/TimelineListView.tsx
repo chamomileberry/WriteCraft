@@ -73,11 +73,35 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
 
   if (!events || events.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground p-8">
-        <HiCalendar className="w-16 h-16" />
-        <p className="text-lg">No events in this timeline yet</p>
-        <p className="text-sm">Create events using the canvas view or add them directly</p>
-      </div>
+      <>
+        <div className="p-8 max-w-4xl mx-auto">
+          <div className="mb-8 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-muted-foreground">Timeline Events</h2>
+            <Button onClick={handleAddEvent} data-testid="button-add-event">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Event
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center flex-1 gap-4 text-muted-foreground p-8">
+          <HiCalendar className="w-16 h-16" />
+          <p className="text-lg">No events in this timeline yet</p>
+          <p className="text-sm">Click "Add Event" above to get started</p>
+        </div>
+        
+        <EventEditDialog
+          open={isEventDialogOpen}
+          onOpenChange={(open) => {
+            setIsEventDialogOpen(open);
+            if (!open) {
+              setSelectedEvent(null);
+            }
+          }}
+          event={selectedEvent}
+          timelineId={timelineId}
+          notebookId={notebookId}
+        />
+      </>
     );
   }
 
