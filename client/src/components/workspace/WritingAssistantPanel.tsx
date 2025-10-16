@@ -290,8 +290,20 @@ export default function WritingAssistantPanel({
     onSuccess: (data) => {
       addMessage('assistant', data.message);
     },
-    onError: () => {
-      addMessage('assistant', "I'm having trouble processing your message right now. Please try again, and I'll do my best to help with your writing!");
+    onError: (error: any) => {
+      // Try to extract a meaningful error message from the response
+      let errorMessage = "I'm having a moment of writer's block myself! Could you rephrase your question, or would you like to try a different aspect of your project?";
+      
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        // Network or other errors
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = "I'm having trouble connecting right now. Please check your internet connection and try again.";
+        }
+      }
+      
+      addMessage('assistant', errorMessage);
     },
   });
 

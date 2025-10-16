@@ -2272,7 +2272,32 @@ Use this context to provide more relevant and specific advice about their curren
     return content.text.trim();
   } catch (error) {
     console.error('Error in conversational chat with AI:', error);
-    return "I apologize, but I'm having trouble processing your message right now. Please try asking your writing question again, and I'll do my best to help you with your creative project!";
+    
+    // Context-aware error messages based on what the user was doing
+    
+    // Check if user was analyzing text in editor
+    const wasAnalyzingText = editorContent && editorContent.length > 100;
+    
+    // Check conversation length
+    const conversationLength = conversationHistory?.length || 0;
+    
+    // Determine appropriate error message based on context
+    if (wasAnalyzingText) {
+      return "I'm having trouble analyzing that passage right now. Could you try selecting a smaller section, or would you like to just chat about what you're trying to achieve with this scene?";
+    }
+    
+    if (conversationLength > 15) {
+      return "I seem to be having trouble processing this longer conversation. Would you like to start a new chat thread, or can I help with something specific about your writing?";
+    }
+    
+    // Check if error is related to API limits or rate limiting
+    const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+    if (errorMessage.includes('rate') || errorMessage.includes('limit') || errorMessage.includes('quota')) {
+      return "I'm experiencing high demand right now. Could you try again in a moment, or would you like to break your question into smaller parts?";
+    }
+    
+    // Default friendly error with writer-specific language
+    return "I'm having a moment of writer's block myself! Could you rephrase your question, or would you like to try a different aspect of your project?";
   }
 }
 
