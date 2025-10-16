@@ -298,18 +298,18 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   const nonce = res.locals.cspNonce;
   
   // Content Security Policy with nonce-based script execution
-  // In development, we need to allow 'unsafe-eval' for Vite HMR
+  // In development, we need to allow 'unsafe-eval' and 'unsafe-inline' for Vite HMR
   const isDevelopment = process.env.NODE_ENV === 'development';
   const scriptSrc = isDevelopment 
-    ? `'self' 'nonce-${nonce}' 'unsafe-eval'` // Vite needs eval for HMR
+    ? `'self' 'unsafe-inline' 'unsafe-eval' https://replit.com` // Dev: Allow inline for Vite
     : `'self' 'nonce-${nonce}'`; // Production: strict nonce-only
   
   res.setHeader('Content-Security-Policy', 
     `default-src 'self'; ` +
     `script-src ${scriptSrc}; ` +
-    `style-src 'self' 'unsafe-inline'; ` + // Styles can use inline (less risky than scripts)
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` + // Allow Google Fonts
     `img-src 'self' data: https:; ` +
-    `font-src 'self' data:; ` +
+    `font-src 'self' data: https://fonts.gstatic.com; ` + // Allow Google Fonts
     `connect-src 'self' wss: https:; ` +
     `frame-ancestors 'none'; ` + // Prevent embedding (redundant with X-Frame-Options but more secure)
     `base-uri 'self'; ` + // Restrict <base> tag URLs
