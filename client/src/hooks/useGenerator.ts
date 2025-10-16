@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import { useSubscription } from '@/hooks/useSubscription';
 
 export interface UseGeneratorOptions<TResult, TParams = any> {
   /** API endpoint for generation */
@@ -44,6 +45,10 @@ export interface UseGeneratorReturn<TResult> {
   isSaving: boolean;
   /** Generate new result */
   generate: () => void;
+  /** Whether an upgrade is required */
+  showUpgradePrompt: boolean;
+  /** Set upgrade prompt visibility */
+  setShowUpgradePrompt: (show: boolean) => void;
   /** Copy result to clipboard */
   copyToClipboard: () => void;
   /** Save result to collection */
@@ -69,8 +74,10 @@ export function useGenerator<TResult, TParams = any>({
   buildNavigateRoute,
 }: UseGeneratorOptions<TResult, TParams>): UseGeneratorReturn<TResult> {
   const [result, setResult] = useState<TResult | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { checkLimit } = useSubscription();
 
   // Generation mutation
   const generateMutation = useMutation({
@@ -159,8 +166,8 @@ export function useGenerator<TResult, TParams = any>({
     },
   });
 
-  // Generate handler
-  const generate = () => {
+  // Generate handler with limit checking
+  const generate = async () => {
     // Run validation if provided
     if (validateBeforeGenerate) {
       const validationError = validateBeforeGenerate();
@@ -172,6 +179,18 @@ export function useGenerator<TResult, TParams = any>({
         });
         return;
       }
+    }
+
+    // Check AI generation limit
+    try {
+      const limitCheck = await checkLimit('ai_generations');
+      if (!limitCheck.allowed) {
+        setShowUpgradePrompt(true);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking limit:', error);
+      // Continue with generation even if limit check fails (server will enforce)
     }
 
     generateMutation.mutate();
@@ -227,6 +246,8 @@ export function useGenerator<TResult, TParams = any>({
     copyToClipboard,
     saveToCollection,
     setResult,
+    showUpgradePrompt,
+    setShowUpgradePrompt,
   };
 }
 

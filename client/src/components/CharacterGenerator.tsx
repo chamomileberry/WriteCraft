@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { UsageIndicator } from "@/components/UsageIndicator";
 
 export default function CharacterGenerator() {
   const [genre, setGenre] = useState<string>("");
@@ -137,6 +139,11 @@ export default function CharacterGenerator() {
             </div>
           </div>
 
+          {/* AI Usage Indicator */}
+          <div className="mt-6">
+            <UsageIndicator type="ai_generations" />
+          </div>
+
           <div className="flex justify-end pt-4">
             <Button 
               onClick={generator.generate}
@@ -237,6 +244,15 @@ export default function CharacterGenerator() {
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={generator.showUpgradePrompt}
+        onOpenChange={generator.setShowUpgradePrompt}
+        title="AI Generation Limit Reached"
+        description="You've reached your daily AI generation limit. Upgrade to a paid plan for unlimited AI-powered character generation."
+        feature="AI generations"
+      />
     </div>
   );
 }
