@@ -325,93 +325,124 @@ CREATE POLICY user_isolation_policy ON notebooks
 
 ---
 
-#### 2. ⏳ Multi-Factor Authentication (MFA)
-**Status:** Not Implemented  
+#### 2. ✅ Multi-Factor Authentication (MFA)
+**Status:** IMPLEMENTED (Oct 2025)  
 **Priority:** HIGH  
-**Required Package:** `speakeasy` or `otplib`
+**Implementation:** `server/services/mfaService.ts`, `server/routes/mfa.routes.ts`
 
-**Implementation Steps:**
-1. Install MFA library: `npm install speakeasy qrcode`
-2. Add `mfaSecret` and `mfaEnabled` columns to users table
-3. Create `/api/auth/mfa/setup` endpoint to generate QR code
-4. Create `/api/auth/mfa/verify` endpoint for token validation
-5. Modify login flow to require MFA token after password
-6. Store backup codes securely (hashed)
+**Implemented Features:**
+- TOTP-based 2FA using `speakeasy` library
+- QR code generation for authenticator app enrollment
+- Backup codes with AES-256-GCM encryption
+- Secure MFA secret storage with dedicated encryption key
+- Account recovery flow with backup codes
+- `/api/mfa/setup`, `/api/mfa/verify`, `/api/mfa/disable` endpoints
 
-**Verification:** Test MFA setup and login flow with authenticator app
+**Security Features:**
+- AES-256-GCM authenticated encryption for MFA secrets
+- Bcrypt hashing (10 rounds) for backup codes
+- MFA_ENCRYPTION_KEY environment variable for stable encryption
+- Mandatory 64+ character encryption key
 
----
-
-#### 3. ⏳ API Key Rotation Policy
-**Status:** Not Implemented  
-**Priority:** MEDIUM  
-**Required Package:** `node-schedule` or built-in cron
-
-**Implementation Steps:**
-1. Add API key expiration tracking to database
-2. Implement scheduled job to rotate keys every 90 days
-3. Send email notifications before expiration
-4. Create `/api/auth/rotate-api-key` endpoint
-5. Log all rotation events to security audit log
-
-**Verification:** Test key rotation and verify old keys are invalidated
+**Verification:** ✅ MFA setup and login flows tested with authenticator apps
 
 ---
 
-#### 4. ⏳ Enhanced Session Management
-**Status:** Partial Implementation  
+#### 3. ✅ API Key Rotation Policy
+**Status:** IMPLEMENTED (Oct 2025)  
 **Priority:** MEDIUM  
-**Required Package:** `express-session` with Redis store
+**Implementation:** `server/routes/keyRotation.routes.ts`, `server/services/apiKeyRotationService.ts`
 
-**Current:** PostgreSQL session store  
-**Enhancement:** Redis for better performance and session management
+**Implemented Features:**
+- Automated 90-day rotation tracking for critical API keys
+- Database audit trail with `apiKeyRotations` and `apiKeyRotationHistory` tables
+- Admin dashboard for viewing rotation status
+- Email notifications for expiring keys
+- `/api/admin/key-rotations` endpoints for tracking and management
 
-**Implementation Steps:**
-1. Install Redis: `npm install redis connect-redis`
-2. Set up Redis connection
-3. Configure connect-redis as session store
-4. Implement session timeout policies
-5. Add concurrent session limiting (max 3 devices)
+**Tracked Keys:**
+- ANTHROPIC_API_KEY (AI generation)
+- MFA_ENCRYPTION_KEY (2FA encryption)
+- SESSION_SECRET (session security)
 
-**Verification:** Test session expiry, concurrent sessions, and performance
+**Verification:** ✅ Key rotation tracking and admin notifications operational
 
 ---
 
-#### 5. ⏳ Intrusion Detection System (IDS)
-**Status:** Not Implemented  
+#### 4. ✅ Enhanced Session Management
+**Status:** IMPLEMENTED (Oct 2025)  
 **Priority:** MEDIUM  
-**Required Package:** Custom middleware + alerting system
+**Implementation:** `server/services/redisClient.ts`, `server/services/sessionManager.ts`
 
-**Implementation Steps:**
-1. Create pattern detection for suspicious activity:
-   - Multiple failed login attempts
-   - Rapid API requests from single IP
-   - Attempts to access non-existent resources
-   - SQL injection pattern detection
-2. Implement IP blocking after threshold exceeded
-3. Set up email/SMS alerts for CRITICAL events
-4. Create admin dashboard for security events
+**Implemented Features:**
+- Redis-backed session storage with PostgreSQL fallback
+- Concurrent session limiting (max 3 active devices per user)
+- Automatic eviction of oldest sessions when limit exceeded
+- Distributed session management for multi-instance deployments
+- Session timeout policies with secure cookie settings
 
-**Verification:** Simulate attacks and verify detection + alerting
+**Security Configuration:**
+- httpOnly cookies (prevents XSS access)
+- secure flag (HTTPS only in production)
+- sameSite: 'lax' (CSRF protection)
+- Atomic operations for race condition prevention
+
+**Verification:** ✅ Session management tested across devices and instances
 
 ---
 
-#### 6. ⏳ Content Security Policy (CSP) Enhancement
-**Status:** Basic Implementation  
+#### 5. ✅ Intrusion Detection System (IDS)
+**Status:** IMPLEMENTED (Oct 2025)  
 **Priority:** MEDIUM  
-**Required Package:** `helmet` (already available)
+**Implementation:** `server/security/idsMiddleware.ts`, `server/services/intrusionDetectionService.ts`
 
-**Current:** Basic CSP headers  
-**Enhancement:** Strict CSP with nonce-based script execution
+**Implemented Features:**
+- Real-time threat detection with pattern matching
+- Automatic IP blocking (5 failed logins = 24h block)
+- Security alert dashboard for admins
+- Comprehensive attack logging with `intrusionAttempts` and `blockedIps` tables
 
-**Implementation Steps:**
-1. Generate unique nonce per request
-2. Add nonce to all inline scripts
-3. Update CSP header to use nonce
-4. Remove `unsafe-inline` from script-src
-5. Add CSP violation reporting endpoint
+**Detection Patterns:**
+- SQL injection attempts (UNION, DROP, exec patterns)
+- XSS attacks (<script>, onerror, javascript: patterns)
+- Failed authentication attempts
+- Rate limit violations
+- Unauthorized access attempts
 
-**Verification:** Test all features work with strict CSP, check violation reports
+**Admin Dashboard:**
+- `/api/admin/security/alerts` - View all security events
+- `/api/admin/security/blocked-ips` - Manage blocked IPs
+- Severity filtering (LOW, MEDIUM, HIGH, CRITICAL)
+
+**Verification:** ✅ Attack simulation and detection confirmed operational
+
+---
+
+#### 6. ✅ Content Security Policy (CSP) Enhancement
+**Status:** IMPLEMENTED (Oct 2025)  
+**Priority:** MEDIUM  
+**Implementation:** `server/security/csp.ts`, `server/routes/csp-report.routes.ts`
+
+**Implemented Features:**
+- Nonce-based script execution (cryptographically secure)
+- No `unsafe-inline` in production
+- CSP violation reporting endpoint at `/api/csp-report`
+- Separate development and production policies
+- Enhanced directives: base-uri, form-action, frame-ancestors
+
+**CSP Directives:**
+- `default-src 'self'`
+- `script-src 'self' 'nonce-{random}' (prod)` or `'unsafe-inline' (dev)`
+- `style-src 'self' 'unsafe-inline'` (required for Tailwind)
+- `img-src 'self' data: blob: https:`
+- `connect-src 'self' https://api.anthropic.com`
+
+**Violation Reporting:**
+- Logs all CSP violations to database
+- Admin dashboard for reviewing violations
+- Helps identify policy gaps and potential attacks
+
+**Verification:** ✅ Strict CSP enforced, violation reports captured
 
 ---
 
@@ -481,60 +512,75 @@ CREATE POLICY user_isolation_policy ON notebooks
 
 ---
 
-#### 11. ⏳ AI Generation Rate Limiting
-**Status:** Uses Global Rate Limit  
+#### 11. ✅ AI Generation Rate Limiting
+**Status:** IMPLEMENTED (Oct 2025)  
 **Priority:** HIGH  
-**Required:** Configuration update in `server/routes/` files
+**Implementation:** `server/routes/ai.routes.ts`
 
-**Current State:** AI generation endpoints use global rate limit (2000 req/15min)  
-**Recommended:** Stricter limits (20-50 requests per 15 minutes)
+**Current Configuration:**
+- AI endpoints: **30 requests per 15 minutes**
+- Applied to: `/api/ai/improve-text`, `/api/ai/generate-field`
+- Uses dedicated `aiRateLimiter` with Redis backing
 
-**Implementation Steps:**
-1. Add specific rate limiter to AI generation routes
-2. Configure in route files: `/api/generate/*`, `/api/ai/*`
-3. Use `createRateLimiter({ maxRequests: 20-50, windowMs: 15 * 60 * 1000 })`
-4. Monitor API usage patterns and adjust accordingly
+**Rate Limiter Config:**
+```typescript
+const aiRateLimiter = createRateLimiter({ 
+  maxRequests: 30, 
+  windowMs: 15 * 60 * 1000 
+});
+```
 
-**Verification:** Test rate limit enforcement on AI endpoints
+**Verification:** ✅ Stricter AI-specific rate limits enforced
 
 ---
 
-#### 12. ⏳ Search Endpoint Rate Limiting
-**Status:** Uses Global Rate Limit  
+#### 12. ✅ Search Endpoint Rate Limiting
+**Status:** IMPLEMENTED (Oct 2025)  
 **Priority:** MEDIUM  
-**Required:** Configuration update in search routes
+**Implementation:** `server/routes.ts`
 
-**Current State:** Search endpoints use global rate limit (2000 req/15min)  
-**Recommended:** Moderate limits (100-200 requests per 15 minutes)
+**Current Configuration:**
+- Search endpoints: **150 requests per 15 minutes**
+- Applied to: `/api/search`, `/api/universal-search`
+- Uses dedicated `searchRateLimiter` with Redis backing
 
-**Implementation Steps:**
-1. Add specific rate limiter to search routes
-2. Configure in: `/api/search/*`, `/api/universal-search`
-3. Use `createRateLimiter({ maxRequests: 100-200, windowMs: 15 * 60 * 1000 })`
+**Rate Limiter Config:**
+```typescript
+const searchRateLimiter = createRateLimiter({ 
+  maxRequests: 150, 
+  windowMs: 15 * 60 * 1000 
+});
+```
 
-**Verification:** Test rate limit on search functionality
+**Verification:** ✅ Moderate search-specific rate limits enforced
 
 ---
 
-#### 13. ⏳ Production Rate Limit Store (Redis)
-**Status:** In-Memory Map  
-**Priority:** HIGH (for multi-instance deployments)  
-**Required Package:** `redis` or `ioredis`
+#### 13. ✅ Production Rate Limit Store (Redis)
+**Status:** IMPLEMENTED (Oct 2025)  
+**Priority:** HIGH (multi-instance ready)  
+**Implementation:** `server/security/middleware.ts`, `server/services/redisClient.ts`
 
-**Current State:** In-memory Map storage (works for single instance only)  
-**Location:** `server/security/middleware.ts` line 25  
-**Required For:** Multi-instance/load-balanced deployments
+**Current Configuration:**
+- Redis-backed rate limiting with automatic fallback to in-memory Map
+- Atomic operations (INCR + EXPIRE) prevent race conditions
+- Distributed rate limiting across multiple server instances
+- Connection retry logic and health checks included
 
-**Implementation Steps:**
-1. Install Redis client: `npm install redis`
-2. Replace Map with Redis-backed store in `server/security/middleware.ts`
-3. Configure Redis connection with environment variables
-4. Implement connection retry logic
-5. Add Redis health check to startup
+**Implementation Details:**
+```typescript
+// Redis atomic rate limiting
+const count = await redisClient.incr(redisKey);
+if (count === 1) {
+  await redisClient.expire(redisKey, ttl);
+}
+```
 
-**Verification:** Test rate limiting across multiple server instances
+**Fallback Behavior:**
+- If Redis unavailable, automatically falls back to in-memory Map
+- Graceful degradation ensures uptime during Redis outages
 
-**Note:** Single-instance Replit deployments can continue using in-memory store
+**Verification:** ✅ Distributed rate limiting operational across instances
 
 ---
 
