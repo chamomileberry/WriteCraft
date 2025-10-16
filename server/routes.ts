@@ -9,6 +9,7 @@ import pexelsRoutes from "./routes/pexels.routes";
 import dalleRoutes from "./routes/dalle.routes";
 import stockImagesRoutes from "./routes/stock-images.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
+import stripeRoutes from "./routes/stripe.routes";
 import mfaRoutes from "./routes/mfa.routes";
 import securityRoutes from "./routes/security.routes";
 import cspReportRoutes from "./routes/csp-report.routes";
@@ -117,6 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register subscription routes
   app.use("/api/subscription", isAuthenticated, subscriptionRoutes);
+
+  // Register Stripe payment routes
+  app.use("/api/stripe", stripeRoutes);
 
   // Serve uploaded objects with optional access control
   // NOTE: World-building content and avatars are publicly accessible via UUID protection.
