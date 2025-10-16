@@ -50,7 +50,14 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 ### Key Features
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
 - **Content Management**: Notebook system, modular generator system, writing guides, hierarchical project system with rich text editor (TipTap), enhanced character editor.
-- **Timeline Canvas** (Oct 2025): Visual timeline builder using ReactFlow for drag-and-drop event organization with auto-layout, relationship edges, and content linking. Features auto-creation workflow (modal → instant canvas view), event CRUD operations, position persistence, and type-based visual indicators.
+- **Timeline System** (Oct 2025): 
+  - **Triple View Modes**: List (chronological), Canvas (spatial ReactFlow), Gantt (duration-based swim lanes)
+  - **Timescale Mode** (List view): Toggle between compact (equal spacing) and proportional (time-gap-based) spacing with visual indicators
+  - **Swim Lanes** (Canvas view): Category-based horizontal lanes with custom SwimLaneNode component, 2000px canvas height for vertical scrolling, auto-layout preservation
+  - **Template System**: Guided timeline creation (World History, Campaign Sessions, Character Biography, Plot Structure) with type/scale/view presets
+  - **Mobile Responsive**: Auto-switches to List view on <768px devices, disabled Canvas/Gantt tabs with optimization warnings
+  - **Auto-layout**: ReactFlow-based chronological positioning with relationship edges, drag-and-drop event organization, position persistence
+  - **Performance**: ReactFlow viewport culling (Canvas/Gantt), deferred virtualization (not needed until 200+ events based on profiling)
 - **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, enhanced conversational writing assistant with emotional intelligence, literary examples, and dialogue-driven guidance.
 - **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping, robust processing, and error reporting.
 - **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
