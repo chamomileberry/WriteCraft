@@ -12,6 +12,7 @@ import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 export default function SettingGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
@@ -234,6 +235,15 @@ ${setting.notableFeatures.join(', ')}`,
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={generator.showUpgradePrompt}
+        onOpenChange={generator.setShowUpgradePrompt}
+        title="AI Generation Limit Reached"
+        description="You've reached your daily AI generation limit. Upgrade to a paid plan for unlimited setting generation."
+        feature="AI setting generations"
+      />
     </div>
   );
 }

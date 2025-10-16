@@ -12,6 +12,7 @@ import { useGenerator } from "@/hooks/useGenerator";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useAuth } from "@/hooks/useAuth";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 export default function CreatureGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
@@ -232,6 +233,15 @@ ${creature.culturalSignificance}`,
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={generator.showUpgradePrompt}
+        onOpenChange={generator.setShowUpgradePrompt}
+        title="AI Generation Limit Reached"
+        description="You've reached your daily AI generation limit. Upgrade to a paid plan for unlimited creature generation."
+        feature="AI creature generations"
+      />
     </div>
   );
 }

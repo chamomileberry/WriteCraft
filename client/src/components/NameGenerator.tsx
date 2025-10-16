@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useToast } from "@/hooks/use-toast";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 import type { GeneratedName } from "@shared/schema";
 
 // Comprehensive name type categories
@@ -635,6 +636,15 @@ export default function NameGenerator() {
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={generator.showUpgradePrompt}
+        onOpenChange={generator.setShowUpgradePrompt}
+        title="AI Generation Limit Reached"
+        description="You've reached your daily AI generation limit. Upgrade to a paid plan for unlimited name generation."
+        feature="AI name generations"
+      />
     </div>
   );
 }

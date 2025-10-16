@@ -12,6 +12,7 @@ import { useGenerator } from "@/hooks/useGenerator";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 interface Plant {
   id?: string;
@@ -242,6 +243,15 @@ Hardiness Zone: ${plant.hardinessZone}`,
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={generator.showUpgradePrompt}
+        onOpenChange={generator.setShowUpgradePrompt}
+        title="AI Generation Limit Reached"
+        description="You've reached your daily AI generation limit. Upgrade to a paid plan for unlimited plant generation."
+        feature="AI plant generations"
+      />
     </div>
   );
 }

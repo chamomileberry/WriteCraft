@@ -10,6 +10,7 @@ import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 const CONFLICT_TYPE_CATEGORIES = {
   "Conflict Types": ['any', 'internal', 'external', 'interpersonal', 'societal']
@@ -253,6 +254,15 @@ ${conflict.potentialResolutions.join('\n')}`,
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={generator.showUpgradePrompt}
+        onOpenChange={generator.setShowUpgradePrompt}
+        title="AI Generation Limit Reached"
+        description="You've reached your daily AI generation limit. Upgrade to a paid plan for unlimited conflict generation."
+        feature="AI conflict generations"
+      />
     </div>
   );
 }
