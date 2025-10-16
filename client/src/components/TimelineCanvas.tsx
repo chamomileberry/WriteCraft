@@ -29,6 +29,7 @@ import { TimelineRelationshipEdge, TimelineRelationshipEdgeData } from './Timeli
 import { EventEditDialog } from './EventEditDialog';
 import { TimelineAxis } from './TimelineAxis';
 import { getLayoutedElements } from '@/lib/dagre-layout';
+import { SwimLaneNode, SwimLaneNodeData } from './SwimLaneNode';
 
 interface TimelineCanvasProps {
   timelineId: string;
@@ -47,15 +48,17 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
   // Canvas dimensions for timeline calculations
   const CANVAS_WIDTH = 3000;
-  const CANVAS_HEIGHT = 1000;
-  const AXIS_Y = CANVAS_HEIGHT / 2;
+  const CANVAS_HEIGHT = 2000; // Increased for swim lanes
   const MARGIN = 100;
+  const LANE_HEIGHT = 250;
+  const LANE_PADDING = 40;
 
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       timelineEvent: TimelineEventNode,
+      swimLane: SwimLaneNode,
     }),
     []
   );
@@ -189,7 +192,26 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     });
   }, [toast]);
 
-  // Convert events to nodes - position them chronologically on timeline
+  // Get unique event types (categories) for swim lanes
+  const eventCategories = useMemo(() => {
+    if (!events || events.length === 0) return [];
+    const categories = new Set<string>();
+    events.forEach((event: TimelineEvent) => {
+      const category = event.eventType || 'general';
+      categories.add(category);
+    });
+    return Array.from(categories).sort();
+  }, [events]);
+
+  // Calculate Y position based on swim lane
+  const getSwimLaneY = useCallback((eventType: string | null): number => {
+    const category = eventType || 'general';
+    const laneIndex = eventCategories.indexOf(category);
+    if (laneIndex === -1) return LANE_PADDING + (LANE_HEIGHT / 2);
+    return LANE_PADDING + (laneIndex * LANE_HEIGHT) + (LANE_HEIGHT / 2);
+  }, [eventCategories]);
+
+  // Convert events to nodes - position them chronologically on timeline in swim lanes
   useEffect(() => {
     if (!events || events.length === 0) {
       setNodes([]);
@@ -210,7 +232,28 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
     const axisLength = CANVAS_WIDTH - (2 * MARGIN);
 
-    const newNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
+    // Create swim lane background nodes
+    const laneNodes = eventCategories.map((category, index) => {
+      const y = LANE_PADDING + (index * LANE_HEIGHT);
+      const isEven = index % 2 === 0;
+      
+      return {
+        id: `lane-${category}`,
+        type: 'swimLane',
+        position: { x: 0, y },
+        data: {
+          category,
+          width: CANVAS_WIDTH,
+          height: LANE_HEIGHT,
+          isEven,
+        },
+        draggable: false,
+        selectable: false,
+        zIndex: -1,
+      } as Node;
+    });
+
+    const eventNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
       // Check if position is manually saved
       const hasManualPosition = event.positionX !== null && event.positionX !== undefined && !isAutoLayout;
       
@@ -220,7 +263,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
           type: 'timelineEvent',
           position: {
             x: event.positionX!,
-            y: event.positionY ?? AXIS_Y,
+            y: event.positionY ?? getSwimLaneY(event.eventType),
           },
           data: {
             event,
@@ -237,9 +280,8 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       const normalizedPosition = (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
       const x = MARGIN + (normalizedPosition * axisLength);
       
-      // Alternate above and below the axis
-      const isAbove = index % 2 === 0;
-      const y = isAbove ? AXIS_Y - 180 : AXIS_Y + 180;
+      // Use swim lane based on event type
+      const y = getSwimLaneY(event.eventType);
 
       return {
         id: event.id,
@@ -256,8 +298,9 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       };
     }) as Node[];
 
-    setNodes(newNodes);
-  }, [events, notebookId, timelineId, isAutoLayout, handleEditEvent, handleDeleteEvent, handleAddRelationship]);
+    // Combine lane background nodes with event nodes
+    setNodes([...laneNodes, ...eventNodes]);
+  }, [events, notebookId, timelineId, isAutoLayout, eventCategories, getSwimLaneY, handleEditEvent, handleDeleteEvent, handleAddRelationship]);
 
   // Convert relationships to edges
   useEffect(() => {
@@ -293,7 +336,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     [createRelationshipMutation]
   );
 
-  // Auto-layout - arrange events chronologically on timeline
+  // Auto-layout - arrange events chronologically on timeline in swim lanes
   const handleAutoLayout = useCallback(() => {
     if (!events || events.length === 0) return;
 
@@ -310,11 +353,13 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     const timeRange = maxTime - minTime || 1;
     const axisLength = CANVAS_WIDTH - (2 * MARGIN);
 
-    const layoutedNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
+    // Keep existing lane nodes
+    const laneNodes = nodes.filter(n => n.id.startsWith('lane-'));
+
+    const layoutedEventNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
       const normalizedPosition = (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
       const x = MARGIN + (normalizedPosition * axisLength);
-      const isAbove = index % 2 === 0;
-      const y = isAbove ? AXIS_Y - 180 : AXIS_Y + 180;
+      const y = getSwimLaneY(event.eventType);
 
       return {
         id: event.id,
@@ -324,10 +369,10 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       };
     });
 
-    setNodes(layoutedNodes as Node[]);
+    setNodes([...laneNodes, ...layoutedEventNodes] as Node[]);
     
-    // Save positions to database
-    const positions = layoutedNodes.map((node: Node) => ({
+    // Save positions to database (only for event nodes)
+    const positions = layoutedEventNodes.map((node: Node) => ({
       id: node.id,
       x: node.position.x,
       y: node.position.y,
@@ -336,7 +381,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     
     setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 0);
     setIsAutoLayout(true);
-  }, [events, nodes, fitView, setNodes, savePositionMutation]);
+  }, [events, nodes, getSwimLaneY, fitView, setNodes, savePositionMutation]);
 
   // Auto-layout only when new events are added (not on every events change)
   useEffect(() => {
@@ -376,17 +421,6 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
   return (
     <div className="w-full h-full relative">
-      {/* Timeline axis visualization layer */}
-      {events && events.length > 0 && (
-        <TimelineAxis 
-          events={events} 
-          canvasWidth={CANVAS_WIDTH} 
-          canvasHeight={CANVAS_HEIGHT}
-          axisY={AXIS_Y}
-          margin={MARGIN}
-        />
-      )}
-      
       <ReactFlow
         nodes={nodes}
         edges={edges}
