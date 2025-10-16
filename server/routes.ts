@@ -11,6 +11,7 @@ import stockImagesRoutes from "./routes/stock-images.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
 import mfaRoutes from "./routes/mfa.routes";
 import securityRoutes from "./routes/security.routes";
+import cspReportRoutes from "./routes/csp-report.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { createRateLimiter } from "./security";
 import { 
@@ -70,6 +71,9 @@ const searchRateLimiter = createRateLimiter({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth (must be before other routes)
   await setupAuth(app);
+
+  // CSP violation reporting endpoint (no authentication required - browser sends these automatically)
+  app.use("/api/csp-report", cspReportRoutes);
 
   // Use secure user routes with enhanced security features
   // These routes include:

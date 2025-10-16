@@ -1,5 +1,6 @@
 import type { Express } from 'express';
 import { 
+  generateCSPNonce,
   securityHeaders, 
   createRateLimiter,
   sanitizeAllInputs 
@@ -15,7 +16,10 @@ import {
  * so that req.body exists for sanitization and IDS
  */
 export function applySecurityMiddleware(app: Express): void {
-  // Apply security headers to all requests
+  // Generate CSP nonce for each request (MUST be before securityHeaders)
+  app.use(generateCSPNonce);
+  
+  // Apply security headers to all requests (uses the nonce)
   app.use(securityHeaders);
   
   // Block blacklisted IPs (MUST be early in the chain)

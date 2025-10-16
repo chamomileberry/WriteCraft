@@ -208,7 +208,18 @@ export function validateInput(schema: z.ZodSchema): RequestHandler {
 }
 
 /**
- * Security headers middleware
+ * CSP Nonce generation middleware
+ * Generates a unique nonce for each request to enable secure inline scripts
+ */
+export const generateCSPNonce: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
+  // Generate a cryptographically secure random nonce
+  const nonce = crypto.randomBytes(16).toString('base64');
+  res.locals.cspNonce = nonce;
+  next();
+};
+
+/**
+ * Security headers middleware with nonce-based CSP
  */
 export const securityHeaders: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
   // Prevent clickjacking
@@ -220,14 +231,24 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   // Enable XSS protection
   res.setHeader('X-XSS-Protection', '1; mode=block');
   
-  // Content Security Policy
+  // Get the nonce for this request
+  const nonce = res.locals.cspNonce;
+  
+  // Content Security Policy with nonce-based script execution
+  // In development, we need to allow 'unsafe-eval' for Vite HMR
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const scriptSrc = isDevelopment 
+    ? `'self' 'nonce-${nonce}' 'unsafe-eval'` // Vite needs eval for HMR
+    : `'self' 'nonce-${nonce}'`; // Production: strict nonce-only
+  
   res.setHeader('Content-Security-Policy', 
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: https:; " +
-    "font-src 'self' data:; " +
-    "connect-src 'self' wss: https:;"
+    `default-src 'self'; ` +
+    `script-src ${scriptSrc}; ` +
+    `style-src 'self' 'unsafe-inline'; ` + // Styles can use inline (less risky than scripts)
+    `img-src 'self' data: https:; ` +
+    `font-src 'self' data:; ` +
+    `connect-src 'self' wss: https:; ` +
+    `report-uri /api/csp-report;` // CSP violation reporting
   );
   
   // Strict Transport Security (HTTPS only)
