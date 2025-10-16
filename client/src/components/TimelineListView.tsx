@@ -131,19 +131,28 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
               key={event.id} 
               data-testid={`timeline-event-${event.id}`}
               onClick={() => handleEditEvent(event)}
-              className="cursor-pointer hover-elevate rounded-lg transition-colors"
+              className="cursor-pointer hover-elevate rounded-lg transition-colors group"
             >
-              <TimelinePoint icon={EventIcon} />
-              <TimelineContent>
-                <TimelineTime data-testid={`event-date-${event.id}`}>
+              <TimelinePoint icon={EventIcon} className="bg-primary/20 dark:bg-primary/30" />
+              <TimelineContent className="ml-4">
+                <TimelineTime 
+                  data-testid={`event-date-${event.id}`}
+                  className="text-sm text-muted-foreground dark:text-muted-foreground"
+                >
                   {event.startDate}
                   {event.endDate && ` - ${event.endDate}`}
                 </TimelineTime>
-                <TimelineTitle data-testid={`event-title-${event.id}`}>
+                <TimelineTitle 
+                  data-testid={`event-title-${event.id}`}
+                  className="text-lg font-semibold text-foreground dark:text-foreground"
+                >
                   {event.title}
                 </TimelineTitle>
                 {event.description && (
-                  <TimelineBody data-testid={`event-description-${event.id}`}>
+                  <TimelineBody 
+                    data-testid={`event-description-${event.id}`}
+                    className="text-base text-muted-foreground dark:text-muted-foreground"
+                  >
                     {event.description}
                   </TimelineBody>
                 )}
