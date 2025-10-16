@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { db } from '../db';
 import { users, shares, notebooks, projects, guides } from '@shared/schema';
 import { eq, and, or } from 'drizzle-orm';
+import { getRedisClient } from '../services/redisClient';
 
 // Security configuration
 const SECURITY_CONFIG = {
@@ -81,7 +82,7 @@ export const secureAuthentication: RequestHandler = async (req: any, res, next) 
 };
 
 /**
- * Rate limiting middleware
+ * Rate limiting middleware with Redis support
  */
 export function createRateLimiter(options?: { 
   maxRequests?: number; 
@@ -100,33 +101,74 @@ export function createRateLimiter(options?: {
     const key = keyGenerator(req);
     const now = Date.now();
     
-    // Get or create rate limit entry
-    let entry = rateLimitStore.get(key);
-    
-    if (!entry || now > entry.resetTime) {
-      entry = {
-        count: 0,
-        resetTime: now + windowMs
-      };
-      rateLimitStore.set(key, entry);
+    try {
+      const redisClient = await getRedisClient();
+      
+      if (redisClient) {
+        // Use Redis for distributed rate limiting with atomic operations
+        const redisKey = `writecraft:ratelimit:${key}`;
+        const resetKey = `${redisKey}:reset`;
+        
+        // Use atomic INCR operation to increment counter
+        const count = await redisClient.incr(redisKey);
+        
+        // If this is the first request in the window, set expiration
+        if (count === 1) {
+          const ttl = Math.ceil(windowMs / 1000);
+          await redisClient.expire(redisKey, ttl);
+          await redisClient.setEx(resetKey, ttl, String(now + windowMs));
+        }
+        
+        // Get reset time
+        const resetTimeStr = await redisClient.get(resetKey);
+        const resetTime = resetTimeStr ? parseInt(resetTimeStr) : now + windowMs;
+        
+        // Set rate limit headers
+        res.setHeader('X-RateLimit-Limit', maxRequests);
+        res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - count));
+        res.setHeader('X-RateLimit-Reset', new Date(resetTime).toISOString());
+        
+        // Check if rate limit exceeded
+        if (count > maxRequests) {
+          console.warn(`[SECURITY] Rate limit exceeded for ${key}`);
+          return res.status(429).json({ 
+            message: "Too many requests, please try again later",
+            retryAfter: Math.ceil((resetTime - now) / 1000)
+          });
+        }
+      } else {
+        // Fallback to in-memory rate limiting
+        let entry = rateLimitStore.get(key);
+        
+        if (!entry || now > entry.resetTime) {
+          entry = {
+            count: 0,
+            resetTime: now + windowMs
+          };
+          rateLimitStore.set(key, entry);
+        }
+        
+        entry.count++;
+        
+        res.setHeader('X-RateLimit-Limit', maxRequests);
+        res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - entry.count));
+        res.setHeader('X-RateLimit-Reset', new Date(entry.resetTime).toISOString());
+        
+        if (entry.count > maxRequests) {
+          console.warn(`[SECURITY] Rate limit exceeded for ${key}`);
+          return res.status(429).json({ 
+            message: "Too many requests, please try again later",
+            retryAfter: Math.ceil((entry.resetTime - now) / 1000)
+          });
+        }
+      }
+      
+      next();
+    } catch (error) {
+      console.error('[SECURITY] Rate limiter error:', error);
+      // On error, allow the request but log it
+      next();
     }
-    
-    entry.count++;
-    
-    // Set rate limit headers
-    res.setHeader('X-RateLimit-Limit', maxRequests);
-    res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - entry.count));
-    res.setHeader('X-RateLimit-Reset', new Date(entry.resetTime).toISOString());
-    
-    if (entry.count > maxRequests) {
-      console.warn(`[SECURITY] Rate limit exceeded for ${key}`);
-      return res.status(429).json({ 
-        message: "Too many requests, please try again later",
-        retryAfter: Math.ceil((entry.resetTime - now) / 1000)
-      });
-    }
-    
-    next();
   };
 }
 
@@ -228,8 +270,29 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   // Prevent MIME type sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
   
-  // Enable XSS protection
+  // Enable XSS protection (legacy browsers)
   res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Control referrer information
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Restrict browser features and APIs
+  res.setHeader('Permissions-Policy', 
+    'accelerometer=(), ' +
+    'camera=(), ' +
+    'geolocation=(), ' +
+    'gyroscope=(), ' +
+    'magnetometer=(), ' +
+    'microphone=(), ' +
+    'payment=(), ' +
+    'usb=()'
+  );
+  
+  // Prevent DNS prefetching
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  
+  // Remove server information
+  res.removeHeader('X-Powered-By');
   
   // Get the nonce for this request
   const nonce = res.locals.cspNonce;
@@ -248,16 +311,22 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
     `img-src 'self' data: https:; ` +
     `font-src 'self' data:; ` +
     `connect-src 'self' wss: https:; ` +
+    `frame-ancestors 'none'; ` + // Prevent embedding (redundant with X-Frame-Options but more secure)
+    `base-uri 'self'; ` + // Restrict <base> tag URLs
+    `form-action 'self'; ` + // Restrict form submissions
+    `upgrade-insecure-requests; ` + // Auto-upgrade HTTP to HTTPS
     `report-uri /api/csp-report;` // CSP violation reporting
   );
   
   // Strict Transport Security (HTTPS only)
   if (req.secure) {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
   
-  // Referrer Policy
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Cross-Origin policies for additional security
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   
   // Permissions Policy
   res.setHeader('Permissions-Policy', 

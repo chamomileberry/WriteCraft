@@ -6,7 +6,9 @@ import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
-import connectPg from "connect-pg-simple";
+import { RedisStore } from "connect-redis";
+import { getRedisClient } from "./services/redisClient";
+import { sessionManager } from "./services/sessionManager";
 import { storage } from "./storage";
 
 if (!process.env.REPLIT_DOMAINS) {
@@ -23,15 +25,33 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
-export function getSession() {
+export async function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  
+  // Try to use Redis for session storage (faster, scalable)
+  const redisClient = await getRedisClient();
+  
+  let sessionStore;
+  if (redisClient) {
+    sessionStore = new RedisStore({
+      client: redisClient,
+      prefix: 'writecraft:session:',
+      ttl: sessionTtl / 1000, // Redis expects TTL in seconds
+    });
+    console.log('[SESSION] Using Redis session store');
+  } else {
+    // Fallback to PostgreSQL if Redis is not available
+    console.log('[SESSION] Redis unavailable, falling back to PostgreSQL session store');
+    const connectPg = (await import('connect-pg-simple')).default;
+    const pgStore = connectPg(session);
+    sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      ttl: sessionTtl,
+      tableName: "sessions",
+    });
+  }
+  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -70,7 +90,7 @@ async function upsertUser(
 
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
-  app.use(getSession());
+  app.use(await getSession());
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -133,10 +153,23 @@ export async function setupAuth(app: Express) {
         // Restore returnTo after regeneration
         (req.session as any).returnTo = returnTo;
         
-        req.logIn(user, (loginErr) => {
+        req.logIn(user, async (loginErr) => {
           if (loginErr) {
             console.error('[AUTH] Login error:', loginErr);
             return res.redirect("/api/login");
+          }
+          
+          // Register session for concurrent session limiting
+          const userId = user.claims?.sub;
+          const sessionId = req.sessionID;
+          if (userId && sessionId) {
+            try {
+              await sessionManager.registerSession(userId, sessionId, req);
+              console.log(`[SESSION] Registered session for user ${userId}`);
+            } catch (sessionErr) {
+              console.error('[SESSION] Failed to register session:', sessionErr);
+              // Don't fail the login, just log the error
+            }
           }
           
           // Clear returnTo and redirect
@@ -149,7 +182,20 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/logout", (req, res) => {
-    req.logout(() => {
+    const userId = (req.user as any)?.claims?.sub;
+    const sessionId = req.sessionID;
+    
+    req.logout(async () => {
+      // Remove session from concurrent session tracking
+      if (userId && sessionId) {
+        try {
+          await sessionManager.removeSession(userId, sessionId);
+          console.log(`[SESSION] Removed session for user ${userId}`);
+        } catch (sessionErr) {
+          console.error('[SESSION] Failed to remove session:', sessionErr);
+        }
+      }
+      
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
