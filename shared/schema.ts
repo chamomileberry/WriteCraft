@@ -1732,10 +1732,36 @@ export const pinnedContent = pgTable("pinned_content", {
   uniqueUserPin: sql`UNIQUE(${table.userId}, ${table.targetType}, ${table.targetId})`
 }));
 
+// Conversation Threads - Organize and manage chat conversations with topics and branching
+export const conversationThreads = pgTable("conversation_threads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional - links to specific project
+  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - links to specific guide
+  title: text("title").notNull(), // Auto-generated or user-defined title
+  summary: text("summary"), // Brief summary of conversation for search
+  tags: text("tags").array(), // Auto-generated topic tags (e.g., ['character development', 'Marcus', 'plot structure'])
+  parentThreadId: varchar("parent_thread_id").references((): any => conversationThreads.id, { onDelete: 'set null' }), // For branching conversations
+  isActive: boolean("is_active").default(true), // Active thread or archived
+  messageCount: integer("message_count").default(0), // Cached count of messages
+  lastActivityAt: timestamp("last_activity_at").defaultNow(), // For sorting by recency
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("conversation_threads_user_id_idx").on(table.userId),
+  projectIdIdx: index("conversation_threads_project_id_idx").on(table.projectId),
+  guideIdIdx: index("conversation_threads_guide_id_idx").on(table.guideId),
+  parentThreadIdx: index("conversation_threads_parent_id_idx").on(table.parentThreadId),
+  activeIdx: index("conversation_threads_active_idx").on(table.isActive),
+  lastActivityIdx: index("conversation_threads_last_activity_idx").on(table.lastActivityAt),
+  tagsIdx: index("conversation_threads_tags_idx").on(table.tags), // For tag-based search
+}));
+
 // Chat Messages - Persistent chat history for Writing Assistant
 export const chatMessages = pgTable("chat_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  threadId: varchar("thread_id").references(() => conversationThreads.id, { onDelete: 'cascade' }), // Links message to conversation thread
   projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional - links to specific project
   guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - links to specific guide
   type: text("type").notNull(), // 'user' or 'assistant'
@@ -1744,6 +1770,7 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   userIdIdx: index("chat_messages_user_id_idx").on(table.userId),
+  threadIdIdx: index("chat_messages_thread_id_idx").on(table.threadId),
   projectIdIdx: index("chat_messages_project_id_idx").on(table.projectId),
   guideIdIdx: index("chat_messages_guide_id_idx").on(table.guideId),
   createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
@@ -2575,10 +2602,34 @@ export const pinnedContentRelations = relations(pinnedContent, ({ one }) => ({
   }),
 }));
 
+export const conversationThreadsRelations = relations(conversationThreads, ({ one, many }) => ({
+  user: one(users, {
+    fields: [conversationThreads.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [conversationThreads.projectId],
+    references: [projects.id],
+  }),
+  guide: one(guides, {
+    fields: [conversationThreads.guideId],
+    references: [guides.id],
+  }),
+  parentThread: one(conversationThreads, {
+    fields: [conversationThreads.parentThreadId],
+    references: [conversationThreads.id],
+  }),
+  messages: many(chatMessages),
+}));
+
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   user: one(users, {
     fields: [chatMessages.userId],
     references: [users.id],
+  }),
+  thread: one(conversationThreads, {
+    fields: [chatMessages.threadId],
+    references: [conversationThreads.id],
   }),
   project: one(projects, {
     fields: [chatMessages.projectId],
@@ -2962,6 +3013,13 @@ export const insertPinnedContentSchema = createInsertSchema(pinnedContent).omit(
   createdAt: true,
 });
 
+export const insertConversationThreadSchema = createInsertSchema(conversationThreads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastActivityAt: true,
+});
+
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   id: true,
   createdAt: true,
@@ -3045,6 +3103,8 @@ export type InsertProjectLink = z.infer<typeof insertProjectLinkSchema>;
 export type ProjectLink = typeof projectLinks.$inferSelect;
 export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;
 export type PinnedContent = typeof pinnedContent.$inferSelect;
+export type InsertConversationThread = z.infer<typeof insertConversationThreadSchema>;
+export type ConversationThread = typeof conversationThreads.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 
