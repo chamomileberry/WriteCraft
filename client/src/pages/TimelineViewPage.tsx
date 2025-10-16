@@ -1,34 +1,18 @@
-import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Loader2, AlertCircle, List, Layers, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, List, Layers } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { TimelineCanvas } from '@/components/TimelineCanvas';
 import { TimelineListView } from '@/components/TimelineListView';
+import Header from '@/components/Header';
 import type { Timeline } from '@shared/schema';
 
 export default function TimelineViewPage() {
   const { id } = useParams();
   const [location, setLocation] = useLocation();
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDarkMode = savedTheme === 'dark' || (!savedTheme && systemDark);
-    
-    setIsDark(isDarkMode);
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', newTheme);
-  };
 
   // Extract notebookId from query parameters using window.location.search
   // Note: wouter's location doesn't include query params, so we use window.location
@@ -92,7 +76,10 @@ export default function TimelineViewPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header */}
+      {/* Main Navigation Header */}
+      <Header onNavigate={(view) => setLocation(`/?view=${view}`)} />
+      
+      {/* Timeline Header */}
       <div className="border-b p-4 flex items-center gap-4">
         <Button
           variant="ghost"
@@ -106,22 +93,12 @@ export default function TimelineViewPage() {
           <h1 className="text-2xl font-bold">{timeline.name}</h1>
           <p className="text-sm text-muted-foreground">{timeline.description}</p>
         </div>
-        <div className="flex gap-2 items-center">
-          <div className="flex gap-2 items-center text-sm text-muted-foreground">
-            <span className="px-2 py-1 bg-muted rounded-md">{timeline.timelineType}</span>
-            <span className="px-2 py-1 bg-muted rounded-md">{timeline.timeScale}</span>
-            {timeline.scope && (
-              <span className="px-2 py-1 bg-muted rounded-md">{timeline.scope}</span>
-            )}
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            data-testid="button-theme-toggle"
-          >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+        <div className="flex gap-2 items-center text-sm text-muted-foreground">
+          <span className="px-2 py-1 bg-muted rounded-md">{timeline.timelineType}</span>
+          <span className="px-2 py-1 bg-muted rounded-md">{timeline.timeScale}</span>
+          {timeline.scope && (
+            <span className="px-2 py-1 bg-muted rounded-md">{timeline.scope}</span>
+          )}
         </div>
       </div>
 

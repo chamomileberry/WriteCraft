@@ -134,7 +134,7 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
               className="cursor-pointer hover-elevate rounded-lg transition-colors group"
             >
               <TimelinePoint icon={EventIcon} className="bg-primary/20 dark:bg-primary/30" />
-              <TimelineContent className="ml-4">
+              <TimelineContent className="ml-8">
                 <TimelineTime 
                   data-testid={`event-date-${event.id}`}
                   className="text-sm text-muted-foreground dark:text-muted-foreground"
