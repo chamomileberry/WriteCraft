@@ -83,10 +83,14 @@ export function TimelineGanttView({ timelineId, notebookId }: TimelineGanttViewP
     const span = max - min;
     const padding = span * 0.05;
     
+    // Handle case where all events have same date (span = 0)
+    // Use a minimal span to prevent division by zero
+    const finalSpan = span === 0 ? 100 : span + (padding * 2);
+    
     return {
-      min: min - padding,
-      max: max + padding,
-      span: span + (padding * 2)
+      min: span === 0 ? min - 50 : min - padding,
+      max: span === 0 ? max + 50 : max + padding,
+      span: finalSpan
     };
   }, [events]);
 
@@ -102,7 +106,11 @@ export function TimelineGanttView({ timelineId, notebookId }: TimelineGanttViewP
       width = Math.max(width, 2); // Minimum 2% width
     }
 
-    return { left: `${left}%`, width: `${width}%` };
+    // Guard against NaN values
+    const safeLeft = isNaN(left) ? 0 : left;
+    const safeWidth = isNaN(width) ? 2 : width;
+
+    return { left: `${safeLeft}%`, width: `${safeWidth}%` };
   };
 
   const handleCreateEvent = () => {
