@@ -16,6 +16,7 @@ import DynamicContentForm from "@/components/forms/DynamicContentForm";
 import CharacterEditorWithSidebar from "@/components/forms/CharacterEditorWithSidebar";
 import ArticleEditor from "@/components/ArticleEditor";
 import { FamilyTreeEditor } from "@/components/FamilyTreeEditor";
+import { TimelineTemplateDialog } from "@/components/TimelineTemplateDialog";
 import { getContentTypeConfig } from "@/configs/content-types";
 import type { ContentTypeFormConfig } from "@/components/forms/types";
 
@@ -29,6 +30,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   const [isEditing, setIsEditing] = useState(contentId === 'new'); // Start editing if creating new content
   const [viewMode, setViewMode] = useState<'structured' | 'article'>('structured'); // Mode switching
   const [formConfig, setFormConfig] = useState<ContentTypeFormConfig | null>(null);
+  const [showTimelineTemplateDialog, setShowTimelineTemplateDialog] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { activeNotebookId } = useNotebookStore();
@@ -78,7 +80,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         }
       }
       
-      // Handle timeline auto-creation and redirect to canvas view
+      // Handle timeline template selection dialog
       if (contentType === 'timeline' && contentId === 'new') {
         const urlParams = new URLSearchParams(window.location.search);
         const urlNotebookId = urlParams.get('notebookId');
@@ -94,40 +96,61 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           return;
         }
         
-        try {
-          const timestamp = new Date().toLocaleDateString();
-          const response = await apiRequest('POST', '/api/timelines', {
-            name: `New Timeline ${timestamp}`,
-            description: 'A timeline for tracking events',
-            timelineType: 'Character',
-            timeScale: 'Years',
-            notebookId
-          });
-          
-          const result = await response.json();
-          
-          if (result?.id) {
-            // Navigate directly to canvas view
-            setLocation(`/timelines/${result.id}?notebookId=${notebookId}`);
-            toast({
-              title: "Timeline Created",
-              description: "Your timeline is ready. Start adding events!",
-            });
-          }
-        } catch (error) {
-          console.error('Error creating timeline:', error);
-          toast({
-            title: "Error",
-            description: "Failed to create timeline. Please try again.",
-            variant: "destructive"
-          });
-          onBack();
-        }
+        // Show template selection dialog instead of auto-creating
+        setShowTimelineTemplateDialog(true);
       }
     }
     
     autoCreateContent();
   }, [contentType, contentId, activeNotebookId, toast, onBack, setLocation]);
+
+  // Handle timeline template selection
+  const handleTimelineTemplateSelect = async (template: any) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlNotebookId = urlParams.get('notebookId');
+    const notebookId = urlNotebookId || activeNotebookId;
+
+    if (!notebookId) {
+      toast({
+        title: "No Notebook Selected",
+        description: "Please select a notebook before creating a timeline.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const timestamp = new Date().toLocaleDateString();
+      const response = await apiRequest('POST', '/api/timelines', {
+        name: `${template.name} ${timestamp}`,
+        description: template.description,
+        timelineType: template.timelineType,
+        timeScale: template.timeScale,
+        viewMode: template.defaultView,
+        notebookId
+      });
+      
+      const result = await response.json();
+      
+      if (result?.id) {
+        // Navigate to the timeline view
+        setLocation(`/timelines/${result.id}?notebookId=${notebookId}`);
+        toast({
+          title: "Timeline Created",
+          description: `Your ${template.name.toLowerCase()} is ready. Start adding events!`,
+        });
+      }
+    } catch (error) {
+      console.error('Error creating timeline:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create timeline. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setShowTimelineTemplateDialog(false);
+    }
+  };
 
   // Load content type configuration
   useEffect(() => {
@@ -633,6 +656,17 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           );
         }
       })()}
+
+      {/* Timeline Template Selection Dialog */}
+      <TimelineTemplateDialog
+        open={showTimelineTemplateDialog}
+        onClose={() => setShowTimelineTemplateDialog(false)}
+        onSelectTemplate={handleTimelineTemplateSelect}
+        onCancel={() => {
+          setShowTimelineTemplateDialog(false);
+          onBack();
+        }}
+      />
     </div>
   );
 }
