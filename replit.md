@@ -109,6 +109,16 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 
 ### Collaboration & Sharing System
 - **Multi-User Collaboration**: Granular permission controls (View, Comment, Edit) for notebooks and projects, enforced via RLS middleware.
+- **Team Management System** (Phase 1.5 - Oct 2025):
+  - **Role Hierarchy**: Owner (full control), Admin (invite/edit), Editor (edit only), Viewer (read-only) with granular permissions (canEdit, canComment, canInvite flags)
+  - **Team Invitations**: Token-based invitation system with 7-day expiration, email tracking, pending status management
+  - **Team Activity Feed**: Real-time tracking of team actions (member invitations, role changes, removals) with comprehensive audit trail
+  - **Team Usage Pooling**: Shared AI generation quota across all team members - getTodayAIUsage() aggregates team usage for limit enforcement
+  - **Database Schema**: teamInvitations and teamActivity tables with unique constraints and foreign key relationships
+  - **Permissions Middleware**: Role-based access control at server/middleware/teamPermissions.ts with edit/comment/invite permission checks
+  - **Team Service**: Comprehensive service layer (server/services/teamService.ts) for invite management, role updates, permission validation, and activity logging
+  - **Frontend UI**: Full-featured Team Management page with member list, invitation management, role editing, and activity feed
+  - **Integration**: Works alongside existing shares system for collaborative content access control
 
 ### Testing & Quality Assurance
 - **Test Framework**: Playwright for end-to-end testing, with comprehensive regression tests for the World Anvil import pipeline.

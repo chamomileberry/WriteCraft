@@ -143,10 +143,21 @@ export class SubscriptionService {
   }
   
   /**
-   * Get today's AI generation count
+   * Get today's AI generation count (supports team usage pooling)
    */
   private async getTodayAIUsage(userId: string): Promise<number> {
     const today = new Date().toISOString().split('T')[0];
+    
+    // Check if user is part of a team
+    const { teamService } = await import('./teamService');
+    const teamSubscription = await teamService.getUserTeamSubscription(userId);
+    
+    if (teamSubscription && teamSubscription.tier === 'team') {
+      // Use team pooled usage
+      return await teamService.getTeamDailyUsage(teamSubscription.id);
+    }
+    
+    // Use individual usage
     const [summary] = await db
       .select()
       .from(aiUsageDailySummary)

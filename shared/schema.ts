@@ -3373,6 +3373,53 @@ export const teamMemberships = pgTable("team_memberships", {
   uniqueTeamUser: uniqueIndex("team_memberships_team_user_idx").on(table.teamSubscriptionId, table.userId),
 }));
 
+// Team Invitations - Pending invites to join teams
+export const teamInvitations = pgTable("team_invitations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
+  email: varchar("email").notNull(),
+  role: varchar("role").notNull(), // 'admin', 'member'
+  
+  // Permissions
+  canEdit: boolean("can_edit").default(true),
+  canComment: boolean("can_comment").default(true),
+  canInvite: boolean("can_invite").default(false),
+  
+  // Invitation Details
+  invitedBy: varchar("invited_by").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: varchar("token").notNull().unique(), // Unique token for accepting invitation
+  expiresAt: timestamp("expires_at").notNull(), // Invitations expire after 7 days
+  
+  // Status
+  status: varchar("status").notNull().default('pending'), // 'pending', 'accepted', 'expired', 'revoked'
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  teamEmailIdx: uniqueIndex("team_invitations_team_email_idx").on(table.teamSubscriptionId, table.email).where(sql`${table.status} = 'pending'`),
+  tokenIdx: index("team_invitations_token_idx").on(table.token),
+}));
+
+// Team Activity Feed - Track team member actions
+export const teamActivity = pgTable("team_activity", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Activity Details
+  activityType: varchar("activity_type").notNull(), // 'member_joined', 'member_removed', 'role_changed', 'content_created', 'content_edited', 'content_deleted'
+  resourceType: varchar("resource_type"), // 'notebook', 'project', 'character', etc.
+  resourceId: varchar("resource_id"),
+  resourceName: text("resource_name"),
+  
+  // Additional Context
+  metadata: jsonb("metadata").default({}), // Flexible field for activity-specific data
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  teamCreatedIdx: index("team_activity_team_created_idx").on(table.teamSubscriptionId, table.createdAt),
+  userCreatedIdx: index("team_activity_user_created_idx").on(table.userId, table.createdAt),
+}));
+
 // Lifetime Deal Tracking
 export const lifetimeSubscriptions = pgTable("lifetime_subscriptions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -3547,6 +3594,16 @@ export const insertLifetimeSubscriptionSchema = createInsertSchema(lifetimeSubsc
   purchaseDate: true,
 });
 
+export const insertTeamInvitationSchema = createInsertSchema(teamInvitations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTeamActivitySchema = createInsertSchema(teamActivity).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertAiUsageLog = z.infer<typeof insertAiUsageLogSchema>;
@@ -3557,6 +3614,10 @@ export type InsertTeamMembership = z.infer<typeof insertTeamMembershipSchema>;
 export type TeamMembership = typeof teamMemberships.$inferSelect;
 export type InsertLifetimeSubscription = z.infer<typeof insertLifetimeSubscriptionSchema>;
 export type LifetimeSubscription = typeof lifetimeSubscriptions.$inferSelect;
+export type InsertTeamInvitation = z.infer<typeof insertTeamInvitationSchema>;
+export type TeamInvitation = typeof teamInvitations.$inferSelect;
+export type InsertTeamActivity = z.infer<typeof insertTeamActivitySchema>;
+export type TeamActivity = typeof teamActivity.$inferSelect;
 
 // IDS schemas and types
 export const insertIntrusionAttemptSchema = createInsertSchema(intrusionAttempts).omit({
