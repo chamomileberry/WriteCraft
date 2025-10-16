@@ -27,6 +27,7 @@ import NoteEditPage from "@/pages/NoteEditPage";
 import ImportPage from "@/pages/ImportPage";
 import CharacterConsolidatePage from "@/pages/CharacterConsolidatePage";
 import BannedPhrasesManagement from "@/pages/BannedPhrasesManagement";
+import SecurityDashboard from "@/pages/SecurityDashboard";
 import TimelineViewPage from "@/pages/TimelineViewPage";
 import ConversationManager from "@/pages/ConversationManager";
 import NotFound from "@/pages/not-found";
@@ -196,6 +197,7 @@ function Router() {
       <Route path="/notebook" component={NotebookPage} />
       <Route path="/notebook/consolidate" component={CharacterConsolidatePage} />
       <Route path="/admin/banned-phrases" component={BannedPhrasesManagement} />
+      <Route path="/admin/security" component={SecurityDashboard} />
       <Route path="/import" component={ImportPage} />
       <Route path="/projects" component={ProjectPage} />
       <Route path="/projects/:id/edit" component={ProjectEditPageWithSidebar} />

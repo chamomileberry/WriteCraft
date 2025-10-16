@@ -3392,6 +3392,82 @@ export const lifetimeSubscriptions = pgTable("lifetime_subscriptions", {
   uniqueUser: uniqueIndex("lifetime_subscriptions_user_idx").on(table.userId),
 }));
 
+// Intrusion Detection System (IDS) Tables
+
+// Track intrusion attempts and suspicious activity
+export const intrusionAttempts = pgTable("intrusion_attempts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Identity
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'set null' }), // Nullable - attacker might not be authenticated
+  ipAddress: varchar("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  
+  // Attack Details
+  attackType: varchar("attack_type").notNull(), // 'BRUTE_FORCE', 'SQL_INJECTION', 'XSS', 'UNAUTHORIZED_ACCESS', 'RATE_LIMIT_EXCEEDED'
+  endpoint: text("endpoint"), // Which endpoint was targeted
+  payload: text("payload"), // Sanitized/logged attack payload for analysis
+  severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+  
+  // Response
+  blocked: boolean("blocked").default(false), // Whether request was blocked
+  
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  ipAddressIdx: index("intrusion_attempts_ip_idx").on(table.ipAddress),
+  attackTypeIdx: index("intrusion_attempts_type_idx").on(table.attackType),
+  severityIdx: index("intrusion_attempts_severity_idx").on(table.severity),
+  createdAtIdx: index("intrusion_attempts_created_at_idx").on(table.createdAt),
+}));
+
+// Track blocked IPs
+export const ipBlocks = pgTable("ip_blocks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ipAddress: varchar("ip_address").notNull(),
+  reason: text("reason").notNull(), // Why this IP was blocked
+  severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+  
+  // Blocking Details
+  blockedAt: timestamp("blocked_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Null means permanent block
+  isActive: boolean("is_active").default(true),
+  
+  // Reference to intrusion attempts
+  intrusionAttemptId: varchar("intrusion_attempt_id").references(() => intrusionAttempts.id, { onDelete: 'set null' }),
+  
+  // Manual vs Automatic
+  autoBlocked: boolean("auto_blocked").default(true), // True if blocked by IDS, false if manual admin block
+  blockedBy: varchar("blocked_by").references(() => users.id, { onDelete: 'set null' }), // Admin who manually blocked (if applicable)
+}, (table) => ({
+  uniqueActiveIp: uniqueIndex("ip_blocks_unique_active_ip_idx").on(table.ipAddress).where(sql`${table.isActive} = true`),
+  ipAddressIdx: index("ip_blocks_ip_idx").on(table.ipAddress),
+  expiresAtIdx: index("ip_blocks_expires_at_idx").on(table.expiresAt),
+}));
+
+// Security Alerts for Admin Dashboard
+export const securityAlerts = pgTable("security_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Alert Details
+  alertType: varchar("alert_type").notNull(), // 'MULTIPLE_FAILED_LOGINS', 'SUSPICIOUS_PATTERN', 'IP_BLOCKED', 'PRIVILEGE_ESCALATION'
+  severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+  message: text("message").notNull(),
+  details: jsonb("details"), // Additional context (IP, user, patterns detected, etc.)
+  
+  // Status
+  acknowledged: boolean("acknowledged").default(false),
+  acknowledgedBy: varchar("acknowledged_by").references(() => users.id, { onDelete: 'set null' }),
+  acknowledgedAt: timestamp("acknowledged_at"),
+  
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  severityIdx: index("security_alerts_severity_idx").on(table.severity),
+  acknowledgedIdx: index("security_alerts_acknowledged_idx").on(table.acknowledged),
+  createdAtIdx: index("security_alerts_created_at_idx").on(table.createdAt),
+}));
+
 // Insert schemas and types for subscription tables
 export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
   id: true,
@@ -3430,3 +3506,26 @@ export type InsertTeamMembership = z.infer<typeof insertTeamMembershipSchema>;
 export type TeamMembership = typeof teamMemberships.$inferSelect;
 export type InsertLifetimeSubscription = z.infer<typeof insertLifetimeSubscriptionSchema>;
 export type LifetimeSubscription = typeof lifetimeSubscriptions.$inferSelect;
+
+// IDS schemas and types
+export const insertIntrusionAttemptSchema = createInsertSchema(intrusionAttempts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertIpBlockSchema = createInsertSchema(ipBlocks).omit({
+  id: true,
+  blockedAt: true,
+});
+
+export const insertSecurityAlertSchema = createInsertSchema(securityAlerts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertIntrusionAttempt = z.infer<typeof insertIntrusionAttemptSchema>;
+export type IntrusionAttempt = typeof intrusionAttempts.$inferSelect;
+export type InsertIpBlock = z.infer<typeof insertIpBlockSchema>;
+export type IpBlock = typeof ipBlocks.$inferSelect;
+export type InsertSecurityAlert = z.infer<typeof insertSecurityAlertSchema>;
+export type SecurityAlert = typeof securityAlerts.$inferSelect;

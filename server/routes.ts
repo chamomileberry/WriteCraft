@@ -10,6 +10,7 @@ import dalleRoutes from "./routes/dalle.routes";
 import stockImagesRoutes from "./routes/stock-images.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
 import mfaRoutes from "./routes/mfa.routes";
+import securityRoutes from "./routes/security.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { createRateLimiter } from "./security";
 import { 
@@ -82,6 +83,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register MFA (Multi-Factor Authentication) routes
   app.use("/api/auth/mfa", mfaRoutes);
+  
+  // Register security management routes (admin only)
+  app.use("/api/security", securityRoutes);
   
   // Register security test endpoints (development only)
   if (process.env.NODE_ENV !== 'production') {
