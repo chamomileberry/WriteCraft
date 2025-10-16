@@ -1652,6 +1652,66 @@ export async function conversationalChat(
   </important_code_snippet_instructions>
   */
   
+  // Helper: Extract character names mentioned in recent conversation
+  const extractMentionedCharacters = (history: Array<{ role: string; content: string }>) => {
+    const recentMessages = history.slice(-3); // Last 3 messages
+    const mentionedNames = new Set<string>();
+    
+    recentMessages.forEach(msg => {
+      // Match capitalized names (2+ chars, excluding common words)
+      const namePattern = /\b([A-Z][a-z]{1,}(?:\s+[A-Z][a-z]+)*)\b/g;
+      const matches = msg.content.match(namePattern) || [];
+      const commonWords = new Set(['I', 'The', 'A', 'An', 'This', 'That', 'These', 'Those', 'My', 'Your', 'He', 'She', 'They', 'We', 'It', 'As', 'At', 'By', 'For', 'From', 'In', 'Of', 'On', 'To', 'With']);
+      matches.forEach(name => {
+        if (!commonWords.has(name) && name.length > 2) {
+          mentionedNames.add(name.toLowerCase());
+        }
+      });
+    });
+    
+    return mentionedNames;
+  };
+
+  // Helper: Check if a character matches mentioned names
+  const isCharacterMentioned = (char: any, mentionedNames: Set<string>) => {
+    const fullName = [char.givenName, char.familyName].filter(Boolean).join(' ').toLowerCase();
+    const givenName = (char.givenName || '').toLowerCase();
+    const nickname = (char.nickname || '').toLowerCase();
+    
+    return mentionedNames.has(fullName) || 
+           mentionedNames.has(givenName) || 
+           (nickname && mentionedNames.has(nickname));
+  };
+
+  // Helper: Extract recently discussed scenes/chapters/timeline elements
+  const extractTimelineReferences = (history: Array<{ role: string; content: string }>) => {
+    const recentMessages = history.slice(-5); // Last 5 messages for timeline context
+    const timelineRefs: { type: string; text: string }[] = [];
+    
+    // Patterns to match scene/chapter references
+    const patterns = [
+      { type: 'chapter', regex: /\b(?:chapter|ch\.?)\s+(\d+|[IVX]+|one|two|three|four|five|six|seven|eight|nine|ten)\b/gi },
+      { type: 'scene', regex: /\b(?:scene|the\s+)?(\w+\s+)?scene\b/gi },
+      { type: 'timeline', regex: /\b(?:opening|prologue|epilogue|climax|midpoint|turning\s+point|resolution|exposition|rising\s+action|falling\s+action)\b/gi },
+      { type: 'act', regex: /\b(?:act|part)\s+(\d+|[IVX]+|one|two|three)\b/gi }
+    ];
+    
+    recentMessages.forEach(msg => {
+      patterns.forEach(({ type, regex }) => {
+        const matches = Array.from(msg.content.matchAll(regex));
+        matches.forEach(match => {
+          const text = match[0];
+          // Avoid duplicates and add context
+          if (!timelineRefs.some(ref => ref.text.toLowerCase() === text.toLowerCase())) {
+            timelineRefs.push({ type, text });
+          }
+        });
+      });
+    });
+    
+    return timelineRefs;
+  };
+
   // Query notebook data if notebookId is provided
   let notebookContext = '';
   if (notebookId) {
@@ -1672,10 +1732,62 @@ export async function conversationalChat(
           itemsByType[type].push(item.itemData);
         });
         
-        // Format characters
+        // Detect recently mentioned characters
+        const mentionedNames = conversationHistory ? extractMentionedCharacters(conversationHistory) : new Set<string>();
+        
+        // Separate characters into mentioned (priority) and others
+        const mentionedChars: any[] = [];
+        const otherChars: any[] = [];
+        
         if (itemsByType.character) {
+          itemsByType.character.forEach((char: any) => {
+            if (isCharacterMentioned(char, mentionedNames)) {
+              mentionedChars.push(char);
+            } else {
+              otherChars.push(char);
+            }
+          });
+        }
+        
+        // Format characters - prioritize recently mentioned ones with full details
+        if (mentionedChars.length > 0 || otherChars.length > 0) {
           notebookContext += '**Characters:**\n';
-          itemsByType.character.slice(0, 100).forEach((char: any) => {
+          
+          // Show recently mentioned characters first with expanded details
+          mentionedChars.forEach((char: any) => {
+            const name = [char.givenName, char.familyName].filter(Boolean).join(' ') || char.nickname || 'Unnamed';
+            notebookContext += `\n• ${name} [RECENTLY MENTIONED]\n`;
+            if (char.pronouns) notebookContext += `  Pronouns: ${char.pronouns}\n`;
+            if (char.gender) notebookContext += `  Gender: ${char.gender}\n`;
+            if (char.age) notebookContext += `  Age: ${char.age}\n`;
+            if (char.species) notebookContext += `  Species: ${char.species}\n`;
+            if (char.occupation) notebookContext += `  Occupation: ${char.occupation}\n`;
+            if (char.placeOfBirth) notebookContext += `  Birthplace: ${char.placeOfBirth}\n`;
+            
+            // Include full backstory for mentioned characters (up to 400 chars)
+            if (char.backstory) {
+              notebookContext += `  Background: ${char.backstory.slice(0, 400)}${char.backstory.length > 400 ? '...' : ''}\n`;
+            }
+            
+            // Include personality for mentioned characters
+            if (char.personality) {
+              notebookContext += `  Personality: ${char.personality.slice(0, 400)}${char.personality.length > 400 ? '...' : ''}\n`;
+            }
+            
+            // Include relationship context for mentioned characters
+            if (char.relationships && Array.isArray(char.relationships) && char.relationships.length > 0) {
+              notebookContext += `  Relationships:\n`;
+              char.relationships.slice(0, 5).forEach((rel: any) => {
+                const relName = rel.characterName || rel.name || 'Unknown';
+                const relType = rel.relationshipType || rel.type || 'related to';
+                const relDesc = rel.description ? `: ${rel.description.slice(0, 200)}` : '';
+                notebookContext += `    - ${relType} ${relName}${relDesc}\n`;
+              });
+            }
+          });
+          
+          // Show other characters with summary details
+          otherChars.slice(0, 30).forEach((char: any) => {
             const name = [char.givenName, char.familyName].filter(Boolean).join(' ') || char.nickname || 'Unnamed';
             const details: string[] = [`• ${name}`];
             if (char.pronouns) details.push(`Pronouns: ${char.pronouns}`);
@@ -1684,21 +1796,22 @@ export async function conversationalChat(
             if (char.species) details.push(`Species: ${char.species}`);
             if (char.occupation) details.push(`Occupation: ${char.occupation}`);
             if (char.placeOfBirth) details.push(`Birthplace: ${char.placeOfBirth}`);
-            if (char.backstory) details.push(`Background: ${char.backstory.slice(0, 150)}${char.backstory.length > 150 ? '...' : ''}`);
+            if (char.backstory) details.push(`Background: ${char.backstory.slice(0, 200)}${char.backstory.length > 200 ? '...' : ''}`);
             notebookContext += details.join(', ') + '\n';
           });
           notebookContext += '\n';
         }
         
-        // Format other content types
+        // Format other content types with increased description limits
         ['species', 'location', 'organization', 'item'].forEach(type => {
           if (itemsByType[type] && itemsByType[type].length > 0) {
             const label = type.charAt(0).toUpperCase() + type.slice(1) + 's';
             notebookContext += `**${label}:**\n`;
-            itemsByType[type].slice(0, 10).forEach((item: any) => {
+            itemsByType[type].slice(0, 15).forEach((item: any) => {
               const name = item.name || item.title || 'Unnamed';
               const desc = item.description || item.generalDescription || '';
-              notebookContext += `• ${name}${desc ? ': ' + desc.slice(0, 100) + (desc.length > 100 ? '...' : '') : ''}\n`;
+              // Increased from 100 to 400 characters
+              notebookContext += `• ${name}${desc ? ': ' + desc.slice(0, 400) + (desc.length > 400 ? '...' : '') : ''}\n`;
             });
             notebookContext += '\n';
           }
@@ -1902,6 +2015,35 @@ Use this context to provide more relevant and specific advice about their curren
   // Add persistent memory context to system prompt
   if (persistentMemoryContext) {
     systemPrompt += persistentMemoryContext;
+  }
+
+  // Add timeline awareness - track recently discussed scenes/chapters
+  if (conversationHistory && conversationHistory.length > 0) {
+    const timelineRefs = extractTimelineReferences(conversationHistory);
+    
+    if (timelineRefs.length > 0) {
+      systemPrompt += '\n\nRECENTLY DISCUSSED TIMELINE ELEMENTS:\n';
+      
+      const chapters = timelineRefs.filter(ref => ref.type === 'chapter');
+      const scenes = timelineRefs.filter(ref => ref.type === 'scene');
+      const acts = timelineRefs.filter(ref => ref.type === 'act');
+      const milestones = timelineRefs.filter(ref => ref.type === 'timeline');
+      
+      if (chapters.length > 0) {
+        systemPrompt += `• Chapters: ${chapters.map(r => r.text).join(', ')}\n`;
+      }
+      if (scenes.length > 0) {
+        systemPrompt += `• Scenes: ${scenes.map(r => r.text).join(', ')}\n`;
+      }
+      if (acts.length > 0) {
+        systemPrompt += `• Acts/Parts: ${acts.map(r => r.text).join(', ')}\n`;
+      }
+      if (milestones.length > 0) {
+        systemPrompt += `• Story Milestones: ${milestones.map(r => r.text).join(', ')}\n`;
+      }
+      
+      systemPrompt += '\nThe writer has been focused on these specific parts of their project. Reference them when providing advice and maintain continuity with what you\'ve discussed about these sections.\n';
+    }
   }
 
   // Detect and add session gap information if timestamps are available
