@@ -5,17 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Loader2, AlertCircle, List, Layers, Monitor, Smartphone } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, List, Layers, Monitor, BarChart3 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { TimelineCanvas } from '@/components/TimelineCanvas';
 import { TimelineListView } from '@/components/TimelineListView';
+import { TimelineGanttView } from '@/components/TimelineGanttView';
 import Header from '@/components/Header';
 import type { Timeline } from '@shared/schema';
 
 export default function TimelineViewPage() {
   const { id } = useParams();
   const [location, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'list' | 'canvas'>('list');
+  const [activeTab, setActiveTab] = useState<'list' | 'canvas' | 'gantt'>('list');
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile viewport
@@ -23,8 +24,8 @@ export default function TimelineViewPage() {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      // Force list view on mobile
-      if (mobile && activeTab === 'canvas') {
+      // Force list view on mobile (canvas and gantt are desktop-only)
+      if (mobile && (activeTab === 'canvas' || activeTab === 'gantt')) {
         setActiveTab('list');
       }
     };
@@ -123,13 +124,12 @@ export default function TimelineViewPage() {
       </div>
 
       {/* View Toggle and Content */}
-      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'list' | 'canvas')} className="flex-1 flex flex-col overflow-hidden">
+      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'list' | 'canvas' | 'gantt')} className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b px-4">
           <TabsList data-testid="timeline-view-tabs">
             <TabsTrigger value="list" className="gap-2" data-testid="tab-list-view">
               <List className="w-4 h-4" />
-              <span className="hidden sm:inline">List View</span>
-              <span className="sm:hidden">List</span>
+              <span className="hidden sm:inline">List</span>
             </TabsTrigger>
             <TabsTrigger 
               value="canvas" 
@@ -138,18 +138,26 @@ export default function TimelineViewPage() {
               disabled={isMobile}
             >
               <Layers className="w-4 h-4" />
-              <span className="hidden sm:inline">Canvas View</span>
-              <span className="sm:hidden">Canvas</span>
+              <span className="hidden sm:inline">Canvas</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="gantt" 
+              className="gap-2" 
+              data-testid="tab-gantt-view"
+              disabled={isMobile}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Gantt</span>
             </TabsTrigger>
           </TabsList>
         </div>
 
-        {/* Mobile Canvas Warning */}
+        {/* Mobile Warning for Desktop-Only Views */}
         {isMobile && (
           <Alert className="mx-4 mt-4 bg-primary/5 border-primary/20">
             <Monitor className="h-4 w-4" />
             <AlertDescription className="text-sm">
-              Canvas view is optimized for desktop. Use List view on mobile for the best experience.
+              Canvas and Gantt views are optimized for desktop. Use List view on mobile for the best experience.
             </AlertDescription>
           </Alert>
         )}
@@ -160,6 +168,10 @@ export default function TimelineViewPage() {
         
         <TabsContent value="canvas" className="flex-1 overflow-hidden mt-0">
           <TimelineCanvas timelineId={id!} notebookId={notebookId} />
+        </TabsContent>
+
+        <TabsContent value="gantt" className="flex-1 overflow-hidden mt-0">
+          <TimelineGanttView timelineId={id!} notebookId={notebookId} />
         </TabsContent>
       </Tabs>
     </div>
