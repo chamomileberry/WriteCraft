@@ -28,6 +28,7 @@ import ImportPage from "@/pages/ImportPage";
 import CharacterConsolidatePage from "@/pages/CharacterConsolidatePage";
 import BannedPhrasesManagement from "@/pages/BannedPhrasesManagement";
 import TimelineViewPage from "@/pages/TimelineViewPage";
+import ConversationManager from "@/pages/ConversationManager";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -213,6 +214,7 @@ function Router() {
       <Route path="/editor/:type/:id" component={EditorPage} />
       <Route path="/:type/:id/edit" component={EditorPage} />
       <Route path="/timelines/:id" component={TimelineViewPage} />
+      <Route path="/conversations" component={ConversationManager} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

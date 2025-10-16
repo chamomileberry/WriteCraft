@@ -68,6 +68,7 @@ import {
   type Policy, type InsertPolicy,
   type Potion, type InsertPotion,
   type ChatMessage, type InsertChatMessage,
+  type ConversationThread, type InsertConversationThread,
   type Notebook, type InsertNotebook, type UpdateNotebook,
   type ImportJob, type InsertImportJob, type UpdateImportJob,
   type PinnedContent, type InsertPinnedContent,
@@ -85,8 +86,8 @@ import { searchRepository } from './search.repository';
 import { ImportRepository } from './import.repository';
 import { ShareRepository } from './share.repository';
 import { db } from '../db';
-import { eq, and, desc, or, ilike, isNull, sql } from 'drizzle-orm';
-import { guides, savedItems, notebooks, userPreferences, conversationSummaries } from '@shared/schema';
+import { eq, and, desc, or, ilike, isNull, sql, inArray } from 'drizzle-orm';
+import { guides, savedItems, notebooks, userPreferences, conversationSummaries, conversationThreads, chatMessages } from '@shared/schema';
 
 export class StorageFacade implements IStorage {
   private userRepository = new UserRepository();
@@ -1455,8 +1456,7 @@ export class StorageFacade implements IStorage {
   async updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined> {
     const [updated] = await db.update(savedItems)
       .set({ 
-        itemData,
-        updatedAt: new Date()
+        itemData
       })
       .where(and(
         eq(savedItems.id, savedItemId),
@@ -1469,8 +1469,7 @@ export class StorageFacade implements IStorage {
   async updateSavedItemDataByItem(userId: string, itemType: string, itemId: string, notebookId: string, itemData: any): Promise<SavedItem | undefined> {
     const [updated] = await db.update(savedItems)
       .set({ 
-        itemData,
-        updatedAt: new Date()
+        itemData
       })
       .where(and(
         eq(savedItems.userId, userId),
@@ -1485,8 +1484,7 @@ export class StorageFacade implements IStorage {
   async updateSavedItemType(savedItemId: string, userId: string, newItemType: string): Promise<SavedItem | undefined> {
     const [updated] = await db.update(savedItems)
       .set({ 
-        itemType: newItemType,
-        updatedAt: new Date()
+        itemType: newItemType
       })
       .where(and(
         eq(savedItems.id, savedItemId),
@@ -1785,6 +1783,188 @@ export class StorageFacade implements IStorage {
       .where(and(eq(conversationSummaries.id, id), eq(conversationSummaries.userId, userId)))
       .returning();
     return updated || undefined;
+  }
+
+  // Conversation thread methods
+  async createConversationThread(thread: InsertConversationThread): Promise<ConversationThread> {
+    const [newThread] = await db
+      .insert(conversationThreads)
+      .values(thread)
+      .returning();
+    return newThread;
+  }
+
+  async getConversationThread(id: string, userId: string): Promise<ConversationThread | undefined> {
+    const [thread] = await db
+      .select()
+      .from(conversationThreads)
+      .where(and(
+        eq(conversationThreads.id, id),
+        eq(conversationThreads.userId, userId)
+      ));
+    return thread || undefined;
+  }
+
+  async getConversationThreads(filters: { userId: string, projectId?: string, guideId?: string, isActive?: boolean }): Promise<ConversationThread[]> {
+    const conditions = [eq(conversationThreads.userId, filters.userId)];
+
+    // Add projectId filter if provided
+    if (filters.projectId !== undefined) {
+      conditions.push(eq(conversationThreads.projectId, filters.projectId));
+    }
+
+    // Add guideId filter if provided
+    if (filters.guideId !== undefined) {
+      conditions.push(eq(conversationThreads.guideId, filters.guideId));
+    }
+
+    // Add isActive filter if provided
+    if (filters.isActive !== undefined) {
+      conditions.push(eq(conversationThreads.isActive, filters.isActive));
+    }
+
+    return await db
+      .select()
+      .from(conversationThreads)
+      .where(and(...conditions))
+      .orderBy(desc(conversationThreads.lastActivityAt));
+  }
+
+  async searchConversationThreads(userId: string, query: string, filters?: { projectId?: string, guideId?: string }): Promise<ConversationThread[]> {
+    const searchPattern = `%${query}%`;
+    const conditions = [eq(conversationThreads.userId, userId)];
+
+    // Add optional filters
+    if (filters?.projectId) {
+      conditions.push(eq(conversationThreads.projectId, filters.projectId));
+    }
+    if (filters?.guideId) {
+      conditions.push(eq(conversationThreads.guideId, filters.guideId));
+    }
+
+    // Search in title, summary, and tags
+    const searchConditions = or(
+      ilike(conversationThreads.title, searchPattern),
+      ilike(conversationThreads.summary, searchPattern),
+      sql`EXISTS (
+        SELECT 1 FROM unnest(${conversationThreads.tags}) AS tag 
+        WHERE tag ILIKE ${searchPattern}
+      )`
+    );
+
+    conditions.push(searchConditions!);
+
+    // Get matching threads
+    const threads = await db
+      .select()
+      .from(conversationThreads)
+      .where(and(...conditions))
+      .orderBy(desc(conversationThreads.lastActivityAt));
+
+    // Also search in chat message content
+    const messageConditions = [eq(chatMessages.userId, userId)];
+    if (filters?.projectId) {
+      messageConditions.push(eq(chatMessages.projectId, filters.projectId));
+    }
+    if (filters?.guideId) {
+      messageConditions.push(eq(chatMessages.guideId, filters.guideId));
+    }
+    messageConditions.push(ilike(chatMessages.content, searchPattern));
+
+    const matchingMessages = await db
+      .select({
+        threadId: chatMessages.threadId
+      })
+      .from(chatMessages)
+      .where(and(...messageConditions))
+      .groupBy(chatMessages.threadId);
+
+    // Get threads for matching messages
+    const messageThreadIds = matchingMessages
+      .map(m => m.threadId)
+      .filter((id): id is string => id !== null);
+
+    let messageThreads: ConversationThread[] = [];
+    if (messageThreadIds.length > 0) {
+      const messageThreadConditions = [
+        eq(conversationThreads.userId, userId),
+        inArray(conversationThreads.id, messageThreadIds)
+      ];
+
+      messageThreads = await db
+        .select()
+        .from(conversationThreads)
+        .where(and(...messageThreadConditions))
+        .orderBy(desc(conversationThreads.lastActivityAt));
+    }
+
+    // Combine and deduplicate results
+    const allThreads = [...threads, ...messageThreads];
+    const uniqueThreads = Array.from(
+      new Map(allThreads.map(t => [t.id, t])).values()
+    );
+
+    // Sort by lastActivityAt descending
+    return uniqueThreads.sort((a, b) => {
+      const dateA = a.lastActivityAt ? new Date(a.lastActivityAt).getTime() : 0;
+      const dateB = b.lastActivityAt ? new Date(b.lastActivityAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }
+
+  async updateConversationThread(id: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined> {
+    const [updated] = await db
+      .update(conversationThreads)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(conversationThreads.id, id),
+        eq(conversationThreads.userId, userId)
+      ))
+      .returning();
+    return updated || undefined;
+  }
+
+  async updateThreadActivity(threadId: string, userId: string): Promise<void> {
+    await db
+      .update(conversationThreads)
+      .set({
+        lastActivityAt: new Date(),
+        messageCount: sql`${conversationThreads.messageCount} + 1`
+      })
+      .where(and(
+        eq(conversationThreads.id, threadId),
+        eq(conversationThreads.userId, userId)
+      ));
+  }
+
+  async deleteConversationThread(id: string, userId: string): Promise<void> {
+    // Validate ownership before deleting
+    const [existing] = await db
+      .select()
+      .from(conversationThreads)
+      .where(eq(conversationThreads.id, id));
+    
+    if (!existing) {
+      throw new Error('Conversation thread not found');
+    }
+    if (existing.userId !== userId) {
+      throw new Error('Unauthorized: You do not own this conversation thread');
+    }
+
+    // Delete the thread (cascade will handle messages)
+    await db
+      .delete(conversationThreads)
+      .where(and(
+        eq(conversationThreads.id, id),
+        eq(conversationThreads.userId, userId)
+      ));
+  }
+
+  async getChatMessagesByThread(threadId: string, userId: string, limit?: number): Promise<ChatMessage[]> {
+    return await contentRepository.getChatMessagesByThread(threadId, userId, limit);
   }
 }
 

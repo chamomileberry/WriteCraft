@@ -65,6 +65,7 @@ import shareRoutes from "./share.routes";
 import conditionRoutes from "./condition.routes";
 import adminRoutes from "./admin.routes";
 import bannedPhraseRoutes from "./banned-phrase.routes";
+import conversationThreadRoutes from "./conversation-thread.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -73,6 +74,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/*", isAuthenticated);
   
   // Register all domain-specific routes (now protected by authentication)
+  app.use("/api/conversation-threads", conversationThreadRoutes);
   app.use("/api/characters", characterRoutes);
   app.use("/api/creatures", creatureRoutes);
   app.use("/api/guides", guideRoutes);

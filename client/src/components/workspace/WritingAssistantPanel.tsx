@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { useNotebookStore } from '@/stores/notebookStore';
 import { Button } from '@/components/ui/button';
@@ -73,44 +74,109 @@ export default function WritingAssistantPanel({
   const [questions, setQuestions] = useState<string[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
+  
+  // Thread management state
+  const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
+  const [threadTitle, setThreadTitle] = useState<string | null>(null);
+  const [tagsGenerated, setTagsGenerated] = useState(false);
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const historyDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
   const { getEditorContext, executeEditorAction } = useWorkspaceStore();
   const { activeNotebookId } = useNotebookStore();
 
   // Load chat history when component mounts or editor context changes
   useEffect(() => {
     const loadChatHistory = async () => {
+      if (!user) return; // Wait for authentication
+      
       try {
         setIsLoadingHistory(true);
         const editorContext = getEditorContext();
         
-        // Build query parameters for fetching messages
-        // Note: 'manuscript' type is legacy terminology, refers to project editor
-        const params = new URLSearchParams();
-        if (editorContext.type === 'manuscript' && editorContext.entityId) {
-          params.append('projectId', editorContext.entityId);
-        } else if (editorContext.type === 'guide' && editorContext.entityId) {
-          params.append('guideId', editorContext.entityId);
-        }
+        // Check for threadId in URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const threadIdFromUrl = urlParams.get('threadId');
         
-        const response = await fetch(`/api/chat-messages?${params.toString()}`, {
-          headers: {
-            'x-user-id': 'demo-user' // TODO: Replace with actual user ID
+        if (threadIdFromUrl) {
+          // Load specific thread
+          try {
+            const threadResponse = await fetch(`/api/conversation-threads/${threadIdFromUrl}`, {
+              credentials: 'include'
+            });
+            
+            if (threadResponse.ok) {
+              const thread = await threadResponse.json();
+              setCurrentThreadId(thread.id);
+              setThreadTitle(thread.title);
+              setTagsGenerated(thread.tags && thread.tags.length > 0);
+              
+              // Load messages for this thread
+              const messagesResponse = await fetch(`/api/chat-messages?threadId=${threadIdFromUrl}`, {
+                credentials: 'include'
+              });
+              
+              if (messagesResponse.ok) {
+                const chatMessages = await messagesResponse.json();
+                const formattedMessages: Message[] = chatMessages.map((msg: any) => ({
+                  id: msg.id,
+                  type: msg.type,
+                  content: msg.content,
+                  timestamp: new Date(msg.createdAt)
+                }));
+                setMessages(formattedMessages);
+              }
+            }
+          } catch (error) {
+            console.error('Failed to load thread:', error);
           }
-        });
-        
-        if (response.ok) {
-          const chatMessages = await response.json();
-          const formattedMessages: Message[] = chatMessages.map((msg: any) => ({
-            id: msg.id,
-            type: msg.type,
-            content: msg.content,
-            timestamp: new Date(msg.createdAt)
-          }));
-          setMessages(formattedMessages);
+        } else {
+          // Load by project/guide (legacy behavior for backwards compatibility)
+          // Build query parameters for fetching messages
+          // Note: 'manuscript' type is legacy terminology, refers to project editor
+          const params = new URLSearchParams();
+          if (editorContext.type === 'manuscript' && editorContext.entityId) {
+            params.append('projectId', editorContext.entityId);
+          } else if (editorContext.type === 'guide' && editorContext.entityId) {
+            params.append('guideId', editorContext.entityId);
+          }
+          
+          const response = await fetch(`/api/chat-messages?${params.toString()}`, {
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const chatMessages = await response.json();
+            const formattedMessages: Message[] = chatMessages.map((msg: any) => ({
+              id: msg.id,
+              type: msg.type,
+              content: msg.content,
+              timestamp: new Date(msg.createdAt)
+            }));
+            setMessages(formattedMessages);
+            
+            // If we have messages and they have a threadId, set it
+            if (chatMessages.length > 0 && chatMessages[0].threadId) {
+              setCurrentThreadId(chatMessages[0].threadId);
+              
+              // Fetch thread details to get title
+              try {
+                const threadResponse = await fetch(`/api/conversation-threads/${chatMessages[0].threadId}`, {
+                  credentials: 'include'
+                });
+                if (threadResponse.ok) {
+                  const thread = await threadResponse.json();
+                  setThreadTitle(thread.title);
+                  setTagsGenerated(thread.tags && thread.tags.length > 0);
+                }
+              } catch (error) {
+                console.error('Failed to load thread details:', error);
+              }
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to load chat history:', error);
@@ -120,7 +186,7 @@ export default function WritingAssistantPanel({
     };
 
     loadChatHistory();
-  }, [getEditorContext]);
+  }, [getEditorContext, user]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -322,14 +388,15 @@ export default function WritingAssistantPanel({
       
       const response = await fetch(`/api/chat-messages?${params.toString()}`, {
         method: 'DELETE',
-        headers: {
-          'x-user-id': 'demo-user' // TODO: Replace with actual user ID
-        }
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to clear chat history');
     },
     onSuccess: () => {
       setMessages([]);
+      setCurrentThreadId(null);
+      setThreadTitle(null);
+      setTagsGenerated(false);
       toast({
         title: 'Chat cleared',
         description: 'Started a new conversation.',
@@ -436,6 +503,8 @@ export default function WritingAssistantPanel({
 
   // Add message helper - saves to database and updates local state
   const addMessage = async (type: 'user' | 'assistant', content: string, metadata?: any) => {
+    if (!user) return; // Require authentication
+    
     const newMessage: Message = {
       id: Date.now().toString(),
       type,
@@ -449,16 +518,48 @@ export default function WritingAssistantPanel({
     // Save to database in background
     try {
       const editorContext = getEditorContext();
+      let threadId = currentThreadId;
+      
+      // Create thread on first message if none exists
+      if (!threadId) {
+        try {
+          const threadData = {
+            title: `Chat about ${editorContext.type === 'manuscript' ? editorContext.title || 'project' : editorContext.type === 'guide' ? editorContext.title || 'guide' : 'writing'}`,
+            projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
+            guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
+          };
+          
+          const threadResponse = await fetch('/api/conversation-threads', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(threadData)
+          });
+          
+          if (threadResponse.ok) {
+            const savedThread = await threadResponse.json();
+            threadId = savedThread.id;
+            setCurrentThreadId(savedThread.id);
+            setThreadTitle(savedThread.title);
+          }
+        } catch (error) {
+          console.error('Failed to create conversation thread:', error);
+          // Continue with message save even if thread creation fails
+        }
+      }
       
       const response = await fetch('/api/chat-messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'demo-user' // TODO: Replace with actual user ID
         },
+        credentials: 'include',
         body: JSON.stringify({
           type,
           content,
+          threadId: threadId,
           // Note: 'manuscript' type is legacy, refers to project editor context
           projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
           guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
@@ -474,6 +575,20 @@ export default function WritingAssistantPanel({
             ? { ...msg, id: savedMessage.id }
             : msg
         ));
+        
+        // Auto-generate tags after 5 messages (only once)
+        if (threadId && !tagsGenerated && messages.length >= 4) { // 4 existing + 1 new = 5
+          setTagsGenerated(true); // Set flag to prevent multiple generations
+          try {
+            await fetch(`/api/conversation-threads/${threadId}/generate-tags`, {
+              method: 'POST',
+              credentials: 'include',
+            });
+          } catch (error) {
+            console.error('Failed to generate tags:', error);
+            // Non-critical error, don't show to user
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to save message to database:', error);
@@ -663,6 +778,17 @@ export default function WritingAssistantPanel({
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0 h-0 overflow-hidden">
+            {/* Thread title display */}
+            {threadTitle && (
+              <div className="flex-shrink-0 px-3 pt-3 pb-2 border-b">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">Conversation:</span>
+                  <span className="text-sm font-medium" data-testid="text-thread-title">{threadTitle}</span>
+                </div>
+              </div>
+            )}
+            
             <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
               <div className="space-y-3 p-3 pb-6">
                 {messages.length === 0 && (

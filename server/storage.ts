@@ -624,12 +624,12 @@ export interface IStorage {
 
   // Conversation thread methods
   createConversationThread(thread: InsertConversationThread): Promise<ConversationThread>;
-  getConversationThreads(userId: string, projectId?: string, guideId?: string, includeInactive?: boolean): Promise<ConversationThread[]>;
-  getConversationThread(threadId: string, userId: string): Promise<ConversationThread | undefined>;
-  updateConversationThread(threadId: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined>;
-  updateThreadActivity(threadId: string): Promise<void>;
-  searchConversationThreads(userId: string, query: string, projectId?: string, guideId?: string): Promise<ConversationThread[]>;
-  branchConversationThread(sourceThreadId: string, userId: string, title: string): Promise<ConversationThread>;
+  getConversationThread(id: string, userId: string): Promise<ConversationThread | undefined>;
+  getConversationThreads(filters: { userId: string, projectId?: string, guideId?: string, isActive?: boolean }): Promise<ConversationThread[]>;
+  searchConversationThreads(userId: string, query: string, filters?: { projectId?: string, guideId?: string }): Promise<ConversationThread[]>;
+  updateConversationThread(id: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined>;
+  updateThreadActivity(threadId: string, userId: string): Promise<void>;
+  deleteConversationThread(id: string, userId: string): Promise<void>;
 
   // Chat message methods
   createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;

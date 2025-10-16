@@ -2200,10 +2200,7 @@ export class ContentRepository extends BaseRepository {
 
   async getUserGuides(userId: string, notebookId: string): Promise<Guide[]> {
     return await db.select().from(guides)
-      .where(and(
-        eq(guides.userId, userId),
-        eq(guides.notebookId, notebookId)
-      ))
+      .where(eq(guides.userId, userId))
       .orderBy(desc(guides.createdAt));
   }
 
@@ -2910,6 +2907,19 @@ export class ContentRepository extends BaseRepository {
       )!;
     }
     await db.delete(chatMessages).where(whereCondition);
+  }
+
+  async getChatMessagesByThread(threadId: string, userId: string, limit = 50): Promise<ChatMessage[]> {
+    const messages = await db
+      .select()
+      .from(chatMessages)
+      .where(and(
+        eq(chatMessages.threadId, threadId),
+        eq(chatMessages.userId, userId)
+      ))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
+    return messages.reverse();
   }
 
   // ========== PINNED CONTENT METHODS ==========
