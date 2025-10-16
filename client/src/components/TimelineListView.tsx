@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Timeline, TimelineItem, TimelinePoint, TimelineContent, TimelineTime, TimelineTitle, TimelineBody } from 'flowbite-react';
 import { HiCalendar, HiClock, HiLocationMarker, HiSparkles } from 'react-icons/hi';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { parseDateToTimestamp } from '@/lib/timelineUtils';
+import { EventEditDialog } from './EventEditDialog';
 import type { TimelineEvent } from '@shared/schema';
 
 interface TimelineListViewProps {
@@ -27,6 +31,9 @@ function getEventIcon(type: string) {
 }
 
 export function TimelineListView({ timelineId, notebookId }: TimelineListViewProps) {
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  
   const { data: events, isLoading } = useQuery<TimelineEvent[]>({
     queryKey: ['/api/timeline-events', timelineId, notebookId],
     queryFn: async () => {
@@ -36,6 +43,16 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
     },
     enabled: !!timelineId && !!notebookId,
   });
+
+  const handleAddEvent = () => {
+    setSelectedEvent(null);
+    setIsEventDialogOpen(true);
+  };
+
+  const handleEditEvent = (event: TimelineEvent) => {
+    setSelectedEvent(event);
+    setIsEventDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -70,13 +87,28 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
   );
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <Timeline>
+    <>
+      <div className="p-8 max-w-4xl mx-auto">
+        {/* Add Event Button */}
+        <div className="mb-8 flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-muted-foreground">Timeline Events</h2>
+          <Button onClick={handleAddEvent} data-testid="button-add-event">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Event
+          </Button>
+        </div>
+
+        <Timeline>
         {sortedEvents.map((event) => {
           const EventIcon = getEventIcon(event.eventType || 'general');
           
           return (
-            <TimelineItem key={event.id} data-testid={`timeline-event-${event.id}`}>
+            <TimelineItem 
+              key={event.id} 
+              data-testid={`timeline-event-${event.id}`}
+              onClick={() => handleEditEvent(event)}
+              className="cursor-pointer hover-elevate rounded-lg transition-colors"
+            >
               <TimelinePoint icon={EventIcon} />
               <TimelineContent>
                 <TimelineTime data-testid={`event-date-${event.id}`}>
@@ -108,6 +140,21 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
           );
         })}
       </Timeline>
-    </div>
+      </div>
+
+      {/* Event Edit Dialog */}
+      <EventEditDialog
+        open={isEventDialogOpen}
+        onOpenChange={(open) => {
+          setIsEventDialogOpen(open);
+          if (!open) {
+            setSelectedEvent(null);
+          }
+        }}
+        event={selectedEvent}
+        timelineId={timelineId}
+        notebookId={notebookId}
+      />
+    </>
   );
 }
