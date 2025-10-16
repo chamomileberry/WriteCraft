@@ -72,7 +72,11 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
 
 ### Security & Authorization
-- **Multi-Layer Security Architecture**: Protection against SQLi, XSS, Prototype Pollution, robust authentication, access control, rate limiting, RLS, CSRF protection, and security headers.
+- **Multi-Layer Security Architecture**: Production-ready security with comprehensive defense-in-depth strategy.
+- **Multi-Factor Authentication (MFA)** (Oct 2025): TOTP-based 2FA with QR code enrollment, backup codes (AES-256-GCM encryption), and account recovery flow.
+- **API Key Rotation System** (Oct 2025): Automated 90-day rotation tracking for ANTHROPIC_API_KEY, MFA_ENCRYPTION_KEY, SESSION_SECRET with database audit trail and admin notifications.
+- **Intrusion Detection System (IDS)** (Oct 2025): Real-time threat detection with SQL injection/XSS pattern matching, automatic IP blocking (5 failed logins = 24h block), and security alert dashboard.
+- **Content Security Policy (CSP)** (Oct 2025): Nonce-based script execution (cryptographically secure), no unsafe-inline in production, violation reporting endpoint, separate dev/production policies.
 - **Backend Input Validation** (Oct 2025): Comprehensive Zod validation middleware applied to all high-traffic API routes for robust input security:
   - `validateInput` middleware from `server/security/middleware.ts` validates request bodies before they reach route handlers
   - Applied to core CRUD operations: notebooks (create/update), projects (create/update/sections), characters (create), settings (create), creatures (update)
@@ -80,9 +84,14 @@ Documentation: Proactively create documentation for new features, APIs, and syst
   - Consistent HTTP 400 responses with clear Zod validation error messages for malformed requests
   - Prevents malicious payloads, userId forgery, and overlong/malformed bodies from reaching database
   - End-to-end tests confirm both success paths (valid data accepted) and failure paths (invalid data rejected with proper error messages)
+- **Rate Limiting**: Global (1000 req/15min), AI generation (30 req/15min), search (150 req/15min), auth (10 attempts/15min).
+- **Security Headers**: HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy.
 - **XSS Protection**: DOMPurify for all user-generated HTML.
-- **Session Security**: httpOnly, secure, sameSite:'lax' cookies.
+- **Session Security**: httpOnly, secure, sameSite:'lax' cookies, PostgreSQL-backed sessions (ready for Redis migration).
+- **Password Security**: bcrypt with 12 rounds, salted hashes, secure comparison.
+- **Database Security**: Row-Level Security (RLS), ownership validation, prepared statements, no raw SQL.
 - **Ownership Validation Pattern**: Strict "Fetch → Validate → Execute" for all content operations.
+- **Security Documentation**: Comprehensive security audit report and disaster recovery plan in `/docs/`.
 
 ### Collaboration & Sharing System
 - **Multi-User Collaboration**: Granular permission controls (View, Comment, Edit) for notebooks and projects, enforced via RLS middleware.
