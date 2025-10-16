@@ -3468,6 +3468,57 @@ export const securityAlerts = pgTable("security_alerts", {
   createdAtIdx: index("security_alerts_created_at_idx").on(table.createdAt),
 }));
 
+// API Key Rotation Tracking
+export const apiKeyRotations = pgTable("api_key_rotations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Key Identification
+  keyName: varchar("key_name").notNull().unique(), // e.g., 'ANTHROPIC_API_KEY', 'MFA_ENCRYPTION_KEY', 'OPENAI_API_KEY'
+  keyType: varchar("key_type").notNull(), // 'external_api', 'encryption', 'signing', 'database'
+  description: text("description"), // Human-readable description of the key's purpose
+  
+  // Rotation Schedule
+  rotationIntervalDays: integer("rotation_interval_days").notNull().default(90), // Default 90 days
+  lastRotatedAt: timestamp("last_rotated_at").defaultNow(),
+  nextRotationDue: timestamp("next_rotation_due").notNull(),
+  
+  // Status and Notifications
+  rotationStatus: varchar("rotation_status").notNull().default('current'), // 'current', 'due', 'overdue', 'rotated'
+  notificationSent: boolean("notification_sent").default(false),
+  lastNotificationSentAt: timestamp("last_notification_sent_at"),
+  
+  // Rotation History
+  rotationCount: integer("rotation_count").default(0),
+  lastRotatedBy: varchar("last_rotated_by").references(() => users.id, { onDelete: 'set null' }),
+  
+  // Metadata
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  nextRotationIdx: index("api_key_rotations_next_rotation_idx").on(table.nextRotationDue),
+  statusIdx: index("api_key_rotations_status_idx").on(table.rotationStatus),
+}));
+
+// API Key Rotation Audit Log
+export const apiKeyRotationAudit = pgTable("api_key_rotation_audit", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Reference
+  keyRotationId: varchar("key_rotation_id").notNull().references(() => apiKeyRotations.id, { onDelete: 'cascade' }),
+  
+  // Rotation Details
+  action: varchar("action").notNull(), // 'created', 'rotated', 'notification_sent', 'skipped', 'failed'
+  performedBy: varchar("performed_by").references(() => users.id, { onDelete: 'set null' }), // Admin who performed action
+  notes: text("notes"),
+  
+  // Metadata
+  timestamp: timestamp("timestamp").defaultNow(),
+}, (table) => ({
+  keyRotationIdx: index("api_key_rotation_audit_key_idx").on(table.keyRotationId),
+  timestampIdx: index("api_key_rotation_audit_timestamp_idx").on(table.timestamp),
+}));
+
 // Insert schemas and types for subscription tables
 export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
   id: true,
@@ -3529,3 +3580,21 @@ export type InsertIpBlock = z.infer<typeof insertIpBlockSchema>;
 export type IpBlock = typeof ipBlocks.$inferSelect;
 export type InsertSecurityAlert = z.infer<typeof insertSecurityAlertSchema>;
 export type SecurityAlert = typeof securityAlerts.$inferSelect;
+
+// API Key Rotation schemas and types
+export const insertApiKeyRotationSchema = createInsertSchema(apiKeyRotations).omit({
+  id: true,
+  lastRotatedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertApiKeyRotationAuditSchema = createInsertSchema(apiKeyRotationAudit).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertApiKeyRotation = z.infer<typeof insertApiKeyRotationSchema>;
+export type ApiKeyRotation = typeof apiKeyRotations.$inferSelect;
+export type InsertApiKeyRotationAudit = z.infer<typeof insertApiKeyRotationAuditSchema>;
+export type ApiKeyRotationAudit = typeof apiKeyRotationAudit.$inferSelect;

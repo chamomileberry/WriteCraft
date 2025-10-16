@@ -1,5 +1,6 @@
 import { createApp } from "./app";
 import { setupVite, serveStatic, log } from "./vite";
+import * as keyRotationService from "./services/apiKeyRotationService";
 
 (async () => {
   const { app, server } = await createApp();
@@ -22,7 +23,29 @@ import { setupVite, serveStatic, log } from "./vite";
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
+    
+    // Initialize API key rotation tracking
+    try {
+      await keyRotationService.initializeCommonKeys();
+      console.log('[API Key Rotation] Initialized rotation tracking for common keys');
+      
+      // Run initial rotation status check
+      await keyRotationService.checkRotationStatus();
+      console.log('[API Key Rotation] Initial rotation status check completed');
+      
+      // Schedule rotation checks every 24 hours
+      setInterval(async () => {
+        try {
+          await keyRotationService.checkRotationStatus();
+          console.log('[API Key Rotation] Scheduled rotation status check completed');
+        } catch (error) {
+          console.error('[API Key Rotation] Error in scheduled check:', error);
+        }
+      }, 24 * 60 * 60 * 1000); // 24 hours
+    } catch (error) {
+      console.error('[API Key Rotation] Failed to initialize:', error);
+    }
   });
 })();

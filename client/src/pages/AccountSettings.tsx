@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Loader2, LogOut, User } from "lucide-react";
 import { useLocation } from "wouter";
 import Header from "@/components/Header";
+import { MFASettings } from "@/components/MFASettings";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -117,6 +118,9 @@ export default function AccountSettings() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         <div className="space-y-6">
+          {/* Two-Factor Authentication */}
+          <MFASettings />
+
           {/* Profile Information */}
           <Card>
             <CardHeader>
