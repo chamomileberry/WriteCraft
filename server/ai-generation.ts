@@ -1634,7 +1634,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
 export async function conversationalChat(
   message: string, 
-  conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>,
+  conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string; timestamp?: string }>,
   editorContent?: string,
   documentTitle?: string,
   documentType?: 'manuscript' | 'guide' | 'project' | 'section' | 'character',
@@ -1815,15 +1815,60 @@ Use this context to provide more relevant and specific advice about their curren
     systemPrompt += notebookContext;
   }
 
+  // Detect and add session gap information if timestamps are available
+  if (conversationHistory && conversationHistory.length > 0) {
+    const recentHistory = conversationHistory.slice(-30);
+    
+    // Check for significant time gaps (> 1 hour) to detect new sessions
+    const timeGaps: string[] = [];
+    for (let i = 1; i < recentHistory.length; i++) {
+      const prevTime = recentHistory[i - 1].timestamp;
+      const currTime = recentHistory[i].timestamp;
+      
+      if (prevTime && currTime) {
+        const prevDate = new Date(prevTime);
+        const currDate = new Date(currTime);
+        const hoursDiff = (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursDiff > 1) {
+          const readableGap = hoursDiff > 24 
+            ? `${Math.round(hoursDiff / 24)} day(s)` 
+            : `${Math.round(hoursDiff)} hour(s)`;
+          timeGaps.push(`Session gap of ${readableGap} between messages ${i} and ${i + 1}`);
+        }
+      }
+    }
+    
+    if (timeGaps.length > 0) {
+      systemPrompt += `\n\nSESSION CONTEXT: This conversation has spanned multiple writing sessions with the following gaps:\n${timeGaps.join('\n')}\n\nBe aware that the writer may have made progress, encountered new challenges, or changed direction between sessions. Consider asking about what's happened since you last spoke if relevant.`;
+    }
+    
+    // Add timestamp of last message for context
+    const lastMessage = recentHistory[recentHistory.length - 1];
+    if (lastMessage?.timestamp) {
+      const lastMessageDate = new Date(lastMessage.timestamp);
+      const now = new Date();
+      const minutesSinceLastMessage = (now.getTime() - lastMessageDate.getTime()) / (1000 * 60);
+      
+      if (minutesSinceLastMessage > 60) {
+        const timeSinceLast = minutesSinceLastMessage > 1440
+          ? `${Math.round(minutesSinceLastMessage / 1440)} day(s)`
+          : `${Math.round(minutesSinceLastMessage / 60)} hour(s)`;
+        systemPrompt += `\n\nIt's been ${timeSinceLast} since your last conversation with this writer. They may have made progress or need a fresh perspective.`;
+      }
+    }
+  }
+
   try {
     // Build the messages array with conversation history
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
     
     // Add conversation history if provided
     if (conversationHistory && conversationHistory.length > 0) {
-      // Only include the last 10 messages to keep context manageable
-      const recentHistory = conversationHistory.slice(-10);
-      messages.push(...recentHistory);
+      // Include last 30 messages for better context retention across sessions
+      const recentHistory = conversationHistory.slice(-30);
+      // Strip timestamps from messages sent to AI (already processed above)
+      messages.push(...recentHistory.map(({ role, content }) => ({ role, content })));
     }
     
     // Add the current user message

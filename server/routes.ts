@@ -685,7 +685,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: z.string(), 
         conversationHistory: z.array(z.object({
           role: z.enum(['user', 'assistant']),
-          content: z.string()
+          content: z.string(),
+          timestamp: z.string().optional() // ISO timestamp for session gap detection
         })).optional(),
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),

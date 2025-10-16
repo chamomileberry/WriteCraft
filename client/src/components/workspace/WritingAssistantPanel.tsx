@@ -260,12 +260,13 @@ export default function WritingAssistantPanel({
       const editorContext = getEditorContext();
       const hasEditorContent = editorContext.content && editorContext.content.length > 10;
       
-      // Prepare conversation history from messages
+      // Prepare conversation history from messages with timestamps
       const conversationHistory = messages
-        .slice(-10) // Only send last 10 messages for context
+        .slice(-30) // Send last 30 messages for better context retention
         .map(msg => ({
           role: msg.type,
-          content: msg.content
+          content: msg.content,
+          timestamp: msg.timestamp.toISOString()
         }));
 
       const response = await fetch('/api/writing-assistant/chat', {
