@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, List, Layers } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { TimelineCanvas } from '@/components/TimelineCanvas';
+import { TimelineListView } from '@/components/TimelineListView';
 import type { Timeline } from '@shared/schema';
 
 export default function TimelineViewPage() {
@@ -97,10 +99,29 @@ export default function TimelineViewPage() {
         </div>
       </div>
 
-      {/* Canvas */}
-      <div className="flex-1 overflow-hidden">
-        <TimelineCanvas timelineId={id!} notebookId={notebookId} />
-      </div>
+      {/* View Toggle and Content */}
+      <Tabs defaultValue="list" className="flex-1 flex flex-col overflow-hidden">
+        <div className="border-b px-4">
+          <TabsList data-testid="timeline-view-tabs">
+            <TabsTrigger value="list" className="gap-2" data-testid="tab-list-view">
+              <List className="w-4 h-4" />
+              List View
+            </TabsTrigger>
+            <TabsTrigger value="canvas" className="gap-2" data-testid="tab-canvas-view">
+              <Layers className="w-4 h-4" />
+              Canvas View
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        
+        <TabsContent value="list" className="flex-1 overflow-auto mt-0">
+          <TimelineListView timelineId={id!} notebookId={notebookId} />
+        </TabsContent>
+        
+        <TabsContent value="canvas" className="flex-1 overflow-hidden mt-0">
+          <TimelineCanvas timelineId={id!} notebookId={notebookId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
