@@ -76,7 +76,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Multi-Factor Authentication (MFA)** (Oct 2025): TOTP-based 2FA with QR code enrollment, backup codes (AES-256-GCM encryption), and account recovery flow.
 - **API Key Rotation System** (Oct 2025): Automated 90-day rotation tracking for ANTHROPIC_API_KEY, MFA_ENCRYPTION_KEY, SESSION_SECRET with database audit trail and admin notifications.
 - **Intrusion Detection System (IDS)** (Oct 2025): Real-time threat detection with SQL injection/XSS pattern matching, automatic IP blocking (5 failed logins = 24h block), and security alert dashboard.
-- **Content Security Policy (CSP)** (Oct 2025): Nonce-based script execution (cryptographically secure), no unsafe-inline in production, violation reporting endpoint, separate dev/production policies.
+- **Content Security Policy (CSP)** (Oct 2025): Nonce-based script execution (cryptographically secure), no unsafe-inline in production, violation reporting endpoint, separate dev/production policies, enhanced with base-uri, form-action, and frame-ancestors directives.
 - **Backend Input Validation** (Oct 2025): Comprehensive Zod validation middleware applied to all high-traffic API routes for robust input security:
   - `validateInput` middleware from `server/security/middleware.ts` validates request bodies before they reach route handlers
   - Applied to core CRUD operations: notebooks (create/update), projects (create/update/sections), characters (create), settings (create), creatures (update)
@@ -84,14 +84,19 @@ Documentation: Proactively create documentation for new features, APIs, and syst
   - Consistent HTTP 400 responses with clear Zod validation error messages for malformed requests
   - Prevents malicious payloads, userId forgery, and overlong/malformed bodies from reaching database
   - End-to-end tests confirm both success paths (valid data accepted) and failure paths (invalid data rejected with proper error messages)
-- **Rate Limiting**: Global (1000 req/15min), AI generation (30 req/15min), search (150 req/15min), auth (10 attempts/15min).
-- **Security Headers**: HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy.
+- **Redis Session Storage** (Oct 2025): Migrated from PostgreSQL to Redis for distributed session management with automatic PostgreSQL fallback, maintaining all security settings (httpOnly, secure, sameSite:'lax' cookies).
+- **Concurrent Session Limiting** (Oct 2025): Enforces maximum 3 active devices per user with automatic eviction of oldest sessions via session store destruction, tracked in Redis with in-memory fallback.
+- **Distributed Rate Limiting** (Oct 2025): Redis-backed rate limiting with atomic operations (INCR+EXPIRE) preventing race conditions across distributed instances:
+  - Global (1000 req/15min), AI generation (30 req/15min), search (150 req/15min), auth (10 attempts/15min)
+  - Automatic fallback to in-memory rate limiting when Redis unavailable
+- **Enhanced Security Headers** (Oct 2025): Comprehensive header suite including HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy, Cross-Origin-Opener-Policy (COOP), Cross-Origin-Embedder-Policy (COEP), Cross-Origin-Resource-Policy (CORP), X-DNS-Prefetch-Control.
+- **Subresource Integrity (SRI)** (Oct 2025): Complete implementation strategy documented in `/docs/SUBRESOURCE_INTEGRITY.md` covering CDN assets, integrity hash generation, fallback mechanisms, and CI/CD integration.
 - **XSS Protection**: DOMPurify for all user-generated HTML.
-- **Session Security**: httpOnly, secure, sameSite:'lax' cookies, PostgreSQL-backed sessions (ready for Redis migration).
 - **Password Security**: bcrypt with 12 rounds, salted hashes, secure comparison.
 - **Database Security**: Row-Level Security (RLS), ownership validation, prepared statements, no raw SQL.
 - **Ownership Validation Pattern**: Strict "Fetch → Validate → Execute" for all content operations.
-- **Security Documentation**: Comprehensive security audit report and disaster recovery plan in `/docs/`.
+- **Security Testing** (Oct 2025): Comprehensive testing documentation in `/docs/SECURITY_TESTING.md` covering authentication, authorization, injection, XSS, CSRF, rate limiting, with automated test scripts and manual penetration testing checklists.
+- **Security Documentation**: Comprehensive security audit report, disaster recovery plan, SRI implementation guide, and security testing procedures in `/docs/`.
 
 ### Collaboration & Sharing System
 - **Multi-User Collaboration**: Granular permission controls (View, Comment, Edit) for notebooks and projects, enforced via RLS middleware.
