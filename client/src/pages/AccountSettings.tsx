@@ -13,6 +13,7 @@ import { Loader2, LogOut, User } from "lucide-react";
 import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import { MFASettings } from "@/components/MFASettings";
+import { BillingSettings } from "@/components/BillingSettings";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -120,6 +121,9 @@ export default function AccountSettings() {
         <div className="space-y-6">
           {/* Two-Factor Authentication */}
           <MFASettings />
+
+          {/* Billing & Subscription */}
+          <BillingSettings />
 
           {/* Profile Information */}
           <Card>
