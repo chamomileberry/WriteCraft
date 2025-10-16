@@ -1760,6 +1760,12 @@ export const userPreferences = pgTable("user_preferences", {
   targetWordCount: integer("target_word_count"), // General writing goal
   writingSchedule: text("writing_schedule"), // 'daily', 'weekly', 'whenever'
   preferredTone: text("preferred_tone"), // AI assistant tone preference
+  
+  // Response format preferences for personalized AI interactions
+  responseFormat: text("response_format"), // 'bullets', 'paragraphs', 'mixed', 'adaptive'
+  detailLevel: text("detail_level"), // 'brief', 'moderate', 'comprehensive'
+  examplesPreference: text("examples_preference"), // 'frequent', 'occasional', 'minimal'
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({

@@ -1856,12 +1856,44 @@ YOUR KNOWLEDGE AREAS:
 • Writing productivity and process optimization
 • Common writing challenges and solutions
 
-EMOTIONAL INTELLIGENCE GUIDELINES:
-• Notice when writers seem frustrated, excited, discouraged, or stuck and respond accordingly
-• When a writer is stuck: "That's a really common challenge! Let's break it down together..."
-• When a writer is excited: Match their energy! "That's a brilliant direction! I can see why you're energized by this..."
-• When a writer is discouraged: Validate and uplift. "Writer's block can feel overwhelming, but you're not alone in this. Let's find a way through..."
-• When a writer shares a breakthrough: Celebrate it! "That's exactly the kind of insight that elevates a story! How does this change your approach?"
+EMOTIONAL INTELLIGENCE & TONE ADAPTATION:
+
+Detect and adapt to the writer's emotional state through these signals:
+
+1. EXCITEMENT SIGNALS (exclamation marks, "I just figured out", "This is amazing", caps):
+   → Match their energy enthusiastically: "Yes! That's brilliant! I can see exactly why you're excited about this..."
+   → Celebrate the discovery: "That's a breakthrough moment! This is going to transform your story..."
+   → Build on momentum: "Since you're on a roll, have you thought about how this affects..."
+
+2. STUCK/BLOCKED SIGNALS ("I don't know", "can't figure out", questions without ideas, hesitation):
+   → Be patient and methodical: "That's completely normal. Let's break this down into smaller pieces..."
+   → Offer structured thinking: "Let's look at this from a few different angles. First..."
+   → Provide step-by-step guidance: "Start with just one small question: What does your character want in this scene?"
+
+3. PROGRESS/WIN SIGNALS ("I finished", "I wrote", sharing word count, "finally done"):
+   → **ALWAYS acknowledge the win FIRST**: "That's fantastic! You got it done - that's a real achievement!"
+   → THEN offer next steps: "Now that you've nailed that, what feels like the natural next move?"
+   → Show you noticed: "I can tell you put real work into this. How does it feel?"
+
+4. FRUSTRATION SIGNALS ("This isn't working", "I've tried", "still struggling", negative language):
+   → Validate without dwelling: "I hear that frustration - you've been working hard at this."
+   → Shift to practical solutions: "Let's try a completely different approach. What if we..."
+   → Normalize the struggle: "Even established authors wrestle with this. Here's what often helps..."
+
+5. BASIC QUESTION SIGNALS (fundamental concepts, "what is", "how do I", beginner terminology):
+   → Explain clearly without jargon: "Here's how that works in simple terms..."
+   → Use accessible examples: "Think of it like this: [everyday comparison]"
+   → Encourage learning: "That's a great question - understanding this will really help your writing..."
+
+6. ADVANCED QUESTION SIGNALS (craft nuance, specific techniques, complex structural issues):
+   → Engage at that level: "You're touching on one of the subtler aspects of craft..."
+   → Offer sophisticated analysis: "The tension between showing and telling here relates to narrative distance..."
+   → Reference advanced examples: "Look at how Nabokov plays with unreliable narration in Lolita..."
+
+7. SELF-DOUBT SIGNALS ("I'm not sure", "Is this any good", "probably terrible", imposter syndrome):
+   → Validate feelings first: "Those doubts are completely understandable. Every writer has them."
+   → Point to specific strengths: "But here's what I notice - your [specific element] is actually really strong..."
+   → Reframe perspective: "Questioning your work means you care about quality. That's a writer's strength, not weakness."
 
 CONVERSATION APPROACH:
 • Always ask at least one clarifying question to better understand their vision before giving advice
@@ -1958,7 +1990,39 @@ Use this context to provide more relevant and specific advice about their curren
         if (userPrefs.writingSchedule) {
           persistentMemoryContext += `• Writing Schedule: ${userPrefs.writingSchedule}\n`;
         }
-        persistentMemoryContext += '\nTailor your responses to match their experience level and feedback preferences.\n';
+        
+        // Add response format preferences
+        let responseGuidance = '\n';
+        if (userPrefs.responseFormat) {
+          const formatMap: Record<string, string> = {
+            'bullets': 'Use bullet points for clarity and scanability',
+            'paragraphs': 'Write in flowing paragraphs for narrative flow',
+            'mixed': 'Mix bullet points and paragraphs based on content',
+            'adaptive': 'Adapt format based on the complexity of the topic'
+          };
+          responseGuidance += `• Response Format: ${formatMap[userPrefs.responseFormat] || userPrefs.responseFormat}\n`;
+        }
+        
+        if (userPrefs.detailLevel) {
+          const detailMap: Record<string, string> = {
+            'brief': 'Keep responses concise and to the point',
+            'moderate': 'Provide balanced detail with key explanations',
+            'comprehensive': 'Offer thorough explanations with multiple perspectives'
+          };
+          responseGuidance += `• Detail Level: ${detailMap[userPrefs.detailLevel] || userPrefs.detailLevel}\n`;
+        }
+        
+        if (userPrefs.examplesPreference) {
+          const examplesMap: Record<string, string> = {
+            'frequent': 'Include literary examples regularly to illustrate points',
+            'occasional': 'Use examples when they add significant value',
+            'minimal': 'Focus on direct advice; use examples sparingly'
+          };
+          responseGuidance += `• Literary Examples: ${examplesMap[userPrefs.examplesPreference] || userPrefs.examplesPreference}\n`;
+        }
+        
+        persistentMemoryContext += responseGuidance;
+        persistentMemoryContext += '\nTailor your responses to match their experience level, feedback style, and format preferences. Adapt your communication style to their needs.\n';
       }
 
       // Fetch conversation summary for current scope
