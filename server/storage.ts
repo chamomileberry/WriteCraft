@@ -67,6 +67,7 @@ import {
   type Policy, type InsertPolicy,
   type Potion, type InsertPotion,
   type ChatMessage, type InsertChatMessage,
+  type ConversationThread, type InsertConversationThread,
   type Notebook, type InsertNotebook, type UpdateNotebook,
   type ImportJob, type InsertImportJob, type UpdateImportJob,
   type UserPreferences, type InsertUserPreferences,
