@@ -67,6 +67,15 @@ Documentation: Proactively create documentation for new features, APIs, and syst
   - **Frontend Hook**: useSubscription provides hasFeature() for boolean features, checkLimit() for quota validation with caching, and mutation state exposure for UI control
   - **API Endpoints**: /api/subscription, /tiers, /usage, /check-limit with full authentication middleware
   - **Migration Support**: Script to retroactively create free subscriptions for existing users
+  - **Usage Analytics Dashboard** (Phase 1.4 - Oct 2025):
+    - Time range selector (7/30/90 days) for flexible reporting periods
+    - Overview KPI cards: Total Generations, Total Cost, Daily Average, Current Tier
+    - Three visualization tabs: Usage Over Time (line chart), Feature Breakdown (pie + bar charts), Cost Analysis (line chart)
+    - Trend-based usage forecasting: Analyzes last 3 days vs 7-day average to predict limit hits
+    - Proactive recommendations: Warns users at 50%+ and 80%+ daily limit usage with upgrade suggestions
+    - Real-time limit detection: Shows "0 days until limit" when daily quota is exhausted
+    - All edge cases handled: unlimited tiers, zero limits, below/at/over limit scenarios with null safety
+    - Accessible from Account Settings → Billing section via Analytics button
 - **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, enhanced conversational writing assistant with emotional intelligence, literary examples, and dialogue-driven guidance.
 - **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping, robust processing, and error reporting.
 - **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
