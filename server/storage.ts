@@ -621,9 +621,19 @@ export interface IStorage {
   updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note>;
   deleteQuickNote(id: string, userId: string): Promise<void>;
 
+  // Conversation thread methods
+  createConversationThread(thread: InsertConversationThread): Promise<ConversationThread>;
+  getConversationThreads(userId: string, projectId?: string, guideId?: string, includeInactive?: boolean): Promise<ConversationThread[]>;
+  getConversationThread(threadId: string, userId: string): Promise<ConversationThread | undefined>;
+  updateConversationThread(threadId: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined>;
+  updateThreadActivity(threadId: string): Promise<void>;
+  searchConversationThreads(userId: string, query: string, projectId?: string, guideId?: string): Promise<ConversationThread[]>;
+  branchConversationThread(sourceThreadId: string, userId: string, title: string): Promise<ConversationThread>;
+
   // Chat message methods
   createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(userId: string, projectId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]>;
+  getChatMessagesByThread(threadId: string, userId: string, limit?: number): Promise<ChatMessage[]>;
   deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void>;
 
   // User preferences methods
