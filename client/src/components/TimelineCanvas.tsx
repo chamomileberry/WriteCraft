@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TimelineEventNode, TimelineEventNodeData } from './TimelineEventNode';
 import { TimelineRelationshipEdge, TimelineRelationshipEdgeData } from './TimelineRelationshipEdge';
 import { EventEditDialog } from './EventEditDialog';
+import { TimelineAxis } from './TimelineAxis';
 import { getLayoutedElements } from '@/lib/dagre-layout';
 
 interface TimelineCanvasProps {
@@ -42,6 +43,37 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isAutoLayout, setIsAutoLayout] = useState(true);
   const [previousEventCount, setPreviousEventCount] = useState(0);
+
+  // Canvas dimensions for timeline calculations
+  const CANVAS_WIDTH = 3000;
+  const CANVAS_HEIGHT = 1000;
+  const AXIS_Y = CANVAS_HEIGHT / 2;
+  const MARGIN = 100;
+
+  // Parse flexible date formats with BCE/CE handling (shared with TimelineAxis)
+  const parseDateToTimestamp = (dateStr: string): number => {
+    const standardDate = new Date(dateStr);
+    if (!isNaN(standardDate.getTime())) {
+      return standardDate.getTime();
+    }
+    
+    // Handle BCE/BC dates (negative timestamps)
+    const isBCE = /\b(BCE|BC)\b/i.test(dateStr);
+    const numbers = dateStr.match(/\d+/g);
+    
+    if (numbers && numbers.length > 0) {
+      const year = parseInt(numbers[0]);
+      // BCE dates are negative, CE dates are positive
+      return isBCE ? -year * 10000 : year * 10000;
+    }
+    
+    let hash = 0;
+    for (let i = 0; i < dateStr.length; i++) {
+      hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  };
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(
@@ -180,22 +212,62 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     });
   }, [toast]);
 
-  // Convert events to nodes - position them on a timeline axis
+  // Convert events to nodes - position them chronologically on timeline
   useEffect(() => {
-    if (!events) return;
+    if (!events || events.length === 0) {
+      setNodes([]);
+      return;
+    }
 
-    const newNodes = events.map((event: TimelineEvent, index: number) => {
-      // If positions are saved, use them; otherwise arrange horizontally on timeline
-      const hasStoredPosition = event.positionX !== null && event.positionX !== undefined;
+    // Parse and sort events by date
+    const eventsWithTime = events.map((event: TimelineEvent) => ({
+      event,
+      timestamp: parseDateToTimestamp(event.startDate),
+    }));
+
+    const sortedEvents = eventsWithTime.sort((a: { event: TimelineEvent; timestamp: number }, b: { event: TimelineEvent; timestamp: number }) => a.timestamp - b.timestamp);
+    
+    const minTime = sortedEvents[0].timestamp;
+    const maxTime = sortedEvents[sortedEvents.length - 1].timestamp;
+    const timeRange = maxTime - minTime || 1;
+
+    const axisLength = CANVAS_WIDTH - (2 * MARGIN);
+
+    const newNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
+      // Check if position is manually saved
+      const hasManualPosition = event.positionX !== null && event.positionX !== undefined && !isAutoLayout;
       
+      if (hasManualPosition) {
+        return {
+          id: event.id,
+          type: 'timelineEvent',
+          position: {
+            x: event.positionX!,
+            y: event.positionY ?? AXIS_Y,
+          },
+          data: {
+            event,
+            notebookId,
+            timelineId,
+            onEdit: handleEditEvent,
+            onDelete: handleDeleteEvent,
+            onAddRelationship: handleAddRelationship,
+          } as TimelineEventNodeData,
+        };
+      }
+
+      // Calculate chronological position on timeline
+      const normalizedPosition = (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
+      const x = MARGIN + (normalizedPosition * axisLength);
+      
+      // Alternate above and below the axis
+      const isAbove = index % 2 === 0;
+      const y = isAbove ? AXIS_Y - 180 : AXIS_Y + 180;
+
       return {
         id: event.id,
         type: 'timelineEvent',
-        position: {
-          x: hasStoredPosition ? event.positionX : index * 350,
-          // Center events on a horizontal timeline axis at y=250
-          y: hasStoredPosition ? (event.positionY ?? 250) : 250,
-        },
+        position: { x, y },
         data: {
           event,
           notebookId,
@@ -208,7 +280,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     }) as Node[];
 
     setNodes(newNodes);
-  }, [events, notebookId, timelineId, handleEditEvent, handleDeleteEvent, handleAddRelationship]);
+  }, [events, notebookId, timelineId, isAutoLayout, handleEditEvent, handleDeleteEvent, handleAddRelationship]);
 
   // Convert relationships to edges
   useEffect(() => {
@@ -244,21 +316,41 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     [createRelationshipMutation]
   );
 
-  // Auto-layout - arrange events horizontally on timeline
+  // Auto-layout - arrange events chronologically on timeline
   const handleAutoLayout = useCallback(() => {
-    // Arrange events horizontally along timeline axis at y=250
-    const layoutedNodes = nodes.map((node, index) => ({
-      ...node,
-      position: {
-        x: index * 350,
-        y: 250,
-      },
+    if (!events || events.length === 0) return;
+
+    // Parse and sort events by date
+    const eventsWithTime = events.map((event: TimelineEvent) => ({
+      event,
+      timestamp: parseDateToTimestamp(event.startDate),
     }));
+
+    const sortedEvents = eventsWithTime.sort((a: { event: TimelineEvent; timestamp: number }, b: { event: TimelineEvent; timestamp: number }) => a.timestamp - b.timestamp);
+    
+    const minTime = sortedEvents[0].timestamp;
+    const maxTime = sortedEvents[sortedEvents.length - 1].timestamp;
+    const timeRange = maxTime - minTime || 1;
+    const axisLength = CANVAS_WIDTH - (2 * MARGIN);
+
+    const layoutedNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
+      const normalizedPosition = (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
+      const x = MARGIN + (normalizedPosition * axisLength);
+      const isAbove = index % 2 === 0;
+      const y = isAbove ? AXIS_Y - 180 : AXIS_Y + 180;
+
+      return {
+        id: event.id,
+        type: 'timelineEvent',
+        position: { x, y },
+        data: nodes.find(n => n.id === event.id)?.data,
+      };
+    });
 
     setNodes(layoutedNodes as Node[]);
     
     // Save positions to database
-    const positions = layoutedNodes.map(node => ({
+    const positions = layoutedNodes.map((node: Node) => ({
       id: node.id,
       x: node.position.x,
       y: node.position.y,
@@ -267,7 +359,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     
     setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 0);
     setIsAutoLayout(true);
-  }, [nodes, fitView, setNodes, savePositionMutation]);
+  }, [events, nodes, fitView, setNodes, savePositionMutation]);
 
   // Auto-layout only when new events are added (not on every events change)
   useEffect(() => {
@@ -307,6 +399,17 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
   return (
     <div className="w-full h-full relative">
+      {/* Timeline axis visualization layer */}
+      {events && events.length > 0 && (
+        <TimelineAxis 
+          events={events} 
+          canvasWidth={CANVAS_WIDTH} 
+          canvasHeight={CANVAS_HEIGHT}
+          axisY={AXIS_Y}
+          margin={MARGIN}
+        />
+      )}
+      
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -338,17 +441,6 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
           zoomable
           pannable
         />
-        
-        {/* Timeline axis - horizontal line indicating time flow */}
-        <Panel position="bottom-center" className="pointer-events-none">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-background/80 px-3 py-1 rounded-md border">
-            <span>← Past</span>
-            <div className="w-24 h-px bg-border" />
-            <span>Timeline Flow</span>
-            <div className="w-24 h-px bg-border" />
-            <span>Future →</span>
-          </div>
-        </Panel>
         
         <Panel position="top-left" className="flex gap-2">
           <Button
