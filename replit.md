@@ -35,6 +35,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Security Enhancements**: Integration with `useAuth` hook for authenticated user context; removal of hardcoded user IDs.
 - **Database-Backed Banned Phrases System**: Dynamic loading of AI writing style guidelines from PostgreSQL with admin management and caching.
 - **Character Validation with Fallbacks**: Comprehensive Zod schema-based validation for AI-generated character data with multi-tier fallback system for robustness.
+- **Enhanced AI Writing Assistant** (Oct 2025): Conversational system prompt with emotional intelligence, literary examples (referencing authors like Tolkien, Le Guin, Gaiman), dialogue-driven guidance with mandatory clarifying questions, and scenario-based personality demonstrations for stuck/excited/discouraged writers.
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon serverless)
@@ -50,7 +51,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
 - **Content Management**: Notebook system, modular generator system, writing guides, hierarchical project system with rich text editor (TipTap), enhanced character editor.
 - **Timeline Canvas** (Oct 2025): Visual timeline builder using ReactFlow for drag-and-drop event organization with auto-layout, relationship edges, and content linking. Features auto-creation workflow (modal → instant canvas view), event CRUD operations, position persistence, and type-based visual indicators.
-- **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, writing assistant panel, and adherence to anti-cliché guidelines.
+- **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, enhanced conversational writing assistant with emotional intelligence, literary examples, and dialogue-driven guidance.
 - **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping, robust processing, and error reporting.
 - **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
 
