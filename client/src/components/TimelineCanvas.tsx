@@ -41,6 +41,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isAutoLayout, setIsAutoLayout] = useState(true);
+  const [previousEventCount, setPreviousEventCount] = useState(0);
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(
@@ -179,26 +180,32 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     });
   }, [toast]);
 
-  // Convert events to nodes
+  // Convert events to nodes - position them on a timeline axis
   useEffect(() => {
     if (!events) return;
 
-    const newNodes = events.map((event: TimelineEvent, index: number) => ({
-      id: event.id,
-      type: 'timelineEvent',
-      position: {
-        x: (event.positionX !== null && event.positionX !== undefined) ? event.positionX : index * 300,
-        y: (event.positionY !== null && event.positionY !== undefined) ? event.positionY : 100,
-      },
-      data: {
-        event,
-        notebookId,
-        timelineId,
-        onEdit: handleEditEvent,
-        onDelete: handleDeleteEvent,
-        onAddRelationship: handleAddRelationship,
-      } as TimelineEventNodeData,
-    })) as Node[];
+    const newNodes = events.map((event: TimelineEvent, index: number) => {
+      // If positions are saved, use them; otherwise arrange horizontally on timeline
+      const hasStoredPosition = event.positionX !== null && event.positionX !== undefined;
+      
+      return {
+        id: event.id,
+        type: 'timelineEvent',
+        position: {
+          x: hasStoredPosition ? event.positionX : index * 350,
+          // Center events on a horizontal timeline axis at y=250
+          y: hasStoredPosition ? (event.positionY ?? 250) : 250,
+        },
+        data: {
+          event,
+          notebookId,
+          timelineId,
+          onEdit: handleEditEvent,
+          onDelete: handleDeleteEvent,
+          onAddRelationship: handleAddRelationship,
+        } as TimelineEventNodeData,
+      };
+    }) as Node[];
 
     setNodes(newNodes);
   }, [events, notebookId, timelineId, handleEditEvent, handleDeleteEvent, handleAddRelationship]);
@@ -237,20 +244,21 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     [createRelationshipMutation]
   );
 
-  // Auto-layout
+  // Auto-layout - arrange events horizontally on timeline
   const handleAutoLayout = useCallback(() => {
-    const layoutedElements = getLayoutedElements(nodes, edges, {
-      direction: 'LR', // Left to right for timeline
-      nodeWidth: 220,
-      nodeHeight: 140,
-      rankSep: 200,
-      nodeSep: 80,
-    });
+    // Arrange events horizontally along timeline axis at y=250
+    const layoutedNodes = nodes.map((node, index) => ({
+      ...node,
+      position: {
+        x: index * 350,
+        y: 250,
+      },
+    }));
 
-    setNodes(layoutedElements.nodes as Node[]);
+    setNodes(layoutedNodes as Node[]);
     
     // Save positions to database
-    const positions = layoutedElements.nodes.map(node => ({
+    const positions = layoutedNodes.map(node => ({
       id: node.id,
       x: node.position.x,
       y: node.position.y,
@@ -259,14 +267,24 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     
     setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 0);
     setIsAutoLayout(true);
-  }, [nodes, edges, fitView, setNodes, savePositionMutation]);
+  }, [nodes, fitView, setNodes, savePositionMutation]);
 
-  // Auto-layout on initial load
+  // Auto-layout only when new events are added (not on every events change)
   useEffect(() => {
-    if (nodes.length > 0 && isAutoLayout) {
+    if (!events) return;
+    
+    const currentEventCount = events.length;
+    
+    // Only run auto-layout when:
+    // 1. Event count increased (new event added)
+    // 2. We have nodes to layout
+    // 3. Auto-layout is enabled
+    if (currentEventCount > previousEventCount && nodes.length > 0 && isAutoLayout) {
       handleAutoLayout();
     }
-  }, [events]);
+    
+    setPreviousEventCount(currentEventCount);
+  }, [events?.length]);
 
   const isLoading = isLoadingTimeline || isLoadingEvents || isLoadingRelationships;
 
@@ -313,13 +331,24 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
           type: 'timelineRelationship',
         }}
       >
-        <Background />
+        <Background color="#94a3b8" gap={16} />
         <Controls />
         <MiniMap 
           nodeStrokeWidth={3}
           zoomable
           pannable
         />
+        
+        {/* Timeline axis - horizontal line indicating time flow */}
+        <Panel position="bottom-center" className="pointer-events-none">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-background/80 px-3 py-1 rounded-md border">
+            <span>← Past</span>
+            <div className="w-24 h-px bg-border" />
+            <span>Timeline Flow</span>
+            <div className="w-24 h-px bg-border" />
+            <span>Future →</span>
+          </div>
+        </Panel>
         
         <Panel position="top-left" className="flex gap-2">
           <Button
