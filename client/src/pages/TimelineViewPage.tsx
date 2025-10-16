@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Loader2, AlertCircle, List, Layers } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ArrowLeft, Loader2, AlertCircle, List, Layers, Monitor, Smartphone } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { TimelineCanvas } from '@/components/TimelineCanvas';
 import { TimelineListView } from '@/components/TimelineListView';
@@ -13,6 +15,24 @@ import type { Timeline } from '@shared/schema';
 export default function TimelineViewPage() {
   const { id } = useParams();
   const [location, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState<'list' | 'canvas'>('list');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // Force list view on mobile
+      if (mobile && activeTab === 'canvas') {
+        setActiveTab('list');
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [activeTab]);
 
   // Extract notebookId from query parameters using window.location.search
   // Note: wouter's location doesn't include query params, so we use window.location
@@ -103,19 +123,36 @@ export default function TimelineViewPage() {
       </div>
 
       {/* View Toggle and Content */}
-      <Tabs defaultValue="list" className="flex-1 flex flex-col overflow-hidden">
+      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'list' | 'canvas')} className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b px-4">
           <TabsList data-testid="timeline-view-tabs">
             <TabsTrigger value="list" className="gap-2" data-testid="tab-list-view">
               <List className="w-4 h-4" />
-              List View
+              <span className="hidden sm:inline">List View</span>
+              <span className="sm:hidden">List</span>
             </TabsTrigger>
-            <TabsTrigger value="canvas" className="gap-2" data-testid="tab-canvas-view">
+            <TabsTrigger 
+              value="canvas" 
+              className="gap-2" 
+              data-testid="tab-canvas-view"
+              disabled={isMobile}
+            >
               <Layers className="w-4 h-4" />
-              Canvas View
+              <span className="hidden sm:inline">Canvas View</span>
+              <span className="sm:hidden">Canvas</span>
             </TabsTrigger>
           </TabsList>
         </div>
+
+        {/* Mobile Canvas Warning */}
+        {isMobile && (
+          <Alert className="mx-4 mt-4 bg-primary/5 border-primary/20">
+            <Monitor className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              Canvas view is optimized for desktop. Use List view on mobile for the best experience.
+            </AlertDescription>
+          </Alert>
+        )}
         
         <TabsContent value="list" className="flex-1 overflow-auto mt-0">
           <TimelineListView timelineId={id!} notebookId={notebookId} />
