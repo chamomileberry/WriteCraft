@@ -58,6 +58,15 @@ Documentation: Proactively create documentation for new features, APIs, and syst
   - **Mobile Responsive**: Auto-switches to List view on <768px devices, disabled Canvas/Gantt tabs with optimization warnings
   - **Auto-layout**: ReactFlow-based chronological positioning with relationship edges, drag-and-drop event organization, position persistence
   - **Performance**: ReactFlow viewport culling (Canvas/Gantt), deferred virtualization (not needed until 200+ events based on profiling)
+- **Subscription & Monetization** (Phase 1.1 - Oct 2025):
+  - **Tier System**: Free, Professional ($9.99/month), Team ($24.99/month) with distinct feature sets
+  - **Server-Side Enforcement**: SubscriptionService validates all actions (projects, notebooks, AI generations) against tier limits
+  - **Usage Tracking**: Comprehensive AI usage logging with cost tracking and daily aggregation
+  - **Free Tier Auto-Provisioning**: UPSERT-based system ensures all users get free tier by default
+  - **Database Schema**: 5 new tables (user_subscriptions, ai_usage_logs, ai_usage_daily_summary, team_memberships, lifetime_subscriptions) with unique constraints preventing duplicates
+  - **Frontend Hook**: useSubscription provides hasFeature() for boolean features, checkLimit() for quota validation with caching, and mutation state exposure for UI control
+  - **API Endpoints**: /api/subscription, /tiers, /usage, /check-limit with full authentication middleware
+  - **Migration Support**: Script to retroactively create free subscriptions for existing users
 - **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, enhanced conversational writing assistant with emotional intelligence, literary examples, and dialogue-driven guidance.
 - **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping, robust processing, and error reporting.
 - **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
