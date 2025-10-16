@@ -1,5 +1,6 @@
-import { Sparkles, Pen, BookOpen, Lightbulb } from "lucide-react";
+import { Sparkles, Pen, BookOpen, Lightbulb, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 interface HeroProps {
   onGetStarted?: () => void;
@@ -52,7 +53,7 @@ export default function Hero({ onGetStarted, onNavigate }: HeroProps) {
             find everything you need in one place.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
             <Button 
               size="lg" 
               onClick={handleGetStarted}
@@ -72,6 +73,15 @@ export default function Hero({ onGetStarted, onNavigate }: HeroProps) {
               <BookOpen className="mr-2 h-5 w-5" />
               Start Writing
             </Button>
+          </div>
+
+          <div className="flex justify-center mb-12">
+            <Link href="/pricing">
+              <a className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group" data-testid="link-view-pricing">
+                View Pricing & Plans
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </a>
+            </Link>
           </div>
 
           {/* Feature highlights */}
