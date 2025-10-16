@@ -2,35 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Timeline, TimelineItem, TimelinePoint, TimelineContent, TimelineTime, TimelineTitle, TimelineBody } from 'flowbite-react';
 import { HiCalendar, HiClock, HiLocationMarker, HiSparkles } from 'react-icons/hi';
 import { Skeleton } from '@/components/ui/skeleton';
+import { parseDateToTimestamp } from '@/lib/timelineUtils';
 import type { TimelineEvent } from '@shared/schema';
 
 interface TimelineListViewProps {
   timelineId: string;
   notebookId: string;
-}
-
-// Parse flexible date formats with BCE/CE handling
-function parseDateToTimestamp(dateStr: string): number {
-  const standardDate = new Date(dateStr);
-  if (!isNaN(standardDate.getTime())) {
-    return standardDate.getTime();
-  }
-  
-  // Handle BCE/BC dates (negative timestamps)
-  const isBCE = /\b(BCE|BC)\b/i.test(dateStr);
-  const numbers = dateStr.match(/\d+/g);
-  
-  if (numbers && numbers.length > 0) {
-    const year = parseInt(numbers[0]);
-    return isBCE ? -year * 10000 : year * 10000;
-  }
-  
-  let hash = 0;
-  for (let i = 0; i < dateStr.length; i++) {
-    hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return Math.abs(hash);
 }
 
 // Get icon for event type

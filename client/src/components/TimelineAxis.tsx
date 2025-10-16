@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useViewport } from '@xyflow/react';
+import { parseDateToTimestamp } from '@/lib/timelineUtils';
 import type { TimelineEvent } from '@shared/schema';
 
 interface TimelineAxisProps {
@@ -8,34 +9,6 @@ interface TimelineAxisProps {
   canvasHeight: number;
   axisY: number;
   margin: number;
-}
-
-// Parse flexible date formats with BCE/CE handling
-function parseDateToTimestamp(dateStr: string): number {
-  // Try parsing as standard date first
-  const standardDate = new Date(dateStr);
-  if (!isNaN(standardDate.getTime())) {
-    return standardDate.getTime();
-  }
-  
-  // Handle BCE/BC dates (negative timestamps)
-  const isBCE = /\b(BCE|BC)\b/i.test(dateStr);
-  const numbers = dateStr.match(/\d+/g);
-  
-  if (numbers && numbers.length > 0) {
-    const year = parseInt(numbers[0]);
-    // BCE dates are negative, CE dates are positive
-    const timestamp = isBCE ? -year * 10000 : year * 10000;
-    return timestamp;
-  }
-  
-  // Fallback: use string hash for consistent ordering
-  let hash = 0;
-  for (let i = 0; i < dateStr.length; i++) {
-    hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return Math.abs(hash);
 }
 
 export function TimelineAxis({ events, canvasWidth, canvasHeight, axisY, margin }: TimelineAxisProps) {

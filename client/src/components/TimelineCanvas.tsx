@@ -19,6 +19,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { parseDateToTimestamp } from '@/lib/timelineUtils';
 import type { Timeline, TimelineEvent, TimelineRelationship } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, Grid3X3, Maximize2, Save, AlertCircle } from 'lucide-react';
@@ -50,30 +51,6 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const AXIS_Y = CANVAS_HEIGHT / 2;
   const MARGIN = 100;
 
-  // Parse flexible date formats with BCE/CE handling (shared with TimelineAxis)
-  const parseDateToTimestamp = (dateStr: string): number => {
-    const standardDate = new Date(dateStr);
-    if (!isNaN(standardDate.getTime())) {
-      return standardDate.getTime();
-    }
-    
-    // Handle BCE/BC dates (negative timestamps)
-    const isBCE = /\b(BCE|BC)\b/i.test(dateStr);
-    const numbers = dateStr.match(/\d+/g);
-    
-    if (numbers && numbers.length > 0) {
-      const year = parseInt(numbers[0]);
-      // BCE dates are negative, CE dates are positive
-      return isBCE ? -year * 10000 : year * 10000;
-    }
-    
-    let hash = 0;
-    for (let i = 0; i < dateStr.length; i++) {
-      hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
-      hash = hash & hash;
-    }
-    return Math.abs(hash);
-  };
 
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(
