@@ -6,7 +6,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { TIER_LIMITS } from '@shared/types/subscription';
-import { CreditCard, ExternalLink, Loader2, Crown, X, CheckCircle2 } from 'lucide-react';
+import { CreditCard, ExternalLink, Loader2, Crown, X, CheckCircle2, BarChart3 } from 'lucide-react';
 import { Link } from 'wouter';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -137,15 +137,25 @@ export function BillingSettings() {
               {isCanceled && 'Subscription ending soon'}
             </p>
           </div>
-          {!isFree && (
-            <Link href="/pricing">
+          <div className="flex gap-2">
+            <Link href="/analytics">
               <a>
-                <Button variant="outline" size="sm" data-testid="button-view-plans">
-                  View Plans
+                <Button variant="outline" size="sm" data-testid="button-view-analytics">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
                 </Button>
               </a>
             </Link>
-          )}
+            {!isFree && (
+              <Link href="/pricing">
+                <a>
+                  <Button variant="outline" size="sm" data-testid="button-view-plans">
+                    View Plans
+                  </Button>
+                </a>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Trial Information */}

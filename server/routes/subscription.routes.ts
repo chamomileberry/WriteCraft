@@ -86,4 +86,47 @@ router.post("/check-limit", async (req: any, res) => {
   }
 });
 
+/**
+ * GET /api/subscription/analytics
+ * Get comprehensive usage analytics for dashboard
+ */
+router.get("/analytics", async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const days = parseInt(req.query.days as string) || 30;
+    const analytics = await subscriptionService.getAnalytics(userId, days);
+    
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+/**
+ * GET /api/subscription/forecast
+ * Get usage forecast and recommendations
+ */
+router.get("/forecast", async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const forecast = await subscriptionService.getUsageForecast(userId);
+    
+    res.json(forecast);
+  } catch (error) {
+    console.error('Error fetching forecast:', error);
+    res.status(500).json({ error: 'Failed to fetch forecast' });
+  }
+});
+
 export default router;

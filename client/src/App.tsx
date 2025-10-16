@@ -31,6 +31,7 @@ import SecurityDashboard from "@/pages/SecurityDashboard";
 import TimelineViewPage from "@/pages/TimelineViewPage";
 import ConversationManager from "@/pages/ConversationManager";
 import Pricing from "@/pages/Pricing";
+import Analytics from "@/pages/Analytics";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -191,6 +192,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/analytics" component={Analytics} />
       <Route path="/account" component={AccountSettings} />
       <Route path="/search" component={SearchPage} />
       <Route path="/generators" component={GeneratorsPage} />

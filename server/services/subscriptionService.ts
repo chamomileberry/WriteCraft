@@ -262,6 +262,141 @@ export class SubscriptionService {
     
     return summaries;
   }
+  
+  /**
+   * Get comprehensive analytics for dashboard
+   */
+  async getAnalytics(userId: string, days: number = 30) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const startDateStr = startDate.toISOString().split('T')[0];
+    
+    // Get daily summaries
+    const dailySummaries = await this.getUsageStatistics(userId, days);
+    
+    // Get feature breakdown from usage logs
+    const featureBreakdown = await db
+      .select({
+        operationType: aiUsageLogs.operationType,
+        count: sql<number>`count(*)`,
+        totalCost: sql<number>`sum(${aiUsageLogs.estimatedCostCents})`
+      })
+      .from(aiUsageLogs)
+      .where(
+        and(
+          eq(aiUsageLogs.userId, userId),
+          sql`${aiUsageLogs.createdAt} >= ${startDateStr}`
+        )
+      )
+      .groupBy(aiUsageLogs.operationType);
+    
+    // Calculate totals
+    const totals = dailySummaries.reduce(
+      (acc, day) => ({
+        operations: acc.operations + (day.totalOperations ?? 0),
+        inputTokens: acc.inputTokens + (day.totalInputTokens ?? 0),
+        outputTokens: acc.outputTokens + (day.totalOutputTokens ?? 0),
+        costCents: acc.costCents + (day.totalCostCents ?? 0),
+      }),
+      { operations: 0, inputTokens: 0, outputTokens: 0, costCents: 0 }
+    );
+    
+    // Get subscription for limits
+    const subscription = await this.getUserSubscription(userId);
+    
+    return {
+      dailySummaries,
+      featureBreakdown: featureBreakdown.map(f => ({
+        feature: f.operationType,
+        count: Number(f.count),
+        costCents: Number(f.totalCost || 0)
+      })),
+      totals,
+      subscription: {
+        tier: subscription.tier,
+        limits: subscription.limits
+      },
+      period: {
+        days,
+        startDate: startDateStr,
+        endDate: new Date().toISOString().split('T')[0]
+      }
+    };
+  }
+  
+  /**
+   * Get usage forecast based on current trends
+   */
+  async getUsageForecast(userId: string) {
+    // Get last 7 days of data
+    const last7Days = await this.getUsageStatistics(userId, 7);
+    
+    if (last7Days.length === 0) {
+      return {
+        averageDailyUsage: 0,
+        projectedMonthlyUsage: 0,
+        daysUntilLimit: null,
+        recommendation: null
+      };
+    }
+    
+    // Calculate average daily usage
+    const totalOps = last7Days.reduce((sum, day) => sum + (day.totalOperations ?? 0), 0);
+    const averageDailyUsage = totalOps / last7Days.length;
+    const projectedMonthlyUsage = Math.ceil(averageDailyUsage * 30);
+    
+    // Get subscription limits
+    const subscription = await this.getUserSubscription(userId);
+    const dailyLimit = subscription.limits.aiGenerationsPerDay;
+    
+    // Calculate days until limit and recommendations  
+    let daysUntilLimit = null;
+    let recommendation = null;
+    
+    if (dailyLimit !== null && dailyLimit > 0 && averageDailyUsage > 0) {
+      const todayUsage = await this.getTodayAIUsage(userId);
+      const remainingToday = dailyLimit - todayUsage;
+      const usagePercentage = Math.round((averageDailyUsage / dailyLimit) * 100);
+      
+      // Check if already hit limit today
+      if (remainingToday <= 0) {
+        daysUntilLimit = 0;
+        recommendation = `You've reached your daily limit of ${dailyLimit} AI generations. Upgrade to Professional for unlimited access.`;
+      }
+      // High usage - estimate when limit will be hit
+      else if (usagePercentage >= 80) {
+        recommendation = `You're using ${usagePercentage}% of your daily limit on average. Consider upgrading to Professional for unlimited AI generations.`;
+        
+        // Calculate usage growth trend from recent 3 days
+        const recentDays = last7Days.slice(-3).map(d => d.totalOperations ?? 0);
+        if (recentDays.length >= 2) {
+          const avgRecentUsage = recentDays.reduce((a, b) => a + b, 0) / recentDays.length;
+          const usageGrowthRate = avgRecentUsage - averageDailyUsage;
+          
+          // If usage is growing and approaching limit
+          if (usageGrowthRate > 0 && avgRecentUsage < dailyLimit) {
+            const daysToLimit = Math.floor((dailyLimit - avgRecentUsage) / usageGrowthRate);
+            if (daysToLimit > 0 && daysToLimit <= 30) {
+              daysUntilLimit = daysToLimit;
+            }
+          }
+          // If already at/over limit on average
+          else if (avgRecentUsage >= dailyLimit) {
+            daysUntilLimit = 0;
+          }
+        }
+      } else if (usagePercentage >= 50) {
+        recommendation = `You're using ${usagePercentage}% of your daily limit. Your current plan is sufficient, but watch your usage trends.`;
+      }
+    }
+    
+    return {
+      averageDailyUsage: Math.round(averageDailyUsage),
+      projectedMonthlyUsage,
+      daysUntilLimit,
+      recommendation
+    };
+  }
 }
 
 // Export singleton instance
