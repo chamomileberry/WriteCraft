@@ -278,7 +278,10 @@ export default function WritingAssistantPanel({
           editorContent: hasEditorContent ? editorContext.content : undefined,
           documentTitle: hasEditorContent ? editorContext.title : undefined,
           documentType: hasEditorContent ? editorContext.type : undefined,
-          notebookId: editorContext.notebookId || activeNotebookId || undefined
+          notebookId: editorContext.notebookId || activeNotebookId || undefined,
+          // Note: 'manuscript' type is legacy, refers to project editor context
+          projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
+          guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined
         }),
       });
       if (!response.ok) throw new Error('Failed to get chat response');

@@ -679,9 +679,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/chat", async (req, res) => {
+  app.post("/api/writing-assistant/chat", async (req: any, res) => {
     try {
-      const { message, conversationHistory, editorContent, documentTitle, documentType, notebookId } = z.object({ 
+      // Get authenticated userId from session (never trust client input)
+      const userId = req.user.claims.sub;
+
+      const { message, conversationHistory, editorContent, documentTitle, documentType, notebookId, projectId, guideId } = z.object({ 
         message: z.string(), 
         conversationHistory: z.array(z.object({
           role: z.enum(['user', 'assistant']),
@@ -691,10 +694,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         editorContent: z.string().optional(),
         documentTitle: z.string().optional(),
         documentType: z.enum(['manuscript', 'guide', 'project', 'section', 'character']).optional(),
-        notebookId: z.string().optional()
+        notebookId: z.string().optional(),
+        projectId: z.string().optional(),
+        guideId: z.string().optional()
       }).parse(req.body);
       
-      const response = await conversationalChat(message, conversationHistory, editorContent, documentTitle, documentType, notebookId);
+      const response = await conversationalChat(
+        message, 
+        conversationHistory, 
+        editorContent, 
+        documentTitle, 
+        documentType, 
+        notebookId,
+        userId,
+        projectId,
+        guideId
+      );
       res.json({ message: response });
     } catch (error) {
       console.error('Error in conversational chat:', error);

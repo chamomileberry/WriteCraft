@@ -1,10 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { GENDER_IDENTITIES, ALL_GENRES, ALL_SETTING_TYPES, ALL_CREATURE_TYPES, ALL_ETHNICITIES, ALL_DESCRIPTION_TYPES } from '../shared/genres.js';
 import { db } from './db.js';
-import { savedItems } from '@shared/schema';
+import { savedItems, projects } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { getBannedPhrasesInstruction } from './utils/banned-phrases.js';
 import { validateAndApplyFallbacks, getCharacterFullName } from './utils/character-validation.js';
+import { storage } from './storage.js';
 
 /*
 <important_code_snippet_instructions>
@@ -1638,7 +1639,10 @@ export async function conversationalChat(
   editorContent?: string,
   documentTitle?: string,
   documentType?: 'manuscript' | 'guide' | 'project' | 'section' | 'character',
-  notebookId?: string
+  notebookId?: string,
+  userId?: string,
+  projectId?: string,
+  guideId?: string
 ): Promise<string> {
   /*
   <important_code_snippet_instructions>
@@ -1813,6 +1817,91 @@ Use this context to provide more relevant and specific advice about their curren
   // Add notebook context if available
   if (notebookContext) {
     systemPrompt += notebookContext;
+  }
+
+  // Fetch and add persistent memory (user preferences and conversation summaries)
+  let persistentMemoryContext = '';
+  if (userId) {
+    try {
+      // Fetch user preferences
+      const userPrefs = await storage.getUserPreferences(userId);
+      if (userPrefs) {
+        persistentMemoryContext += '\n\nWRITER PROFILE:\n';
+        if (userPrefs.experienceLevel) {
+          persistentMemoryContext += `• Experience Level: ${userPrefs.experienceLevel}\n`;
+        }
+        if (userPrefs.preferredGenres && userPrefs.preferredGenres.length > 0) {
+          persistentMemoryContext += `• Preferred Genres: ${userPrefs.preferredGenres.join(', ')}\n`;
+        }
+        if (userPrefs.writingGoals && userPrefs.writingGoals.length > 0) {
+          persistentMemoryContext += `• Writing Goals: ${userPrefs.writingGoals.join(', ')}\n`;
+        }
+        if (userPrefs.feedbackStyle) {
+          persistentMemoryContext += `• Preferred Feedback Style: ${userPrefs.feedbackStyle}\n`;
+        }
+        if (userPrefs.targetWordCount) {
+          persistentMemoryContext += `• Target Word Count: ${userPrefs.targetWordCount.toLocaleString()}\n`;
+        }
+        if (userPrefs.writingSchedule) {
+          persistentMemoryContext += `• Writing Schedule: ${userPrefs.writingSchedule}\n`;
+        }
+        persistentMemoryContext += '\nTailor your responses to match their experience level and feedback preferences.\n';
+      }
+
+      // Fetch conversation summary for current scope
+      const conversationSummary = await storage.getConversationSummary(userId, projectId || null, guideId || null);
+      if (conversationSummary) {
+        persistentMemoryContext += '\n\nCONVERSATION MEMORY:\n';
+        if (conversationSummary.keyChallenges && conversationSummary.keyChallenges.length > 0) {
+          persistentMemoryContext += `• Ongoing Challenges: ${conversationSummary.keyChallenges.join('; ')}\n`;
+        }
+        if (conversationSummary.breakthroughs && conversationSummary.breakthroughs.length > 0) {
+          persistentMemoryContext += `• Past Breakthroughs: ${conversationSummary.breakthroughs.join('; ')}\n`;
+        }
+        if (conversationSummary.recurringQuestions && conversationSummary.recurringQuestions.length > 0) {
+          persistentMemoryContext += `• Recurring Questions: ${conversationSummary.recurringQuestions.join('; ')}\n`;
+        }
+        if (conversationSummary.lastDiscussedTopics && conversationSummary.lastDiscussedTopics.length > 0) {
+          persistentMemoryContext += `• Recent Topics: ${conversationSummary.lastDiscussedTopics.join(', ')}\n`;
+        }
+        if (conversationSummary.writerProgress) {
+          persistentMemoryContext += `• Overall Progress: ${conversationSummary.writerProgress}\n`;
+        }
+        persistentMemoryContext += '\nUse this context to provide continuity across sessions and reference past discussions when relevant.\n';
+      }
+
+      // Fetch project metadata if projectId is available
+      if (projectId) {
+        const [project] = await db.select().from(projects).where(eq(projects.id, projectId));
+        if (project) {
+          persistentMemoryContext += '\n\nPROJECT CONTEXT:\n';
+          if (project.genre) {
+            persistentMemoryContext += `• Genre: ${project.genre}\n`;
+          }
+          if (project.targetWordCount) {
+            persistentMemoryContext += `• Target Word Count: ${project.targetWordCount.toLocaleString()}\n`;
+          }
+          if (project.currentStage) {
+            persistentMemoryContext += `• Current Stage: ${project.currentStage}\n`;
+          }
+          if (project.knownChallenges && project.knownChallenges.length > 0) {
+            persistentMemoryContext += `• Known Challenges: ${project.knownChallenges.join('; ')}\n`;
+          }
+          if (project.recentMilestones && project.recentMilestones.length > 0) {
+            persistentMemoryContext += `• Recent Milestones: ${project.recentMilestones.join('; ')}\n`;
+          }
+          persistentMemoryContext += '\nConsider this project context when providing advice and suggestions.\n';
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching persistent memory:', error);
+      // Continue without persistent memory if there's an error
+    }
+  }
+
+  // Add persistent memory context to system prompt
+  if (persistentMemoryContext) {
+    systemPrompt += persistentMemoryContext;
   }
 
   // Detect and add session gap information if timestamps are available

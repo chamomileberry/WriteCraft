@@ -70,7 +70,9 @@ import {
   type ChatMessage, type InsertChatMessage,
   type Notebook, type InsertNotebook, type UpdateNotebook,
   type ImportJob, type InsertImportJob, type UpdateImportJob,
-  type PinnedContent, type InsertPinnedContent
+  type PinnedContent, type InsertPinnedContent,
+  type UserPreferences, type InsertUserPreferences,
+  type ConversationSummary, type InsertConversationSummary
 } from '@shared/schema';
 
 import { UserRepository } from './user.repository';
@@ -83,8 +85,8 @@ import { searchRepository } from './search.repository';
 import { ImportRepository } from './import.repository';
 import { ShareRepository } from './share.repository';
 import { db } from '../db';
-import { eq, and, desc, or, ilike } from 'drizzle-orm';
-import { guides, savedItems, notebooks } from '@shared/schema';
+import { eq, and, desc, or, ilike, isNull, sql } from 'drizzle-orm';
+import { guides, savedItems, notebooks, userPreferences, conversationSummaries } from '@shared/schema';
 
 export class StorageFacade implements IStorage {
   private userRepository = new UserRepository();
@@ -1715,6 +1717,74 @@ export class StorageFacade implements IStorage {
 
   async deleteTimelineRelationship(id: string, userId: string, timelineId: string): Promise<void> {
     await contentRepository.deleteTimelineRelationship(id, userId, timelineId);
+  }
+
+  // User preferences methods
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    const [prefs] = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
+    return prefs || undefined;
+  }
+
+  async upsertUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences> {
+    const [result] = await db
+      .insert(userPreferences)
+      .values({ ...preferences, userId })
+      .onConflictDoUpdate({
+        target: userPreferences.userId,
+        set: { ...preferences, updatedAt: new Date() }
+      })
+      .returning();
+    return result;
+  }
+
+  // Conversation summary methods
+  async getConversationSummary(userId: string, projectId?: string | null, guideId?: string | null): Promise<ConversationSummary | undefined> {
+    const conditions = [eq(conversationSummaries.userId, userId)];
+
+    // Always apply scope constraints - use NULL for undefined/null parameters
+    conditions.push(projectId ? eq(conversationSummaries.projectId, projectId) : isNull(conversationSummaries.projectId));
+    conditions.push(guideId ? eq(conversationSummaries.guideId, guideId) : isNull(conversationSummaries.guideId));
+
+    const [summary] = await db
+      .select()
+      .from(conversationSummaries)
+      .where(and(...conditions));
+    return summary || undefined;
+  }
+
+  async upsertConversationSummary(summary: InsertConversationSummary): Promise<ConversationSummary> {
+    const existingSummary = await this.getConversationSummary(
+      summary.userId,
+      summary.projectId || null,
+      summary.guideId || null
+    );
+
+    if (existingSummary) {
+      const [updated] = await db
+        .update(conversationSummaries)
+        .set({ ...summary, updatedAt: new Date() })
+        .where(eq(conversationSummaries.id, existingSummary.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(conversationSummaries)
+        .values(summary)
+        .returning();
+      return created;
+    }
+  }
+
+  async updateConversationSummary(id: string, userId: string, updates: Partial<InsertConversationSummary>): Promise<ConversationSummary | undefined> {
+    const [updated] = await db
+      .update(conversationSummaries)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(conversationSummaries.id, id), eq(conversationSummaries.userId, userId)))
+      .returning();
+    return updated || undefined;
   }
 }
 
