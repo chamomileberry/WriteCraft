@@ -8,6 +8,7 @@ import importRoutes from "./routes/import.routes";
 import pexelsRoutes from "./routes/pexels.routes";
 import dalleRoutes from "./routes/dalle.routes";
 import stockImagesRoutes from "./routes/stock-images.routes";
+import subscriptionRoutes from "./routes/subscription.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { 
   insertCharacterSchema, 
@@ -93,6 +94,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register DALL-E 3 AI image generation routes
   app.use("/api/dalle", isAuthenticated, dalleRoutes);
+
+  // Register subscription routes
+  app.use("/api/subscription", isAuthenticated, subscriptionRoutes);
 
   // Serve uploaded objects with optional access control
   // NOTE: World-building content and avatars are publicly accessible via UUID protection.

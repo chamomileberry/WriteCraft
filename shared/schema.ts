@@ -32,6 +32,11 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
+  // Subscription fields
+  subscriptionTier: varchar("subscription_tier").default('free'),
+  grandfatheredTier: varchar("grandfathered_tier"),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  trialUsed: boolean("trial_used").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -3270,3 +3275,154 @@ export const insertConversationSummarySchema = createInsertSchema(conversationSu
 
 export type InsertConversationSummary = z.infer<typeof insertConversationSummarySchema>;
 export type ConversationSummary = typeof conversationSummaries.$inferSelect;
+
+// User Subscriptions
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
+  tier: varchar("tier").notNull(), // 'free', 'author', 'professional', 'team'
+  status: varchar("status").notNull(), // 'active', 'past_due', 'canceled', 'trialing'
+  
+  // Stripe Integration
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  stripePriceId: varchar("stripe_price_id"),
+  
+  // Billing Cycle
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  
+  // Trial Management
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueStripeCustomer: uniqueIndex("user_subscriptions_stripe_customer_idx").on(table.stripeCustomerId),
+  uniqueStripeSubscription: uniqueIndex("user_subscriptions_stripe_subscription_idx").on(table.stripeSubscriptionId),
+}));
+
+// AI Usage Logs
+export const aiUsageLogs = pgTable("ai_usage_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Usage Details
+  operationType: varchar("operation_type").notNull(), // 'character_gen', 'chat', 'edit', 'proofread', etc.
+  model: varchar("model").notNull(), // 'claude-sonnet-4', 'claude-haiku-3-5'
+  inputTokens: integer("input_tokens").notNull(),
+  outputTokens: integer("output_tokens").notNull(),
+  cachedTokens: integer("cached_tokens").default(0),
+  
+  // Cost Calculation (in cents)
+  estimatedCostCents: integer("estimated_cost_cents").notNull(),
+  
+  // Context
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'set null' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'set null' }),
+  
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userDateIdx: index("ai_usage_logs_user_date_idx").on(table.userId, table.createdAt),
+  userOperationIdx: index("ai_usage_logs_user_operation_idx").on(table.userId, table.operationType),
+}));
+
+// Daily Usage Summaries (for performance)
+export const aiUsageDailySummary = pgTable("ai_usage_daily_summary", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  date: text("date").notNull(), // Store as 'YYYY-MM-DD' text for easier querying
+  
+  // Aggregated Counts
+  totalOperations: integer("total_operations").default(0),
+  totalInputTokens: integer("total_input_tokens").default(0),
+  totalOutputTokens: integer("total_output_tokens").default(0),
+  totalCostCents: integer("total_cost_cents").default(0),
+  
+  // By Operation Type (JSONB for flexibility)
+  operationsBreakdown: jsonb("operations_breakdown").default({}),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueUserDate: uniqueIndex("ai_usage_daily_summary_user_date_idx").on(table.userId, table.date),
+}));
+
+// Team Memberships
+export const teamMemberships = pgTable("team_memberships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar("role").notNull(), // 'owner', 'admin', 'member'
+  
+  // Permissions
+  canEdit: boolean("can_edit").default(true),
+  canComment: boolean("can_comment").default(true),
+  canInvite: boolean("can_invite").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueTeamUser: uniqueIndex("team_memberships_team_user_idx").on(table.teamSubscriptionId, table.userId),
+}));
+
+// Lifetime Deal Tracking
+export const lifetimeSubscriptions = pgTable("lifetime_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Purchase Details
+  purchaseDate: timestamp("purchase_date").defaultNow(),
+  purchasePriceCents: integer("purchase_price_cents").notNull(),
+  tierEquivalent: varchar("tier_equivalent").notNull(), // 'professional'
+  
+  // Usage Limits (for lifetime users)
+  dailyGenerationLimit: integer("daily_generation_limit").default(50),
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+}, (table) => ({
+  uniqueUser: uniqueIndex("lifetime_subscriptions_user_idx").on(table.userId),
+}));
+
+// Insert schemas and types for subscription tables
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAiUsageLogSchema = createInsertSchema(aiUsageLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiUsageDailySummarySchema = createInsertSchema(aiUsageDailySummary).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTeamMembershipSchema = createInsertSchema(teamMemberships).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLifetimeSubscriptionSchema = createInsertSchema(lifetimeSubscriptions).omit({
+  id: true,
+  purchaseDate: true,
+});
+
+export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertAiUsageLog = z.infer<typeof insertAiUsageLogSchema>;
+export type AiUsageLog = typeof aiUsageLogs.$inferSelect;
+export type InsertAiUsageDailySummary = z.infer<typeof insertAiUsageDailySummarySchema>;
+export type AiUsageDailySummary = typeof aiUsageDailySummary.$inferSelect;
+export type InsertTeamMembership = z.infer<typeof insertTeamMembershipSchema>;
+export type TeamMembership = typeof teamMemberships.$inferSelect;
+export type InsertLifetimeSubscription = z.infer<typeof insertLifetimeSubscriptionSchema>;
+export type LifetimeSubscription = typeof lifetimeSubscriptions.$inferSelect;
