@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Timeline, TimelineItem, TimelinePoint, TimelineContent, TimelineTime, TimelineTitle, TimelineBody } from 'flowbite-react';
 import { HiCalendar, HiClock, HiLocationMarker, HiSparkles } from 'react-icons/hi';
-import { Plus } from 'lucide-react';
+import { Plus, AlignJustify, ArrowDownWideNarrow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Toggle } from '@/components/ui/toggle';
 import { parseDateToTimestamp } from '@/lib/timelineUtils';
 import { EventEditDialog } from './EventEditDialog';
-import type { TimelineEvent } from '@shared/schema';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import type { TimelineEvent, Timeline as TimelineType } from '@shared/schema';
 
 interface TimelineListViewProps {
   timelineId: string;
@@ -34,6 +36,16 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   
+  // Fetch timeline data to get listViewMode
+  const { data: timeline } = useQuery<TimelineType>({
+    queryKey: ['/api/timelines', timelineId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/timelines/${timelineId}?notebookId=${notebookId}`);
+      return await response.json();
+    },
+    enabled: !!timelineId && !!notebookId,
+  });
+
   const { data: events, isLoading } = useQuery<TimelineEvent[]>({
     queryKey: ['/api/timeline-events', timelineId, notebookId],
     queryFn: async () => {
@@ -43,6 +55,22 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
     },
     enabled: !!timelineId && !!notebookId,
   });
+
+  // Toggle listViewMode mutation
+  const toggleModeMutation = useMutation({
+    mutationFn: async (newMode: 'compact' | 'timescale') => {
+      const response = await apiRequest('PATCH', `/api/timelines/${timelineId}`, {
+        listViewMode: newMode,
+        notebookId
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/timelines', timelineId] });
+    }
+  });
+
+  const isTimescaleMode = timeline?.listViewMode === 'timescale';
 
   const handleAddEvent = () => {
     setSelectedEvent(null);
@@ -110,12 +138,60 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
     parseDateToTimestamp(a.startDate) - parseDateToTimestamp(b.startDate)
   );
 
+  // Calculate spacing for timescale mode
+  const getEventSpacing = (index: number): number => {
+    if (!isTimescaleMode || sortedEvents.length < 2) return 0;
+    
+    if (index === 0) return 0;
+    
+    const currentTimestamp = parseDateToTimestamp(sortedEvents[index].startDate);
+    const previousTimestamp = parseDateToTimestamp(sortedEvents[index - 1].startDate);
+    const timeGap = currentTimestamp - previousTimestamp;
+    
+    // Find min and max gaps for normalization
+    const gaps: number[] = [];
+    for (let i = 1; i < sortedEvents.length; i++) {
+      const curr = parseDateToTimestamp(sortedEvents[i].startDate);
+      const prev = parseDateToTimestamp(sortedEvents[i - 1].startDate);
+      gaps.push(curr - prev);
+    }
+    const minGap = Math.min(...gaps);
+    const maxGap = Math.max(...gaps);
+    
+    // Normalize gap to spacing (min 16px, max 200px)
+    if (maxGap === minGap) return 16; // All gaps equal
+    const normalizedGap = (timeGap - minGap) / (maxGap - minGap);
+    return 16 + (normalizedGap * 184); // 16px to 200px range
+  };
+
   return (
     <>
       <div className="p-8 max-w-4xl mx-auto">
-        {/* Add Event Button */}
-        <div className="mb-8 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-muted-foreground">Timeline Events</h2>
+        {/* Header with Add Event Button and View Mode Toggle */}
+        <div className="mb-8 flex justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-muted-foreground">Timeline Events</h2>
+            <div className="flex items-center gap-2 border rounded-md p-1">
+              <Toggle
+                pressed={!isTimescaleMode}
+                onPressedChange={() => toggleModeMutation.mutate('compact')}
+                size="sm"
+                data-testid="toggle-compact-mode"
+                title="Compact mode - equal spacing"
+              >
+                <AlignJustify className="w-4 h-4" />
+              </Toggle>
+              <Toggle
+                pressed={isTimescaleMode}
+                onPressedChange={() => toggleModeMutation.mutate('timescale')}
+                size="sm"
+                data-testid="toggle-timescale-mode"
+                title="Timescale mode - proportional spacing"
+              >
+                <ArrowDownWideNarrow className="w-4 h-4" />
+              </Toggle>
+            </div>
+          </div>
           <Button onClick={handleAddEvent} data-testid="button-add-event">
             <Plus className="w-4 h-4 mr-2" />
             Add Event
@@ -123,8 +199,9 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
         </div>
 
         <Timeline>
-        {sortedEvents.map((event) => {
+        {sortedEvents.map((event, index) => {
           const EventIcon = getEventIcon(event.eventType || 'general');
+          const spacing = getEventSpacing(index);
           
           return (
             <TimelineItem 
@@ -132,6 +209,7 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
               data-testid={`timeline-event-${event.id}`}
               onClick={() => handleEditEvent(event)}
               className="cursor-pointer hover-elevate rounded-lg transition-colors group"
+              style={{ marginTop: spacing > 0 ? `${spacing}px` : undefined }}
             >
               <TimelinePoint icon={EventIcon} className="bg-primary/20 dark:bg-primary/30" />
               <TimelineContent className="ml-8">
