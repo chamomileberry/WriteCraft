@@ -69,6 +69,8 @@ import {
   type ChatMessage, type InsertChatMessage,
   type Notebook, type InsertNotebook, type UpdateNotebook,
   type ImportJob, type InsertImportJob, type UpdateImportJob,
+  type UserPreferences, type InsertUserPreferences,
+  type ConversationSummary, type InsertConversationSummary,
   users, characters,
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
@@ -83,6 +85,7 @@ import {
   timelineRelationships, ceremonies, maps, music, dances, laws, policies, potions,
   type PinnedContent, type InsertPinnedContent, pinnedContent,
   chatMessages,
+  userPreferences, conversationSummaries,
   shares
 } from "@shared/schema";
 import { db } from "./db";
@@ -622,6 +625,15 @@ export interface IStorage {
   createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(userId: string, projectId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]>;
   deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void>;
+
+  // User preferences methods
+  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
+  upsertUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences>;
+
+  // Conversation summary methods
+  getConversationSummary(userId: string, projectId?: string, guideId?: string): Promise<ConversationSummary | undefined>;
+  upsertConversationSummary(summary: InsertConversationSummary): Promise<ConversationSummary>;
+  updateConversationSummary(id: string, userId: string, updates: Partial<InsertConversationSummary>): Promise<ConversationSummary | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -5385,6 +5397,74 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     await db
       .delete(chatMessages)
       .where(whereCondition);
+  }
+
+  // User preferences methods
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    const [prefs] = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
+    return prefs || undefined;
+  }
+
+  async upsertUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences> {
+    const [result] = await db
+      .insert(userPreferences)
+      .values({ ...preferences, userId })
+      .onConflictDoUpdate({
+        target: userPreferences.userId,
+        set: { ...preferences, updatedAt: new Date() }
+      })
+      .returning();
+    return result;
+  }
+
+  // Conversation summary methods
+  async getConversationSummary(userId: string, projectId?: string | null, guideId?: string | null): Promise<ConversationSummary | undefined> {
+    const conditions = [eq(conversationSummaries.userId, userId)];
+
+    // Always apply scope constraints - use NULL for undefined/null parameters
+    conditions.push(projectId ? eq(conversationSummaries.projectId, projectId) : isNull(conversationSummaries.projectId));
+    conditions.push(guideId ? eq(conversationSummaries.guideId, guideId) : isNull(conversationSummaries.guideId));
+
+    const [summary] = await db
+      .select()
+      .from(conversationSummaries)
+      .where(and(...conditions));
+    return summary || undefined;
+  }
+
+  async upsertConversationSummary(summary: InsertConversationSummary): Promise<ConversationSummary> {
+    const existingSummary = await this.getConversationSummary(
+      summary.userId,
+      summary.projectId || null,
+      summary.guideId || null
+    );
+
+    if (existingSummary) {
+      const [updated] = await db
+        .update(conversationSummaries)
+        .set({ ...summary, updatedAt: new Date() })
+        .where(eq(conversationSummaries.id, existingSummary.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(conversationSummaries)
+        .values(summary)
+        .returning();
+      return created;
+    }
+  }
+
+  async updateConversationSummary(id: string, userId: string, updates: Partial<InsertConversationSummary>): Promise<ConversationSummary | undefined> {
+    const [updated] = await db
+      .update(conversationSummaries)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(conversationSummaries.id, id), eq(conversationSummaries.userId, userId)))
+      .returning();
+    return updated || undefined;
   }
 }
 

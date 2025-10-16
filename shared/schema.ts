@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real, index, uniqueIndex, unique, customType } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1664,7 +1664,7 @@ export const notes = pgTable("notes", {
   )`
 }));
 
-// Projects - Rich text documents for writing (updated with folder support)
+// Projects - Rich text documents for writing (updated with folder support and AI context metadata)
 export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -1675,6 +1675,12 @@ export const projects = pgTable("projects", {
   status: text("status").notNull().default('draft'), // 'draft', 'published', 'archived'
   searchVector: tsvector("search_vector"),
   folderId: varchar("folder_id"), // Optional folder organization
+  // AI Context Metadata for better assistance
+  genre: text("genre"), // Primary genre of the project
+  targetWordCount: integer("target_word_count"), // Writing goal for this project
+  currentStage: text("current_stage"), // e.g., 'outlining', 'first draft', 'revision', 'editing'
+  knownChallenges: text("known_challenges").array().default(sql`ARRAY[]::text[]`), // Writer's identified struggles
+  recentMilestones: text("recent_milestones").array().default(sql`ARRAY[]::text[]`), // Recent achievements
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1741,6 +1747,47 @@ export const chatMessages = pgTable("chat_messages", {
   projectIdIdx: index("chat_messages_project_id_idx").on(table.projectId),
   guideIdIdx: index("chat_messages_guide_id_idx").on(table.guideId),
   createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
+}));
+
+// User Preferences - Writing preferences and AI interaction settings
+export const userPreferences = pgTable("user_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  experienceLevel: text("experience_level"), // 'beginner', 'intermediate', 'advanced'
+  preferredGenres: text("preferred_genres").array(), // Array of genres the user writes
+  writingGoals: text("writing_goals").array(), // e.g., ['finish novel', 'improve dialogue', 'publish']
+  feedbackStyle: text("feedback_style"), // 'direct', 'gentle', 'technical', 'conceptual'
+  targetWordCount: integer("target_word_count"), // General writing goal
+  writingSchedule: text("writing_schedule"), // 'daily', 'weekly', 'whenever'
+  preferredTone: text("preferred_tone"), // AI assistant tone preference
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("user_preferences_user_id_idx").on(table.userId),
+}));
+
+// Conversation Summaries - Persistent memory of key insights from conversations
+export const conversationSummaries = pgTable("conversation_summaries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional - project-specific
+  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - guide-specific
+  keyChallenges: text("key_challenges").array().default(sql`ARRAY[]::text[]`), // Ongoing struggles
+  breakthroughs: text("breakthroughs").array().default(sql`ARRAY[]::text[]`), // Important discoveries
+  recurringQuestions: text("recurring_questions").array().default(sql`ARRAY[]::text[]`), // Patterns in questions
+  lastDiscussedTopics: text("last_discussed_topics").array().default(sql`ARRAY[]::text[]`), // Recent conversation themes
+  writerProgress: text("writer_progress"), // Summary of overall progress
+  lastDiscussed: timestamp("last_discussed").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("conversation_summaries_user_id_idx").on(table.userId),
+  projectIdIdx: index("conversation_summaries_project_id_idx").on(table.projectId),
+  guideIdIdx: index("conversation_summaries_guide_id_idx").on(table.guideId),
+  lastDiscussedIdx: index("conversation_summaries_last_discussed_idx").on(table.lastDiscussed),
+  // Unique constraint using coalesce to handle NULLs properly (NULLs become empty strings)
+  uniqueScopeIdx: uniqueIndex("conversation_summaries_unique_scope")
+    .on(table.userId, sql`coalesce(${table.projectId}, '')`, sql`coalesce(${table.guideId}, '')`),
 }));
 
 // Relations
@@ -3136,3 +3183,23 @@ export const updateImportJobSchema = z.object({
 export type InsertImportJob = z.infer<typeof insertImportJobSchema>;
 export type UpdateImportJob = z.infer<typeof updateImportJobSchema>;
 export type ImportJob = typeof importJobs.$inferSelect;
+
+// User Preferences schemas and types
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+
+// Conversation Summaries schemas and types
+export const insertConversationSummarySchema = createInsertSchema(conversationSummaries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertConversationSummary = z.infer<typeof insertConversationSummarySchema>;
+export type ConversationSummary = typeof conversationSummaries.$inferSelect;

@@ -785,6 +785,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Preferences API routes
+  app.get("/api/user-preferences", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const preferences = await storage.getUserPreferences(userId);
+      
+      if (!preferences) {
+        return res.status(404).json({ error: 'User preferences not found' });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error('Error fetching user preferences:', error);
+      res.status(500).json({ error: 'Failed to fetch user preferences' });
+    }
+  });
+
+  app.put("/api/user-preferences", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const preferences = z.object({
+        experienceLevel: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+        preferredGenres: z.array(z.string()).optional(),
+        writingGoals: z.array(z.string()).optional(),
+        feedbackStyle: z.enum(['direct', 'gentle', 'technical', 'conceptual']).optional(),
+        targetWordCount: z.number().optional(),
+        writingSchedule: z.string().optional(),
+        preferredTone: z.string().optional(),
+      }).parse(req.body);
+
+      const updated = await storage.upsertUserPreferences(userId, preferences);
+      res.json(updated);
+    } catch (error) {
+      console.error('Error updating user preferences:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update user preferences' });
+    }
+  });
+
+  // Conversation Summaries API routes
+  app.get("/api/conversation-summary", async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const { projectId, guideId } = z.object({
+        projectId: z.string().optional(),
+        guideId: z.string().optional()
+      }).parse(req.query);
+
+      const summary = await storage.getConversationSummary(userId, projectId, guideId);
+      
+      if (!summary) {
+        return res.status(204).send(); // No content instead of 404
+      }
+      
+      res.json(summary);
+    } catch (error) {
+      console.error('Error fetching conversation summary:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to fetch conversation summary' });
+    }
+  });
+
   // Timeline routes
   app.post("/api/timelines", async (req: any, res) => {
     try {
