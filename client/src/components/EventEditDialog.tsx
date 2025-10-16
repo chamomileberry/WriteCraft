@@ -280,7 +280,7 @@ export function EventEditDialog({
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper" className="z-[100]">
+                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
                         <SelectItem value="battle">Battle</SelectItem>
                         <SelectItem value="discovery">Discovery</SelectItem>
                         <SelectItem value="birth">Birth</SelectItem>
@@ -309,7 +309,7 @@ export function EventEditDialog({
                           <SelectValue placeholder="Select importance" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper" className="z-[100]">
+                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
                         <SelectItem value="major">Major</SelectItem>
                         <SelectItem value="moderate">Moderate</SelectItem>
                         <SelectItem value="minor">Minor</SelectItem>
