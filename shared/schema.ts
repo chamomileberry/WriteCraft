@@ -1284,6 +1284,7 @@ export const timelines = pgTable("timelines", {
   endDate: text("end_date"),
   // View/Display settings
   viewMode: text("view_mode").default('list'), // 'list', 'visual', or 'gantt'
+  listViewMode: text("list_view_mode").default('compact'), // 'compact' or 'timescale'
   zoom: real("zoom").default(1),
   panX: real("pan_x").default(0),
   panY: real("pan_y").default(0),
