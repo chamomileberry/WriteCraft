@@ -8,14 +8,17 @@ import { eq } from 'drizzle-orm';
 
 // CRITICAL: MFA_ENCRYPTION_KEY must be set in environment variables
 // This ensures stable encryption/decryption across server restarts
-const ENCRYPTION_KEY = process.env.MFA_ENCRYPTION_KEY;
+const envKey = process.env.MFA_ENCRYPTION_KEY;
 
-if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 64) {
+if (!envKey || envKey.length < 64) {
   throw new Error(
     'MFA_ENCRYPTION_KEY environment variable must be set and at least 64 characters (32 bytes hex). ' +
     'Generate with: node -e "console.log(crypto.randomBytes(32).toString(\'hex\'))"'
   );
 }
+
+// TypeScript now knows this is defined (validated above)
+const ENCRYPTION_KEY: string = envKey;
 
 const ALGORITHM = 'aes-256-gcm';
 const BCRYPT_ROUNDS = 10; // Industry standard for bcrypt

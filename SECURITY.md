@@ -249,9 +249,9 @@ Test endpoints available in non-production environments:
 - [x] Soft delete with anonymization
 - [x] Security test endpoints
 - [ ] Database-level RLS (recommended future enhancement)
-- [ ] Multi-factor authentication (recommended for admin users)
-- [ ] API key rotation policy
-- [ ] Intrusion detection system
+- [x] Multi-factor authentication (TOTP-based 2FA with backup codes - Oct 2025)
+- [x] API key rotation policy (90-day tracking with admin dashboard - Oct 2025)
+- [x] Intrusion detection system (SQL/XSS detection, IP blocking - Oct 2025)
 
 ## Incident Response
 
