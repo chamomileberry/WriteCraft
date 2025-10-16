@@ -183,7 +183,7 @@ export function EventEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Event' : 'Create Event'}</DialogTitle>
           <DialogDescription>
@@ -219,6 +219,7 @@ export function EventEditDialog({
                     <Textarea
                       placeholder="Event description"
                       {...field}
+                      value={field.value || ''}
                       data-testid="input-event-description"
                     />
                   </FormControl>
@@ -256,6 +257,7 @@ export function EventEditDialog({
                       <Input
                         placeholder="Optional for range events"
                         {...field}
+                        value={field.value || ''}
                         data-testid="input-event-end-date"
                       />
                     </FormControl>
@@ -272,13 +274,13 @@ export function EventEditDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Event Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
                       <FormControl>
                         <SelectTrigger data-testid="select-event-type">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent position="popper" className="z-[100]">
                         <SelectItem value="battle">Battle</SelectItem>
                         <SelectItem value="discovery">Discovery</SelectItem>
                         <SelectItem value="birth">Birth</SelectItem>
@@ -301,13 +303,13 @@ export function EventEditDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Importance</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
                       <FormControl>
                         <SelectTrigger data-testid="select-event-importance">
                           <SelectValue placeholder="Select importance" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent position="popper" className="z-[100]">
                         <SelectItem value="major">Major</SelectItem>
                         <SelectItem value="moderate">Moderate</SelectItem>
                         <SelectItem value="minor">Minor</SelectItem>
@@ -329,6 +331,7 @@ export function EventEditDialog({
                     <Input
                       placeholder="e.g., Plot, Character Arc, World Events"
                       {...field}
+                      value={field.value || ''}
                       data-testid="input-event-category"
                     />
                   </FormControl>
