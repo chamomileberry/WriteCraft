@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Header from "@/components/Header";
+import { GracePeriodBanner } from "@/components/GracePeriodBanner";
 import Landing from "@/pages/landing";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Home from "@/pages/Home";
@@ -264,6 +265,7 @@ function AuthenticatedApp() {
 
   return (
     <div className="h-screen flex flex-col">
+      <GracePeriodBanner />
       <WorkspaceShell>
         <Router />
       </WorkspaceShell>

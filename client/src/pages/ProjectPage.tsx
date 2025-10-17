@@ -14,6 +14,9 @@ import Header from "@/components/Header";
 import ContentTypeModal from "@/components/ContentTypeModal";
 import { getMappingById } from "@shared/contentTypes";
 import { ShareDialog } from "@/components/ShareDialog";
+import { LimitExceededDialog } from "@/components/LimitExceededDialog";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useToast } from "@/hooks/use-toast";
 
 interface Project {
   id: string;
@@ -37,8 +40,11 @@ export default function ProjectPage() {
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const [sharingProject, setSharingProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'owned' | 'shared'>('owned');
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const { checkLimit, gracePeriodExpired, gracePeriodDaysRemaining } = useSubscription();
 
   // Header handlers
   const handleSearch = (query: string) => {
@@ -158,7 +164,24 @@ export default function ProjectPage() {
   
   const displayedProjects = searchQuery.trim().length > 0 ? filteredSearchResults : filteredByTab;
 
-  const handleNewProject = () => {
+  const handleNewProject = async () => {
+    // Check if user can create a project
+    const limitCheck = await checkLimit('create_project');
+    
+    if (!limitCheck.allowed) {
+      setShowLimitDialog(true);
+      return;
+    }
+    
+    // Show toast if in grace period
+    if (limitCheck.inGracePeriod && limitCheck.gracePeriodWarning) {
+      toast({
+        title: "Grace Period Active",
+        description: limitCheck.gracePeriodWarning,
+        variant: "default",
+      });
+    }
+    
     createProjectMutation.mutate();
   };
 
@@ -443,6 +466,15 @@ export default function ProjectPage() {
           ownerId={sharingProject.userId}
         />
       )}
+      
+      {/* Limit Exceeded Dialog */}
+      <LimitExceededDialog
+        open={showLimitDialog}
+        onOpenChange={setShowLimitDialog}
+        limitType="projects"
+        gracePeriodExpired={gracePeriodExpired}
+        daysRemaining={gracePeriodDaysRemaining}
+      />
     </div>
   );
 }

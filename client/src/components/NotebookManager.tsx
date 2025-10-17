@@ -33,7 +33,7 @@ import { formatDistance } from "date-fns";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ShareDialog } from "@/components/ShareDialog";
 import { useSubscription } from "@/hooks/useSubscription";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { LimitExceededDialog } from "@/components/LimitExceededDialog";
 
 interface NotebookManagerProps {
   isOpen: boolean;
@@ -56,7 +56,7 @@ interface UpdateNotebookData {
 
 export default function NotebookManager({ isOpen, onClose, onNotebookCreated, openInCreateMode = false }: NotebookManagerProps) {
   const { toast } = useToast();
-  const { checkLimit } = useSubscription();
+  const { checkLimit, gracePeriodExpired, gracePeriodDaysRemaining } = useSubscription();
   
   // Use custom hooks for cleaner code
   const notebooks = useNotebooks();
@@ -606,13 +606,13 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
         />
       )}
 
-      {/* Upgrade Prompt */}
-      <UpgradePrompt
+      {/* Limit Exceeded Dialog */}
+      <LimitExceededDialog
         open={showUpgradePrompt}
         onOpenChange={setShowUpgradePrompt}
-        title="Upgrade to Create More Notebooks"
-        description="You've reached the limit for notebooks on your current plan. Upgrade to create unlimited notebooks and unlock more features."
-        feature="notebooks"
+        limitType="notebooks"
+        gracePeriodExpired={gracePeriodExpired}
+        daysRemaining={gracePeriodDaysRemaining}
       />
     </>
   );
