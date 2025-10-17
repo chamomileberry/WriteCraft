@@ -2,7 +2,7 @@
 
 ## Overview
 
-WriteCraft is a comprehensive web platform designed to support creative writers with an extensive suite of tools, generators, and educational resources. It provides character generators, plot structure tools, writing prompts, setting builders, and detailed writing guides to enhance the creative process. The platform aims to be a modern, full-stack application with a clean, writer-friendly interface, enhancing the creative workflow for professional writers.
+WriteCraft is a comprehensive web platform designed to support creative writers with an extensive suite of tools, generators, and educational resources. It aims to enhance the creative workflow for professional writers through character generators, plot structure tools, writing prompts, setting builders, and detailed writing guides, all within a modern, full-stack application with a clean, writer-friendly interface.
 
 ## User Preferences
 
@@ -11,142 +11,77 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 
 ## System Architecture
 
-### Frontend
-- **Framework**: React with TypeScript
-- **Styling**: Tailwind CSS with a custom design system, Radix UI primitives (shadcn/ui) for accessibility
-- **State Management**: TanStack Query for server state, Zustand for client state (with custom hooks for abstraction)
-- **Routing**: Wouter
-- **Build Tool**: Vite
-
-### Backend
-- **Runtime**: Node.js with Express.js
-- **Language**: TypeScript
-- **API Design**: RESTful endpoints
-- **Content Generation**: Server-side algorithms for creative writing content.
-
-### Code Organization & Architecture
-- **Shared Constants**: Centralized for genres, settings, etc., with distinct import patterns for client and server.
-- **Centralized API Layer**: All API calls consolidated by domain in `client/src/lib/api.ts` for maintainability and type-safety.
-- **Custom Zustand Hooks**: Abstraction layer for Zustand stores providing clean, organized state access and preventing re-render issues.
-- **Schema-Driven Form Generator**: Automatic form configuration generation from Drizzle/Zod schemas, eliminating manual configurations and ensuring new database fields automatically appear in forms. This includes a 4-layer config system for UI customization.
-- **Custom Hooks for Code Reuse**: `useAutosave` (TipTap), `useDebouncedSave` (generic), `useRequireNotebook` (context validation), `useGenerator` (unified generator logic).
-- **NotebookGuard Component**: Wrapper for pages requiring notebook context, providing guided user experience.
-- **User Feedback Standardization**: Consistent toast notifications and auto-navigation post-generation/save.
-- **Security Enhancements**: Integration with `useAuth` hook for authenticated user context; removal of hardcoded user IDs.
-- **Database-Backed Banned Phrases System**: Dynamic loading of AI writing style guidelines from PostgreSQL with admin management and caching.
-- **Character Validation with Fallbacks**: Comprehensive Zod schema-based validation for AI-generated character data with multi-tier fallback system for robustness.
-- **Enhanced AI Writing Assistant** (Oct 2025): Conversational system prompt with emotional intelligence, literary examples (referencing authors like Tolkien, Le Guin, Gaiman), dialogue-driven guidance with mandatory clarifying questions, and scenario-based personality demonstrations for stuck/excited/discouraged writers.
-
-### Data Storage
-- **Database**: PostgreSQL (Neon serverless)
-- **ORM**: Drizzle ORM
-- **Schema**: Tables for users, generated content, guides, and user collections.
-
-### Design System & Theming
-- **Color Palette**: Professional writer-focused colors (purple primary, teal secondary, orange accents).
-- **Theming**: Dark/Light mode with CSS custom properties.
+### UI/UX Decisions
+- **Design System**: Custom design system built with Tailwind CSS and Radix UI primitives (shadcn/ui) for accessibility.
+- **Theming**: Professional writer-focused color palette (purple primary, teal secondary, orange accents) with Dark/Light mode support via CSS custom properties.
 - **Typography**: Hierarchical font sizing with serif headings and sans-serif body text.
+- **User Feedback**: Standardized toast notifications and auto-navigation post-generation/save.
 
-### Key Features
+### Technical Implementations
+- **Frontend**: React with TypeScript, Zustand for client state, TanStack Query for server state, Wouter for routing, and Vite for building.
+- **Backend**: Node.js with Express.js and TypeScript, using RESTful API design. Server-side algorithms handle creative writing content generation.
+- **Data Storage**: PostgreSQL (Neon serverless) with Drizzle ORM for user, generated content, guides, and collection schemas.
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
-- **Content Management**: Notebook system, modular generator system, writing guides, hierarchical project system with rich text editor (TipTap), enhanced character editor.
-- **Timeline System** (Oct 2025): 
-  - **Triple View Modes**: List (chronological), Canvas (spatial ReactFlow), Gantt (duration-based swim lanes)
-  - **Timescale Mode** (List view): Toggle between compact (equal spacing) and proportional (time-gap-based) spacing with visual indicators
-  - **Swim Lanes** (Canvas view): Category-based horizontal lanes with custom SwimLaneNode component, 2000px canvas height for vertical scrolling, auto-layout preservation
-  - **Template System**: Guided timeline creation (World History, Campaign Sessions, Character Biography, Plot Structure) with type/scale/view presets
-  - **Mobile Responsive**: Auto-switches to List view on <768px devices, disabled Canvas/Gantt tabs with optimization warnings
-  - **Auto-layout**: ReactFlow-based chronological positioning with relationship edges, drag-and-drop event organization, position persistence
-  - **Performance**: ReactFlow viewport culling (Canvas/Gantt), deferred virtualization (not needed until 200+ events based on profiling)
-- **Subscription & Monetization** (Phase 1.1 - Oct 2025):
-  - **Tier System**: Free, Professional ($9.99/month), Team ($24.99/month) with distinct feature sets
-  - **Server-Side Enforcement**: SubscriptionService validates all actions (projects, notebooks, AI generations) against tier limits
-  - **Usage Tracking**: Comprehensive AI usage logging with cost tracking and daily aggregation
-  - **Free Tier Auto-Provisioning**: UPSERT-based system ensures all users get free tier by default
-  - **Database Schema**: 5 new tables (user_subscriptions, ai_usage_logs, ai_usage_daily_summary, team_memberships, lifetime_subscriptions) with unique constraints preventing duplicates
-  - **Frontend Hook**: useSubscription provides hasFeature() for boolean features, checkLimit() for quota validation with caching, and mutation state exposure for UI control
-  - **API Endpoints**: /api/subscription, /tiers, /usage, /check-limit with full authentication middleware
-  - **Migration Support**: Script to retroactively create free subscriptions for existing users
-  - **Usage Analytics Dashboard** (Phase 1.4 - Oct 2025):
-    - Time range selector (7/30/90 days) for flexible reporting periods
-    - Overview KPI cards: Total Generations, Total Cost, Daily Average, Current Tier
-    - Three visualization tabs: Usage Over Time (line chart), Feature Breakdown (pie + bar charts), Cost Analysis (line chart)
-    - Trend-based usage forecasting: Analyzes last 3 days vs 7-day average to predict limit hits
-    - Proactive recommendations: Warns users at 50%+ and 80%+ daily limit usage with upgrade suggestions
-    - Real-time limit detection: Shows "0 days until limit" when daily quota is exhausted
-    - All edge cases handled: unlimited tiers, zero limits, below/at/over limit scenarios with null safety
-    - Accessible from Account Settings → Billing section via Analytics button
-- **AI-Powered Tools**: Grammarly-style AI assistance in text editors (Anthropic's Claude 3.5 Sonnet) with context-aware generation, enhanced conversational writing assistant with emotional intelligence, literary examples, and dialogue-driven guidance.
-- **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping, robust processing, and error reporting.
-- **Character Data Consolidation Tool**: Admin interface for managing character data quality (incomplete data, duplicate detection).
+- **Security**:
+    - Multi-Factor Authentication (TOTP-based 2FA, backup codes).
+    - API Key Rotation System for sensitive keys.
+    - Intrusion Detection System with IP blocking and security alerts.
+    - Nonce-based Content Security Policy (CSP).
+    - Comprehensive Zod validation middleware for all high-traffic API routes.
+    - Redis for distributed session storage with PostgreSQL fallback.
+    - Concurrent session limiting (max 3 active devices).
+    - Distributed Redis-backed rate limiting (global, AI generation, search, auth).
+    - Enhanced Security Headers (HSTS, X-Content-Type-Options, etc.).
+    - Subresource Integrity (SRI) for CDN assets.
+    - XSS protection via DOMPurify, bcrypt for password hashing, and Row-Level Security (RLS) for database operations.
+    - Strict "Fetch → Validate → Execute" ownership validation.
 
-### Security & Authorization
-- **Multi-Layer Security Architecture**: Production-ready security with comprehensive defense-in-depth strategy.
-- **Multi-Factor Authentication (MFA)** (Oct 2025): TOTP-based 2FA with QR code enrollment, backup codes (AES-256-GCM encryption), and account recovery flow.
-- **API Key Rotation System** (Oct 2025): Automated 90-day rotation tracking for ANTHROPIC_API_KEY, MFA_ENCRYPTION_KEY, SESSION_SECRET with database audit trail and admin notifications.
-- **Intrusion Detection System (IDS)** (Oct 2025): Real-time threat detection with SQL injection/XSS pattern matching, automatic IP blocking (5 failed logins = 24h block), and security alert dashboard.
-- **Content Security Policy (CSP)** (Oct 2025): Nonce-based script execution (cryptographically secure), no unsafe-inline in production, violation reporting endpoint, separate dev/production policies, enhanced with base-uri, form-action, and frame-ancestors directives.
-- **Backend Input Validation** (Oct 2025): Comprehensive Zod validation middleware applied to all high-traffic API routes for robust input security:
-  - `validateInput` middleware from `server/security/middleware.ts` validates request bodies before they reach route handlers
-  - Applied to core CRUD operations: notebooks (create/update), projects (create/update/sections), characters (create), settings (create), creatures (update)
-  - All schemas properly omit `userId` fields, which are securely injected from authentication (`req.user.claims.sub`)
-  - Consistent HTTP 400 responses with clear Zod validation error messages for malformed requests
-  - Prevents malicious payloads, userId forgery, and overlong/malformed bodies from reaching database
-  - End-to-end tests confirm both success paths (valid data accepted) and failure paths (invalid data rejected with proper error messages)
-- **Redis Session Storage** (Oct 2025): Migrated from PostgreSQL to Redis for distributed session management with automatic PostgreSQL fallback, maintaining all security settings (httpOnly, secure, sameSite:'lax' cookies).
-- **Concurrent Session Limiting** (Oct 2025): Enforces maximum 3 active devices per user with automatic eviction of oldest sessions via session store destruction, tracked in Redis with in-memory fallback.
-- **Distributed Rate Limiting** (Oct 2025): Redis-backed rate limiting with atomic operations (INCR+EXPIRE) preventing race conditions across distributed instances:
-  - Global (1000 req/15min), AI generation (30 req/15min), search (150 req/15min), auth (10 attempts/15min)
-  - Automatic fallback to in-memory rate limiting when Redis unavailable
-- **Enhanced Security Headers** (Oct 2025): Comprehensive header suite including HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy, Cross-Origin-Opener-Policy (COOP), Cross-Origin-Embedder-Policy (COEP), Cross-Origin-Resource-Policy (CORP), X-DNS-Prefetch-Control.
-- **Subresource Integrity (SRI)** (Oct 2025): Complete implementation strategy documented in `/docs/SUBRESOURCE_INTEGRITY.md` covering CDN assets, integrity hash generation, fallback mechanisms, and CI/CD integration.
-- **XSS Protection**: DOMPurify for all user-generated HTML.
-- **Password Security**: bcrypt with 12 rounds, salted hashes, secure comparison.
-- **Database Security**: Row-Level Security (RLS), ownership validation, prepared statements, no raw SQL.
-- **Ownership Validation Pattern**: Strict "Fetch → Validate → Execute" for all content operations.
-- **Security Testing** (Oct 2025): Comprehensive testing documentation in `/docs/SECURITY_TESTING.md` covering authentication, authorization, injection, XSS, CSRF, rate limiting, with automated test scripts and manual penetration testing checklists.
-- **Security Documentation**: Comprehensive security audit report, disaster recovery plan, SRI implementation guide, and security testing procedures in `/docs/`.
+### Feature Specifications
+- **Content Management**: Notebook system with rich text editor (TipTap), modular generator system, writing guides, hierarchical project system, and enhanced character editor.
+- **AI-Powered Tools**: Grammarly-style assistance using Anthropic's Claude 3.5 Sonnet, context-aware generation, enhanced conversational writing assistant with emotional intelligence, literary examples, and dialogue-driven guidance.
+- **Timeline System**: Features triple view modes (List, Canvas, Gantt), timescale toggles, swim lanes, a template system, mobile responsiveness, and auto-layout with relationship edges for event organization.
+- **Subscription & Monetization**:
+    - Tier system (Free, Professional, Team) with distinct features.
+    - Server-side enforcement of tier limits.
+    - Comprehensive AI usage tracking and cost analysis.
+    - Free tier auto-provisioning.
+    - UseSubscription hook for feature and quota validation in the frontend.
+    - Usage Analytics Dashboard with time range selectors, KPIs, visualizations, trend-based forecasting, and proactive upgrade recommendations.
+    - Contextual Feature Comparison Tooltips and Upgrade Prompts for users hitting limits.
+- **Collaboration & Sharing**: Granular permission controls (View, Comment, Edit) for notebooks and projects enforced via RLS.
+- **Team Management System**: Role hierarchy (Owner, Admin, Editor, Viewer), token-based invitations, real-time activity feed, shared AI generation quota, and dedicated UI.
+- **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping and error reporting.
+- **Character Data Consolidation Tool**: Admin interface for managing data quality.
 
-### Collaboration & Sharing System
-- **Multi-User Collaboration**: Granular permission controls (View, Comment, Edit) for notebooks and projects, enforced via RLS middleware.
-- **Team Management System** (Phase 1.5 - Oct 2025):
-  - **Role Hierarchy**: Owner (full control), Admin (invite/edit), Editor (edit only), Viewer (read-only) with granular permissions (canEdit, canComment, canInvite flags)
-  - **Team Invitations**: Token-based invitation system with 7-day expiration, email tracking, pending status management
-  - **Team Activity Feed**: Real-time tracking of team actions (member invitations, role changes, removals) with comprehensive audit trail
-  - **Team Usage Pooling**: Shared AI generation quota across all team members - getTodayAIUsage() aggregates team usage for limit enforcement
-  - **Database Schema**: teamInvitations and teamActivity tables with unique constraints and foreign key relationships
-  - **Permissions Middleware**: Role-based access control at server/middleware/teamPermissions.ts with edit/comment/invite permission checks
-  - **Team Service**: Comprehensive service layer (server/services/teamService.ts) for invite management, role updates, permission validation, and activity logging
-  - **Frontend UI**: Full-featured Team Management page with member list, invitation management, role editing, and activity feed
-  - **Integration**: Works alongside existing shares system for collaborative content access control
-
-### Testing & Quality Assurance
-- **Test Framework**: Playwright for end-to-end testing, with comprehensive regression tests for the World Anvil import pipeline.
+### System Design Choices
+- **Code Organization**: Centralized constants, an API layer, custom Zustand hooks for state abstraction, and a schema-driven form generator from Drizzle/Zod schemas.
+- **Code Reusability**: Custom hooks like `useAutosave`, `useDebouncedSave`, `useRequireNotebook`, and `useGenerator`.
+- **Testing**: Playwright for end-to-end testing, including comprehensive regression tests for the World Anvil import pipeline.
 
 ## External Dependencies
 
 ### Database & Infrastructure
-- **@neondatabase/serverless**: Serverless PostgreSQL connection
-- **connect-pg-simple**: PostgreSQL session store
-- **drizzle-orm & drizzle-kit**: ORM and migration tooling
+- **@neondatabase/serverless**: Serverless PostgreSQL connection.
+- **connect-pg-simple**: PostgreSQL session store.
+- **drizzle-orm & drizzle-kit**: ORM and migration tooling.
 
 ### UI & Design
-- **@radix-ui/***: Accessible UI primitives
-- **tailwindcss**: Utility-first CSS framework
-- **class-variance-authority**: Type-safe component variant system
-- **lucide-react**: Icon library
+- **@radix-ui/***: Accessible UI primitives.
+- **tailwindcss**: Utility-first CSS framework.
+- **class-variance-authority**: Type-safe component variant system.
+- **lucide-react**: Icon library.
 
 ### Development & Tooling
-- **vite**: Fast build tool
-- **@replit/vite-plugin-runtime-error-modal**: Replit-specific error handling
-- **tsx**: TypeScript execution for server-side
+- **vite**: Fast build tool.
+- **@replit/vite-plugin-runtime-error-modal**: Replit-specific error handling.
+- **tsx**: TypeScript execution for server-side.
 
 ### State & Data Management
-- **@tanstack/react-query**: Server state management
-- **react-hook-form & @hookform/resolvers**: Form management and validation
-- **zod**: Runtime type validation
+- **@tanstack/react-query**: Server state management.
+- **react-hook-form & @hookform/resolvers**: Form management and validation.
+- **zod**: Runtime type validation.
 
 ### Utilities
-- **date-fns**: Date manipulation
-- **nanoid**: Unique ID generation
-- **clsx & tailwind-merge**: Conditional CSS class management
+- **date-fns**: Date manipulation.
+- **nanoid**: Unique ID generation.
+- **clsx & tailwind-merge**: Conditional CSS class management.

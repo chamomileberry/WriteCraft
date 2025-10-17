@@ -11,6 +11,8 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { FeatureTooltip } from '@/components/FeatureTooltip';
+import { FEATURE_DESCRIPTIONS } from '@/lib/featureDescriptions';
 
 const TIER_ORDER: SubscriptionTier[] = ['free', 'author', 'professional', 'team'];
 
@@ -185,51 +187,85 @@ export default function Pricing() {
 
                 <CardContent className="space-y-3">
                   <div className="space-y-2">
-                    <div className="flex items-start gap-2">
+                    <FeatureTooltip
+                      title={FEATURE_DESCRIPTIONS.projects.title}
+                      description={FEATURE_DESCRIPTIONS.projects.description}
+                      comparison={FEATURE_DESCRIPTIONS.projects.comparison}
+                    >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
                         {limits.maxProjects === null ? 'Unlimited' : limits.maxProjects} projects
                       </span>
-                    </div>
-                    <div className="flex items-start gap-2">
+                    </FeatureTooltip>
+
+                    <FeatureTooltip
+                      title={FEATURE_DESCRIPTIONS.notebooks.title}
+                      description={FEATURE_DESCRIPTIONS.notebooks.description}
+                      comparison={FEATURE_DESCRIPTIONS.notebooks.comparison}
+                    >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
                         {limits.maxNotebooks === null ? 'Unlimited' : limits.maxNotebooks} notebook{limits.maxNotebooks === 1 ? '' : 's'} per project
                       </span>
-                    </div>
-                    <div className="flex items-start gap-2">
+                    </FeatureTooltip>
+
+                    <FeatureTooltip
+                      title={FEATURE_DESCRIPTIONS.aiGenerations.title}
+                      description={FEATURE_DESCRIPTIONS.aiGenerations.description}
+                      comparison={FEATURE_DESCRIPTIONS.aiGenerations.comparison}
+                    >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
                         {limits.aiGenerationsPerDay === null ? 'Unlimited' : limits.aiGenerationsPerDay} AI generations/day
                       </span>
-                    </div>
+                    </FeatureTooltip>
+
                     {limits.hasCollaboration && (
-                      <div className="flex items-start gap-2">
+                      <FeatureTooltip
+                        title={FEATURE_DESCRIPTIONS.collaboration.title}
+                        description={FEATURE_DESCRIPTIONS.collaboration.description}
+                        comparison={FEATURE_DESCRIPTIONS.collaboration.comparison}
+                      >
                         <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                         <span className="text-sm">
                           {limits.maxTeamMembers} team member{limits.maxTeamMembers === 1 ? '' : 's'}
                         </span>
-                      </div>
+                      </FeatureTooltip>
                     )}
+
                     {limits.hasApiAccess && (
-                      <div className="flex items-start gap-2">
+                      <FeatureTooltip
+                        title={FEATURE_DESCRIPTIONS.apiAccess.title}
+                        description={FEATURE_DESCRIPTIONS.apiAccess.description}
+                        comparison={FEATURE_DESCRIPTIONS.apiAccess.comparison}
+                      >
                         <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                         <span className="text-sm">API access</span>
-                      </div>
+                      </FeatureTooltip>
                     )}
+
                     {limits.hasPrioritySupport && (
-                      <div className="flex items-start gap-2">
+                      <FeatureTooltip
+                        title={FEATURE_DESCRIPTIONS.prioritySupport.title}
+                        description={FEATURE_DESCRIPTIONS.prioritySupport.description}
+                        comparison={FEATURE_DESCRIPTIONS.prioritySupport.comparison}
+                      >
                         <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                         <span className="text-sm">Priority support</span>
-                      </div>
+                      </FeatureTooltip>
                     )}
-                    <div className="flex items-start gap-2">
+
+                    <FeatureTooltip
+                      title={FEATURE_DESCRIPTIONS.exportFormats.title}
+                      description={FEATURE_DESCRIPTIONS.exportFormats.description}
+                      comparison={FEATURE_DESCRIPTIONS.exportFormats.comparison}
+                    >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
                         Export: {limits.exportFormats.slice(0, 3).join(', ')}
                         {limits.exportFormats.length > 3 && ` +${limits.exportFormats.length - 3} more`}
                       </span>
-                    </div>
+                    </FeatureTooltip>
                   </div>
                 </CardContent>
 

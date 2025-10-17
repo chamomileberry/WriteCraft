@@ -9,15 +9,19 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 import type { Mood } from "@shared/schema";
 
 export default function MoodPalette() {
   const [generatedMood, setGeneratedMood] = useState<Mood | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const { toast } = useToast();
   const { notebooks, setNotebooks, setActiveNotebook, activeNotebookId } = useNotebookStore();
   const { notebookId, validateNotebook } = useRequireNotebook({
     errorMessage: 'Please create or select a notebook before generating moods.'
   });
+  const { checkLimit } = useSubscription();
 
   const generateMutation = useGenerateMutation<Mood>('/api/moods/generate', {
     errorMessage: "Unable to create mood palette. Please try again.",
@@ -33,8 +37,16 @@ export default function MoodPalette() {
     invalidateQueries: ['/api/moods'],
   });
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!validateNotebook()) return;
+    
+    // Check AI generation limit
+    const canGenerate = await checkLimit('ai_generations');
+    if (!canGenerate) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+    
     generateMutation.mutate({ notebookId: activeNotebookId });
   };
 
@@ -267,6 +279,15 @@ ${generatedMood.soundscape.join('\n')}`;
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onOpenChange={setShowUpgradePrompt}
+        title="AI Generation Limit Reached"
+        description="You've reached your daily AI generation limit. Upgrade to a paid plan for unlimited mood palette generation."
+        feature="AI mood generations"
+      />
     </div>
   );
 }
