@@ -11,12 +11,22 @@ const router = Router();
 /**
  * Preview migration without applying changes
  * GET /api/migration/preview
+ * 
+ * RESTRICTED: Admin-only endpoint
  */
 router.get('/preview', secureAuthentication, async (req: any, res) => {
   try {
-    // TODO: Add admin role check
-    const preview = await userMigrationService.previewMigration();
-    res.json(preview);
+    // Security: This endpoint requires admin privileges
+    // TODO: Implement proper admin role check
+    // For now, blocking all access until admin system is implemented
+    return res.status(403).json({ 
+      error: 'Unauthorized: Admin access required',
+      message: 'This endpoint is restricted to administrators. Admin role system not yet implemented.'
+    });
+    
+    // Commented out until admin system is ready:
+    // const preview = await userMigrationService.previewMigration();
+    // res.json(preview);
   } catch (error) {
     console.error('Migration preview error:', error);
     res.status(500).json({ error: 'Failed to generate migration preview' });
@@ -30,12 +40,12 @@ router.get('/preview', secureAuthentication, async (req: any, res) => {
 router.get('/analyze/:userId', secureAuthentication, async (req: any, res) => {
   try {
     const { userId } = req.params;
-    
-    // Allow users to analyze themselves, or admins to analyze anyone
     const requestingUserId = req.user.claims.sub;
+    
+    // Security: Only allow users to analyze themselves
+    // TODO: Add proper admin role check to allow admins to analyze any user
     if (userId !== requestingUserId) {
-      // TODO: Add admin role check
-      return res.status(403).json({ error: 'Unauthorized' });
+      return res.status(403).json({ error: 'Unauthorized: Can only analyze your own account' });
     }
     
     const analysis = await userMigrationService.analyzeUserUsage(userId);
@@ -49,12 +59,22 @@ router.get('/analyze/:userId', secureAuthentication, async (req: any, res) => {
 /**
  * Execute full migration
  * POST /api/migration/execute
+ * 
+ * RESTRICTED: Admin-only endpoint
  */
 router.post('/execute', secureAuthentication, async (req: any, res) => {
   try {
-    // TODO: Add admin role check
-    const stats = await userMigrationService.migrateAllUsers();
-    res.json(stats);
+    // Security: This endpoint requires admin privileges
+    // TODO: Implement proper admin role check
+    // For now, blocking all access until admin system is implemented
+    return res.status(403).json({ 
+      error: 'Unauthorized: Admin access required',
+      message: 'This endpoint is restricted to administrators. Admin role system not yet implemented.'
+    });
+    
+    // Commented out until admin system is ready:
+    // const stats = await userMigrationService.migrateAllUsers();
+    // res.json(stats);
   } catch (error) {
     console.error('Migration execution error:', error);
     res.status(500).json({ error: 'Failed to execute migration' });
@@ -68,12 +88,12 @@ router.post('/execute', secureAuthentication, async (req: any, res) => {
 router.post('/user/:userId', secureAuthentication, async (req: any, res) => {
   try {
     const { userId } = req.params;
-    
-    // Allow users to migrate themselves, or admins to migrate anyone
     const requestingUserId = req.user.claims.sub;
+    
+    // Security: Only allow users to migrate themselves
+    // TODO: Add proper admin role check to allow admins to migrate any user
     if (userId !== requestingUserId) {
-      // TODO: Add admin role check
-      return res.status(403).json({ error: 'Unauthorized' });
+      return res.status(403).json({ error: 'Unauthorized: Can only migrate your own account' });
     }
     
     await userMigrationService.migrateUser(userId);

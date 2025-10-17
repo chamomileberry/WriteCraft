@@ -6,7 +6,7 @@
  */
 
 import { db } from '../db';
-import { userSubscriptions, aiUsageLogs, aiUsageDailySummary, notebooks, projects } from '@shared/schema';
+import { userSubscriptions, aiUsageLogs, aiUsageDailySummary, notebooks, projects, shares } from '@shared/schema';
 import { eq, and, gte, sql, desc } from 'drizzle-orm';
 import { subscriptionService } from './subscriptionService';
 
@@ -14,6 +14,7 @@ export interface UserUsageAnalysis {
   userId: string;
   totalProjects: number;
   totalNotebooks: number;
+  totalCollaborators: number;
   avgDailyAIGenerations: number;
   maxDailyAIGenerations: number;
   totalAIGenerations: number;
@@ -56,6 +57,14 @@ class UserMigrationService {
       .where(eq(notebooks.userId, userId));
     const totalNotebooks = Number(notebookResult[0]?.count) || 0;
     
+    // Get collaborator count across all user's projects
+    const collaboratorResult = await db
+      .select({ count: sql<number>`count(DISTINCT ${shares.userId})` })
+      .from(shares)
+      .innerJoin(projects, eq(shares.projectId, projects.id))
+      .where(eq(projects.userId, userId));
+    const totalCollaborators = Number(collaboratorResult[0]?.count) || 0;
+    
     // Get AI usage statistics from last 30 days
     const usageSummaries = await db
       .select()
@@ -79,6 +88,7 @@ class UserMigrationService {
     const analysis = this.recommendTier({
       totalProjects,
       totalNotebooks,
+      totalCollaborators,
       avgDailyAIGenerations,
       maxDailyAIGenerations,
       totalAIGenerations,
@@ -89,6 +99,7 @@ class UserMigrationService {
       userId,
       totalProjects,
       totalNotebooks,
+      totalCollaborators,
       avgDailyAIGenerations,
       maxDailyAIGenerations,
       totalAIGenerations,
@@ -103,6 +114,7 @@ class UserMigrationService {
   private recommendTier(usage: {
     totalProjects: number;
     totalNotebooks: number;
+    totalCollaborators: number;
     avgDailyAIGenerations: number;
     maxDailyAIGenerations: number;
     totalAIGenerations: number;
@@ -114,6 +126,7 @@ class UserMigrationService {
     const professionalIndicators = [
       usage.totalProjects > 5,
       usage.totalNotebooks > 10,
+      usage.totalCollaborators > 2, // Collaboration is a pro feature
       usage.avgDailyAIGenerations > 50,
       usage.maxDailyAIGenerations > 80,
       usage.daysActive >= 20 // Active most days
@@ -125,6 +138,7 @@ class UserMigrationService {
     const authorIndicators = [
       usage.totalProjects > 1,
       usage.totalNotebooks > 3,
+      usage.totalCollaborators > 0, // Has collaborators
       usage.avgDailyAIGenerations > 15,
       usage.maxDailyAIGenerations > 25,
       usage.daysActive >= 10 // Active regularly
@@ -136,6 +150,9 @@ class UserMigrationService {
     if (professionalScore >= 3) {
       reasoning.push(`High project count: ${usage.totalProjects} projects`);
       reasoning.push(`High notebook count: ${usage.totalNotebooks} notebooks`);
+      if (usage.totalCollaborators > 0) {
+        reasoning.push(`Active collaboration: ${usage.totalCollaborators} collaborators`);
+      }
       reasoning.push(`Heavy AI usage: ${usage.avgDailyAIGenerations} avg generations/day`);
       reasoning.push(`Power user: Active ${usage.daysActive} of last 30 days`);
       
@@ -149,6 +166,9 @@ class UserMigrationService {
     if (authorScore >= 3) {
       reasoning.push(`Moderate project usage: ${usage.totalProjects} projects`);
       reasoning.push(`Regular notebook usage: ${usage.totalNotebooks} notebooks`);
+      if (usage.totalCollaborators > 0) {
+        reasoning.push(`Collaborates with ${usage.totalCollaborators} users`);
+      }
       reasoning.push(`Regular AI usage: ${usage.avgDailyAIGenerations} avg generations/day`);
       reasoning.push(`Consistent activity: Active ${usage.daysActive} of last 30 days`);
       
@@ -221,7 +241,7 @@ class UserMigrationService {
    * Migrate all users in the system
    */
   async migrateAllUsers(): Promise<MigrationStats> {
-    // Get all users who have created content (projects or notebooks)
+    // Get all users who have created content (projects, notebooks, or AI usage)
     const usersQuery = await db
       .selectDistinct({ userId: projects.userId })
       .from(projects);
@@ -230,10 +250,15 @@ class UserMigrationService {
       .selectDistinct({ userId: notebooks.userId })
       .from(notebooks);
     
+    const aiUsersQuery = await db
+      .selectDistinct({ userId: aiUsageDailySummary.userId })
+      .from(aiUsageDailySummary);
+    
     // Combine and deduplicate
     const allUserIds = new Set([
       ...usersQuery.map(u => u.userId),
-      ...notebookUsersQuery.map(u => u.userId)
+      ...notebookUsersQuery.map(u => u.userId),
+      ...aiUsersQuery.map(u => u.userId)
     ]);
     
     const stats: MigrationStats = {
@@ -291,9 +316,14 @@ class UserMigrationService {
       .selectDistinct({ userId: notebooks.userId })
       .from(notebooks);
     
+    const aiUsersQuery = await db
+      .selectDistinct({ userId: aiUsageDailySummary.userId })
+      .from(aiUsageDailySummary);
+    
     const allUserIds = new Set([
       ...usersQuery.map(u => u.userId),
-      ...notebookUsersQuery.map(u => u.userId)
+      ...notebookUsersQuery.map(u => u.userId),
+      ...aiUsersQuery.map(u => u.userId)
     ]);
     
     const recommendations: UserUsageAnalysis[] = [];
