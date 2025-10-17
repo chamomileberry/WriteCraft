@@ -4,11 +4,12 @@ import { insertCreatureSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateCreatureWithAI } from "../ai-generation";
 import { validateInput } from "../security/middleware";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 
 const router = Router();
 
 // Creature generator routes
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", trackAIUsage('creature_generation'), async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
@@ -29,7 +30,8 @@ router.post("/generate", async (req: any, res) => {
     }
     
     // Use AI generation for creatures
-    const aiCreature = await generateCreatureWithAI({ genre, creatureType });
+    const aiResult = await generateCreatureWithAI({ genre, creatureType });
+    const aiCreature = aiResult.result;
     
     const creature = {
       name: aiCreature.name,
@@ -46,6 +48,12 @@ router.post("/generate", async (req: any, res) => {
     // Validate the generated creature data before saving
     const validatedCreature = insertCreatureSchema.parse(creature);
     const savedCreature = await storage.createCreature(validatedCreature);
+    
+    // Attach usage metadata for tracking
+    if (aiResult.usage) {
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+    }
+    
     res.json(savedCreature);
   } catch (error) {
     console.error('Error generating creature:', error);

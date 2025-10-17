@@ -4,11 +4,12 @@ import { insertSettingSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateSettingWithAI } from "../ai-generation";
 import { validateInput } from "../security/middleware";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 
 const router = Router();
 
 // Setting generator routes
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", trackAIUsage('setting_generation'), async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
@@ -29,7 +30,8 @@ router.post("/generate", async (req: any, res) => {
     }
     
     // Use AI generation instead of random generation
-    const aiSetting = await generateSettingWithAI({ genre, settingType });
+    const aiResult = await generateSettingWithAI({ genre, settingType });
+    const aiSetting = aiResult.result;
     
     const setting = {
       name: aiSetting.name,
@@ -50,6 +52,12 @@ router.post("/generate", async (req: any, res) => {
     // Validate the generated setting data before saving
     const validatedSetting = insertSettingSchema.parse(setting);
     const savedSetting = await storage.createSetting(validatedSetting);
+    
+    // Attach usage metadata for tracking
+    if (aiResult.usage) {
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+    }
+    
     res.json(savedSetting);
   } catch (error) {
     console.error('Error generating setting:', error);

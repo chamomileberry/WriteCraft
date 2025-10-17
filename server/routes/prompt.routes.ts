@@ -3,11 +3,12 @@ import { storage } from "../storage";
 import { insertPromptSchema } from "@shared/schema";
 import { z } from "zod";
 import { generatePromptWithAI } from "../ai-generation";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 
 const router = Router();
 
 // Prompt generator routes
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", trackAIUsage('prompt_generation'), async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
@@ -28,7 +29,8 @@ router.post("/generate", async (req: any, res) => {
     }
     
     // Use AI generation for prompts
-    const aiPrompt = await generatePromptWithAI({ genre, type });
+    const aiResult = await generatePromptWithAI({ genre, type });
+    const aiPrompt = aiResult.result;
     
     const prompt = {
       text: aiPrompt.text,
@@ -44,6 +46,12 @@ router.post("/generate", async (req: any, res) => {
     // Validate the generated prompt data before saving
     const validatedPrompt = insertPromptSchema.parse(prompt);
     const savedPrompt = await storage.createPrompt(validatedPrompt);
+    
+    // Attach usage metadata for tracking
+    if (aiResult.usage) {
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+    }
+    
     res.json(savedPrompt);
   } catch (error) {
     console.error('Error generating prompt:', error);

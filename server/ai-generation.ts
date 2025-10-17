@@ -640,7 +640,7 @@ function generateFallbackFieldContent(fieldName: string, character: any): string
   return options[index];
 }
 
-export async function generateSettingWithAI(options: SettingGenerationOptions = {}): Promise<GeneratedSetting> {
+export async function generateSettingWithAI(options: SettingGenerationOptions = {}): Promise<AIGenerationResult<GeneratedSetting>> {
   const { genre, settingType } = options;
   
   // Validate inputs
@@ -735,7 +735,11 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       settingData.notableFeatures = [];
     }
 
-    return settingData as GeneratedSetting;
+    return {
+      result: settingData as GeneratedSetting,
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.error('JSON Parse Error in setting generation');
@@ -746,7 +750,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   }
 }
 
-export async function generateCreatureWithAI(options: CreatureGenerationOptions = {}): Promise<GeneratedCreature> {
+export async function generateCreatureWithAI(options: CreatureGenerationOptions = {}): Promise<AIGenerationResult<GeneratedCreature>> {
   const { genre, creatureType } = options;
   
   // Validate inputs
@@ -836,7 +840,11 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       creatureData.abilities = [];
     }
 
-    return creatureData as GeneratedCreature;
+    return {
+      result: creatureData as GeneratedCreature,
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.error('JSON Parse Error in creature generation');
@@ -949,7 +957,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   }
 }
 
-export async function generatePromptWithAI(options: PromptGenerationOptions = {}): Promise<GeneratedPrompt> {
+export async function generatePromptWithAI(options: PromptGenerationOptions = {}): Promise<AIGenerationResult<GeneratedPrompt>> {
   const { genre, type } = options;
   
   // Validate inputs
@@ -1029,11 +1037,17 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     }
 
     // Ensure all required fields have values
-    return {
+    const promptResult = {
       text: generatedPrompt.text,
       difficulty: generatedPrompt.difficulty || 'intermediate',
       wordCount: generatedPrompt.wordCount || '500-1000',
       tags: Array.isArray(generatedPrompt.tags) ? generatedPrompt.tags : []
+    };
+    
+    return {
+      result: promptResult,
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
     };
   } catch (error) {
     console.error('Error generating prompt with AI:', error);
@@ -1359,7 +1373,7 @@ Provide only the improved text, no explanations or additional formatting.${style
   }
 }
 
-export async function generateDescriptionWithAI(options: DescriptionGenerationOptions): Promise<GeneratedDescription> {
+export async function generateDescriptionWithAI(options: DescriptionGenerationOptions): Promise<AIGenerationResult<GeneratedDescription>> {
   const { descriptionType, genre } = options;
   
   // Validate inputs
@@ -1636,7 +1650,11 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       descriptionData.tags = [];
     }
     
-    return descriptionData as GeneratedDescription;
+    return {
+      result: descriptionData as GeneratedDescription,
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.error('JSON Parse Error. Raw response:', cleanedText || (content?.text) || 'No response text available');
@@ -2346,7 +2364,7 @@ export interface GeneratedName {
   origin: string;
 }
 
-export async function generateNameWithAI(options: NameGenerationOptions): Promise<GeneratedName[]> {
+export async function generateNameWithAI(options: NameGenerationOptions): Promise<AIGenerationResult<GeneratedName[]>> {
   const { nameType, culture, origin, meaning, genre } = options;
 
   const systemPrompt = `You are a creative name generation specialist with deep knowledge of linguistics, etymology, and cultural naming traditions. Your task is to generate authentic, culturally-appropriate names for creative writing projects.
@@ -2464,7 +2482,11 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       throw new Error('Insufficient valid names from AI');
     }
 
-    return uniqueNames;
+    return {
+      result: uniqueNames,
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error generating names with AI, using fallback:', error);
     
@@ -2488,7 +2510,11 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     }
     
     console.log(`Fallback generated ${fallbackNames.length} names`);
-    return fallbackNames;
+    return {
+      result: fallbackNames,
+      usage: undefined,
+      model: undefined
+    };
   }
 }
 

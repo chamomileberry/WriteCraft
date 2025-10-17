@@ -3,10 +3,11 @@ import { storage } from "../storage";
 import { insertNameSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateNameWithAI } from "../ai-generation";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 
 const router = Router();
 
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", trackAIUsage('name_generation'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -22,13 +23,14 @@ router.post("/generate", async (req: any, res) => {
     const { nameType, culture, origin, meaning, genre, notebookId } = generateRequestSchema.parse(req.body);
     
     // Generate names using AI
-    const aiGeneratedNames = await generateNameWithAI({
+    const aiResult = await generateNameWithAI({
       nameType,
       culture,
       origin,
       meaning,
       genre,
     });
+    const aiGeneratedNames = aiResult.result;
     
     // Map AI generated names to database format
     const generatedNames = aiGeneratedNames.map((aiName) => ({
@@ -52,6 +54,11 @@ router.post("/generate", async (req: any, res) => {
         console.error('Error creating individual name:', nameError);
         // Continue with other names even if one fails
       }
+    }
+    
+    // Attach usage metadata for tracking
+    if (aiResult.usage) {
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
     }
 
     res.json(createdNames);

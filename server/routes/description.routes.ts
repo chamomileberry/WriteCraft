@@ -3,19 +3,25 @@ import { storage } from "../storage";
 import { insertDescriptionSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateDescriptionWithAI } from "../ai-generation";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 
 const router = Router();
 
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", trackAIUsage('description_generation'), async (req: any, res) => {
   try {
     const { descriptionType, genre, userId, notebookId } = req.body;
     
-    const generatedDescription = await generateDescriptionWithAI({
+    const aiResult = await generateDescriptionWithAI({
       descriptionType,
       genre
     });
+    
+    // Attach usage metadata for tracking
+    if (aiResult.usage) {
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+    }
 
-    res.json(generatedDescription);
+    res.json(aiResult.result);
   } catch (error) {
     console.error('Error generating description:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
