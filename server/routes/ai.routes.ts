@@ -7,6 +7,7 @@ import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
 import { createRateLimiter } from "../security";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 import { secureAuthentication } from "../security/middleware";
+import { makeSimpleAICall } from "../lib/aiHelper";
 
 const router = Router();
 
@@ -81,21 +82,18 @@ ${text}`;
         return res.status(400).json({ error: 'Invalid action' });
     }
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 1024,
-      messages: [{
-        role: "user",
-        content: prompt
-      }]
-    });
+    // Use intelligent model selection based on text length
+    const result = await makeSimpleAICall(
+      'improve_text',
+      prompt,
+      text.length,
+      1024
+    );
 
-    const suggestedText = message.content[0].type === 'text' 
-      ? message.content[0].text.trim()
-      : text;
+    const suggestedText = result.content.trim() || text;
 
-    // Attach usage metadata for tracking
-    attachUsageMetadata(res, message.usage, "claude-sonnet-4-5");
+    // Attach usage metadata for tracking (includes cached tokens if any)
+    attachUsageMetadata(res, result.usage, result.model);
 
     res.json({ suggestedText });
 
