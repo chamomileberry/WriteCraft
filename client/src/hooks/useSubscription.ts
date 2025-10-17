@@ -23,11 +23,44 @@ interface UserSubscriptionData {
 interface LimitCheckResult {
   allowed: boolean;
   reason?: string;
+  inGracePeriod?: boolean;
+  gracePeriodWarning?: string;
+}
+
+interface GracePeriodStatus {
+  inGracePeriod: boolean;
+  expired: boolean;
+  daysRemaining: number | null;
+  gracePeriodEnd: string | null;
+}
+
+interface SubscriptionStatus {
+  tier: SubscriptionTier;
+  effectiveTier: SubscriptionTier;
+  isPaused: boolean;
+  limits: TierLimits;
+  usage: {
+    projects: number;
+    notebooks: number;
+    aiGenerationsToday: number;
+  };
+  limitsExceeded: {
+    projects: boolean;
+    notebooks: boolean;
+    aiGenerations: boolean;
+  };
+  gracePeriod: GracePeriodStatus;
+  warnings: string[];
 }
 
 export function useSubscription() {
   const { data: subscription, isLoading, error, refetch } = useQuery<UserSubscriptionData>({
     queryKey: ["/api/subscription"],
+    retry: 1,
+  });
+
+  const { data: status, isLoading: isLoadingStatus, refetch: refetchStatus } = useQuery<SubscriptionStatus>({
+    queryKey: ["/api/subscription/status"],
     retry: 1,
   });
 
@@ -123,11 +156,33 @@ export function useSubscription() {
   return {
     // Subscription data
     subscription,
-    isLoading,
+    isLoading: isLoading || isLoadingStatus,
     error,
-    refetch,
+    refetch: () => {
+      refetch();
+      refetchStatus();
+    },
     tier: subscription?.tier || 'free',
+    effectiveTier: status?.effectiveTier || subscription?.tier || 'free',
     limits: subscription?.limits,
+    
+    // Status data (comprehensive)
+    status,
+    usage: status?.usage,
+    limitsExceeded: status?.limitsExceeded,
+    warnings: status?.warnings || [],
+    isPaused: status?.isPaused || false,
+    
+    // Grace period data
+    gracePeriod: status?.gracePeriod || {
+      inGracePeriod: false,
+      expired: false,
+      daysRemaining: null,
+      gracePeriodEnd: null,
+    },
+    inGracePeriod: status?.gracePeriod?.inGracePeriod || false,
+    gracePeriodExpired: status?.gracePeriod?.expired || false,
+    gracePeriodDaysRemaining: status?.gracePeriod?.daysRemaining || null,
     
     // Feature checking
     hasFeature,
