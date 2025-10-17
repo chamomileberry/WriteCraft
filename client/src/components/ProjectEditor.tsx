@@ -67,6 +67,8 @@ import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import { nanoid } from 'nanoid';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
+import { useSubscription } from '@/hooks/useSubscription';
+import { UpgradePrompt } from '@/components/UpgradePrompt';
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -209,9 +211,11 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   const [insertImageUrl, setInsertImageUrl] = useState('');
   const [insertVideoUrl, setInsertVideoUrl] = useState('');
   const [insertLinkUrl, setInsertLinkUrl] = useState('');
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { subscription } = useSubscription();
   const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
 
   // Fetch project data
@@ -665,10 +669,34 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
 
   // **REFINED**: Export functionality with DropdownMenu instead of prompt()
   const handleExport = (format: string) => {
+    // Check if format is allowed for current subscription tier
+    const allowedFormats = subscription?.limits.exportFormats || ['txt', 'docx'];
+    const formatMap: Record<string, string> = {
+      'txt': 'txt',
+      'docx': 'docx',
+      'html': 'html',
+      'pdf': 'pdf'
+    };
+    
+    const normalizedFormat = formatMap[format] || format;
+    if (!allowedFormats.includes(normalizedFormat)) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+    
     const content = editor?.getHTML() || '';
     const title = project?.title || 'Untitled';
     
     switch(format) {
+      case 'txt':
+        const textContent = editor?.getText() || '';
+        const textBlob = new Blob([textContent], { type: 'text/plain' });
+        const textLink = document.createElement('a');
+        textLink.href = URL.createObjectURL(textBlob);
+        textLink.download = `${title}.txt`;
+        textLink.click();
+        break;
+        
       case 'html':
         const htmlFile = new Blob([content], { type: 'text/html' });
         const htmlLink = document.createElement('a');
@@ -854,19 +882,30 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
                 {/* Export Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" title="Export">
+                    <Button variant="outline" size="sm" title="Export" data-testid="button-export">
                       <Download className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleExport('html')}>
-                      Export as HTML
+                    <DropdownMenuItem onClick={() => handleExport('txt')} data-testid="menu-export-txt">
+                      Export as TXT
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                      Export as PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('docx')}>
+                    <DropdownMenuItem onClick={() => handleExport('docx')} data-testid="menu-export-docx">
                       Export as DOCX
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExport('pdf')} 
+                      data-testid="menu-export-pdf"
+                      className={(subscription?.limits.exportFormats || ['txt', 'docx']).includes('pdf') ? '' : 'opacity-50'}
+                    >
+                      Export as PDF {!(subscription?.limits.exportFormats || ['txt', 'docx']).includes('pdf') && '🔒'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExport('html')} 
+                      data-testid="menu-export-html"
+                      className={(subscription?.limits.exportFormats || ['txt', 'docx']).includes('html') ? '' : 'opacity-50'}
+                    >
+                      Export as HTML {!(subscription?.limits.exportFormats || ['txt', 'docx']).includes('html') && '🔒'}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -881,6 +920,15 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           </div>
         </div>
       </div>
+
+      {/* Upgrade Prompt for Export Formats */}
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onOpenChange={setShowUpgradePrompt}
+        title="Upgrade to Export in More Formats"
+        description="You've tried to export in a format that's not available on your current plan. Upgrade to access PDF, EPUB, Markdown, and Final Draft exports."
+        feature="export formats"
+      />
     </WorkspaceLayout>
   );
 });
