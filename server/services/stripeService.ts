@@ -299,6 +299,65 @@ export class StripeService {
   async getStripeSubscription(subscriptionId: string) {
     return await stripe.subscriptions.retrieve(subscriptionId);
   }
+
+  /**
+   * Preview subscription change with proration details
+   * Returns breakdown of charges/credits when upgrading or downgrading
+   */
+  async previewSubscriptionChange(params: {
+    subscriptionId: string;
+    newPriceId: string;
+  }) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(params.subscriptionId);
+      
+      // Get the upcoming invoice with the proposed changes
+      const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+        customer: subscription.customer as string,
+        subscription: params.subscriptionId,
+        subscription_items: [
+          {
+            id: subscription.items.data[0].id,
+            price: params.newPriceId,
+          },
+        ],
+        subscription_proration_behavior: 'always_invoice',
+        subscription_proration_date: Math.floor(Date.now() / 1000),
+      });
+
+      // Calculate proration details
+      const prorationLineItems = upcomingInvoice.lines.data.filter(
+        line => line.proration
+      );
+
+      const immediateCharge = upcomingInvoice.amount_due;
+      const subtotal = upcomingInvoice.subtotal;
+      const credits = prorationLineItems
+        .filter(line => line.amount < 0)
+        .reduce((sum, line) => sum + Math.abs(line.amount), 0);
+      const newCharges = prorationLineItems
+        .filter(line => line.amount > 0)
+        .reduce((sum, line) => sum + line.amount, 0);
+
+      return {
+        immediateCharge: immediateCharge / 100, // Convert to dollars
+        subtotal: subtotal / 100,
+        credits: credits / 100,
+        newCharges: newCharges / 100,
+        nextBillingDate: new Date(subscription.current_period_end * 1000),
+        nextBillingAmount: upcomingInvoice.total / 100,
+        currency: upcomingInvoice.currency,
+        lineItems: upcomingInvoice.lines.data.map(line => ({
+          description: line.description || '',
+          amount: line.amount / 100,
+          isProration: line.proration || false,
+        })),
+      };
+    } catch (error) {
+      console.error('[Stripe] Error previewing subscription change:', error);
+      throw error;
+    }
+  }
 }
 
 export const stripeService = new StripeService();

@@ -13,6 +13,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { FeatureTooltip } from '@/components/FeatureTooltip';
 import { FEATURE_DESCRIPTIONS } from '@/lib/featureDescriptions';
+import { PlanPreviewDialog } from '@/components/PlanPreviewDialog';
 
 const TIER_ORDER: SubscriptionTier[] = ['free', 'author', 'professional', 'team'];
 
@@ -34,6 +35,8 @@ export default function Pricing() {
   const [, setLocation] = useLocation();
   const [isAnnual, setIsAnnual] = useState(false);
   const [loadingTier, setLoadingTier] = useState<SubscriptionTier | null>(null);
+  const [previewTier, setPreviewTier] = useState<SubscriptionTier | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const { subscription, isLoading } = useSubscription();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -49,11 +52,19 @@ export default function Pricing() {
       return;
     }
 
-    setLoadingTier(tier);
+    // Show preview dialog first
+    setPreviewTier(tier);
+    setShowPreview(true);
+  };
+
+  const handleConfirmUpgrade = async () => {
+    if (!previewTier) return;
+
+    setLoadingTier(previewTier);
 
     try {
       const response = await apiRequest('/api/stripe/create-checkout', 'POST', {
-        tier,
+        tier: previewTier,
         billingCycle: isAnnual ? 'annual' : 'monthly',
       });
 
@@ -319,6 +330,19 @@ export default function Pricing() {
           </p>
         </div>
       </div>
+
+      {/* Plan Preview Dialog */}
+      {previewTier && (
+        <PlanPreviewDialog
+          open={showPreview}
+          onOpenChange={setShowPreview}
+          tier={previewTier}
+          billingCycle={isAnnual ? 'annual' : 'monthly'}
+          currentTier={subscription?.tier || 'free'}
+          hasActiveSubscription={!!subscription?.stripeSubscriptionId}
+          onConfirm={handleConfirmUpgrade}
+        />
+      )}
     </div>
   );
 }

@@ -134,6 +134,49 @@ router.post('/reactivate-subscription', isAuthenticated, async (req: any, res) =
 });
 
 /**
+ * Preview subscription change with proration
+ * POST /api/stripe/preview-subscription-change
+ */
+router.post('/preview-subscription-change', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const { tier, billingCycle } = req.body;
+
+    // Validate tier
+    if (!['author', 'professional', 'team'].includes(tier)) {
+      return res.status(400).json({ error: 'Invalid tier' });
+    }
+
+    // Validate billing cycle
+    if (!['monthly', 'annual'].includes(billingCycle)) {
+      return res.status(400).json({ error: 'Invalid billing cycle' });
+    }
+
+    // Get user's subscription
+    const subscription = await subscriptionService.getUserSubscription(userId);
+
+    if (!subscription.stripeSubscriptionId) {
+      return res.status(400).json({ error: 'No active subscription to change' });
+    }
+
+    // Get the price ID for the new tier and billing cycle
+    const { STRIPE_PRICE_IDS } = await import('../services/stripeService');
+    const newPriceId = STRIPE_PRICE_IDS[tier as 'author' | 'professional' | 'team'][billingCycle];
+
+    // Preview the subscription change
+    const preview = await stripeService.previewSubscriptionChange({
+      subscriptionId: subscription.stripeSubscriptionId,
+      newPriceId,
+    });
+
+    res.json(preview);
+  } catch (error: any) {
+    console.error('[Stripe] Error previewing subscription change:', error);
+    res.status(500).json({ error: 'Failed to preview subscription change', message: error.message });
+  }
+});
+
+/**
  * Create setup intent for adding a new payment method
  * POST /api/stripe/create-setup-intent
  */
