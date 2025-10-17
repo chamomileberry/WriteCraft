@@ -169,7 +169,13 @@ export interface GeneratedDescription {
   tags: string[];
 }
 
-export async function generateCharacterWithAI(options: CharacterGenerationOptions = {}): Promise<GeneratedCharacter> {
+export interface AIGenerationResult<T> {
+  result: T;
+  usage?: any; // Anthropic usage object
+  model?: string;
+}
+
+export async function generateCharacterWithAI(options: CharacterGenerationOptions = {}): Promise<AIGenerationResult<GeneratedCharacter>> {
   const { genre, gender, ethnicity } = options;
   
   // Validate inputs
@@ -332,12 +338,20 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     // Log validation success
     console.log('Character validated successfully:', getCharacterFullName(validatedData));
 
-    return validatedData as unknown as GeneratedCharacter;
+    return {
+      result: validatedData as unknown as GeneratedCharacter,
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Anthropic API failed, using fallback generation:', error);
     
     // Fallback: Generate a deterministic character locally
-    return generateFallbackCharacter(options);
+    return {
+      result: generateFallbackCharacter(options),
+      usage: undefined,
+      model: undefined
+    };
   }
 }
 

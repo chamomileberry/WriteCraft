@@ -5,11 +5,12 @@ import { z } from "zod";
 import { generateCharacterWithAI, generateCharacterFieldWithAI } from "../ai-generation";
 import { generateArticleForContent } from "../article-generation";
 import { validateInput } from "../security/middleware";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 
 const router = Router();
 
 // Character generator routes
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", trackAIUsage('character_generation'), async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.user.claims.sub;
@@ -31,7 +32,8 @@ router.post("/generate", async (req: any, res) => {
     }
     
     // Use AI generation instead of archetype system
-    const aiCharacter = await generateCharacterWithAI({ genre, gender, ethnicity });
+    const aiResult = await generateCharacterWithAI({ genre, gender, ethnicity });
+    const aiCharacter = aiResult.result;
     
     const character = {
       // Basic demographics and identity
@@ -122,6 +124,12 @@ router.post("/generate", async (req: any, res) => {
     // Validate the generated character data before saving
     const validatedCharacter = insertCharacterSchema.parse(character);
     const savedCharacter = await storage.createCharacter(validatedCharacter);
+    
+    // Attach usage metadata for tracking
+    if (aiResult.usage) {
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+    }
+    
     res.json(savedCharacter);
   } catch (error) {
     console.error('Error generating character:', error);
