@@ -656,13 +656,18 @@ export class SubscriptionService {
   async checkGracePeriodStatus(userId: string): Promise<{
     inGracePeriod: boolean;
     expired: boolean;
-    daysRemaining?: number;
-    gracePeriodEnd?: Date;
+    daysRemaining: number | null;
+    gracePeriodEnd: Date | null;
   }> {
     const subscription = await this.getUserSubscription(userId);
     
     if (!subscription.gracePeriodStart || !subscription.gracePeriodEnd) {
-      return { inGracePeriod: false, expired: false };
+      return { 
+        inGracePeriod: false, 
+        expired: false,
+        daysRemaining: null,
+        gracePeriodEnd: null
+      };
     }
     
     const now = new Date();
@@ -673,6 +678,7 @@ export class SubscriptionService {
       return { 
         inGracePeriod: false, 
         expired: true,
+        daysRemaining: 0,
         gracePeriodEnd
       };
     }
@@ -762,6 +768,74 @@ export class SubscriptionService {
     
     // All limits are under quota
     return true;
+  }
+  
+  /**
+   * Get comprehensive subscription status for frontend display
+   * Includes tier, limits, current usage, grace period status, and warnings
+   */
+  async getSubscriptionStatus(userId: string) {
+    const subscription = await this.getUserSubscription(userId);
+    const graceStatus = await this.checkGracePeriodStatus(userId);
+    
+    // Get current usage
+    const projectCount = await this.getUserProjectCount(userId);
+    const notebookCount = await this.getUserNotebookCount(userId);
+    const todayAIUsage = await this.getTodayAIUsage(userId);
+    
+    // Check if limits are exceeded
+    const projectLimitExceeded = subscription.limits.maxProjects !== null 
+      && projectCount >= subscription.limits.maxProjects;
+    const notebookLimitExceeded = subscription.limits.maxNotebooks !== null 
+      && notebookCount >= subscription.limits.maxNotebooks;
+    const aiLimitExceeded = subscription.limits.aiGenerationsPerDay !== null 
+      && todayAIUsage >= subscription.limits.aiGenerationsPerDay;
+    
+    // Build warnings array
+    const warnings: string[] = [];
+    
+    if (graceStatus.inGracePeriod) {
+      warnings.push(`Grace period active: ${graceStatus.daysRemaining} days remaining to upgrade or reduce usage`);
+      
+      if (projectLimitExceeded) {
+        warnings.push(`Project limit exceeded: ${projectCount}/${subscription.limits.maxProjects} projects`);
+      }
+      if (notebookLimitExceeded) {
+        warnings.push(`Notebook limit exceeded: ${notebookCount}/${subscription.limits.maxNotebooks} notebooks`);
+      }
+      if (aiLimitExceeded) {
+        warnings.push(`AI generation limit exceeded: ${todayAIUsage}/${subscription.limits.aiGenerationsPerDay} generations today`);
+      }
+    }
+    
+    if (graceStatus.expired) {
+      warnings.push('Grace period expired: Please upgrade or reduce usage to continue');
+    }
+    
+    return {
+      tier: subscription.tier,
+      effectiveTier: subscription.effectiveTier,
+      status: subscription.status,
+      limits: subscription.limits,
+      usage: {
+        projects: projectCount,
+        notebooks: notebookCount,
+        aiGenerationsToday: todayAIUsage
+      },
+      gracePeriod: {
+        inGracePeriod: graceStatus.inGracePeriod,
+        expired: graceStatus.expired,
+        daysRemaining: graceStatus.daysRemaining,
+        gracePeriodEnd: graceStatus.gracePeriodEnd
+      },
+      limitsExceeded: {
+        projects: projectLimitExceeded,
+        notebooks: notebookLimitExceeded,
+        aiGenerations: aiLimitExceeded
+      },
+      warnings,
+      isPaused: !!subscription.pausedAt
+    };
   }
 }
 

@@ -129,4 +129,25 @@ router.get("/forecast", async (req: any, res) => {
   }
 });
 
+/**
+ * GET /api/subscription/status
+ * Get comprehensive subscription status including grace period, limits, and usage
+ */
+router.get("/status", async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const status = await subscriptionService.getSubscriptionStatus(userId);
+    
+    res.json(status);
+  } catch (error) {
+    console.error('Error fetching subscription status:', error);
+    res.status(500).json({ error: 'Failed to fetch subscription status' });
+  }
+});
+
 export default router;
