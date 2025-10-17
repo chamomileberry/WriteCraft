@@ -68,6 +68,7 @@ import bannedPhraseRoutes from "./banned-phrase.routes";
 import conversationThreadRoutes from "./conversation-thread.routes";
 import keyRotationRoutes from "./keyRotation.routes";
 import teamRoutes from "./team.routes";
+import usageRoutes from "./usage.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -76,6 +77,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/*", isAuthenticated);
   
   // Register all domain-specific routes (now protected by authentication)
+  app.use("/api/usage", usageRoutes);
   app.use("/api/conversation-threads", conversationThreadRoutes);
   app.use("/api/characters", characterRoutes);
   app.use("/api/creatures", creatureRoutes);

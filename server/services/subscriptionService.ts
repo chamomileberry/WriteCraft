@@ -442,6 +442,125 @@ export class SubscriptionService {
       recommendation
     };
   }
+  
+  /**
+   * Get today's AI usage statistics with tier limits
+   */
+  async getTodayUsage(userId: string) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Get today's summary
+    const [todaySummary] = await db
+      .select()
+      .from(aiUsageDailySummary)
+      .where(
+        and(
+          eq(aiUsageDailySummary.userId, userId),
+          eq(aiUsageDailySummary.date, today)
+        )
+      );
+    
+    // Get subscription for limits
+    const subscription = await this.getUserSubscription(userId);
+    const dailyLimit = subscription.limits.aiGenerationsPerDay ?? -1;
+    const currentUsage = todaySummary?.totalOperations ?? 0;
+    const remaining = dailyLimit === -1 ? -1 : Math.max(0, dailyLimit - currentUsage);
+    
+    return {
+      date: today,
+      currentUsage,
+      dailyLimit,
+      remaining,
+      tier: subscription.tier,
+      usagePercentage: dailyLimit === -1 ? 0 : Math.round((currentUsage / dailyLimit) * 100),
+      details: {
+        totalInputTokens: todaySummary?.totalInputTokens ?? 0,
+        totalOutputTokens: todaySummary?.totalOutputTokens ?? 0,
+        totalCostCents: todaySummary?.totalCostCents ?? 0
+      }
+    };
+  }
+  
+  /**
+   * Get usage history with optional date range filters
+   */
+  async getUsageHistory(
+    userId: string,
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    }
+  ) {
+    const { startDate, endDate, limit = 100 } = options || {};
+    
+    // Default to last 30 days if no dates provided
+    const defaultStart = new Date();
+    defaultStart.setDate(defaultStart.getDate() - 30);
+    const effectiveStartDate = startDate || defaultStart;
+    const effectiveEndDate = endDate || new Date();
+    
+    const startDateStr = effectiveStartDate.toISOString().split('T')[0];
+    const endDateStr = effectiveEndDate.toISOString().split('T')[0];
+    
+    // Get daily summaries
+    const summaries = await db
+      .select()
+      .from(aiUsageDailySummary)
+      .where(
+        and(
+          eq(aiUsageDailySummary.userId, userId),
+          sql`${aiUsageDailySummary.date} >= ${startDateStr}`,
+          sql`${aiUsageDailySummary.date} <= ${endDateStr}`
+        )
+      )
+      .orderBy(sql`${aiUsageDailySummary.date} DESC`)
+      .limit(limit);
+    
+    // Get individual logs for detailed breakdown (limited to avoid overwhelming response)
+    const logs = await db
+      .select({
+        id: aiUsageLogs.id,
+        operationType: aiUsageLogs.operationType,
+        model: aiUsageLogs.model,
+        inputTokens: aiUsageLogs.inputTokens,
+        outputTokens: aiUsageLogs.outputTokens,
+        estimatedCostCents: aiUsageLogs.estimatedCostCents,
+        createdAt: aiUsageLogs.createdAt
+      })
+      .from(aiUsageLogs)
+      .where(
+        and(
+          eq(aiUsageLogs.userId, userId),
+          sql`${aiUsageLogs.createdAt} >= ${startDateStr}`,
+          sql`${aiUsageLogs.createdAt} <= ${endDateStr}`
+        )
+      )
+      .orderBy(sql`${aiUsageLogs.createdAt} DESC`)
+      .limit(Math.min(limit, 500)); // Cap individual logs at 500
+    
+    // Get subscription for context
+    const subscription = await this.getUserSubscription(userId);
+    
+    return {
+      summaries: summaries.map(s => ({
+        date: s.date,
+        totalOperations: s.totalOperations ?? 0,
+        totalInputTokens: s.totalInputTokens ?? 0,
+        totalOutputTokens: s.totalOutputTokens ?? 0,
+        totalCostCents: s.totalCostCents ?? 0
+      })),
+      recentLogs: logs,
+      subscription: {
+        tier: subscription.tier,
+        dailyLimit: subscription.limits.aiGenerationsPerDay
+      },
+      period: {
+        startDate: startDateStr,
+        endDate: endDateStr
+      }
+    };
+  }
 }
 
 // Export singleton instance

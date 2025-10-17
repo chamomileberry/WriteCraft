@@ -147,7 +147,7 @@ router.post("/generate", trackAIUsage('character_generation'), async (req: any, 
 });
 
 // Character field generation route
-router.post("/:id/generate-field", async (req: any, res) => {
+router.post("/:id/generate-field", trackAIUsage('character_field_generation'), async (req: any, res) => {
   try {
     // Valid field names for character generation
     const validFieldNames = [
@@ -194,9 +194,12 @@ router.post("/:id/generate-field", async (req: any, res) => {
       existingCharacter;
     
     // Generate field content using AI with merged character context
-    const generatedContent = await generateCharacterFieldWithAI(fieldName, contextCharacter);
+    const aiResult = await generateCharacterFieldWithAI(fieldName, contextCharacter);
     
-    res.json({ content: generatedContent });
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, aiResult.usage, aiResult.model);
+    
+    res.json({ content: aiResult.result });
   } catch (error) {
     console.error('Error generating character field:', error);
     if (error instanceof z.ZodError) {

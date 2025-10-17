@@ -4,6 +4,7 @@ import { insertConversationThreadSchema } from "@shared/schema";
 import { z } from "zod";
 import { validateInput } from "../security/middleware";
 import { generateThreadTags } from "../ai-generation";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 
 const router = Router();
 
@@ -137,7 +138,7 @@ router.put("/:id", async (req: any, res) => {
 });
 
 // Generate/update AI tags for a thread
-router.post("/:id/generate-tags", async (req: any, res) => {
+router.post("/:id/generate-tags", trackAIUsage('thread_tags_generation'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const threadId = req.params.id;
@@ -151,10 +152,13 @@ router.post("/:id/generate-tags", async (req: any, res) => {
     const messages = await storage.getChatMessagesByThread(threadId, userId);
     
     // Generate tags using AI
-    const tags = await generateThreadTags(messages);
+    const aiResult = await generateThreadTags(messages);
+    
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, aiResult.usage, aiResult.model);
     
     // Update thread with new tags
-    const updatedThread = await storage.updateConversationThread(threadId, userId, { tags });
+    const updatedThread = await storage.updateConversationThread(threadId, userId, { tags: aiResult.result });
     
     res.json(updatedThread);
   } catch (error) {

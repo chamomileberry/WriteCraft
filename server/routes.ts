@@ -63,6 +63,7 @@ import {
   improveText,
   conversationalChat
 } from "./ai-generation";
+import { trackAIUsage, attachUsageMetadata } from "./middleware/aiUsageMiddleware";
 
 // Search endpoint rate limiting: 150 requests per 15 minutes
 // Prevents search abuse while allowing reasonable usage
@@ -647,11 +648,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/synonyms", async (req, res) => {
+  app.post("/api/writing-assistant/synonyms", trackAIUsage('synonyms_generation'), async (req, res) => {
     try {
       const { word } = z.object({ word: z.string() }).parse(req.body);
-      const synonyms = await generateSynonyms(word);
-      res.json({ synonyms });
+      const aiResult = await generateSynonyms(word);
+      
+      // Attach usage metadata for tracking
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+      
+      res.json({ synonyms: aiResult.result });
     } catch (error) {
       console.error('Error generating synonyms:', error);
       if (error instanceof z.ZodError) {
@@ -662,11 +667,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/definition", async (req, res) => {
+  app.post("/api/writing-assistant/definition", trackAIUsage('word_definition'), async (req, res) => {
     try {
       const { word } = z.object({ word: z.string() }).parse(req.body);
-      const definition = await getWordDefinition(word);
-      res.json({ definition });
+      const aiResult = await getWordDefinition(word);
+      
+      // Attach usage metadata for tracking
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+      
+      res.json({ definition: aiResult.result });
     } catch (error) {
       console.error('Error getting word definition:', error);
       if (error instanceof z.ZodError) {
@@ -677,7 +686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/questions", async (req, res) => {
+  app.post("/api/writing-assistant/questions", trackAIUsage('questions_generation'), async (req, res) => {
     try {
       const { text, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(),
@@ -685,8 +694,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         documentTitle: z.string().optional(),
         documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
       }).parse(req.body);
-      const questions = await generateQuestions(text, editorContent, documentTitle, documentType);
-      res.json({ questions });
+      const aiResult = await generateQuestions(text, editorContent, documentTitle, documentType);
+      
+      // Attach usage metadata for tracking
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+      
+      res.json({ questions: aiResult.result });
     } catch (error) {
       console.error('Error generating questions:', error);
       if (error instanceof z.ZodError) {
@@ -715,7 +728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/chat", async (req: any, res) => {
+  app.post("/api/writing-assistant/chat", trackAIUsage('conversational_chat'), async (req: any, res) => {
     try {
       // Get authenticated userId from session (never trust client input)
       const userId = req.user.claims.sub;
@@ -735,7 +748,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         guideId: z.string().optional()
       }).parse(req.body);
       
-      const response = await conversationalChat(
+      const aiResult = await conversationalChat(
         message, 
         conversationHistory, 
         editorContent, 
@@ -746,7 +759,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projectId,
         guideId
       );
-      res.json({ message: response });
+      
+      // Attach usage metadata for tracking
+      attachUsageMetadata(res, aiResult.usage, aiResult.model);
+      
+      res.json({ message: aiResult.result });
     } catch (error) {
       console.error('Error in conversational chat:', error);
       if (error instanceof z.ZodError) {

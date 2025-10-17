@@ -450,7 +450,7 @@ function hashString(str: string): number {
 }
 
 // Character field generation function
-export async function generateCharacterFieldWithAI(fieldName: string, existingCharacter: any): Promise<string> {
+export async function generateCharacterFieldWithAI(fieldName: string, existingCharacter: any): Promise<AIGenerationResult<string>> {
   // Field-specific prompting strategies
   const fieldPrompts: Record<string, string> = {
     backstory: "Generate a detailed, compelling backstory that explains how this character became who they are today",
@@ -547,12 +547,20 @@ TASK: ${promptText} that fits perfectly with this character's established identi
       throw new Error('Unexpected response format from Anthropic API');
     }
 
-    return content.text.trim();
+    return {
+      result: content.text.trim(),
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Anthropic API failed for field generation, using fallback:', error);
     
     // Fallback: Generate field-specific content locally
-    return generateFallbackFieldContent(fieldName, existingCharacter);
+    return {
+      result: generateFallbackFieldContent(fieldName, existingCharacter),
+      usage: undefined,
+      model: undefined
+    };
   }
 }
 
@@ -1061,11 +1069,11 @@ export async function analyzeText(
   editorContent?: string,
   documentTitle?: string,
   documentType?: 'manuscript' | 'guide' | 'project' | 'section'
-): Promise<{
+): Promise<AIGenerationResult<{
   suggestions: string[];
   readabilityScore: number;
   potentialIssues: string[];
-}> {
+}>> {
   let systemPrompt = `You are a professional writing assistant specialized in analyzing text for clarity, engagement, and effectiveness. Provide constructive feedback that helps improve the writing.
 
 Analyze the provided text and identify:
@@ -1121,14 +1129,22 @@ Please analyze the specific text within the context of the larger work. Consider
       cleanedText = jsonMatch[0];
     }
 
-    return JSON.parse(cleanedText);
+    return {
+      result: JSON.parse(cleanedText),
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error analyzing text with AI:', error);
     // Fallback response
     return {
-      suggestions: ['Consider breaking up long sentences for better readability'],
-      readabilityScore: 75,
-      potentialIssues: ['Unable to analyze - please try again']
+      result: {
+        suggestions: ['Consider breaking up long sentences for better readability'],
+        readabilityScore: 75,
+        potentialIssues: ['Unable to analyze - please try again']
+      },
+      usage: undefined,
+      model: undefined
     };
   }
 }
@@ -1139,7 +1155,7 @@ export async function rephraseText(
   editorContent?: string,
   documentTitle?: string,
   documentType?: 'manuscript' | 'guide' | 'project' | 'section'
-): Promise<string> {
+): Promise<AIGenerationResult<string>> {
   const styleInstruction = await getBannedPhrasesInstruction();
   const systemPrompt = `You are a professional writing assistant specialized in rephrasing text while maintaining the original meaning. Adapt the tone and style as requested while preserving all key information.
 
@@ -1168,10 +1184,18 @@ Provide only the rephrased text, no explanations or additional formatting.${styl
       throw new Error('Unexpected response format from Anthropic API');
     }
 
-    return content.text.trim();
+    return {
+      result: content.text.trim(),
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error rephrasing text with AI:', error);
-    return text; // Return original text as fallback
+    return {
+      result: text,
+      usage: undefined,
+      model: undefined
+    }; // Return original text as fallback
   }
 }
 
@@ -1180,10 +1204,10 @@ export async function proofreadText(
   editorContent?: string,
   documentTitle?: string,
   documentType?: 'manuscript' | 'guide' | 'project' | 'section'
-): Promise<{
+): Promise<AIGenerationResult<{
   correctedText: string;
   corrections: { original: string; corrected: string; reason: string }[];
-}> {
+}>> {
   const styleInstruction = await getBannedPhrasesInstruction();
   const systemPrompt = `You are a professional proofreader and editor. Correct grammar, spelling, punctuation, and style issues while maintaining the author's voice and intent.
 
@@ -1222,17 +1246,25 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
       cleanedText = jsonMatch[0];
     }
 
-    return JSON.parse(cleanedText);
+    return {
+      result: JSON.parse(cleanedText),
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error proofreading text with AI:', error);
     return {
-      correctedText: text,
-      corrections: []
+      result: {
+        correctedText: text,
+        corrections: []
+      },
+      usage: undefined,
+      model: undefined
     };
   }
 }
 
-export async function generateSynonyms(word: string): Promise<string[]> {
+export async function generateSynonyms(word: string): Promise<AIGenerationResult<string[]>> {
   const systemPrompt = `You are a vocabulary assistant. Provide a list of relevant synonyms for the given word, considering context and common usage.
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or formatting. Just the raw JSON object in exactly this format:
@@ -1262,14 +1294,22 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     }
 
     const result = JSON.parse(cleanedText);
-    return result.synonyms || [];
+    return {
+      result: result.synonyms || [],
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error generating synonyms with AI:', error);
-    return []; // Return empty array as fallback
+    return {
+      result: [],
+      usage: undefined,
+      model: undefined
+    }; // Return empty array as fallback
   }
 }
 
-export async function getWordDefinition(word: string): Promise<string> {
+export async function getWordDefinition(word: string): Promise<AIGenerationResult<string>> {
   const systemPrompt = `You are a dictionary assistant. Provide a clear, concise definition of the given word, including its part of speech and common usage.
 
 Provide only the definition, no additional formatting or explanations.`;
@@ -1289,10 +1329,18 @@ Provide only the definition, no additional formatting or explanations.`;
       throw new Error('Unexpected response format from Anthropic API');
     }
 
-    return content.text.trim();
+    return {
+      result: content.text.trim(),
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error getting word definition with AI:', error);
-    return `Unable to find definition for "${word}"`;
+    return {
+      result: `Unable to find definition for "${word}"`,
+      usage: undefined,
+      model: undefined
+    };
   }
 }
 
@@ -1301,7 +1349,7 @@ export async function generateQuestions(
   editorContent?: string,
   documentTitle?: string,
   documentType?: 'manuscript' | 'guide' | 'project' | 'section'
-): Promise<string[]> {
+): Promise<AIGenerationResult<string[]>> {
   const systemPrompt = `You are a critical thinking assistant. Generate thoughtful questions that readers might ask about the provided text. These questions should help identify areas where the writing could be expanded, clarified, or improved.
 
 Generate questions that:
@@ -1338,14 +1386,22 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     }
 
     const result = JSON.parse(cleanedText);
-    return result.questions || [];
+    return {
+      result: result.questions || [],
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error generating questions with AI:', error);
-    return ['What additional information would help readers understand this better?'];
+    return {
+      result: ['What additional information would help readers understand this better?'],
+      usage: undefined,
+      model: undefined
+    };
   }
 }
 
-export async function improveText(text: string, instruction: string): Promise<string> {
+export async function improveText(text: string, instruction: string): Promise<AIGenerationResult<string>> {
   const styleInstruction = await getBannedPhrasesInstruction();
   const systemPrompt = `You are a professional writing assistant. Follow the user's specific instructions to improve the provided text while maintaining the original meaning and voice.
 
@@ -1366,10 +1422,18 @@ Provide only the improved text, no explanations or additional formatting.${style
       throw new Error('Unexpected response format from Anthropic API');
     }
 
-    return content.text.trim();
+    return {
+      result: content.text.trim(),
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error improving text with AI:', error);
-    return text; // Return original text as fallback
+    return {
+      result: text,
+      usage: undefined,
+      model: undefined
+    }; // Return original text as fallback
   }
 }
 
@@ -1675,7 +1739,7 @@ export async function conversationalChat(
   userId?: string,
   projectId?: string,
   guideId?: string
-): Promise<string> {
+): Promise<AIGenerationResult<string>> {
   /*
   <important_code_snippet_instructions>
   The newest Anthropic model is "claude-sonnet-4-20250514", not "claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022" nor "claude-3-sonnet-20240229". 
@@ -2318,7 +2382,11 @@ Use this context to provide more relevant and specific advice about their curren
       throw new Error('Unexpected response format from Anthropic API');
     }
 
-    return content.text.trim();
+    return {
+      result: content.text.trim(),
+      usage: response.usage,
+      model: DEFAULT_MODEL_STR
+    };
   } catch (error) {
     console.error('Error in conversational chat with AI:', error);
     
@@ -2331,22 +2399,28 @@ Use this context to provide more relevant and specific advice about their curren
     const conversationLength = conversationHistory?.length || 0;
     
     // Determine appropriate error message based on context
+    let errorResult: string;
+    
     if (wasAnalyzingText) {
-      return "I'm having trouble analyzing that passage right now. Could you try selecting a smaller section, or would you like to just chat about what you're trying to achieve with this scene?";
+      errorResult = "I'm having trouble analyzing that passage right now. Could you try selecting a smaller section, or would you like to just chat about what you're trying to achieve with this scene?";
+    } else if (conversationLength > 15) {
+      errorResult = "I seem to be having trouble processing this longer conversation. Would you like to start a new chat thread, or can I help with something specific about your writing?";
+    } else {
+      // Check if error is related to API limits or rate limiting
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+      if (errorMessage.includes('rate') || errorMessage.includes('limit') || errorMessage.includes('quota')) {
+        errorResult = "I'm experiencing high demand right now. Could you try again in a moment, or would you like to break your question into smaller parts?";
+      } else {
+        // Default friendly error with writer-specific language
+        errorResult = "I'm having a moment of writer's block myself! Could you rephrase your question, or would you like to try a different aspect of your project?";
+      }
     }
     
-    if (conversationLength > 15) {
-      return "I seem to be having trouble processing this longer conversation. Would you like to start a new chat thread, or can I help with something specific about your writing?";
-    }
-    
-    // Check if error is related to API limits or rate limiting
-    const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
-    if (errorMessage.includes('rate') || errorMessage.includes('limit') || errorMessage.includes('quota')) {
-      return "I'm experiencing high demand right now. Could you try again in a moment, or would you like to break your question into smaller parts?";
-    }
-    
-    // Default friendly error with writer-specific language
-    return "I'm having a moment of writer's block myself! Could you rephrase your question, or would you like to try a different aspect of your project?";
+    return {
+      result: errorResult,
+      usage: undefined,
+      model: undefined
+    };
   }
 }
 
@@ -2522,7 +2596,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
  * Generate topic tags for a conversation thread using AI
  * Analyzes message content to extract relevant topics, themes, and character names
  */
-export async function generateThreadTags(messages: any[]): Promise<string[]> {
+export async function generateThreadTags(messages: any[]): Promise<AIGenerationResult<string[]>> {
   /*
   <important_code_snippet_instructions>
   The newest Anthropic model is "claude-sonnet-4-20250514", not "claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022" nor "claude-3-sonnet-20240229". 
@@ -2533,7 +2607,11 @@ export async function generateThreadTags(messages: any[]): Promise<string[]> {
   
   try {
     if (!messages || messages.length === 0) {
-      return ['general discussion'];
+      return {
+        result: ['general discussion'],
+        usage: undefined,
+        model: undefined
+      };
     }
     
     // Sample messages for analysis (take first, middle, and last few messages)
@@ -2607,7 +2685,11 @@ Tags:`;
       tags = ['writing discussion'];
     }
     
-    return tags;
+    return {
+      result: tags,
+      usage: response.usage,
+      model: "claude-sonnet-4-20250514"
+    };
   } catch (error) {
     console.error('Error generating thread tags:', error);
     // Fallback tags based on basic text analysis
@@ -2619,7 +2701,11 @@ Tags:`;
     if (text.includes('dialogue')) fallbackTags.push('dialogue');
     if (text.includes('setting') || text.includes('world')) fallbackTags.push('worldbuilding');
     
-    return fallbackTags.length > 0 ? fallbackTags : ['writing discussion'];
+    return {
+      result: fallbackTags.length > 0 ? fallbackTags : ['writing discussion'],
+      usage: undefined,
+      model: undefined
+    };
   }
 }
 
