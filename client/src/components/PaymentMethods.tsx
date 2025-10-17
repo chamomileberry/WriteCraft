@@ -7,10 +7,28 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { CreditCard, Plus, Trash2, Check, Loader2 } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+// Use the globally loaded Stripe from the script tag in index.html
+const publicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+
+const stripePromise = new Promise<any>((resolve) => {
+  if (!publicKey) {
+    console.error('VITE_STRIPE_PUBLIC_KEY is not set');
+    resolve(null);
+    return;
+  }
+
+  // Wait for Stripe to load from the script tag
+  const checkStripe = () => {
+    if (window.Stripe) {
+      resolve(window.Stripe(publicKey));
+    } else {
+      setTimeout(checkStripe, 50);
+    }
+  };
+  checkStripe();
+});
 
 interface PaymentMethod {
   id: string;
