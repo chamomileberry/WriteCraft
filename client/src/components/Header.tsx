@@ -223,6 +223,15 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Account Settings</span>
                 </DropdownMenuItem>
+                {user?.isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setLocation('/admin/discount-codes')} data-testid="menu-admin-discounts">
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      <span>Discount Codes</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
