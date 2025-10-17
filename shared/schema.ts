@@ -3475,6 +3475,67 @@ export const billingAlerts = pgTable("billing_alerts", {
   createdAtIdx: index("billing_alerts_created_at_idx").on(table.createdAt),
 }));
 
+// Discount Codes - Promotional codes for subscription discounts
+export const discountCodes = pgTable("discount_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Code Details
+  code: varchar("code").notNull().unique(), // The actual code users enter
+  name: text("name").notNull(), // Admin-friendly name/description
+  
+  // Discount Type and Value
+  type: varchar("type").notNull(), // 'percentage' or 'fixed'
+  value: integer("value").notNull(), // Percentage (1-100) or cents for fixed
+  
+  // Applicable Tiers
+  applicableTiers: text("applicable_tiers").array().notNull(), // ['professional', 'team'] - which tiers this code works for
+  
+  // Usage Limits
+  maxUses: integer("max_uses"), // Null = unlimited
+  currentUses: integer("current_uses").default(0).notNull(),
+  maxUsesPerUser: integer("max_uses_per_user").default(1).notNull(), // How many times a single user can use this code
+  
+  // Duration (for percentage discounts with Stripe coupons)
+  duration: varchar("duration").default('once'), // 'once', 'repeating', 'forever'
+  durationInMonths: integer("duration_in_months"), // Required if duration is 'repeating'
+  
+  // Validity Period
+  startsAt: timestamp("starts_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Null = no expiration
+  
+  // Status
+  active: boolean("active").default(true).notNull(),
+  
+  // Stripe Integration
+  stripeCouponId: varchar("stripe_coupon_id"), // Linked Stripe coupon for percentage discounts
+  
+  // Metadata
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: 'set null' }), // Admin who created this
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  codeIdx: index("discount_codes_code_idx").on(table.code),
+  activeIdx: index("discount_codes_active_idx").on(table.active),
+  expiresAtIdx: index("discount_codes_expires_at_idx").on(table.expiresAt),
+}));
+
+// Discount Code Usage - Track who used which codes
+export const discountCodeUsage = pgTable("discount_code_usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  discountCodeId: varchar("discount_code_id").notNull().references(() => discountCodes.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  subscriptionId: varchar("subscription_id").references(() => userSubscriptions.id, { onDelete: 'set null' }),
+  
+  // Discount Applied
+  discountAmount: integer("discount_amount").notNull(), // Amount saved in cents
+  
+  usedAt: timestamp("used_at").defaultNow(),
+}, (table) => ({
+  userCodeIdx: index("discount_code_usage_user_code_idx").on(table.userId, table.discountCodeId),
+  discountCodeIdx: index("discount_code_usage_code_idx").on(table.discountCodeId),
+}));
+
 // Intrusion Detection System (IDS) Tables
 
 // Track intrusion attempts and suspicious activity
@@ -3646,6 +3707,22 @@ export const insertBillingAlertSchema = createInsertSchema(billingAlerts).omit({
   updatedAt: true,
 });
 
+export const insertDiscountCodeSchema = createInsertSchema(discountCodes).omit({
+  id: true,
+  currentUses: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  code: z.string().min(3).max(50).toUpperCase(),
+  value: z.number().min(1),
+  applicableTiers: z.array(z.enum(['professional', 'team'])).min(1),
+});
+
+export const insertDiscountCodeUsageSchema = createInsertSchema(discountCodeUsage).omit({
+  id: true,
+  usedAt: true,
+});
+
 export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertAiUsageLog = z.infer<typeof insertAiUsageLogSchema>;
@@ -3662,6 +3739,10 @@ export type InsertTeamActivity = z.infer<typeof insertTeamActivitySchema>;
 export type TeamActivity = typeof teamActivity.$inferSelect;
 export type InsertBillingAlert = z.infer<typeof insertBillingAlertSchema>;
 export type BillingAlert = typeof billingAlerts.$inferSelect;
+export type InsertDiscountCode = z.infer<typeof insertDiscountCodeSchema>;
+export type DiscountCode = typeof discountCodes.$inferSelect;
+export type InsertDiscountCodeUsage = z.infer<typeof insertDiscountCodeUsageSchema>;
+export type DiscountCodeUsage = typeof discountCodeUsage.$inferSelect;
 
 // IDS schemas and types
 export const insertIntrusionAttemptSchema = createInsertSchema(intrusionAttempts).omit({

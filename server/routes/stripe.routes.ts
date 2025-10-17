@@ -39,12 +39,16 @@ router.post('/create-checkout', isAuthenticated, async (req: any, res) => {
       return res.status(400).json({ error: 'User email not found' });
     }
 
+    // Get optional discount code
+    const discountCode = req.body.discountCode as string | undefined;
+
     // Create checkout session
     const session = await stripeService.createCheckoutSession({
       userId,
       email,
       tier,
       billingCycle,
+      discountCode,
     });
 
     res.json({ url: session.url });

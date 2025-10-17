@@ -4,6 +4,7 @@ import { userSubscriptions, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import type { SubscriptionTier } from '@shared/types/subscription';
 import { billingAlertsService } from './billingAlertsService';
+import { discountCodeService } from './discountCodeService';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -39,10 +40,27 @@ export class StripeService {
     email: string;
     tier: Exclude<SubscriptionTier, 'free'>;
     billingCycle: 'monthly' | 'annual';
+    discountCode?: string;
   }) {
     const priceId = STRIPE_PRICE_IDS[params.tier][params.billingCycle];
 
-    const session = await stripe.checkout.sessions.create({
+    // Validate discount code if provided
+    let discountCodeData = null;
+    if (params.discountCode) {
+      const validation = await discountCodeService.validateDiscountCode(
+        params.discountCode,
+        params.userId,
+        params.tier as 'professional' | 'team'
+      );
+
+      if (!validation.valid) {
+        throw new Error(validation.error || 'Invalid discount code');
+      }
+
+      discountCodeData = validation.discountCode;
+    }
+
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
       customer_email: params.email,
       line_items: [
@@ -56,6 +74,7 @@ export class StripeService {
       metadata: {
         userId: params.userId,
         tier: params.tier,
+        ...(discountCodeData && { discountCodeId: discountCodeData.id }),
       },
       subscription_data: {
         trial_period_days: 14,
@@ -65,7 +84,35 @@ export class StripeService {
         },
       },
       allow_promotion_codes: true,
-    });
+    };
+
+    // Apply discount code
+    if (discountCodeData) {
+      if (discountCodeData.type === 'percentage' && discountCodeData.stripeCouponId) {
+        // Use Stripe coupon for percentage discounts
+        sessionConfig.discounts = [
+          {
+            coupon: discountCodeData.stripeCouponId,
+          },
+        ];
+      } else if (discountCodeData.type === 'fixed') {
+        // For fixed discounts, we'll apply them as a one-time discount
+        // by creating a temporary coupon
+        const tempCoupon = await stripe.coupons.create({
+          amount_off: discountCodeData.value,
+          currency: 'usd',
+          duration: 'once',
+          name: `Discount Code: ${discountCodeData.code}`,
+        });
+        sessionConfig.discounts = [
+          {
+            coupon: tempCoupon.id,
+          },
+        ];
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return session;
   }
@@ -156,6 +203,7 @@ export class StripeService {
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const userId = session.metadata!.userId;
     const tier = session.metadata!.tier as SubscriptionTier;
+    const discountCodeId = session.metadata?.discountCodeId;
 
     // Get subscription details from Stripe
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
@@ -166,7 +214,7 @@ export class StripeService {
     console.log(`[Stripe] Checkout completed for user ${userId} (${user?.email}), tier: ${tier}`);
 
     // Create or update user subscription in database
-    await db
+    const [userSub] = await db
       .insert(userSubscriptions)
       .values({
         userId,
@@ -196,9 +244,30 @@ export class StripeService {
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
           updatedAt: new Date(),
         },
-      });
+      })
+      .returning();
 
     console.log(`[Stripe] Subscription created/updated for user ${userId}`);
+
+    // Record discount code usage if applied
+    if (discountCodeId) {
+      try {
+        // Calculate discount amount from Stripe session
+        const totalDiscount = session.total_details?.amount_discount || 0;
+        
+        await discountCodeService.applyDiscountCode(
+          discountCodeId,
+          userId,
+          userSub.id,
+          totalDiscount
+        );
+
+        console.log(`[Stripe] Recorded discount code usage for user ${userId}, saved: $${(totalDiscount / 100).toFixed(2)}`);
+      } catch (error) {
+        console.error('[Stripe] Error recording discount code usage:', error);
+        // Don't fail checkout if discount recording fails
+      }
+    }
   }
 
   /**

@@ -11,6 +11,7 @@ import stockImagesRoutes from "./routes/stock-images.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
 import stripeRoutes from "./routes/stripe.routes";
 import billingAlertsRoutes from "./routes/billingAlerts.routes";
+import { discountCodeRouter } from "./routes/discountCode.routes";
 import mfaRoutes from "./routes/mfa.routes";
 import securityRoutes from "./routes/security.routes";
 import cspReportRoutes from "./routes/csp-report.routes";
@@ -125,6 +126,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register billing alerts routes
   app.use("/api/billing-alerts", billingAlertsRoutes);
+
+  // Register discount code routes
+  app.use("/api/discount-codes", discountCodeRouter);
 
   // Serve uploaded objects with optional access control
   // NOTE: World-building content and avatars are publicly accessible via UUID protection.
