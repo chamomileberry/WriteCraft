@@ -3,6 +3,7 @@ import { db } from '../db';
 import { userSubscriptions, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import type { SubscriptionTier } from '@shared/types/subscription';
+import { billingAlertsService } from './billingAlertsService';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -261,6 +262,18 @@ export class StripeService {
 
     console.log(`[Stripe] Payment failed for subscription ${subscriptionId}`);
 
+    // Get user from subscription
+    const [subscription] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId))
+      .limit(1);
+
+    if (!subscription) {
+      console.error(`[Stripe] Subscription not found for ${subscriptionId}`);
+      return;
+    }
+
     // Mark subscription as past_due
     await db
       .update(userSubscriptions)
@@ -270,19 +283,49 @@ export class StripeService {
       })
       .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId));
 
-    // TODO: Send email notification to user about payment failure
+    // Create billing alert for payment failure
+    await billingAlertsService.createPaymentFailedAlert(
+      subscription.userId,
+      invoice.id,
+      subscriptionId,
+      invoice.amount_due,
+      invoice.currency
+    );
+
+    console.log(`[Stripe] Payment failure alert created for user ${subscription.userId}`);
   }
 
   /**
    * Handle trial ending soon (3 days before)
    */
   private async handleTrialWillEnd(subscription: Stripe.Subscription) {
-    const userId = subscription.metadata.userId;
+    console.log(`[Stripe] Trial ending soon for subscription ${subscription.id}`);
 
-    console.log(`[Stripe] Trial ending soon for user ${userId}`);
+    // Get user from subscription (metadata might not be set by Stripe webhook)
+    const [userSubscription] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id))
+      .limit(1);
 
-    // TODO: Send email notification to user about trial ending
-    // This is a good opportunity to remind them of the value they're getting
+    if (!userSubscription) {
+      console.error(`[Stripe] User subscription not found for ${subscription.id}`);
+      return;
+    }
+
+    // Calculate days remaining
+    const now = Date.now() / 1000; // Current time in seconds
+    const trialEnd = subscription.trial_end || 0;
+    const daysRemaining = Math.ceil((trialEnd - now) / (60 * 60 * 24));
+
+    // Create billing alert for trial expiring
+    await billingAlertsService.createTrialExpiringAlert(
+      userSubscription.userId,
+      subscription.id,
+      Math.max(1, daysRemaining) // Ensure at least 1 day
+    );
+
+    console.log(`[Stripe] Trial expiring alert created for user ${userSubscription.userId}, ${daysRemaining} days remaining`);
   }
 
   /**

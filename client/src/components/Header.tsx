@@ -10,6 +10,7 @@ import { useMobileWorkspaceMenu } from "@/components/workspace/WorkspaceShell";
 import { GeneratorDropdown, GENERATORS } from "@/components/GeneratorDropdown";
 import { GeneratorModals, GeneratorType } from "@/components/GeneratorModals";
 import { CommandPalette } from "@/components/CommandPalette";
+import { BillingAlertsDropdown } from "@/components/BillingAlertsDropdown";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -190,6 +191,8 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
+
+            <BillingAlertsDropdown />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

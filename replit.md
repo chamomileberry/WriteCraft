@@ -153,13 +153,30 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Integration**: Embedded in AccountSettings page under Billing section
 - **Security**: Uses Stripe Setup Intents for PCI-compliant card collection, no card data touches the server
 
-#### Upcoming Features (9 remaining tasks)
-1. Invoice Management: History, PDF generation, download
-2. Billing Alerts: Failed payments, trial expiration warnings
-3. Subscription Lifecycle: Pause and resume functionality
-4. Discount Codes: Validation, application at checkout
-5. Gift Subscriptions: Purchase and redemption flows
-6. Referral System: Tracking, rewards, unique codes
-7. AI Suggestions: Activity-based upgrade recommendations
-8. Testing: End-to-end coverage of all billing flows
-9. Documentation: User-facing help content, API documentation
+#### Invoice Management System (Completed)
+- **Backend API** (`/api/stripe/invoices`):
+    - Fetches customer invoice history from Stripe (limit 12 by default)
+    - Returns ISO-formatted dates, amounts paid/due, status, PDF/hosted URLs
+    - Verifies invoice ownership before returning data
+    - Supports individual invoice retrieval via `/api/stripe/invoices/:id`
+- **StripeService Methods**:
+    - `getCustomerInvoices()`: Maps Stripe invoice data to simplified format with amountPaid, amountDue, created (ISO), pdfUrl, hostedUrl
+    - `getInvoice()`: Retrieves single invoice by ID
+- **InvoiceHistory Component**:
+    - Displays invoices with status badges (paid, open, void, uncollectible)
+    - Shows invoice number, description, date (relative format), and amount
+    - Download PDF and view online buttons for each invoice
+    - Error handling with retry option and empty state messaging
+    - Correctly displays amountPaid for paid invoices, amountDue for open invoices
+- **Integration**: Embedded in AccountSettings page after PaymentMethods
+- **Security**: Authentication required, invoice ownership validated server-side
+
+#### Upcoming Features (8 remaining tasks)
+1. Billing Alerts: Failed payments, trial expiration warnings
+2. Subscription Lifecycle: Pause and resume functionality
+3. Discount Codes: Validation, application at checkout
+4. Gift Subscriptions: Purchase and redemption flows
+5. Referral System: Tracking, rewards, unique codes
+6. AI Suggestions: Activity-based upgrade recommendations
+7. Testing: End-to-end coverage of all billing flows
+8. Documentation: User-facing help content, API documentation

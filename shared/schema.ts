@@ -3439,6 +3439,37 @@ export const lifetimeSubscriptions = pgTable("lifetime_subscriptions", {
   uniqueUser: uniqueIndex("lifetime_subscriptions_user_idx").on(table.userId),
 }));
 
+// Billing Alerts - Payment failures and trial warnings
+export const billingAlerts = pgTable("billing_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Alert Details
+  type: varchar("type").notNull(), // 'payment_failed', 'trial_expiring', 'trial_expired', 'subscription_canceled', 'invoice_due'
+  severity: varchar("severity").notNull().default('medium'), // 'low', 'medium', 'high', 'critical'
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  
+  // Related Resources
+  stripeInvoiceId: varchar("stripe_invoice_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  
+  // Status
+  status: varchar("status").notNull().default('unread'), // 'unread', 'read', 'resolved', 'dismissed'
+  dismissedAt: timestamp("dismissed_at"),
+  resolvedAt: timestamp("resolved_at"),
+  
+  // Metadata
+  metadata: jsonb("metadata").default({}), // Additional context (retry count, due amount, etc.)
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userStatusIdx: index("billing_alerts_user_status_idx").on(table.userId, table.status),
+  typeIdx: index("billing_alerts_type_idx").on(table.type),
+  createdAtIdx: index("billing_alerts_created_at_idx").on(table.createdAt),
+}));
+
 // Intrusion Detection System (IDS) Tables
 
 // Track intrusion attempts and suspicious activity
@@ -3604,6 +3635,12 @@ export const insertTeamActivitySchema = createInsertSchema(teamActivity).omit({
   createdAt: true,
 });
 
+export const insertBillingAlertSchema = createInsertSchema(billingAlerts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertAiUsageLog = z.infer<typeof insertAiUsageLogSchema>;
@@ -3618,6 +3655,8 @@ export type InsertTeamInvitation = z.infer<typeof insertTeamInvitationSchema>;
 export type TeamInvitation = typeof teamInvitations.$inferSelect;
 export type InsertTeamActivity = z.infer<typeof insertTeamActivitySchema>;
 export type TeamActivity = typeof teamActivity.$inferSelect;
+export type InsertBillingAlert = z.infer<typeof insertBillingAlertSchema>;
+export type BillingAlert = typeof billingAlerts.$inferSelect;
 
 // IDS schemas and types
 export const insertIntrusionAttemptSchema = createInsertSchema(intrusionAttempts).omit({

@@ -10,6 +10,7 @@ import dalleRoutes from "./routes/dalle.routes";
 import stockImagesRoutes from "./routes/stock-images.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
 import stripeRoutes from "./routes/stripe.routes";
+import billingAlertsRoutes from "./routes/billingAlerts.routes";
 import mfaRoutes from "./routes/mfa.routes";
 import securityRoutes from "./routes/security.routes";
 import cspReportRoutes from "./routes/csp-report.routes";
@@ -121,6 +122,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Stripe payment routes
   app.use("/api/stripe", stripeRoutes);
+
+  // Register billing alerts routes
+  app.use("/api/billing-alerts", billingAlertsRoutes);
 
   // Serve uploaded objects with optional access control
   // NOTE: World-building content and avatars are publicly accessible via UUID protection.
