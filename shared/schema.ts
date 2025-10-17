@@ -3306,6 +3306,10 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   resumesAt: timestamp("resumes_at"),
   pauseReason: text("pause_reason"),
   
+  // Grace Period Management (7-day warning before strict enforcement)
+  gracePeriodStart: timestamp("grace_period_start"),
+  gracePeriodEnd: timestamp("grace_period_end"),
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

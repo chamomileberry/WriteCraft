@@ -64,42 +64,129 @@ export class SubscriptionService {
   }
   
   /**
-   * Check if user can perform action (respects tier limits and pause status)
+   * Check if user can perform action (respects tier limits, grace period, and pause status)
    * Paused subscriptions are automatically downgraded to free tier limits via effectiveTier
+   * Grace Period: 7-day warning before strict enforcement when limits are exceeded
    */
-  async canPerformAction(userId: string, action: string): Promise<{ allowed: boolean; reason?: string }> {
+  async canPerformAction(userId: string, action: string): Promise<{ 
+    allowed: boolean; 
+    reason?: string;
+    gracePeriodWarning?: string;
+    inGracePeriod?: boolean;
+    daysRemaining?: number;
+  }> {
     const subscription = await this.getUserSubscription(userId);
+    const graceStatus = await this.checkGracePeriodStatus(userId);
     
     switch (action) {
       case 'create_project':
         if (subscription.limits.maxProjects === null) return { allowed: true };
         const projectCount = await this.getUserProjectCount(userId);
-        return {
-          allowed: projectCount < subscription.limits.maxProjects,
-          reason: projectCount >= subscription.limits.maxProjects 
-            ? `You've reached your limit of ${subscription.limits.maxProjects} projects. Upgrade to create more.`
-            : undefined
-        };
+        const projectLimitExceeded = projectCount >= subscription.limits.maxProjects;
+        
+        if (!projectLimitExceeded) {
+          // Under limit - clear grace period (active or expired) if ALL limits are under quota
+          if ((graceStatus.inGracePeriod || graceStatus.expired) && await this.isUnderAllLimits(userId)) {
+            await this.clearGracePeriod(userId);
+          }
+          return { allowed: true };
+        }
+        
+        // Limit exceeded - check grace period
+        if (graceStatus.expired) {
+          // Grace period has expired - strictly block
+          return {
+            allowed: false,
+            reason: `You've reached your limit of ${subscription.limits.maxProjects} projects. Your grace period has expired. Please upgrade to continue.`
+          };
+        } else if (!graceStatus.inGracePeriod) {
+          // Start grace period
+          await this.startGracePeriod(userId);
+          return {
+            allowed: true,
+            inGracePeriod: true,
+            daysRemaining: 7,
+            gracePeriodWarning: `You've reached your limit of ${subscription.limits.maxProjects} projects. You have 7 days to upgrade before this limit is strictly enforced.`
+          };
+        } else {
+          // In grace period - allow with warning
+          return {
+            allowed: true,
+            inGracePeriod: true,
+            daysRemaining: graceStatus.daysRemaining,
+            gracePeriodWarning: `You've reached your limit of ${subscription.limits.maxProjects} projects. ${graceStatus.daysRemaining} day${graceStatus.daysRemaining !== 1 ? 's' : ''} remaining to upgrade.`
+          };
+        }
       
       case 'create_notebook':
         if (subscription.limits.maxNotebooks === null) return { allowed: true };
         const notebookCount = await this.getUserNotebookCount(userId);
-        return {
-          allowed: notebookCount < subscription.limits.maxNotebooks,
-          reason: notebookCount >= subscription.limits.maxNotebooks
-            ? `You've reached your limit of ${subscription.limits.maxNotebooks} notebook${subscription.limits.maxNotebooks > 1 ? 's' : ''}. Upgrade to create more.`
-            : undefined
-        };
+        const notebookLimitExceeded = notebookCount >= subscription.limits.maxNotebooks;
+        
+        if (!notebookLimitExceeded) {
+          // Under limit - clear grace period (active or expired) if ALL limits are under quota
+          if ((graceStatus.inGracePeriod || graceStatus.expired) && await this.isUnderAllLimits(userId)) {
+            await this.clearGracePeriod(userId);
+          }
+          return { allowed: true };
+        }
+        
+        if (graceStatus.expired) {
+          return {
+            allowed: false,
+            reason: `You've reached your limit of ${subscription.limits.maxNotebooks} notebook${subscription.limits.maxNotebooks > 1 ? 's' : ''}. Your grace period has expired. Please upgrade to continue.`
+          };
+        } else if (!graceStatus.inGracePeriod) {
+          await this.startGracePeriod(userId);
+          return {
+            allowed: true,
+            inGracePeriod: true,
+            daysRemaining: 7,
+            gracePeriodWarning: `You've reached your limit of ${subscription.limits.maxNotebooks} notebook${subscription.limits.maxNotebooks > 1 ? 's' : ''}. You have 7 days to upgrade before this limit is strictly enforced.`
+          };
+        } else {
+          return {
+            allowed: true,
+            inGracePeriod: true,
+            daysRemaining: graceStatus.daysRemaining,
+            gracePeriodWarning: `You've reached your limit of ${subscription.limits.maxNotebooks} notebook${subscription.limits.maxNotebooks > 1 ? 's' : ''}. ${graceStatus.daysRemaining} day${graceStatus.daysRemaining !== 1 ? 's' : ''} remaining to upgrade.`
+          };
+        }
       
       case 'ai_generation':
         if (subscription.limits.aiGenerationsPerDay === null) return { allowed: true };
         const todayUsage = await this.getTodayAIUsage(userId);
-        return {
-          allowed: todayUsage < subscription.limits.aiGenerationsPerDay,
-          reason: todayUsage >= subscription.limits.aiGenerationsPerDay
-            ? `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. Upgrade for more.`
-            : undefined
-        };
+        const aiLimitExceeded = todayUsage >= subscription.limits.aiGenerationsPerDay;
+        
+        if (!aiLimitExceeded) {
+          // Under limit - clear grace period (active or expired) if ALL limits are under quota
+          if ((graceStatus.inGracePeriod || graceStatus.expired) && await this.isUnderAllLimits(userId)) {
+            await this.clearGracePeriod(userId);
+          }
+          return { allowed: true };
+        }
+        
+        if (graceStatus.expired) {
+          return {
+            allowed: false,
+            reason: `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. Your grace period has expired. Please upgrade to continue.`
+          };
+        } else if (!graceStatus.inGracePeriod) {
+          await this.startGracePeriod(userId);
+          return {
+            allowed: true,
+            inGracePeriod: true,
+            daysRemaining: 7,
+            gracePeriodWarning: `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. You have 7 days to upgrade before this limit is strictly enforced.`
+          };
+        } else {
+          return {
+            allowed: true,
+            inGracePeriod: true,
+            daysRemaining: graceStatus.daysRemaining,
+            gracePeriodWarning: `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. ${graceStatus.daysRemaining} day${graceStatus.daysRemaining !== 1 ? 's' : ''} remaining to upgrade.`
+          };
+        }
       
       default:
         return { allowed: true };
@@ -560,6 +647,121 @@ export class SubscriptionService {
         endDate: endDateStr
       }
     };
+  }
+  
+  /**
+   * Check if user is currently in a grace period
+   * Returns grace period info including whether it's expired
+   */
+  async checkGracePeriodStatus(userId: string): Promise<{
+    inGracePeriod: boolean;
+    expired: boolean;
+    daysRemaining?: number;
+    gracePeriodEnd?: Date;
+  }> {
+    const subscription = await this.getUserSubscription(userId);
+    
+    if (!subscription.gracePeriodStart || !subscription.gracePeriodEnd) {
+      return { inGracePeriod: false, expired: false };
+    }
+    
+    const now = new Date();
+    const gracePeriodEnd = new Date(subscription.gracePeriodEnd);
+    
+    if (now > gracePeriodEnd) {
+      // Grace period expired - do NOT clear it yet (need to track that it was used)
+      return { 
+        inGracePeriod: false, 
+        expired: true,
+        gracePeriodEnd
+      };
+    }
+    
+    const daysRemaining = Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return {
+      inGracePeriod: true,
+      expired: false,
+      daysRemaining,
+      gracePeriodEnd
+    };
+  }
+  
+  /**
+   * Start a 7-day grace period for a user who exceeded limits
+   * Only starts if not already in grace period
+   */
+  async startGracePeriod(userId: string): Promise<void> {
+    const graceStatus = await this.checkGracePeriodStatus(userId);
+    
+    // Don't restart if already in grace period
+    if (graceStatus.inGracePeriod) {
+      return;
+    }
+    
+    const now = new Date();
+    const gracePeriodEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    
+    await db
+      .update(userSubscriptions)
+      .set({
+        gracePeriodStart: now,
+        gracePeriodEnd,
+        updatedAt: new Date()
+      })
+      .where(eq(userSubscriptions.userId, userId));
+    
+    console.log(`[Grace Period] Started for user ${userId}, expires ${gracePeriodEnd.toISOString()}`);
+  }
+  
+  /**
+   * Clear grace period (when user upgrades or stops exceeding limits)
+   */
+  async clearGracePeriod(userId: string): Promise<void> {
+    await db
+      .update(userSubscriptions)
+      .set({
+        gracePeriodStart: null,
+        gracePeriodEnd: null,
+        updatedAt: new Date()
+      })
+      .where(eq(userSubscriptions.userId, userId));
+    
+    console.log(`[Grace Period] Cleared for user ${userId}`);
+  }
+  
+  /**
+   * Check if user is under ALL limits (used to determine if grace period should be cleared)
+   */
+  private async isUnderAllLimits(userId: string): Promise<boolean> {
+    const subscription = await this.getUserSubscription(userId);
+    
+    // Check project limit
+    if (subscription.limits.maxProjects !== null) {
+      const projectCount = await this.getUserProjectCount(userId);
+      if (projectCount >= subscription.limits.maxProjects) {
+        return false;
+      }
+    }
+    
+    // Check notebook limit
+    if (subscription.limits.maxNotebooks !== null) {
+      const notebookCount = await this.getUserNotebookCount(userId);
+      if (notebookCount >= subscription.limits.maxNotebooks) {
+        return false;
+      }
+    }
+    
+    // Check AI generation limit
+    if (subscription.limits.aiGenerationsPerDay !== null) {
+      const todayUsage = await this.getTodayAIUsage(userId);
+      if (todayUsage >= subscription.limits.aiGenerationsPerDay) {
+        return false;
+      }
+    }
+    
+    // All limits are under quota
+    return true;
   }
 }
 
