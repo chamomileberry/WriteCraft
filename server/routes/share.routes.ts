@@ -3,7 +3,8 @@ import { db } from '../db';
 import { shares, users, notebooks, projects, guides } from '@shared/schema';
 import { insertShareSchema } from '@shared/schema';
 import { eq, and, or } from 'drizzle-orm';
-import { isAuthenticated } from '../replitAuth';
+import { secureAuthentication } from '../security/middleware';
+import { requireBooleanFeature } from '../middleware/featureGate';
 
 const router = Router();
 
@@ -47,9 +48,9 @@ async function validateResourceOwnership(
   }
 }
 
-router.post('/shares', isAuthenticated, async (req, res) => {
+router.post('/shares', secureAuthentication, requireBooleanFeature('collaboration'), async (req: any, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.claims.sub;
     
     const validatedData = insertShareSchema.parse(req.body);
     
@@ -83,9 +84,9 @@ router.post('/shares', isAuthenticated, async (req, res) => {
   }
 });
 
-router.get('/shares', isAuthenticated, async (req, res) => {
+router.get('/shares', secureAuthentication, async (req: any, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.claims.sub;
     const { resourceType, resourceId } = req.query;
     
     if (!resourceType || !resourceId) {
@@ -130,9 +131,9 @@ router.get('/shares', isAuthenticated, async (req, res) => {
   }
 });
 
-router.delete('/shares/:id', isAuthenticated, async (req, res) => {
+router.delete('/shares/:id', secureAuthentication, async (req: any, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.claims.sub;
     const shareId = req.params.id;
     
     const [existingShare] = await db
@@ -159,9 +160,9 @@ router.delete('/shares/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-router.patch('/shares/:id/permission', isAuthenticated, async (req, res) => {
+router.patch('/shares/:id/permission', secureAuthentication, requireBooleanFeature('collaboration'), async (req: any, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.claims.sub;
     const shareId = req.params.id;
     const { permission } = req.body;
     
@@ -201,12 +202,12 @@ router.patch('/shares/:id/permission', isAuthenticated, async (req, res) => {
   }
 });
 
-router.get('/shares/with-me', isAuthenticated, async (req, res) => {
+router.get('/shares/with-me', secureAuthentication, async (req: any, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user.claims.sub;
     const { resourceType } = req.query;
     
-    let query = db
+    const baseQuery = db
       .select({
         id: shares.id,
         userId: shares.userId,
@@ -224,19 +225,16 @@ router.get('/shares/with-me', isAuthenticated, async (req, res) => {
         }
       })
       .from(shares)
-      .leftJoin(users, eq(shares.ownerId, users.id))
-      .where(eq(shares.userId, userId));
+      .leftJoin(users, eq(shares.ownerId, users.id));
     
-    if (resourceType) {
-      query = query.where(
-        and(
+    const whereConditions = resourceType
+      ? and(
           eq(shares.userId, userId),
           eq(shares.resourceType, resourceType as string)
         )
-      );
-    }
+      : eq(shares.userId, userId);
     
-    const sharedWithMe = await query;
+    const sharedWithMe = await baseQuery.where(whereConditions);
     
     res.json(sharedWithMe);
   } catch (error) {

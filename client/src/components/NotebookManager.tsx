@@ -32,6 +32,8 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDistance } from "date-fns";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ShareDialog } from "@/components/ShareDialog";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 interface NotebookManagerProps {
   isOpen: boolean;
@@ -54,6 +56,7 @@ interface UpdateNotebookData {
 
 export default function NotebookManager({ isOpen, onClose, onNotebookCreated, openInCreateMode = false }: NotebookManagerProps) {
   const { toast } = useToast();
+  const { checkLimit } = useSubscription();
   
   // Use custom hooks for cleaner code
   const notebooks = useNotebooks();
@@ -74,6 +77,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
   const [activeTab, setActiveTab] = useState<'owned' | 'shared'>('owned');
   const [createForm, setCreateForm] = useState<CreateNotebookData>({ name: "", description: "", imageUrl: "" });
   const [editForm, setEditForm] = useState<UpdateNotebookData>({ name: "", description: "", imageUrl: "" });
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   // Auto-open create dialog when openInCreateMode is true
   useEffect(() => {
@@ -182,7 +186,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
     }
   });
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.name.trim()) {
       toast({
@@ -192,6 +196,14 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
       });
       return;
     }
+    
+    // Check if user can create a notebook
+    const limitCheck = await checkLimit('create_notebook');
+    if (!limitCheck.allowed) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+    
     createMutation.mutate(createForm);
   };
 
@@ -593,6 +605,15 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
           ownerId={sharingNotebook.userId}
         />
       )}
+
+      {/* Upgrade Prompt */}
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onOpenChange={setShowUpgradePrompt}
+        title="Upgrade to Create More Notebooks"
+        description="You've reached the limit for notebooks on your current plan. Upgrade to create unlimited notebooks and unlock more features."
+        feature="notebooks"
+      />
     </>
   );
 }
