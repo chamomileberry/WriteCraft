@@ -195,6 +195,107 @@ router.post('/reactivate-subscription', isAuthenticated, async (req: any, res) =
 });
 
 /**
+ * Pause subscription
+ * POST /api/stripe/pause-subscription
+ */
+router.post('/pause-subscription', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const { resumeAt, reason } = req.body;
+
+    // Get user's subscription
+    const subscription = await subscriptionService.getUserSubscription(userId);
+
+    if (!subscription.stripeSubscriptionId) {
+      return res.status(400).json({ error: 'No active subscription found' });
+    }
+
+    // Check if already paused
+    if (subscription.pausedAt) {
+      return res.status(400).json({ error: 'Subscription is already paused' });
+    }
+
+    // Validate resumeAt if provided
+    let resumeDate: Date | undefined;
+    if (resumeAt) {
+      resumeDate = new Date(resumeAt);
+      if (isNaN(resumeDate.getTime())) {
+        return res.status(400).json({ error: 'Invalid resume date' });
+      }
+      if (resumeDate <= new Date()) {
+        return res.status(400).json({ error: 'Resume date must be in the future' });
+      }
+    }
+
+    // Pause subscription
+    await stripeService.pauseSubscription({
+      subscriptionId: subscription.stripeSubscriptionId,
+      resumeAt: resumeDate,
+      reason,
+    });
+
+    res.json({ success: true, message: 'Subscription paused successfully' });
+  } catch (error: any) {
+    console.error('[Stripe] Error pausing subscription:', error);
+    res.status(500).json({ error: 'Failed to pause subscription', message: error.message });
+  }
+});
+
+/**
+ * Resume paused subscription
+ * POST /api/stripe/resume-subscription
+ */
+router.post('/resume-subscription', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+
+    // Get user's subscription
+    const subscription = await subscriptionService.getUserSubscription(userId);
+
+    if (!subscription.stripeSubscriptionId) {
+      return res.status(400).json({ error: 'No subscription found' });
+    }
+
+    if (!subscription.pausedAt) {
+      return res.status(400).json({ error: 'Subscription is not paused' });
+    }
+
+    // Resume subscription
+    await stripeService.resumeSubscription(subscription.stripeSubscriptionId);
+
+    res.json({ success: true, message: 'Subscription resumed successfully' });
+  } catch (error: any) {
+    console.error('[Stripe] Error resuming subscription:', error);
+    res.status(500).json({ error: 'Failed to resume subscription', message: error.message });
+  }
+});
+
+/**
+ * Get pause status of subscription
+ * GET /api/stripe/pause-status
+ */
+router.get('/pause-status', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+
+    // Get user's subscription
+    const subscription = await subscriptionService.getUserSubscription(userId);
+
+    if (!subscription.stripeSubscriptionId) {
+      return res.json({ isPaused: false });
+    }
+
+    // Get pause status
+    const pauseStatus = await stripeService.getPauseStatus(subscription.stripeSubscriptionId);
+
+    res.json(pauseStatus);
+  } catch (error: any) {
+    console.error('[Stripe] Error getting pause status:', error);
+    res.status(500).json({ error: 'Failed to get pause status', message: error.message });
+  }
+});
+
+/**
  * Preview subscription change with proration
  * POST /api/stripe/preview-subscription-change
  */

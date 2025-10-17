@@ -25,9 +25,15 @@ export class SubscriptionService {
       return this.createFreeSubscription(userId);
     }
     
+    // If subscription is paused, treat as free tier for feature access
+    const effectiveTier = (subscription.pausedAt && subscription.tier !== 'free') 
+      ? 'free' 
+      : subscription.tier as SubscriptionTier;
+    
     return {
       ...subscription,
-      limits: TIER_LIMITS[subscription.tier as SubscriptionTier]
+      effectiveTier,
+      limits: TIER_LIMITS[effectiveTier]
     };
   }
   
@@ -58,7 +64,8 @@ export class SubscriptionService {
   }
   
   /**
-   * Check if user can perform action (respects tier limits)
+   * Check if user can perform action (respects tier limits and pause status)
+   * Paused subscriptions are automatically downgraded to free tier limits via effectiveTier
    */
   async canPerformAction(userId: string, action: string): Promise<{ allowed: boolean; reason?: string }> {
     const subscription = await this.getUserSubscription(userId);

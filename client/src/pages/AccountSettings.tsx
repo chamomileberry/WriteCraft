@@ -14,6 +14,7 @@ import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import { MFASettings } from "@/components/MFASettings";
 import { BillingSettings } from "@/components/BillingSettings";
+import { PauseResumeSubscription } from "@/components/PauseResumeSubscription";
 import { PaymentMethods } from "@/components/PaymentMethods";
 import { InvoiceHistory } from "@/components/InvoiceHistory";
 
@@ -126,6 +127,9 @@ export default function AccountSettings() {
 
           {/* Billing & Subscription */}
           <BillingSettings />
+
+          {/* Pause/Resume Subscription */}
+          <PauseResumeSubscription />
 
           {/* Payment Methods */}
           <PaymentMethods />

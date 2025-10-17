@@ -3301,6 +3301,11 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   trialStart: timestamp("trial_start"),
   trialEnd: timestamp("trial_end"),
   
+  // Pause Management
+  pausedAt: timestamp("paused_at"),
+  resumesAt: timestamp("resumes_at"),
+  pauseReason: text("pause_reason"),
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

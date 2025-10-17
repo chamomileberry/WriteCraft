@@ -171,12 +171,35 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Integration**: Embedded in AccountSettings page after PaymentMethods
 - **Security**: Authentication required, invoice ownership validated server-side
 
-#### Upcoming Features (8 remaining tasks)
-1. Billing Alerts: Failed payments, trial expiration warnings
-2. Subscription Lifecycle: Pause and resume functionality
-3. Discount Codes: Validation, application at checkout
-4. Gift Subscriptions: Purchase and redemption flows
-5. Referral System: Tracking, rewards, unique codes
-6. AI Suggestions: Activity-based upgrade recommendations
-7. Testing: End-to-end coverage of all billing flows
-8. Documentation: User-facing help content, API documentation
+#### Billing Alerts System (Completed)
+- **Backend API** (`/api/billing-alerts`):
+    - CRUD operations for billing alerts with authentication
+    - Get all alerts, unread count, mark as read, dismiss alerts
+    - Stripe webhook handlers for payment failures and trial warnings
+    - BillingAlertsService handles database operations with proper error handling
+- **Database Schema**:
+    - `billing_alerts` table with id, userId, type, message, severity, status, createdAt
+    - Indexed on userId and status for efficient queries
+    - Tracks payment failures, trial warnings, and other billing events
+- **BillingAlertsDropdown Component**:
+    - Real-time alerts displayed in Header with unread count badge
+    - Color-coded severity indicators (critical, warning, info)
+    - Mark as read and dismiss functionality with optimistic updates
+    - Query invalidation on mutations for instant UI updates
+    - Comprehensive error/loading/empty states
+    - Full accessibility with aria-labels for screen readers
+- **Stripe Webhook Integration**:
+    - `invoice.payment_failed`: Creates critical alerts for failed payments
+    - Trial expiration warnings (3 days before trial ends)
+    - Resilient handlers with proper error handling and user lookup
+- **Integration**: Alert bell icon in Header, accessible via aria-label "Billing alerts"
+- **Security**: All routes require authentication, proper user ownership validation
+
+#### Upcoming Features (7 remaining tasks)
+1. Subscription Lifecycle: Pause and resume functionality
+2. Discount Codes: Validation, application at checkout
+3. Gift Subscriptions: Purchase and redemption flows
+4. Referral System: Tracking, rewards, unique codes
+5. AI Suggestions: Activity-based upgrade recommendations
+6. Testing: End-to-end coverage of all billing flows
+7. Documentation: User-facing help content, API documentation

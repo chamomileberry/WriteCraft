@@ -216,6 +216,13 @@ export class StripeService {
     else if (subscription.status === 'canceled') status = 'canceled';
     else if (subscription.status === 'trialing') status = 'trialing';
 
+    // Sync pause state from Stripe
+    const isPaused = subscription.pause_collection !== null && subscription.pause_collection !== undefined;
+    const pausedAt = isPaused ? new Date() : null;
+    const resumesAt = subscription.pause_collection?.resumes_at 
+      ? new Date(subscription.pause_collection.resumes_at * 1000) 
+      : null;
+
     await db
       .update(userSubscriptions)
       .set({
@@ -225,6 +232,8 @@ export class StripeService {
         currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
         currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        pausedAt,
+        resumesAt,
         updatedAt: new Date(),
       })
       .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id));
@@ -429,6 +438,104 @@ export class StripeService {
       };
     } catch (error) {
       console.error('[Stripe] Error previewing subscription change:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Pause a subscription using Stripe's pause_collection feature
+   */
+  async pauseSubscription(params: {
+    subscriptionId: string;
+    resumeAt?: Date;
+    reason?: string;
+  }) {
+    try {
+      const pauseCollection: any = {
+        behavior: 'void' as const, // Don't invoice during pause
+      };
+
+      if (params.resumeAt) {
+        pauseCollection.resumes_at = Math.floor(params.resumeAt.getTime() / 1000);
+      }
+
+      const subscription = await stripe.subscriptions.update(params.subscriptionId, {
+        pause_collection: pauseCollection,
+      });
+
+      // Update database
+      await db
+        .update(userSubscriptions)
+        .set({
+          pausedAt: new Date(),
+          resumesAt: params.resumeAt || null,
+          pauseReason: params.reason || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(userSubscriptions.stripeSubscriptionId, params.subscriptionId));
+
+      console.log(`[Stripe] Subscription ${params.subscriptionId} paused`);
+      return subscription;
+    } catch (error) {
+      console.error('[Stripe] Error pausing subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Resume a paused subscription
+   */
+  async resumeSubscription(subscriptionId: string) {
+    try {
+      const subscription = await stripe.subscriptions.update(subscriptionId, {
+        pause_collection: null as any, // Remove pause
+      });
+
+      // Update database
+      await db
+        .update(userSubscriptions)
+        .set({
+          pausedAt: null,
+          resumesAt: null,
+          pauseReason: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId));
+
+      console.log(`[Stripe] Subscription ${subscriptionId} resumed`);
+      return subscription;
+    } catch (error) {
+      console.error('[Stripe] Error resuming subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get pause status of a subscription
+   */
+  async getPauseStatus(subscriptionId: string) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const dbSubscription = await db
+        .select()
+        .from(userSubscriptions)
+        .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId))
+        .limit(1);
+
+      const isPaused = subscription.pause_collection !== null && subscription.pause_collection !== undefined;
+      
+      return {
+        isPaused,
+        pausedAt: dbSubscription[0]?.pausedAt || null,
+        resumesAt: dbSubscription[0]?.resumesAt || null,
+        pauseReason: dbSubscription[0]?.pauseReason || null,
+        stripeResumesBehavior: subscription.pause_collection?.behavior || null,
+        stripeResumesAt: subscription.pause_collection?.resumes_at 
+          ? new Date(subscription.pause_collection.resumes_at * 1000) 
+          : null,
+      };
+    } catch (error) {
+      console.error('[Stripe] Error getting pause status:', error);
       throw error;
     }
   }
