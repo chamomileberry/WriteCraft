@@ -61,7 +61,10 @@ class UserMigrationService {
     const collaboratorResult = await db
       .select({ count: sql<number>`count(DISTINCT ${shares.userId})` })
       .from(shares)
-      .innerJoin(projects, eq(shares.projectId, projects.id))
+      .innerJoin(projects, and(
+        eq(shares.resourceId, projects.id),
+        eq(shares.resourceType, 'project')
+      ))
       .where(eq(projects.userId, userId));
     const totalCollaborators = Number(collaboratorResult[0]?.count) || 0;
     
