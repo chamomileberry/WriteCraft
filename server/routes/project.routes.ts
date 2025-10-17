@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { insertProjectSchema, insertProjectSectionSchema, type ProjectSection, type ProjectSectionWithChildren } from "@shared/schema";
 import { z } from "zod";
 import { validateInput } from "../security/middleware";
+import { requireFeature } from "../middleware/featureGate";
 
 const router = Router();
 
@@ -61,7 +62,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.post("/", validateInput(insertProjectSchema.omit({ userId: true })), async (req: any, res) => {
+router.post("/", requireFeature('create_project'), validateInput(insertProjectSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const projectData = { ...req.body, userId };

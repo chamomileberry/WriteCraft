@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { insertNotebookSchema, updateNotebookSchema } from "@shared/schema";
 import { z } from "zod";
 import { validateInput } from "../security/middleware";
+import { requireFeature } from "../middleware/featureGate";
 
 const router = Router();
 
@@ -24,7 +25,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // Create a new notebook
-router.post("/", validateInput(insertNotebookSchema.omit({ userId: true })), async (req: any, res) => {
+router.post("/", requireFeature('create_notebook'), validateInput(insertNotebookSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookData = { ...req.body, userId };
