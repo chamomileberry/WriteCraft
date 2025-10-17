@@ -14,6 +14,7 @@ import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import { MFASettings } from "@/components/MFASettings";
 import { BillingSettings } from "@/components/BillingSettings";
+import { PaymentMethods } from "@/components/PaymentMethods";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -124,6 +125,9 @@ export default function AccountSettings() {
 
           {/* Billing & Subscription */}
           <BillingSettings />
+
+          {/* Payment Methods */}
+          <PaymentMethods />
 
           {/* Profile Information */}
           <Card>

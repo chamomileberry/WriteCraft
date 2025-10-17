@@ -336,6 +336,33 @@ export class SubscriptionService {
   }
   
   /**
+   * Update user subscription fields
+   */
+  async updateSubscription(userId: string, updates: Partial<{
+    tier: SubscriptionTier;
+    status: 'active' | 'past_due' | 'canceled' | 'trialing';
+    stripeCustomerId: string;
+    stripeSubscriptionId: string;
+    stripePriceId: string;
+    currentPeriodStart: Date;
+    currentPeriodEnd: Date;
+    cancelAtPeriodEnd: boolean;
+    trialStart: Date | null;
+    trialEnd: Date | null;
+  }>) {
+    const [updated] = await db
+      .update(userSubscriptions)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(userSubscriptions.userId, userId))
+      .returning();
+    
+    return updated;
+  }
+  
+  /**
    * Get usage forecast based on current trends
    */
   async getUsageForecast(userId: string) {
