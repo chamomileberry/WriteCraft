@@ -5,6 +5,8 @@ import { characters } from "@shared/schema";
 import { and, eq, or, ilike } from "drizzle-orm";
 import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
 import { createRateLimiter } from "../security";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { secureAuthentication } from "../security/middleware";
 
 const router = Router();
 
@@ -19,7 +21,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-router.post("/improve-text", aiRateLimiter, async (req: any, res) => {
+router.post("/improve-text", secureAuthentication, aiRateLimiter, trackAIUsage('text_improvement'), async (req: any, res) => {
   try {
     const { text, action, customPrompt } = req.body;
 
@@ -92,6 +94,9 @@ ${text}`;
       ? message.content[0].text.trim()
       : text;
 
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, message.usage, "claude-sonnet-4-5");
+
     res.json({ suggestedText });
 
   } catch (error) {
@@ -100,7 +105,7 @@ ${text}`;
   }
 });
 
-router.post("/generate-field", aiRateLimiter, async (req: any, res) => {
+router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage('field_generation'), async (req: any, res) => {
   try {
     const { fieldName, fieldLabel, action, customPrompt, currentValue, characterContext } = req.body;
 
@@ -287,6 +292,9 @@ Follow the user's instruction and return ONLY the modified or generated ${fieldL
     const generatedText = message.content[0].type === 'text' 
       ? message.content[0].text.trim()
       : currentValue || '';
+
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, message.usage, "claude-sonnet-4-5");
 
     res.json({ generatedText });
 
