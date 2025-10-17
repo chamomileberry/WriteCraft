@@ -57,7 +57,7 @@ export default function Pricing() {
     setShowPreview(true);
   };
 
-  const handleConfirmUpgrade = async () => {
+  const handleConfirmUpgrade = async (discountCode?: string) => {
     if (!previewTier) return;
 
     setLoadingTier(previewTier);
@@ -66,6 +66,7 @@ export default function Pricing() {
       const response = await apiRequest('/api/stripe/create-checkout', 'POST', {
         tier: previewTier,
         billingCycle: isAnnual ? 'annual' : 'monthly',
+        ...(discountCode && { discountCode }),
       });
 
       if (response.url) {

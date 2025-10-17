@@ -459,9 +459,25 @@ export class StripeService {
   async previewSubscriptionChange(params: {
     subscriptionId: string;
     newPriceId: string;
+    discountCode?: string;
   }) {
     try {
       const subscription = await stripe.subscriptions.retrieve(params.subscriptionId);
+      
+      // Get discount code ID if provided
+      let discounts: any[] | undefined;
+      if (params.discountCode) {
+        const { DiscountCodeService } = await import('./discountCodeService');
+        const discountCodeService = new DiscountCodeService();
+        const discount = await discountCodeService.getDiscountCodeByCode(params.discountCode);
+        
+        if (discount && discount.active && discount.stripeCouponId) {
+          discounts = [{ coupon: discount.stripeCouponId }];
+        } else if (discount && discount.active && discount.type === 'fixed') {
+          // Fixed discounts are handled via metadata in checkout, so just note that it will be applied
+          console.log(`[Stripe] Fixed discount ${params.discountCode} will be applied at checkout`);
+        }
+      }
       
       // Get the upcoming invoice with the proposed changes
       const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
@@ -473,6 +489,7 @@ export class StripeService {
             price: params.newPriceId,
           },
         ],
+        ...(discounts && { discounts }),
         subscription_proration_behavior: 'always_invoice',
         subscription_proration_date: Math.floor(Date.now() / 1000),
       });

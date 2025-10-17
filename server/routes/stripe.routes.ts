@@ -306,7 +306,7 @@ router.get('/pause-status', isAuthenticated, async (req: any, res) => {
 router.post('/preview-subscription-change', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const { tier, billingCycle } = req.body;
+    const { tier, billingCycle, discountCode } = req.body;
 
     // Validate tier
     if (!['author', 'professional', 'team'].includes(tier)) {
@@ -329,10 +329,11 @@ router.post('/preview-subscription-change', isAuthenticated, async (req: any, re
     const { STRIPE_PRICE_IDS } = await import('../services/stripeService');
     const newPriceId = STRIPE_PRICE_IDS[tier as 'author' | 'professional' | 'team'][billingCycle];
 
-    // Preview the subscription change
+    // Preview the subscription change with discount code if provided
     const preview = await stripeService.previewSubscriptionChange({
       subscriptionId: subscription.stripeSubscriptionId,
       newPriceId,
+      discountCode,
     });
 
     res.json(preview);
