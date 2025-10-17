@@ -105,6 +105,67 @@ router.post('/cancel-subscription', isAuthenticated, async (req: any, res) => {
 });
 
 /**
+ * Get customer invoices
+ * GET /api/stripe/invoices
+ */
+router.get('/invoices', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+
+    // Get user's subscription
+    const subscription = await subscriptionService.getUserSubscription(userId);
+
+    if (!subscription.stripeCustomerId) {
+      return res.json({ invoices: [] });
+    }
+
+    // Get invoices
+    const invoices = await stripeService.getCustomerInvoices(subscription.stripeCustomerId);
+
+    res.json({ invoices });
+  } catch (error: any) {
+    console.error('[Stripe] Error fetching invoices:', error);
+    res.status(500).json({ error: 'Failed to fetch invoices', message: error.message });
+  }
+});
+
+/**
+ * Get specific invoice (for PDF download)
+ * GET /api/stripe/invoices/:id
+ */
+router.get('/invoices/:id', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const { id } = req.params;
+
+    // Get user's subscription to verify ownership
+    const subscription = await subscriptionService.getUserSubscription(userId);
+
+    if (!subscription.stripeCustomerId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    // Get invoice
+    const invoice = await stripeService.getInvoice(id);
+
+    // Verify the invoice belongs to this customer
+    if (invoice.customer !== subscription.stripeCustomerId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    res.json({
+      id: invoice.id,
+      number: invoice.number,
+      pdfUrl: invoice.invoice_pdf,
+      hostedUrl: invoice.hosted_invoice_url,
+    });
+  } catch (error: any) {
+    console.error('[Stripe] Error fetching invoice:', error);
+    res.status(500).json({ error: 'Failed to fetch invoice', message: error.message });
+  }
+});
+
+/**
  * Reactivate a canceled subscription
  * POST /api/stripe/reactivate-subscription
  */

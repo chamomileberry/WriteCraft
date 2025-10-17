@@ -15,6 +15,7 @@ import Header from "@/components/Header";
 import { MFASettings } from "@/components/MFASettings";
 import { BillingSettings } from "@/components/BillingSettings";
 import { PaymentMethods } from "@/components/PaymentMethods";
+import { InvoiceHistory } from "@/components/InvoiceHistory";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -128,6 +129,9 @@ export default function AccountSettings() {
 
           {/* Payment Methods */}
           <PaymentMethods />
+
+          {/* Invoice History */}
+          <InvoiceHistory />
 
           {/* Profile Information */}
           <Card>

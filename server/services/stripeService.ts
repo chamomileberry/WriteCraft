@@ -82,6 +82,37 @@ export class StripeService {
   }
 
   /**
+   * Get customer's invoice history
+   */
+  async getCustomerInvoices(customerId: string, limit: number = 12) {
+    const invoices = await stripe.invoices.list({
+      customer: customerId,
+      limit,
+    });
+
+    return invoices.data.map(invoice => ({
+      id: invoice.id,
+      number: invoice.number,
+      status: invoice.status,
+      amountPaid: invoice.amount_paid,
+      amountDue: invoice.amount_due,
+      currency: invoice.currency,
+      created: new Date(invoice.created * 1000).toISOString(),
+      pdfUrl: invoice.invoice_pdf,
+      hostedUrl: invoice.hosted_invoice_url,
+      description: invoice.lines.data[0]?.description || 'Subscription',
+    }));
+  }
+
+  /**
+   * Get a specific invoice
+   */
+  async getInvoice(invoiceId: string) {
+    const invoice = await stripe.invoices.retrieve(invoiceId);
+    return invoice;
+  }
+
+  /**
    * Handle Stripe webhook events
    */
   async handleWebhook(event: Stripe.Event) {
