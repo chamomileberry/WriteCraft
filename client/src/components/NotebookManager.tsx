@@ -199,9 +199,20 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
     
     // Check if user can create a notebook
     const limitCheck = await checkLimit('create_notebook');
-    if (!limitCheck.allowed) {
+    
+    // Block ONLY if not allowed AND not in grace period
+    if (!limitCheck.allowed && !limitCheck.inGracePeriod) {
       setShowUpgradePrompt(true);
       return;
+    }
+    
+    // Show toast warning if in grace period but still allow creation
+    if (limitCheck.inGracePeriod && limitCheck.gracePeriodWarning) {
+      toast({
+        title: "Grace Period Active",
+        description: limitCheck.gracePeriodWarning,
+        duration: 5000,
+      });
     }
     
     createMutation.mutate(createForm);

@@ -168,17 +168,18 @@ export default function ProjectPage() {
     // Check if user can create a project
     const limitCheck = await checkLimit('create_project');
     
-    if (!limitCheck.allowed) {
+    // Block ONLY if not allowed AND not in grace period
+    if (!limitCheck.allowed && !limitCheck.inGracePeriod) {
       setShowLimitDialog(true);
       return;
     }
     
-    // Show toast if in grace period
+    // Show toast warning if in grace period but still allow creation
     if (limitCheck.inGracePeriod && limitCheck.gracePeriodWarning) {
       toast({
         title: "Grace Period Active",
         description: limitCheck.gracePeriodWarning,
-        variant: "default",
+        duration: 5000,
       });
     }
     
