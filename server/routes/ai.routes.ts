@@ -7,7 +7,7 @@ import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
 import { createRateLimiter } from "../security";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 import { secureAuthentication } from "../security/middleware";
-import { makeSimpleAICall } from "../lib/aiHelper";
+import { makeAICall } from "../lib/aiHelper";
 
 const router = Router();
 
@@ -25,6 +25,7 @@ const anthropic = new Anthropic({
 router.post("/improve-text", secureAuthentication, aiRateLimiter, trackAIUsage('text_improvement'), async (req: any, res) => {
   try {
     const { text, action, customPrompt } = req.body;
+    const userId = req.user.claims.sub;
 
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
@@ -33,36 +34,39 @@ router.post("/improve-text", secureAuthentication, aiRateLimiter, trackAIUsage('
     // Load style instruction from database
     const styleInstruction = await getBannedPhrasesInstruction();
 
-    let prompt = '';
+    // System prompt for caching (common across all text improvement requests)
+    const systemPrompt = `You are a creative writing assistant specialized in improving text. Follow the user's instructions precisely and return ONLY the modified text without any explanations or commentary.${styleInstruction}`;
+
+    let userPrompt = '';
 
     switch (action) {
       case 'improve':
-        prompt = `Improve the following text by making it clearer, more engaging, and better written while preserving the original meaning. Return ONLY the improved text without any explanations or commentary.${styleInstruction}
+        userPrompt = `Improve the following text by making it clearer, more engaging, and better written while preserving the original meaning:
 
 ${text}`;
         break;
 
       case 'shorten':
-        prompt = `Make the following text more concise while preserving its key points and meaning. Return ONLY the shortened text without any explanations or commentary.${styleInstruction}
+        userPrompt = `Make the following text more concise while preserving its key points and meaning:
 
 ${text}`;
         break;
 
       case 'expand':
-        prompt = `Expand the following text with more details, examples, or elaboration while maintaining its style and tone. Return ONLY the expanded text without any explanations or commentary.${styleInstruction}
+        userPrompt = `Expand the following text with more details, examples, or elaboration while maintaining its style and tone:
 
 ${text}`;
         break;
 
       case 'fix':
-        prompt = `Fix any grammar, spelling, or punctuation errors in the following text. Return ONLY the corrected text without any explanations or commentary.${styleInstruction}
+        userPrompt = `Fix any grammar, spelling, or punctuation errors in the following text:
 
 ${text}`;
         break;
 
       case 'ask':
         if (customPrompt) {
-          prompt = `You are a creative writing assistant. The user has selected the following text and wants you to help with a specific task.
+          userPrompt = `The user has selected the following text and wants you to help with a specific task.
 
 SELECTED TEXT:
 ${text}
@@ -70,9 +74,9 @@ ${text}
 USER'S INSTRUCTION:
 ${customPrompt}
 
-Follow the user's instruction and return ONLY the modified text without any explanations or commentary.${styleInstruction}`;
+Follow the user's instruction and return ONLY the modified text.`;
         } else {
-          prompt = `You are a creative writing assistant. The user has selected this text and wants your help with it. Provide a brief, helpful suggestion or improvement. Be concise.${styleInstruction}
+          userPrompt = `The user has selected this text and wants your help with it. Provide a brief, helpful suggestion or improvement:
 
 ${text}`;
         }
@@ -82,13 +86,16 @@ ${text}`;
         return res.status(400).json({ error: 'Invalid action' });
     }
 
-    // Use intelligent model selection based on text length
-    const result = await makeSimpleAICall(
-      'improve_text',
-      prompt,
-      text.length,
-      1024
-    );
+    // Use intelligent model selection with prompt caching
+    const result = await makeAICall({
+      operationType: 'improve_text',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 1024,
+      textLength: text.length,
+      enableCaching: true
+    });
 
     const suggestedText = result.content.trim() || text;
 
