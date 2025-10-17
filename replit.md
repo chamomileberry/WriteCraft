@@ -48,6 +48,9 @@ Documentation: Proactively create documentation for new features, APIs, and syst
     - UseSubscription hook for feature and quota validation in the frontend.
     - Usage Analytics Dashboard with time range selectors, KPIs, visualizations, trend-based forecasting, and proactive upgrade recommendations.
     - Contextual Feature Comparison Tooltips and Upgrade Prompts for users hitting limits.
+    - **Billing Infrastructure**:
+        - Plan Preview System: Real-time proration calculations using Stripe's upcoming invoice API, showing immediate charges, credits, new charges, and next billing date before plan changes.
+        - Payment Methods Management: Stripe Setup Intents integration for adding/removing cards, setting default payment method, secure card storage without immediate charges.
 - **Collaboration & Sharing**: Granular permission controls (View, Comment, Edit) for notebooks and projects enforced via RLS.
 - **Team Management System**: Role hierarchy (Owner, Admin, Editor, Viewer), token-based invitations, real-time activity feed, shared AI generation quota, and dedicated UI.
 - **Data Import/Export**: World Anvil import system (17 content types) with extensive field mapping and error reporting.
@@ -108,3 +111,50 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Universal Integration**: All generator tools (Plot, Setting, Name, Character, Creature, Conflict, Theme, Plant, Description, Mood)
 - **Clear Messaging**: Explains tier benefits and upgrade paths
 - **Dual Implementation**: Automatic via useGenerator hook for standard generators, manual implementation for custom patterns (like MoodPalette)
+
+### Billing and Subscription System (October 2025)
+
+#### Plan Preview with Proration (Completed)
+- **Backend API** (`/api/stripe/preview-subscription-change`):
+    - Uses Stripe's `invoices.retrieveUpcoming` API to calculate real-time proration
+    - Separates invoice line items into credits (negative amounts) and new charges (positive amounts)
+    - Returns detailed breakdown: immediate charge, credits applied, new charges, next billing date
+    - Handles edge cases: new subscribers (no active subscription), trial periods, same-tier changes
+- **PlanPreviewDialog Component**:
+    - Reactive data fetching: refetches when tier or billing cycle changes while dialog is open
+    - Uses mutation variables instead of closure to ensure fresh data on every request
+    - Dedicated error state with retry functionality
+    - Shows loading spinner during API calls
+    - Displays different UI for new subscribers vs. existing subscribers with prorations
+- **Integration**: Dialog appears before checkout on Pricing page, allowing users to review costs before confirming plan changes
+- **Key Technical Decisions**:
+    - useEffect triggers refetch when props (tier/billingCycle) change AND dialog is open
+    - Mutation uses variables to avoid stale closure data
+    - Error handling includes both toast notifications and inline error display with retry
+
+#### Payment Methods Management (Completed)
+- **Backend API** (`/api/stripe/payment-methods`):
+    - List all payment methods for a customer
+    - Add new payment methods using Setup Intents (no immediate charge)
+    - Remove payment methods
+    - Set default payment method
+    - Automatic Stripe customer creation when stripeCustomerId is null
+- **PaymentMethods Component**:
+    - Displays all saved cards with brand, last 4 digits, expiration
+    - Stripe Elements integration for secure card input
+    - Inline "Add New Card" form with proper error handling
+    - Set default payment method functionality
+    - Delete payment methods with confirmation
+- **Integration**: Embedded in AccountSettings page under Billing section
+- **Security**: Uses Stripe Setup Intents for PCI-compliant card collection, no card data touches the server
+
+#### Upcoming Features (9 remaining tasks)
+1. Invoice Management: History, PDF generation, download
+2. Billing Alerts: Failed payments, trial expiration warnings
+3. Subscription Lifecycle: Pause and resume functionality
+4. Discount Codes: Validation, application at checkout
+5. Gift Subscriptions: Purchase and redemption flows
+6. Referral System: Tracking, rewards, unique codes
+7. AI Suggestions: Activity-based upgrade recommendations
+8. Testing: End-to-end coverage of all billing flows
+9. Documentation: User-facing help content, API documentation
