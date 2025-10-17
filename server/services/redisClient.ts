@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 
 let redisClient: ReturnType<typeof createClient> | null = null;
+let redisWarningShown = false;
 
 export async function getRedisClient() {
   if (redisClient) {
@@ -10,7 +11,11 @@ export async function getRedisClient() {
   const redisUrl = process.env.REDIS_URL;
   
   if (!redisUrl) {
-    console.warn('[REDIS] REDIS_URL not configured - sessions will use in-memory fallback');
+    // Only show warning once to reduce log noise
+    if (!redisWarningShown) {
+      console.log('[REDIS] Redis not configured - using in-memory session tracking (PostgreSQL stores session data)');
+      redisWarningShown = true;
+    }
     return null;
   }
 

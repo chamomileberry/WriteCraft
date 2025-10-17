@@ -22,6 +22,11 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Backend**: Node.js with Express.js and TypeScript, using RESTful API design. Server-side algorithms handle creative writing content generation.
 - **Data Storage**: PostgreSQL (Neon serverless) with Drizzle ORM for user, generated content, guides, and collection schemas.
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
+- **Session Management**:
+    - Session data stored in PostgreSQL via connect-pg-simple (persistent, reliable)
+    - Concurrent session tracking uses in-memory Map (no Redis needed for single-instance deployment)
+    - Optional Redis support for distributed session tracking (multi-instance deployments)
+    - Maximum 3 concurrent sessions per user with automatic eviction of oldest sessions
 - **Security**:
     - Multi-Factor Authentication (TOTP-based 2FA, backup codes).
     - API Key Rotation System for sensitive keys.
