@@ -301,8 +301,8 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   // In development, we need to allow 'unsafe-eval' and 'unsafe-inline' for Vite HMR
   const isDevelopment = process.env.NODE_ENV === 'development';
   const scriptSrc = isDevelopment 
-    ? `'self' 'unsafe-inline' 'unsafe-eval' https://replit.com` // Dev: Allow inline for Vite
-    : `'self' 'nonce-${nonce}'`; // Production: strict nonce-only
+    ? `'self' 'unsafe-inline' 'unsafe-eval' https://replit.com https://js.stripe.com` // Dev: Allow inline for Vite + Stripe
+    : `'self' 'nonce-${nonce}' https://js.stripe.com`; // Production: strict nonce-only + Stripe
   
   res.setHeader('Content-Security-Policy', 
     `default-src 'self'; ` +
@@ -311,6 +311,7 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
     `img-src 'self' data: https:; ` +
     `font-src 'self' data: https://fonts.gstatic.com; ` + // Allow Google Fonts
     `connect-src 'self' wss: https:; ` +
+    `frame-src https://js.stripe.com https://*.stripe.com; ` + // Allow Stripe frames for 3D Secure
     `frame-ancestors 'none'; ` + // Prevent embedding (redundant with X-Frame-Options but more secure)
     `base-uri 'self'; ` + // Restrict <base> tag URLs
     `form-action 'self'; ` + // Restrict form submissions
