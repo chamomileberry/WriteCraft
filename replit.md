@@ -85,3 +85,26 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **date-fns**: Date manipulation.
 - **nanoid**: Unique ID generation.
 - **clsx & tailwind-merge**: Conditional CSS class management.
+## Recent Feature Additions (October 2025)
+
+### Premium Sample Content Showcase
+- **Dedicated Examples Page** (/examples): Displays high-quality AI-generated samples across all content types (characters, plots, settings, creatures, conflicts, themes, descriptions, moods)
+- **Tier-Based Access Control**: Samples are locked/unlocked based on user's subscription tier with clear visual indicators
+- **Quality Ratings**: Each sample marked as basic, enhanced, premium, or elite showing progression across tiers
+- **Interactive Sample Cards**: Full content dialogs for unlocked samples, pricing page redirect for locked samples
+- **Search and Filtering**: Category-based tabs and search functionality for easy sample discovery
+- **Centralized Data Management**: Sample catalog in client/src/lib/premiumSamples.ts for easy maintenance
+- **Balanced Upgrade Messaging**: Educates users about tier benefits without aggressive marketing
+
+### Feature Comparison Tooltips
+- **FeatureTooltip Component**: Provides contextual information on pricing page features
+- **Hover-Activated Help**: Detailed feature descriptions appear only on user intent
+- **Tier Comparison Tables**: Show feature availability across all subscription levels
+- **Centralized Configuration**: Feature descriptions in client/src/lib/featureDescriptions.ts
+- **Non-Intrusive UX**: Preserves clean pricing page layout while providing helpful information
+
+### Upgrade Prompts
+- **Contextual Dialogs**: Shown when users hit daily AI generation limits
+- **Universal Integration**: All generator tools (Plot, Setting, Name, Character, Creature, Conflict, Theme, Plant, Description, Mood)
+- **Clear Messaging**: Explains tier benefits and upgrade paths
+- **Dual Implementation**: Automatic via useGenerator hook for standard generators, manual implementation for custom patterns (like MoodPalette)
