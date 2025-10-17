@@ -113,6 +113,7 @@ ${text}`;
 router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage('field_generation'), async (req: any, res) => {
   try {
     const { fieldName, fieldLabel, action, customPrompt, currentValue, characterContext } = req.body;
+    const userId = req.user.claims.sub;
 
     if (!fieldLabel) {
       return res.status(400).json({ error: 'Field label is required' });
@@ -236,39 +237,44 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
     // Load style instruction from database
     const styleInstruction = await getBannedPhrasesInstruction();
 
-    let prompt = '';
+    // System prompt for caching (common across all field generation requests)
+    const systemPrompt = `You are a creative writing assistant specialized in character development. Follow instructions precisely and return ONLY the requested content without any explanations, labels, or commentary.${styleInstruction}
+
+IMPORTANT GUIDELINES:
+- Use existing character information for consistency
+- DO NOT repeat information already covered in other fields
+- Provide NEW details and perspectives that build upon what's established
+- Add fresh information, not summaries of existing content`;
+
+    let userPrompt = '';
 
     switch (action) {
       case 'generate':
-        prompt = `You are a creative writing assistant helping to flesh out a character. Generate compelling content for the "${fieldLabel}" field.${contextStr}
+        userPrompt = `Generate compelling content for the "${fieldLabel}" field.${contextStr}${relatedCharactersContext}
 
-IMPORTANT: The existing character information above provides context for consistency. DO NOT repeat or restate information that's already covered in other fields. Instead, provide NEW details and perspectives that build upon what's already established. Add fresh information, not summaries of existing content.
-
-Return ONLY the generated ${fieldLabel.toLowerCase()} without any explanations, labels, or commentary.${styleInstruction}`;
+Return ONLY the generated ${fieldLabel.toLowerCase()}.`;
         break;
 
       case 'improve':
-        prompt = `You are a creative writing assistant. Improve the following ${fieldLabel.toLowerCase()} by making it more engaging, detailed, and well-written while preserving the core ideas.${contextStr}
+        userPrompt = `Improve the following ${fieldLabel.toLowerCase()} by making it more engaging, detailed, and well-written while preserving the core ideas.${contextStr}
 
 CURRENT ${fieldLabel.toUpperCase()}:
 ${currentValue}
 
-Return ONLY the improved text without any explanations or commentary.${styleInstruction}`;
+Return ONLY the improved text.`;
         break;
 
       case 'expand':
-        prompt = `You are a creative writing assistant. Expand the following ${fieldLabel.toLowerCase()} with more details, depth, and elaboration while maintaining consistency with the character.${contextStr}
+        userPrompt = `Expand the following ${fieldLabel.toLowerCase()} with more details, depth, and elaboration while maintaining consistency with the character.${contextStr}
 
 CURRENT ${fieldLabel.toUpperCase()}:
 ${currentValue}
 
-IMPORTANT: Add NEW details and depth. Don't just repeat what's already in the existing character information - build upon it with fresh perspectives and additional information.
-
-Return ONLY the expanded text without any explanations or commentary.${styleInstruction}`;
+Add NEW details and depth that complement what's established. Return ONLY the expanded text.`;
         break;
 
       case 'custom':
-        prompt = `You are a creative writing assistant helping with a character's ${fieldLabel.toLowerCase()}.${contextStr}${relatedCharactersContext}
+        userPrompt = `Working with character's ${fieldLabel.toLowerCase()}.${contextStr}${relatedCharactersContext}
 
 CURRENT ${fieldLabel.toUpperCase()}:
 ${currentValue || '(Empty)'}
@@ -276,30 +282,28 @@ ${currentValue || '(Empty)'}
 USER'S INSTRUCTION:
 ${customPrompt}
 
-IMPORTANT: Use the existing character information for consistency, but DO NOT repeat information that's already covered elsewhere. Provide fresh details that complement what's established.
-
-Follow the user's instruction and return ONLY the modified or generated ${fieldLabel.toLowerCase()} without any explanations or commentary.${styleInstruction}`;
+Follow the user's instruction and return ONLY the modified or generated ${fieldLabel.toLowerCase()}.`;
         break;
 
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 2048,
-      messages: [{
-        role: "user",
-        content: prompt
-      }]
+    // Use intelligent model selection with prompt caching
+    const result = await makeAICall({
+      operationType: 'field_generation',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 2048,
+      textLength: (currentValue || '').length + contextStr.length,
+      enableCaching: true
     });
 
-    const generatedText = message.content[0].type === 'text' 
-      ? message.content[0].text.trim()
-      : currentValue || '';
+    const generatedText = result.content.trim() || currentValue || '';
 
-    // Attach usage metadata for tracking
-    attachUsageMetadata(res, message.usage, "claude-sonnet-4-5");
+    // Attach usage metadata for tracking (includes cached tokens if any)
+    attachUsageMetadata(res, result.usage, result.model);
 
     res.json({ generatedText });
 

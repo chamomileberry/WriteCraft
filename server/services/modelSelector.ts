@@ -26,6 +26,8 @@ export type OperationType =
   | 'description_generation'
   | 'mood_palette_generation'
   | 'improve_text'
+  | 'field_generation'
+  | 'text_improvement'
   | 'conversational_chat'
   | 'ai_suggestions';
 

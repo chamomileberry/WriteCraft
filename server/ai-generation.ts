@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { getBannedPhrasesInstruction } from './utils/banned-phrases.js';
 import { validateAndApplyFallbacks, getCharacterFullName } from './utils/character-validation.js';
 import { storage } from './storage.js';
+import { makeAICall } from './lib/aiHelper.js';
 
 /*
 <important_code_snippet_instructions>
@@ -302,22 +303,19 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
   // Try Anthropic API first, fallback to local generation if it fails
   try {
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      system: systemPrompt,
-      max_tokens: 2048,
-      messages: [
-        { role: 'user', content: userPrompt }
-      ],
+    // Use intelligent model selection with prompt caching
+    const result = await makeAICall({
+      operationType: 'character_generation',
+      userId: undefined, // No userId available - backward compatibility
+      systemPrompt,
+      userPrompt,
+      maxTokens: 2048,
+      textLength: 0,
+      enableCaching: true
     });
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API');
-    }
-
     // Clean the response text - remove any potential markdown formatting or extra text
-    let cleanedText = content.text.trim();
+    let cleanedText = result.content.trim();
     
     // Extract JSON if it's wrapped in code blocks or has extra text
     const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
@@ -340,8 +338,8 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
     return {
       result: validatedData as unknown as GeneratedCharacter,
-      usage: response.usage,
-      model: DEFAULT_MODEL_STR
+      usage: result.usage,
+      model: result.model
     };
   } catch (error) {
     console.error('Anthropic API failed, using fallback generation:', error);
@@ -696,24 +694,21 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   try {
     console.log('Making request to Anthropic API for setting generation...');
     
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      system: systemPrompt,
-      max_tokens: 1024,
-      messages: [
-        { role: 'user', content: userPrompt }
-      ],
+    // Use intelligent model selection with prompt caching
+    const result = await makeAICall({
+      operationType: 'setting_generation',
+      userId: undefined, // No userId available - backward compatibility
+      systemPrompt,
+      userPrompt,
+      maxTokens: 1024,
+      textLength: 0,
+      enableCaching: true
     });
 
     console.log('Received response from Anthropic API');
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API');
-    }
-
     // Clean the response text - remove any potential markdown formatting or extra text
-    let cleanedText = content.text.trim();
+    let cleanedText = result.content.trim();
     
     console.log('Raw AI Response:', cleanedText);
     
@@ -745,8 +740,8 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
     return {
       result: settingData as GeneratedSetting,
-      usage: response.usage,
-      model: DEFAULT_MODEL_STR
+      usage: result.usage,
+      model: result.model
     };
   } catch (error) {
     if (error instanceof SyntaxError) {
@@ -1663,31 +1658,27 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   
   userPrompt += ' Respond with ONLY the JSON object, no other text.';
 
-  // Declare content variable outside try block for error handling
-  let content: any;
+  // Declare cleanedText variable outside try block for error handling
   let cleanedText = '';
 
   try {
     console.log('Making request to Anthropic API for description generation...');
     
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      system: systemPrompt,
-      max_tokens: 1024,
-      messages: [
-        { role: 'user', content: userPrompt }
-      ],
+    // Use intelligent model selection with prompt caching
+    const result = await makeAICall({
+      operationType: 'description_generation',
+      userId: undefined, // No userId available - backward compatibility
+      systemPrompt,
+      userPrompt,
+      maxTokens: 1024,
+      textLength: 0,
+      enableCaching: true
     });
 
     console.log('Received response from Anthropic API for description');
 
-    content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API');
-    }
-
     // Clean the response text
-    cleanedText = content.text.trim();
+    cleanedText = result.content.trim();
     
     console.log('Raw AI Response:', cleanedText);
     
@@ -1716,12 +1707,12 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     
     return {
       result: descriptionData as GeneratedDescription,
-      usage: response.usage,
-      model: DEFAULT_MODEL_STR
+      usage: result.usage,
+      model: result.model
     };
   } catch (error) {
     if (error instanceof SyntaxError) {
-      console.error('JSON Parse Error. Raw response:', cleanedText || (content?.text) || 'No response text available');
+      console.error('JSON Parse Error. Raw response:', cleanedText || 'No response text available');
       throw new Error('Failed to parse AI response as JSON. Please try again.');
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -2490,24 +2481,18 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
   userPrompt += ". Each name should be unique, culturally authentic, and include a detailed meaning. Respond with ONLY the JSON array, no other text.";
 
   try {
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      system: systemPrompt,
-      max_tokens: 2048,
-      messages: [{ role: 'user', content: userPrompt }],
+    // Use intelligent model selection with prompt caching
+    const result = await makeAICall({
+      operationType: 'name_generation',
+      userId: undefined, // No userId available - backward compatibility
+      systemPrompt,
+      userPrompt,
+      maxTokens: 2048,
+      textLength: 0,
+      enableCaching: true
     });
 
-    // Guard array access
-    if (!response.content || response.content.length === 0) {
-      throw new Error('Empty response from Anthropic API');
-    }
-    
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API');
-    }
-
-    let responseText = content.text.trim();
+    let responseText = result.content.trim();
     
     // Clean up the response - remove markdown code blocks if present
     responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
@@ -2558,8 +2543,8 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
 
     return {
       result: uniqueNames,
-      usage: response.usage,
-      model: DEFAULT_MODEL_STR
+      usage: result.usage,
+      model: result.model
     };
   } catch (error) {
     console.error('Error generating names with AI, using fallback:', error);
