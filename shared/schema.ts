@@ -1742,6 +1742,24 @@ export const pinnedContent = pgTable("pinned_content", {
   uniqueUserPin: sql`UNIQUE(${table.userId}, ${table.targetType}, ${table.targetId})`
 }));
 
+// Canvases - Visual whiteboard/moodboard using Excalidraw for story planning, character relationships, world maps, etc.
+export const canvases = pgTable("canvases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"), // Optional description of what this canvas is for
+  data: text("data").notNull().default('{"elements":[],"appState":{},"files":{}}'), // Excalidraw JSON data
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional project linking
+  tags: text("tags").array(), // User-defined tags for organization
+  isTemplate: boolean("is_template").default(false), // Mark as template for reuse
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdx: index("canvas_user_idx").on(table.userId),
+  projectIdx: index("canvas_project_idx").on(table.projectId),
+  templateIdx: index("canvas_template_idx").on(table.isTemplate),
+}));
+
 // Conversation Threads - Organize and manage chat conversations with topics and branching
 export const conversationThreads = pgTable("conversation_threads", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -3023,6 +3041,12 @@ export const insertPinnedContentSchema = createInsertSchema(pinnedContent).omit(
   createdAt: true,
 });
 
+export const insertCanvasSchema = createInsertSchema(canvases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertConversationThreadSchema = createInsertSchema(conversationThreads).omit({
   id: true,
   createdAt: true,
@@ -3113,6 +3137,8 @@ export type InsertProjectLink = z.infer<typeof insertProjectLinkSchema>;
 export type ProjectLink = typeof projectLinks.$inferSelect;
 export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;
 export type PinnedContent = typeof pinnedContent.$inferSelect;
+export type InsertCanvas = z.infer<typeof insertCanvasSchema>;
+export type Canvas = typeof canvases.$inferSelect;
 export type InsertConversationThread = z.infer<typeof insertConversationThreadSchema>;
 export type ConversationThread = typeof conversationThreads.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
