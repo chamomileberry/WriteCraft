@@ -146,7 +146,7 @@ export const requireTeamTier: RequestHandler = async (req: Request, res: Respons
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const userId = req.user.claims.sub;
+  const userId = (req.user as any).claims.sub;
   const teamSubscriptionId = await getUserTeamSubscription(userId);
   
   if (!teamSubscriptionId) {
@@ -173,7 +173,7 @@ export function requireTeamRole(minRole: TeamRole): RequestHandler {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const userId = req.user.claims.sub;
+    const userId = (req.user as any).claims.sub;
     const teamSubscriptionId = (req as any).teamSubscriptionId || await getUserTeamSubscription(userId);
     
     if (!teamSubscriptionId) {
@@ -217,7 +217,7 @@ export function requirePermission(permission: keyof typeof ROLE_PERMISSIONS.owne
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const userId = req.user.claims.sub;
+    const userId = (req.user as any).claims.sub;
     const teamSubscriptionId = (req as any).teamSubscriptionId || await getUserTeamSubscription(userId);
     
     if (!teamSubscriptionId) {
@@ -248,7 +248,7 @@ export function requirePermission(permission: keyof typeof ROLE_PERMISSIONS.owne
 export function teamPermissions(permission: 'edit' | 'comment' | 'invite') {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = (req.user as any)?.claims?.sub || req.user?.id;
+      const userId = (req.user as any)?.claims?.sub;
       
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
