@@ -1,14 +1,17 @@
 /**
- * ModelSelector - Simplified to use Haiku 4.5 for all operations
+ * ModelSelector - Hybrid strategy using Haiku 4.5 by default with Opus 4.1 for premium features
  * 
- * Strategy: Use Claude Haiku 4.5 (claude-haiku-4-5) for everything
+ * Strategy:
+ * - Haiku 4.5 (claude-haiku-4-5) for standard operations (fast, cost-effective)
+ * - Opus 4.1 (claude-opus-4-20250514) for premium features (highest quality)
  * 
- * Rationale:
- * - Haiku 4.5 matches Sonnet 4 performance (73.3% vs 73% on SWE-bench)
- * - 3x cheaper than Sonnet 4.5 ($1 vs $3 per million input tokens)
- * - 3-5x faster response times (better UX)
- * - More than sufficient quality for creative writing tasks
- * - Simpler codebase and cost management
+ * Premium Features (Professional/Team tiers only):
+ * - Polish: Enhance generated content with literary quality
+ * - Extended Thinking: Deep reasoning for complex creative analysis
+ * 
+ * Cost Comparison:
+ * - Haiku 4.5: $1 input / $5 output per 1M tokens (3-5x faster)
+ * - Opus 4.1: $15 input / $75 output per 1M tokens (15x more expensive, highest quality)
  */
 
 export type OperationType = 
@@ -30,34 +33,54 @@ export type OperationType =
   | 'field_generation'
   | 'text_improvement'
   | 'conversational_chat'
-  | 'ai_suggestions';
+  | 'ai_suggestions'
+  | 'polish'              // Premium: Opus 4.1 for polishing generated content
+  | 'extended_thinking';  // Premium: Opus 4.1 for deep reasoning in chat
 
 export class ModelSelector {
-  // Single model for all operations - Haiku 4.5 (released Oct 2025)
+  // Models
   private readonly HAIKU_4_5 = 'claude-haiku-4-5';
+  private readonly OPUS_4_1 = 'claude-opus-4-20250514';
   
   /**
    * Select model for given operation
-   * Returns Haiku 4.5 for all operations (simplified strategy)
+   * - Standard operations use Haiku 4.5 (fast, cost-effective)
+   * - Premium operations use Opus 4.1 (highest quality)
    */
   selectModel(operationType: OperationType, textLength: number = 0): string {
-    // Use Haiku 4.5 for everything - it matches Sonnet 4 performance
-    // at 3x lower cost and 3-5x faster speed
+    // Premium operations use Opus 4.1
+    if (operationType === 'polish' || operationType === 'extended_thinking') {
+      return this.OPUS_4_1;
+    }
+    
+    // All standard operations use Haiku 4.5
     return this.HAIKU_4_5;
+  }
+  
+  /**
+   * Check if operation requires premium tier access
+   */
+  isPremiumOperation(operationType: OperationType): boolean {
+    return operationType === 'polish' || operationType === 'extended_thinking';
   }
   
   /**
    * Get model display name for logging
    */
   getModelDisplayName(model: string): string {
+    if (model === this.OPUS_4_1) {
+      return 'Opus 4.1';
+    }
     return 'Haiku 4.5';
   }
   
   /**
    * Get estimated cost multiplier compared to Sonnet 4.5 baseline
-   * Haiku 4.5 is 3x cheaper than Sonnet 4.5
    */
   getCostMultiplier(model: string): number {
+    if (model === this.OPUS_4_1) {
+      return 5.0; // Opus is ~5x more expensive than Sonnet 4.5
+    }
     return 0.33; // Haiku 4.5 costs ~1/3 of Sonnet 4.5
   }
 }

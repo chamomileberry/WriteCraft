@@ -24,6 +24,8 @@ export interface TierLimits {
   maxProjects: number | null; // null = unlimited
   maxNotebooks: number | null;
   aiGenerationsPerDay: number | null; // null = unlimited
+  polishUsesPerMonth: number; // Premium Opus feature for polishing content
+  extendedThinkingPerMonth: number; // Premium Opus feature for deep reasoning chat
   hasCollaboration: boolean;
   maxTeamMembers: number;
   hasApiAccess: boolean;
@@ -44,6 +46,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxProjects: 3,
     maxNotebooks: 1,
     aiGenerationsPerDay: 20,
+    polishUsesPerMonth: 0,
+    extendedThinkingPerMonth: 0,
     hasCollaboration: false,
     maxTeamMembers: 1,
     hasApiAccess: false,
@@ -62,6 +66,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxProjects: null,
     maxNotebooks: null,
     aiGenerationsPerDay: 100, // Limited, not unlimited
+    polishUsesPerMonth: 0,
+    extendedThinkingPerMonth: 0,
     hasCollaboration: false,
     maxTeamMembers: 1,
     hasApiAccess: false,
@@ -80,6 +86,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxProjects: null,
     maxNotebooks: null,
     aiGenerationsPerDay: null, // Unlimited
+    polishUsesPerMonth: 20,
+    extendedThinkingPerMonth: 100,
     hasCollaboration: true,
     maxTeamMembers: 3,
     hasApiAccess: true,
@@ -98,6 +106,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxProjects: null,
     maxNotebooks: null,
     aiGenerationsPerDay: null, // Unlimited
+    polishUsesPerMonth: 50,
+    extendedThinkingPerMonth: 500,
     hasCollaboration: true,
     maxTeamMembers: 10,
     hasApiAccess: true,

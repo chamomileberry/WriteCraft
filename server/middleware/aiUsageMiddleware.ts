@@ -6,7 +6,8 @@ import { subscriptionService } from '../services/subscriptionService';
  * 
  * Wraps AI generation routes to:
  * 1. Check if user can perform AI generation (tier limits)
- * 2. Track usage after successful generation
+ * 2. For premium operations (polish, extended_thinking), check tier access and quota
+ * 3. Track usage after successful generation
  * 
  * Usage:
  * router.post('/endpoint', secureAuthentication, trackAIUsage('operation_type'), async (req, res) => {
@@ -22,15 +23,41 @@ export function trackAIUsage(operationType: string) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     
-    // Check if user can perform AI generation
-    const permission = await subscriptionService.canPerformAction(userId, 'ai_generation');
+    // Check for premium operations (polish, extended_thinking)
+    const isPremiumOp = operationType === 'polish' || operationType === 'extended_thinking';
     
-    if (!permission.allowed) {
-      return res.status(403).json({
-        error: 'Usage limit exceeded',
-        message: permission.reason,
-        upgradeUrl: '/pricing'
-      });
+    if (isPremiumOp) {
+      // Check premium operation access and quota
+      const premiumCheck = await subscriptionService.canUsePremiumOperation(
+        userId, 
+        operationType as 'polish' | 'extended_thinking'
+      );
+      
+      if (!premiumCheck.allowed) {
+        return res.status(403).json({
+          error: 'Premium feature access denied',
+          message: premiumCheck.reason,
+          upgradeUrl: '/pricing',
+          isPremiumFeature: true
+        });
+      }
+      
+      // Store quota info for client
+      res.locals.premiumQuota = {
+        remaining: premiumCheck.remaining,
+        limit: premiumCheck.limit
+      };
+    } else {
+      // Check standard AI generation limits
+      const permission = await subscriptionService.canPerformAction(userId, 'ai_generation');
+      
+      if (!permission.allowed) {
+        return res.status(403).json({
+          error: 'Usage limit exceeded',
+          message: permission.reason,
+          upgradeUrl: '/pricing'
+        });
+      }
     }
     
     // Store the operation type for later use
@@ -48,7 +75,7 @@ export function trackAIUsage(operationType: string) {
         subscriptionService.logAIUsage({
           userId: res.locals.aiUserId,
           operationType: res.locals.aiOperationType,
-          model: usage.model || 'claude-sonnet-4-20250514',
+          model: usage.model || 'claude-haiku-4-5',
           inputTokens: usage.input_tokens || 0,
           outputTokens: usage.output_tokens || 0,
           cachedTokens: usage.cache_read_input_tokens || usage.cache_creation_input_tokens || 0,

@@ -266,6 +266,96 @@ export class SubscriptionService {
   }
   
   /**
+   * Get this month's premium operation usage (polish or extended_thinking)
+   */
+  async getMonthlyPremiumUsage(userId: string, operationType: 'polish' | 'extended_thinking'): Promise<number> {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    
+    // Check if user is part of a team
+    const { teamService } = await import('./teamService');
+    const teamSubscription = await teamService.getUserTeamSubscription(userId);
+    
+    // If team tier, get team pooled usage
+    if (teamSubscription && teamSubscription.tier === 'team') {
+      const teamMembers = await teamService.getTeamMembers(teamSubscription.id);
+      const memberIds = teamMembers.map(m => m.userId);
+      
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(aiUsageLogs)
+        .where(
+          and(
+            sql`${aiUsageLogs.userId} = ANY(${memberIds})`,
+            eq(aiUsageLogs.operationType, operationType),
+            sql`${aiUsageLogs.createdAt} >= ${startOfMonth}`
+          )
+        );
+      
+      return Number(result[0]?.count) || 0;
+    }
+    
+    // Individual usage
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(aiUsageLogs)
+      .where(
+        and(
+          eq(aiUsageLogs.userId, userId),
+          eq(aiUsageLogs.operationType, operationType),
+          sql`${aiUsageLogs.createdAt} >= ${startOfMonth}`
+        )
+      );
+    
+    return Number(result[0]?.count) || 0;
+  }
+  
+  /**
+   * Check if user can use premium operation (polish or extended_thinking)
+   */
+  async canUsePremiumOperation(userId: string, operationType: 'polish' | 'extended_thinking'): Promise<{
+    allowed: boolean;
+    reason?: string;
+    remaining?: number;
+    limit?: number;
+  }> {
+    const subscription = await this.getUserSubscription(userId);
+    
+    // Check tier access
+    const isProfessionalOrTeam = subscription.effectiveTier === 'professional' || subscription.effectiveTier === 'team';
+    if (!isProfessionalOrTeam) {
+      return {
+        allowed: false,
+        reason: `This premium feature is only available on Professional and Team plans. Please upgrade to access ${operationType === 'polish' ? 'Polish' : 'Extended Thinking'}.`
+      };
+    }
+    
+    // Get monthly limit for this operation
+    const limit = operationType === 'polish' 
+      ? subscription.limits.polishUsesPerMonth
+      : subscription.limits.extendedThinkingPerMonth;
+    
+    // Get current usage
+    const usage = await this.getMonthlyPremiumUsage(userId, operationType);
+    
+    if (usage >= limit) {
+      return {
+        allowed: false,
+        reason: `You've reached your monthly limit of ${limit} ${operationType === 'polish' ? 'Polish' : 'Extended Thinking'} uses. Resets at the start of next month.`,
+        remaining: 0,
+        limit
+      };
+    }
+    
+    return {
+      allowed: true,
+      remaining: limit - usage,
+      limit
+    };
+  }
+  
+  /**
    * Calculate cost in cents based on model and tokens
    */
   private calculateCostCents(
@@ -274,13 +364,21 @@ export class SubscriptionService {
     outputTokens: number,
     cachedTokens: number = 0
   ): number {
-    // Claude Sonnet 4 pricing: $3 input, $15 output per 1M tokens
-    // Claude Haiku pricing: $0.25 input, $1.25 output per 1M tokens
+    // Pricing per 1M tokens:
+    // Claude Opus 4.1: $15 input, $75 output
+    // Claude Sonnet 4.5: $3 input, $15 output
+    // Claude Haiku 4.5: $1 input, $5 output
     // Cached tokens: 90% discount
     
-    const pricing = model.includes('haiku') 
-      ? { input: 0.25, output: 1.25, cache: 0.025 }
-      : { input: 3, output: 15, cache: 0.3 };
+    let pricing;
+    if (model.includes('opus')) {
+      pricing = { input: 15, output: 75, cache: 1.5 };
+    } else if (model.includes('haiku')) {
+      pricing = { input: 1, output: 5, cache: 0.1 };
+    } else {
+      // Sonnet
+      pricing = { input: 3, output: 15, cache: 0.3 };
+    }
     
     const inputCost = (inputTokens / 1_000_000) * pricing.input * 100;
     const outputCost = (outputTokens / 1_000_000) * pricing.output * 100;

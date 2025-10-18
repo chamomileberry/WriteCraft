@@ -61,6 +61,45 @@ router.get("/usage", async (req: any, res) => {
 });
 
 /**
+ * GET /api/subscription/premium-quota
+ * Get remaining premium operation quota (Polish and Extended Thinking)
+ */
+router.get("/premium-quota", async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const subscription = await subscriptionService.getUserSubscription(userId);
+    
+    // Get usage for both premium operations
+    const [polishUsage, extendedThinkingUsage] = await Promise.all([
+      subscriptionService.getMonthlyPremiumUsage(userId, 'polish'),
+      subscriptionService.getMonthlyPremiumUsage(userId, 'extended_thinking')
+    ]);
+    
+    res.json({
+      polish: {
+        used: polishUsage,
+        limit: subscription.limits.polishUsesPerMonth,
+        remaining: Math.max(0, subscription.limits.polishUsesPerMonth - polishUsage)
+      },
+      extendedThinking: {
+        used: extendedThinkingUsage,
+        limit: subscription.limits.extendedThinkingPerMonth,
+        remaining: Math.max(0, subscription.limits.extendedThinkingPerMonth - extendedThinkingUsage)
+      },
+      tier: subscription.effectiveTier
+    });
+  } catch (error) {
+    console.error('Error fetching premium quota:', error);
+    res.status(500).json({ error: 'Failed to fetch premium quota' });
+  }
+});
+
+/**
  * POST /api/subscription/check-limit
  * Check if user can perform a specific action
  */
