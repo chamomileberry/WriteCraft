@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -31,6 +31,8 @@ export default function CanvasPage() {
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const lastSavedData = useRef<string>('');
+  const isHydrating = useRef(false);
 
   // Fetch canvas data if editing existing canvas
   const { data: canvas, isLoading, error } = useQuery({
@@ -44,12 +46,30 @@ export default function CanvasPage() {
     enabled: !!id && id !== 'new',
   });
 
-  // Update title when canvas data loads
+  // Load canvas data into Excalidraw when it's ready
   useEffect(() => {
-    if (canvas) {
-      setTitle(canvas.name);
+    if (!excalidrawAPI || !canvas) return;
+    
+    isHydrating.current = true;
+    setTitle(canvas.name);
+    
+    try {
+      const canvasData = JSON.parse(canvas.data);
+      excalidrawAPI.updateScene({
+        elements: canvasData.elements || [],
+        appState: canvasData.appState || {},
+      });
+      // Store the initial data as last saved
+      lastSavedData.current = canvas.data;
+    } catch (error) {
+      console.error('Failed to parse canvas data:', error);
     }
-  }, [canvas]);
+    
+    // Allow onChange to fire after a short delay
+    setTimeout(() => {
+      isHydrating.current = false;
+    }, 100);
+  }, [canvas, excalidrawAPI]);
 
   // Create canvas mutation
   const createMutation = useMutation({
@@ -86,10 +106,14 @@ export default function CanvasPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/canvases', id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/canvases'] });
+      // Only invalidate the list, NOT the current canvas to prevent refetch loop
+      queryClient.invalidateQueries({ queryKey: ['/api/canvases'], exact: true });
       setHasUnsavedChanges(false);
       setLastSaved(new Date());
+      toast({
+        title: 'Saved',
+        description: 'Your canvas has been saved successfully.',
+      });
     },
     onError: () => {
       toast({
@@ -116,6 +140,9 @@ export default function CanvasPage() {
     };
 
     const canvasDataString = JSON.stringify(canvasDataObj);
+    
+    // Update last saved data reference
+    lastSavedData.current = canvasDataString;
 
     if (id === 'new') {
       createMutation.mutate({ name: title, data: canvasDataString });
@@ -137,16 +164,28 @@ export default function CanvasPage() {
 
   // Handle Excalidraw changes
   const handleChange = useCallback((elements: readonly ExcalidrawElement[], appState: ExcalidrawAppState) => {
-    setHasUnsavedChanges(true);
-  }, []);
+    // Skip onChange while hydrating the scene with saved data
+    if (isHydrating.current || !excalidrawAPI) {
+      return;
+    }
+    
+    // Check if data actually changed compared to last save
+    const currentData = JSON.stringify({
+      elements,
+      appState: {
+        viewBackgroundColor: appState.viewBackgroundColor,
+        gridSize: appState.gridSize,
+      },
+    });
+    
+    if (currentData !== lastSavedData.current) {
+      setHasUnsavedChanges(true);
+    }
+  }, [excalidrawAPI]);
 
   // Manual save handler
   const handleSave = () => {
     saveCanvas();
-    toast({
-      title: 'Saving...',
-      description: 'Your canvas is being saved.',
-    });
   };
 
   if (isLoading) {
@@ -233,10 +272,6 @@ export default function CanvasPage() {
       <div className="flex-1" style={{ height: 'calc(100vh - 8rem)' }}>
         <Excalidraw
           excalidrawAPI={(api) => setExcalidrawAPI(api)}
-          initialData={{
-            elements: (canvas?.data ? JSON.parse(canvas.data).elements : []) || [],
-            appState: (canvas?.data ? JSON.parse(canvas.data).appState : {}) || {},
-          }}
           onChange={handleChange}
           theme="light"
         />

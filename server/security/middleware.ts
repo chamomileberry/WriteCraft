@@ -309,7 +309,7 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
     `script-src ${scriptSrc}; ` +
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` + // Allow Google Fonts
     `img-src 'self' data: blob: https:; ` + // Add blob: for Excalidraw image handling
-    `font-src 'self' data: https://fonts.gstatic.com; ` + // Allow Google Fonts
+    `font-src 'self' data: blob: https://fonts.gstatic.com https://cdn.jsdelivr.net https://esm.sh; ` + // Allow fonts from multiple sources for Excalidraw
     `connect-src 'self' wss: https:; ` +
     `worker-src 'self' blob:; ` + // Allow Web Workers for Excalidraw
     `child-src 'self' blob:; ` + // Allow blob: children for Excalidraw
