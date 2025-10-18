@@ -1808,7 +1808,7 @@ export const chatMessages = pgTable("chat_messages", {
 export const userPreferences = pgTable("user_preferences", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
-  experienceLevel: text("experience_level"), // 'beginner', 'intermediate', 'advanced'
+  experienceLevel: text("experience_level"), // 'beginner', 'intermediate', 'advanced', 'new_to_worldbuilding', 'experienced_worldbuilder'
   preferredGenres: text("preferred_genres").array(), // Array of genres the user writes
   writingGoals: text("writing_goals").array(), // e.g., ['finish novel', 'improve dialogue', 'publish']
   feedbackStyle: text("feedback_style"), // 'direct', 'gentle', 'technical', 'conceptual'
@@ -1820,6 +1820,10 @@ export const userPreferences = pgTable("user_preferences", {
   responseFormat: text("response_format"), // 'bullets', 'paragraphs', 'mixed', 'adaptive'
   detailLevel: text("detail_level"), // 'brief', 'moderate', 'comprehensive'
   examplesPreference: text("examples_preference"), // 'frequent', 'occasional', 'minimal'
+  
+  // Onboarding tracking
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  onboardingStep: integer("onboarding_step").default(0), // Current step in onboarding process
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
