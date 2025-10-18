@@ -66,8 +66,18 @@ export interface GuideEditorRef {
   saveContent: () => Promise<void>;
 }
 
-const categories = ['Character Writing', 'Writing Craft', 'World Building', 'Story Structure', 'Genre Writing'];
 const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
+
+interface GuideCategory {
+  id: string;
+  name: string;
+  parentId: string | null;
+  order: number;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  children: GuideCategory[];
+}
 
 // Helper function to convert markdown to HTML if needed
 const convertMarkdownToHTML = (content: string): string => {
@@ -101,7 +111,8 @@ interface GuideEditorState {
   currentGuideId: string;
   title: string;
   description: string;
-  category: string;
+  category: string; // Legacy field, kept for backward compatibility
+  categoryId: string | null; // New hierarchical category ID
   difficulty: string;
   author: string;
   tags: string[];
@@ -116,6 +127,7 @@ type GuideEditorAction =
   | { type: 'SET_TITLE'; payload: string }
   | { type: 'SET_DESCRIPTION'; payload: string }
   | { type: 'SET_CATEGORY'; payload: string }
+  | { type: 'SET_CATEGORY_ID'; payload: string | null }
   | { type: 'SET_DIFFICULTY'; payload: string }
   | { type: 'SET_AUTHOR'; payload: string }
   | { type: 'SET_TAGS'; payload: string[] }
@@ -136,6 +148,8 @@ function guideEditorReducer(state: GuideEditorState, action: GuideEditorAction):
       return { ...state, description: action.payload };
     case 'SET_CATEGORY':
       return { ...state, category: action.payload };
+    case 'SET_CATEGORY_ID':
+      return { ...state, categoryId: action.payload };
     case 'SET_DIFFICULTY':
       return { ...state, difficulty: action.payload };
     case 'SET_AUTHOR':
@@ -158,6 +172,7 @@ function guideEditorReducer(state: GuideEditorState, action: GuideEditorAction):
         title: '',
         description: '',
         category: '',
+        categoryId: null,
         difficulty: '',
         author: '',
         tags: [],
@@ -236,6 +251,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     title: '',
     description: '',
     category: '',
+    categoryId: null,
     difficulty: '',
     author: '',
     tags: [],
@@ -251,6 +267,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     title,
     description,
     category,
+    categoryId,
     difficulty,
     author,
     tags,
@@ -285,6 +302,25 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     },
     enabled: !!currentGuideId && currentGuideId !== 'new',
   });
+
+  // Fetch guide categories
+  const { data: categories = [], isLoading: isLoadingCategories } = useQuery<GuideCategory[]>({
+    queryKey: ['/api/guide-categories'],
+  });
+
+  // Helper function to flatten hierarchical categories for dropdown
+  const flattenCategories = (cats: GuideCategory[], level = 0): Array<{ id: string; name: string; level: number }> => {
+    let result: Array<{ id: string; name: string; level: number }> = [];
+    for (const cat of cats) {
+      result.push({ id: cat.id, name: cat.name, level });
+      if (cat.children.length > 0) {
+        result = result.concat(flattenCategories(cat.children, level + 1));
+      }
+    }
+    return result;
+  };
+
+  const flatCategories = flattenCategories(categories);
 
   // Initialize TipTap editor
   const lowlight = createLowlight();
@@ -414,7 +450,8 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         description: description.trim(),
         content,
         excerpt: description.trim() || content.substring(0, 200).replace(/<[^>]+>/g, ''),
-        category: category || 'Writing Craft',
+        category: category || 'Writing Craft', // Legacy field for backward compatibility
+        categoryId: categoryId,
         readTime: calculatedReadTime,
         difficulty: difficulty || 'Beginner',
         author: author.trim() || 'Anonymous',
@@ -490,6 +527,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         title: guide.title || '',
         description: guide.description || '',
         category: guide.category || '',
+        categoryId: guide.categoryId || null,
         difficulty: guide.difficulty || '',
         author: guide.author || '',
         tags: guide.tags || [],
@@ -572,7 +610,8 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   }, [clearEditorContext]);
 
   const isFormValid = () => {
-    return !!editor && !!title.trim() && !!category && !!difficulty;
+    // For backward compatibility, accept either category or categoryId
+    return !!editor && !!title.trim() && (!!category || !!categoryId) && !!difficulty;
   };
 
   const handleSave = async () => {
@@ -709,16 +748,30 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={(value) => dispatch({ type: 'SET_CATEGORY', payload: value })}>
+              <Select 
+                value={categoryId || ''} 
+                onValueChange={(value) => {
+                  dispatch({ type: 'SET_CATEGORY_ID', payload: value });
+                  // Also set legacy category field for backward compatibility
+                  const selectedCategory = flatCategories.find(c => c.id === value);
+                  if (selectedCategory) {
+                    dispatch({ type: 'SET_CATEGORY', payload: selectedCategory.name });
+                  }
+                }}
+              >
                 <SelectTrigger data-testid="select-category">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={isLoadingCategories ? "Loading categories..." : "Select category"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
+                  {flatCategories.length === 0 ? (
+                    <SelectItem value="none" disabled>No categories available</SelectItem>
+                  ) : (
+                    flatCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {'  '.repeat(cat.level) + cat.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
