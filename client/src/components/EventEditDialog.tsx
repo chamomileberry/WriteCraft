@@ -36,7 +36,9 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { TimelineEvent, Character } from '@shared/schema';
 import { insertTimelineEventSchema } from '@shared/schema';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Check } from 'lucide-react';
+import { EVENT_TYPE_CONFIGS, getEventTypeIcon, getEventTypeColor, type EventType } from '@/lib/eventTypeConfig';
+import * as LucideIcons from 'lucide-react';
 
 // Extend the insert schema to omit fields managed separately
 const eventFormSchema = insertTimelineEventSchema.omit({
@@ -128,6 +130,19 @@ export function EventEditDialog({
       });
     }
   }, [event, form]);
+
+  // Watch eventType to auto-fill icon and color
+  const watchedEventType = form.watch('eventType');
+  useEffect(() => {
+    if (watchedEventType && !isEditing) {
+      // Only auto-fill for new events, not when editing existing ones
+      const config = EVENT_TYPE_CONFIGS[watchedEventType as EventType];
+      if (config) {
+        form.setValue('icon', config.icon);
+        form.setValue('color', config.color);
+      }
+    }
+  }, [watchedEventType, isEditing, form]);
 
   // Create mutation
   const createMutation = useMutation({
@@ -355,6 +370,99 @@ export function EventEditDialog({
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="icon"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Icon</FormLabel>
+                    <FormDescription className="text-xs">
+                      Auto-filled from event type
+                    </FormDescription>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-event-icon">
+                          <SelectValue placeholder="Select icon">
+                            {field.value && (() => {
+                              const IconComponent = (LucideIcons as any)[field.value];
+                              return IconComponent ? (
+                                <div className="flex items-center gap-2">
+                                  <IconComponent className="w-4 h-4" />
+                                  <span>{field.value}</span>
+                                </div>
+                              ) : field.value;
+                            })()}
+                          </SelectValue>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
+                        {Object.entries(EVENT_TYPE_CONFIGS).map(([type, config]) => {
+                          const IconComponent = config.iconComponent;
+                          return (
+                            <SelectItem key={config.icon} value={config.icon}>
+                              <div className="flex items-center gap-2">
+                                <IconComponent className="w-4 h-4" />
+                                <span>{config.label}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color</FormLabel>
+                    <FormDescription className="text-xs">
+                      Auto-filled from event type
+                    </FormDescription>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-event-color">
+                          <SelectValue placeholder="Select color">
+                            {field.value && (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: field.value }}
+                                />
+                                <span>{field.value}</span>
+                              </div>
+                            )}
+                          </SelectValue>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
+                        {Array.from(new Set(Object.values(EVENT_TYPE_CONFIGS).map(config => config.color))).map((color) => {
+                          const typeName = Object.entries(EVENT_TYPE_CONFIGS).find(([_, config]) => config.color === color)?.[1].label || color;
+                          return (
+                            <SelectItem key={color} value={color}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: color }}
+                                />
+                                <span>{typeName}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
