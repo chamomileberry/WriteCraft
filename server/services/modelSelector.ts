@@ -1,13 +1,14 @@
 /**
- * ModelSelector - Intelligent model selection for cost optimization
+ * ModelSelector - Simplified to use Haiku 4.5 for all operations
  * 
- * This service automatically selects the most appropriate AI model based on:
- * - Operation type complexity
- * - Text length
- * - User subscription tier
+ * Strategy: Use Claude Haiku 4.5 (claude-haiku-4-5) for everything
  * 
- * Claude Haiku: 90% cheaper, used for simple tasks
- * Claude Sonnet: More capable, used for complex tasks
+ * Rationale:
+ * - Haiku 4.5 matches Sonnet 4 performance (73.3% vs 73% on SWE-bench)
+ * - 3x cheaper than Sonnet 4.5 ($1 vs $3 per million input tokens)
+ * - 3-5x faster response times (better UX)
+ * - More than sufficient quality for creative writing tasks
+ * - Simpler codebase and cost management
  */
 
 export type OperationType = 
@@ -32,60 +33,32 @@ export type OperationType =
   | 'ai_suggestions';
 
 export class ModelSelector {
-  // Model identifiers
-  private readonly HAIKU = 'claude-3-5-haiku-20241022';
-  private readonly SONNET = 'claude-sonnet-4-20250514';
-  
-  // Simple operations that can use Haiku (90% cheaper)
-  private readonly SIMPLE_OPERATIONS: OperationType[] = [
-    'name_generation',
-    'title_generation',
-    'tag_generation',
-    'word_definition',
-    'synonym_generation'
-  ];
-  
-  // Threshold for text length when using improve_text
-  private readonly SHORT_TEXT_THRESHOLD = 500;
+  // Single model for all operations - Haiku 4.5 (released Oct 2025)
+  private readonly HAIKU_4_5 = 'claude-haiku-4-5';
   
   /**
-   * Select appropriate model based on task complexity
+   * Select model for given operation
+   * Returns Haiku 4.5 for all operations (simplified strategy)
    */
   selectModel(operationType: OperationType, textLength: number = 0): string {
-    // Simple tasks -> Use Haiku (90% cheaper)
-    if (this.SIMPLE_OPERATIONS.includes(operationType)) {
-      return this.HAIKU;
-    }
-    
-    // Short text editing -> Use Haiku
-    if (operationType === 'improve_text' && textLength < this.SHORT_TEXT_THRESHOLD) {
-      return this.HAIKU;
-    }
-    
-    // Description generation for simple objects -> Haiku
-    if (operationType === 'description_generation' && textLength < this.SHORT_TEXT_THRESHOLD) {
-      return this.HAIKU;
-    }
-    
-    // Complex tasks -> Use Sonnet
-    // This includes: character, setting, plot, conflict, theme, creature, plant generation
-    // as well as conversational chat, AI suggestions, and long text improvement
-    return this.SONNET;
+    // Use Haiku 4.5 for everything - it matches Sonnet 4 performance
+    // at 3x lower cost and 3-5x faster speed
+    return this.HAIKU_4_5;
   }
   
   /**
    * Get model display name for logging
    */
   getModelDisplayName(model: string): string {
-    return model.includes('haiku') ? 'Haiku' : 'Sonnet';
+    return 'Haiku 4.5';
   }
   
   /**
-   * Get estimated cost multiplier compared to Sonnet baseline
-   * Haiku is approximately 10x cheaper than Sonnet
+   * Get estimated cost multiplier compared to Sonnet 4.5 baseline
+   * Haiku 4.5 is 3x cheaper than Sonnet 4.5
    */
   getCostMultiplier(model: string): number {
-    return model.includes('haiku') ? 0.1 : 1.0;
+    return 0.33; // Haiku 4.5 costs ~1/3 of Sonnet 4.5
   }
 }
 
