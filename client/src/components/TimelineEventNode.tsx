@@ -3,6 +3,8 @@ import { NodeProps, Handle, Position } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Edit, 
   Trash2, 
@@ -18,12 +20,13 @@ import {
   Star,
   AlertCircle
 } from 'lucide-react';
-import type { TimelineEvent } from '@shared/schema';
+import type { TimelineEvent, Character } from '@shared/schema';
 
 export interface TimelineEventNodeData {
   event: TimelineEvent;
   notebookId: string;
   timelineId: string;
+  characters?: Character[]; // Characters involved in this event
   onEdit?: (event: TimelineEvent) => void;
   onDelete?: (event: TimelineEvent) => void;
   onAddRelationship?: (event: TimelineEvent) => void;
@@ -50,7 +53,7 @@ const importanceColors: Record<string, string> = {
 };
 
 function TimelineEventNodeComponent({ data }: NodeProps) {
-  const { event, onEdit, onDelete, onAddRelationship } = data as unknown as TimelineEventNodeData;
+  const { event, characters = [], onEdit, onDelete, onAddRelationship } = data as unknown as TimelineEventNodeData;
   
   // Get the appropriate icon for event type
   const EventIcon = eventTypeIcons[event.eventType?.toLowerCase() || 'other'] || Zap;
@@ -67,6 +70,11 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
   const dateDisplay = event.endDate 
     ? `${formatDate(event.startDate)} - ${formatDate(event.endDate)}`
     : formatDate(event.startDate);
+  
+  // Display up to 3 character avatars, with +N indicator for more
+  const maxAvatars = 3;
+  const displayCharacters = characters.slice(0, maxAvatars);
+  const remainingCount = characters.length - maxAvatars;
 
   return (
     <>
@@ -90,6 +98,44 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
             <Calendar className="w-3 h-3 flex-shrink-0" />
             <span className="truncate">{dateDisplay}</span>
           </div>
+
+          {/* Character Avatars */}
+          {characters.length > 0 && (
+            <div className="flex items-center gap-1" data-testid={`characters-${event.id}`}>
+              {displayCharacters.map((character) => {
+                const initials = character.givenName && character.familyName
+                  ? `${character.givenName[0]}${character.familyName[0]}`
+                  : character.givenName?.[0] || character.familyName?.[0] || '?';
+                const fullName = `${character.givenName || ''} ${character.familyName || ''}`.trim();
+                
+                return (
+                  <Tooltip key={character.id}>
+                    <TooltipTrigger asChild>
+                      <Avatar className="h-6 w-6 border-2 border-background" data-testid={`avatar-${character.id}`}>
+                        <AvatarImage src={character.imageUrl || undefined} />
+                        <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                      </Avatar>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      {fullName}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+              {remainingCount > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px] font-medium">
+                      +{remainingCount}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {remainingCount} more character{remainingCount > 1 ? 's' : ''}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          )}
 
           {/* Description (if exists) */}
           {event.description && (

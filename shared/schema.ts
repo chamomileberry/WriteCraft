@@ -1340,6 +1340,7 @@ export const timelineEvents = pgTable("timeline_events", {
   category: text("category"), // user-defined categories like "Plot", "Character Arc", "World Events"
   color: text("color"), // hex color for visual timeline
   icon: text("icon"), // lucide icon name
+  characterIds: text("character_ids").array(), // Array of character IDs involved in this event
   linkedContentId: varchar("linked_content_id"), // ID of linked character, location, etc.
   linkedContentType: text("linked_content_type"), // 'character', 'location', 'item', etc.
   positionX: real("position_x"), // horizontal position for canvas layout

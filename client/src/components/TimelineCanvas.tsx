@@ -100,6 +100,16 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     enabled: !!timelineId && !!notebookId,
   });
 
+  // Fetch characters from the notebook
+  const { data: allCharacters = [] } = useQuery({
+    queryKey: ['/api/characters', notebookId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/characters?notebookId=${notebookId}`);
+      return response.json();
+    },
+    enabled: !!notebookId,
+  });
+
   // Delete event mutation
   const deleteEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
@@ -254,6 +264,11 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     });
 
     const eventNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
+      // Get characters for this event
+      const eventCharacters = (event.characterIds || [])
+        .map((charId: string) => allCharacters.find((c: any) => c.id === charId))
+        .filter((c: any) => c !== undefined);
+      
       // Check if position is manually saved
       const hasManualPosition = event.positionX !== null && event.positionX !== undefined && !isAutoLayout;
       
@@ -269,6 +284,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
             event,
             notebookId,
             timelineId,
+            characters: eventCharacters,
             onEdit: handleEditEvent,
             onDelete: handleDeleteEvent,
             onAddRelationship: handleAddRelationship,
@@ -291,6 +307,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
           event,
           notebookId,
           timelineId,
+          characters: eventCharacters,
           onEdit: handleEditEvent,
           onDelete: handleDeleteEvent,
           onAddRelationship: handleAddRelationship,
@@ -300,7 +317,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
     // Combine lane background nodes with event nodes
     setNodes([...laneNodes, ...eventNodes]);
-  }, [events, notebookId, timelineId, isAutoLayout, eventCategories, getSwimLaneY, handleEditEvent, handleDeleteEvent, handleAddRelationship]);
+  }, [events, notebookId, timelineId, isAutoLayout, eventCategories, getSwimLaneY, handleEditEvent, handleDeleteEvent, handleAddRelationship, allCharacters]);
 
   // Convert relationships to edges
   useEffect(() => {
