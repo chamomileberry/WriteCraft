@@ -98,6 +98,7 @@
     "@uppy/react": "^5.1.0",
     "@xyflow/react": "^12.8.6",
     "adm-zip": "^0.5.16",
+    "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",

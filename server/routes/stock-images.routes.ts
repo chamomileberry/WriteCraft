@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import axios from "axios";
 
 const router = Router();
 
@@ -8,27 +9,30 @@ const stockSearchSchema = z.object({
   limit: z.number().min(1).max(20).default(12),
 });
 
+// Unsplash API access
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'demo';
+
 router.post("/search", async (req: any, res) => {
   try {
     const validated = stockSearchSchema.parse(req.body);
 
     console.log("[StockImages] Searching for:", validated.query);
 
-    // This will be handled by the stock_image_tool from the Replit environment
-    // The tool downloads images to attached_assets/stock_images directory
-    // For now, we'll return a placeholder response that the frontend can use
-    
-    // In a real implementation, the stock_image_tool would be called here
-    // and it would download images to the attached_assets directory
-    // Then we'd return the URLs to those downloaded images
-    
-    // Placeholder response - in production this would use the actual stock_image_tool
-    const images = [
-      {
-        url: `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80`,
-        alt: validated.query,
+    // Use Unsplash API for stock images
+    const response = await axios.get('https://api.unsplash.com/search/photos', {
+      params: {
+        query: validated.query,
+        per_page: validated.limit,
+        client_id: UNSPLASH_ACCESS_KEY,
       },
-    ];
+    });
+
+    const images = response.data.results.map((photo: any) => ({
+      url: photo.urls.regular,
+      alt: photo.alt_description || validated.query,
+      photographer: photo.user.name,
+      photographerUrl: photo.user.links.html,
+    }));
 
     res.json({
       images,
