@@ -3,6 +3,7 @@ import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { Excalidraw } from '@excalidraw/excalidraw';
+import '@excalidraw/excalidraw/index.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
