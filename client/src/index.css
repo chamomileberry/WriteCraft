@@ -406,3 +406,53 @@
     font-weight: bold;
   }
 }
+
+/* TipTap Image Resizing */
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem 0;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+  cursor: pointer;
+}
+
+/* Image resize wrapper when selected */
+.ProseMirror .image-resizer {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.ProseMirror .image-resizer.selected {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+.ProseMirror .image-resizer img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+}
+
+/* Image size controls - can be triggered via toolbar */
+.ProseMirror img[data-width="small"] {
+  max-width: 300px;
+}
+
+.ProseMirror img[data-width="medium"] {
+  max-width: 500px;
+}
+
+.ProseMirror img[data-width="large"] {
+  max-width: 700px;
+}
+
+.ProseMirror img[data-width="full"] {
+  max-width: 100%;
+}

@@ -374,9 +374,25 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         },
       }),
       // New Media Extensions
-      Image.configure({
+      Image.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            width: {
+              default: null,
+              rendered: true,
+            },
+            'data-width': {
+              default: 'full',
+              rendered: true,
+            },
+          };
+        },
+      }).configure({
+        inline: true,
+        allowBase64: true,
         HTMLAttributes: {
-          class: 'rounded-lg max-w-full h-auto',
+          class: 'rounded-lg cursor-pointer',
         },
       }),
       TiptapTable.configure({
