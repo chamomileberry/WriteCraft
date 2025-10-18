@@ -121,6 +121,8 @@ import {
   chatMessages, type ChatMessage, type InsertChatMessage,
   // PinnedContent types
   pinnedContent, type PinnedContent, type InsertPinnedContent,
+  // Canvas types
+  canvases, type Canvas, type InsertCanvas,
   notebooks
 } from '@shared/schema';
 import { eq, and, or, desc, isNull, sql } from 'drizzle-orm';
@@ -2997,6 +2999,66 @@ export class ContentRepository extends BaseRepository {
       ))
       .limit(1);
     return !!pin;
+  }
+
+  // ========== CANVAS METHODS ==========
+  async createCanvas(canvas: InsertCanvas): Promise<Canvas> {
+    const [result] = await db
+      .insert(canvases)
+      .values(canvas)
+      .returning();
+    return result;
+  }
+
+  async getCanvas(id: string, userId: string): Promise<Canvas | undefined> {
+    const [canvas] = await db
+      .select()
+      .from(canvases)
+      .where(and(
+        eq(canvases.id, id),
+        eq(canvases.userId, userId)
+      ));
+    return canvas;
+  }
+
+  async getUserCanvases(userId: string): Promise<Canvas[]> {
+    return await db
+      .select()
+      .from(canvases)
+      .where(eq(canvases.userId, userId))
+      .orderBy(desc(canvases.updatedAt));
+  }
+
+  async getProjectCanvases(projectId: string, userId: string): Promise<Canvas[]> {
+    return await db
+      .select()
+      .from(canvases)
+      .where(and(
+        eq(canvases.projectId, projectId),
+        eq(canvases.userId, userId)
+      ))
+      .orderBy(desc(canvases.updatedAt));
+  }
+
+  async updateCanvas(id: string, userId: string, updates: Partial<InsertCanvas>): Promise<Canvas> {
+    const [updated] = await db
+      .update(canvases)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(canvases.id, id),
+        eq(canvases.userId, userId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteCanvas(id: string, userId: string): Promise<void> {
+    await db
+      .delete(canvases)
+      .where(and(
+        eq(canvases.id, id),
+        eq(canvases.userId, userId)
+      ));
   }
 }
 

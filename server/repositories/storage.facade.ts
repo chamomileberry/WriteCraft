@@ -72,6 +72,7 @@ import {
   type Notebook, type InsertNotebook, type UpdateNotebook,
   type ImportJob, type InsertImportJob, type UpdateImportJob,
   type PinnedContent, type InsertPinnedContent,
+  type Canvas, type InsertCanvas,
   type UserPreferences, type InsertUserPreferences,
   type ConversationSummary, type InsertConversationSummary
 } from '@shared/schema';
@@ -1585,6 +1586,31 @@ export class StorageFacade implements IStorage {
 
   async isContentPinned(userId: string, itemType: string, itemId: string, notebookId: string): Promise<boolean> {
     return await contentRepository.isContentPinned(userId, itemType, itemId, notebookId);
+  }
+
+  // Canvas methods
+  async createCanvas(canvas: InsertCanvas): Promise<Canvas> {
+    return await contentRepository.createCanvas(canvas);
+  }
+
+  async getCanvas(id: string, userId: string): Promise<Canvas | undefined> {
+    return await contentRepository.getCanvas(id, userId);
+  }
+
+  async getUserCanvases(userId: string): Promise<Canvas[]> {
+    return await contentRepository.getUserCanvases(userId);
+  }
+
+  async getProjectCanvases(projectId: string, userId: string): Promise<Canvas[]> {
+    return await contentRepository.getProjectCanvases(projectId, userId);
+  }
+
+  async updateCanvas(id: string, userId: string, updates: Partial<InsertCanvas>): Promise<Canvas> {
+    return await contentRepository.updateCanvas(id, userId, updates);
+  }
+
+  async deleteCanvas(id: string, userId: string): Promise<void> {
+    await contentRepository.deleteCanvas(id, userId);
   }
 
   // Folder methods

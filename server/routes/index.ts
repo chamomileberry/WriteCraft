@@ -70,6 +70,7 @@ import keyRotationRoutes from "./keyRotation.routes";
 import teamRoutes from "./team.routes";
 import usageRoutes from "./usage.routes";
 import apiKeysRoutes from "./apiKeys.routes";
+import canvasRoutes from "./canvas.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -88,6 +89,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/settings", settingRoutes);
   app.use("/api/saved-items", savedItemRoutes);
   app.use("/api/projects", projectRoutes);
+  app.use("/api/canvases", canvasRoutes);
   app.use("/api/notebooks", notebookRoutes);
   app.use("/api", shareRoutes);
   app.use("/api/names", nameRoutes);
