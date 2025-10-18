@@ -3400,9 +3400,9 @@ export const teamMemberships = pgTable("team_memberships", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  role: varchar("role").notNull(), // 'owner', 'admin', 'member'
+  role: varchar("role").notNull(), // 'owner', 'admin', 'editor', 'viewer'
   
-  // Permissions
+  // Permissions (overrides based on role if needed)
   canEdit: boolean("can_edit").default(true),
   canComment: boolean("can_comment").default(true),
   canInvite: boolean("can_invite").default(false),
@@ -3457,6 +3457,34 @@ export const teamActivity = pgTable("team_activity", {
 }, (table) => ({
   teamCreatedIdx: index("team_activity_team_created_idx").on(table.teamSubscriptionId, table.createdAt),
   userCreatedIdx: index("team_activity_user_created_idx").on(table.userId, table.createdAt),
+}));
+
+// Audit Logs - Team tier exclusive feature for tracking all changes
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'set null' }), // User who made the change (nullable if user deleted)
+  
+  // Action Details
+  action: varchar("action").notNull(), // 'create', 'update', 'delete', 'share', 'invite', 'role_change'
+  resourceType: varchar("resource_type").notNull(), // 'project', 'notebook', 'character', 'setting', 'team_member', etc.
+  resourceId: varchar("resource_id"), // ID of the affected resource
+  resourceName: text("resource_name"), // Name of the resource for easier reading
+  
+  // Change Tracking
+  changesBefore: jsonb("changes_before"), // State before change (for updates/deletes)
+  changesAfter: jsonb("changes_after"), // State after change (for creates/updates)
+  
+  // Metadata
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  teamCreatedIdx: index("audit_logs_team_created_idx").on(table.teamSubscriptionId, table.createdAt),
+  userIdx: index("audit_logs_user_idx").on(table.userId),
+  resourceIdx: index("audit_logs_resource_idx").on(table.resourceType, table.resourceId),
+  actionIdx: index("audit_logs_action_idx").on(table.action),
 }));
 
 // Lifetime Deal Tracking
@@ -3808,6 +3836,17 @@ export const teamActivityRelations = relations(teamActivity, ({ one }) => ({
   }),
 }));
 
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  teamSubscription: one(userSubscriptions, {
+    fields: [auditLogs.teamSubscriptionId],
+    references: [userSubscriptions.id],
+  }),
+  user: one(users, {
+    fields: [auditLogs.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas and types for subscription tables
 export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
   id: true,
@@ -3842,6 +3881,11 @@ export const insertTeamInvitationSchema = createInsertSchema(teamInvitations).om
 });
 
 export const insertTeamActivitySchema = createInsertSchema(teamActivity).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   id: true,
   createdAt: true,
 });
@@ -3901,6 +3945,8 @@ export type InsertTeamInvitation = z.infer<typeof insertTeamInvitationSchema>;
 export type TeamInvitation = typeof teamInvitations.$inferSelect;
 export type InsertTeamActivity = z.infer<typeof insertTeamActivitySchema>;
 export type TeamActivity = typeof teamActivity.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertBillingAlert = z.infer<typeof insertBillingAlertSchema>;
 export type BillingAlert = typeof billingAlerts.$inferSelect;
 export type InsertDiscountCode = z.infer<typeof insertDiscountCodeSchema>;
