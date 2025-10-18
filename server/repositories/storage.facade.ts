@@ -1416,6 +1416,27 @@ export class StorageFacade implements IStorage {
     return await contentRepository.reorderGuideCategories(categoryOrders);
   }
 
+  // Guide reference methods
+  async createGuideReference(reference: InsertGuideReference): Promise<GuideReference> {
+    return await contentRepository.createGuideReference(reference);
+  }
+
+  async getGuideReferences(sourceGuideId: string): Promise<GuideReference[]> {
+    return await contentRepository.getGuideReferences(sourceGuideId);
+  }
+
+  async getGuideReferencedBy(targetGuideId: string): Promise<GuideReference[]> {
+    return await contentRepository.getGuideReferencedBy(targetGuideId);
+  }
+
+  async deleteGuideReferences(sourceGuideId: string): Promise<void> {
+    return await contentRepository.deleteGuideReferences(sourceGuideId);
+  }
+
+  async syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void> {
+    return await contentRepository.syncGuideReferences(sourceGuideId, targetGuideIds);
+  }
+
   // Saved item methods
   async saveItem(savedItem: InsertSavedItem): Promise<SavedItem> {
     return await contentRepository.saveItem(savedItem);

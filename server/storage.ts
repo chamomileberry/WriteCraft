@@ -562,6 +562,13 @@ export interface IStorage {
   updateGuideCategory(id: string, updates: Partial<InsertGuideCategory>): Promise<GuideCategory | undefined>;
   deleteGuideCategory(id: string): Promise<boolean>;
   reorderGuideCategories(categoryOrders: Array<{ id: string; order: number }>): Promise<void>;
+  
+  // Guide reference methods
+  createGuideReference(reference: InsertGuideReference): Promise<GuideReference>;
+  getGuideReferences(sourceGuideId: string): Promise<GuideReference[]>;
+  getGuideReferencedBy(targetGuideId: string): Promise<GuideReference[]>;
+  deleteGuideReferences(sourceGuideId: string): Promise<void>;
+  syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void>;
 
   // Saved item methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
@@ -4412,6 +4419,50 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
         .set({ order, updatedAt: new Date() })
         .where(eq(guideCategories.id, id));
     }
+  }
+
+  // Guide reference methods
+  async createGuideReference(reference: InsertGuideReference): Promise<GuideReference> {
+    const [newReference] = await db
+      .insert(guideReferences)
+      .values(reference)
+      .returning();
+    return newReference;
+  }
+
+  async getGuideReferences(sourceGuideId: string): Promise<GuideReference[]> {
+    return await db.select()
+      .from(guideReferences)
+      .where(eq(guideReferences.sourceGuideId, sourceGuideId));
+  }
+
+  async getGuideReferencedBy(targetGuideId: string): Promise<GuideReference[]> {
+    return await db.select()
+      .from(guideReferences)
+      .where(eq(guideReferences.targetGuideId, targetGuideId));
+  }
+
+  async deleteGuideReferences(sourceGuideId: string): Promise<void> {
+    await db.delete(guideReferences)
+      .where(eq(guideReferences.sourceGuideId, sourceGuideId));
+  }
+
+  async syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void> {
+    // Atomic transaction: delete existing references and insert new ones
+    await db.transaction(async (tx) => {
+      // Delete all existing references for this guide
+      await tx.delete(guideReferences)
+        .where(eq(guideReferences.sourceGuideId, sourceGuideId));
+      
+      // Create new references
+      if (targetGuideIds.length > 0) {
+        const references = targetGuideIds.map(targetGuideId => ({
+          sourceGuideId,
+          targetGuideId,
+        }));
+        await tx.insert(guideReferences).values(references);
+      }
+    });
   }
 
   // Saved item methods

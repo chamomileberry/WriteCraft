@@ -100,6 +100,18 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
+// Helper function to extract guide IDs from mentions in HTML content
+function extractGuideIdsFromContent(content: string): string[] {
+  const guideIds: Set<string> = new Set();
+  // Match mention elements with data-id attribute
+  const mentionRegex = /<span[^>]*class="[^"]*mention[^"]*"[^>]*data-id="([^"]+)"[^>]*>/g;
+  let match;
+  while ((match = mentionRegex.exec(content)) !== null) {
+    guideIds.add(match[1]);
+  }
+  return Array.from(guideIds);
+}
+
 router.post("/", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -114,6 +126,13 @@ router.post("/", async (req: any, res) => {
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
     const savedGuide = await storage.createGuide(validatedGuide);
+    
+    // Extract and sync guide references from content
+    if (savedGuide.content) {
+      const referencedGuideIds = extractGuideIdsFromContent(savedGuide.content);
+      await storage.syncGuideReferences(savedGuide.id, referencedGuideIds);
+    }
+    
     res.json(savedGuide);
   } catch (error) {
     console.error('Error creating guide:', error);
@@ -139,6 +158,13 @@ router.put("/:id", async (req: any, res) => {
     // Validate the request body using the insert schema
     const validatedGuide = insertGuideSchema.parse(req.body);
     const updatedGuide = await storage.updateGuide(req.params.id, validatedGuide);
+    
+    // Extract and sync guide references from content
+    if (updatedGuide && updatedGuide.content) {
+      const referencedGuideIds = extractGuideIdsFromContent(updatedGuide.content);
+      await storage.syncGuideReferences(updatedGuide.id, referencedGuideIds);
+    }
+    
     res.json(updatedGuide);
   } catch (error) {
     console.error('Error updating guide:', error);
@@ -167,6 +193,8 @@ router.delete("/:id", async (req: any, res) => {
       return res.status(403).json({ error: 'Only administrators can delete guides' });
     }
     
+    // Delete guide references first
+    await storage.deleteGuideReferences(req.params.id);
     await storage.deleteGuide(req.params.id);
     res.json({ success: true });
   } catch (error) {
@@ -179,6 +207,50 @@ router.delete("/:id", async (req: any, res) => {
       return res.status(404).json({ error: 'Not found' });
     }
     res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Get guides referenced by a specific guide
+router.get("/:id/references", async (req: any, res) => {
+  try {
+    const references = await storage.getGuideReferences(req.params.id);
+    
+    // Fetch the actual guide data for each reference
+    const referencedGuides = await Promise.all(
+      references.map(async (ref) => {
+        const guide = await storage.getGuide(ref.targetGuideId);
+        return guide;
+      })
+    );
+    
+    // Filter out any null guides (in case some were deleted)
+    const validGuides = referencedGuides.filter(guide => guide !== undefined);
+    res.json(validGuides);
+  } catch (error) {
+    console.error('Error fetching guide references:', error);
+    res.status(500).json({ error: 'Failed to fetch guide references' });
+  }
+});
+
+// Get guides that reference a specific guide
+router.get("/:id/referenced-by", async (req: any, res) => {
+  try {
+    const references = await storage.getGuideReferencedBy(req.params.id);
+    
+    // Fetch the actual guide data for each referencing guide
+    const referencingGuides = await Promise.all(
+      references.map(async (ref) => {
+        const guide = await storage.getGuide(ref.sourceGuideId);
+        return guide;
+      })
+    );
+    
+    // Filter out any null guides
+    const validGuides = referencingGuides.filter(guide => guide !== undefined);
+    res.json(validGuides);
+  } catch (error) {
+    console.error('Error fetching referencing guides:', error);
+    res.status(500).json({ error: 'Failed to fetch referencing guides' });
   }
 });
 
