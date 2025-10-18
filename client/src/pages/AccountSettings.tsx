@@ -17,6 +17,7 @@ import { BillingSettings } from "@/components/BillingSettings";
 import { PauseResumeSubscription } from "@/components/PauseResumeSubscription";
 import { PaymentMethods } from "@/components/PaymentMethods";
 import { InvoiceHistory } from "@/components/InvoiceHistory";
+import { APIKeysSettings } from "@/components/APIKeysSettings";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -124,6 +125,9 @@ export default function AccountSettings() {
         <div className="space-y-6">
           {/* Two-Factor Authentication */}
           <MFASettings />
+
+          {/* API Keys */}
+          <APIKeysSettings />
 
           {/* Billing & Subscription */}
           <BillingSettings />

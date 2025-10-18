@@ -36,6 +36,7 @@ import Pricing from "@/pages/Pricing";
 import Analytics from "@/pages/Analytics";
 import TeamManagement from "@/pages/TeamManagement";
 import Examples from "@/pages/Examples";
+import ApiDocs from "@/pages/ApiDocs";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -198,6 +199,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/examples" component={Examples} />
       <Route path="/analytics" component={Analytics} />
+      <Route path="/api-docs" component={ApiDocs} />
       <Route path="/team" component={TeamManagement} />
       <Route path="/account" component={AccountSettings} />
       <Route path="/search" component={SearchPage} />
