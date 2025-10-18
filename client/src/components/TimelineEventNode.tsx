@@ -20,7 +20,9 @@ import {
   Star,
   AlertCircle
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import type { TimelineEvent, Character } from '@shared/schema';
+import { getEventTypeIcon, getEventTypeColor } from '@/lib/eventTypeConfig';
 
 export interface TimelineEventNodeData {
   event: TimelineEvent;
@@ -32,19 +34,6 @@ export interface TimelineEventNodeData {
   onAddRelationship?: (event: TimelineEvent) => void;
 }
 
-// Map event types to icons
-const eventTypeIcons: Record<string, any> = {
-  battle: Swords,
-  discovery: Sparkles,
-  birth: Star,
-  death: AlertCircle,
-  meeting: Users,
-  political: Flag,
-  cultural: BookOpen,
-  location: MapPin,
-  other: Zap,
-};
-
 // Map importance to visual indicators
 const importanceColors: Record<string, string> = {
   major: 'border-l-4 border-l-primary',
@@ -55,8 +44,13 @@ const importanceColors: Record<string, string> = {
 function TimelineEventNodeComponent({ data }: NodeProps) {
   const { event, characters = [], onEdit, onDelete, onAddRelationship } = data as unknown as TimelineEventNodeData;
   
-  // Get the appropriate icon for event type
-  const EventIcon = eventTypeIcons[event.eventType?.toLowerCase() || 'other'] || Zap;
+  // Get the icon - use custom icon if available, otherwise fall back to event type icon
+  const EventIcon = event.icon 
+    ? (LucideIcons as any)[event.icon] || getEventTypeIcon(event.eventType)
+    : getEventTypeIcon(event.eventType);
+  
+  // Get the color - use custom color if available, otherwise fall back to event type color
+  const eventColor = event.color || getEventTypeColor(event.eventType);
   
   // Get importance styling
   const importanceClass = importanceColors[event.importance || 'moderate'];
@@ -85,8 +79,16 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
         <div className="flex flex-col gap-2 flex-1">
           {/* Header with icon and title */}
           <div className="flex items-start gap-2">
-            <div className="p-1.5 rounded-md bg-primary/10 flex-shrink-0">
-              <EventIcon className="w-4 h-4 text-primary" />
+            <div 
+              className="p-1.5 rounded-md flex-shrink-0"
+              style={{ 
+                backgroundColor: `${eventColor}15`, // 15 is ~8% opacity in hex
+              }}
+            >
+              <EventIcon 
+                className="w-4 h-4" 
+                style={{ color: eventColor }}
+              />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-sm leading-tight line-clamp-2">{event.title}</h4>
