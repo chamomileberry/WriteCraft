@@ -46,7 +46,9 @@ import ContentTypeModal from "@/components/ContentTypeModal";
 import { getMappingByUrlSegment, getMappingById } from "@shared/contentTypes";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 
 // Notebook page component
 function NotebookPage() {
@@ -253,8 +255,22 @@ function App() {
 
 function AuthenticatedApp() {
   const { user, isLoading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  if (isLoading) {
+  // Fetch user preferences to check onboarding status
+  const { data: preferences, isLoading: preferencesLoading } = useQuery<any>({
+    queryKey: ['/api/user/preferences'],
+    enabled: !!user, // Only fetch when user is authenticated
+  });
+
+  // Show onboarding wizard when user is loaded and hasn't completed onboarding
+  useEffect(() => {
+    if (user && preferences && !preferences.onboardingCompleted) {
+      setShowOnboarding(true);
+    }
+  }, [user, preferences]);
+
+  if (isLoading || preferencesLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
@@ -275,6 +291,15 @@ function AuthenticatedApp() {
       <WorkspaceShell>
         <Router />
       </WorkspaceShell>
+      
+      {/* Show onboarding wizard on first login */}
+      {showOnboarding && (
+        <OnboardingWizard
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 }
