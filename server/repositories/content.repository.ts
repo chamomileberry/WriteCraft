@@ -2307,6 +2307,33 @@ export class ContentRepository extends BaseRepository {
     }
   }
 
+  // ========== GUIDE REFERENCE METHODS ==========
+  async syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void> {
+    // First, delete all existing references from this guide
+    await db.delete(guideReferences)
+      .where(eq(guideReferences.sourceGuideId, sourceGuideId));
+    
+    // Then insert the new references
+    if (targetGuideIds.length > 0) {
+      const references = targetGuideIds.map(targetId => ({
+        sourceGuideId,
+        targetGuideId: targetId,
+        userId: null, // Guide references don't have a user ID
+      }));
+      await db.insert(guideReferences).values(references);
+    }
+  }
+
+  async deleteGuideReferences(sourceGuideId: string): Promise<void> {
+    await db.delete(guideReferences)
+      .where(eq(guideReferences.sourceGuideId, sourceGuideId));
+  }
+
+  async getGuideReferencedBy(targetGuideId: string): Promise<GuideReference[]> {
+    return await db.select().from(guideReferences)
+      .where(eq(guideReferences.targetGuideId, targetGuideId));
+  }
+
   // ========== TIMELINE METHODS ==========
   async createTimeline(timeline: InsertTimeline): Promise<Timeline> {
     const [newTimeline] = await db.insert(timelines).values(timeline).returning();
