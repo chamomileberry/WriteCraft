@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TimelineEventNode, TimelineEventNodeData } from './TimelineEventNode';
 import { TimelineRelationshipEdge, TimelineRelationshipEdgeData } from './TimelineRelationshipEdge';
 import { EventEditDialog } from './EventEditDialog';
+import { RelationshipCreateDialog } from './RelationshipCreateDialog';
 import { TimelineAxis } from './TimelineAxis';
 import { getLayoutedElements } from '@/lib/dagre-layout';
 import { SwimLaneNode, SwimLaneNodeData } from './SwimLaneNode';
@@ -43,6 +44,8 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isRelationshipDialogOpen, setIsRelationshipDialogOpen] = useState(false);
+  const [relationshipSourceEvent, setRelationshipSourceEvent] = useState<TimelineEvent | null>(null);
   const [isAutoLayout, setIsAutoLayout] = useState(true);
   const [previousEventCount, setPreviousEventCount] = useState(0);
 
@@ -194,13 +197,9 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   }, []);
 
   const handleAddRelationship = useCallback((event: TimelineEvent) => {
-    setSelectedEvent(event);
-    // TODO: Open relationship dialog
-    toast({
-      title: 'Coming Soon',
-      description: 'Relationship creation dialog is being built',
-    });
-  }, [toast]);
+    setRelationshipSourceEvent(event);
+    setIsRelationshipDialogOpen(true);
+  }, []);
 
   // Get unique event types (categories) for swim lanes
   const eventCategories = useMemo(() => {
@@ -516,6 +515,18 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
         timelineId={timelineId}
         notebookId={notebookId}
         event={selectedEvent}
+      />
+
+      <RelationshipCreateDialog
+        open={isRelationshipDialogOpen}
+        onOpenChange={(open) => {
+          setIsRelationshipDialogOpen(open);
+          if (!open) setRelationshipSourceEvent(null);
+        }}
+        sourceEvent={relationshipSourceEvent}
+        availableEvents={events || []}
+        timelineId={timelineId}
+        notebookId={notebookId}
       />
     </div>
   );
