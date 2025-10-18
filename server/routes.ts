@@ -80,6 +80,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CSP violation reporting endpoint (no authentication required - browser sends these automatically)
   app.use("/api/csp-report", cspReportRoutes);
 
+  // Versioned API routes (uses API key authentication instead of session)
+  const { default: v1ApiRoutes } = await import('./routes/api/v1/index');
+  app.use("/api/v1", v1ApiRoutes);
+
   // Use secure user routes with enhanced security features
   // These routes include:
   // - Rate limiting protection

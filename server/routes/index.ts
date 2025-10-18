@@ -69,6 +69,7 @@ import conversationThreadRoutes from "./conversation-thread.routes";
 import keyRotationRoutes from "./keyRotation.routes";
 import teamRoutes from "./team.routes";
 import usageRoutes from "./usage.routes";
+import apiKeysRoutes from "./apiKeys.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -146,4 +147,5 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/banned-phrases", bannedPhraseRoutes);
   app.use("/api/admin/key-rotations", keyRotationRoutes);
   app.use("/api/team", teamRoutes);
+  app.use("/api/api-keys", apiKeysRoutes);
 }
