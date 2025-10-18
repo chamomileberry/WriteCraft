@@ -201,10 +201,23 @@ export default function WritingGuides() {
       {/* Sidebar */}
       <Card className="w-72 flex-shrink-0 h-fit sticky top-4">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FolderTree className="h-5 w-5" />
-            Categories
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FolderTree className="h-5 w-5" />
+              Categories
+            </CardTitle>
+            {isAdmin && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setLocation('/admin/guide-categories')}
+                data-testid="button-manage-categories"
+                className="text-xs"
+              >
+                Manage
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-3">
           <ScrollArea className="h-[600px]">
@@ -370,9 +383,9 @@ export default function WritingGuides() {
                 </div>
               </div>
               
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 overflow-hidden">
                 {guide.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                  <Badge key={index} variant="outline" className="text-xs flex-shrink-0">
                     {tag}
                   </Badge>
                 ))}
