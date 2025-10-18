@@ -1,17 +1,30 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Palette, Clock, ArrowRight } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Palette, Clock, Edit2, Trash2 } from 'lucide-react';
 import Header from '@/components/Header';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import type { Canvas } from '@shared/schema';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function CanvasesListPage() {
   const [location, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [canvasToDelete, setCanvasToDelete] = useState<string | null>(null);
   
   // Fetch all canvases for the user
   const { data: canvases, isLoading } = useQuery({
@@ -23,12 +36,45 @@ export default function CanvasesListPage() {
     },
   });
 
+  // Delete canvas mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/canvases/${id}`);
+      if (!response.ok) throw new Error('Failed to delete canvas');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/canvases'] });
+      toast({
+        title: 'Canvas deleted',
+        description: 'Your canvas has been deleted successfully.',
+      });
+      setCanvasToDelete(null);
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete canvas. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleCreateNew = () => {
     setLocation('/canvas/new');
   };
 
-  const handleOpenCanvas = (id: string) => {
+  const handleEditCanvas = (id: string) => {
     setLocation(`/canvas/${id}`);
+  };
+
+  const handleDeleteCanvas = (id: string) => {
+    setCanvasToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (canvasToDelete) {
+      deleteMutation.mutate(canvasToDelete);
+    }
   };
 
   return (
@@ -71,8 +117,7 @@ export default function CanvasesListPage() {
               {canvases.map((canvas) => (
                 <Card
                   key={canvas.id}
-                  className="hover-elevate cursor-pointer transition-all"
-                  onClick={() => handleOpenCanvas(canvas.id)}
+                  className="hover-elevate transition-all"
                   data-testid={`canvas-card-${canvas.id}`}
                 >
                   <CardHeader>
@@ -85,7 +130,7 @@ export default function CanvasesListPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
                         {canvas.updatedAt
@@ -93,18 +138,28 @@ export default function CanvasesListPage() {
                           : 'Never'}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-4 w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenCanvas(canvas.id);
-                      }}
-                    >
-                      Open Canvas
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1 bg-primary hover:bg-primary/90"
+                        onClick={() => handleEditCanvas(canvas.id)}
+                        data-testid={`button-edit-canvas-${canvas.id}`}
+                      >
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleDeleteCanvas(canvas.id)}
+                        data-testid={`button-delete-canvas-${canvas.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -124,6 +179,28 @@ export default function CanvasesListPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!canvasToDelete} onOpenChange={(open) => !open && setCanvasToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Canvas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this canvas? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
