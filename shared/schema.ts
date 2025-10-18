@@ -3761,6 +3761,53 @@ export const apiKeyRotationAudit = pgTable("api_key_rotation_audit", {
   timestampIdx: index("api_key_rotation_audit_timestamp_idx").on(table.timestamp),
 }));
 
+// Relations for subscription and team tables
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userSubscriptionsRelations = relations(userSubscriptions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [userSubscriptions.userId],
+    references: [users.id],
+  }),
+  teamMemberships: many(teamMemberships),
+  teamInvitations: many(teamInvitations),
+  teamActivity: many(teamActivity),
+}));
+
+export const teamMembershipsRelations = relations(teamMemberships, ({ one }) => ({
+  teamSubscription: one(userSubscriptions, {
+    fields: [teamMemberships.teamSubscriptionId],
+    references: [userSubscriptions.id],
+  }),
+  user: one(users, {
+    fields: [teamMemberships.userId],
+    references: [users.id],
+  }),
+}));
+
+export const teamInvitationsRelations = relations(teamInvitations, ({ one }) => ({
+  teamSubscription: one(userSubscriptions, {
+    fields: [teamInvitations.teamSubscriptionId],
+    references: [userSubscriptions.id],
+  }),
+}));
+
+export const teamActivityRelations = relations(teamActivity, ({ one }) => ({
+  teamSubscription: one(userSubscriptions, {
+    fields: [teamActivity.teamSubscriptionId],
+    references: [userSubscriptions.id],
+  }),
+  user: one(users, {
+    fields: [teamActivity.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas and types for subscription tables
 export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
   id: true,

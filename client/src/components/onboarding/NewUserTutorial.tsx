@@ -103,7 +103,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       }
       const response = await apiRequest('POST', '/api/characters/generate', {
         prompt: prompt || "a mysterious traveler with a hidden past",
-        genre: "fantasy",
+        genre: "Fantasy",
         notebookId: notebookId
       });
       return response.json();
@@ -134,6 +134,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
   const saveCharacter = useMutation({
     mutationFn: async () => {
       if (!generatedCharacter) throw new Error("No character to save");
+      if (!notebookId) throw new Error("Notebook ID not available");
       
       const response = await apiRequest('POST', '/api/characters', {
         name: generatedCharacter.name,
@@ -151,7 +152,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
         relationships: [],
         conflictStyle: null,
         characterArc: null,
-        notebookId: null,
+        notebookId: notebookId,
         projectId: null,
       });
       return response.json();
@@ -191,7 +192,12 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl" data-testid="dialog-new-tutorial">
+      <DialogContent 
+        className="max-w-2xl" 
+        data-testid="dialog-new-tutorial"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
             {currentStep === 1 && <User className="w-6 h-6 text-primary" />}

@@ -87,7 +87,12 @@ export function ExperiencedUserTour({ isOpen, onComplete, onSkip }: ExperiencedU
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl" data-testid="dialog-experienced-tour">
+      <DialogContent 
+        className="max-w-2xl" 
+        data-testid="dialog-experienced-tour"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
             <Icon className="w-6 h-6 text-primary" />

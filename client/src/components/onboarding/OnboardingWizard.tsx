@@ -101,7 +101,12 @@ export function OnboardingWizard({ isOpen, onClose, userId }: OnboardingWizardPr
   // Welcome screen
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-3xl" data-testid="dialog-onboarding-welcome">
+      <DialogContent 
+        className="max-w-3xl" 
+        data-testid="dialog-onboarding-welcome"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-6 h-6 text-primary" />

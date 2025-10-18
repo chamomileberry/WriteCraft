@@ -38,6 +38,8 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Team Management System**: Role hierarchy, token-based invitations, real-time activity feed, shared AI quota, and dedicated UI.
 - **Data Import/Export**: World Anvil import system (17 content types) with field mapping and error reporting.
 - **Character Data Consolidation Tool**: Admin interface for data quality management.
+- **Canvas System**: Visual whiteboard feature using Excalidraw for creating story diagrams, character relationship maps, and plot structures; database schema includes `canvases` table with JSON data storage; API endpoints at `/api/canvases` for CRUD operations; integrated with projects system for organization.
+- **Onboarding System**: Interactive wizard for new users with two paths: (1) Experienced User Tour - 4-step overlay highlighting main features, (2) New User Tutorial - guided character creation with AI generation; database fields: `onboardingCompleted`, `onboardingStep`, `experienceLevel`; API endpoints: GET/PATCH `/api/user/preferences`; dialog dismissal prevention implemented via `onInteractOutside` and `onEscapeKeyDown` handlers; character generation uses capitalized genre values ("Fantasy" not "fantasy"); tutorial creates default "My First Notebook" and includes notebookId when saving characters.
 
 ### System Design Choices
 - **Code Organization**: Centralized constants, API layer, custom Zustand hooks, and schema-driven form generation.
