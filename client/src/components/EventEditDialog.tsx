@@ -375,45 +375,63 @@ export function EventEditDialog({
               <FormField
                 control={form.control}
                 name="icon"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Icon</FormLabel>
-                    <FormDescription className="text-xs">
-                      Auto-filled from event type
-                    </FormDescription>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-event-icon">
-                          <SelectValue placeholder="Select icon">
-                            {field.value && (() => {
-                              const IconComponent = (LucideIcons as any)[field.value];
-                              return IconComponent ? (
-                                <div className="flex items-center gap-2">
-                                  <IconComponent className="w-4 h-4" />
-                                  <span>{field.value}</span>
-                                </div>
-                              ) : field.value;
-                            })()}
-                          </SelectValue>
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
-                        {Object.entries(EVENT_TYPE_CONFIGS).map(([type, config]) => {
-                          const IconComponent = config.iconComponent;
-                          return (
-                            <SelectItem key={config.icon} value={config.icon}>
+                render={({ field }) => {
+                  // Ensure the currently selected icon is included in the options
+                  const iconOptions = Object.entries(EVENT_TYPE_CONFIGS).map(([type, config]) => ({
+                    value: config.icon,
+                    label: config.label,
+                    component: config.iconComponent,
+                  }));
+
+                  // If the field has a value that's not in the preset options, add it
+                  if (field.value && !iconOptions.some(opt => opt.value === field.value)) {
+                    const IconComponent = (LucideIcons as any)[field.value];
+                    if (IconComponent) {
+                      iconOptions.push({
+                        value: field.value,
+                        label: field.value,
+                        component: IconComponent,
+                      });
+                    }
+                  }
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Icon</FormLabel>
+                      <FormDescription className="text-xs">
+                        Auto-filled from event type
+                      </FormDescription>
+                      <Select onValueChange={field.onChange} value={field.value || undefined}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-event-icon">
+                            <SelectValue placeholder="Select icon">
+                              {field.value && (() => {
+                                const IconComponent = (LucideIcons as any)[field.value];
+                                return IconComponent ? (
+                                  <div className="flex items-center gap-2">
+                                    <IconComponent className="w-4 h-4" />
+                                    <span>{field.value}</span>
+                                  </div>
+                                ) : field.value;
+                              })()}
+                            </SelectValue>
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent position="popper" className="z-[300]" sideOffset={5}>
+                          {iconOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
                               <div className="flex items-center gap-2">
-                                <IconComponent className="w-4 h-4" />
-                                <span>{config.label}</span>
+                                <option.component className="w-4 h-4" />
+                                <span>{option.label}</span>
                               </div>
                             </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
