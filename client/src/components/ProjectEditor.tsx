@@ -15,7 +15,7 @@ import { FontFamily } from '@tiptap/extension-font-family';
 import { BulletList } from '@tiptap/extension-bullet-list';
 import { OrderedList } from '@tiptap/extension-ordered-list';
 import { ListItem } from '@tiptap/extension-list-item';
-import Image from '@tiptap/extension-image';
+import { ImageResize } from '@/lib/image-resize-extension';
 import { Table as TiptapTable } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
@@ -378,11 +378,12 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       ClickableMention.configure({
         suggestion,
       }),
-      Image.configure({
+      ImageResize.configure({
+        inline: false,
+        allowBase64: true,
         HTMLAttributes: {
-          class: 'rounded-lg max-w-full h-auto',
+          class: 'rounded-lg',
         },
-        allowBase64: false,
       }),
       TiptapTable.configure({
         resizable: true,

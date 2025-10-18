@@ -413,46 +413,41 @@
   height: auto;
   display: block;
   margin: 1rem 0;
+  cursor: default;
+  border-radius: 0.5rem;
 }
 
-.ProseMirror img.ProseMirror-selectednode {
+/* Show resize cursor near right edge */
+.ProseMirror img:hover {
+  cursor: grab;
+}
+
+/* Selected image styling */
+.ProseMirror img.ProseMirror-selectednode,
+.ProseMirror .image-resizer-selected img {
   outline: 3px solid hsl(var(--primary));
   outline-offset: 2px;
-  cursor: pointer;
+  box-shadow: 0 0 0 1px hsl(var(--background)), 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Image resize wrapper when selected */
-.ProseMirror .image-resizer {
-  position: relative;
-  display: inline-block;
-  max-width: 100%;
+/* Resize handle visual indicator */
+.ProseMirror img.ProseMirror-selectednode::after,
+.ProseMirror .image-resizer-selected img::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 40px;
+  background: hsl(var(--primary));
+  border-radius: 4px;
+  cursor: ew-resize;
+  opacity: 0.8;
+  pointer-events: none;
 }
 
-.ProseMirror .image-resizer.selected {
-  outline: 3px solid hsl(var(--primary));
-  outline-offset: 2px;
-}
-
-.ProseMirror .image-resizer img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0;
-}
-
-/* Image size controls - can be triggered via toolbar */
-.ProseMirror img[data-width="small"] {
-  max-width: 300px;
-}
-
-.ProseMirror img[data-width="medium"] {
-  max-width: 500px;
-}
-
-.ProseMirror img[data-width="large"] {
-  max-width: 700px;
-}
-
-.ProseMirror img[data-width="full"] {
-  max-width: 100%;
+.ProseMirror img.ProseMirror-selectednode:hover::after,
+.ProseMirror .image-resizer-selected img:hover::after {
+  opacity: 1;
 }
