@@ -85,6 +85,7 @@ import {
   familyTrees, familyTreeMembers, familyTreeRelationships, timelines, timelineEvents, 
   timelineRelationships, ceremonies, maps, music, dances, laws, policies, potions,
   type PinnedContent, type InsertPinnedContent, pinnedContent,
+  type Canvas, type InsertCanvas, canvases,
   chatMessages,
   userPreferences, conversationSummaries,
   shares
@@ -596,6 +597,14 @@ export interface IStorage {
   getUserPinnedContent(userId: string, notebookId: string, category?: string): Promise<PinnedContent[]>;
   reorderPinnedContent(userId: string, itemId: string, newOrder: number, notebookId: string): Promise<void>;
   isContentPinned(userId: string, itemType: string, itemId: string, notebookId: string): Promise<boolean>;
+
+  // Canvas methods
+  createCanvas(canvas: InsertCanvas): Promise<Canvas>;
+  getCanvas(id: string, userId: string): Promise<Canvas | undefined>;
+  getUserCanvases(userId: string): Promise<Canvas[]>;
+  getProjectCanvases(projectId: string, userId: string): Promise<Canvas[]>;
+  updateCanvas(id: string, userId: string, updates: Partial<InsertCanvas>): Promise<Canvas>;
+  deleteCanvas(id: string, userId: string): Promise<void>;
 
   // Folder methods
   createFolder(folder: InsertFolder): Promise<Folder>;
@@ -5111,6 +5120,66 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .limit(1);
 
     return !!pin;
+  }
+
+  // Canvas methods
+  async createCanvas(canvas: InsertCanvas): Promise<Canvas> {
+    const [result] = await db
+      .insert(canvases)
+      .values(canvas)
+      .returning();
+    return result;
+  }
+
+  async getCanvas(id: string, userId: string): Promise<Canvas | undefined> {
+    const [canvas] = await db
+      .select()
+      .from(canvases)
+      .where(and(
+        eq(canvases.id, id),
+        eq(canvases.userId, userId)
+      ));
+    return canvas;
+  }
+
+  async getUserCanvases(userId: string): Promise<Canvas[]> {
+    return await db
+      .select()
+      .from(canvases)
+      .where(eq(canvases.userId, userId))
+      .orderBy(desc(canvases.updatedAt));
+  }
+
+  async getProjectCanvases(projectId: string, userId: string): Promise<Canvas[]> {
+    return await db
+      .select()
+      .from(canvases)
+      .where(and(
+        eq(canvases.projectId, projectId),
+        eq(canvases.userId, userId)
+      ))
+      .orderBy(desc(canvases.updatedAt));
+  }
+
+  async updateCanvas(id: string, userId: string, updates: Partial<InsertCanvas>): Promise<Canvas> {
+    const [updated] = await db
+      .update(canvases)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(canvases.id, id),
+        eq(canvases.userId, userId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteCanvas(id: string, userId: string): Promise<void> {
+    await db
+      .delete(canvases)
+      .where(and(
+        eq(canvases.id, id),
+        eq(canvases.userId, userId)
+      ));
   }
 
   // Folder methods
