@@ -374,7 +374,8 @@ export function sanitizeInput(input: any, fieldName?: string): any {
     if (input.length > SECURITY_CONFIG.MAX_ARRAY_LENGTH) {
       throw new Error('Array too large');
     }
-    return input.map((item) => sanitizeInput(item));
+    // Preserve field name context when recursing into arrays
+    return input.map((item) => sanitizeInput(item, fieldName));
   }
   
   if (typeof input === 'object' && input !== null) {
