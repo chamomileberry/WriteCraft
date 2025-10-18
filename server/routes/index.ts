@@ -73,6 +73,7 @@ import usageRoutes from "./usage.routes";
 import apiKeysRoutes from "./apiKeys.routes";
 import canvasRoutes from "./canvas.routes";
 import userRoutes from "./user.routes";
+import contentRoutes from "./content.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -154,4 +155,5 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/admin/key-rotations", keyRotationRoutes);
   app.use("/api/team", teamRoutes);
   app.use("/api/api-keys", apiKeysRoutes);
+  app.use("/api/content", contentRoutes);
 }
