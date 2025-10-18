@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -59,18 +59,52 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
   const [currentStep, setCurrentStep] = useState(1);
   const [characterPrompt, setCharacterPrompt] = useState("");
   const [generatedCharacter, setGeneratedCharacter] = useState<CharacterData | null>(null);
+  const [notebookId, setNotebookId] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   const stepData = tutorialSteps.find(s => s.step === currentStep) || tutorialSteps[0];
   const progress = (currentStep / tutorialSteps.length) * 100;
 
+  // Create a default notebook for the tutorial
+  const createNotebook = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/notebooks', {
+        name: "My First Notebook",
+        description: "Created during onboarding",
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setNotebookId(data.id);
+    },
+    onError: (error) => {
+      console.error('Failed to create notebook:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set up tutorial. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Create notebook on mount if not exists
+  useEffect(() => {
+    if (!notebookId && isOpen) {
+      createNotebook.mutate();
+    }
+  }, [isOpen]);
+
   // Generate character mutation
   const generateCharacter = useMutation({
     mutationFn: async (prompt: string) => {
-      const response = await apiRequest('POST', '/api/generators/character', {
+      if (!notebookId) {
+        throw new Error("Notebook not ready");
+      }
+      const response = await apiRequest('POST', '/api/characters/generate', {
         prompt: prompt || "a mysterious traveler with a hidden past",
-        genre: "fantasy"
+        genre: "fantasy",
+        notebookId: notebookId
       });
       return response.json();
     },
