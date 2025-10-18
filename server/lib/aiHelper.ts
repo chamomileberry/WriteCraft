@@ -2,7 +2,7 @@
  * AI Helper - Centralized AI generation with cost optimization
  * 
  * This module provides utilities for:
- * - Intelligent model selection (Haiku vs Sonnet)
+ * - Haiku 4.5 model for all operations (optimal cost/performance)
  * - Prompt caching to reduce costs by 90%
  * - Usage tracking for billing
  */
@@ -152,7 +152,7 @@ export async function makeConversationalAICall(options: {
     maxTokens = 1024
   } = options;
 
-  // Select model for conversational tasks (always Sonnet for complex conversations)
+  // Select model for conversational tasks (Haiku 4.5 for all operations)
   const model = modelSelector.selectModel(operationType);
 
   // Use caching for system prompt
