@@ -331,40 +331,36 @@ export default function WritingGuides() {
           {guides.map((guide) => (
           <Card key={guide.id} className="group hover-elevate transition-all duration-200">
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {guide.category}
-                    </Badge>
-                    <Badge className={`text-xs ${getDifficultyColor(guide.difficulty)}`}>
-                      {guide.difficulty}
-                    </Badge>
-                    {isAdmin && (
-                      <Badge 
-                        variant={guide.published ? "default" : "outline"} 
-                        className="text-xs"
-                        data-testid={`badge-guide-status-${guide.id}`}
-                      >
-                        {guide.published ? (
-                          <>
-                            <Eye className="h-3 w-3 mr-1" />
-                            Published
-                          </>
-                        ) : (
-                          <>
-                            <EyeOff className="h-3 w-3 mr-1" />
-                            Draft
-                          </>
-                        )}
-                      </Badge>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <Badge variant="secondary" className="text-xs flex-shrink-0">
+                  {guide.category}
+                </Badge>
+                <Badge className={`text-xs flex-shrink-0 ${getDifficultyColor(guide.difficulty)}`}>
+                  {guide.difficulty}
+                </Badge>
+                {isAdmin && (
+                  <Badge 
+                    variant={guide.published ? "default" : "outline"} 
+                    className="text-xs flex-shrink-0"
+                    data-testid={`badge-guide-status-${guide.id}`}
+                  >
+                    {guide.published ? (
+                      <>
+                        <Eye className="h-3 w-3 mr-1" />
+                        Published
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="h-3 w-3 mr-1" />
+                        Draft
+                      </>
                     )}
-                  </div>
-                  <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                    {guide.title}
-                  </CardTitle>
-                </div>
+                  </Badge>
+                )}
               </div>
+              <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                {guide.title}
+              </CardTitle>
               <CardDescription>{guide.description}</CardDescription>
             </CardHeader>
             
