@@ -342,7 +342,7 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
 /**
  * SQL Injection prevention through strict input sanitization
  */
-export function sanitizeInput(input: any): any {
+export function sanitizeInput(input: any, fieldName?: string): any {
   if (typeof input === 'string') {
     // Only flag SQL injection if it looks like actual SQL syntax, not just keywords in prose
     // Look for SQL patterns with special characters that indicate malicious intent
@@ -353,9 +353,18 @@ export function sanitizeInput(input: any): any {
       throw new Error('Invalid input detected');
     }
     
-    // Limit string length
-    if (input.length > SECURITY_CONFIG.MAX_STRING_LENGTH) {
+    // Exempt certain fields from length restrictions (rich content fields)
+    const exemptFields = ['content', 'description', 'notes', 'body', 'excerpt', 'summary'];
+    const isExemptField = fieldName && exemptFields.includes(fieldName);
+    
+    // Limit string length (unless it's an exempt field)
+    if (!isExemptField && input.length > SECURITY_CONFIG.MAX_STRING_LENGTH) {
       throw new Error('Input too long');
+    }
+    
+    // For exempt fields, apply a much higher limit (1MB)
+    if (isExemptField && input.length > 1024 * 1024) {
+      throw new Error('Content too long');
     }
     
     return input.trim();
@@ -365,7 +374,7 @@ export function sanitizeInput(input: any): any {
     if (input.length > SECURITY_CONFIG.MAX_ARRAY_LENGTH) {
       throw new Error('Array too large');
     }
-    return input.map(sanitizeInput);
+    return input.map((item) => sanitizeInput(item));
   }
   
   if (typeof input === 'object' && input !== null) {
@@ -376,7 +385,8 @@ export function sanitizeInput(input: any): any {
         console.warn(`[SECURITY] Prototype pollution attempt detected: ${key}`);
         continue;
       }
-      sanitized[sanitizeInput(key)] = sanitizeInput(value);
+      // Pass the field name when sanitizing values
+      sanitized[sanitizeInput(key)] = sanitizeInput(value, key);
     }
     return sanitized;
   }
