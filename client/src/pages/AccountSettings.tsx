@@ -18,6 +18,8 @@ import { PauseResumeSubscription } from "@/components/PauseResumeSubscription";
 import { PaymentMethods } from "@/components/PaymentMethods";
 import { InvoiceHistory } from "@/components/InvoiceHistory";
 import { APIKeysSettings } from "@/components/APIKeysSettings";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { BookOpen } from "lucide-react";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -29,6 +31,7 @@ export default function AccountSettings() {
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Sync state with user prop changes
   useEffect(() => {
@@ -82,6 +85,28 @@ export default function AccountSettings() {
     window.location.href = "/api/logout";
   };
 
+  const handleRestartOnboarding = async () => {
+    try {
+      await apiRequest('PATCH', '/api/user/preferences', {
+        onboardingCompleted: false,
+        onboardingStep: 0
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+      setShowOnboarding(true);
+      toast({
+        title: "Onboarding restarted",
+        description: "The onboarding wizard will guide you through the platform features.",
+      });
+    } catch (error) {
+      console.error('Failed to restart onboarding:', error);
+      toast({
+        title: "Error",
+        description: "Failed to restart onboarding. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setLocation(`/search?q=${encodeURIComponent(query)}`);
@@ -128,6 +153,25 @@ export default function AccountSettings() {
 
           {/* API Keys */}
           <APIKeysSettings />
+
+          {/* Onboarding */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Onboarding</CardTitle>
+              <CardDescription>
+                Take a guided tour of WriteCraft's features
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Want a refresher on how to use WriteCraft? Restart the onboarding wizard to learn about our tools, generators, and organizational features.
+              </p>
+              <Button onClick={handleRestartOnboarding} data-testid="button-restart-onboarding">
+                <BookOpen className="w-4 h-4 mr-2" />
+                Restart Onboarding Tour
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Billing & Subscription */}
           <BillingSettings />
@@ -272,6 +316,15 @@ export default function AccountSettings() {
           </Card>
         </div>
       </div>
+
+      {/* Onboarding Wizard */}
+      {showOnboarding && (
+        <OnboardingWizard
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 }
