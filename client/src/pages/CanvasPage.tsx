@@ -78,11 +78,13 @@ export default function CanvasPage() {
       if (!response.ok) throw new Error('Failed to create canvas');
       return response.json();
     },
-    onSuccess: (newCanvas) => {
+    onSuccess: (newCanvas, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/canvases'] });
       setLocation(`/canvas/${newCanvas.id}`);
       setHasUnsavedChanges(false);
       setLastSaved(new Date());
+      // Update last saved data reference
+      lastSavedData.current = variables.data;
       toast({
         title: 'Canvas created',
         description: 'Your canvas has been created successfully.',
@@ -105,15 +107,13 @@ export default function CanvasPage() {
       if (!response.ok) throw new Error('Failed to update canvas');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       // Only invalidate the list, NOT the current canvas to prevent refetch loop
       queryClient.invalidateQueries({ queryKey: ['/api/canvases'], exact: true });
       setHasUnsavedChanges(false);
       setLastSaved(new Date());
-      toast({
-        title: 'Saved',
-        description: 'Your canvas has been saved successfully.',
-      });
+      // Update last saved data reference
+      lastSavedData.current = variables.data;
     },
     onError: () => {
       toast({
@@ -125,8 +125,11 @@ export default function CanvasPage() {
   });
 
   // Auto-save functionality
-  const saveCanvas = useCallback(() => {
+  const saveCanvas = useCallback((isManualSave = false) => {
     if (!excalidrawAPI) return;
+    
+    // Prevent concurrent saves
+    if (createMutation.isPending || updateMutation.isPending) return;
 
     const elements = excalidrawAPI.getSceneElements();
     const appState = excalidrawAPI.getAppState();
@@ -140,24 +143,32 @@ export default function CanvasPage() {
     };
 
     const canvasDataString = JSON.stringify(canvasDataObj);
-    
-    // Update last saved data reference
-    lastSavedData.current = canvasDataString;
 
     if (id === 'new') {
+      // For new canvases, createMutation already shows a toast
       createMutation.mutate({ name: title, data: canvasDataString });
     } else {
-      updateMutation.mutate({ name: title, data: canvasDataString });
+      // For existing canvases, only show toast on manual save
+      updateMutation.mutate({ name: title, data: canvasDataString }, {
+        onSuccess: () => {
+          if (isManualSave) {
+            toast({
+              title: 'Saved',
+              description: 'Your canvas has been saved successfully.',
+            });
+          }
+        }
+      });
     }
-  }, [excalidrawAPI, id, title, createMutation, updateMutation]);
+  }, [excalidrawAPI, id, title, createMutation, updateMutation, toast]);
 
   // Auto-save on changes (debounced)
   useEffect(() => {
     if (!hasUnsavedChanges) return;
 
     const timer = setTimeout(() => {
-      saveCanvas();
-    }, 2000); // Save after 2 seconds of inactivity
+      saveCanvas(false); // Auto-save (no toast)
+    }, 10000); // Save after 10 seconds of inactivity
 
     return () => clearTimeout(timer);
   }, [hasUnsavedChanges, saveCanvas]);
@@ -185,7 +196,7 @@ export default function CanvasPage() {
 
   // Manual save handler
   const handleSave = () => {
-    saveCanvas();
+    saveCanvas(true); // Pass true to indicate manual save (shows toast)
   };
 
   if (isLoading) {
