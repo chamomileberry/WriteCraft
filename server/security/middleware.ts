@@ -301,16 +301,18 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   // In development, we need to allow 'unsafe-eval' and 'unsafe-inline' for Vite HMR
   const isDevelopment = process.env.NODE_ENV === 'development';
   const scriptSrc = isDevelopment 
-    ? `'self' 'unsafe-inline' 'unsafe-eval' https://replit.com https://js.stripe.com` // Dev: Allow inline for Vite + Stripe
-    : `'self' 'nonce-${nonce}' https://js.stripe.com`; // Production: strict nonce-only + Stripe
+    ? `'self' 'unsafe-inline' 'unsafe-eval' blob: https://replit.com https://js.stripe.com` // Dev: Allow inline for Vite + Stripe + Excalidraw
+    : `'self' 'nonce-${nonce}' blob: https://js.stripe.com`; // Production: strict nonce-only + Stripe + Excalidraw
   
   res.setHeader('Content-Security-Policy', 
     `default-src 'self'; ` +
     `script-src ${scriptSrc}; ` +
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` + // Allow Google Fonts
-    `img-src 'self' data: https:; ` +
+    `img-src 'self' data: blob: https:; ` + // Add blob: for Excalidraw image handling
     `font-src 'self' data: https://fonts.gstatic.com; ` + // Allow Google Fonts
     `connect-src 'self' wss: https:; ` +
+    `worker-src 'self' blob:; ` + // Allow Web Workers for Excalidraw
+    `child-src 'self' blob:; ` + // Allow blob: children for Excalidraw
     `frame-src https://js.stripe.com https://*.stripe.com; ` + // Allow Stripe frames for 3D Secure
     `frame-ancestors 'none'; ` + // Prevent embedding (redundant with X-Frame-Options but more secure)
     `base-uri 'self'; ` + // Restrict <base> tag URLs
