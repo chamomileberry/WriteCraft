@@ -156,7 +156,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onSkip()}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="max-w-2xl" data-testid="dialog-new-tutorial">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">

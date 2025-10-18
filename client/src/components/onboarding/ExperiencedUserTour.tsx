@@ -86,7 +86,7 @@ export function ExperiencedUserTour({ isOpen, onComplete, onSkip }: ExperiencedU
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onSkip()}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="max-w-2xl" data-testid="dialog-experienced-tour">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">

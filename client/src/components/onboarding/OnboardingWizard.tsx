@@ -67,7 +67,7 @@ export function OnboardingWizard({ isOpen, onClose, userId }: OnboardingWizardPr
       onClose();
       
       toast({
-        title: "Welcome to WriteCraft! 🎉",
+        title: "Welcome to WriteCraft!",
         description: "You're all set to start building amazing worlds.",
       });
     } catch (error) {
@@ -100,7 +100,7 @@ export function OnboardingWizard({ isOpen, onClose, userId }: OnboardingWizardPr
 
   // Welcome screen
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleSkipOnboarding()}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="max-w-3xl" data-testid="dialog-onboarding-welcome">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
