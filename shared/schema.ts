@@ -307,6 +307,7 @@ export const guides = pgTable("guides", {
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
   category: text("category").notNull(),
+  categoryId: varchar("category_id"), // FK constraint handled via relations
   readTime: integer("read_time").notNull(),
   difficulty: text("difficulty").notNull(),
   rating: real("rating").default(0),
@@ -317,6 +318,26 @@ export const guides = pgTable("guides", {
   userId: varchar("user_id"), // FK constraint handled via relations
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Guide categories (hierarchical organization)
+export const guideCategories = pgTable("guide_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  parentId: varchar("parent_id"), // FK constraint handled via relations
+  order: integer("order").notNull().default(0),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Guide references (for @mentions between guides)
+export const guideReferences = pgTable("guide_references", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sourceGuideId: varchar("source_guide_id").notNull(), // FK constraint handled via relations
+  targetGuideId: varchar("target_guide_id").notNull(), // FK constraint handled via relations
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated settings
@@ -2613,7 +2634,50 @@ export const guidesRelations = relations(guides, ({ one, many }) => ({
     fields: [guides.folderId],
     references: [folders.id],
   }),
+  category: one(guideCategories, {
+    fields: [guides.categoryId],
+    references: [guideCategories.id],
+  }),
   notes: many(notes),
+  sourceReferences: many(guideReferences, {
+    relationName: 'sourceGuide',
+  }),
+  targetReferences: many(guideReferences, {
+    relationName: 'targetGuide',
+  }),
+}));
+
+export const guideCategoriesRelations = relations(guideCategories, ({ one, many }) => ({
+  user: one(users, {
+    fields: [guideCategories.userId],
+    references: [users.id],
+  }),
+  parent: one(guideCategories, {
+    fields: [guideCategories.parentId],
+    references: [guideCategories.id],
+    relationName: 'children',
+  }),
+  children: many(guideCategories, {
+    relationName: 'children',
+  }),
+  guides: many(guides),
+}));
+
+export const guideReferencesRelations = relations(guideReferences, ({ one }) => ({
+  user: one(users, {
+    fields: [guideReferences.userId],
+    references: [users.id],
+  }),
+  sourceGuide: one(guides, {
+    fields: [guideReferences.sourceGuideId],
+    references: [guides.id],
+    relationName: 'sourceGuide',
+  }),
+  targetGuide: one(guides, {
+    fields: [guideReferences.targetGuideId],
+    references: [guides.id],
+    relationName: 'targetGuide',
+  }),
 }));
 
 export const projectLinksRelations = relations(projectLinks, ({ one }) => ({
@@ -2717,6 +2781,17 @@ export const insertGuideSchema = createInsertSchema(guides).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertGuideCategorySchema = createInsertSchema(guideCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGuideReferenceSchema = createInsertSchema(guideReferences).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertSettingSchema = createInsertSchema(settings).omit({
@@ -3081,6 +3156,10 @@ export type InsertPrompt = z.infer<typeof insertPromptSchema>;
 export type Prompt = typeof prompts.$inferSelect;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;
 export type Guide = typeof guides.$inferSelect;
+export type InsertGuideCategory = z.infer<typeof insertGuideCategorySchema>;
+export type GuideCategory = typeof guideCategories.$inferSelect;
+export type InsertGuideReference = z.infer<typeof insertGuideReferenceSchema>;
+export type GuideReference = typeof guideReferences.$inferSelect;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type Setting = typeof settings.$inferSelect;
 export type InsertName = z.infer<typeof insertNameSchema>;
