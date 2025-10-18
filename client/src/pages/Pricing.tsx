@@ -267,6 +267,35 @@ export default function Pricing() {
                       </FeatureTooltip>
                     )}
 
+                    {/* Team tier exclusive features */}
+                    {tier === 'team' && (
+                      <>
+                        <div className="border-t my-3 pt-3">
+                          <p className="text-xs font-semibold text-muted-foreground mb-2">TEAM EXCLUSIVE</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <span className="text-sm">Role-based access control</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <span className="text-sm">Audit logs & compliance</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <span className="text-sm">Team analytics dashboard</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <span className="text-sm">25K API calls/month</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <span className="text-sm">Shared resource library</span>
+                        </div>
+                      </>
+                    )}
+
                     <FeatureTooltip
                       title={FEATURE_DESCRIPTIONS.exportFormats.title}
                       description={FEATURE_DESCRIPTIONS.exportFormats.description}

@@ -21,7 +21,9 @@ import {
   Shield,
   Edit,
   Eye,
-  MessageSquare
+  MessageSquare,
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import {
   Select,
@@ -325,13 +327,35 @@ export default function TeamManagement() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
-            Team Management
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your team members, invitations, and collaboration settings
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-3">
+                <Users className="h-8 w-8 text-primary" />
+                Team Management
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Manage your team members, invitations, and collaboration settings
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation('/team/analytics')}
+                data-testid="button-view-analytics"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation('/team/audit-logs')}
+                data-testid="button-view-audit-logs"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Audit Logs
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Tabs defaultValue="members" className="space-y-6">

@@ -35,6 +35,8 @@ import ConversationManager from "@/pages/ConversationManager";
 import Pricing from "@/pages/Pricing";
 import Analytics from "@/pages/Analytics";
 import TeamManagement from "@/pages/TeamManagement";
+import TeamAnalytics from "@/pages/TeamAnalytics";
+import TeamAuditLogs from "@/pages/TeamAuditLogs";
 import Examples from "@/pages/Examples";
 import ApiDocs from "@/pages/ApiDocs";
 import CanvasPage from "@/pages/CanvasPage";
@@ -236,6 +238,8 @@ function Router() {
       <Route path="/canvases" component={CanvasesListPage} />
       <Route path="/canvas/:id" component={CanvasPage} />
       <Route path="/conversations" component={ConversationManager} />
+      <Route path="/team/analytics" component={TeamAnalytics} />
+      <Route path="/team/audit-logs" component={TeamAuditLogs} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
