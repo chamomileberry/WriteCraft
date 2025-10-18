@@ -95,6 +95,9 @@ import {
   conflicts, type Conflict, type InsertConflict,
   // Guide types
   guides, type Guide, type InsertGuide,
+  // Guide category types
+  guideCategories, type GuideCategory, type InsertGuideCategory,
+  guideReferences, type GuideReference, type InsertGuideReference,
   // Timeline types
   timelines, type Timeline, type InsertTimeline,
   timelineEvents, type TimelineEvent, type InsertTimelineEvent,
@@ -2219,6 +2222,89 @@ export class ContentRepository extends BaseRepository {
       .where(eq(guides.id, id))
       .returning({ id: guides.id });
     return deletedGuides.length > 0;
+  }
+
+  // ========== GUIDE CATEGORY METHODS ==========
+  async createGuideCategory(category: InsertGuideCategory): Promise<GuideCategory> {
+    const [newCategory] = await db.insert(guideCategories).values(category).returning();
+    return newCategory;
+  }
+
+  async getGuideCategories(): Promise<any[]> {
+    // Fetch all categories ordered by position
+    const allCategories = await db.select().from(guideCategories).orderBy(guideCategories.order, guideCategories.name);
+    
+    // Build hierarchical structure
+    const categoryMap = new Map<string, any>();
+    const rootCategories: any[] = [];
+    
+    // First pass: create map with children arrays
+    allCategories.forEach(category => {
+      categoryMap.set(category.id, { ...category, children: [] });
+    });
+    
+    // Second pass: build hierarchy
+    allCategories.forEach(category => {
+      const categoryWithChildren = categoryMap.get(category.id)!;
+      if (category.parentId) {
+        const parent = categoryMap.get(category.parentId);
+        if (parent) {
+          parent.children.push(categoryWithChildren);
+        } else {
+          // If parent not found, treat as root
+          rootCategories.push(categoryWithChildren);
+        }
+      } else {
+        rootCategories.push(categoryWithChildren);
+      }
+    });
+    
+    // Third pass: sort children within each parent
+    const sortChildren = (categories: any[]) => {
+      categories.forEach(category => {
+        if (category.children.length > 0) {
+          category.children.sort((a: any, b: any) => {
+            if (a.order !== b.order) return a.order - b.order;
+            return a.name.localeCompare(b.name);
+          });
+          sortChildren(category.children); // Recursively sort nested children
+        }
+      });
+    };
+    
+    // Sort root categories
+    rootCategories.sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return a.name.localeCompare(b.name);
+    });
+    
+    // Sort all nested children
+    sortChildren(rootCategories);
+    
+    return rootCategories;
+  }
+
+  async updateGuideCategory(id: string, updates: Partial<InsertGuideCategory>): Promise<GuideCategory | undefined> {
+    const [updatedCategory] = await db.update(guideCategories)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(guideCategories.id, id))
+      .returning();
+    return updatedCategory;
+  }
+
+  async deleteGuideCategory(id: string): Promise<boolean> {
+    const deletedCategories = await db.delete(guideCategories)
+      .where(eq(guideCategories.id, id))
+      .returning({ id: guideCategories.id });
+    return deletedCategories.length > 0;
+  }
+
+  async reorderGuideCategories(categoryOrders: Array<{ id: string; order: number }>): Promise<void> {
+    for (const { id, order } of categoryOrders) {
+      await db.update(guideCategories)
+        .set({ order, updatedAt: new Date() })
+        .where(eq(guideCategories.id, id));
+    }
   }
 
   // ========== TIMELINE METHODS ==========

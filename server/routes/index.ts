@@ -3,6 +3,7 @@ import { isAuthenticated } from "../replitAuth";
 import characterRoutes from "./character.routes";
 import creatureRoutes from "./creature.routes";
 import guideRoutes from "./guide.routes";
+import guideCategoryRoutes from "./guideCategory.routes";
 import plotRoutes from "./plot.routes";
 import promptRoutes from "./prompt.routes";
 import settingRoutes from "./setting.routes";
@@ -86,6 +87,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/characters", characterRoutes);
   app.use("/api/creatures", creatureRoutes);
   app.use("/api/guides", guideRoutes);
+  app.use("/api/guide-categories", guideCategoryRoutes);
   app.use("/api/plots", plotRoutes);
   app.use("/api/prompts", promptRoutes);
   app.use("/api/settings", settingRoutes);

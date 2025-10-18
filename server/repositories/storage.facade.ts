@@ -26,6 +26,8 @@ import {
   type Mood, type InsertMood,
   type Conflict, type InsertConflict,
   type InsertGuide, type Guide,
+  type GuideCategory, type InsertGuideCategory,
+  type GuideReference, type InsertGuideReference,
   type Project, type InsertProject,
   type ProjectSection, type InsertProjectSection,
   type ProjectLink, type InsertProjectLink,
@@ -1391,6 +1393,27 @@ export class StorageFacade implements IStorage {
 
   async deleteGuide(id: string): Promise<boolean> {
     return await contentRepository.deleteGuide(id);
+  }
+
+  // Guide category methods
+  async createGuideCategory(category: InsertGuideCategory): Promise<GuideCategory> {
+    return await contentRepository.createGuideCategory(category);
+  }
+
+  async getGuideCategories(): Promise<any[]> {
+    return await contentRepository.getGuideCategories();
+  }
+
+  async updateGuideCategory(id: string, updates: Partial<InsertGuideCategory>): Promise<GuideCategory | undefined> {
+    return await contentRepository.updateGuideCategory(id, updates);
+  }
+
+  async deleteGuideCategory(id: string): Promise<boolean> {
+    return await contentRepository.deleteGuideCategory(id);
+  }
+
+  async reorderGuideCategories(categoryOrders: Array<{ id: string; order: number }>): Promise<void> {
+    return await contentRepository.reorderGuideCategories(categoryOrders);
   }
 
   // Saved item methods
