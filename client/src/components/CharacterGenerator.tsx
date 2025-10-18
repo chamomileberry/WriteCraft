@@ -14,6 +14,7 @@ import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { UsageIndicator } from "@/components/UsageIndicator";
+import { PolishButton } from "@/components/PolishButton";
 
 export default function CharacterGenerator() {
   const [genre, setGenre] = useState<string>("");
@@ -181,6 +182,17 @@ export default function CharacterGenerator() {
                 </CardDescription>
               </div>
               <div className="flex gap-2">
+                <PolishButton
+                  content={character.backstory || ""}
+                  contentType="character"
+                  onPolished={(polished) => {
+                    // Update the character's backstory with polished content
+                    generator.setResult({
+                      ...character,
+                      backstory: polished
+                    });
+                  }}
+                />
                 <Button variant="outline" size="sm" onClick={generator.copyToClipboard} data-testid="button-copy-character">
                   <Copy className="h-4 w-4" />
                 </Button>

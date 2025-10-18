@@ -232,6 +232,27 @@ export default function Pricing() {
                       </span>
                     </FeatureTooltip>
 
+                    {/* Premium Opus Features (Professional/Team only) */}
+                    {limits.polishUsesPerMonth > 0 && (
+                      <div className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <div className="text-sm">
+                          <span className="font-medium">Polish</span>
+                          <span className="text-muted-foreground"> ({limits.polishUsesPerMonth}/month) - Premium AI enhancement</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {limits.extendedThinkingPerMonth > 0 && (
+                      <div className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <div className="text-sm">
+                          <span className="font-medium">Extended Thinking</span>
+                          <span className="text-muted-foreground"> ({limits.extendedThinkingPerMonth}/month) - Deep AI reasoning</span>
+                        </div>
+                      </div>
+                    )}
+
                     {limits.hasCollaboration && (
                       <FeatureTooltip
                         title={FEATURE_DESCRIPTIONS.collaboration.title}

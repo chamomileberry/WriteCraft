@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 import { useNotebookStore } from '@/stores/notebookStore';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -74,6 +82,7 @@ export default function WritingAssistantPanel({
   const [questions, setQuestions] = useState<string[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
+  const [extendedThinkingEnabled, setExtendedThinkingEnabled] = useState(false);
   
   // Thread management state
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
@@ -85,6 +94,7 @@ export default function WritingAssistantPanel({
   const historyDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { hasPremiumAccess, extendedThinkingRemaining, premiumQuota } = useSubscription();
   const { getEditorContext, executeEditorAction } = useWorkspaceStore();
   const { activeNotebookId } = useNotebookStore();
 
@@ -808,7 +818,42 @@ export default function WritingAssistantPanel({
               </div>
             </ScrollArea>
             
-            <div className="p-3 border-t flex-shrink-0">
+            <div className="p-3 border-t flex-shrink-0 space-y-2">
+              {/* Extended Thinking Toggle */}
+              {hasPremiumAccess() && (
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            id="extended-thinking"
+                            checked={extendedThinkingEnabled}
+                            onCheckedChange={setExtendedThinkingEnabled}
+                            disabled={extendedThinkingRemaining <= 0}
+                            data-testid="switch-extended-thinking"
+                          />
+                          <Label htmlFor="extended-thinking" className="text-sm font-medium cursor-pointer">
+                            Extended Thinking
+                          </Label>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">Uses advanced AI for deeper reasoning and analysis</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    {extendedThinkingEnabled && (
+                      <Badge variant="secondary" className="text-xs">
+                        Slower, higher quality
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {extendedThinkingRemaining}/{premiumQuota?.extendedThinking.limit || 0} remaining
+                  </span>
+                </div>
+              )}
+              
               <div className="flex gap-2">
                 <Textarea
                   ref={textareaRef}
@@ -830,7 +875,7 @@ export default function WritingAssistantPanel({
                   disabled={!inputText.trim()}
                   data-testid="button-send-message"
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  <MessageSquare className="h-4 w-4" />
                 </Button>
               </div>
             </div>

@@ -6,7 +6,7 @@ import {
   aiUsageDailySummary,
   projects 
 } from '@shared/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { TIER_LIMITS, type SubscriptionTier } from '@shared/types/subscription';
 
 export class SubscriptionService {
@@ -287,7 +287,7 @@ export class SubscriptionService {
         .from(aiUsageLogs)
         .where(
           and(
-            sql`${aiUsageLogs.userId} = ANY(${memberIds})`,
+            inArray(aiUsageLogs.userId, memberIds),
             eq(aiUsageLogs.operationType, operationType),
             sql`${aiUsageLogs.createdAt} >= ${startOfMonth}`
           )

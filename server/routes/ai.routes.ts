@@ -313,4 +313,82 @@ Follow the user's instruction and return ONLY the modified or generated ${fieldL
   }
 });
 
+// Polish content endpoint - Premium feature (Professional/Team only)
+// Uses Opus 4.1 for higher quality enhancement
+router.post("/polish", secureAuthentication, aiRateLimiter, trackAIUsage('polish'), async (req: any, res) => {
+  try {
+    const { content, contentType = "text" } = req.body;
+    const userId = req.user.claims.sub;
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Content is required' });
+    }
+
+    // Load style instruction from database
+    const styleInstruction = await getBannedPhrasesInstruction();
+
+    // System prompt for polishing with premium quality
+    const systemPrompt = `You are an expert writing editor with a keen eye for excellence. Your task is to polish the provided content to a professional, publication-ready standard. Focus on:
+
+1. **Clarity & Flow**: Ensure ideas flow smoothly and logically
+2. **Language Quality**: Elevate word choice, vary sentence structure, enhance imagery
+3. **Engagement**: Make the content more compelling and vivid
+4. **Consistency**: Maintain the author's voice and style while improving quality
+5. **Professional Polish**: Eliminate awkward phrasing, redundancy, and weak constructions
+
+Preserve the original meaning and core ideas while significantly enhancing the quality. Return ONLY the polished content without explanations.${styleInstruction}`;
+
+    let userPrompt = '';
+    
+    if (contentType === "character") {
+      userPrompt = `Polish this character description to publication quality, making it vivid, compelling, and professionally crafted:
+
+${content}`;
+    } else if (contentType === "plot") {
+      userPrompt = `Polish this plot structure to publication quality, ensuring it's engaging, well-paced, and professionally structured:
+
+${content}`;
+    } else if (contentType === "setting") {
+      userPrompt = `Polish this setting description to publication quality, making it immersive, atmospheric, and professionally crafted:
+
+${content}`;
+    } else {
+      userPrompt = `Polish this content to publication quality, enhancing clarity, engagement, and professional polish:
+
+${content}`;
+    }
+
+    // Use makeAICall with 'polish' operation type (routes to Opus 4.1)
+    const result = await makeAICall({
+      operationType: 'polish',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 4096, // Generous token budget for high-quality output
+      textLength: content.length,
+      enableCaching: false // Don't cache - each polish request is unique
+    });
+
+    const polishedContent = result.content.trim() || content;
+
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, result.usage, result.model);
+
+    res.json({ polishedContent });
+
+  } catch (error: any) {
+    console.error('Error in AI polish:', error);
+    
+    // Handle quota exceeded errors
+    if (error.message && error.message.includes('quota')) {
+      return res.status(403).json({ 
+        error: 'Polish quota exceeded',
+        message: error.message 
+      });
+    }
+    
+    res.status(500).json({ error: 'Failed to polish content' });
+  }
+});
+
 export default router;
