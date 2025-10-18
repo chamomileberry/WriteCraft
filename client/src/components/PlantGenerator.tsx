@@ -13,6 +13,7 @@ import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { PolishButton } from "@/components/PolishButton";
 
 interface Plant {
   id?: string;
@@ -160,6 +161,16 @@ Hardiness Zone: ${plant.hardinessZone}`,
                 </CardDescription>
               </div>
               <div className="flex gap-2">
+                <PolishButton
+                  content={currentPlant.description}
+                  contentType="plant"
+                  onPolished={(polished) => {
+                    generator.setResult({
+                      ...currentPlant,
+                      description: polished
+                    });
+                  }}
+                />
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>

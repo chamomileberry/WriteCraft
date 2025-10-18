@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { PolishButton } from "@/components/PolishButton";
 
 interface PlotStructure {
   id?: string;
@@ -199,6 +200,16 @@ ${plot.setup}
                 <CardDescription>Three-act story framework</CardDescription>
               </div>
               <div className="flex gap-2">
+                <PolishButton
+                  content={plot.theme}
+                  contentType="plot"
+                  onPolished={(polished) => {
+                    generator.setResult({
+                      ...plot,
+                      theme: polished
+                    });
+                  }}
+                />
                 <Button variant="outline" size="sm" onClick={generator.copyToClipboard} data-testid="button-copy-plot">
                   <Copy className="h-4 w-4" />
                 </Button>

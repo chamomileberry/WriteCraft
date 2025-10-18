@@ -13,6 +13,7 @@ import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { useAuth } from "@/hooks/useAuth";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { PolishButton } from "@/components/PolishButton";
 
 export default function CreatureGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
@@ -159,6 +160,16 @@ ${creature.culturalSignificance}`,
                 </CardDescription>
               </div>
               <div className="flex gap-2">
+                <PolishButton
+                  content={generatedCreature.physicalDescription}
+                  contentType="creature"
+                  onPolished={(polished) => {
+                    generator.setResult({
+                      ...generatedCreature,
+                      physicalDescription: polished
+                    });
+                  }}
+                />
                 <Button 
                   variant="outline" 
                   size="sm" 

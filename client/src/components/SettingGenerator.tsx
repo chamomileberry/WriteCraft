@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { PolishButton } from "@/components/PolishButton";
 
 export default function SettingGenerator() {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
@@ -166,6 +167,16 @@ ${setting.notableFeatures.join(', ')}`,
                 </CardDescription>
               </div>
               <div className="flex gap-2">
+                <PolishButton
+                  content={generatedSetting.description}
+                  contentType="setting"
+                  onPolished={(polished) => {
+                    generator.setResult({
+                      ...generatedSetting,
+                      description: polished
+                    });
+                  }}
+                />
                 <Button 
                   variant="outline" 
                   size="sm" 

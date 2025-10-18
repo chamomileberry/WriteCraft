@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { PolishButton } from "@/components/PolishButton";
 
 const CONFLICT_TYPE_CATEGORIES = {
   "Conflict Types": ['any', 'internal', 'external', 'interpersonal', 'societal']
@@ -169,6 +170,16 @@ ${conflict.potentialResolutions.join('\n')}`,
                 </CardDescription>
               </div>
               <div className="flex gap-2">
+                <PolishButton
+                  content={generatedConflict.description}
+                  contentType="conflict"
+                  onPolished={(polished) => {
+                    generator.setResult({
+                      ...generatedConflict,
+                      description: polished
+                    });
+                  }}
+                />
                 <Button 
                   variant="outline" 
                   size="sm" 

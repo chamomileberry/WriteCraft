@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequireNotebook } from "@/hooks/useRequireNotebook";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { PolishButton } from "@/components/PolishButton";
 
 const DESCRIPTION_TYPE_CATEGORIES = {
   "Equipment & Gear": [
@@ -235,6 +236,16 @@ Tags: ${desc.tags.join(', ')}`,
                 </CardDescription>
               </div>
               <div className="flex gap-2">
+                <PolishButton
+                  content={generatedDescription.content}
+                  contentType="description"
+                  onPolished={(polished) => {
+                    generator.setResult({
+                      ...generatedDescription,
+                      content: polished
+                    });
+                  }}
+                />
                 <Button 
                   variant="outline" 
                   size="sm" 
