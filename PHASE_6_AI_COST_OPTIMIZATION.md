@@ -1,25 +1,29 @@
 # Phase 6: AI Cost Optimization - Implementation Complete
 
 ## Overview
-Phase 6 implements intelligent AI cost optimization through model selection and prompt caching, targeting **60-90% cost reduction** for AI operations.
+Phase 6 implements AI cost optimization using Claude Haiku 4.5 for all operations and prompt caching, achieving **67-90% cost reduction** compared to Sonnet 4.5.
 
 ## Architecture Components
 
 ### 1. ModelSelector Service (`server/services/modelSelector.ts`)
-**Purpose**: Intelligently route operations to the most cost-effective model
+**Purpose**: Simplified single-model strategy using Haiku 4.5
 
-**Model Selection Logic**:
-- **Claude Haiku** (10x cheaper): Simple operations and short text
-  - Name generation, title generation, tag generation
-  - Text improvement < 500 characters
-  - Description generation < 500 characters
-  
-- **Claude Sonnet 4** (higher quality): Complex creative work
-  - Character, setting, plot, conflict generation
-  - Long text improvement (≥ 500 characters)
-  - Conversational AI and suggestions
+**Model Selection Strategy**:
+- **Claude Haiku 4.5** (`claude-haiku-4-5`): Used for ALL operations
+  - Released October 2025
+  - Matches Sonnet 4 performance (73.3% vs 73% on SWE-bench)
+  - 3x cheaper than Sonnet 4.5 ($1 vs $3 per million input tokens)
+  - 3-5x faster response times
+  - More than sufficient quality for creative writing tasks
 
-**Cost Impact**: ~50% reduction through intelligent routing
+**Rationale for Single Model**:
+- Haiku 4.5 provides near-frontier performance at small model cost
+- Benchmark testing shows only 4% difference vs Sonnet 4.5 (73.3% vs 77.2%)
+- Simpler codebase and cost management
+- Faster user experience with 3-5x lower latency
+- Better economics for free tier users
+
+**Cost Impact**: 67% reduction vs Sonnet 4.5, plus caching benefits
 
 ### 2. PromptCache Manager (`server/lib/promptCache.ts`)
 **Purpose**: Track cached prompts with TTL to leverage Anthropic's caching
@@ -88,8 +92,8 @@ const result = await makeConversationalAICall({
 
 **Cost Calculation** (SubscriptionService):
 ```typescript
-// Haiku: $0.25 input, $1.25 output, $0.025 cached per 1M tokens
-// Sonnet: $3 input, $15 output, $0.30 cached per 1M tokens
+// Haiku 4.5: $1 input, $5 output per 1M tokens
+// Cached: $1.25 write, $0.10 read per 1M tokens (90% savings)
 const inputCost = (inputTokens / 1_000_000) * pricing.input * 100;
 const outputCost = (outputTokens / 1_000_000) * pricing.output * 100;
 const cacheCost = (cachedTokens / 1_000_000) * pricing.cache * 100; // 90% discount!
