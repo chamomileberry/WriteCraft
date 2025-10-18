@@ -4,7 +4,7 @@ import { Extension } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Mention from '@tiptap/extension-mention';
+import { ClickableMention } from '@/lib/clickableMention';
 import { suggestion } from '@/lib/suggestion';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -375,10 +375,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
           class: 'text-primary underline decoration-primary/30 hover:decoration-primary transition-colors',
         },
       }),
-      Mention.configure({
-        HTMLAttributes: {
-          class: 'bg-primary/10 text-primary px-1 py-0.5 rounded-md border border-primary/20',
-        },
+      ClickableMention.configure({
         suggestion,
       }),
       Image.configure({

@@ -4,7 +4,7 @@ import { Extension } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Mention from '@tiptap/extension-mention';
+import { ClickableMention } from '@/lib/clickableMention';
 import { suggestion } from '@/lib/suggestion';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -198,11 +198,8 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         Link.configure({
           openOnClick: false,
         }),
-        Mention.configure({
+        ClickableMention.configure({
           suggestion,
-          renderLabel({ options, node }) {
-            return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
-          },
         }),
         Image,
         TiptapTable.configure({
