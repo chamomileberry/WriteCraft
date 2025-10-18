@@ -308,7 +308,11 @@ export function EditorToolbar({
       return;
     }
 
+    // Clear previous results and selection before searching
+    setStockImages([]);
+    setSelectedStockImage('');
     setSearchingStock(true);
+    
     try {
       const response = await fetch('/api/stock-images/search', {
         method: 'POST',
@@ -1500,7 +1504,7 @@ export function EditorToolbar({
                   <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1">
                     {stockImages.map((image, index) => (
                       <div
-                        key={index}
+                        key={image.url}
                         className={`relative cursor-pointer rounded-lg border-2 transition-all hover-elevate ${
                           selectedStockImage === image.url 
                             ? 'border-primary ring-2 ring-primary' 
