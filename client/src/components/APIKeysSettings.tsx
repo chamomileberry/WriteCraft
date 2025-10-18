@@ -70,10 +70,12 @@ export function APIKeysSettings() {
   const hasApiAccess = tier === "professional" || tier === "team";
 
   // Fetch API keys
-  const { data: apiKeys = [], isLoading } = useQuery<ApiKey[]>({
+  const { data, isLoading } = useQuery<{ apiKeys: ApiKey[] }>({
     queryKey: ["/api/api-keys"],
     enabled: hasApiAccess,
   });
+  
+  const apiKeys = data?.apiKeys || [];
 
   // Create API key mutation
   const createKeyMutation = useMutation({
