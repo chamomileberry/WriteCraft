@@ -72,6 +72,42 @@ router.put("/:id", async (req: any, res) => {
     }
     
     const validatedCategory = insertGuideCategorySchema.partial().parse(req.body);
+    
+    // Check for cycles if parentId is being updated
+    if (validatedCategory.parentId !== undefined && validatedCategory.parentId !== null) {
+      // Prevent self-parenting (trivial cycle)
+      if (validatedCategory.parentId === req.params.id) {
+        return res.status(400).json({ error: 'A category cannot be its own parent' });
+      }
+      
+      const allCategories = await storage.getGuideCategories();
+      
+      // Check if new parent would create a cycle by checking if it's a descendant
+      const isDescendant = (targetId: string, searchId: string, categories: any[]): boolean => {
+        for (const cat of categories) {
+          if (cat.id === targetId) {
+            // Found the target, now check if searchId is in its descendants
+            const checkChildren = (children: any[]): boolean => {
+              for (const child of children) {
+                if (child.id === searchId) return true;
+                if (child.children && checkChildren(child.children)) return true;
+              }
+              return false;
+            };
+            return checkChildren(cat.children);
+          }
+          if (cat.children && isDescendant(targetId, searchId, cat.children)) {
+            return true;
+          }
+        }
+        return false;
+      };
+      
+      if (isDescendant(req.params.id, validatedCategory.parentId, allCategories)) {
+        return res.status(400).json({ error: 'Cannot set a descendant as parent - this would create a cycle' });
+      }
+    }
+    
     const updatedCategory = await storage.updateGuideCategory(req.params.id, validatedCategory);
     
     if (!updatedCategory) {

@@ -30,6 +30,7 @@ import CharacterConsolidatePage from "@/pages/CharacterConsolidatePage";
 import BannedPhrasesManagement from "@/pages/BannedPhrasesManagement";
 import SecurityDashboard from "@/pages/SecurityDashboard";
 import DiscountCodesAdmin from "@/pages/DiscountCodesAdmin";
+import GuideCategoriesAdmin from "@/pages/GuideCategoriesAdmin";
 import TimelineViewPage from "@/pages/TimelineViewPage";
 import ConversationManager from "@/pages/ConversationManager";
 import Pricing from "@/pages/Pricing";
@@ -217,6 +218,7 @@ function Router() {
       <Route path="/admin/banned-phrases" component={BannedPhrasesManagement} />
       <Route path="/admin/security" component={SecurityDashboard} />
       <Route path="/admin/discount-codes" component={DiscountCodesAdmin} />
+      <Route path="/admin/guide-categories" component={GuideCategoriesAdmin} />
       <Route path="/import" component={ImportPage} />
       <Route path="/projects" component={ProjectPage} />
       <Route path="/projects/:id/edit" component={ProjectEditPageWithSidebar} />
