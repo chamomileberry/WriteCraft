@@ -23,7 +23,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Data Storage**: PostgreSQL (Neon serverless) with Drizzle ORM for all application data.
 - **Authentication**: Replit Auth integration (Google, GitHub, X, Apple, email/password) with PostgreSQL-backed sessions.
 - **Session Management**: PostgreSQL for persistent session data; in-memory Map for concurrent session tracking; optional Redis support for distributed environments; max 3 concurrent sessions per user with auto-eviction.
-- **Security**: Multi-Factor Authentication, API Key Rotation, Intrusion Detection, Nonce-based CSP, Zod validation, Redis-backed rate limiting, enhanced security headers, SRI, XSS protection, bcrypt for password hashing, Row-Level Security, and strict ownership validation.
+- **Security**: Multi-Factor Authentication, API Key Rotation, Intrusion Detection (disabled in development to prevent false positives), Nonce-based CSP, Zod validation, Redis-backed rate limiting (10,000 req/15min in dev, 1,000 in prod), enhanced security headers, SRI, XSS protection, bcrypt for password hashing, Row-Level Security, and strict ownership validation.
 
 ### Feature Specifications
 - **Content Management**: Notebook system with rich text editor, modular generator system, writing guides, hierarchical project system, and enhanced character editor.

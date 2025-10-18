@@ -16,23 +16,29 @@ import {
  * so that req.body exists for sanitization and IDS
  */
 export function applySecurityMiddleware(app: Express): void {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   // Generate CSP nonce for each request (MUST be before securityHeaders)
   app.use(generateCSPNonce);
   
   // Apply security headers to all requests (uses the nonce)
   app.use(securityHeaders);
   
-  // Block blacklisted IPs (MUST be early in the chain)
-  app.use(blockBlacklistedIps);
+  // Block blacklisted IPs (ONLY in production - disabled in development)
+  if (!isDevelopment) {
+    app.use(blockBlacklistedIps);
+  }
   
   // Apply global rate limiting (can be overridden per route)
   app.use(createRateLimiter({
-    maxRequests: 1000, // 1000 requests per 15 minutes for normal app operation
+    maxRequests: isDevelopment ? 10000 : 1000, // Higher limit in development
     windowMs: 15 * 60 * 1000
   }));
   
-  // Detect injection attacks (after body parsing, before sanitization)
-  app.use(detectInjectionAttacks);
+  // Detect injection attacks (ONLY in production - disabled in development)
+  if (!isDevelopment) {
+    app.use(detectInjectionAttacks);
+  }
   
   // Sanitize all inputs globally to prevent injection attacks
   // NOTE: This MUST run after body parsing middleware
@@ -41,10 +47,10 @@ export function applySecurityMiddleware(app: Express): void {
   // Log security initialization
   console.log('[SECURITY] Security middleware initialized:');
   console.log('[SECURITY] ✓ Security headers enabled');
-  console.log('[SECURITY] ✓ Intrusion Detection System (IDS) active');
-  console.log('[SECURITY] ✓ IP blocking enabled');
-  console.log('[SECURITY] ✓ Rate limiting enabled (1000 req/15min)');
-  console.log('[SECURITY] ✓ Injection detection active');
+  console.log(`[SECURITY] ${isDevelopment ? '○' : '✓'} Intrusion Detection System (IDS) ${isDevelopment ? 'disabled (dev mode)' : 'active'}`);
+  console.log(`[SECURITY] ${isDevelopment ? '○' : '✓'} IP blocking ${isDevelopment ? 'disabled (dev mode)' : 'enabled'}`);
+  console.log(`[SECURITY] ✓ Rate limiting enabled (${isDevelopment ? '10000' : '1000'} req/15min)`);
+  console.log(`[SECURITY] ${isDevelopment ? '○' : '✓'} Injection detection ${isDevelopment ? 'disabled (dev mode)' : 'active'}`);
   console.log('[SECURITY] ✓ Input sanitization enabled');
   console.log('[SECURITY] ✓ CSRF protection available per route');
   console.log('[SECURITY] ✓ Row-level security enforced');
