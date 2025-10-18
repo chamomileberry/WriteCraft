@@ -53,6 +53,20 @@ interface SubscriptionStatus {
   warnings: string[];
 }
 
+interface PremiumQuota {
+  polish: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+  extendedThinking: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+  tier: SubscriptionTier;
+}
+
 export function useSubscription() {
   const { data: subscription, isLoading, error, refetch } = useQuery<UserSubscriptionData>({
     queryKey: ["/api/subscription"],
@@ -61,6 +75,11 @@ export function useSubscription() {
 
   const { data: status, isLoading: isLoadingStatus, refetch: refetchStatus } = useQuery<SubscriptionStatus>({
     queryKey: ["/api/subscription/status"],
+    retry: 1,
+  });
+
+  const { data: premiumQuota, isLoading: isLoadingQuota, refetch: refetchPremiumQuota } = useQuery<PremiumQuota>({
+    queryKey: ["/api/subscription/premium-quota"],
     retry: 1,
   });
 
@@ -153,14 +172,24 @@ export function useSubscription() {
     }
   };
 
+  /**
+   * Check if user has access to premium features (Professional/Team only)
+   * Uses effectiveTier to respect paused subscriptions
+   */
+  const hasPremiumAccess = (): boolean => {
+    const effective = status?.effectiveTier || subscription?.tier || 'free';
+    return effective === 'professional' || effective === 'team';
+  };
+
   return {
     // Subscription data
     subscription,
-    isLoading: isLoading || isLoadingStatus,
+    isLoading: isLoading || isLoadingStatus || isLoadingQuota,
     error,
     refetch: () => {
       refetch();
       refetchStatus();
+      refetchPremiumQuota();
     },
     tier: subscription?.tier || 'free',
     effectiveTier: status?.effectiveTier || subscription?.tier || 'free',
@@ -184,8 +213,14 @@ export function useSubscription() {
     gracePeriodExpired: status?.gracePeriod?.expired || false,
     gracePeriodDaysRemaining: status?.gracePeriod?.daysRemaining || null,
     
+    // Premium quota data
+    premiumQuota,
+    polishRemaining: premiumQuota?.polish.remaining || 0,
+    extendedThinkingRemaining: premiumQuota?.extendedThinking.remaining || 0,
+    
     // Feature checking
     hasFeature,
+    hasPremiumAccess,
     checkLimit: checkLimitWithCache,
     
     // Mutation state for checkLimit
