@@ -387,10 +387,10 @@ export default function WritingGuides() {
                 ))}
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 min-w-0">
                 <Button 
                   onClick={() => handleReadGuide(guide.id)}
-                  className="flex-1"
+                  className="flex-1 min-w-0"
                   data-testid={`button-read-guide-${guide.id}`}
                 >
                   <BookOpen className="mr-2 h-4 w-4" />
@@ -400,17 +400,20 @@ export default function WritingGuides() {
                   <>
                     <Button 
                       variant="outline"
+                      size="icon"
                       onClick={() => handleEditGuide(guide.id)}
                       data-testid={`button-edit-guide-${guide.id}`}
+                      className="flex-shrink-0"
                     >
                       <Edit3 className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="outline"
+                      size="icon"
                       onClick={() => handleDeleteGuide(guide.id, guide.title)}
                       disabled={deleteGuideMutation.isPending}
                       data-testid={`button-delete-guide-${guide.id}`}
-                      className="text-destructive hover:text-destructive hover:border-destructive"
+                      className="text-destructive hover:text-destructive hover:border-destructive flex-shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
