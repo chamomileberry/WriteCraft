@@ -2,7 +2,7 @@ import { useState, useReducer, useEffect, useRef, forwardRef, useImperativeHandl
 import { useEditor, EditorContent, type Editor as TiptapEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Mention from '@tiptap/extension-mention';
+import { ClickableMention } from '@/lib/clickableMention';
 import { guideSuggestion } from '@/lib/guide-suggestion';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -335,14 +335,8 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         link: false,
         codeBlock: false,
       }),
-      Mention.configure({
-        HTMLAttributes: {
-          class: 'mention',
-        },
+      ClickableMention.configure({
         suggestion: guideSuggestion,
-        renderLabel({ options, node }) {
-          return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
-        },
       }),
       CharacterCount,
       TextStyle,
