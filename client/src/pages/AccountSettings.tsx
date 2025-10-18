@@ -51,7 +51,28 @@ export default function AccountSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { firstName: string; lastName: string; profileImageUrl?: string }) => {
-      return await apiRequest("PATCH", `/api/users/${user?.id}`, data);
+      // Fetch CSRF token first
+      const csrfResponse = await fetch('/api/auth/csrf-token', {
+        credentials: 'include',
+      });
+      const { csrfToken } = await csrfResponse.json();
+      
+      // Make the update request with CSRF token
+      const res = await fetch(`/api/users/${user?.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to update profile');
+      }
+      
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
