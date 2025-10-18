@@ -129,6 +129,13 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             >
               Projects
             </button>
+            <button 
+              onClick={() => setLocation('/canvases')}
+              className="text-foreground hover:text-primary transition-colors whitespace-nowrap" 
+              data-testid="link-canvases"
+            >
+              Canvas
+            </button>
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">

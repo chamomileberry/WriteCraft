@@ -38,6 +38,7 @@ import TeamManagement from "@/pages/TeamManagement";
 import Examples from "@/pages/Examples";
 import ApiDocs from "@/pages/ApiDocs";
 import CanvasPage from "@/pages/CanvasPage";
+import CanvasesListPage from "@/pages/CanvasesListPage";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -230,6 +231,7 @@ function Router() {
       <Route path="/editor/:type/:id" component={EditorPage} />
       <Route path="/:type/:id/edit" component={EditorPage} />
       <Route path="/timelines/:id" component={TimelineViewPage} />
+      <Route path="/canvases" component={CanvasesListPage} />
       <Route path="/canvas/:id" component={CanvasPage} />
       <Route path="/conversations" component={ConversationManager} />
       {/* Fallback to 404 */}
