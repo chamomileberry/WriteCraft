@@ -11,7 +11,8 @@ export interface ImageResizeOptions {
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     imageResize: {
-      setImage: (options: { src: string; alt?: string; title?: string; width?: number }) => ReturnType;
+      setImage: (options: { src: string; alt?: string; title?: string; width?: number; align?: string }) => ReturnType;
+      setImageAlign: (align: 'left' | 'center' | 'right') => ReturnType;
     };
   }
 }
@@ -60,7 +61,17 @@ export const ImageResize = Node.create<ImageResizeOptions>({
           }
           return {
             width: attributes.width,
-            style: `width: ${attributes.width}px`,
+          };
+        },
+      },
+      align: {
+        default: 'center',
+        parseHTML: element => {
+          return element.getAttribute('data-align') || 'center';
+        },
+        renderHTML: attributes => {
+          return {
+            'data-align': attributes.align,
           };
         },
       },
@@ -78,7 +89,32 @@ export const ImageResize = Node.create<ImageResizeOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)];
+    const align = HTMLAttributes.align || 'center';
+    const width = HTMLAttributes.width;
+    
+    // Build style string
+    let style = '';
+    if (width) {
+      style += `width: ${width}px;`;
+    }
+    
+    // Add alignment styles
+    if (align === 'left') {
+      style += 'float: left; margin: 0 1.5rem 1rem 0;';
+    } else if (align === 'right') {
+      style += 'float: right; margin: 0 0 1rem 1.5rem;';
+    } else if (align === 'center') {
+      style += 'display: block; margin-left: auto; margin-right: auto; margin-top: 1rem; margin-bottom: 1rem;';
+    }
+    
+    const attrs = {
+      ...this.options.HTMLAttributes,
+      ...HTMLAttributes,
+      style,
+      class: `editor-image ${this.options.HTMLAttributes?.class || ''}`.trim(),
+    };
+    
+    return ['img', mergeAttributes(attrs)];
   },
 
   addCommands() {
@@ -90,6 +126,37 @@ export const ImageResize = Node.create<ImageResizeOptions>({
             type: this.name,
             attrs: options,
           });
+        },
+      setImageAlign:
+        align =>
+        ({ tr, state, dispatch }) => {
+          const { selection } = state;
+          let imagePos: number | null = null;
+          let imageNode: any = null;
+
+          // Find the selected image node
+          state.doc.descendants((node, pos) => {
+            if (imagePos !== null) return false;
+            
+            if (node.type.name === 'image') {
+              if (pos >= selection.from - 1 && pos <= selection.to) {
+                imagePos = pos;
+                imageNode = node;
+                return false;
+              }
+            }
+          });
+
+          if (imagePos !== null && imageNode && dispatch) {
+            const transaction = tr.setNodeMarkup(imagePos, undefined, {
+              ...imageNode.attrs,
+              align,
+            });
+            dispatch(transaction);
+            return true;
+          }
+
+          return false;
         },
     };
   },
