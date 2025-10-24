@@ -407,18 +407,47 @@
   }
 }
 
-/* TipTap Image Resizing */
-.ProseMirror img {
+/* TipTap Image Resizing and Alignment */
+.ProseMirror img.editor-image {
   max-width: 100%;
   height: auto;
-  display: block;
-  margin: 1rem 0;
   cursor: default;
   border-radius: 0.5rem;
+  position: relative;
+}
+
+/* Default center alignment (applied via inline styles in extension) */
+.ProseMirror img.editor-image[data-align="center"] {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Left float alignment with text wrapping */
+.ProseMirror img.editor-image[data-align="left"] {
+  float: left;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.25rem;
+}
+
+/* Right float alignment with text wrapping */
+.ProseMirror img.editor-image[data-align="right"] {
+  float: right;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.25rem;
+}
+
+/* Clearfix for paragraphs after floated images */
+.ProseMirror p::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 /* Show resize cursor near right edge */
-.ProseMirror img:hover {
+.ProseMirror img.editor-image:hover {
   cursor: grab;
 }
 
@@ -445,9 +474,23 @@
   cursor: ew-resize;
   opacity: 0.8;
   pointer-events: none;
+  z-index: 10;
 }
 
 .ProseMirror img.ProseMirror-selectednode:hover::after,
 .ProseMirror .image-resizer-selected img:hover::after {
   opacity: 1;
+}
+
+/* Responsive behavior - on mobile, disable float and center images */
+@media (max-width: 768px) {
+  .ProseMirror img.editor-image[data-align="left"],
+  .ProseMirror img.editor-image[data-align="right"] {
+    float: none !important;
+    display: block;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 1rem !important;
+    max-width: 100%;
+  }
 }
