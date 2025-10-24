@@ -417,6 +417,57 @@
   margin-bottom: 0; /* Remove margin from last paragraph */
 }
 
+/* Headers spacing - consistent with paragraph spacing */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.ProseMirror h1:first-child,
+.ProseMirror h2:first-child,
+.ProseMirror h3:first-child,
+.ProseMirror h4:first-child,
+.ProseMirror h5:first-child,
+.ProseMirror h6:first-child {
+  margin-top: 0;
+}
+
+/* Lists spacing - consistent with paragraph spacing */
+.ProseMirror ul,
+.ProseMirror ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+}
+
+.ProseMirror ul:first-child,
+.ProseMirror ol:first-child {
+  margin-top: 0;
+}
+
+.ProseMirror ul:last-child,
+.ProseMirror ol:last-child {
+  margin-bottom: 0;
+}
+
+.ProseMirror li {
+  margin-bottom: 0.25em;
+}
+
+.ProseMirror li:last-child {
+  margin-bottom: 0;
+}
+
+/* Hard breaks should not add extra spacing - they inherit line height from parent */
+.ProseMirror br {
+  line-height: inherit;
+}
+
 /* TipTap Image Resizing and Alignment */
 .ProseMirror img.editor-image {
   max-width: 100%;
@@ -431,6 +482,8 @@
   display: block;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 1rem;
+  clear: both;
 }
 
 /* Left float alignment with text wrapping */
@@ -449,8 +502,8 @@
   margin-top: 0.25rem;
 }
 
-/* Clearfix for paragraphs after floated images */
-.ProseMirror p::after {
+/* Only clear floats after center-aligned images or at explicit breaks */
+.ProseMirror img.editor-image[data-align="center"]::after {
   content: "";
   display: table;
   clear: both;

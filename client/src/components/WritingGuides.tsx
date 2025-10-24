@@ -98,7 +98,7 @@ export default function WritingGuides() {
   };
 
   const handleNewGuide = () => {
-    setLocation('/guides/new');
+    setLocation('/guides/new/edit');
   };
 
   const handleEditGuide = (guideId: string) => {
