@@ -89,7 +89,7 @@ export const ImageResize = Node.create<ImageResizeOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const align = HTMLAttributes.align || 'center';
+    const align = HTMLAttributes['data-align'] || 'center';
     const width = HTMLAttributes.width;
     
     // Build style string
