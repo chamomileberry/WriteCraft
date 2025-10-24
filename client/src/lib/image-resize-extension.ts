@@ -140,30 +140,56 @@ export const ImageResize = Node.create<ImageResizeOptions>({
 
               event.preventDefault();
 
-              const startWidth = img.width;
+              const startWidth = img.width || img.offsetWidth;
               const startX = clientX;
+
+              // Find the position of this image node
+              let imagePos: number | null = null;
+              let imageNode: any = null;
+              
+              view.state.doc.descendants((node, pos) => {
+                if (imagePos !== null) return false; // Already found
+                
+                if (node.type.name === 'image') {
+                  // Try to match by checking if this is the same DOM element
+                  const domAtPos = view.domAtPos(pos);
+                  if (domAtPos.node === img || domAtPos.node.contains(img)) {
+                    imagePos = pos;
+                    imageNode = node;
+                    return false; // Stop searching
+                  }
+                }
+              });
+
+              if (imagePos === null) {
+                console.warn('Could not find image node position');
+                return false;
+              }
+
+              let currentWidth = startWidth;
 
               const onMouseMove = (e: MouseEvent) => {
                 const diff = e.clientX - startX;
-                const newWidth = Math.max(100, Math.min(startWidth + diff, 1000));
+                currentWidth = Math.max(100, Math.min(startWidth + diff, 1000));
                 
-                // Update the image width
-                img.style.width = `${newWidth}px`;
-                img.setAttribute('width', String(newWidth));
-
-                // Update ProseMirror state
-                const pos = view.posAtDOM(img, 0);
-                const tr = view.state.tr.setNodeMarkup(pos - 1, undefined, {
-                  ...view.state.doc.nodeAt(pos - 1)?.attrs,
-                  width: newWidth,
-                });
-                view.dispatch(tr);
+                // Update the image width visually
+                img.style.width = `${currentWidth}px`;
+                img.setAttribute('width', String(currentWidth));
               };
 
               const onMouseUp = () => {
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
                 img.style.cursor = '';
+
+                // Update ProseMirror state only once at the end
+                if (imagePos !== null && imageNode) {
+                  const tr = view.state.tr.setNodeMarkup(imagePos, undefined, {
+                    ...imageNode.attrs,
+                    width: currentWidth,
+                  });
+                  view.dispatch(tr);
+                }
               };
 
               img.style.cursor = 'ew-resize';
