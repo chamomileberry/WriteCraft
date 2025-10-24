@@ -99,6 +99,48 @@ const FontSize = Extension.create({
   },
 });
 
+// Custom Enter Key Handler - Google Docs style behavior
+// Single Enter = hard break (<br>), Double Enter (on empty line) = new paragraph
+const GoogleDocsEnter = Extension.create({
+  name: 'googleDocsEnter',
+
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { state } = editor;
+        const { selection } = state;
+        const { $from } = selection;
+
+        // Get the current node
+        const node = $from.parent;
+
+        // Only apply custom behavior to plain paragraphs at document level (not inside lists, etc.)
+        // depth === 1 means paragraph is a direct child of the document
+        if (node.type.name === 'paragraph' && $from.depth === 1) {
+          // Check if the paragraph is empty
+          if (node.content.size === 0) {
+            // Empty paragraph - create new paragraph (default behavior)
+            return false;
+          }
+          
+          // Check if cursor is immediately after a hard break
+          const nodeBefore = $from.nodeBefore;
+          if (nodeBefore && nodeBefore.type.name === 'hardBreak') {
+            // Cursor is after a hard break - create new paragraph (double Enter)
+            return false;
+          }
+          
+          // Paragraph has content but cursor is not after a hard break - insert hard break
+          return editor.commands.setHardBreak();
+        }
+
+        // For other node types (headings, lists, etc.), use default behavior
+        return false;
+      },
+    };
+  },
+});
+
 export default function NoteEditor({ noteId, onBack }: NoteEditorProps) {
   const [title, setTitle] = useState('');
   const [hasBeenSavedOnce, setHasBeenSavedOnce] = useState(false);
@@ -123,7 +165,9 @@ export default function NoteEditor({ noteId, onBack }: NoteEditorProps) {
           levels: [1, 2, 3, 4, 5, 6],
         },
         codeBlock: false, // Disable default code block
+        // hardBreak is enabled by default - needed for Google Docs-style line breaks
       }),
+      GoogleDocsEnter, // Custom Enter key handler for Google Docs-style behavior
       TextStyle,
       FontSize,
       Link.configure({

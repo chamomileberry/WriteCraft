@@ -407,6 +407,16 @@
   }
 }
 
+/* TipTap Editor - Google Docs-style paragraph behavior */
+.ProseMirror p {
+  min-height: 1.5em; /* Ensure empty paragraphs are visible and clickable */
+  margin-bottom: 0.5em; /* Comfortable spacing between paragraphs */
+}
+
+.ProseMirror p:last-child {
+  margin-bottom: 0; /* Remove margin from last paragraph */
+}
+
 /* TipTap Image Resizing and Alignment */
 .ProseMirror img.editor-image {
   max-width: 100%;
