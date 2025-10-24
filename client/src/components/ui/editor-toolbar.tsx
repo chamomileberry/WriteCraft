@@ -175,7 +175,28 @@ export function EditorToolbar({
   };
 
   const setTextAlign = (alignment: 'left' | 'center' | 'right' | 'justify') => {
-    editor?.chain().focus().setTextAlign(alignment).run();
+    if (!editor) return;
+    
+    // Check if an image is selected
+    const { selection } = editor.state;
+    let hasImageSelected = false;
+    
+    editor.state.doc.descendants((node, pos) => {
+      if (hasImageSelected) return false;
+      if (node.type.name === 'image') {
+        if (pos >= selection.from - 1 && pos <= selection.to) {
+          hasImageSelected = true;
+          return false;
+        }
+      }
+    });
+    
+    // Apply alignment to image or text based on selection
+    if (hasImageSelected && alignment !== 'justify') {
+      editor.chain().focus().setImageAlign(alignment as 'left' | 'center' | 'right').run();
+    } else {
+      editor.chain().focus().setTextAlign(alignment).run();
+    }
   };
 
   const setFontSize = (size: string) => {
