@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Header from "@/components/Header";
 import { GracePeriodBanner } from "@/components/GracePeriodBanner";
+import { BetaDisclaimer } from "@/components/BetaDisclaimer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Landing from "@/pages/landing";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
@@ -47,6 +48,7 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import FeedbackPage from "@/pages/FeedbackPage";
 import FeedbackManagement from "@/pages/admin/FeedbackManagement";
+import HelpPage from "@/pages/HelpPage";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -215,6 +217,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/feedback" component={FeedbackPage} />
+      <Route path="/help" component={HelpPage} />
       <Route path="/team" component={TeamManagement} />
       <Route path="/account" component={AccountSettings} />
       <Route path="/search" component={SearchPage} />
@@ -304,6 +307,7 @@ function AuthenticatedApp() {
 
   return (
     <div className="h-screen flex flex-col">
+      <BetaDisclaimer />
       <GracePeriodBanner />
       <WorkspaceShell>
         <Router />

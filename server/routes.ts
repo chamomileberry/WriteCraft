@@ -18,6 +18,9 @@ import securityRoutes from "./routes/security.routes";
 import cspReportRoutes from "./routes/csp-report.routes";
 import migrationRoutes from "./routes/migration.routes";
 import teamAnalyticsRoutes from "./routes/team-analytics.routes";
+import feedbackRoutes from "./routes/feedback.routes";
+import adminFeedbackRoutes from "./routes/admin-feedback.routes";
+import exportRoutes from "./routes/export.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { createRateLimiter } from "./security";
 import { 
@@ -164,6 +167,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Team analytics and audit log routes (Team tier exclusive)
   app.use("/api/team", teamAnalyticsRoutes);
+
+  // Register feedback routes
+  app.use("/api/feedback", isAuthenticated, feedbackRoutes);
+  app.use("/api/admin/feedback", isAuthenticated, adminFeedbackRoutes);
+
+  // Register data export routes
+  app.use("/api/export", isAuthenticated, exportRoutes);
 
   // Serve uploaded objects with optional access control
   // NOTE: World-building content and avatars are publicly accessible via UUID protection.

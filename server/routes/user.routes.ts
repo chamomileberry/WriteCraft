@@ -26,6 +26,7 @@ router.get("/preferences", async (req: any, res) => {
         examplesPreference: null,
         onboardingCompleted: false,
         onboardingStep: 0,
+        betaBannerDismissed: false,
       });
     }
     

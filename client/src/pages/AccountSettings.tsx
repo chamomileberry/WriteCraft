@@ -9,7 +9,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, LogOut, User } from "lucide-react";
+import { Loader2, LogOut, User, Download } from "lucide-react";
 import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import { MFASettings } from "@/components/MFASettings";
@@ -32,6 +32,7 @@ export default function AccountSettings() {
   const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Sync state with user prop changes
   useEffect(() => {
@@ -128,6 +129,48 @@ export default function AccountSettings() {
     }
   };
 
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      const response = await fetch('/api/export/user-data', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export data');
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `writecraft-export-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Export successful",
+        description: "Your data has been downloaded to your device.",
+      });
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      toast({
+        title: "Export failed",
+        description: "Failed to export your data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setLocation(`/search?q=${encodeURIComponent(query)}`);
@@ -190,6 +233,38 @@ export default function AccountSettings() {
               <Button onClick={handleRestartOnboarding} data-testid="button-restart-onboarding">
                 <BookOpen className="w-4 h-4 mr-2" />
                 Restart Onboarding Tour
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Data Export */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Export</CardTitle>
+              <CardDescription>
+                Download all your WriteCraft data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Export all your characters, plots, projects, notebooks, guides, timelines, and other content as a JSON file. This includes all data across all your notebooks.
+              </p>
+              <Button 
+                onClick={handleExportData} 
+                disabled={isExporting}
+                data-testid="button-export-data"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Export My Data
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>

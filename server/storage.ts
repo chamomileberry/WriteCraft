@@ -74,6 +74,7 @@ import {
   type ImportJob, type InsertImportJob, type UpdateImportJob,
   type UserPreferences, type InsertUserPreferences,
   type ConversationSummary, type InsertConversationSummary,
+  type Feedback, type InsertFeedback,
   users, characters,
   plots, prompts, locations, settings, items, organizations,
   creatures, species, cultures, documents, foods,
@@ -91,6 +92,7 @@ import {
   type Canvas, type InsertCanvas, canvases,
   chatMessages,
   userPreferences, conversationSummaries,
+  feedback,
   shares
 } from "@shared/schema";
 import { db } from "./db";
@@ -671,6 +673,12 @@ export interface IStorage {
   getConversationSummary(userId: string, projectId?: string, guideId?: string): Promise<ConversationSummary | undefined>;
   upsertConversationSummary(summary: InsertConversationSummary): Promise<ConversationSummary>;
   updateConversationSummary(id: string, userId: string, updates: Partial<InsertConversationSummary>): Promise<ConversationSummary | undefined>;
+
+  // Feedback methods
+  createFeedback(feedbackData: InsertFeedback): Promise<Feedback>;
+  getAllFeedback(): Promise<Feedback[]>;
+  getFeedback(id: string): Promise<Feedback | undefined>;
+  updateFeedbackStatus(id: string, status: string): Promise<Feedback | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -5691,6 +5699,39 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .update(conversationSummaries)
       .set({ ...updates, updatedAt: new Date() })
       .where(and(eq(conversationSummaries.id, id), eq(conversationSummaries.userId, userId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Feedback methods
+  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
+    const [created] = await db
+      .insert(feedback)
+      .values(feedbackData)
+      .returning();
+    return created;
+  }
+
+  async getAllFeedback(): Promise<Feedback[]> {
+    return await db
+      .select()
+      .from(feedback)
+      .orderBy(desc(feedback.createdAt));
+  }
+
+  async getFeedback(id: string): Promise<Feedback | undefined> {
+    const [result] = await db
+      .select()
+      .from(feedback)
+      .where(eq(feedback.id, id));
+    return result || undefined;
+  }
+
+  async updateFeedbackStatus(id: string, status: string): Promise<Feedback | undefined> {
+    const [updated] = await db
+      .update(feedback)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(feedback.id, id))
       .returning();
     return updated || undefined;
   }

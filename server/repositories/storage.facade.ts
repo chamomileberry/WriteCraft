@@ -76,7 +76,8 @@ import {
   type PinnedContent, type InsertPinnedContent,
   type Canvas, type InsertCanvas,
   type UserPreferences, type InsertUserPreferences,
-  type ConversationSummary, type InsertConversationSummary
+  type ConversationSummary, type InsertConversationSummary,
+  type Feedback, type InsertFeedback
 } from '@shared/schema';
 
 import { UserRepository } from './user.repository';
@@ -90,7 +91,7 @@ import { ImportRepository } from './import.repository';
 import { ShareRepository } from './share.repository';
 import { db } from '../db';
 import { eq, and, desc, or, ilike, isNull, sql, inArray } from 'drizzle-orm';
-import { guides, savedItems, notebooks, userPreferences, conversationSummaries, conversationThreads, chatMessages } from '@shared/schema';
+import { guides, savedItems, notebooks, userPreferences, conversationSummaries, conversationThreads, chatMessages, feedback } from '@shared/schema';
 
 export class StorageFacade implements IStorage {
   private userRepository = new UserRepository();
@@ -1851,6 +1852,39 @@ export class StorageFacade implements IStorage {
       .update(conversationSummaries)
       .set({ ...updates, updatedAt: new Date() })
       .where(and(eq(conversationSummaries.id, id), eq(conversationSummaries.userId, userId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Feedback methods
+  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
+    const [created] = await db
+      .insert(feedback)
+      .values(feedbackData)
+      .returning();
+    return created;
+  }
+
+  async getAllFeedback(): Promise<Feedback[]> {
+    return await db
+      .select()
+      .from(feedback)
+      .orderBy(desc(feedback.createdAt));
+  }
+
+  async getFeedback(id: string): Promise<Feedback | undefined> {
+    const [result] = await db
+      .select()
+      .from(feedback)
+      .where(eq(feedback.id, id));
+    return result || undefined;
+  }
+
+  async updateFeedbackStatus(id: string, status: string): Promise<Feedback | undefined> {
+    const [updated] = await db
+      .update(feedback)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(feedback.id, id))
       .returning();
     return updated || undefined;
   }

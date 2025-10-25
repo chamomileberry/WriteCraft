@@ -52,7 +52,7 @@ export default function FeedbackManagement() {
   const queryClient = useQueryClient();
 
   // Fetch feedback
-  const { data: feedbackList = [], isLoading } = useQuery({
+  const { data: feedbackList = [], isLoading } = useQuery<FeedbackResponse[]>({
     queryKey: ["/api/admin/feedback"],
     queryFn: async () => {
       const res = await fetch("/api/admin/feedback", {
@@ -66,14 +66,28 @@ export default function FeedbackManagement() {
   // Update feedback status mutation
   const { mutate: updateStatus, isPending: isUpdating } = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: FeedbackStatus }) => {
-      const res = await fetch(`/api/admin/feedback/${id}`, {
+      // Fetch CSRF token first
+      const csrfResponse = await fetch('/api/auth/csrf-token', {
+        credentials: 'include',
+      });
+      const { csrfToken } = await csrfResponse.json();
+
+      // Update status with CSRF token
+      const response = await fetch(`/api/admin/feedback/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
+        },
         credentials: "include",
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error("Failed to update feedback");
-      return res.json();
+
+      if (!response.ok) {
+        throw new Error("Failed to update feedback status");
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/feedback"] });

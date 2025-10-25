@@ -1847,10 +1847,34 @@ export const userPreferences = pgTable("user_preferences", {
   onboardingCompleted: boolean("onboarding_completed").default(false),
   onboardingStep: integer("onboarding_step").default(0), // Current step in onboarding process
   
+  // Beta launch preferences
+  betaBannerDismissed: boolean("beta_banner_dismissed").default(false),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   userIdIdx: index("user_preferences_user_id_idx").on(table.userId),
+}));
+
+// Feedback - User bug reports, feature requests, and general feedback
+export const feedback = pgTable("feedback", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text("type").notNull(), // 'bug', 'feature-request', 'general-feedback'
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  status: text("status").notNull().default('new'), // 'new', 'reviewed', 'in-progress', 'resolved', 'closed'
+  userEmail: text("user_email").notNull(),
+  userBrowser: text("user_browser"),
+  userOS: text("user_os"),
+  currentPage: text("current_page"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("feedback_user_id_idx").on(table.userId),
+  statusIdx: index("feedback_status_idx").on(table.status),
+  typeIdx: index("feedback_type_idx").on(table.type),
+  createdAtIdx: index("feedback_created_at_idx").on(table.createdAt),
 }));
 
 // Conversation Summaries - Persistent memory of key insights from conversations
@@ -3379,6 +3403,16 @@ export const insertUserPreferencesSchema = createInsertSchema(userPreferences).o
 
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
+
+// Feedback schemas and types
+export const insertFeedbackSchema = createInsertSchema(feedback).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+export type Feedback = typeof feedback.$inferSelect;
 
 // Conversation Summaries schemas and types
 export const insertConversationSummarySchema = createInsertSchema(conversationSummaries).omit({

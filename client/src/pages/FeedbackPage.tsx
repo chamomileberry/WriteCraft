@@ -39,9 +39,19 @@ export default function FeedbackPage() {
     setError(null);
 
     try {
+      // Fetch CSRF token first
+      const csrfResponse = await fetch('/api/auth/csrf-token', {
+        credentials: 'include',
+      });
+      const { csrfToken } = await csrfResponse.json();
+
+      // Submit feedback with CSRF token
       const response = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
+        },
         credentials: "include",
         body: JSON.stringify({
           type: feedbackType,
