@@ -90,7 +90,7 @@ export function ImageSelector({
   // AI image generation mutation
   const aiGenerateMutation = useMutation({
     mutationFn: async (params: { prompt: string; quality: string; size: string }) => {
-      const response = await apiRequest("POST", "/api/dalle/generate", params);
+      const response = await apiRequest("POST", "/api/ideogram/generate", params);
       return await response.json() as AIGenerateResponse;
     },
     onSuccess: (data: AIGenerateResponse) => {

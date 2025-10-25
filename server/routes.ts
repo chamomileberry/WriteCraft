@@ -3,10 +3,11 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { registerDomainRoutes } from "./routes/index";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { logger } from "./utils/logger";
 import aiRoutes from "./routes/ai.routes";
 import importRoutes from "./routes/import.routes";
 import pexelsRoutes from "./routes/pexels.routes";
-import dalleRoutes from "./routes/dalle.routes";
+import ideogramRoutes from "./routes/ideogram.routes";
 import stockImagesRoutes from "./routes/stock-images.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
 import stripeRoutes from "./routes/stripe.routes";
@@ -143,8 +144,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register stock images routes
   app.use("/api/stock-images", isAuthenticated, stockImagesRoutes);
 
-  // Register DALL-E 3 AI image generation routes
-  app.use("/api/dalle", isAuthenticated, dalleRoutes);
+  // Register Ideogram V3 AI image generation routes
+  app.use("/api/ideogram", isAuthenticated, ideogramRoutes);
 
   // Register subscription routes
   app.use("/api/subscription", isAuthenticated, subscriptionRoutes);
@@ -960,8 +961,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { notebookId, ...timelineData } = req.body;
 
-      console.log('[POST /api/timelines] Raw request body:', req.body);
-      console.log('[POST /api/timelines] Extracted:', { userId, notebookId, timelineData });
+      logger.debug('[POST /api/timelines] Raw request body:', req.body);
+      logger.debug('[POST /api/timelines] Extracted:', { userId, notebookId, timelineData });
 
       if (!notebookId) {
         return res.status(400).json({ error: 'Notebook ID is required' });
@@ -972,15 +973,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         notebookId
       };
-      
-      console.log('[POST /api/timelines] Data to insert:', dataToInsert);
+
+      logger.debug('[POST /api/timelines] Data to insert:', dataToInsert);
 
       const timeline = await storage.createTimeline(dataToInsert);
 
-      console.log('[POST /api/timelines] Created timeline:', { id: timeline.id, userId: timeline.userId, notebookId: timeline.notebookId });
+      logger.debug('[POST /api/timelines] Created timeline:', { id: timeline.id, userId: timeline.userId, notebookId: timeline.notebookId });
       res.json(timeline);
     } catch (error) {
-      console.error('[POST /api/timelines] Error:', error);
+      logger.error('[POST /api/timelines] Error:', error);
       res.status(500).json({ error: 'Failed to create timeline' });
     }
   });
@@ -991,15 +992,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { notebookId } = req.query;
 
-      console.log('[GET /api/timelines/:id] Fetching timeline:', { id, userId, notebookId });
+      logger.debug('[GET /api/timelines/:id] Fetching timeline:', { id, userId, notebookId });
 
       if (!notebookId) {
         return res.status(400).json({ error: 'Notebook ID is required' });
       }
 
       const timeline = await storage.getTimeline(id, userId, notebookId as string);
-      
-      console.log('[GET /api/timelines/:id] Query result:', timeline ? `Found timeline ${timeline.id}` : 'Timeline not found');
+
+      logger.debug('[GET /api/timelines/:id] Query result:', timeline ? `Found timeline ${timeline.id}` : 'Timeline not found');
       
       if (!timeline) {
         return res.status(404).json({ error: 'Timeline not found' });
@@ -1007,7 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(timeline);
     } catch (error) {
-      console.error('Error fetching timeline:', error);
+      logger.error('Error fetching timeline:', error);
       res.status(500).json({ error: 'Failed to fetch timeline' });
     }
   });

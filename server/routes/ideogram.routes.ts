@@ -3,6 +3,7 @@ import Replicate from "replicate";
 import { z } from "zod";
 import { ObjectStorageService } from "../objectStorage";
 import { setObjectAclPolicy } from "../objectAcl";
+import { logger } from "../utils/logger";
 
 const router = Router();
 
@@ -65,7 +66,7 @@ router.post("/generate", async (req: any, res) => {
     const validated = generateImageSchema.parse(req.body);
     const userId = req.user.claims.sub;
 
-    console.log("[Ideogram] Generating image with prompt:", validated.prompt);
+    logger.debug("[Ideogram] Generating image with prompt:", validated.prompt);
 
     // Generate image with Ideogram V3 Turbo - this streams raw image bytes
     let output = await replicate.run(
@@ -81,43 +82,43 @@ router.post("/generate", async (req: any, res) => {
       }
     ) as any;
 
-    console.log("[Ideogram] Output type:", typeof output, "has getReader:", 'getReader' in (output || {}), "has asyncIterator:", Symbol.asyncIterator in (output || {}));
+    logger.debug("[Ideogram] Output type:", typeof output, "has getReader:", 'getReader' in (output || {}), "has asyncIterator:", Symbol.asyncIterator in (output || {}));
 
     // Handle streaming response - Replicate streams raw image bytes
     let imageBuffer: Buffer;
     
     if (output && typeof output === 'object' && 'getReader' in output) {
       // ReadableStream - collect binary chunks
-      console.log("[Ideogram] Output is a ReadableStream, collecting image bytes...");
+      logger.debug("[Ideogram] Output is a ReadableStream, collecting image bytes...");
       const reader = output.getReader();
       const chunks: Uint8Array[] = [];
-      
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         chunks.push(value);
       }
-      
+
       // Calculate total length and concatenate
       const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
       imageBuffer = Buffer.concat(chunks.map(chunk => Buffer.from(chunk)));
-      console.log("[Ideogram] Image stream collected, size:", imageBuffer.length, "bytes");
+      logger.debug("[Ideogram] Image stream collected, size:", imageBuffer.length, "bytes");
     }
     else if (output && typeof output === 'object' && Symbol.asyncIterator in output) {
       // Async iterable - collect binary chunks
-      console.log("[Ideogram] Output is an async iterable, collecting image bytes...");
+      logger.debug("[Ideogram] Output is an async iterable, collecting image bytes...");
       const chunks: Buffer[] = [];
-      
+
       for await (const chunk of output as any) {
         chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
       }
-      
+
       imageBuffer = Buffer.concat(chunks);
-      console.log("[Ideogram] Image stream collected, size:", imageBuffer.length, "bytes");
+      logger.debug("[Ideogram] Image stream collected, size:", imageBuffer.length, "bytes");
     }
     else {
       // Not a stream - this shouldn't happen with Ideogram but handle it
-      console.error("[Ideogram] Unexpected output format (not a stream):", typeof output);
+      logger.error("[Ideogram] Unexpected output format (not a stream):", typeof output);
       return res.status(500).json({ 
         error: "Unexpected response format from image generation service" 
       });
@@ -125,9 +126,9 @@ router.post("/generate", async (req: any, res) => {
 
     // Validate we got image data
     if (!imageBuffer || imageBuffer.length === 0) {
-      console.error("[Ideogram] No image data received");
-      return res.status(500).json({ 
-        error: "No image data received from generation service" 
+      logger.error("[Ideogram] No image data received");
+      return res.status(500).json({
+        error: "No image data received from generation service"
       });
     }
 
@@ -141,14 +142,14 @@ router.post("/generate", async (req: any, res) => {
       contentType = 'image/webp';
     }
 
-    console.log("[Ideogram] Image received, size:", imageBuffer.length, "bytes, type:", contentType);
+    logger.debug("[Ideogram] Image received, size:", imageBuffer.length, "bytes, type:", contentType);
 
     // Get upload URL from object storage
     const objectStorageService = new ObjectStorageService();
     const { uploadURL, objectId } = await objectStorageService.getObjectEntityUploadURL();
     const objectPath = `/objects/uploads/${objectId}`;
 
-    console.log("[Ideogram] Uploading to object storage:", objectPath);
+    logger.debug("[Ideogram] Uploading to object storage:", objectPath);
 
     // Upload to object storage
     const uploadResponse = await fetch(uploadURL, {
@@ -160,9 +161,9 @@ router.post("/generate", async (req: any, res) => {
     });
 
     if (!uploadResponse.ok) {
-      console.error("[Ideogram] Failed to upload to storage:", uploadResponse.status);
-      return res.status(500).json({ 
-        error: "Failed to save generated image" 
+      logger.error("[Ideogram] Failed to upload to storage:", uploadResponse.status);
+      return res.status(500).json({
+        error: "Failed to save generated image"
       });
     }
 
@@ -174,14 +175,14 @@ router.post("/generate", async (req: any, res) => {
       aclRules: [],
     });
 
-    console.log("[Ideogram] Image successfully saved to:", objectPath);
+    logger.debug("[Ideogram] Image successfully saved to:", objectPath);
 
     res.json({
       imageUrl: objectPath,
       revisedPrompt: undefined, // Ideogram doesn't provide this when streaming
     });
   } catch (error: any) {
-    console.error("[Ideogram] Generation error:", error);
+    logger.error("[Ideogram] Generation error:", error);
     
     if (error.name === "ZodError") {
       return res.status(400).json({ 

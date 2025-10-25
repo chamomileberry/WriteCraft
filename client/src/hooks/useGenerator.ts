@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 import { useSubscription } from '@/hooks/useSubscription';
+import { logger } from '@/lib/logger';
 
 export interface UseGeneratorOptions<TResult, TParams = any> {
   /** API endpoint for generation */
@@ -61,7 +62,7 @@ export function useGenerator<TResult, TParams = any>({
   generateEndpoint,
   getGenerateParams,
   itemTypeName,
-  userId = 'demo-user',
+  userId,
   notebookId,
   saveEndpoint = '/api/saved-items',
   resolveResultId,
@@ -91,7 +92,7 @@ export function useGenerator<TResult, TParams = any>({
       onGenerateSuccess?.(data);
     },
     onError: (error) => {
-      console.error(`Error generating ${itemTypeName}:`, error);
+      logger.error(`Error generating ${itemTypeName}:`, error);
       toast({
         title: 'Generation Failed',
         description: `Failed to generate ${itemTypeName}. Please try again.`,
@@ -108,8 +109,13 @@ export function useGenerator<TResult, TParams = any>({
         throw new Error('No result to save');
       }
 
+      // Validate userId is provided for save operation
+      if (!userId && !prepareSavePayload) {
+        throw new Error('User ID is required to save. Please ensure you are logged in.');
+      }
+
       // Validate result has ID if resolver provided or if result is an object with id
-      const resultId = resolveResultId 
+      const resultId = resolveResultId
         ? resolveResultId(result)
         : (result as any)?.id;
 
@@ -118,7 +124,7 @@ export function useGenerator<TResult, TParams = any>({
       }
 
       // Use custom prepare function or build default payload from context
-      const payload = prepareSavePayload 
+      const payload = prepareSavePayload
         ? prepareSavePayload(result)
         : {
             userId,
@@ -189,7 +195,7 @@ export function useGenerator<TResult, TParams = any>({
         return;
       }
     } catch (error) {
-      console.error('Error checking limit:', error);
+      logger.error('Error checking limit:', error);
       // Continue with generation even if limit check fails (server will enforce)
     }
 
@@ -216,7 +222,7 @@ export function useGenerator<TResult, TParams = any>({
         description: `${capitalize(itemTypeName)} has been copied to your clipboard.`,
       });
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      logger.error('Failed to copy to clipboard:', error);
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy to clipboard. Please try again.',

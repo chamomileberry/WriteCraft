@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query';
 import { apiRequest, ApiError } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -24,30 +26,48 @@ export function useApiMutation<TData = any, TVariables = any>(
 ) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const mutation = useMutation<TData, Error, TVariables>({
     retry: config.retry === true ? 3 : (config.retry || false),
     retryDelay: config.retryDelay || 1000,
     mutationFn: async (variables: TVariables) => {
-      const endpoint = typeof config.endpoint === 'function' 
-        ? config.endpoint(variables) 
+      // Abort previous request if still pending
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      const endpoint = typeof config.endpoint === 'function'
+        ? config.endpoint(variables)
         : config.endpoint;
-      
-      const payload = config.transformPayload 
+
+      const payload = config.transformPayload
         ? config.transformPayload(variables)
         : variables;
 
-      const response = await apiRequest(config.method, endpoint, payload);
-      
-      if (config.transformResponse) {
-        return config.transformResponse(response);
-      }
+      try {
+        const response = await apiRequest(config.method, endpoint, payload, { signal });
 
-      // Default response handling
-      if (response.headers.get('content-type')?.includes('application/json')) {
-        return response.json() as Promise<TData>;
+        if (config.transformResponse) {
+          return config.transformResponse(response);
+        }
+
+        // Default response handling
+        if (response.headers.get('content-type')?.includes('application/json')) {
+          return response.json() as Promise<TData>;
+        }
+        return response as TData;
+      } catch (error) {
+        // Don't throw AbortError to user
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Request cancelled');
+        }
+        throw error;
       }
-      return response as TData;
     },
     onSuccess: (data: TData, variables: TVariables) => {
       // Show success toast if message provided
@@ -140,9 +160,9 @@ export function useApiMutation<TData = any, TVariables = any>(
 
       // Execute custom onError callback
       config.onError?.(error, variables);
-      
+
       // Log error for debugging with more context
-      console.error('API Mutation Error:', {
+      logger.error('API Mutation Error:', {
         error,
         endpoint: typeof config.endpoint === 'function' ? config.endpoint(variables) : config.endpoint,
         method: config.method,
@@ -151,6 +171,15 @@ export function useApiMutation<TData = any, TVariables = any>(
     },
     ...options,
   });
+
+  // Abort on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   return mutation;
 }
