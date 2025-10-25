@@ -530,37 +530,127 @@
 }
 
 /* Header after header */
+.ProseMirror h1 + h1,
 .ProseMirror h1 + h2,
 .ProseMirror h1 + h3,
 .ProseMirror h1 + h4,
 .ProseMirror h1 + h5,
 .ProseMirror h1 + h6,
 .ProseMirror h2 + h1,
+.ProseMirror h2 + h2,
 .ProseMirror h2 + h3,
 .ProseMirror h2 + h4,
 .ProseMirror h2 + h5,
 .ProseMirror h2 + h6,
 .ProseMirror h3 + h1,
 .ProseMirror h3 + h2,
+.ProseMirror h3 + h3,
 .ProseMirror h3 + h4,
 .ProseMirror h3 + h5,
 .ProseMirror h3 + h6,
 .ProseMirror h4 + h1,
 .ProseMirror h4 + h2,
 .ProseMirror h4 + h3,
+.ProseMirror h4 + h4,
 .ProseMirror h4 + h5,
 .ProseMirror h4 + h6,
 .ProseMirror h5 + h1,
 .ProseMirror h5 + h2,
 .ProseMirror h5 + h3,
 .ProseMirror h5 + h4,
+.ProseMirror h5 + h5,
 .ProseMirror h5 + h6,
 .ProseMirror h6 + h1,
 .ProseMirror h6 + h2,
 .ProseMirror h6 + h3,
 .ProseMirror h6 + h4,
-.ProseMirror h6 + h5 {
+.ProseMirror h6 + h5,
+.ProseMirror h6 + h6 {
   margin-top: 1em;
+}
+
+/* Blockquote and code block spacing */
+.ProseMirror blockquote,
+.ProseMirror pre {
+  margin: 0;
+  padding: 0.75em 1em;
+}
+
+/* Spacing for blockquotes and code blocks */
+.ProseMirror p + blockquote,
+.ProseMirror p + pre {
+  margin-top: 0.5em;
+}
+
+.ProseMirror blockquote + p,
+.ProseMirror pre + p {
+  margin-top: 0.5em;
+}
+
+.ProseMirror ul + blockquote,
+.ProseMirror ul + pre,
+.ProseMirror ol + blockquote,
+.ProseMirror ol + pre {
+  margin-top: 0.5em;
+}
+
+.ProseMirror blockquote + ul,
+.ProseMirror blockquote + ol,
+.ProseMirror pre + ul,
+.ProseMirror pre + ol {
+  margin-top: 0.5em;
+}
+
+.ProseMirror h1 + blockquote,
+.ProseMirror h1 + pre,
+.ProseMirror h2 + blockquote,
+.ProseMirror h2 + pre,
+.ProseMirror h3 + blockquote,
+.ProseMirror h3 + pre,
+.ProseMirror h4 + blockquote,
+.ProseMirror h4 + pre,
+.ProseMirror h5 + blockquote,
+.ProseMirror h5 + pre,
+.ProseMirror h6 + blockquote,
+.ProseMirror h6 + pre {
+  margin-top: 0.5em;
+}
+
+.ProseMirror blockquote + h1,
+.ProseMirror blockquote + h2,
+.ProseMirror blockquote + h3,
+.ProseMirror blockquote + h4,
+.ProseMirror blockquote + h5,
+.ProseMirror blockquote + h6,
+.ProseMirror pre + h1,
+.ProseMirror pre + h2,
+.ProseMirror pre + h3,
+.ProseMirror pre + h4,
+.ProseMirror pre + h5,
+.ProseMirror pre + h6 {
+  margin-top: 1.5em;
+}
+
+.ProseMirror blockquote + blockquote,
+.ProseMirror blockquote + pre,
+.ProseMirror pre + blockquote,
+.ProseMirror pre + pre {
+  margin-top: 0.5em;
+}
+
+/* Horizontal rule spacing */
+.ProseMirror hr {
+  margin: 1.5em 0;
+  border: none;
+  border-top: 2px solid hsl(var(--border));
+}
+
+.ProseMirror * + hr {
+  margin-top: 1.5em;
+}
+
+.ProseMirror hr + * {
+  margin-top: 1.5em !important;
 }
 
 /* TipTap Image Resizing and Alignment */

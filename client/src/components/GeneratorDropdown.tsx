@@ -38,12 +38,17 @@ export function GeneratorDropdown({ onSelectGenerator }: GeneratorDropdownProps)
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
   // Close on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedButton = buttonRef.current?.contains(target);
+      const clickedDropdown = dropdownRef.current?.contains(target);
+      
+      if (!clickedButton && !clickedDropdown) {
         setIsOpen(false);
       }
     };
@@ -115,6 +120,20 @@ export function GeneratorDropdown({ onSelectGenerator }: GeneratorDropdownProps)
     }
   };
 
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const scheduleClose = () => {
+    clearCloseTimeout();
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 100);
+  };
+
   const dropdownContent = isOpen && createPortal(
     <div 
       ref={dropdownRef}
@@ -124,6 +143,11 @@ export function GeneratorDropdown({ onSelectGenerator }: GeneratorDropdownProps)
         left: `${dropdownPosition.left}px`
       }}
       aria-label="Generator options"
+      onMouseEnter={() => {
+        clearCloseTimeout();
+        setIsOpen(true);
+      }}
+      onMouseLeave={() => scheduleClose()}
     >
       <div className="bg-popover border border-border rounded-md shadow-lg p-2">
         <div className="text-xs font-semibold text-muted-foreground px-2 py-1.5">
@@ -154,23 +178,23 @@ export function GeneratorDropdown({ onSelectGenerator }: GeneratorDropdownProps)
   );
 
   return (
-    <div 
-      onMouseEnter={() => {
-        if (buttonRef.current) {
-          const rect = buttonRef.current.getBoundingClientRect();
-          setDropdownPosition({
-            top: rect.bottom + 8,
-            left: rect.left
-          });
-        }
-        setIsOpen(true);
-      }}
-      onMouseLeave={() => setIsOpen(false)}
-    >
+    <div>
       <button 
         ref={buttonRef}
         onClick={toggleDropdown}
         onKeyDown={handleKeyDown}
+        onMouseEnter={() => {
+          clearCloseTimeout();
+          if (buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setDropdownPosition({
+              top: rect.bottom + 8,
+              left: rect.left
+            });
+          }
+          setIsOpen(true);
+        }}
+        onMouseLeave={() => scheduleClose()}
         className="flex items-center gap-1 text-foreground hover:text-primary transition-colors whitespace-nowrap" 
         data-testid="link-generators"
         aria-expanded={isOpen}
