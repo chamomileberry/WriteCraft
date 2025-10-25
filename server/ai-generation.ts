@@ -1814,6 +1814,13 @@ export async function conversationalChat(
   let notebookContext = '';
   if (notebookId) {
     try {
+      // Fetch characters separately to avoid circular references
+      const notebookCharacters = await db
+        .select()
+        .from(characters)
+        .where(eq(characters.notebookId, notebookId))
+        .limit(100);
+      
       const notebookItems = await db
         .select()
         .from(savedItems)
@@ -1837,15 +1844,14 @@ export async function conversationalChat(
         const mentionedChars: any[] = [];
         const otherChars: any[] = [];
         
-        if (itemsByType.character) {
-          itemsByType.character.forEach((char: any) => {
-            if (isCharacterMentioned(char, mentionedNames)) {
-              mentionedChars.push(char);
-            } else {
-              otherChars.push(char);
-            }
-          });
-        }
+        // Use the separately fetched characters instead of itemsByType
+        notebookCharacters.forEach((char: any) => {
+          if (isCharacterMentioned(char, mentionedNames)) {
+            mentionedChars.push(char);
+          } else {
+            otherChars.push(char);
+          }
+        });
         
         // Format characters - prioritize recently mentioned ones with full details
         if (mentionedChars.length > 0 || otherChars.length > 0) {
