@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -80,12 +80,34 @@ export function useGenerator<TResult, TParams = any>({
   const [, setLocation] = useLocation();
   const { checkLimit } = useSubscription();
 
-  // Generation mutation
+  // AbortController refs for request cancellation
+  const generateAbortControllerRef = useRef<AbortController | null>(null);
+  const saveAbortControllerRef = useRef<AbortController | null>(null);
+
+  // Generation mutation with AbortController support
   const generateMutation = useMutation({
     mutationFn: async () => {
-      const params = getGenerateParams();
-      const response = await apiRequest('POST', generateEndpoint, params);
-      return response.json() as Promise<TResult>;
+      // Abort previous request if still pending
+      if (generateAbortControllerRef.current) {
+        generateAbortControllerRef.current.abort();
+      }
+
+      // Create new AbortController for this request
+      generateAbortControllerRef.current = new AbortController();
+      const signal = generateAbortControllerRef.current.signal;
+
+      try {
+        const params = getGenerateParams();
+        const response = await apiRequest('POST', generateEndpoint, params, { signal });
+        return response.json() as Promise<TResult>;
+      } catch (error) {
+        // Don't throw AbortError to user
+        if (error instanceof Error && error.name === 'AbortError') {
+          logger.debug(`${itemTypeName} generation was cancelled`);
+          throw new Error('Generation cancelled');
+        }
+        throw error;
+      }
     },
     onSuccess: (data) => {
       setResult(data);
@@ -102,9 +124,18 @@ export function useGenerator<TResult, TParams = any>({
     },
   });
 
-  // Save mutation
+  // Save mutation with AbortController support
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Abort previous request if still pending
+      if (saveAbortControllerRef.current) {
+        saveAbortControllerRef.current.abort();
+      }
+
+      // Create new AbortController for this request
+      saveAbortControllerRef.current = new AbortController();
+      const signal = saveAbortControllerRef.current.signal;
+
       if (!result) {
         throw new Error('No result to save');
       }
@@ -134,8 +165,17 @@ export function useGenerator<TResult, TParams = any>({
             itemData: result,
           };
 
-      const response = await apiRequest('POST', saveEndpoint, payload);
-      return response.json();
+      try {
+        const response = await apiRequest('POST', saveEndpoint, payload, { signal });
+        return response.json();
+      } catch (error) {
+        // Don't throw AbortError to user
+        if (error instanceof Error && error.name === 'AbortError') {
+          logger.debug(`${itemTypeName} save was cancelled`);
+          throw new Error('Save cancelled');
+        }
+        throw error;
+      }
     },
     onSuccess: (savedData) => {
       // Invalidate specified queries
@@ -162,7 +202,7 @@ export function useGenerator<TResult, TParams = any>({
       }
     },
     onError: (error) => {
-      console.error(`Error saving ${itemTypeName}:`, error);
+      logger.error(`Error saving ${itemTypeName}:`, error);
       const errorMessage = error instanceof Error ? error.message : `Failed to save ${itemTypeName}. Please try again.`;
       toast({
         title: 'Save Failed',
@@ -171,6 +211,18 @@ export function useGenerator<TResult, TParams = any>({
       });
     },
   });
+
+  // Cleanup: abort all requests on component unmount
+  useEffect(() => {
+    return () => {
+      if (generateAbortControllerRef.current) {
+        generateAbortControllerRef.current.abort();
+      }
+      if (saveAbortControllerRef.current) {
+        saveAbortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Generate handler with limit checking
   const generate = async () => {

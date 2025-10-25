@@ -6,6 +6,32 @@
 import { ApiError } from './queryClient';
 
 /**
+ * Patterns that indicate sensitive or unsafe error messages
+ */
+const UNSAFE_PATTERNS = [
+  /[\/\\]/,  // File paths
+  /@[a-z0-9.-]+\.[a-z]{2,}/i,  // Email addresses
+  /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,  // IP addresses
+  /password|token|secret|key|auth|credential/i,  // Sensitive terms
+  /database|postgres|mysql|mongo|sql/i,  // Database info
+  /node_modules|src\/|dist\/|\.env/i,  // Project structure
+  /http(s)?:\/\//,  // URLs with hostnames
+];
+
+/**
+ * Check if a message is safe to show to users
+ */
+function isSafeMessage(message: string): boolean {
+  // Check length
+  if (message.length > 100) {
+    return false;
+  }
+
+  // Check for unsafe patterns
+  return !UNSAFE_PATTERNS.some(pattern => pattern.test(message));
+}
+
+/**
  * Extract a user-friendly error message from an error object
  */
 export function getErrorMessage(error: unknown, fallback: string = 'An error occurred'): string {
@@ -18,12 +44,18 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
         const jsonMatch = errorText.match(/\{.*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
-          return parsed.error || parsed.message || fallback;
+          const message = parsed.error || parsed.message;
+          // Validate parsed message is safe
+          if (message && isSafeMessage(message)) {
+            return message;
+          }
         }
       }
       // Otherwise return the raw message (after status code)
       const messagePart = errorText.split(': ')[1];
-      return messagePart || fallback;
+      if (messagePart && isSafeMessage(messagePart)) {
+        return messagePart;
+      }
     } catch {
       return fallback;
     }
@@ -35,13 +67,13 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
       return 'Request was cancelled';
     }
 
-    // Return error message if it's safe (not too long, doesn't contain paths)
-    if (error.message.length < 100 && !error.message.includes('/') && !error.message.includes('\\')) {
+    // Return error message if it's safe
+    if (isSafeMessage(error.message)) {
       return error.message;
     }
   }
 
-  if (typeof error === 'string') {
+  if (typeof error === 'string' && isSafeMessage(error)) {
     return error;
   }
 

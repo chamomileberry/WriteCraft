@@ -43,6 +43,10 @@ import Examples from "@/pages/Examples";
 import ApiDocs from "@/pages/ApiDocs";
 import CanvasPage from "@/pages/CanvasPage";
 import CanvasesListPage from "@/pages/CanvasesListPage";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
+import FeedbackPage from "@/pages/FeedbackPage";
+import FeedbackManagement from "@/pages/admin/FeedbackManagement";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -208,6 +212,9 @@ function Router() {
       <Route path="/examples" component={Examples} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/api-docs" component={ApiDocs} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/feedback" component={FeedbackPage} />
       <Route path="/team" component={TeamManagement} />
       <Route path="/account" component={AccountSettings} />
       <Route path="/search" component={SearchPage} />
@@ -220,6 +227,7 @@ function Router() {
       <Route path="/admin/security" component={SecurityDashboard} />
       <Route path="/admin/discount-codes" component={DiscountCodesAdmin} />
       <Route path="/admin/guide-categories" component={GuideCategoriesAdmin} />
+      <Route path="/admin/feedback" component={FeedbackManagement} />
       <Route path="/import" component={ImportPage} />
       <Route path="/projects" component={ProjectPage} />
       <Route path="/projects/:id/edit" component={ProjectEditPageWithSidebar} />

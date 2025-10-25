@@ -6,9 +6,10 @@
 import { logger } from './logger';
 
 export interface SanitizedError {
-  error: string;
-  message?: string;
-  details?: any;
+  error: string;        // Error type/title (e.g., "Validation Error", "Not Found")
+  message: string;      // User-friendly error message
+  details?: unknown;    // Optional: additional context for specific errors (e.g., validation field errors)
+  code?: string;        // Optional: error code for programmatic handling
 }
 
 /**
@@ -32,7 +33,7 @@ const SENSITIVE_PATTERNS = [
   /file:\/\//i,  // File paths
   /\/home\//i,
   /\/usr\//i,
-  /C:\\/i,
+  /C:\\[a-z\\]/i,  // ✅ Properly escaped Windows path (C:\...)
 ];
 
 /**
