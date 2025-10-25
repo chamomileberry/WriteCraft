@@ -266,7 +266,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
           offset: 8,
         }}
       >
-        <Card className="flex items-center gap-1 p-1 shadow-lg border">
+        <Card className="flex items-center gap-1 p-1 shadow-lg border z-50">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
