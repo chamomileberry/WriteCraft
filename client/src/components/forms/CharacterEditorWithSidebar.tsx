@@ -375,6 +375,9 @@ export default function CharacterEditorWithSidebar({
       {/* Sidebar */}
       {isMobile ? (
         <Drawer open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <DrawerTrigger asChild>
+            <div style={{ display: 'none' }} />
+          </DrawerTrigger>
           <DrawerContent className="w-80 bg-card border-r flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
               <h2 className="font-semibold text-lg">Character Editor</h2>
@@ -565,26 +568,14 @@ export default function CharacterEditorWithSidebar({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-card">
           <div className="flex items-center gap-3">
-            {isMobile ? (
-              <DrawerTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  data-testid="button-open-sidebar"
-                >
-                  <Menu className="w-5 h-5" />
-                </Button>
-              </DrawerTrigger>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                data-testid="button-open-sidebar"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              data-testid="button-open-sidebar"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
             <div>
               <h1 className="text-xl font-bold">{config.title}</h1>
               {currentSection && (
