@@ -27,6 +27,10 @@ import { ContentTypeFormConfig, FormField } from "./types";
 import { characterNavigation } from "@/config/character-editor-config";
 import { generateFormSchema, getFormDefaultValues } from "@/lib/form-utils";
 import { z } from "zod";
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
+import DynamicContentForm from './DynamicContentForm';
 
 
 interface CharacterEditorWithSidebarProps {
@@ -51,6 +55,8 @@ export default function CharacterEditorWithSidebar({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["identity"]));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+
 
   // Use memoized form utilities
 
@@ -367,114 +373,218 @@ export default function CharacterEditorWithSidebar({
       )}
 
       {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 flex flex-col overflow-hidden",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-          <h2 className="font-semibold text-lg">Character Editor</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-            data-testid="button-close-sidebar"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+      {isMobile ? (
+        <Drawer open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <DrawerContent className="w-80 bg-card border-r flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+              <h2 className="font-semibold text-lg">Character Editor</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(false)}
+                data-testid="button-close-sidebar"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <ScrollArea className="flex-1 w-full">
+              <div className="px-2 py-4 space-y-2 w-full">
+                {sectionsWithTabs.map((section) => {
+                  const isExpanded = expandedSections.has(section.id);
+                  const isActive = activeSection === section.id;
+                  const Icon = section.icon;
 
-        <ScrollArea className="flex-1 w-full">
-          <div className="px-2 py-4 space-y-2 w-full">
-            {sectionsWithTabs.map((section) => {
-              const isExpanded = expandedSections.has(section.id);
-              const isActive = activeSection === section.id;
-              const Icon = section.icon;
-
-              return (
-                <div key={section.id} className="w-full max-w-full">
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start px-3 py-2 h-auto font-normal overflow-hidden whitespace-normal",
-                      isActive && "bg-muted font-medium"
-                    )}
-                    onClick={() => {
-                      toggleSection(section.id);
-                      if (section.tabs.length > 0) {
-                        handleTabSelect(section.id, section.tabs[0].id);
-                      }
-                    }}
-                    data-testid={`button-section-${section.id}`}
-                  >
-                    <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
-                    <div className="flex-1 min-w-0 text-left">
-                      <div className="font-medium break-words">{section.label}</div>
-                      <div className="text-xs text-muted-foreground mt-1 break-words">
-                        {section.description}
-                      </div>
-                    </div>
-                    {section.tabs.length > 1 && (
-                      <span className="flex-shrink-0 ml-2">
-                        {isExpanded ? (
-                          <ChevronDown className="w-4 h-4" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4" />
+                  return (
+                    <div key={section.id} className="w-full max-w-full">
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start px-3 py-2 h-auto font-normal overflow-hidden whitespace-normal",
+                          isActive && "bg-muted font-medium"
                         )}
-                      </span>
-                    )}
-                  </Button>
+                        onClick={() => {
+                          toggleSection(section.id);
+                          if (section.tabs.length > 0) {
+                            handleTabSelect(section.id, section.tabs[0].id);
+                          }
+                        }}
+                        data-testid={`button-section-${section.id}`}
+                      >
+                        <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="font-medium break-words">{section.label}</div>
+                          <div className="text-xs text-muted-foreground mt-1 break-words">
+                            {section.description}
+                          </div>
+                        </div>
+                        {section.tabs.length > 1 && (
+                          <span className="flex-shrink-0 ml-2">
+                            {isExpanded ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </span>
+                        )}
+                      </Button>
 
-                  {/* Sub-tabs */}
-                  {isExpanded && section.tabs.length > 1 && (
-                    <div className="ml-6 mt-1 space-y-1">
-                      {section.tabs.map((tab) => (
-                        <Button
-                          key={tab.id}
-                          variant="ghost"
-                          size="sm"
-                          className={cn(
-                            "w-full justify-start text-sm",
-                            activeTab === tab.id && "bg-muted font-medium"
-                          )}
-                          onClick={() => handleTabSelect(section.id, tab.id)}
-                          data-testid={`button-tab-${tab.id}`}
-                        >
-                          {tab.label}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
+                      {/* Sub-tabs */}
+                      {isExpanded && section.tabs.length > 1 && (
+                        <div className="ml-6 mt-1 space-y-1">
+                          {section.tabs.map((tab) => (
+                            <Button
+                              key={tab.id}
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                "w-full justify-start text-sm",
+                                activeTab === tab.id && "bg-muted font-medium"
+                              )}
+                              onClick={() => handleTabSelect(section.id, tab.id)}
+                              data-testid={`button-tab-${tab.id}`}
+                            >
+                              {tab.label}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
 
-                  {/* Tab count badge for sections with multiple tabs */}
-                  {section.tabs.length > 1 && !isExpanded && (
-                    <div className="ml-14 -mt-1 mb-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {section.tabs.length} sections
-                      </Badge>
+                      {/* Tab count badge for sections with multiple tabs */}
+                      {section.tabs.length > 1 && !isExpanded && (
+                        <div className="ml-14 -mt-1 mb-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {section.tabs.length} sections
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <div className={cn(
+          "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 flex flex-col overflow-hidden",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+            <h2 className="font-semibold text-lg">Character Editor</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+              data-testid="button-close-sidebar"
+            >
+              <X className="w-5 h-5" />
+            </Button>
           </div>
-        </ScrollArea>
-      </div>
+
+          <ScrollArea className="flex-1 w-full">
+            <div className="px-2 py-4 space-y-2 w-full">
+              {sectionsWithTabs.map((section) => {
+                const isExpanded = expandedSections.has(section.id);
+                const isActive = activeSection === section.id;
+                const Icon = section.icon;
+
+                return (
+                  <div key={section.id} className="w-full max-w-full">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start px-3 py-2 h-auto font-normal overflow-hidden whitespace-normal",
+                        isActive && "bg-muted font-medium"
+                      )}
+                      onClick={() => {
+                        toggleSection(section.id);
+                        if (section.tabs.length > 0) {
+                          handleTabSelect(section.id, section.tabs[0].id);
+                        }
+                      }}
+                      data-testid={`button-section-${section.id}`}
+                    >
+                      <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="font-medium break-words">{section.label}</div>
+                        <div className="text-xs text-muted-foreground mt-1 break-words">
+                          {section.description}
+                        </div>
+                      </div>
+                      {section.tabs.length > 1 && (
+                        <span className="flex-shrink-0 ml-2">
+                          {isExpanded ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </span>
+                      )}
+                    </Button>
+
+                    {/* Sub-tabs */}
+                    {isExpanded && section.tabs.length > 1 && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {section.tabs.map((tab) => (
+                          <Button
+                            key={tab.id}
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "w-full justify-start text-sm",
+                              activeTab === tab.id && "bg-muted font-medium"
+                            )}
+                            onClick={() => handleTabSelect(section.id, tab.id)}
+                            data-testid={`button-tab-${tab.id}`}
+                          >
+                            {tab.label}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Tab count badge for sections with multiple tabs */}
+                    {section.tabs.length > 1 && !isExpanded && (
+                      <div className="ml-14 -mt-1 mb-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {section.tabs.length} sections
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-card">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(true)}
-              data-testid="button-open-sidebar"
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
+            {isMobile ? (
+              <DrawerTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  data-testid="button-open-sidebar"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </DrawerTrigger>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                data-testid="button-open-sidebar"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+            )}
             <div>
               <h1 className="text-xl font-bold">{config.title}</h1>
               {currentSection && (
