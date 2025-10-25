@@ -4,6 +4,25 @@ import { registerRoutes } from "./routes";
 import { log } from "./vite";
 import { applySecurityMiddleware } from "./app-security";
 
+// Global error handlers to prevent server crashes
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Log the error but don't crash the server in production
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('Stack trace:', reason);
+  }
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Log the error but don't crash in production
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('Stack trace:', error.stack);
+  }
+  // In production, you might want to gracefully shutdown
+  // For now, we log and continue
+});
+
 export async function createApp() {
   const app = express();
   
@@ -50,8 +69,9 @@ export async function createApp() {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    // Log the error for debugging but don't throw after response is sent
+    console.error('Error handler caught:', err);
     res.status(status).json({ message });
-    throw err;
   });
 
   return { app, server };

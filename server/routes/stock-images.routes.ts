@@ -9,8 +9,12 @@ const stockSearchSchema = z.object({
   limit: z.number().min(1).max(20).default(12),
 });
 
-// Pexels API access
-const PEXELS_API_KEY = process.env.PEXELS_API_KEY || '';
+// Pexels API access - fail fast on startup if not configured
+if (!process.env.PEXELS_API_KEY) {
+  throw new Error("[StockImages] PEXELS_API_KEY environment variable is not set - cannot initialize stock image service");
+}
+
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 
 router.post("/search", async (req: any, res) => {
   try {

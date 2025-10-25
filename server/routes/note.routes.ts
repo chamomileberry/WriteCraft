@@ -2,10 +2,17 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertNoteSchema } from "@shared/schema";
 import { z } from "zod";
+import { createRateLimiter } from "../security/middleware";
 
 const router = Router();
 
-router.post("/", async (req: any, res) => {
+// Notes rate limiting: 200 requests per 15 minutes
+const contentRateLimiter = createRateLimiter({
+  maxRequests: 200,
+  windowMs: 15 * 60 * 1000
+});
+
+router.post("/", contentRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const noteData = { ...req.body, userId };
@@ -54,7 +61,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", contentRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -81,7 +88,7 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", contentRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteNote(req.params.id, userId);

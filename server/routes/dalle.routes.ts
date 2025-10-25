@@ -6,13 +6,13 @@ import { setObjectAclPolicy } from "../objectAcl";
 
 const router = Router();
 
-// Validate API token is configured
+// Validate API token is configured - fail fast on startup
 if (!process.env.REPLICATE_API_TOKEN) {
-  console.error("[Ideogram] REPLICATE_API_TOKEN environment variable is not set");
+  throw new Error("[Ideogram] REPLICATE_API_TOKEN environment variable is not set - cannot initialize Replicate client");
 }
 
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN || "",
+  auth: process.env.REPLICATE_API_TOKEN,
 });
 
 const generateImageSchema = z.object({

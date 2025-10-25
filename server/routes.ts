@@ -74,6 +74,27 @@ const searchRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000 
 });
 
+// Upload rate limiting: 50 requests per 15 minutes
+// Prevents upload spam and DoS attacks
+const uploadRateLimiter = createRateLimiter({
+  maxRequests: 50,
+  windowMs: 15 * 60 * 1000
+});
+
+// Notes/Chat rate limiting: 200 requests per 15 minutes
+// Prevents abuse while allowing normal usage
+const contentRateLimiter = createRateLimiter({
+  maxRequests: 200,
+  windowMs: 15 * 60 * 1000
+});
+
+// Timeline rate limiting: 100 requests per 15 minutes
+// Prevents DoS attacks on timeline operations
+const timelineRateLimiter = createRateLimiter({
+  maxRequests: 100,
+  windowMs: 15 * 60 * 1000
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth (must be before other routes)
   await setupAuth(app);
@@ -192,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/upload/image", async (req, res) => {
+  app.post("/api/upload/image", isAuthenticated, uploadRateLimiter, async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const { visibility } = req.body;
@@ -274,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Universal search endpoint
-  app.get("/api/search", searchRateLimiter, async (req: any, res) => {
+  app.get("/api/search", isAuthenticated, searchRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const query = req.query.q as string || '';
@@ -295,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Pinned content endpoints
-  app.get("/api/pinned-content", async (req: any, res) => {
+  app.get("/api/pinned-content", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const notebookId = req.query.notebookId as string;
@@ -362,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/pinned-content", async (req: any, res) => {
+  app.post("/api/pinned-content", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { notebookId, targetType, targetId, category, notes } = req.body;
@@ -388,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/pinned-content/:id", async (req: any, res) => {
+  app.delete("/api/pinned-content/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const pinnedId = req.params.id;
@@ -426,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Note routes
-  app.post("/api/notes", async (req: any, res) => {
+  app.post("/api/notes", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       // Override any client-provided userId with authenticated session
@@ -440,7 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notes/:id", async (req: any, res) => {
+  app.get("/api/notes/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -455,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notes", async (req: any, res) => {
+  app.get("/api/notes", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { type, folderId, documentId } = req.query;
@@ -477,7 +498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/notes/:id", async (req: any, res) => {
+  app.put("/api/notes/:id", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -494,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/notes/:id", async (req: any, res) => {
+  app.delete("/api/notes/:id", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -507,7 +528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quick note routes
-  app.post("/api/quick-note", async (req: any, res) => {
+  app.post("/api/quick-note", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { title, content } = req.body;
@@ -529,7 +550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/quick-note", async (req: any, res) => {
+  app.get("/api/quick-note", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       
@@ -546,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Fetch a specific quick note by ID
-  app.get("/api/quick-note/:id", async (req: any, res) => {
+  app.get("/api/quick-note/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -564,7 +585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update a specific quick note by ID
-  app.put("/api/quick-note/:id", async (req: any, res) => {
+  app.put("/api/quick-note/:id", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -581,7 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/quick-note", async (req: any, res) => {
+  app.delete("/api/quick-note", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       
@@ -599,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Writing Assistant API routes
-  app.post("/api/writing-assistant/analyze", async (req, res) => {
+  app.post("/api/writing-assistant/analyze", isAuthenticated, async (req, res) => {
     try {
       const { text, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(),
@@ -619,7 +640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/rephrase", async (req, res) => {
+  app.post("/api/writing-assistant/rephrase", isAuthenticated, async (req, res) => {
     try {
       const { text, style, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(), 
@@ -640,7 +661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/proofread", async (req, res) => {
+  app.post("/api/writing-assistant/proofread", isAuthenticated, async (req, res) => {
     try {
       const { text, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(),
@@ -660,7 +681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/synonyms", trackAIUsage('synonyms_generation'), async (req, res) => {
+  app.post("/api/writing-assistant/synonyms", isAuthenticated, trackAIUsage('synonyms_generation'), async (req, res) => {
     try {
       const { word } = z.object({ word: z.string() }).parse(req.body);
       const aiResult = await generateSynonyms(word);
@@ -679,7 +700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/definition", trackAIUsage('word_definition'), async (req, res) => {
+  app.post("/api/writing-assistant/definition", isAuthenticated, trackAIUsage('word_definition'), async (req, res) => {
     try {
       const { word } = z.object({ word: z.string() }).parse(req.body);
       const aiResult = await getWordDefinition(word);
@@ -698,7 +719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/questions", trackAIUsage('questions_generation'), async (req, res) => {
+  app.post("/api/writing-assistant/questions", isAuthenticated, trackAIUsage('questions_generation'), async (req, res) => {
     try {
       const { text, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(),
@@ -722,7 +743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/improve", async (req, res) => {
+  app.post("/api/writing-assistant/improve", isAuthenticated, async (req, res) => {
     try {
       const { text, instruction } = z.object({ 
         text: z.string(), 
@@ -740,7 +761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/chat", trackAIUsage('conversational_chat'), async (req: any, res) => {
+  app.post("/api/writing-assistant/chat", isAuthenticated, contentRateLimiter, trackAIUsage('conversational_chat'), async (req: any, res) => {
     try {
       // Get authenticated userId from session (never trust client input)
       const userId = req.user.claims.sub;
@@ -934,7 +955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline routes
-  app.post("/api/timelines", async (req: any, res) => {
+  app.post("/api/timelines", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { notebookId, ...timelineData } = req.body;
@@ -964,7 +985,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/timelines/:id", async (req: any, res) => {
+  app.get("/api/timelines/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -992,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline Event routes
-  app.get("/api/timeline-events", async (req: any, res) => {
+  app.get("/api/timeline-events", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { timelineId, notebookId } = req.query;
@@ -1009,7 +1030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/timeline-events", async (req: any, res) => {
+  app.post("/api/timeline-events", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { timelineId, notebookId, userId: _ignored, createdAt: _ignored2, updatedAt: _ignored3, id: _ignored4, ...eventData } = req.body;
@@ -1051,7 +1072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/timeline-events/:id", async (req: any, res) => {
+  app.delete("/api/timeline-events/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -1070,7 +1091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline Relationship routes
-  app.get("/api/timeline-relationships", async (req: any, res) => {
+  app.get("/api/timeline-relationships", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { timelineId, notebookId } = req.query;
@@ -1087,7 +1108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/timeline-relationships", async (req: any, res) => {
+  app.post("/api/timeline-relationships", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { timelineId, notebookId, createdAt: _ignored, id: _ignored2, ...relationshipData } = req.body;
@@ -1115,7 +1136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/timeline-relationships/:id", async (req: any, res) => {
+  app.delete("/api/timeline-relationships/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;

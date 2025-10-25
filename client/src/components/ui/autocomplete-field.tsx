@@ -113,9 +113,7 @@ export function AutocompleteField({
       const queryString = params.toString() ? `?${params.toString()}` : '';
       
       const response = await fetch(`/api/${apiEndpoint}${queryString}`, {
-        headers: {
-          'X-User-Id': 'demo-user' // TODO: Replace with actual user authentication
-        }
+        credentials: 'include' // Use session cookies for authentication
       });
       if (!response.ok) return [];
       const data = await response.json();
@@ -147,10 +145,7 @@ export function AutocompleteField({
             ? `?notebookId=${activeNotebookId}` 
             : '';
           const response = await fetch(`/api/${apiEndpoint}/${id}${queryParam}`, {
-            credentials: 'include',
-            headers: {
-              'X-User-Id': 'demo-user'
-            }
+            credentials: 'include'
           });
           if (response.ok) {
             const item = await response.json();
@@ -266,12 +261,12 @@ export function AutocompleteField({
         payload.notebookId = activeNotebookId;
       }
       
-      // Add user context header for proper scoping
+      // Send POST request with credentials for authentication
       const response = await fetch(`/api/${apiEndpoint}`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': 'demo-user' // TODO: Replace with actual user authentication
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });

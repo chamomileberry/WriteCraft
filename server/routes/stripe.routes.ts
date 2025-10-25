@@ -327,7 +327,7 @@ router.post('/preview-subscription-change', isAuthenticated, async (req: any, re
 
     // Get the price ID for the new tier and billing cycle
     const { STRIPE_PRICE_IDS } = await import('../services/stripeService');
-    const newPriceId = STRIPE_PRICE_IDS[tier as 'author' | 'professional' | 'team'][billingCycle];
+    const newPriceId = STRIPE_PRICE_IDS[tier as 'author' | 'professional' | 'team'][billingCycle as 'monthly' | 'annual'];
 
     // Preview the subscription change with discount code if provided
     const preview = await stripeService.previewSubscriptionChange({
@@ -512,6 +512,12 @@ router.post('/payment-methods/:id/set-default', isAuthenticated, async (req: any
 router.post('/webhook', async (req, res) => {
   const sig = req.headers['stripe-signature'] as string;
 
+  // Critical: Fail fast if webhook secret is not configured
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('[Stripe] STRIPE_WEBHOOK_SECRET is not configured - webhook verification cannot proceed');
+    return res.status(500).send('Webhook configuration error');
+  }
+
   let event: Stripe.Event;
 
   try {
@@ -519,7 +525,7 @@ router.post('/webhook', async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET || ''
+      process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err: any) {
     console.error('[Stripe] Webhook signature verification failed:', err.message);

@@ -2,11 +2,18 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertTimelineEventSchema } from "@shared/schema";
 import { z } from "zod";
+import { createRateLimiter } from "../security/middleware";
 
 const router = Router();
 
+// Timeline rate limiting: 100 requests per 15 minutes
+const timelineRateLimiter = createRateLimiter({
+  maxRequests: 100,
+  windowMs: 15 * 60 * 1000
+});
+
 // Create a new timeline event
-router.post("/", async (req: any, res) => {
+router.post("/", timelineRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const timelineId = req.body.timelineId;
@@ -82,7 +89,7 @@ router.get("/:id", async (req: any, res) => {
 });
 
 // Update a timeline event
-router.patch("/:id", async (req: any, res) => {
+router.patch("/:id", timelineRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = insertTimelineEventSchema.partial().parse(req.body);
@@ -104,7 +111,7 @@ router.patch("/:id", async (req: any, res) => {
 });
 
 // Delete a timeline event
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", timelineRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const timelineId = req.query.timelineId as string;
