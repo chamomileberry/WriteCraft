@@ -34,51 +34,61 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       return;
     }
 
-    const updatePosition = () => {
-      const pluginState = aiSuggestionPluginKey.getState(editor.state);
-      if (!pluginState || pluginState.suggestions.length === 0) {
-        setPopupPosition(null);
-        return;
-      }
+    // Throttle function to limit update frequency
+    let rafId: number | null = null;
+    const throttledUpdate = () => {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          // Always clear rafId first to allow future updates
+          rafId = null;
+          
+          const pluginState = aiSuggestionPluginKey.getState(editor.state);
+          if (!pluginState || pluginState.suggestions.length === 0) {
+            setPopupPosition(null);
+            return;
+          }
 
-      const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
-      if (!activeSuggestion) {
-        setPopupPosition(null);
-        return;
-      }
+          const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+          if (!activeSuggestion) {
+            setPopupPosition(null);
+            return;
+          }
 
-      const { view } = editor;
-      const { from, to } = activeSuggestion.deleteRange;
-      
-      // Wait for next frame to ensure DOM is updated
-      requestAnimationFrame(() => {
-        // Get coordinates at the end of the suggestion
-        const coords = view.coordsAtPos(to);
-        
-        // Position below the highlighted text
-        setPopupPosition({
-          top: coords.bottom + 8,
-          left: coords.left
+          const { view } = editor;
+          const { from, to } = activeSuggestion.deleteRange;
+          
+          // Get coordinates at the end of the suggestion
+          const coords = view.coordsAtPos(to);
+          
+          // Position below the highlighted text
+          setPopupPosition({
+            top: coords.bottom + 8,
+            left: coords.left
+          });
         });
-      });
+      }
     };
 
-    updatePosition();
+    // Initial position update
+    throttledUpdate();
 
-    // Listen to editor updates (transactions)
+    // Listen to editor updates (transactions) - use throttled version
     const handleEditorUpdate = () => {
-      updatePosition();
+      throttledUpdate();
     };
     editor.on('update', handleEditorUpdate);
 
-    // Update position on scroll/resize
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
+    // Update position on scroll/resize - throttled
+    window.addEventListener('scroll', throttledUpdate, true);
+    window.addEventListener('resize', throttledUpdate);
 
     return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
       editor.off('update', handleEditorUpdate);
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', throttledUpdate, true);
+      window.removeEventListener('resize', throttledUpdate);
     };
   }, [editor]);
 

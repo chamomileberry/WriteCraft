@@ -9,9 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -24,10 +21,8 @@ import remarkGfm from 'remark-gfm';
 import { 
   MessageSquare, 
   Sparkles, 
-  CheckCircle, 
   FileText, 
-  Edit3, 
-  BookOpen, 
+  CheckCircle, 
   HelpCircle, 
   Lightbulb,
   Loader2,
@@ -35,8 +30,6 @@ import {
   ArrowRightToLine,
   User,
   Bot,
-  MessageSquarePlus,
-  History,
   Trash2
 } from 'lucide-react';
 
@@ -54,19 +47,12 @@ interface Message {
   timestamp: Date;
 }
 
-interface TextAnalysis {
-  suggestions: string[];
-  readabilityScore: number;
-  potentialIssues: string[];
-}
-
-interface ProofreadResult {
-  correctedText: string;
-  corrections: Array<{
-    original: string;
-    corrected: string;
-    reason: string;
-  }>;
+interface SuggestedPrompt {
+  id: string;
+  icon: any;
+  label: string;
+  prompt: string;
+  description: string;
 }
 
 export default function WritingAssistantPanel({ 
@@ -75,11 +61,8 @@ export default function WritingAssistantPanel({
   onRegisterClearChatFunction, 
   onRegisterToggleHistoryFunction 
 }: WritingAssistantPanelProps) {
-  const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [analysis, setAnalysis] = useState<TextAnalysis | null>(null);
-  const [questions, setQuestions] = useState<string[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const [extendedThinkingEnabled, setExtendedThinkingEnabled] = useState(false);
@@ -97,6 +80,45 @@ export default function WritingAssistantPanel({
   const { hasPremiumAccess, extendedThinkingRemaining, premiumQuota } = useSubscription();
   const { getEditorContext, executeEditorAction } = useWorkspaceStore();
   const { activeNotebookId } = useNotebookStore();
+
+  // Smart prompt suggestions
+  const suggestedPrompts: SuggestedPrompt[] = [
+    {
+      id: 'analyze',
+      icon: FileText,
+      label: 'Analyze',
+      prompt: 'Analyze the current text for readability, style, and provide improvement suggestions',
+      description: 'Get writing suggestions and readability score'
+    },
+    {
+      id: 'proofread',
+      icon: CheckCircle,
+      label: 'Proofread',
+      prompt: 'Proofread the current text for grammar, spelling, and style issues',
+      description: 'Check grammar and spelling'
+    },
+    {
+      id: 'questions',
+      icon: HelpCircle,
+      label: 'Questions',
+      prompt: 'Generate questions a reader might have about this content',
+      description: 'Find potential plot holes'
+    },
+    {
+      id: 'improve',
+      icon: Sparkles,
+      label: 'Improve',
+      prompt: 'Suggest improvements to make this text more engaging and clear',
+      description: 'Enhance clarity and flow'
+    },
+    {
+      id: 'ideas',
+      icon: Lightbulb,
+      label: 'Ideas',
+      prompt: 'Help me brainstorm ideas for continuing this story',
+      description: 'Brainstorm next steps'
+    }
+  ];
 
   // Load chat history when component mounts or editor context changes
   useEffect(() => {
@@ -145,8 +167,6 @@ export default function WritingAssistantPanel({
           }
         } else {
           // Load by project/guide (legacy behavior for backwards compatibility)
-          // Build query parameters for fetching messages
-          // Note: 'manuscript' type is legacy terminology, refers to project editor
           const params = new URLSearchParams();
           if (editorContext.type === 'manuscript' && editorContext.entityId) {
             params.append('projectId', editorContext.entityId);
@@ -219,117 +239,6 @@ export default function WritingAssistantPanel({
     }
   }, [showHistoryDropdown]);
 
-  // AI analysis mutation
-  const analyzeMutation = useMutation({
-    mutationFn: async (text: string) => {
-      const editorContext = getEditorContext();
-      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
-      
-      const response = await fetch('/api/writing-assistant/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          text,
-          editorContent: hasEditorContent ? editorContext.content : undefined,
-          documentTitle: hasEditorContent ? editorContext.title : undefined,
-          documentType: hasEditorContent ? editorContext.type : undefined
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to analyze text');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setAnalysis(data);
-      setActiveTab('analysis');
-    },
-    onError: () => {
-      toast({
-        title: 'Analysis failed',
-        description: 'Could not analyze the text. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Rephrase mutation
-  const rephraseMutation = useMutation({
-    mutationFn: async ({ text, style }: { text: string; style: string }) => {
-      const editorContext = getEditorContext();
-      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
-      
-      const response = await fetch('/api/writing-assistant/rephrase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          text, 
-          style,
-          editorContent: hasEditorContent ? editorContext.content : undefined,
-          documentTitle: hasEditorContent ? editorContext.title : undefined,
-          documentType: hasEditorContent ? editorContext.type : undefined
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to rephrase text');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      addMessage('assistant', `Rephrased text: "${data.text}"`);
-    },
-  });
-
-  // Proofread mutation
-  const proofreadMutation = useMutation({
-    mutationFn: async (text: string) => {
-      const editorContext = getEditorContext();
-      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
-      
-      const response = await fetch('/api/writing-assistant/proofread', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          text,
-          editorContent: hasEditorContent ? editorContext.content : undefined,
-          documentTitle: hasEditorContent ? editorContext.title : undefined,
-          documentType: hasEditorContent ? editorContext.type : undefined
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to proofread text');
-      return response.json();
-    },
-    onSuccess: (data: ProofreadResult) => {
-      const correctionsList = data.corrections.length > 0 
-        ? data.corrections.map(c => `• ${c.original} → ${c.corrected} (${c.reason})`).join('\n')
-        : 'No corrections needed!';
-      
-      addMessage('assistant', `Proofread result:\n\n"${data.correctedText}"\n\nCorrections made:\n${correctionsList}`);
-    },
-  });
-
-  // Generate questions mutation
-  const questionsMutation = useMutation({
-    mutationFn: async (text: string) => {
-      const editorContext = getEditorContext();
-      const hasEditorContent = editorContext.content && editorContext.content.length > 10;
-      
-      const response = await fetch('/api/writing-assistant/questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          text,
-          editorContent: hasEditorContent ? editorContext.content : undefined,
-          documentTitle: hasEditorContent ? editorContext.title : undefined,
-          documentType: hasEditorContent ? editorContext.type : undefined
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to generate questions');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setQuestions(data.questions);
-      setActiveTab('questions');
-    },
-  });
-
-
   // Conversational chat mutation
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -355,9 +264,9 @@ export default function WritingAssistantPanel({
           documentTitle: hasEditorContent ? editorContext.title : undefined,
           documentType: hasEditorContent ? editorContext.type : undefined,
           notebookId: editorContext.notebookId || activeNotebookId || undefined,
-          // Note: 'manuscript' type is legacy, refers to project editor context
           projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
-          guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined
+          guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
+          useExtendedThinking: extendedThinkingEnabled
         }),
       });
       if (!response.ok) throw new Error('Failed to get chat response');
@@ -367,13 +276,11 @@ export default function WritingAssistantPanel({
       addMessage('assistant', data.message);
     },
     onError: (error: any) => {
-      // Try to extract a meaningful error message from the response
       let errorMessage = "I'm having a moment of writer's block myself! Could you rephrase your question, or would you like to try a different aspect of your project?";
       
       if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error?.message) {
-        // Network or other errors
         if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = "I'm having trouble connecting right now. Please check your internet connection and try again.";
         }
@@ -388,7 +295,6 @@ export default function WritingAssistantPanel({
     mutationFn: async () => {
       const editorContext = getEditorContext();
       
-      // Build query parameters for clearing messages
       const params = new URLSearchParams();
       if (editorContext.type === 'manuscript' && editorContext.entityId) {
         params.append('projectId', editorContext.entityId);
@@ -439,17 +345,15 @@ export default function WritingAssistantPanel({
   const getEditorText = () => {
     const editorContext = getEditorContext();
     
-    // If we have editor content, use it (this is the manuscript/guide being edited)
     if (editorContext.content && editorContext.content.length > 10) {
       return {
-        text: editorContext.content.slice(0, 2000), // Limit to reasonable size
+        text: editorContext.content.slice(0, 2000),
         hasEditorContent: true,
         title: editorContext.title,
         type: editorContext.type
       };
     }
     
-    // Fallback: if no editor content, return empty
     return {
       text: '',
       hasEditorContent: false,
@@ -462,17 +366,15 @@ export default function WritingAssistantPanel({
   const extractTextSuggestions = (content: string) => {
     const suggestions: { text: string; type: 'replace' | 'insert' }[] = [];
     
-    // Look for quoted text suggestions in messages
     const quotedTextRegex = /"([^"]+)"/g;
     let match;
     while ((match = quotedTextRegex.exec(content)) !== null) {
       const text = match[1];
-      if (text.length > 10 && text.length < 500) { // Reasonable text length
+      if (text.length > 10 && text.length < 500) {
         suggestions.push({ text, type: 'replace' });
       }
     }
     
-    // Look for "corrected" or "improved" text patterns
     const correctedTextRegex = /(?:corrected|improved|rephrased|better).*?:\s*"([^"]+)"/gi;
     match = correctedTextRegex.exec(content);
     while (match !== null) {
@@ -513,7 +415,7 @@ export default function WritingAssistantPanel({
 
   // Add message helper - saves to database and updates local state
   const addMessage = async (type: 'user' | 'assistant', content: string, metadata?: any) => {
-    if (!user) return; // Require authentication
+    if (!user) return;
     
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -522,7 +424,6 @@ export default function WritingAssistantPanel({
       timestamp: new Date(),
     };
     
-    // Update local state immediately for responsive UI
     setMessages(prev => [...prev, newMessage]);
     
     // Save to database in background
@@ -556,7 +457,6 @@ export default function WritingAssistantPanel({
           }
         } catch (error) {
           console.error('Failed to create conversation thread:', error);
-          // Continue with message save even if thread creation fails
         }
       }
       
@@ -570,7 +470,6 @@ export default function WritingAssistantPanel({
           type,
           content,
           threadId: threadId,
-          // Note: 'manuscript' type is legacy, refers to project editor context
           projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
           guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
           metadata
@@ -579,7 +478,6 @@ export default function WritingAssistantPanel({
       
       if (response.ok) {
         const savedMessage = await response.json();
-        // Update the message with the actual database ID
         setMessages(prev => prev.map(msg => 
           msg.id === newMessage.id 
             ? { ...msg, id: savedMessage.id }
@@ -587,8 +485,8 @@ export default function WritingAssistantPanel({
         ));
         
         // Auto-generate tags after 5 messages (only once)
-        if (threadId && !tagsGenerated && messages.length >= 4) { // 4 existing + 1 new = 5
-          setTagsGenerated(true); // Set flag to prevent multiple generations
+        if (threadId && !tagsGenerated && messages.length >= 4) {
+          setTagsGenerated(true);
           try {
             await fetch(`/api/conversation-threads/${threadId}/generate-tags`, {
               method: 'POST',
@@ -596,13 +494,11 @@ export default function WritingAssistantPanel({
             });
           } catch (error) {
             console.error('Failed to generate tags:', error);
-            // Non-critical error, don't show to user
           }
         }
       }
     } catch (error) {
       console.error('Failed to save message to database:', error);
-      // Message still shows in UI even if database save fails
     }
   };
 
@@ -613,63 +509,25 @@ export default function WritingAssistantPanel({
     const text = inputText.trim();
     addMessage('user', text);
     setInputText('');
-
-    // Auto-detect intent and respond accordingly
-    const editorContent = getEditorText();
-    
-    if (text.toLowerCase().includes('analyze')) {
-      if (editorContent.text && editorContent.text.length >= 10) {
-        analyzeMutation.mutate(editorContent.text);
-      } else {
-        addMessage('assistant', 'I need some text to analyze. Could you provide the text you\'d like me to examine, or open a manuscript to edit?');
-      }
-    } else if (text.toLowerCase().includes('proofread')) {
-      if (editorContent.text && editorContent.text.length >= 10) {
-        proofreadMutation.mutate(editorContent.text);
-      } else {
-        addMessage('assistant', 'I need some text to proofread. Could you provide the text you\'d like me to check, or open a manuscript to edit?');
-      }
-    } else if (text.toLowerCase().includes('questions')) {
-      if (editorContent.text && editorContent.text.length >= 10) {
-        questionsMutation.mutate(editorContent.text);
-      } else {
-        addMessage('assistant', 'I need some text to generate questions about. Could you provide the content, or open a manuscript to edit?');
-      }
-    } else {
-      // Use conversational chat for general writing discussions, brainstorming, and questions
-      chatMutation.mutate(text);
-    }
+    chatMutation.mutate(text);
   };
 
-  // Quick action handlers
-  const handleQuickAction = (action: string) => {
+  // Handle suggested prompt click
+  const handleSuggestedPrompt = (prompt: SuggestedPrompt) => {
     const editorContent = getEditorText();
     
-    if (!editorContent.text || editorContent.text.length < 10) {
-      addMessage('assistant', 'I need some text to work with. Could you please:\n\n1. Open a manuscript for editing, or\n2. Paste or type some text in the chat for me to analyze\n\nI can help with analyzing, proofreading, rephrasing, and improving any text you provide!');
+    if (!editorContent.hasEditorContent && (prompt.id === 'analyze' || prompt.id === 'proofread' || prompt.id === 'questions')) {
+      addMessage('assistant', 'I need some text to work with. Could you please:\n\n1. Open a project or guide for editing, or\n2. Ask me a general question about writing\n\nI can help with analyzing text, brainstorming ideas, answering questions, and more!');
       return;
     }
 
-    switch (action) {
-      case 'analyze':
-        analyzeMutation.mutate(editorContent.text);
-        break;
-      case 'proofread':
-        proofreadMutation.mutate(editorContent.text);
-        break;
-      case 'questions':
-        questionsMutation.mutate(editorContent.text);
-        break;
-      case 'rephrase-formal':
-        rephraseMutation.mutate({ text: editorContent.text, style: 'formal' });
-        break;
-      case 'rephrase-casual':
-        rephraseMutation.mutate({ text: editorContent.text, style: 'casual' });
-        break;
-      case 'rephrase-concise':
-        rephraseMutation.mutate({ text: editorContent.text, style: 'concise' });
-        break;
-    }
+    setInputText(prompt.prompt);
+    // Auto-submit for quick actions
+    setTimeout(() => {
+      addMessage('user', prompt.prompt);
+      chatMutation.mutate(prompt.prompt);
+      setInputText('');
+    }, 100);
   };
 
   // Copy to clipboard helper
@@ -726,7 +584,6 @@ export default function WritingAssistantPanel({
             </div>
           </div>
 
-          {/* Apply buttons for text suggestions - only show when in editor context */}
           {hasApplicableText && message.type === 'assistant' && hasEditorAvailable && (
             <div className="mt-3 space-y-2">
               <div className="text-xs text-muted-foreground font-medium">
@@ -764,352 +621,131 @@ export default function WritingAssistantPanel({
 
   return (
     <div className={`h-full flex flex-col bg-background overflow-hidden ${className}`} data-testid={`writing-assistant-panel-${panelId}`}>
-      {/* Content */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-4 m-2 flex-shrink-0">
-            <TabsTrigger value="chat" className="text-xs" data-testid="tab-chat">
-              <MessageSquare className="w-3 h-3 mr-1" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="analysis" className="text-xs" data-testid="tab-analysis">
-              <FileText className="w-3 h-3 mr-1" />
-              Analysis
-            </TabsTrigger>
-            <TabsTrigger value="actions" className="text-xs" data-testid="tab-actions">
-              <Edit3 className="w-3 h-3 mr-1" />
-              Actions
-            </TabsTrigger>
-            <TabsTrigger value="questions" className="text-xs" data-testid="tab-questions">
-              <HelpCircle className="w-3 h-3 mr-1" />
-              Questions
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Chat Tab */}
-          <TabsContent value="chat" className="flex-1 flex flex-col mt-0 min-h-0 h-0 overflow-hidden">
-            {/* Thread title display */}
-            {threadTitle && (
-              <div className="flex-shrink-0 px-3 pt-3 pb-2 border-b">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-medium text-muted-foreground">Conversation:</span>
-                  <span className="text-sm font-medium" data-testid="text-thread-title">{threadTitle}</span>
-                </div>
-              </div>
-            )}
-            
-            <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
-              <div className="space-y-3 p-3 pb-6">
-                {messages.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Ask me anything about your writing!</p>
-                    <p className="text-xs mt-1">I can analyze, proofread, rephrase, and suggest improvements.</p>
-                  </div>
-                )}
-                
-                {messages.map((message) => (
-                  <MessageWithApplyButtons key={message.id} message={message} />
-                ))}
-                
-                {/* Scroll target for auto-scrolling */}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
-            
-            <div className="p-3 border-t flex-shrink-0 space-y-2">
-              {/* Extended Thinking Toggle */}
-              {hasPremiumAccess() && (
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            id="extended-thinking"
-                            checked={extendedThinkingEnabled}
-                            onCheckedChange={setExtendedThinkingEnabled}
-                            disabled={extendedThinkingRemaining <= 0}
-                            data-testid="switch-extended-thinking"
-                          />
-                          <Label htmlFor="extended-thinking" className="text-sm font-medium cursor-pointer">
-                            Extended Thinking
-                          </Label>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">Uses advanced AI for deeper reasoning and analysis</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    {extendedThinkingEnabled && (
-                      <Badge variant="secondary" className="text-xs">
-                        Slower, higher quality
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {extendedThinkingRemaining}/{premiumQuota?.extendedThinking.limit || 0} remaining
-                  </span>
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                <Textarea
-                  ref={textareaRef}
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Ask about your writing..."
-                  className="min-h-[40px] max-h-[100px] resize-none"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleChatSubmit();
-                    }
-                  }}
-                  data-testid="input-chat-message"
-                />
-                <Button 
-                  size="sm" 
-                  onClick={handleChatSubmit}
-                  disabled={!inputText.trim()}
-                  data-testid="button-send-message"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
-              </div>
+      {/* Thread title display */}
+      {threadTitle && (
+        <div className="flex-shrink-0 px-3 pt-3 pb-2 border-b">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Conversation:</span>
+            <span className="text-sm font-medium" data-testid="text-thread-title">{threadTitle}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Chat Messages */}
+      <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
+        <div className="space-y-3 p-3 pb-6">
+          {messages.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm font-medium">Ask me anything about your writing!</p>
+              <p className="text-xs mt-2">I have full context of your notebook and projects.</p>
+              <p className="text-xs mt-1">Try the suggested prompts below to get started.</p>
             </div>
-          </TabsContent>
+          )}
+          
+          {messages.map((message) => (
+            <MessageWithApplyButtons key={message.id} message={message} />
+          ))}
+          
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+      
+      {/* Input Area */}
+      <div className="p-3 border-t flex-shrink-0 space-y-3">
+        {/* Smart Prompt Suggestions */}
+        {messages.length === 0 && (
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground font-medium px-1">Suggested prompts:</div>
+            <div className="flex flex-wrap gap-2">
+              {suggestedPrompts.map((prompt) => (
+                <Tooltip key={prompt.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSuggestedPrompt(prompt)}
+                      className="h-8 text-xs"
+                      data-testid={`button-prompt-${prompt.id}`}
+                    >
+                      <prompt.icon className="w-3 h-3 mr-1.5" />
+                      {prompt.label}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{prompt.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </div>
+        )}
 
-          {/* Analysis Tab */}
-          <TabsContent value="analysis" className="flex-1 mt-0 min-h-0 h-0 overflow-hidden">
-            <ScrollArea className="h-full p-3">
-              {analysis ? (
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" />
-                        Readability Score
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-2">
-                        <div className="text-2xl font-bold">{analysis.readabilityScore}</div>
-                        <div className="text-sm text-muted-foreground">/ 100</div>
-                        <Badge variant={analysis.readabilityScore >= 80 ? 'default' : analysis.readabilityScore >= 60 ? 'secondary' : 'destructive'}>
-                          {analysis.readabilityScore >= 80 ? 'Great' : analysis.readabilityScore >= 60 ? 'Good' : 'Needs work'}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <Lightbulb className="w-4 h-4" />
-                        Suggestions
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {analysis.suggestions.map((suggestion, index) => (
-                          <li key={index} className="text-sm flex items-start gap-2">
-                            <span className="w-4 h-4 mt-0.5 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full text-xs font-medium">
-                              {index + 1}
-                            </span>
-                            {suggestion}
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-
-                  {analysis.potentialIssues.length > 0 && (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <HelpCircle className="w-4 h-4" />
-                          Potential Issues
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2">
-                          {analysis.potentialIssues.map((issue, index) => (
-                            <li key={index} className="text-sm flex items-start gap-2">
-                              <span className="w-4 h-4 mt-0.5 flex items-center justify-center bg-yellow-100 text-yellow-600 rounded-full text-xs font-medium">
-                                !
-                              </span>
-                              {issue}
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No analysis available</p>
-                  <p className="text-xs mt-1">Use the quick actions to analyze your text</p>
-                </div>
+        {/* Extended Thinking Toggle */}
+        {hasPremiumAccess() && (
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="extended-thinking"
+                      checked={extendedThinkingEnabled}
+                      onCheckedChange={setExtendedThinkingEnabled}
+                      disabled={extendedThinkingRemaining <= 0}
+                      data-testid="switch-extended-thinking"
+                    />
+                    <Label htmlFor="extended-thinking" className="text-sm font-medium cursor-pointer">
+                      Extended Thinking
+                    </Label>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Uses advanced AI for deeper reasoning and analysis</p>
+                </TooltipContent>
+              </Tooltip>
+              {extendedThinkingEnabled && (
+                <Badge variant="secondary" className="text-xs">
+                  Slower, higher quality
+                </Badge>
               )}
-            </ScrollArea>
-          </TabsContent>
-
-          {/* Actions Tab */}
-          <TabsContent value="actions" className="flex-1 mt-0 min-h-0 h-0 overflow-hidden">
-            <ScrollArea className="h-full p-3">
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <h4 className="text-sm font-medium mb-2">Quick Actions</h4>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickAction('analyze')}
-                    disabled={analyzeMutation.isPending}
-                    className="justify-start h-auto p-3"
-                    data-testid="button-analyze-text"
-                  >
-                    <div className="flex items-start gap-3">
-                      {analyzeMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mt-0.5 animate-spin" />
-                      ) : (
-                        <FileText className="w-4 h-4 mt-0.5" />
-                      )}
-                      <div className="text-left">
-                        <div className="font-medium">Analyze Text</div>
-                        <div className="text-xs text-muted-foreground">Get writing suggestions and readability score</div>
-                      </div>
-                    </div>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickAction('proofread')}
-                    disabled={proofreadMutation.isPending}
-                    className="justify-start h-auto p-3"
-                    data-testid="button-proofread-text"
-                  >
-                    <div className="flex items-start gap-3">
-                      {proofreadMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mt-0.5 animate-spin" />
-                      ) : (
-                        <CheckCircle className="w-4 h-4 mt-0.5" />
-                      )}
-                      <div className="text-left">
-                        <div className="font-medium">Proofread</div>
-                        <div className="text-xs text-muted-foreground">Check grammar, spelling, and style</div>
-                      </div>
-                    </div>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickAction('questions')}
-                    disabled={questionsMutation.isPending}
-                    className="justify-start h-auto p-3"
-                    data-testid="button-generate-questions"
-                  >
-                    <div className="flex items-start gap-3">
-                      {questionsMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mt-0.5 animate-spin" />
-                      ) : (
-                        <HelpCircle className="w-4 h-4 mt-0.5" />
-                      )}
-                      <div className="text-left">
-                        <div className="font-medium">Generate Questions</div>
-                        <div className="text-xs text-muted-foreground">What readers might ask about your content</div>
-                      </div>
-                    </div>
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="grid gap-2">
-                  <h4 className="text-sm font-medium mb-2">Rephrase Styles</h4>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickAction('rephrase-formal')}
-                    disabled={rephraseMutation.isPending}
-                    className="justify-start"
-                    data-testid="button-rephrase-formal"
-                  >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Make it Formal
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickAction('rephrase-casual')}
-                    disabled={rephraseMutation.isPending}
-                    className="justify-start"
-                    data-testid="button-rephrase-casual"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Make it Casual
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickAction('rephrase-concise')}
-                    disabled={rephraseMutation.isPending}
-                    className="justify-start"
-                    data-testid="button-rephrase-concise"
-                  >
-                    <Edit3 className="w-4 h-4 mr-2" />
-                    Make it Concise
-                  </Button>
-                </div>
-              </div>
-            </ScrollArea>
-          </TabsContent>
-
-          {/* Questions Tab */}
-          <TabsContent value="questions" className="flex-1 mt-0 min-h-0 h-0 overflow-hidden">
-            <ScrollArea className="h-full p-3">
-              {questions.length > 0 ? (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                    <HelpCircle className="w-4 h-4" />
-                    Reader Questions
-                  </h4>
-                  {questions.map((question, index) => (
-                    <Card key={index} className="p-3">
-                      <p className="text-sm">{question}</p>
-                      <div className="flex justify-end mt-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => copyToClipboard(question)}
-                          className="h-6 px-2"
-                          data-testid={`button-copy-question-${index}`}
-                        >
-                          <Copy className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <HelpCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No questions generated yet</p>
-                  <p className="text-xs mt-1">Use the quick actions to generate reader questions</p>
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {extendedThinkingRemaining}/{premiumQuota?.extendedThinking.limit || 0} remaining
+            </span>
+          </div>
+        )}
+        
+        {/* Chat Input */}
+        <div className="flex gap-2">
+          <Textarea
+            ref={textareaRef}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Ask about your writing..."
+            className="min-h-[40px] max-h-[100px] resize-none"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleChatSubmit();
+              }
+            }}
+            data-testid="input-chat-message"
+          />
+          <Button 
+            size="sm" 
+            onClick={handleChatSubmit}
+            disabled={!inputText.trim() || chatMutation.isPending}
+            data-testid="button-send-message"
+          >
+            {chatMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Chat History Dropdown */}
@@ -1131,14 +767,12 @@ export default function WritingAssistantPanel({
               <div className="p-3">
                 <div className="text-sm font-medium mb-2">Current Conversation</div>
                 <div className="space-y-2">
-                  {messages.slice(0, 5).map((message, index) => (
+                  {messages.slice(0, 5).map((message) => (
                     <div
                       key={message.id}
                       className="p-2 bg-muted/30 rounded text-xs cursor-pointer hover:bg-muted/50"
                       onClick={() => {
-                        // Auto-scroll to this message in the chat
                         setShowHistoryDropdown(false);
-                        setActiveTab('chat');
                       }}
                     >
                       <div className="flex items-center gap-2 mb-1">
