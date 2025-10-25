@@ -863,7 +863,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       {/* Editor */}
       <Card>
         {/* Sticky Header & Toolbar */}
-        <div className="sticky top-0 z-50 bg-card border-b">
+        <div className="sticky top-0 z-40 bg-card border-b">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
               <CardTitle>{title || 'Untitled Guide'}</CardTitle>

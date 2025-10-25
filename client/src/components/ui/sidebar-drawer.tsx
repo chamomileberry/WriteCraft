@@ -37,7 +37,7 @@ const SidebarDrawer = React.forwardRef<
     <>
       {/* Backdrop overlay */}
       <div 
-        className="fixed inset-0 z-50 bg-black/50"
+        className="fixed inset-0 z-60 bg-black/50"
         onClick={onClose}
         data-testid="sidebar-drawer-overlay"
       />
@@ -46,7 +46,7 @@ const SidebarDrawer = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-80 max-w-[85vw] bg-background border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out",
+          "fixed top-0 left-0 z-60 h-full w-80 max-w-[85vw] bg-background border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out",
           className
         )}
         {...props}
