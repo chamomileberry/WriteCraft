@@ -137,7 +137,7 @@ export function GeneratorDropdown({ onSelectGenerator }: GeneratorDropdownProps)
   const dropdownContent = isOpen && createPortal(
     <div 
       ref={dropdownRef}
-      className="fixed w-64 z-[100]"
+      className="fixed w-64 z-50"
       style={{
         top: `${dropdownPosition.top}px`,
         left: `${dropdownPosition.left}px`
