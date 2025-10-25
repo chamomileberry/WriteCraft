@@ -8,7 +8,7 @@
   top: calc(4rem + 2px) !important; /* Start below header + border with gap (h-16 + border + gap = 66px) */
   height: calc(100vh - 4rem - 2px) !important; /* Adjust height to account for header + border + gap */
   max-height: calc(100vh - 4rem - 2px) !important;
-  z-index: 30 !important; /* Below header but above content */
+  z-index: var(--z-sidebar) !important; /* Below header but above content */
 }
 
 /* LIGHT MODE */
@@ -62,6 +62,14 @@
   --font-serif: Merriweather, serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem; /* 8px */
+  
+  /* Z-index hierarchy for consistent layering across the app */
+  --z-base: 0;
+  --z-sidebar: 30;
+  --z-sticky: 40;
+  --z-floating: 50;
+  --z-modal: 60;
+  --z-toast: 70;
   --shadow-2xs: 0px 2px 0px 0px hsl(210 15% 88% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(210 15% 88% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(210 15% 88% / 0.00), 0px 1px 2px -1px hsl(210 15% 88% / 0.00);
