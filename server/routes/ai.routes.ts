@@ -391,6 +391,137 @@ ${content}`;
   }
 });
 
+// Entity detection for auto-creating content from conversations
+router.post("/detect-entities", secureAuthentication, aiRateLimiter, trackAIUsage('context_analysis'), async (req: any, res) => {
+  try {
+    const { messages, notebookId } = req.body;
+    const userId = req.user.claims.sub;
+
+    if (!messages || messages.length === 0) {
+      return res.json({ entities: [] });
+    }
+
+    // Take last 10 messages for context
+    const recentMessages = messages.slice(-10);
+    const conversationText = recentMessages
+      .map((m: any) => `${m.type === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n\n');
+
+    const systemPrompt = `You are an expert at analyzing creative writing conversations and extracting detailed information about characters, locations, and plot points being discussed.
+
+Your task is to identify entities mentioned in the conversation and extract ALL available details about them.
+
+Return your analysis as JSON with this exact structure:
+{
+  "entities": [
+    {
+      "type": "character",
+      "name": "Marcus",
+      "confidence": 0.9,
+      "details": {
+        "givenName": "Marcus",
+        "familyName": "optional if mentioned",
+        "age": "optional if mentioned",
+        "species": "optional if mentioned",
+        "occupation": "optional if mentioned",
+        "personality": "extracted from conversation",
+        "physicalDescription": "extracted from conversation",
+        "backstory": "extracted from conversation",
+        "motivations": "extracted from conversation",
+        "relationships": ["related character names if mentioned"],
+        "abilities": "special skills or powers if mentioned"
+      }
+    },
+    {
+      "type": "location",
+      "name": "Crystal Castle",
+      "confidence": 0.85,
+      "details": {
+        "description": "extracted description",
+        "atmosphere": "mood and feeling",
+        "significance": "importance to the story"
+      }
+    },
+    {
+      "type": "plotPoint",
+      "name": "The Betrayal",
+      "confidence": 0.8,
+      "details": {
+        "description": "what happens",
+        "significance": "impact on story"
+      }
+    }
+  ]
+}
+
+IMPORTANT:
+- Only include entities with confidence > 0.7
+- Extract as many details as possible from the conversation
+- Character details should be comprehensive - include personality, appearance, backstory, etc.
+- If a character is mentioned multiple times, consolidate all information
+- Entity types must be: character, location, or plotPoint`;
+
+    const userPrompt = `Analyze this creative writing conversation and extract detailed information about any characters, locations, or plot points being discussed:
+
+${conversationText}
+
+Return your analysis as JSON with comprehensive details for each entity.`;
+
+    const result = await makeAICall({
+      operationType: 'context_analysis',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 2048,
+      enableCaching: true
+    });
+
+    // Parse JSON response with improved error handling
+    let analysis;
+    try {
+      // Try to find JSON in the response
+      const content = result.content.trim();
+      
+      // Try direct parse first
+      try {
+        analysis = JSON.parse(content);
+      } catch {
+        // If that fails, try to extract JSON from markdown code blocks
+        const codeBlockMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+        if (codeBlockMatch) {
+          analysis = JSON.parse(codeBlockMatch[1]);
+        } else {
+          // Try to find any JSON object in the content
+          const jsonMatch = content.match(/\{[\s\S]*?\}(?=\s*$)/);
+          if (jsonMatch) {
+            analysis = JSON.parse(jsonMatch[0]);
+          } else {
+            analysis = { entities: [] };
+          }
+        }
+      }
+      
+      // Ensure the response has the expected structure
+      if (!analysis.entities || !Array.isArray(analysis.entities)) {
+        analysis = { entities: [] };
+      }
+    } catch (parseError) {
+      console.error('Failed to parse entity detection JSON:', parseError);
+      console.error('Raw response:', result.content.substring(0, 500));
+      analysis = { entities: [] };
+    }
+
+    // Attach usage metadata
+    attachUsageMetadata(res, result.usage, result.model);
+
+    res.json(analysis);
+
+  } catch (error) {
+    console.error('Error in entity detection:', error);
+    res.status(500).json({ error: 'Failed to detect entities', entities: [] });
+  }
+});
+
 // Context analysis for smart prompt suggestions
 router.post("/analyze-context", secureAuthentication, aiRateLimiter, trackAIUsage('context_analysis'), async (req: any, res) => {
   try {

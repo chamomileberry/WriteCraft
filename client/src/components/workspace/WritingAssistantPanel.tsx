@@ -17,6 +17,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import ContextualPromptCard from './ContextualPromptCard';
+import EntityActionCard from './EntityActionCard';
+import EntityPreviewDialog from './EntityPreviewDialog';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -76,6 +78,12 @@ export default function WritingAssistantPanel({
   // Context analysis state
   const [contextAnalysis, setContextAnalysis] = useState<{ topics: any[]; entities: any[] } | null>(null);
   const [isAnalyzingContext, setIsAnalyzingContext] = useState(false);
+  
+  // Entity detection state
+  const [detectedEntities, setDetectedEntities] = useState<any[]>([]);
+  const [isDetectingEntities, setIsDetectingEntities] = useState(false);
+  const [selectedEntity, setSelectedEntity] = useState<any | null>(null);
+  const [showEntityPreview, setShowEntityPreview] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -370,13 +378,76 @@ export default function WritingAssistantPanel({
     }
   };
 
-  // Trigger context analysis after messages change
+  // Detect entities from conversation
+  const detectEntities = async () => {
+    // Only detect if we have at least 3 messages for meaningful conversation
+    if (messages.length < 3) {
+      setDetectedEntities([]);
+      return;
+    }
+
+    try {
+      setIsDetectingEntities(true);
+      
+      const response = await fetch('/api/ai/detect-entities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          messages: messages.map(m => ({ type: m.type, content: m.content })),
+          notebookId: activeNotebookId
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDetectedEntities(data.entities || []);
+        
+        // Show feedback if detection failed but didn't throw an error
+        if (data.error) {
+          toast({
+            title: 'Entity detection issue',
+            description: 'Could not extract character/location details from the conversation.',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        throw new Error('Failed to detect entities');
+      }
+    } catch (error) {
+      console.error('Failed to detect entities:', error);
+      setDetectedEntities([]);
+      toast({
+        title: 'Detection failed',
+        description: 'Could not analyze the conversation for entities. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDetectingEntities(false);
+    }
+  };
+
+  // Trigger entity detection after assistant messages (with debouncing)
   useEffect(() => {
-    // Only analyze after assistant messages (when message count is even)
     if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
-      analyzeContext();
+      // Debounce entity detection to avoid excessive API calls
+      const timer = setTimeout(() => {
+        detectEntities();
+      }, 2000); // Wait 2 seconds after message before detecting
+
+      return () => clearTimeout(timer);
     }
   }, [messages.length]);
+
+  // Trigger context analysis after messages change
+  // TEMPORARILY DISABLED: This was causing 5-11 second lag on every message
+  // Will re-enable with proper caching and optimization later
+  // useEffect(() => {
+  //   // Only analyze after assistant messages (when message count is even)
+  //   if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
+  //     analyzeContext();
+  //   }
+  // }, [messages.length]);
 
   // Register functions for header buttons
   useEffect(() => {
@@ -781,6 +852,34 @@ export default function WritingAssistantPanel({
         </div>
       </ScrollArea>
       
+      {/* Detected Entities */}
+      {detectedEntities.length > 0 && (
+        <div className="flex-shrink-0 border-t bg-muted/30">
+          <div className="p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium">Detected from conversation</span>
+              {isDetectingEntities && (
+                <span className="text-xs text-muted-foreground">Analyzing...</span>
+              )}
+            </div>
+            <div className="space-y-2">
+              {detectedEntities.map((entity, index) => (
+                <EntityActionCard
+                  key={`${entity.type}-${entity.name}-${index}`}
+                  entity={entity}
+                  onCreateNew={() => {
+                    setSelectedEntity(entity);
+                    setShowEntityPreview(true);
+                  }}
+                  data-testid={`entity-card-${entity.type}-${index}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Input Area */}
       <div className="p-3 border-t flex-shrink-0 space-y-3">
         {/* Smart Prompt Suggestions */}
@@ -876,6 +975,120 @@ export default function WritingAssistantPanel({
           </Button>
         </div>
       </div>
+
+      {/* Entity Preview Dialog */}
+      <EntityPreviewDialog
+        open={showEntityPreview}
+        onOpenChange={setShowEntityPreview}
+        entity={selectedEntity}
+        onConfirm={async (editedDetails) => {
+          if (!selectedEntity) return;
+
+          try {
+            if (selectedEntity.type === 'character') {
+              // Create character from extracted details
+              const characterData = {
+                notebookId: activeNotebookId,
+                givenName: editedDetails.givenName || selectedEntity.name,
+                familyName: editedDetails.familyName || '',
+                species: editedDetails.species || '',
+                age: editedDetails.age || '',
+                occupation: editedDetails.occupation || '',
+                physicalDescription: editedDetails.physicalDescription || '',
+                personality: editedDetails.personality || '',
+                backstory: editedDetails.backstory || '',
+                motivations: editedDetails.motivations || '',
+                abilities: editedDetails.abilities || '',
+                relationships: editedDetails.relationships || []
+              };
+
+              const response = await fetch('/api/characters', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(characterData)
+              });
+
+              if (response.ok) {
+                toast({
+                  title: 'Character created',
+                  description: `${characterData.givenName} has been added to your notebook.`
+                });
+                // Remove this entity from detected entities
+                setDetectedEntities(prev => prev.filter(e => e !== selectedEntity));
+                // Invalidate characters query
+                queryClient.invalidateQueries({ queryKey: ['/api/characters'] });
+              } else {
+                throw new Error('Failed to create character');
+              }
+            } else if (selectedEntity.type === 'location') {
+              // Create location from extracted details
+              const locationData = {
+                notebookId: activeNotebookId,
+                name: editedDetails.name || selectedEntity.name,
+                description: editedDetails.description || '',
+                atmosphere: editedDetails.atmosphere || '',
+                significance: editedDetails.significance || ''
+              };
+
+              const response = await fetch('/api/locations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(locationData)
+              });
+
+              if (response.ok) {
+                toast({
+                  title: 'Location created',
+                  description: `${locationData.name} has been added to your notebook.`
+                });
+                setDetectedEntities(prev => prev.filter(e => e !== selectedEntity));
+                queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
+              } else {
+                throw new Error('Failed to create location');
+              }
+            } else if (selectedEntity.type === 'plotPoint') {
+              // Create plot point from extracted details
+              const plotData = {
+                notebookId: activeNotebookId,
+                name: editedDetails.name || selectedEntity.name,
+                description: editedDetails.description || '',
+                significance: editedDetails.significance || ''
+              };
+
+              const response = await fetch('/api/plot-points', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(plotData)
+              });
+
+              if (response.ok) {
+                toast({
+                  title: 'Plot point created',
+                  description: `${plotData.name} has been added to your notebook.`
+                });
+                setDetectedEntities(prev => prev.filter(e => e !== selectedEntity));
+                queryClient.invalidateQueries({ queryKey: ['/api/plot-points'] });
+              } else {
+                throw new Error('Failed to create plot point');
+              }
+            }
+          } catch (error) {
+            console.error('Error creating entity:', error);
+            toast({
+              title: 'Creation failed',
+              description: 'Could not create the entity. Please try again.',
+              variant: 'destructive'
+            });
+          }
+        }}
+        onCancel={() => {
+          setSelectedEntity(null);
+          setShowEntityPreview(false);
+        }}
+      />
 
       {/* Chat History Dropdown */}
       {showHistoryDropdown && (
