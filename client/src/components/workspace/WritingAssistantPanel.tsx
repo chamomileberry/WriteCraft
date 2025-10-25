@@ -58,6 +58,57 @@ interface SuggestedPrompt {
   description: string;
 }
 
+// Separate component for chat input to prevent parent re-renders
+const ChatInput = React.memo(({ 
+  onSubmit, 
+  isPending 
+}: { 
+  onSubmit: (text: string) => void; 
+  isPending: boolean;
+}) => {
+  const [inputText, setInputText] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSubmit = () => {
+    if (!inputText.trim()) return;
+    onSubmit(inputText.trim());
+    setInputText('');
+  };
+
+  return (
+    <div className="flex gap-2">
+      <Textarea
+        ref={textareaRef}
+        value={inputText}
+        onChange={(e) => setInputText(e.target.value)}
+        placeholder="Ask about your writing..."
+        className="min-h-[40px] max-h-[100px] resize-none"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
+        data-testid="input-chat-message"
+        autoComplete="off"
+        spellCheck={false}
+      />
+      <Button 
+        size="sm" 
+        onClick={handleSubmit}
+        disabled={!inputText.trim() || isPending}
+        data-testid="button-send-message"
+      >
+        {isPending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <MessageSquare className="h-4 w-4" />
+        )}
+      </Button>
+    </div>
+  );
+});
+
 export default function WritingAssistantPanel({ 
   panelId, 
   className, 
@@ -65,7 +116,6 @@ export default function WritingAssistantPanel({
   onRegisterToggleHistoryFunction 
 }: WritingAssistantPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState('');
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const [extendedThinkingEnabled, setExtendedThinkingEnabled] = useState(false);
@@ -85,7 +135,6 @@ export default function WritingAssistantPanel({
   const [selectedEntity, setSelectedEntity] = useState<any | null>(null);
   const [showEntityPreview, setShowEntityPreview] = useState(false);
   
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const historyDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -626,12 +675,10 @@ export default function WritingAssistantPanel({
   };
 
   // Handle chat submission
-  const handleChatSubmit = () => {
-    if (!inputText.trim()) return;
+  const handleChatSubmit = (text: string) => {
+    if (!text.trim()) return;
     
-    const text = inputText.trim();
     addMessage('user', text);
-    setInputText('');
     chatMutation.mutate(text);
   };
 
@@ -644,13 +691,9 @@ export default function WritingAssistantPanel({
       return;
     }
 
-    setInputText(prompt.prompt);
     // Auto-submit for quick actions
-    setTimeout(() => {
-      addMessage('user', prompt.prompt);
-      chatMutation.mutate(prompt.prompt);
-      setInputText('');
-    }, 100);
+    addMessage('user', prompt.prompt);
+    chatMutation.mutate(prompt.prompt);
   };
 
   // Copy to clipboard helper
@@ -951,36 +994,10 @@ export default function WritingAssistantPanel({
         )}
         
         {/* Chat Input */}
-        <div className="flex gap-2">
-          <Textarea
-            ref={textareaRef}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Ask about your writing..."
-            className="min-h-[40px] max-h-[100px] resize-none"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleChatSubmit();
-              }
-            }}
-            data-testid="input-chat-message"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          <Button 
-            size="sm" 
-            onClick={handleChatSubmit}
-            disabled={!inputText.trim() || chatMutation.isPending}
-            data-testid="button-send-message"
-          >
-            {chatMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MessageSquare className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        <ChatInput 
+          onSubmit={handleChatSubmit}
+          isPending={chatMutation.isPending}
+        />
       </div>
 
       {/* Entity Preview Dialog */}
