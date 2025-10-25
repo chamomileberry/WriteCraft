@@ -15,7 +15,7 @@ export default function QuickNoteBubbleMenu({ editor }: QuickNoteBubbleMenuProps
   return (
     <BubbleMenu
       editor={editor}
-      className="flex items-center gap-1 p-1 rounded-lg shadow-lg border-2"
+      className="flex items-center gap-1 p-1 rounded-lg shadow-lg border-2 z-50"
       style={{
         backgroundColor: 'rgba(233, 213, 255, 0.95)',
         borderColor: 'rgb(192, 132, 252)',
