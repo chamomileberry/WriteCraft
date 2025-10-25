@@ -407,67 +407,70 @@ router.post("/detect-entities", secureAuthentication, aiRateLimiter, trackAIUsag
       .map((m: any) => `${m.type === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
       .join('\n\n');
 
-    const systemPrompt = `You are an expert at analyzing creative writing conversations and extracting detailed information about characters, locations, and plot points being discussed.
+    const systemPrompt = `You are an expert at analyzing creative writing conversations and extracting detailed character, location, and plot information.
 
-Your task is to identify entities mentioned in the conversation and extract ALL available details about them.
+CRITICAL INSTRUCTIONS:
+1. Read the ENTIRE conversation carefully - users often develop characters across multiple messages
+2. Extract ALL mentioned details, even if scattered across different messages
+3. Consolidate information about the same entity from multiple mentions
+4. Be generous with extraction - if something is discussed, it should be captured
+5. Default confidence to 0.9 for any entity with 3+ details mentioned
 
 Return your analysis as JSON with this exact structure:
 {
   "entities": [
     {
       "type": "character",
-      "name": "Marcus",
+      "name": "Full character name",
       "confidence": 0.9,
       "details": {
-        "givenName": "Marcus",
-        "familyName": "optional if mentioned",
-        "age": "optional if mentioned",
-        "species": "optional if mentioned",
-        "occupation": "optional if mentioned",
-        "personality": "comprehensive personality traits extracted from conversation",
-        "physicalDescription": "detailed physical appearance extracted from conversation",
-        "backstory": "complete background story extracted from conversation",
-        "motivation": "core driving motivations extracted from conversation",
-        "flaw": "character weaknesses or flaws if mentioned",
-        "strength": "character strengths if mentioned",
-        "relationships": ["related character names if mentioned"],
-        "abilities": "special skills or powers if mentioned",
-        "likes": "things they enjoy if mentioned",
-        "dislikes": "things they dislike if mentioned"
-      }
-    },
-    {
-      "type": "location",
-      "name": "Crystal Castle",
-      "confidence": 0.85,
-      "details": {
-        "description": "extracted description",
-        "atmosphere": "mood and feeling",
-        "significance": "importance to the story"
-      }
-    },
-    {
-      "type": "plotPoint",
-      "name": "The Betrayal",
-      "confidence": 0.8,
-      "details": {
-        "description": "what happens",
-        "significance": "impact on story"
+        "givenName": "First name",
+        "familyName": "Last name (if mentioned)",
+        "age": "Age or age range (if mentioned)",
+        "species": "Human/Elf/etc (if mentioned)",
+        "occupation": "Job or role (if mentioned)",
+        "personality": "ALL personality traits, behaviors, quirks mentioned - be comprehensive",
+        "physicalDescription": "ALL physical details mentioned - appearance, build, features, clothing",
+        "backstory": "COMPLETE background - family, history, past events, formative experiences",
+        "motivation": "What drives them - goals, desires, needs, fears",
+        "flaw": "Weaknesses, negative traits, vulnerabilities",
+        "strength": "Positive traits, skills, what makes them capable",
+        "relationships": ["Names of related characters mentioned"],
+        "abilities": "Skills, powers, talents, what they're good at",
+        "likes": "Things they enjoy, value, are drawn to",
+        "dislikes": "Things they avoid, dislike, oppose"
       }
     }
   ]
 }
 
-IMPORTANT:
-- Only include entities with confidence > 0.7
-- Extract as many details as possible from the conversation
-- Character details should be comprehensive - include personality, appearance, backstory, etc.
-- If a character is mentioned multiple times, consolidate all information
-- Entity types must be: character, location, or plotPoint`;
+EXTRACTION GUIDELINES:
+- For characters: If the conversation discusses WHO someone is, WHAT they do, or HOW they act - extract it
+- Include even partial information (e.g., "young adult" for age, "troubled past" for backstory)
+- Capture personality from dialogue, actions described, or explicit statements
+- Extract backstory from ANY mention of their past, family, or history
+- Motivation includes both what they want AND what they fear/avoid
+- Confidence scoring: 0.9+ if 3+ fields filled, 0.8+ if 2 fields, 0.75+ if 1 field with detail
+- Only exclude entities with almost no information (just a name mention)
 
-    const userPrompt = `Analyze this creative writing conversation and extract detailed information about any characters, locations, or plot points being discussed:
+Entity types must be: character, location, or plotPoint`;
 
+    const userPrompt = `Analyze this creative writing conversation and extract detailed information about characters, locations, or plot points.
+
+CONVERSATION:
 ${conversationText}
+
+Look for:
+- Character names and descriptions
+- Personality traits, behaviors, quirks
+- Physical appearance details
+- Background stories, family, past events
+- Motivations, goals, fears, desires
+- Relationships with other characters
+- Skills, abilities, powers
+- Preferences, likes, dislikes
+
+Extract EVERYTHING mentioned about each entity. Even scattered details across messages should be consolidated. If the user is developing a character in detail, capture ALL of it.
 
 Return your analysis as JSON with comprehensive details for each entity.`;
 
