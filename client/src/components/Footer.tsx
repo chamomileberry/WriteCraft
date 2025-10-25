@@ -26,27 +26,27 @@ export default function Footer() {
             <h3 className="font-semibold">Writing Tools</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/generators/character" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-character-gen">
+                <Link href="/generators" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-character-gen">
                   Character Generator
                 </Link>
               </li>
               <li>
-                <Link href="/generators/plot" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-plot-gen">
+                <Link href="/generators" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-plot-gen">
                   Plot Generator
                 </Link>
               </li>
               <li>
-                <Link href="/generators/prompt" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-prompts">
+                <Link href="/generators" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-prompts">
                   Writing Prompts
                 </Link>
               </li>
               <li>
-                <Link href="/generators/setting" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-setting-gen">
+                <Link href="/generators" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-setting-gen">
                   Setting Generator
                 </Link>
               </li>
               <li>
-                <Link href="/generators/name" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-name-gen">
+                <Link href="/generators" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-name-gen">
                   Name Generator
                 </Link>
               </li>

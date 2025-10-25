@@ -51,16 +51,38 @@ router.post("/", async (req: any, res) => {
   }
 });
 
+// GET /api/family-trees - Get all family trees across all notebooks (when no notebookId provided)
 router.get("/", async (req: any, res) => {
   try {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
     
+    // If no notebookId, return all family trees across all notebooks
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      // Get all user notebooks
+      const notebooks = await storage.getUserNotebooks(userId);
+      
+      // Get family trees from all notebooks
+      const allFamilyTrees = [];
+      for (const notebook of notebooks) {
+        const familyTrees = await storage.getUserFamilyTrees(userId, notebook.id);
+        allFamilyTrees.push(...familyTrees);
+      }
+      
+      // Filter by search if provided
+      if (search) {
+        const filtered = allFamilyTrees.filter((item: any) =>
+          item.name?.toLowerCase().includes(search.toLowerCase())
+        );
+        res.json(filtered);
+      } else {
+        res.json(allFamilyTrees);
+      }
+      return;
     }
     
+    // If notebookId provided, get family trees for specific notebook
     const familyTrees = await storage.getUserFamilyTrees(userId, notebookId);
     
     // Filter by search text if provided

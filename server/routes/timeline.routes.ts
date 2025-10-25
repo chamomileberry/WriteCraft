@@ -52,6 +52,28 @@ router.post("/", timelineRateLimiter, async (req: any, res) => {
   }
 });
 
+// GET /api/timelines - Get all user timelines across all notebooks
+router.get("/", async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    // First, get all user notebooks
+    const notebooks = await storage.getUserNotebooks(userId);
+    
+    // Then get timelines from all notebooks
+    const allTimelines = [];
+    for (const notebook of notebooks) {
+      const timelines = await storage.getUserTimelines(userId, notebook.id);
+      allTimelines.push(...timelines);
+    }
+    
+    res.json(allTimelines);
+  } catch (error) {
+    console.error('Error fetching all timelines:', error);
+    res.status(500).json({ error: 'Failed to fetch timelines' });
+  }
+});
+
 router.get("/user/:userId?", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;

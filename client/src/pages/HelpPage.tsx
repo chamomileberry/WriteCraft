@@ -167,7 +167,7 @@ export default function HelpPage() {
                   <p className="text-sm text-muted-foreground">
                     Create detailed characters with backgrounds, personalities, and relationships. Customize genre, age, role, and other attributes to generate unique characters for your story.
                   </p>
-                  <Link href="/generators/character">
+                  <Link href="/generators">
                     <Button variant="outline" size="sm" data-testid="link-character-guide">
                       Try Character Generator
                     </Button>
@@ -179,7 +179,7 @@ export default function HelpPage() {
                   <p className="text-sm text-muted-foreground">
                     Generate plot ideas, story arcs, and narrative structures. Select your genre and themes to create compelling storylines with conflicts and resolutions.
                   </p>
-                  <Link href="/generators/plot">
+                  <Link href="/generators">
                     <Button variant="outline" size="sm" data-testid="link-plot-guide">
                       Try Plot Generator
                     </Button>
@@ -191,7 +191,7 @@ export default function HelpPage() {
                   <p className="text-sm text-muted-foreground">
                     Build vivid locations and environments for your stories. Generate detailed settings with atmosphere, history, and unique characteristics.
                   </p>
-                  <Link href="/generators/setting">
+                  <Link href="/generators">
                     <Button variant="outline" size="sm" data-testid="link-setting-guide">
                       Try Setting Generator
                     </Button>
@@ -227,7 +227,7 @@ export default function HelpPage() {
                   <p className="text-sm text-muted-foreground">
                     Get AI-powered writing help, suggestions, and feedback. The assistant can help with brainstorming, editing, and developing your ideas.
                   </p>
-                  <Link href="/assistant">
+                  <Link href="/conversations">
                     <Button variant="outline" size="sm" data-testid="link-assistant-guide">
                       Open Assistant
                     </Button>

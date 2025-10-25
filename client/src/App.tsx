@@ -34,6 +34,8 @@ import SecurityDashboard from "@/pages/SecurityDashboard";
 import DiscountCodesAdmin from "@/pages/DiscountCodesAdmin";
 import GuideCategoriesAdmin from "@/pages/GuideCategoriesAdmin";
 import TimelineViewPage from "@/pages/TimelineViewPage";
+import TimelinesListPage from "@/pages/TimelinesListPage";
+import FamilyTreesListPage from "@/pages/FamilyTreesListPage";
 import ConversationManager from "@/pages/ConversationManager";
 import Pricing from "@/pages/Pricing";
 import Analytics from "@/pages/Analytics";
@@ -248,7 +250,9 @@ function Router() {
       <Route path="/creatures" component={CreaturePage} />
       <Route path="/editor/:type/:id" component={EditorPage} />
       <Route path="/:type/:id/edit" component={EditorPage} />
+      <Route path="/timelines" component={TimelinesListPage} />
       <Route path="/timelines/:id" component={TimelineViewPage} />
+      <Route path="/family-trees" component={FamilyTreesListPage} />
       <Route path="/canvases" component={CanvasesListPage} />
       <Route path="/canvas/:id" component={CanvasPage} />
       <Route path="/conversations" component={ConversationManager} />
