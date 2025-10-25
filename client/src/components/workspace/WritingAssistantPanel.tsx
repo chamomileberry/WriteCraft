@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -69,6 +69,9 @@ export default function WritingAssistantPanel({
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const [extendedThinkingEnabled, setExtendedThinkingEnabled] = useState(false);
+  
+  // Debounce input changes to prevent excessive re-renders
+  const [debouncedInputText, setDebouncedInputText] = useState('');
   
   // Thread management state
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
@@ -230,6 +233,14 @@ export default function WritingAssistantPanel({
 
     loadChatHistory();
   }, [getEditorContext, user]);
+
+  // Debounce input text to improve typing performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedInputText(inputText);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [inputText]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -433,7 +444,7 @@ export default function WritingAssistantPanel({
       // Debounce entity detection to avoid excessive API calls
       const timer = setTimeout(() => {
         detectEntities();
-      }, 2000); // Wait 2 seconds after message before detecting
+      }, 5000); // Wait 5 seconds after message before detecting (reduce background load)
 
       return () => clearTimeout(timer);
     }
@@ -661,8 +672,8 @@ export default function WritingAssistantPanel({
     });
   };
 
-  // Message component with apply buttons for suggestions
-  const MessageWithApplyButtons = ({ message, isLastAssistant }: { message: Message; isLastAssistant: boolean }) => {
+  // Memoize MessageWithApplyButtons to prevent unnecessary re-renders during typing
+  const MessageWithApplyButtons = React.memo(({ message, isLastAssistant }: { message: Message; isLastAssistant: boolean }) => {
     const suggestions = extractTextSuggestions(message.content);
     const hasApplicableText = suggestions.length > 0;
     const editorContext = getEditorContext();
@@ -772,7 +783,11 @@ export default function WritingAssistantPanel({
         )}
       </div>
     );
-  };
+  }, (prevProps, nextProps) => {
+    // Only re-render if message content or isLastAssistant changes
+    return prevProps.message.id === nextProps.message.id && 
+           prevProps.isLastAssistant === nextProps.isLastAssistant;
+  });
 
   // Map topics to prompts (for contextual prompt handler)
   const topicConfig: Record<string, { prompt: string }> = {
@@ -950,7 +965,10 @@ export default function WritingAssistantPanel({
           <Textarea
             ref={textareaRef}
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={(e) => {
+              // Directly update state without any processing
+              setInputText(e.target.value);
+            }}
             placeholder="Ask about your writing..."
             className="min-h-[40px] max-h-[100px] resize-none"
             onKeyDown={(e) => {
@@ -960,11 +978,13 @@ export default function WritingAssistantPanel({
               }
             }}
             data-testid="input-chat-message"
+            autoComplete="off"
+            spellCheck={false}
           />
           <Button 
             size="sm" 
             onClick={handleChatSubmit}
-            disabled={!inputText.trim() || chatMutation.isPending}
+            disabled={!debouncedInputText.trim() || chatMutation.isPending}
             data-testid="button-send-message"
           >
             {chatMutation.isPending ? (
