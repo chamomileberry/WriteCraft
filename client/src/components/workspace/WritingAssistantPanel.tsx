@@ -873,10 +873,66 @@ export default function WritingAssistantPanel({
           });
 
           if (response.ok) {
+            // Create a detailed summary of what was updated
+            const updateSummary = Object.entries(updates).map(([key, value]) => {
+              const fieldLabels: Record<string, string> = {
+                personality: 'Personality traits',
+                backstory: 'Backstory',
+                motivation: 'Motivation',
+                flaw: 'Character flaw',
+                physicalDescription: 'Physical description',
+                occupation: 'Occupation',
+                species: 'Species',
+                age: 'Age',
+                gender: 'Gender',
+                pronouns: 'Pronouns',
+                height: 'Height',
+                build: 'Build',
+                hairColor: 'Hair color',
+                eyeColor: 'Eye color',
+                skinTone: 'Skin tone',
+                currentLocation: 'Current location',
+                placeOfBirth: 'Place of birth',
+                family: 'Family information',
+                relationships: 'Relationships',
+                skills: 'Skills',
+                strengths: 'Strengths',
+                education: 'Education',
+                religiousBelief: 'Religious beliefs'
+              };
+              
+              const label = fieldLabels[key] || key.replace(/([A-Z])/g, ' $1').trim();
+              
+              // Format the value for display
+              let displayValue = '';
+              if (Array.isArray(value)) {
+                displayValue = value.length > 3 
+                  ? `${value.slice(0, 3).join(', ')}... (${value.length} items)`
+                  : value.join(', ');
+              } else if (typeof value === 'string') {
+                displayValue = value.length > 100 
+                  ? value.slice(0, 100) + '...'
+                  : value;
+              } else {
+                displayValue = String(value);
+              }
+              
+              return `• ${label}: ${displayValue}`;
+            }).join('\n');
+
             toast({
-              title: 'Character updated',
-              description: `${entity.name} has been updated with new details from the conversation.`
+              title: `${entity.name} updated successfully!`,
+              description: (
+                <div className="space-y-2">
+                  <p className="font-medium">Added/updated the following details:</p>
+                  <pre className="text-xs whitespace-pre-wrap font-mono bg-muted p-2 rounded max-h-48 overflow-y-auto">
+                    {updateSummary}
+                  </pre>
+                </div>
+              ),
+              duration: 10000 // Show for 10 seconds so user can read it
             });
+            
             // Remove this entity from detected entities
             setDetectedEntities(prev => prev.filter(e => e !== entity));
             // Invalidate characters query
