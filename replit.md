@@ -16,6 +16,8 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Theming**: Professional writer-focused color palette (purple primary, teal secondary, orange accents) with Dark/Light mode support.
 - **Typography**: Hierarchical font sizing with serif headings and sans-serif body text.
 - **User Feedback**: Standardized toast notifications and auto-navigation post-generation/save.
+- **Z-Index Hierarchy**: Consistent layering system using CSS custom properties (--z-header: 40, --z-floating: 50, --z-modal: 60, --z-toast: 70). All UI components follow this hierarchy: Headers at z-40, floating elements (popovers, dropdowns, tooltips, bubble menus) at z-50, modals (dialogs, sheets) at z-60, and toasts at z-70. This prevents layering conflicts and ensures predictable stacking behavior.
+- **Page Layout Conventions**: Fixed-viewport experiences (editors, canvases, timelines, conversations) use h-screen for precise viewport control with internal scrolling. Scrollable content pages (lists, settings, documentation) use min-h-screen to allow natural page scrolling. Components never combine overflow-hidden with hover-elevate utilities to prevent elevation animation conflicts.
 
 ### Technical Implementations
 - **Frontend**: React with TypeScript, Zustand for client state, TanStack Query for server state, Wouter for routing, and Vite for building.
