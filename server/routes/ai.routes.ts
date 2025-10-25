@@ -424,12 +424,16 @@ Return your analysis as JSON with this exact structure:
         "age": "optional if mentioned",
         "species": "optional if mentioned",
         "occupation": "optional if mentioned",
-        "personality": "extracted from conversation",
-        "physicalDescription": "extracted from conversation",
-        "backstory": "extracted from conversation",
-        "motivations": "extracted from conversation",
+        "personality": "comprehensive personality traits extracted from conversation",
+        "physicalDescription": "detailed physical appearance extracted from conversation",
+        "backstory": "complete background story extracted from conversation",
+        "motivation": "core driving motivations extracted from conversation",
+        "flaw": "character weaknesses or flaws if mentioned",
+        "strength": "character strengths if mentioned",
         "relationships": ["related character names if mentioned"],
-        "abilities": "special skills or powers if mentioned"
+        "abilities": "special skills or powers if mentioned",
+        "likes": "things they enjoy if mentioned",
+        "dislikes": "things they dislike if mentioned"
       }
     },
     {
