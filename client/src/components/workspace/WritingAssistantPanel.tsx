@@ -781,10 +781,31 @@ export default function WritingAssistantPanel({
         if (entity.details.species && !existingChar.species) updates.species = entity.details.species;
         if (entity.details.occupation && !existingChar.occupation) updates.occupation = entity.details.occupation;
 
-        // Append to all text fields rather than replacing
+        // Handle personality - convert to array if needed
         if (entity.details.personality) {
-          const updated = appendOrSet(existingChar.personality, entity.details.personality);
-          if (updated !== undefined) updates.personality = updated;
+          let personalityArray: string[] = [];
+          
+          // If it's already an array, use it
+          if (Array.isArray(entity.details.personality)) {
+            personalityArray = entity.details.personality;
+          } 
+          // If it's a string, split by common delimiters
+          else if (typeof entity.details.personality === 'string') {
+            personalityArray = entity.details.personality
+              .split(/[,;]\s*|\n/)
+              .map(trait => trait.trim())
+              .filter(trait => trait.length > 0);
+          }
+
+          // Merge with existing personality traits
+          if (personalityArray.length > 0) {
+            const existingTraits = Array.isArray(existingChar.personality) ? existingChar.personality : [];
+            const newTraits = personalityArray.filter(trait => !existingTraits.includes(trait));
+            
+            if (newTraits.length > 0) {
+              updates.personality = [...existingTraits, ...newTraits];
+            }
+          }
         }
 
         if (entity.details.physicalDescription) {
