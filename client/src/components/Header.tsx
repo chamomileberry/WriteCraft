@@ -94,7 +94,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   };
 
   return (
-    <header className="bg-background border-b border-border sticky top-0 z-50">
+    <header className="bg-background border-b border-border sticky top-0 z-40">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2 h-16">
           <button 
