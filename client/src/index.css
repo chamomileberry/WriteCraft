@@ -408,64 +408,159 @@
 }
 
 /* TipTap Editor - Google Docs-style paragraph behavior */
+/* Reset all block elements to have no default margins */
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6,
+.ProseMirror ul,
+.ProseMirror ol {
+  margin: 0;
+  padding: 0;
+}
+
+/* Paragraphs - minimum height for empty paragraphs */
 .ProseMirror p {
-  min-height: 1.5em; /* Ensure empty paragraphs are visible and clickable */
-  margin-bottom: 0.5em; /* Comfortable spacing between paragraphs */
+  min-height: 1.5em;
 }
 
-.ProseMirror p:last-child {
-  margin-bottom: 0; /* Remove margin from last paragraph */
-}
-
-/* Headers spacing - consistent with paragraph spacing */
+/* Headers - add padding for better spacing */
 .ProseMirror h1,
 .ProseMirror h2,
 .ProseMirror h3,
 .ProseMirror h4,
 .ProseMirror h5,
 .ProseMirror h6 {
-  margin-top: 1em;
-  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
-.ProseMirror h1:first-child,
-.ProseMirror h2:first-child,
-.ProseMirror h3:first-child,
-.ProseMirror h4:first-child,
-.ProseMirror h5:first-child,
-.ProseMirror h6:first-child {
-  margin-top: 0;
-}
-
-/* Lists spacing - consistent with paragraph spacing */
+/* Lists - add padding for indentation */
 .ProseMirror ul,
 .ProseMirror ol {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
   padding-left: 1.5em;
 }
 
-.ProseMirror ul:first-child,
-.ProseMirror ol:first-child {
-  margin-top: 0;
-}
-
-.ProseMirror ul:last-child,
-.ProseMirror ol:last-child {
-  margin-bottom: 0;
-}
-
 .ProseMirror li {
-  margin-bottom: 0.25em;
+  margin: 0;
+  padding: 0;
 }
 
-.ProseMirror li:last-child {
-  margin-bottom: 0;
+/* Spacing between block elements using adjacent sibling selectors */
+/* This ensures spacing only appears BETWEEN elements, not within paragraphs that contain <br> tags */
+
+/* Paragraph after paragraph */
+.ProseMirror p + p {
+  margin-top: 0.5em;
 }
 
-/* Hard breaks should not add extra spacing - they inherit line height from parent */
-.ProseMirror br {
-  line-height: inherit;
+/* List after paragraph */
+.ProseMirror p + ul,
+.ProseMirror p + ol {
+  margin-top: 0.5em;
+}
+
+/* Paragraph after list */
+.ProseMirror ul + p,
+.ProseMirror ol + p {
+  margin-top: 0.5em;
+}
+
+/* List after list */
+.ProseMirror ul + ul,
+.ProseMirror ul + ol,
+.ProseMirror ol + ul,
+.ProseMirror ol + ol {
+  margin-top: 0.5em;
+}
+
+/* Header after paragraph */
+.ProseMirror p + h1,
+.ProseMirror p + h2,
+.ProseMirror p + h3,
+.ProseMirror p + h4,
+.ProseMirror p + h5,
+.ProseMirror p + h6 {
+  margin-top: 1.5em;
+}
+
+/* Header after list */
+.ProseMirror ul + h1,
+.ProseMirror ul + h2,
+.ProseMirror ul + h3,
+.ProseMirror ul + h4,
+.ProseMirror ul + h5,
+.ProseMirror ul + h6,
+.ProseMirror ol + h1,
+.ProseMirror ol + h2,
+.ProseMirror ol + h3,
+.ProseMirror ol + h4,
+.ProseMirror ol + h5,
+.ProseMirror ol + h6 {
+  margin-top: 1.5em;
+}
+
+/* Paragraph after header */
+.ProseMirror h1 + p,
+.ProseMirror h2 + p,
+.ProseMirror h3 + p,
+.ProseMirror h4 + p,
+.ProseMirror h5 + p,
+.ProseMirror h6 + p {
+  margin-top: 0.5em;
+}
+
+/* List after header */
+.ProseMirror h1 + ul,
+.ProseMirror h1 + ol,
+.ProseMirror h2 + ul,
+.ProseMirror h2 + ol,
+.ProseMirror h3 + ul,
+.ProseMirror h3 + ol,
+.ProseMirror h4 + ul,
+.ProseMirror h4 + ol,
+.ProseMirror h5 + ul,
+.ProseMirror h5 + ol,
+.ProseMirror h6 + ul,
+.ProseMirror h6 + ol {
+  margin-top: 0.5em;
+}
+
+/* Header after header */
+.ProseMirror h1 + h2,
+.ProseMirror h1 + h3,
+.ProseMirror h1 + h4,
+.ProseMirror h1 + h5,
+.ProseMirror h1 + h6,
+.ProseMirror h2 + h1,
+.ProseMirror h2 + h3,
+.ProseMirror h2 + h4,
+.ProseMirror h2 + h5,
+.ProseMirror h2 + h6,
+.ProseMirror h3 + h1,
+.ProseMirror h3 + h2,
+.ProseMirror h3 + h4,
+.ProseMirror h3 + h5,
+.ProseMirror h3 + h6,
+.ProseMirror h4 + h1,
+.ProseMirror h4 + h2,
+.ProseMirror h4 + h3,
+.ProseMirror h4 + h5,
+.ProseMirror h4 + h6,
+.ProseMirror h5 + h1,
+.ProseMirror h5 + h2,
+.ProseMirror h5 + h3,
+.ProseMirror h5 + h4,
+.ProseMirror h5 + h6,
+.ProseMirror h6 + h1,
+.ProseMirror h6 + h2,
+.ProseMirror h6 + h3,
+.ProseMirror h6 + h4,
+.ProseMirror h6 + h5 {
+  margin-top: 1em;
 }
 
 /* TipTap Image Resizing and Alignment */
