@@ -49,16 +49,18 @@ export default function GuideEditPageWithSidebar({ params }: GuideEditPageWithSi
         {/* Main Content Area */}
         <div className="flex flex-col flex-1">
           {/* Document-specific header with back button */}
-          <header className="flex items-center justify-between p-2 border-b bg-background">
+          <header className="flex items-center justify-between p-3 sm:p-4 border-b bg-background">
             <div className="flex items-center gap-2">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={handleBack}
                 data-testid="button-back-to-guides"
+                className="gap-2"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Guides
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Guides</span>
+                <span className="sm:hidden">Back</span>
               </Button>
             </div>
           </header>
