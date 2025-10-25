@@ -35,6 +35,7 @@ import {
   Bot,
   Trash2
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface WritingAssistantPanelProps {
   panelId: string;
@@ -56,6 +57,12 @@ interface SuggestedPrompt {
   label: string;
   prompt: string;
   description: string;
+}
+
+interface DetectedEntity {
+  type: 'character' | 'location' | 'plotPoint';
+  name: string;
+  details: any;
 }
 
 // Separate component for chat input to prevent parent re-renders
@@ -119,22 +126,22 @@ export default function WritingAssistantPanel({
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const [extendedThinkingEnabled, setExtendedThinkingEnabled] = useState(false);
-  
+
   // Thread management state
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [threadTitle, setThreadTitle] = useState<string | null>(null);
   const [tagsGenerated, setTagsGenerated] = useState(false);
-  
+
   // Context analysis state
   const [contextAnalysis, setContextAnalysis] = useState<{ topics: any[]; entities: any[] } | null>(null);
   const [isAnalyzingContext, setIsAnalyzingContext] = useState(false);
-  
+
   // Entity detection state
-  const [detectedEntities, setDetectedEntities] = useState<any[]>([]);
+  const [detectedEntities, setDetectedEntities] = useState<DetectedEntity[]>([]);
   const [isDetectingEntities, setIsDetectingEntities] = useState(false);
-  const [selectedEntity, setSelectedEntity] = useState<any | null>(null);
+  const [selectedEntity, setSelectedEntity] = useState<DetectedEntity | null>(null);
   const [showEntityPreview, setShowEntityPreview] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const historyDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -142,6 +149,21 @@ export default function WritingAssistantPanel({
   const { hasPremiumAccess, extendedThinkingRemaining, premiumQuota } = useSubscription();
   const { getEditorContext, executeEditorAction } = useWorkspaceStore();
   const { activeNotebookId } = useNotebookStore();
+  const queryClient = useQueryClient();
+
+  // Fetch characters from the notebook
+  const { data: characters } = useQuery({
+    queryKey: ['/api/characters'],
+    queryFn: async () => {
+      if (!activeNotebookId) return [];
+      const response = await fetch(`/api/characters?notebookId=${activeNotebookId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch characters');
+      return response.json();
+    },
+    enabled: !!activeNotebookId,
+  });
 
   // Smart prompt suggestions
   const suggestedPrompts: SuggestedPrompt[] = [
@@ -186,33 +208,33 @@ export default function WritingAssistantPanel({
   useEffect(() => {
     const loadChatHistory = async () => {
       if (!user) return; // Wait for authentication
-      
+
       try {
         setIsLoadingHistory(true);
         const editorContext = getEditorContext();
-        
+
         // Check for threadId in URL params
         const urlParams = new URLSearchParams(window.location.search);
         const threadIdFromUrl = urlParams.get('threadId');
-        
+
         if (threadIdFromUrl) {
           // Load specific thread
           try {
             const threadResponse = await fetch(`/api/conversation-threads/${threadIdFromUrl}`, {
               credentials: 'include'
             });
-            
+
             if (threadResponse.ok) {
               const thread = await threadResponse.json();
               setCurrentThreadId(thread.id);
               setThreadTitle(thread.title);
               setTagsGenerated(thread.tags && thread.tags.length > 0);
-              
+
               // Load messages for this thread
               const messagesResponse = await fetch(`/api/chat-messages?threadId=${threadIdFromUrl}`, {
                 credentials: 'include'
               });
-              
+
               if (messagesResponse.ok) {
                 const chatMessages = await messagesResponse.json();
                 const formattedMessages: Message[] = chatMessages.map((msg: any) => ({
@@ -235,11 +257,11 @@ export default function WritingAssistantPanel({
           } else if (editorContext.type === 'guide' && editorContext.entityId) {
             params.append('guideId', editorContext.entityId);
           }
-          
+
           const response = await fetch(`/api/chat-messages?${params.toString()}`, {
             credentials: 'include'
           });
-          
+
           if (response.ok) {
             const chatMessages = await response.json();
             const formattedMessages: Message[] = chatMessages.map((msg: any) => ({
@@ -249,11 +271,11 @@ export default function WritingAssistantPanel({
               timestamp: new Date(msg.createdAt)
             }));
             setMessages(formattedMessages);
-            
+
             // If we have messages and they have a threadId, set it
             if (chatMessages.length > 0 && chatMessages[0].threadId) {
               setCurrentThreadId(chatMessages[0].threadId);
-              
+
               // Fetch thread details to get title
               try {
                 const threadResponse = await fetch(`/api/conversation-threads/${chatMessages[0].threadId}`, {
@@ -280,7 +302,7 @@ export default function WritingAssistantPanel({
     loadChatHistory();
   }, [getEditorContext, user]);
 
-  
+
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -296,7 +318,7 @@ export default function WritingAssistantPanel({
         setShowHistoryDropdown(false);
       }
     };
-    
+
     if (showHistoryDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -308,7 +330,7 @@ export default function WritingAssistantPanel({
     mutationFn: async (message: string) => {
       const editorContext = getEditorContext();
       const hasEditorContent = editorContext.content && editorContext.content.length > 10;
-      
+
       // Prepare conversation history from messages with timestamps
       const conversationHistory = messages
         .slice(-30) // Send last 30 messages for better context retention
@@ -341,7 +363,7 @@ export default function WritingAssistantPanel({
     },
     onError: (error: any) => {
       let errorMessage = "I'm having a moment of writer's block myself! Could you rephrase your question, or would you like to try a different aspect of your project?";
-      
+
       if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error?.message) {
@@ -349,7 +371,7 @@ export default function WritingAssistantPanel({
           errorMessage = "I'm having trouble connecting right now. Please check your internet connection and try again.";
         }
       }
-      
+
       addMessage('assistant', errorMessage);
     },
   });
@@ -358,14 +380,14 @@ export default function WritingAssistantPanel({
   const clearChatMutation = useMutation({
     mutationFn: async () => {
       const editorContext = getEditorContext();
-      
+
       const params = new URLSearchParams();
       if (editorContext.type === 'manuscript' && editorContext.entityId) {
         params.append('projectId', editorContext.entityId);
       } else if (editorContext.type === 'guide' && editorContext.entityId) {
         params.append('guideId', editorContext.entityId);
       }
-      
+
       const response = await fetch(`/api/chat-messages?${params.toString()}`, {
         method: 'DELETE',
         credentials: 'include'
@@ -402,7 +424,7 @@ export default function WritingAssistantPanel({
     try {
       setIsAnalyzingContext(true);
       const editorContext = getEditorContext();
-      
+
       const response = await fetch('/api/ai/analyze-context', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -439,7 +461,7 @@ export default function WritingAssistantPanel({
 
     try {
       setIsDetectingEntities(true);
-      
+
       const response = await fetch('/api/ai/detect-entities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -453,7 +475,7 @@ export default function WritingAssistantPanel({
       if (response.ok) {
         const data = await response.json();
         setDetectedEntities(data.entities || []);
-        
+
         // Show feedback if detection failed but didn't throw an error
         if (data.error) {
           toast({
@@ -518,7 +540,7 @@ export default function WritingAssistantPanel({
   // Get editor content from workspace context
   const getEditorText = () => {
     const editorContext = getEditorContext();
-    
+
     if (editorContext.content && editorContext.content.length > 10) {
       return {
         text: editorContext.content.slice(0, 2000),
@@ -527,7 +549,7 @@ export default function WritingAssistantPanel({
         type: editorContext.type
       };
     }
-    
+
     return {
       text: '',
       hasEditorContent: false,
@@ -539,7 +561,7 @@ export default function WritingAssistantPanel({
   // Extract text suggestions from assistant messages
   const extractTextSuggestions = (content: string) => {
     const suggestions: { text: string; type: 'replace' | 'insert' }[] = [];
-    
+
     const quotedTextRegex = /"([^"]+)"/g;
     let match;
     while ((match = quotedTextRegex.exec(content)) !== null) {
@@ -548,7 +570,7 @@ export default function WritingAssistantPanel({
         suggestions.push({ text, type: 'replace' });
       }
     }
-    
+
     const correctedTextRegex = /(?:corrected|improved|rephrased|better).*?:\s*"([^"]+)"/gi;
     match = correctedTextRegex.exec(content);
     while (match !== null) {
@@ -558,7 +580,7 @@ export default function WritingAssistantPanel({
       }
       match = correctedTextRegex.exec(content);
     }
-    
+
     return suggestions;
   };
 
@@ -590,21 +612,21 @@ export default function WritingAssistantPanel({
   // Add message helper - saves to database and updates local state
   const addMessage = async (type: 'user' | 'assistant', content: string, metadata?: any) => {
     if (!user) return;
-    
+
     const newMessage: Message = {
       id: Date.now().toString(),
       type,
       content,
       timestamp: new Date(),
     };
-    
+
     setMessages(prev => [...prev, newMessage]);
-    
+
     // Save to database in background
     try {
       const editorContext = getEditorContext();
       let threadId = currentThreadId;
-      
+
       // Create thread on first message if none exists
       if (!threadId) {
         try {
@@ -613,7 +635,7 @@ export default function WritingAssistantPanel({
             projectId: editorContext.type === 'manuscript' ? editorContext.entityId : undefined,
             guideId: editorContext.type === 'guide' ? editorContext.entityId : undefined,
           };
-          
+
           const threadResponse = await fetch('/api/conversation-threads', {
             method: 'POST',
             headers: {
@@ -622,7 +644,7 @@ export default function WritingAssistantPanel({
             credentials: 'include',
             body: JSON.stringify(threadData)
           });
-          
+
           if (threadResponse.ok) {
             const savedThread = await threadResponse.json();
             threadId = savedThread.id;
@@ -633,7 +655,7 @@ export default function WritingAssistantPanel({
           console.error('Failed to create conversation thread:', error);
         }
       }
-      
+
       const response = await fetch('/api/chat-messages', {
         method: 'POST',
         headers: {
@@ -649,7 +671,7 @@ export default function WritingAssistantPanel({
           metadata
         })
       });
-      
+
       if (response.ok) {
         const savedMessage = await response.json();
         setMessages(prev => prev.map(msg => 
@@ -657,7 +679,7 @@ export default function WritingAssistantPanel({
             ? { ...msg, id: savedMessage.id }
             : msg
         ));
-        
+
         // Auto-generate tags after 5 messages (only once)
         if (threadId && !tagsGenerated && messages.length >= 4) {
           setTagsGenerated(true);
@@ -679,7 +701,7 @@ export default function WritingAssistantPanel({
   // Handle chat submission
   const handleChatSubmit = (text: string) => {
     if (!text.trim()) return;
-    
+
     addMessage('user', text);
     chatMutation.mutate(text);
   };
@@ -687,7 +709,7 @@ export default function WritingAssistantPanel({
   // Handle suggested prompt click
   const handleSuggestedPrompt = (prompt: SuggestedPrompt) => {
     const editorContent = getEditorText();
-    
+
     if (!editorContent.hasEditorContent && (prompt.id === 'analyze' || prompt.id === 'proofread' || prompt.id === 'questions')) {
       addMessage('assistant', 'I need some text to work with. Could you please:\n\n1. Open a project or guide for editing, or\n2. Ask me a general question about writing\n\nI can help with analyzing text, brainstorming ideas, answering questions, and more!');
       return;
@@ -706,6 +728,140 @@ export default function WritingAssistantPanel({
       description: 'Text copied to clipboard.',
     });
   };
+
+  // Helper to find existing character by name
+  const findExistingCharacter = (name: string) => {
+    if (!characters) return undefined;
+
+    const nameLower = name.toLowerCase();
+    return characters.find((char: any) => {
+      const fullName = [char.givenName, char.familyName].filter(Boolean).join(' ').toLowerCase();
+      const givenName = (char.givenName || '').toLowerCase();
+      const nickname = (char.nickname || '').toLowerCase();
+
+      return fullName === nameLower || 
+             givenName === nameLower || 
+             (nickname && nickname === nameLower);
+    });
+  };
+
+  // Handle creating entities from detected data
+  const handleCreateEntity = async (entity: DetectedEntity) => {
+    setSelectedEntity(entity);
+    setShowEntityPreview(true);
+  };
+
+  // Handle updating existing entity with new details
+  const handleUpdateEntity = async (entity: DetectedEntity) => {
+    const existingChar = findExistingCharacter(entity.name);
+    if (!existingChar) {
+      toast({
+        title: 'Character not found',
+        description: 'Could not find an existing character to update.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      if (entity.type === 'character') {
+        // Merge existing data with new details from conversation
+        const updates: any = {};
+
+        // Only update fields that have new information
+        if (entity.details.age && !existingChar.age) updates.age = parseInt(entity.details.age);
+        if (entity.details.species && !existingChar.species) updates.species = entity.details.species;
+        if (entity.details.occupation && !existingChar.occupation) updates.occupation = entity.details.occupation;
+
+        // Append to existing text fields rather than replacing
+        if (entity.details.personality) {
+          const currentPersonality = existingChar.personality || '';
+          const newPersonality = entity.details.personality;
+          if (currentPersonality && !currentPersonality.includes(newPersonality)) {
+            updates.personality = `${currentPersonality}\n\n${newPersonality}`;
+          } else if (!currentPersonality) {
+            updates.personality = newPersonality;
+          }
+        }
+
+        if (entity.details.physicalDescription) {
+          const currentDesc = existingChar.physicalDescription || '';
+          const newDesc = entity.details.physicalDescription;
+          if (currentDesc && !currentDesc.includes(newDesc)) {
+            updates.physicalDescription = `${currentDesc}\n\n${newDesc}`;
+          } else if (!currentDesc) {
+            updates.physicalDescription = newDesc;
+          }
+        }
+
+        if (entity.details.backstory) {
+          const currentBackstory = existingChar.backstory || '';
+          const newBackstory = entity.details.backstory;
+          if (currentBackstory && !currentBackstory.includes(newBackstory)) {
+            updates.backstory = `${currentBackstory}\n\n${newBackstory}`;
+          } else if (!currentBackstory) {
+            updates.backstory = newBackstory;
+          }
+        }
+
+        if (entity.details.motivation) {
+          const currentMotivation = existingChar.motivation || '';
+          const newMotivation = entity.details.motivation;
+          if (currentMotivation && !currentMotivation.includes(newMotivation)) {
+            updates.motivation = `${currentMotivation}\n\n${newMotivation}`;
+          } else if (!currentMotivation) {
+            updates.motivation = newMotivation;
+          }
+        }
+
+        // Additional fields
+        if (entity.details.flaw && !existingChar.flaw) updates.flaw = entity.details.flaw;
+        if (entity.details.strength && !existingChar.strength) updates.strength = entity.details.strength;
+        if (entity.details.abilities && !existingChar.abilities) updates.abilities = entity.details.abilities;
+        if (entity.details.likes && !existingChar.likes) updates.likes = entity.details.likes;
+        if (entity.details.dislikes && !existingChar.dislikes) updates.dislikes = entity.details.dislikes;
+
+        // If there are any updates, apply them
+        if (Object.keys(updates).length > 0) {
+          const response = await fetch(`/api/characters/${existingChar.id}?notebookId=${activeNotebookId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(updates)
+          });
+
+          if (response.ok) {
+            toast({
+              title: 'Character updated',
+              description: `${entity.name} has been updated with new details from the conversation.`
+            });
+            // Remove this entity from detected entities
+            setDetectedEntities(prev => prev.filter(e => e !== entity));
+            // Invalidate characters query
+            queryClient.invalidateQueries({ queryKey: ['/api/characters'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+          } else {
+            throw new Error('Failed to update character');
+          }
+        } else {
+          toast({
+            title: 'No updates needed',
+            description: `${entity.name} already has all the information from this conversation.`,
+          });
+          // Still remove from detected entities since no action is needed
+          setDetectedEntities(prev => prev.filter(e => e !== entity));
+        }
+      }
+    } catch (error) {
+      console.error('Error updating entity:', error);
+      toast({
+        title: 'Update failed',
+        description: 'Failed to update character. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
 
   // Memoize MessageWithApplyButtons to prevent unnecessary re-renders during typing
   const MessageWithApplyButtons = React.memo(({ message, isLastAssistant }: { message: Message; isLastAssistant: boolean }) => {
@@ -732,7 +888,7 @@ export default function WritingAssistantPanel({
             <Bot className="w-4 h-4 text-primary" />
           </div>
         )}
-        
+
         <div className={`max-w-[85%] ${message.type === 'user' ? 'order-first' : ''}`}>
           <div
             className={`rounded-lg px-4 py-3 ${
@@ -747,7 +903,7 @@ export default function WritingAssistantPanel({
               </ReactMarkdown>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
             <span>{message.timestamp.toLocaleTimeString()}</span>
             <div className="flex gap-1">
@@ -870,7 +1026,7 @@ export default function WritingAssistantPanel({
           </div>
         </div>
       )}
-      
+
       {/* Chat Messages */}
       <ScrollArea className="flex-1 min-h-0 max-h-[calc(100vh-300px)] md:max-h-none overflow-y-auto">
         <div className="space-y-3 p-3 pb-6">
@@ -882,13 +1038,13 @@ export default function WritingAssistantPanel({
               <p className="text-xs mt-1">Try the suggested prompts below to get started.</p>
             </div>
           )}
-          
+
           {messages.map((message, index) => {
             // Check if this is the last assistant message
             const isLastAssistant = message.type === 'assistant' && 
               index === messages.length - 1 || 
               (index < messages.length - 1 && messages[index + 1].type === 'user');
-            
+
             return (
               <MessageWithApplyButtons 
                 key={message.id} 
@@ -897,11 +1053,11 @@ export default function WritingAssistantPanel({
               />
             );
           })}
-          
+
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
-      
+
       {/* Detected Entities */}
       {detectedEntities.length > 0 && (
         <div className="flex-shrink-0 border-t bg-muted/30">
@@ -918,18 +1074,16 @@ export default function WritingAssistantPanel({
                 <EntityActionCard
                   key={`${entity.type}-${entity.name}-${index}`}
                   entity={entity}
-                  onCreateNew={() => {
-                    setSelectedEntity(entity);
-                    setShowEntityPreview(true);
-                  }}
-                  data-testid={`entity-card-${entity.type}-${index}`}
+                  onCreateNew={() => handleCreateEntity(entity)}
+                  onUpdateExisting={entity.type === 'character' ? () => handleUpdateEntity(entity) : undefined}
+                  existingEntity={entity.type === 'character' ? findExistingCharacter(entity.name) : undefined}
                 />
               ))}
             </div>
           </div>
         </div>
       )}
-      
+
       {/* Input Area */}
       <div className="p-3 border-t flex-shrink-0 space-y-3">
         {/* Smart Prompt Suggestions */}
@@ -994,7 +1148,7 @@ export default function WritingAssistantPanel({
             </span>
           </div>
         )}
-        
+
         {/* Chat Input */}
         <ChatInput 
           onSubmit={handleChatSubmit}
@@ -1129,7 +1283,7 @@ export default function WritingAssistantPanel({
               {messages.length} message{messages.length !== 1 ? 's' : ''} in current conversation
             </p>
           </div>
-          
+
           <div className="max-h-64 overflow-y-auto">
             {messages.length > 0 ? (
               <div className="p-3">
@@ -1170,7 +1324,7 @@ export default function WritingAssistantPanel({
               </div>
             )}
           </div>
-          
+
           <div className="px-3 pt-2 border-t">
             <Button
               variant="outline"
