@@ -70,9 +70,6 @@ export default function WritingAssistantPanel({
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const [extendedThinkingEnabled, setExtendedThinkingEnabled] = useState(false);
   
-  // Debounce input changes to prevent excessive re-renders
-  const [debouncedInputText, setDebouncedInputText] = useState('');
-  
   // Thread management state
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [threadTitle, setThreadTitle] = useState<string | null>(null);
@@ -234,13 +231,7 @@ export default function WritingAssistantPanel({
     loadChatHistory();
   }, [getEditorContext, user]);
 
-  // Debounce input text to improve typing performance
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedInputText(inputText);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [inputText]);
+  
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -438,17 +429,16 @@ export default function WritingAssistantPanel({
     }
   };
 
-  // Trigger entity detection after assistant messages (with debouncing)
-  useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
-      // Debounce entity detection to avoid excessive API calls
-      const timer = setTimeout(() => {
-        detectEntities();
-      }, 5000); // Wait 5 seconds after message before detecting (reduce background load)
-
-      return () => clearTimeout(timer);
-    }
-  }, [messages.length]);
+  // TEMPORARILY DISABLED: Entity detection was causing performance issues
+  // Will re-enable with proper optimization later
+  // useEffect(() => {
+  //   if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
+  //     const timer = setTimeout(() => {
+  //       detectEntities();
+  //     }, 5000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [messages.length]);
 
   // Trigger context analysis after messages change
   // TEMPORARILY DISABLED: This was causing 5-11 second lag on every message
@@ -965,10 +955,7 @@ export default function WritingAssistantPanel({
           <Textarea
             ref={textareaRef}
             value={inputText}
-            onChange={(e) => {
-              // Directly update state without any processing
-              setInputText(e.target.value);
-            }}
+            onChange={(e) => setInputText(e.target.value)}
             placeholder="Ask about your writing..."
             className="min-h-[40px] max-h-[100px] resize-none"
             onKeyDown={(e) => {
@@ -984,7 +971,7 @@ export default function WritingAssistantPanel({
           <Button 
             size="sm" 
             onClick={handleChatSubmit}
-            disabled={!debouncedInputText.trim() || chatMutation.isPending}
+            disabled={!inputText.trim() || chatMutation.isPending}
             data-testid="button-send-message"
           >
             {chatMutation.isPending ? (
