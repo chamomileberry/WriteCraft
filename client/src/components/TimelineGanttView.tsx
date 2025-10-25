@@ -188,7 +188,7 @@ export function TimelineGanttView({ timelineId, notebookId }: TimelineGanttViewP
                     <button
                       key={event.id}
                       onClick={() => handleEditEvent(event)}
-                      className="absolute top-1/2 -translate-y-1/2 h-10 rounded px-2 flex items-center justify-center text-xs font-medium transition-all hover-elevate active-elevate-2 overflow-hidden"
+                      className="absolute top-1/2 -translate-y-1/2 h-10 rounded px-2 flex items-center justify-center text-xs font-medium transition-all hover-elevate active-elevate-2"
                       style={{
                         left: position.left,
                         width: position.width,

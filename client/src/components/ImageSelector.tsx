@@ -484,13 +484,13 @@ export function ImageSelector({
                 {pexelsData.photos.map((photo) => (
                   <Card
                     key={photo.id}
-                    className={`cursor-pointer hover-elevate overflow-hidden ${
+                    className={`cursor-pointer hover-elevate ${
                       value === photo.src.large ? 'ring-2 ring-primary' : ''
                     }`}
                     onClick={() => handleSelectPexelsImage(photo)}
                     data-testid={`image-pexels-${photo.id}`}
                   >
-                    <div className="aspect-square relative">
+                    <div className="aspect-square relative overflow-hidden">
                       <img
                         src={photo.src.small}
                         alt={photo.alt}

@@ -329,7 +329,7 @@ export default function NotebookManager({ isOpen, onClose, onNotebookCreated, op
                 displayedNotebooks.map((notebook) => (
                   <Card 
                     key={notebook.id} 
-                    className={`group overflow-hidden hover-elevate cursor-pointer transition-all ${
+                    className={`group hover-elevate cursor-pointer transition-all ${
                       activeNotebookId === notebook.id ? 'ring-2 ring-primary' : ''
                     }`}
                     data-testid={`card-notebook-${notebook.id}`}

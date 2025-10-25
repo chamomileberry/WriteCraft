@@ -76,11 +76,13 @@ export default function Hero({ onGetStarted, onNavigate }: HeroProps) {
           </div>
 
           <div className="flex justify-center mb-12">
-            <Link href="/pricing">
-              <a className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group" data-testid="link-view-pricing">
-                View Pricing & Plans
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </a>
+            <Link 
+              href="/pricing" 
+              className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group" 
+              data-testid="link-view-pricing"
+            >
+              View Pricing & Plans
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
 

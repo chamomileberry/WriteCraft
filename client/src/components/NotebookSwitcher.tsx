@@ -158,7 +158,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
                   data-testid="button-open-notebook-switcher"
                   aria-label="Switch notebook"
                 >
-                  <Card className="overflow-hidden hover-elevate transition-all">
+                  <Card className="hover-elevate transition-all">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
