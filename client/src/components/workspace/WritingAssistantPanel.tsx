@@ -768,58 +768,79 @@ export default function WritingAssistantPanel({
         // Merge existing data with new details from conversation
         const updates: any = {};
 
+        // Helper function to append or set text fields
+        const appendOrSet = (currentValue: string | null | undefined, newValue: string) => {
+          const current = currentValue || '';
+          if (!current) return newValue;
+          if (current.includes(newValue)) return undefined; // No change needed
+          return `${current}\n\n${newValue}`;
+        };
+
         // Only update fields that have new information
         if (entity.details.age && !existingChar.age) updates.age = parseInt(entity.details.age);
         if (entity.details.species && !existingChar.species) updates.species = entity.details.species;
         if (entity.details.occupation && !existingChar.occupation) updates.occupation = entity.details.occupation;
 
-        // Append to existing text fields rather than replacing
+        // Append to all text fields rather than replacing
         if (entity.details.personality) {
-          const currentPersonality = existingChar.personality || '';
-          const newPersonality = entity.details.personality;
-          if (currentPersonality && !currentPersonality.includes(newPersonality)) {
-            updates.personality = `${currentPersonality}\n\n${newPersonality}`;
-          } else if (!currentPersonality) {
-            updates.personality = newPersonality;
-          }
+          const updated = appendOrSet(existingChar.personality, entity.details.personality);
+          if (updated !== undefined) updates.personality = updated;
         }
 
         if (entity.details.physicalDescription) {
-          const currentDesc = existingChar.physicalDescription || '';
-          const newDesc = entity.details.physicalDescription;
-          if (currentDesc && !currentDesc.includes(newDesc)) {
-            updates.physicalDescription = `${currentDesc}\n\n${newDesc}`;
-          } else if (!currentDesc) {
-            updates.physicalDescription = newDesc;
-          }
+          const updated = appendOrSet(existingChar.physicalDescription, entity.details.physicalDescription);
+          if (updated !== undefined) updates.physicalDescription = updated;
         }
 
         if (entity.details.backstory) {
-          const currentBackstory = existingChar.backstory || '';
-          const newBackstory = entity.details.backstory;
-          if (currentBackstory && !currentBackstory.includes(newBackstory)) {
-            updates.backstory = `${currentBackstory}\n\n${newBackstory}`;
-          } else if (!currentBackstory) {
-            updates.backstory = newBackstory;
-          }
+          const updated = appendOrSet(existingChar.backstory, entity.details.backstory);
+          if (updated !== undefined) updates.backstory = updated;
         }
 
         if (entity.details.motivation) {
-          const currentMotivation = existingChar.motivation || '';
-          const newMotivation = entity.details.motivation;
-          if (currentMotivation && !currentMotivation.includes(newMotivation)) {
-            updates.motivation = `${currentMotivation}\n\n${newMotivation}`;
-          } else if (!currentMotivation) {
-            updates.motivation = newMotivation;
-          }
+          const updated = appendOrSet(existingChar.motivation, entity.details.motivation);
+          if (updated !== undefined) updates.motivation = updated;
         }
 
-        // Additional fields
-        if (entity.details.flaw && !existingChar.flaw) updates.flaw = entity.details.flaw;
-        if (entity.details.strength && !existingChar.strength) updates.strength = entity.details.strength;
-        if (entity.details.abilities && !existingChar.abilities) updates.abilities = entity.details.abilities;
-        if (entity.details.likes && !existingChar.likes) updates.likes = entity.details.likes;
-        if (entity.details.dislikes && !existingChar.dislikes) updates.dislikes = entity.details.dislikes;
+        if (entity.details.flaw) {
+          const updated = appendOrSet(existingChar.flaw, entity.details.flaw);
+          if (updated !== undefined) updates.flaw = updated;
+        }
+
+        if (entity.details.strength) {
+          const updated = appendOrSet(existingChar.strength, entity.details.strength);
+          if (updated !== undefined) updates.strength = updated;
+        }
+
+        if (entity.details.abilities) {
+          const updated = appendOrSet(existingChar.abilities, entity.details.abilities);
+          if (updated !== undefined) updates.abilities = updated;
+        }
+
+        if (entity.details.likes) {
+          const updated = appendOrSet(existingChar.likes, entity.details.likes);
+          if (updated !== undefined) updates.likes = updated;
+        }
+
+        if (entity.details.dislikes) {
+          const updated = appendOrSet(existingChar.dislikes, entity.details.dislikes);
+          if (updated !== undefined) updates.dislikes = updated;
+        }
+
+        // Handle any other text fields that might be in the details
+        const textFields = [
+          'description', 'goals', 'fears', 'secrets', 'habits', 
+          'mannerisms', 'speech', 'beliefs', 'values', 'quirks',
+          'appearance', 'voice', 'style', 'relationships'
+        ];
+        
+        textFields.forEach(field => {
+          if (entity.details[field]) {
+            const existingValue = (existingChar as any)[field];
+            const updated = appendOrSet(existingValue, entity.details[field]);
+            if (updated !== undefined) updates[field] = updated;
+          }
+        });
 
         // If there are any updates, apply them
         if (Object.keys(updates).length > 0) {
