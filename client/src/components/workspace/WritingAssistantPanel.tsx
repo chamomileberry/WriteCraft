@@ -478,16 +478,18 @@ export default function WritingAssistantPanel({
     }
   };
 
-  // TEMPORARILY DISABLED: Entity detection was causing performance issues
-  // Will re-enable with proper optimization later
-  // useEffect(() => {
-  //   if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
-  //     const timer = setTimeout(() => {
-  //       detectEntities();
-  //     }, 5000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [messages.length]);
+  // Entity detection - only run after assistant messages, with debouncing
+  useEffect(() => {
+    if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
+      // Only detect entities if we have meaningful conversation (3+ messages)
+      if (messages.length >= 3) {
+        const timer = setTimeout(() => {
+          detectEntities();
+        }, 2000); // Reduced from 5s to 2s for better responsiveness
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [messages.length]);
 
   // Trigger context analysis after messages change
   // TEMPORARILY DISABLED: This was causing 5-11 second lag on every message
