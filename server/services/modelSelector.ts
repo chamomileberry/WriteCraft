@@ -34,6 +34,7 @@ export type OperationType =
   | 'text_improvement'
   | 'conversational_chat'
   | 'ai_suggestions'
+  | 'context_analysis'    // Analyze conversation context for smart prompts
   | 'polish'              // Premium: Opus 4.1 for polishing generated content
   | 'extended_thinking';  // Premium: Opus 4.1 for deep reasoning in chat
 

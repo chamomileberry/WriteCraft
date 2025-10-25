@@ -16,6 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import ContextualPromptCard from './ContextualPromptCard';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -71,6 +72,10 @@ export default function WritingAssistantPanel({
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [threadTitle, setThreadTitle] = useState<string | null>(null);
   const [tagsGenerated, setTagsGenerated] = useState(false);
+  
+  // Context analysis state
+  const [contextAnalysis, setContextAnalysis] = useState<{ topics: any[]; entities: any[] } | null>(null);
+  const [isAnalyzingContext, setIsAnalyzingContext] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -327,6 +332,52 @@ export default function WritingAssistantPanel({
     },
   });
 
+  // Analyze context for smart prompts
+  const analyzeContext = async () => {
+    // Only analyze if we have at least 2 messages (1 user + 1 assistant minimum)
+    if (messages.length < 2) {
+      setContextAnalysis(null);
+      return;
+    }
+
+    try {
+      setIsAnalyzingContext(true);
+      const editorContext = getEditorContext();
+      
+      const response = await fetch('/api/ai/analyze-context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          messages: messages.map(m => ({ type: m.type, content: m.content })),
+          editorState: {
+            hasContent: editorContext.content && editorContext.content.length > 10,
+            type: editorContext.type,
+            title: editorContext.title
+          }
+        })
+      });
+
+      if (response.ok) {
+        const analysis = await response.json();
+        setContextAnalysis(analysis);
+      }
+    } catch (error) {
+      console.error('Failed to analyze context:', error);
+      setContextAnalysis(null);
+    } finally {
+      setIsAnalyzingContext(false);
+    }
+  };
+
+  // Trigger context analysis after messages change
+  useEffect(() => {
+    // Only analyze after assistant messages (when message count is even)
+    if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
+      analyzeContext();
+    }
+  }, [messages.length]);
+
   // Register functions for header buttons
   useEffect(() => {
     if (onRegisterClearChatFunction) {
@@ -540,11 +591,22 @@ export default function WritingAssistantPanel({
   };
 
   // Message component with apply buttons for suggestions
-  const MessageWithApplyButtons = ({ message }: { message: Message }) => {
+  const MessageWithApplyButtons = ({ message, isLastAssistant }: { message: Message; isLastAssistant: boolean }) => {
     const suggestions = extractTextSuggestions(message.content);
     const hasApplicableText = suggestions.length > 0;
     const editorContext = getEditorContext();
     const hasEditorAvailable = editorContext.type !== null && editorContext.entityId !== null;
+
+    // Show contextual prompts only on the last assistant message
+    const showContextualPrompts = isLastAssistant && message.type === 'assistant' && contextAnalysis && contextAnalysis.topics.length > 0;
+
+    const handleContextPromptClick = (topic: any) => {
+      const config = topicConfig[topic.topic] || {};
+      if (config.prompt) {
+        addMessage('user', config.prompt);
+        chatMutation.mutate(config.prompt);
+      }
+    };
 
     return (
       <div className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -608,6 +670,28 @@ export default function WritingAssistantPanel({
               ))}
             </div>
           )}
+
+          {/* Contextual Prompts - Only show on last assistant message */}
+          {showContextualPrompts && (
+            <div className="mt-3 space-y-2">
+              <div className="text-xs text-muted-foreground font-medium px-1">
+                {isAnalyzingContext ? 'Analyzing conversation...' : 'Quick actions:'}
+              </div>
+              {!isAnalyzingContext && (
+                <div className="flex flex-wrap gap-2">
+                  {contextAnalysis.topics.slice(0, 3).map((topic: any) => (
+                    <ContextualPromptCard
+                      key={topic.topic}
+                      topic={topic.topic}
+                      confidence={topic.confidence}
+                      reason={topic.reason}
+                      onSelect={() => handleContextPromptClick(topic)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {message.type === 'user' && (
@@ -617,6 +701,40 @@ export default function WritingAssistantPanel({
         )}
       </div>
     );
+  };
+
+  // Map topics to prompts (for contextual prompt handler)
+  const topicConfig: Record<string, { prompt: string }> = {
+    plot: {
+      prompt: 'Analyze the plot structure and check for potential plot holes or inconsistencies'
+    },
+    character: {
+      prompt: 'Help me develop this character further with backstory, motivations, and personality details'
+    },
+    dialogue: {
+      prompt: 'Review and suggest improvements for the dialogue we discussed'
+    },
+    setting: {
+      prompt: 'Help me develop this setting with more sensory details and world-building'
+    },
+    worldbuilding: {
+      prompt: 'Suggest world-building details and elements to make this world feel more alive'
+    },
+    pacing: {
+      prompt: 'Analyze the pacing and suggest areas where it might be too slow or too fast'
+    },
+    theme: {
+      prompt: 'Help me explore and deepen the thematic elements we discussed'
+    },
+    conflict: {
+      prompt: 'Suggest ways to increase tension and raise the stakes in this conflict'
+    },
+    prose: {
+      prompt: 'Review the prose style and suggest improvements for clarity and impact'
+    },
+    grammar: {
+      prompt: 'Proofread for grammar, spelling, and punctuation issues'
+    }
   };
 
   return (
@@ -644,9 +762,20 @@ export default function WritingAssistantPanel({
             </div>
           )}
           
-          {messages.map((message) => (
-            <MessageWithApplyButtons key={message.id} message={message} />
-          ))}
+          {messages.map((message, index) => {
+            // Check if this is the last assistant message
+            const isLastAssistant = message.type === 'assistant' && 
+              index === messages.length - 1 || 
+              (index < messages.length - 1 && messages[index + 1].type === 'user');
+            
+            return (
+              <MessageWithApplyButtons 
+                key={message.id} 
+                message={message} 
+                isLastAssistant={isLastAssistant}
+              />
+            );
+          })}
           
           <div ref={messagesEndRef} />
         </div>

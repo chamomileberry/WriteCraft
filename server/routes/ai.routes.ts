@@ -391,4 +391,86 @@ ${content}`;
   }
 });
 
+// Context analysis for smart prompt suggestions
+router.post("/analyze-context", secureAuthentication, aiRateLimiter, trackAIUsage('context_analysis'), async (req: any, res) => {
+  try {
+    const { messages, editorState } = req.body;
+    const userId = req.user.claims.sub;
+
+    if (!messages || messages.length === 0) {
+      return res.json({ topics: [], entities: [] });
+    }
+
+    // Take last 3-5 messages for context
+    const recentMessages = messages.slice(-5);
+    const conversationText = recentMessages
+      .map((m: any) => `${m.type === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n\n');
+
+    const systemPrompt = `You are an expert at analyzing creative writing conversations and detecting topics and entities being discussed.
+
+Analyze the conversation and identify:
+1. TOPICS being discussed (plot, character, dialogue, setting, worldbuilding, pacing, etc.)
+2. ENTITIES mentioned (character names, location names, plot points, etc.)
+
+Return your analysis as JSON with this exact structure:
+{
+  "topics": [
+    {"topic": "plot", "confidence": 0.9, "reason": "discussing plot structure"},
+    {"topic": "character", "confidence": 0.8, "reason": "discussing character motivations"}
+  ],
+  "entities": [
+    {"type": "character", "name": "Marcus", "context": "villain who is the hero's uncle"},
+    {"type": "location", "name": "Crystal Castle", "context": "ancient fortress"}
+  ]
+}
+
+IMPORTANT:
+- Only include topics/entities with confidence > 0.6
+- For entities, extract concrete details from the conversation
+- Topic values must be one of: plot, character, dialogue, setting, worldbuilding, pacing, theme, conflict, prose, grammar
+- Entity types must be one of: character, location, plotPoint, magicSystem, organization`;
+
+    const userPrompt = `Analyze this creative writing conversation:
+
+${conversationText}
+
+${editorState?.hasContent ? `\nCurrent editor state: User is actively editing a ${editorState.type} titled "${editorState.title}"` : ''}
+
+Return your analysis as JSON.`;
+
+    const result = await makeAICall({
+      operationType: 'context_analysis',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 1024,
+      enableCaching: true
+    });
+
+    // Parse JSON response
+    let analysis;
+    try {
+      const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        analysis = JSON.parse(jsonMatch[0]);
+      } else {
+        analysis = { topics: [], entities: [] };
+      }
+    } catch (parseError) {
+      console.error('Failed to parse context analysis JSON:', parseError);
+      analysis = { topics: [], entities: [] };
+    }
+
+    // Attach usage metadata
+    attachUsageMetadata(res, result.usage, result.model);
+
+    res.json(analysis);
+
+  } catch (error) {
+    console.error('Error in context analysis:', error);
+    res.status(500).json({ error: 'Failed to analyze context', topics: [], entities: [] });
+  }
+});
+
 export default router;
