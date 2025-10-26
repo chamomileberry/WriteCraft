@@ -1,6 +1,3 @@
-// IMPORTANT: Sentry must be imported first before any other modules
-import "./instrument";
-
 import { createApp } from "./app";
 import { setupVite, serveStatic, log } from "./vite";
 import * as keyRotationService from "./services/apiKeyRotationService";
