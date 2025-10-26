@@ -53,6 +53,13 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Canvas System**: Visual whiteboard feature using Excalidraw for creating story diagrams, character relationship maps, and plot structures; database schema includes `canvases` table with JSON data storage; API endpoints at `/api/canvases` for CRUD operations; integrated with projects system for organization.
 - **Onboarding System**: Interactive wizard for new users with two paths: (1) Experienced User Tour - 4-step overlay highlighting main features, (2) New User Tutorial - guided character creation with AI generation; database fields: `onboardingCompleted`, `onboardingStep`, `experienceLevel`; API endpoints: GET/PATCH `/api/user/preferences`; dialog dismissal prevention implemented via `onInteractOutside` and `onEscapeKeyDown` handlers; character generation uses capitalized genre values ("Fantasy" not "fantasy"); tutorial creates default "My First Notebook" and includes notebookId when saving characters.
 
+### Production Infrastructure
+- **Error Tracking**: Sentry integration with automatic error capture, performance monitoring (10% sample rate in production), CPU/memory profiling, user context tracking, and sensitive data filtering; global handlers for unhandled rejections and uncaught exceptions; helper utilities for custom error/message capture with context.
+- **Logging Strategy**: Pino structured logging with JSON output in production, pretty-print in development; redacts sensitive fields (passwords, tokens, API keys); specialized logging functions for AI operations, security events, API errors, database operations, user actions, and performance metrics; child loggers for feature-specific context.
+- **Uptime Monitoring**: UptimeRobot recommended (free tier: 50 monitors, 5-minute checks); health check endpoints at `/api/health`, `/api/health/db`, `/api/health/detailed`; alerts configured for 2 consecutive failures.
+- **Security Configuration**: Environment-based security feature toggling; IDS, IP blocking, and injection detection automatically enabled in production (disabled in development for developer experience); rate limiting scales from 10,000 req/15min (dev) to 1,000 req/15min (prod).
+- **Production Deployment**: Comprehensive `PRODUCTION.md` guide covering environment variables, security configuration, monitoring setup, database configuration, backup strategy, load testing, incident response procedures, and deployment checklists.
+
 ### System Design Choices
 - **Code Organization**: Centralized constants, API layer, custom Zustand hooks, and schema-driven form generation.
 - **Code Reusability**: Custom hooks for autosave, debounced save, notebook requirements, and generators.

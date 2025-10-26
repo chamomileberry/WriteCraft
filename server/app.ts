@@ -3,10 +3,15 @@ import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { log } from "./vite";
 import { applySecurityMiddleware } from "./app-security";
+import Sentry from "./instrument";
+import pinoHttp from "pino-http";
+import { logger } from "./lib/logger";
 
 // Global error handlers to prevent server crashes
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Capture in Sentry
+  Sentry.captureException(reason);
   // Log the error but don't crash the server in production
   if (process.env.NODE_ENV !== 'production') {
     console.error('Stack trace:', reason);
@@ -15,6 +20,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
+  // Capture in Sentry
+  Sentry.captureException(error);
   // Log the error but don't crash in production
   if (process.env.NODE_ENV !== 'production') {
     console.error('Stack trace:', error.stack);
@@ -25,6 +32,19 @@ process.on('uncaughtException', (error) => {
 
 export async function createApp() {
   const app = express();
+  
+  // HTTP request logging with pino
+  app.use(pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) => req.url?.startsWith('/assets') || req.url?.startsWith('/@vite')
+    },
+    customLogLevel: (req, res, err) => {
+      if (res.statusCode >= 500 || err) return 'error';
+      if (res.statusCode >= 400) return 'warn';
+      return 'info';
+    },
+  }));
   
   // Parse request bodies first (required for sanitization to work)
   app.use(express.json());
@@ -64,6 +84,9 @@ export async function createApp() {
   });
 
   const server = await registerRoutes(app);
+
+  // Sentry error handler - must be after routes but before other error handlers
+  Sentry.setupExpressErrorHandler(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
