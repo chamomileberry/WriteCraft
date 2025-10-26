@@ -6,16 +6,19 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { TIER_LIMITS } from '@shared/types/subscription';
-import { CreditCard, ExternalLink, Loader2, Crown, X, CheckCircle2, BarChart3 } from 'lucide-react';
-import { Link } from 'wouter';
+import { CreditCard, ExternalLink, Loader2, Crown, X, CheckCircle2, BarChart3, DollarSign } from 'lucide-react';
+import { Link, useLocation } from 'wouter';
 import { formatDistanceToNow } from 'date-fns';
+import { CancellationSurveyDialog } from './CancellationSurveyDialog';
 
 export function BillingSettings() {
   const { subscription, isLoading } = useSubscription();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [isReactivating, setIsReactivating] = useState(false);
+  const [showCancellationSurvey, setShowCancellationSurvey] = useState(false);
 
   const handleOpenBillingPortal = async () => {
     setIsPortalLoading(true);
@@ -34,18 +37,19 @@ export function BillingSettings() {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription? It will remain active until the end of your billing period.')) {
-      return;
-    }
+  const handleCancelClick = () => {
+    setShowCancellationSurvey(true);
+  };
 
+  const handleCancelSubscription = async (reason: string, feedback?: string) => {
     setIsCanceling(true);
     try {
-      await apiRequest('/api/stripe/cancel-subscription', 'POST', {});
+      await apiRequest('/api/stripe/cancel-subscription', 'POST', { reason, feedback });
       toast({
         title: 'Subscription canceled',
         description: 'Your subscription will remain active until the end of your billing period.',
       });
+      setShowCancellationSurvey(false);
       // Refresh subscription data
       window.location.reload();
     } catch (error: any) {
@@ -99,6 +103,17 @@ export function BillingSettings() {
   const isPaid = !isFree && subscription?.stripeSubscriptionId;
   const isTrialing = subscription?.status === 'trialing';
   const isCanceled = subscription?.cancelAtPeriodEnd;
+
+  // Check if subscription is within 7-day refund window
+  const isWithinRefundWindow = () => {
+    if (!subscription?.currentPeriodStart) return false;
+    const periodStart = new Date(subscription.currentPeriodStart);
+    const now = new Date();
+    const daysSinceStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
+    return daysSinceStart <= 7;
+  };
+
+  const showRefundButton = isPaid && !isCanceled && isWithinRefundWindow();
 
   const getStatusBadge = () => {
     if (isTrialing) {
@@ -231,18 +246,25 @@ export function BillingSettings() {
                 <ExternalLink className="w-3 h-3 ml-2" />
               </Button>
 
+              {showRefundButton && (
+                <Button
+                  variant="outline"
+                  onClick={() => setLocation('/refund-request')}
+                  data-testid="button-request-refund"
+                >
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Request Refund
+                </Button>
+              )}
+
               {!isCanceled ? (
                 <Button
                   variant="destructive"
-                  onClick={handleCancelSubscription}
+                  onClick={handleCancelClick}
                   disabled={isCanceling}
                   data-testid="button-cancel-subscription"
                 >
-                  {isCanceling ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <X className="w-4 h-4 mr-2" />
-                  )}
+                  <X className="w-4 h-4 mr-2" />
                   Cancel Subscription
                 </Button>
               ) : (
@@ -271,6 +293,13 @@ export function BillingSettings() {
           </p>
         )}
       </CardContent>
+
+      <CancellationSurveyDialog
+        open={showCancellationSurvey}
+        onOpenChange={setShowCancellationSurvey}
+        onConfirm={handleCancelSubscription}
+        isPending={isCanceling}
+      />
     </Card>
   );
 }

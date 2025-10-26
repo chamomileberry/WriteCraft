@@ -78,11 +78,20 @@ For production deployments with large JavaScript bundles (5+ MB), configure Node
 - **Code Reusability**: Custom hooks for autosave, debounced save, and generators.
 - **Testing**: Playwright for end-to-end and regression testing.
 - **Recent Improvements (Oct 26, 2025)**:
+  - **Production Hardening - Subscription Management**:
+    - Fixed 29 TypeScript errors in stripe.routes.ts using hasStripeData type guard for proper type safety
+    - Implemented cancellation survey dialog with reason dropdown and optional feedback collection
+    - Added refund request workflow with dedicated page, form validation, and 7-day window detection
+    - Implemented account deletion with confirmation dialog, Stripe subscription cancellation, and cascading data deletion
+    - Backend cancellation endpoint now logs cancellation reasons and feedback for analytics
+    - Added "Request Refund" button in BillingSettings (only shown within 7-day refund window)
+    - Created AccountDeletionDialog with "DELETE" confirmation input and data export prompt
   - Cleaned up misleading TODOs: Removed outdated share system comments (shares fully implemented), removed duplicate project links code
   - Enhanced migration routes with proper requireAdmin middleware enforcement
   - Implemented AI generation for themes, conflicts, items, and locations with full security and usage tracking
   - Added 'item_generation' and 'location_generation' to OperationType enum for proper model selection and cache segregation
   - Enhanced QuickNotePanel with functional new note creation using workspace panel management
+  - **Email Notifications**: See PRODUCTION_TODOS.md for detailed email notification requirements and implementation plan. Email system is not yet implemented but is documented for future production deployment.
 
 ## External Dependencies
 

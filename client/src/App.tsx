@@ -51,6 +51,7 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import FeedbackPage from "@/pages/FeedbackPage";
 import FeedbackManagement from "@/pages/admin/FeedbackManagement";
+import RefundRequestPage from "@/pages/RefundRequestPage";
 import HelpPage from "@/pages/HelpPage";
 import InboxPage from "@/pages/InboxPage";
 import ConversationThreadsManager from "@/pages/ConversationThreadsManager";
@@ -228,6 +229,7 @@ function Router() {
       <Route path="/conversation-threads" component={ConversationThreadsManager} />
       <Route path="/team" component={TeamManagement} />
       <Route path="/account" component={AccountSettings} />
+      <Route path="/refund-request" component={RefundRequestPage} />
       <Route path="/search" component={SearchPage} />
       <Route path="/generators" component={GeneratorsPage} />
       <Route path="/guides" component={GuidesPage} />

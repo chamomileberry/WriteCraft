@@ -4,6 +4,7 @@ import { db } from '../db';
 import { users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { storage } from '../storage';
+import Stripe from 'stripe';
 import {
   secureAuthentication,
   createRateLimiter,
@@ -418,6 +419,67 @@ router.post(
       console.log(`[SECURITY] User ${userId} logged out successfully`);
       res.json({ message: "Logged out successfully" });
     });
+  }
+);
+
+/**
+ * Delete user account with cascading deletion of all user data
+ */
+router.delete(
+  '/users/:id',
+  secureAuthentication,
+  createRateLimiter({ maxRequests: 5 }), // Very strict rate limit for deletions
+  async (req: any, res) => {
+    try {
+      const userId = req.params.id;
+      const requesterId = req.user.claims.sub;
+      const user = await storage.getUser(requesterId);
+      
+      // Only allow users to delete their own account or admin to delete any account
+      if (userId !== requesterId && !user?.isAdmin) {
+        await SecurityAuditLog.logSecurityEvent({
+          userId: requesterId,
+          eventType: 'unauthorized_delete_attempt',
+          severity: 'high',
+          details: `User ${requesterId} attempted to delete account ${userId}`,
+          ipAddress: req.ip || '',
+          userAgent: req.headers['user-agent'] || ''
+        });
+        return res.status(403).json({ message: "Unauthorized to delete this account" });
+      }
+
+      // If user has an active subscription, cancel it first
+      try {
+        const subscription = await storage.getUserSubscription(userId);
+        if (subscription.stripeSubscriptionId && subscription.tier !== 'free') {
+          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+            apiVersion: '2024-12-18.acacia',
+          });
+          await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+        }
+      } catch (error) {
+        console.error(`[Account Deletion] Error canceling subscription for ${userId}:`, error);
+        // Continue with deletion even if subscription cancellation fails
+      }
+
+      // Cascade delete all user data
+      await storage.deleteUser(userId);
+      
+      // Log deletion for audit purposes
+      await SecurityAuditLog.logSecurityEvent({
+        userId: requesterId,
+        eventType: 'account_deleted',
+        severity: 'medium',
+        details: `Account ${userId} deleted by ${requesterId === userId ? 'self' : 'admin'}`,
+        ipAddress: req.ip || '',
+        userAgent: req.headers['user-agent'] || ''
+      });
+      
+      res.json({ success: true, message: 'Account successfully deleted' });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      res.status(500).json({ message: "Failed to delete account" });
+    }
   }
 );
 

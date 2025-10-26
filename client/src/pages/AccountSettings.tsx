@@ -20,7 +20,8 @@ import { InvoiceHistory } from "@/components/InvoiceHistory";
 import { APIKeysSettings } from "@/components/APIKeysSettings";
 import { AIPreferencesSettings } from "@/components/AIPreferencesSettings";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Trash2 } from "lucide-react";
+import { AccountDeletionDialog } from "@/components/AccountDeletionDialog";
 
 export default function AccountSettings() {
   const { user, isLoading } = useAuth();
@@ -34,6 +35,8 @@ export default function AccountSettings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showAccountDeletion, setShowAccountDeletion] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync state with user prop changes
   useEffect(() => {
@@ -110,7 +113,7 @@ export default function AccountSettings() {
 
   const handleRestartOnboarding = async () => {
     try {
-      await apiRequest('PATCH', '/api/user/preferences', {
+      await apiRequest('/api/user/preferences', 'PATCH', {
         onboardingCompleted: false,
         onboardingStep: 0
       });
@@ -169,6 +172,31 @@ export default function AccountSettings() {
       });
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await apiRequest(`/api/users/${user?.id}`, 'DELETE', {});
+      
+      toast({
+        title: 'Account deleted',
+        description: 'Your account has been permanently deleted. You will be logged out.',
+      });
+
+      // Log out after a short delay
+      setTimeout(() => {
+        window.location.href = '/api/auth/logout';
+      }, 1500);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete account',
+        variant: 'destructive',
+      });
+      setIsDeleting(false);
+      setShowAccountDeletion(false);
     }
   };
 
@@ -414,6 +442,39 @@ export default function AccountSettings() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Danger Zone - Account Deletion */}
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <Trash2 className="w-5 h-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription>
+                Permanently delete your account and all associated data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Once you delete your account, there is no going back. This will permanently delete:
+              </p>
+              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 pl-2">
+                <li>All characters, locations, and plot points</li>
+                <li>All projects and timelines</li>
+                <li>All notes and notebooks</li>
+                <li>AI conversation history</li>
+                <li>Active subscription (if any)</li>
+              </ul>
+              <Button
+                variant="destructive"
+                onClick={() => setShowAccountDeletion(true)}
+                data-testid="button-delete-account"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete My Account
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -425,6 +486,13 @@ export default function AccountSettings() {
           userId={user.id}
         />
       )}
+
+      <AccountDeletionDialog
+        open={showAccountDeletion}
+        onOpenChange={setShowAccountDeletion}
+        onConfirm={handleDeleteAccount}
+        isPending={isDeleting}
+      />
     </div>
   );
 }

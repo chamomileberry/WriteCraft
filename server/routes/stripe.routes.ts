@@ -14,6 +14,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2025-09-30.clover',
 });
 
+// Type guard to check if subscription has Stripe fields
+function hasStripeData(sub: any): sub is { stripeCustomerId?: string | null; stripeSubscriptionId?: string | null; pausedAt?: Date | null; cancelAtPeriodEnd?: boolean } {
+  return 'stripeCustomerId' in sub || 'stripeSubscriptionId' in sub;
+}
+
 /**
  * Create Stripe checkout session for subscription
  * POST /api/stripe/create-checkout
@@ -69,7 +74,7 @@ router.post('/create-portal', isAuthenticated, async (req: any, res) => {
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeCustomerId) {
+    if (!('stripeCustomerId' in subscription) || !subscription.stripeCustomerId) {
       return res.status(400).json({ error: 'No active subscription found' });
     }
 
@@ -90,16 +95,24 @@ router.post('/create-portal', isAuthenticated, async (req: any, res) => {
 router.post('/cancel-subscription', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
+    const { reason, feedback } = req.body;
 
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeSubscriptionId) {
+    if (!hasStripeData(subscription) || !subscription.stripeSubscriptionId) {
       return res.status(400).json({ error: 'No active subscription found' });
     }
 
     // Cancel subscription
     await stripeService.cancelSubscription(subscription.stripeSubscriptionId);
+
+    // Log cancellation reason for analytics
+    console.log(`[Stripe] Subscription canceled for user ${userId}:`, {
+      reason,
+      feedback: feedback || 'No additional feedback',
+      tier: subscription.tier || 'unknown',
+    });
 
     res.json({ success: true, message: 'Subscription will be canceled at the end of the billing period' });
   } catch (error: any) {
@@ -119,7 +132,7 @@ router.get('/invoices', isAuthenticated, async (req: any, res) => {
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeCustomerId) {
+    if (!hasStripeData(subscription) || !subscription.stripeCustomerId) {
       return res.json({ invoices: [] });
     }
 
@@ -145,7 +158,7 @@ router.get('/invoices/:id', isAuthenticated, async (req: any, res) => {
     // Get user's subscription to verify ownership
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeCustomerId) {
+    if (!hasStripeData(subscription) || !subscription.stripeCustomerId) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -180,7 +193,7 @@ router.post('/reactivate-subscription', isAuthenticated, async (req: any, res) =
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeSubscriptionId) {
+    if (!hasStripeData(subscription) || !subscription.stripeSubscriptionId) {
       return res.status(400).json({ error: 'No subscription found' });
     }
 
@@ -210,7 +223,7 @@ router.post('/pause-subscription', isAuthenticated, async (req: any, res) => {
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeSubscriptionId) {
+    if (!hasStripeData(subscription) || !subscription.stripeSubscriptionId) {
       return res.status(400).json({ error: 'No active subscription found' });
     }
 
@@ -256,7 +269,7 @@ router.post('/resume-subscription', isAuthenticated, async (req: any, res) => {
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeSubscriptionId) {
+    if (!hasStripeData(subscription) || !subscription.stripeSubscriptionId) {
       return res.status(400).json({ error: 'No subscription found' });
     }
 
@@ -285,7 +298,7 @@ router.get('/pause-status', isAuthenticated, async (req: any, res) => {
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeSubscriptionId) {
+    if (!hasStripeData(subscription) || !subscription.stripeSubscriptionId) {
       return res.json({ isPaused: false });
     }
 
@@ -321,7 +334,7 @@ router.post('/preview-subscription-change', isAuthenticated, async (req: any, re
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeSubscriptionId) {
+    if (!hasStripeData(subscription) || !subscription.stripeSubscriptionId) {
       return res.status(400).json({ error: 'No active subscription to change' });
     }
 
@@ -354,7 +367,7 @@ router.post('/create-setup-intent', isAuthenticated, async (req: any, res) => {
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    let customerId = subscription.stripeCustomerId;
+    let customerId = hasStripeData(subscription) ? subscription.stripeCustomerId : undefined;
 
     // If no customer exists, create one
     if (!customerId) {
@@ -395,7 +408,7 @@ router.get('/payment-methods', isAuthenticated, async (req: any, res) => {
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeCustomerId) {
+    if (!hasStripeData(subscription) || !subscription.stripeCustomerId) {
       return res.json({ paymentMethods: [] });
     }
 
@@ -439,7 +452,7 @@ router.delete('/payment-methods/:id', isAuthenticated, async (req: any, res) => 
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeCustomerId) {
+    if (!hasStripeData(subscription) || !subscription.stripeCustomerId) {
       return res.status(400).json({ error: 'No customer found' });
     }
 
@@ -471,7 +484,7 @@ router.post('/payment-methods/:id/set-default', isAuthenticated, async (req: any
     // Get user's subscription
     const subscription = await subscriptionService.getUserSubscription(userId);
 
-    if (!subscription.stripeCustomerId) {
+    if (!hasStripeData(subscription) || !subscription.stripeCustomerId) {
       return res.status(400).json({ error: 'No customer found' });
     }
 
