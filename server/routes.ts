@@ -21,6 +21,7 @@ import teamAnalyticsRoutes from "./routes/team-analytics.routes";
 import feedbackRoutes from "./routes/feedback.routes";
 import adminFeedbackRoutes from "./routes/admin-feedback.routes";
 import exportRoutes from "./routes/export.routes";
+import { registerHealthRoutes } from "./routes/health.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { createRateLimiter } from "./security";
 import { 
@@ -103,6 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth (must be before other routes)
   await setupAuth(app);
 
+  // Health check endpoints (no authentication required - for uptime monitoring)
+  registerHealthRoutes(app);
+  
   // CSP violation reporting endpoint (no authentication required - browser sends these automatically)
   app.use("/api/csp-report", cspReportRoutes);
 
