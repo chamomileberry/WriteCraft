@@ -58,4 +58,40 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
+// POST /api/admin/feedback/:id/reply - Reply to feedback (admin only)
+router.post("/:id/reply", async (req: any, res) => {
+  try {
+    // Check if user is admin
+    const user = await storage.getUser(req.user.claims.sub);
+    if (!user?.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized - Admin access required" });
+    }
+
+    const replySchema = z.object({
+      reply: z.string().min(1).max(5000),
+    });
+
+    const { reply } = replySchema.parse(req.body);
+    const feedbackId = req.params.id;
+
+    const updated = await storage.replyToFeedback(feedbackId, reply, req.user.claims.sub);
+
+    if (!updated) {
+      return res.status(404).json({ error: "Feedback not found" });
+    }
+
+    logger.info(`Admin ${req.user.claims.sub} replied to feedback ${feedbackId}`);
+    res.json(updated);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: "Invalid request data",
+        details: error.errors,
+      });
+    }
+    logger.error("Error replying to feedback:", error);
+    res.status(500).json({ error: "Failed to reply to feedback" });
+  }
+});
+
 export default router;

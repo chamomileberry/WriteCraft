@@ -92,6 +92,9 @@ import pexelsRoutes from "./pexels.routes";
 import ideogramRoutes from "./ideogram.routes";
 import stockImagesRoutes from "./stock-images.routes";
 import { storage } from "../storage";
+import { requireAuth } from "../middleware/requireAuth";
+import { csrfProtection } from "../middleware/csrfProtection";
+import inboxRoutes from "./inbox.routes";
 
 export function registerDomainRoutes(app: Express) {
   // Apply global authentication middleware to ALL domain routes EXCEPT certain public endpoints
@@ -102,42 +105,42 @@ export function registerDomainRoutes(app: Express) {
     if (req.path.startsWith('/api/sentry/')) {
       return next();
     }
-    
+
     // Apply authentication to all other /api routes
     isAuthenticated(req, res, next);
   });
-  
+
   // Register all domain-specific routes (now protected by authentication)
-  
+
   // Security and authentication routes
   app.use("/api", securityUserRoutes); // Security-hardened user profile endpoints
   app.use("/api/security", securityRoutes); // Admin security management
   app.use("/api/auth/mfa", mfaRoutes); // Multi-factor authentication
-  
+
   // Subscription and payment routes
   app.use("/api/subscription", subscriptionRoutes);
   app.use("/api/stripe", stripeRoutes);
   app.use("/api/billing-alerts", billingAlertsRoutes);
   app.use("/api/discount-codes", discountCodeRouter);
-  
+
   // AI and generation routes
   app.use("/api/ai", aiRoutes);
-  
+
   // Import/Export routes
   app.use("/api/import", importRoutes);
   app.use("/api/export", exportRoutes);
-  
+
   // Admin and analytics routes
   app.use("/api/migration", migrationRoutes);
   app.use("/api/team-analytics", teamAnalyticsRoutes);
   app.use("/api/admin/feedback", adminFeedbackRoutes); // More specific route first
   app.use("/api/feedback", feedbackRoutes);
-  
+
   // Media and stock image routes
   app.use("/api/pexels", pexelsRoutes);
   app.use("/api/ideogram", ideogramRoutes);
   app.use("/api/stock-images", stockImagesRoutes);
-  
+
   // User preferences and general routes
   app.use("/api/user", userRoutes);
   app.use("/api/usage", usageRoutes);

@@ -1868,6 +1868,10 @@ export const feedback = pgTable("feedback", {
   userBrowser: text("user_browser"),
   userOS: text("user_os"),
   currentPage: text("current_page"),
+  adminReply: text("admin_reply"),
+  adminRepliedAt: timestamp("admin_replied_at"),
+  adminRepliedBy: varchar("admin_replied_by"),
+  hasUnreadReply: boolean("has_unread_reply").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
@@ -1875,6 +1879,7 @@ export const feedback = pgTable("feedback", {
   statusIdx: index("feedback_status_idx").on(table.status),
   typeIdx: index("feedback_type_idx").on(table.type),
   createdAtIdx: index("feedback_created_at_idx").on(table.createdAt),
+  hasUnreadReplyIdx: index("feedback_has_unread_reply_idx").on(table.hasUnreadReply),
 }));
 
 // Conversation Summaries - Persistent memory of key insights from conversations

@@ -12,6 +12,10 @@ export interface Feedback {
   userBrowser?: string;
   userOS?: string;
   currentPage?: string;
+  adminReply?: string;
+  adminRepliedAt?: Date;
+  adminRepliedBy?: string;
+  hasUnreadReply?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
