@@ -1741,6 +1741,15 @@ export async function conversationalChat(
   </important_code_snippet_instructions>
   */
   
+  // Log user context for debugging
+  console.log('[Chat] User context:', { 
+    hasUserId: !!userId, 
+    hasNotebookId: !!notebookId,
+    hasProjectId: !!projectId,
+    hasGuideId: !!guideId,
+    messageLength: message.length 
+  });
+  
   // Check if the user is requesting an image generation
   const imageGenerationPattern = /(?:generate|create|make|show me)\s+(?:an?\s+)?image\s+(?:of|showing|depicting|with)?\s*(.+)/i;
   const imageMatch = message.match(imageGenerationPattern);

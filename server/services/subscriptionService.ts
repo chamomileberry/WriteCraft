@@ -14,6 +14,21 @@ export class SubscriptionService {
    * Get user's current subscription with tier limits
    */
   async getUserSubscription(userId: string) {
+    if (!userId) {
+      console.error('[Subscription] No userId provided to getUserSubscription');
+      // Return a basic free tier subscription for unauthenticated requests
+      return {
+        userId: '',
+        tier: 'free' as SubscriptionTier,
+        effectiveTier: 'free' as SubscriptionTier,
+        limits: TIER_LIMITS['free'],
+        status: 'active',
+        cancelAtPeriodEnd: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
     const [subscription] = await db
       .select()
       .from(userSubscriptions)
@@ -21,6 +36,7 @@ export class SubscriptionService {
       .limit(1);
     
     if (!subscription) {
+      console.log('[Subscription] No subscription found for user, creating free tier:', userId);
       // Create default free subscription for existing users
       return this.createFreeSubscription(userId);
     }

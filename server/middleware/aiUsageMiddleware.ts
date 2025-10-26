@@ -20,8 +20,16 @@ export function trackAIUsage(operationType: string) {
     const userId = req.user?.claims?.sub;
     
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      console.error('[AI Usage] No userId found in request for operation:', operationType);
+      console.error('[AI Usage] Request user object:', JSON.stringify(req.user, null, 2));
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'User authentication required. Please refresh the page and try again.',
+        code: 'AUTH_REQUIRED'
+      });
     }
+    
+    console.log('[AI Usage] Tracking operation:', { operationType, userId: userId.substring(0, 8) + '...' });
     
     // Check for premium operations (polish, extended_thinking)
     const isPremiumOp = operationType === 'polish' || operationType === 'extended_thinking';

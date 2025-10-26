@@ -118,14 +118,14 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
     if (!fieldLabel) {
       return res.status(400).json({ error: 'Field label is required' });
     }
-    
+
     // If custom prompt provided, search for mentioned characters and include their context
     let relatedCharactersContext = '';
     if (customPrompt && characterContext.notebookId) {
       try {
         // Extract potential character names from the prompt (words starting with capital letters)
         const potentialNames = customPrompt.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) || [];
-        
+
         if (potentialNames.length > 0) {
           // Search for characters in the same notebook matching these names
           const relatedChars = await db.select()
@@ -151,21 +151,21 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
               )
             )
             .limit(3); // Limit to 3 related characters to avoid context overflow
-          
+
           if (relatedChars.length > 0) {
             const relatedContextParts: string[] = [];
             for (const char of relatedChars) {
               const charName = [char.givenName, char.familyName].filter(Boolean).join(' ');
               const charDetails: string[] = [`Name: ${charName}`];
-              
+
               if (char.age) charDetails.push(`Age: ${char.age}`);
               if (char.species) charDetails.push(`Species: ${char.species}`);
               if (char.occupation) charDetails.push(`Occupation: ${char.occupation}`);
               if ((char as any).generalDescription) charDetails.push(`Description: ${(char as any).generalDescription}`);
-              
+
               relatedContextParts.push(`\n${charName}:\n${charDetails.join('\n')}`);
             }
-            
+
             relatedCharactersContext = `\n\nRELATED CHARACTERS (mentioned in your prompt - maintain consistency with these):\n${relatedContextParts.join('\n')}\n`;
           }
         }
@@ -177,7 +177,7 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
 
     // Build context string from character data - include ALL filled fields
     const contextParts: string[] = [];
-    
+
     // Helper to format field name for display
     const formatFieldName = (key: string): string => {
       return key
@@ -185,7 +185,7 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
         .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
         .trim();
     };
-    
+
     // Helper to check if a value has meaningful content
     const hasContent = (value: any): boolean => {
       if (value === null || value === undefined || value === '') return false;
@@ -193,18 +193,18 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
       if (typeof value === 'object') return Object.keys(value).length > 0;
       return true;
     };
-    
+
     // Prioritize key fields first for better context ordering
     const priorityFields = ['givenName', 'familyName', 'species', 'age', 'gender', 'occupation'];
     const fieldOrder = [
       ...priorityFields,
       ...Object.keys(characterContext).filter(k => !priorityFields.includes(k) && k !== fieldName)
     ];
-    
+
     for (const key of fieldOrder) {
       const value = characterContext[key];
       if (!hasContent(value)) continue;
-      
+
       // Special handling for name fields
       if (key === 'givenName' || key === 'familyName') {
         const fullName = [characterContext.givenName, characterContext.familyName].filter(Boolean).join(' ');
@@ -213,7 +213,7 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
         }
         continue;
       }
-      
+
       // Format the value
       let formattedValue: string;
       if (Array.isArray(value)) {
@@ -223,7 +223,7 @@ router.post("/generate-field", secureAuthentication, aiRateLimiter, trackAIUsage
       } else {
         formattedValue = String(value);
       }
-      
+
       // Only include if the value is substantial (not just a single character or number under 100 chars for text fields)
       if (formattedValue.length > 0) {
         contextParts.push(`${formatFieldName(key)}: ${formattedValue}`);
@@ -339,7 +339,7 @@ router.post("/polish", secureAuthentication, aiRateLimiter, trackAIUsage('polish
 Preserve the original meaning and core ideas while significantly enhancing the quality. Return ONLY the polished content without explanations.${styleInstruction}`;
 
     let userPrompt = '';
-    
+
     if (contentType === "character") {
       userPrompt = `Polish this character description to publication quality, making it vivid, compelling, and professionally crafted:
 
@@ -378,7 +378,7 @@ ${content}`;
 
   } catch (error: any) {
     console.error('Error in AI polish:', error);
-    
+
     // Handle quota exceeded errors
     if (error.message && error.message.includes('quota')) {
       return res.status(403).json({ 
@@ -386,7 +386,7 @@ ${content}`;
         message: error.message 
       });
     }
-    
+
     res.status(500).json({ error: 'Failed to polish content' });
   }
 });
@@ -488,7 +488,7 @@ Return your analysis as JSON with comprehensive details for each entity.`;
     try {
       // Try to find JSON in the response
       const content = result.content.trim();
-      
+
       // Try direct parse first
       try {
         analysis = JSON.parse(content);
@@ -507,7 +507,7 @@ Return your analysis as JSON with comprehensive details for each entity.`;
           }
         }
       }
-      
+
       // Ensure the response has the expected structure
       if (!analysis.entities || !Array.isArray(analysis.entities)) {
         analysis = { entities: [] };
@@ -611,4 +611,31 @@ Return your analysis as JSON.`;
   }
 });
 
-export default router;
+// Conversational chat endpoint
+  router.post('/writing-assistant/chat', secureAuthentication, trackAIUsage('conversational_chat'), async (req: any, res) => {
+    try {
+      const { 
+        message, 
+        conversationHistory, 
+        editorContent, 
+        documentTitle, 
+        documentType,
+        notebookId,
+        projectId,
+        guideId,
+        useExtendedThinking
+      } = req.body;
+
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ error: 'Message is required and must be a string' });
+      }
+
+      const userId = req.user?.claims?.sub;
+
+      // Log authentication status for debugging
+      console.log('[Chat Endpoint] Authentication:', {
+        authenticated: !!userId,
+        userId: userId || 'none',
+        hasConversationHistory: !!conversationHistory,
+        useExtendedThinking: !!useExtendedThinking
+      });
