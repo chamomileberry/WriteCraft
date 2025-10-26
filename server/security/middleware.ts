@@ -327,7 +327,8 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   }
   
   // Cross-Origin policies for additional security
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  // Note: Cross-Origin-Embedder-Policy is NOT set because it breaks third-party scripts like Stripe
+  // COEP 'require-corp' would block cross-origin scripts that don't send CORP headers
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   
