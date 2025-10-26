@@ -61,7 +61,7 @@ router.get('/test-sentry-message', (req, res) => {
 });
 
 // Simple test endpoint that manually captures an exception
-router.get('/test-capture', (req, res) => {
+router.get('/test-capture', async (req, res) => {
   console.log('[Sentry Test] Manually capturing exception...');
   
   try {
@@ -69,11 +69,15 @@ router.get('/test-capture', (req, res) => {
     const error = new Error('Manual Sentry test - captured without throwing');
     const eventId = Sentry.captureException(error);
     
+    // Force flush to ensure event is sent immediately
+    await Sentry.flush(2000);
+    
     res.json({
       success: true,
       message: 'Exception manually captured and sent to Sentry',
       eventId,
-      instructions: 'Check your Sentry dashboard at https://writecraft.sentry.io to see this event'
+      sentryDsn: process.env.SENTRY_DSN ? `${process.env.SENTRY_DSN.substring(0, 50)}...` : 'NOT SET',
+      instructions: 'Check your Sentry dashboard. Look for event ID: ' + eventId + '. It may take a few seconds to appear.'
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to capture exception', details: String(err) });
