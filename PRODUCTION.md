@@ -30,7 +30,30 @@ SENTRY_DSN=<your-sentry-dsn>
 
 # Optional: Redis for distributed sessions
 REDIS_URL=<your-redis-url>  # Falls back to PostgreSQL if not provided
+
+# Optional: Node.js Memory Configuration
+# Default heap size is ~512MB, increase to 1GB if deployment fails with OOM errors
+NODE_OPTIONS=--max-old-space-size=1024
 ```
+
+### Memory Configuration
+
+WriteCraft is configured with increased Node.js heap memory to prevent out-of-memory errors during deployment.
+
+**Default Configuration**: 1GB heap size (`NODE_OPTIONS=--max-old-space-size=1024`)
+
+This is set in `dev.sh` and should also be configured in your deployment environment variables.
+
+**When to increase memory**:
+- If you see "JavaScript heap out of memory" errors during startup
+- If you re-enable Sentry profiling integration
+- If you upgrade to a Reserved VM deployment (can support larger heap sizes)
+
+**Troubleshooting deployment memory issues**:
+1. Sentry profiling is already disabled by default (see `server/instrument.mjs`)
+2. NODE_OPTIONS is set to 1GB in dev.sh
+3. If still failing, increase to `--max-old-space-size=2048` (2GB)
+4. Consider upgrading to Reserved VM for better resource allocation
 
 ### Security Configuration
 
@@ -68,14 +91,23 @@ Sentry is integrated for comprehensive error tracking and performance monitoring
 3. Copy your DSN from project settings
 4. Set `SENTRY_DSN` environment variable
 5. Deploy application - errors will automatically flow to Sentry
+6. **Test your setup**: Visit `https://your-app.replit.app/api/sentry/test-capture` to send a test event
 
 #### Features Enabled:
 - **Error Capture**: All uncaught exceptions and rejections
-- **Performance Monitoring**: 10% sample rate in production
-- **Profiling**: CPU and memory profiling at 10% sample rate
+- **Performance Monitoring**: 10% sample rate in production (100% in development)
+- **Profiling**: ⚠️ DISABLED to reduce memory consumption during deployment
+  - Profiling can be re-enabled if you upgrade to a Reserved VM deployment
+  - See `server/instrument.mjs` to enable profiling integration
 - **User Context**: Errors tagged with user IDs (privacy-safe)
 - **Release Tracking**: Errors grouped by app version
 - **Sensitive Data Filtering**: API keys, tokens, passwords automatically redacted
+
+#### Test Endpoints (Public):
+These endpoints are publicly accessible for Sentry setup testing:
+- `/api/sentry/check-config` - Verify Sentry DSN configuration
+- `/api/sentry/test-capture` - Manually capture a test event (returns event ID)
+- `/api/sentry/debug` - Trigger a test error (returns 500)
 
 #### Using Sentry in Code:
 ```typescript
