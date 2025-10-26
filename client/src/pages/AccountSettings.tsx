@@ -18,6 +18,7 @@ import { PauseResumeSubscription } from "@/components/PauseResumeSubscription";
 import { PaymentMethods } from "@/components/PaymentMethods";
 import { InvoiceHistory } from "@/components/InvoiceHistory";
 import { APIKeysSettings } from "@/components/APIKeysSettings";
+import { AIPreferencesSettings } from "@/components/AIPreferencesSettings";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { BookOpen } from "lucide-react";
 
@@ -217,6 +218,9 @@ export default function AccountSettings() {
 
           {/* API Keys */}
           <APIKeysSettings />
+
+          {/* AI Preferences */}
+          <AIPreferencesSettings />
 
           {/* Onboarding */}
           <Card>
