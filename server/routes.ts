@@ -22,6 +22,7 @@ import feedbackRoutes from "./routes/feedback.routes";
 import adminFeedbackRoutes from "./routes/admin-feedback.routes";
 import exportRoutes from "./routes/export.routes";
 import { registerHealthRoutes } from "./routes/health.routes";
+import sentryTestRoutes from "./routes/sentry-test.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { createRateLimiter } from "./security";
 import { 
@@ -135,6 +136,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { default: securityTestRoutes } = await import('./security/test-endpoints');
     app.use('/api', securityTestRoutes);
   }
+
+  // Register Sentry test endpoints (available in all environments to verify error tracking)
+  app.use("/api/sentry", sentryTestRoutes);
 
   // Register modular domain-specific routes
   registerDomainRoutes(app);

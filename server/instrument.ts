@@ -1,12 +1,25 @@
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
+// Diagnostic logging for Sentry initialization
+const sentryDsn = process.env.SENTRY_DSN;
+const isEnabled = !!sentryDsn;
+
+console.log('==========================================');
+console.log('Sentry Initialization');
+console.log('==========================================');
+console.log('SENTRY_DSN present:', !!sentryDsn);
+console.log('SENTRY_DSN value:', sentryDsn ? `${sentryDsn.substring(0, 30)}...` : 'NOT SET');
+console.log('Sentry enabled:', isEnabled);
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('==========================================');
+
 // Initialize Sentry - must be done before any other imports
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
+  dsn: sentryDsn,
   
   // Only enable in production or if DSN is provided
-  enabled: !!process.env.SENTRY_DSN,
+  enabled: isEnabled,
   
   // Environment tracking
   environment: process.env.NODE_ENV || 'development',
