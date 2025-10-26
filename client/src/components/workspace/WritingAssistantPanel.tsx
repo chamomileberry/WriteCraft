@@ -75,15 +75,11 @@ interface DetectedEntity {
 }
 
 // Separate component for chat input to prevent parent re-renders
-const ChatInput = React.memo(({ 
-  onSubmit, 
-  isPending 
-}: { 
+const ChatInput = React.memo(React.forwardRef<HTMLTextAreaElement, { 
   onSubmit: (text: string) => void; 
   isPending: boolean;
-}) => {
+}>(({ onSubmit, isPending }, ref) => {
   const [inputText, setInputText] = useState('');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = () => {
     if (!inputText.trim()) return;
@@ -94,7 +90,7 @@ const ChatInput = React.memo(({
   return (
     <div className="flex gap-2">
       <Textarea
-        ref={textareaRef}
+        ref={ref}
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         placeholder="Ask about your writing..."
@@ -123,7 +119,7 @@ const ChatInput = React.memo(({
       </Button>
     </div>
   );
-});
+}));
 
 export default function WritingAssistantPanel({ 
   panelId, 
@@ -157,6 +153,7 @@ export default function WritingAssistantPanel({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const historyDropdownRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { hasPremiumAccess, extendedThinkingRemaining, premiumQuota } = useSubscription();
@@ -1309,39 +1306,25 @@ export default function WritingAssistantPanel({
         )}
 
         {/* Chat Input */}
-        <form onSubmit={(e) => { e.preventDefault(); handleChatSubmit(textareaRef.current?.value || ''); }}>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              onClick={() => setShowImagePromptDialog(true)}
-              disabled={chatMutation.isPending}
-              className="shrink-0"
-              data-testid="button-generate-image"
-              title="Generate AI Image"
-            >
-              <ImageIcon className="h-4 w-4" />
-            </Button>
-            <ChatInput 
-              onSubmit={handleChatSubmit}
-              isPending={chatMutation.isPending}
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={chatMutation.isPending || !textareaRef.current?.value?.trim()}
-              className="shrink-0"
-              data-testid="button-send-message"
-            >
-              {chatMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ArrowRightToLine className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </form>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => setShowImagePromptDialog(true)}
+            disabled={chatMutation.isPending}
+            className="shrink-0"
+            data-testid="button-generate-image"
+            title="Generate AI Image"
+          >
+            <ImageIcon className="h-4 w-4" />
+          </Button>
+          <ChatInput 
+            ref={chatInputRef}
+            onSubmit={handleChatSubmit}
+            isPending={chatMutation.isPending}
+          />
+        </div>
       </div>
 
       {/* Image Generation Dialog */}
