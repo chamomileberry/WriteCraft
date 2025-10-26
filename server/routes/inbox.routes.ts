@@ -1,6 +1,6 @@
 
 import { Router } from "express";
-import { storage } from "../repositories/storage.facade";
+import { storage } from "../storage";
 import { logger } from "../utils/logger";
 
 const router = Router();

@@ -1,8 +1,9 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload, HelpCircle, Inbox, MessageSquare } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload, HelpCircle, Inbox, MessageSquare, Shield, Tag, Ban, FileText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
@@ -29,6 +30,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [unreadCount, setUnreadCount] = useState(0);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { tier } = useSubscription();
 
   const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel, isInManuscriptEditor } = useWorkspaceStore();
 
@@ -275,16 +277,38 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Account Settings</span>
                 </DropdownMenuItem>
+                {tier === 'team' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setLocation('/team')} data-testid="menu-team-management">
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Team Management</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 {user?.isAdmin && (
                   <>
                     <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Admin Tools</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setLocation('/admin/security')} data-testid="menu-admin-security">
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Security Dashboard</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setLocation('/admin/feedback')} data-testid="menu-admin-feedback">
                       <MessageSquare className="mr-2 h-4 w-4" />
                       <span>Feedback Management</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setLocation('/admin/discount-codes')} data-testid="menu-admin-discounts">
-                      <Sparkles className="mr-2 h-4 w-4" />
+                      <Tag className="mr-2 h-4 w-4" />
                       <span>Discount Codes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLocation('/admin/guide-categories')} data-testid="menu-admin-guide-categories">
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>Guide Categories</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLocation('/admin/banned-phrases')} data-testid="menu-admin-banned-phrases">
+                      <Ban className="mr-2 h-4 w-4" />
+                      <span>Banned Phrases</span>
                     </DropdownMenuItem>
                   </>
                 )}

@@ -40,6 +40,11 @@ export interface FeedbackResponse {
   userBrowser?: string;
   userOS?: string;
   currentPage?: string;
+  adminReply?: string | null;
+  adminRepliedAt?: string | null;
+  hasUnreadReply?: boolean;
+  readAt?: string | null;
+  repliedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

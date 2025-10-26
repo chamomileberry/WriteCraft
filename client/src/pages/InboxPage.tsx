@@ -31,8 +31,16 @@ export default function InboxPage() {
     setLocation(`/search?q=${encodeURIComponent(query)}`);
   };
 
-  const handleNavigate = (path: string) => {
-    setLocation(path);
+  const handleNavigate = (view: string) => {
+    if (view === 'notebook') {
+      setLocation('/notebook');
+    } else if (view === 'projects') {
+      setLocation('/projects');
+    } else if (view === 'generators') {
+      setLocation('/generators');
+    } else if (view === 'guides') {
+      setLocation('/guides');
+    }
   };
 
   // Fetch user's feedback/messages
