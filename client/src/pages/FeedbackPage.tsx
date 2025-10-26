@@ -13,8 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Loader2, ArrowLeft } from "lucide-react";
 import { logger } from "@/lib/logger";
+import { Link } from "wouter";
 
 type FeedbackType = "bug" | "feature-request" | "general-feedback";
 type SubmissionStatus = "idle" | "submitting" | "success" | "error";
@@ -89,6 +90,22 @@ export default function FeedbackPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Header with back navigation */}
+      <header className="sticky top-0 z-[var(--z-header)] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/">
+              <Button variant="ghost" size="sm" data-testid="button-back-to-home">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+            </Link>
+            <h1 className="text-lg font-semibold">Feedback</h1>
+            <div className="w-24"></div>
+          </div>
+        </div>
+      </header>
+
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12">
           <h1 className="text-4xl font-bold mb-4">Help Us Improve WriteCraft</h1>
@@ -231,38 +248,38 @@ export default function FeedbackPage() {
           <h2 className="text-2xl font-bold mb-8">Frequently Asked Questions</h2>
           <div className="grid gap-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg">What kind of feedback do you accept?</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="text-sm text-muted-foreground pt-0">
                 We welcome bug reports, feature requests, and general feedback. Anything that helps us improve WriteCraft is valuable!
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Will I get a response?</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="text-sm text-muted-foreground pt-0">
                 We read and review all feedback. While we may not respond individually to every submission, we use your input to
                 guide development priorities.
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg">How do I report a security issue?</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="text-sm text-muted-foreground pt-0">
                 For security-sensitive issues, please email support@writecraft.app directly instead of using this form.
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Can I track the status of my feedback?</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="text-sm text-muted-foreground pt-0">
                 Your feedback is tracked internally. For status updates, please reach out to support@writecraft.app.
               </CardContent>
             </Card>
