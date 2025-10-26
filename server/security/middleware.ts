@@ -301,8 +301,8 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   // In development, we need to allow 'unsafe-eval' and 'unsafe-inline' for Vite HMR
   const isDevelopment = process.env.NODE_ENV === 'development';
   const scriptSrc = isDevelopment 
-    ? `'self' 'unsafe-inline' 'unsafe-eval' blob: https://replit.com https://js.stripe.com` // Dev: Allow inline for Vite + Stripe + Excalidraw
-    : `'self' 'nonce-${nonce}' blob: https://js.stripe.com`; // Production: strict nonce-only + Stripe + Excalidraw
+    ? `'self' 'unsafe-inline' 'unsafe-eval' blob: https://replit.com https://js.stripe.com` // Dev: Allow inline for Vite + Stripe + Excalidraw + Replit banner
+    : `'self' 'nonce-${nonce}' blob: https://js.stripe.com`; // Production: strict nonce-only + Stripe + Excalidraw (no Replit banner in prod)
   
   res.setHeader('Content-Security-Policy', 
     `default-src 'self'; ` +
