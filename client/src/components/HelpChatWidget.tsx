@@ -1,16 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, Minimize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Minimize2, HeadphonesIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  showContactSupport?: boolean;
 }
 
 export function HelpChatWidget() {
@@ -26,6 +28,37 @@ export function HelpChatWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  // Escalation keywords to detect when AI suggests contacting support
+  const escalationKeywords = [
+    'contact support',
+    'contact our support',
+    'reach out to support',
+    'speak to support',
+    'talk to support',
+    'real person',
+    'human representative',
+    'customer service',
+    'speak to a human',
+    'talk to a human',
+    'speak with someone',
+    'talk to someone',
+    'contact us',
+    'get in touch',
+    'representative',
+    'support team',
+    'customer support',
+    'technical support',
+    'admin',
+    'administrator'
+  ];
+
+  // Check if message contains escalation keywords
+  const detectEscalation = (content: string): boolean => {
+    const lowerContent = content.toLowerCase();
+    return escalationKeywords.some(keyword => lowerContent.includes(keyword));
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -36,6 +69,28 @@ export function HelpChatWidget() {
       }
     }
   }, [messages]);
+
+  const handleContactSupport = () => {
+    // Create a conversation transcript for context
+    const transcript = messages
+      .map(m => `${m.role === 'user' ? 'You' : 'Assistant'}: ${m.content}`)
+      .join('\n\n');
+
+    // Store transcript in sessionStorage for pre-filling feedback
+    sessionStorage.setItem('helpChatTranscript', transcript);
+    sessionStorage.setItem('helpChatOriginalQuestion', messages.find(m => m.role === 'user')?.content || '');
+
+    // Close the chat widget
+    setIsOpen(false);
+
+    // Navigate to feedback page with a flag to pre-fill the form
+    setLocation('/feedback?openFeedback=true');
+
+    toast({
+      title: 'Redirecting to support',
+      description: 'Opening the feedback form with your conversation context...',
+    });
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -63,10 +118,14 @@ export function HelpChatWidget() {
 
       const data = await response.json();
 
+      const responseContent = data.content || data.message || 'Sorry, I could not generate a response.';
+      const shouldShowContactSupport = detectEscalation(responseContent);
+
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.response || data.message || 'Sorry, I could not generate a response.',
+        content: responseContent,
         timestamp: new Date(),
+        showContactSupport: shouldShowContactSupport,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -139,22 +198,39 @@ export function HelpChatWidget() {
         <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+              <div key={index} className="space-y-2">
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-foreground'
-                  }`}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                  <div
+                    className={`max-w-[80%] rounded-lg p-3 ${
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-foreground'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-xs opacity-70 mt-1">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
                 </div>
+                
+                {/* Show Contact Support button for assistant messages with escalation keywords */}
+                {message.role === 'assistant' && message.showContactSupport && (
+                  <div className="flex justify-start">
+                    <Button
+                      onClick={handleContactSupport}
+                      variant="outline"
+                      size="sm"
+                      className="ml-2"
+                      data-testid="button-contact-support"
+                    >
+                      <HeadphonesIcon className="h-4 w-4 mr-2" />
+                      Contact Support
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
             {isLoading && (

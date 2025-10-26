@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Loader2, MessageSquare } from "lucide-react";
 import { logger } from "@/lib/logger";
 import { useLocation } from "wouter";
 import Header from "@/components/Header";
@@ -23,13 +23,39 @@ type SubmissionStatus = "idle" | "submitting" | "success" | "error";
 
 export default function FeedbackPage() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
-  const [feedbackType, setFeedbackType] = useState<FeedbackType>("bug");
+  const [location, setLocation] = useLocation();
+  const [feedbackType, setFeedbackType] = useState<FeedbackType>("general-feedback");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<SubmissionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPreFilled, setIsPreFilled] = useState(false);
+
+  // Check for pre-filled feedback from help chat
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldOpenFeedback = params.get('openFeedback') === 'true';
+
+    if (shouldOpenFeedback) {
+      const transcript = sessionStorage.getItem('helpChatTranscript');
+      const originalQuestion = sessionStorage.getItem('helpChatOriginalQuestion');
+
+      if (transcript && originalQuestion) {
+        setTitle(`Help needed: ${originalQuestion.substring(0, 50)}${originalQuestion.length > 50 ? '...' : ''}`);
+        setDescription(`**Original Question:**\n${originalQuestion}\n\n**Full Conversation:**\n${transcript}`);
+        setFeedbackType('general-feedback');
+        setIsPreFilled(true);
+
+        // Clear session storage after pre-filling
+        sessionStorage.removeItem('helpChatTranscript');
+        sessionStorage.removeItem('helpChatOriginalQuestion');
+
+        // Remove the query parameter from URL
+        window.history.replaceState({}, '', '/feedback');
+      }
+    }
+  }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -116,6 +142,17 @@ export default function FeedbackPage() {
             or just want to share your thoughts, we'd love to hear from you!
           </p>
         </div>
+
+        {/* Pre-filled from help chat indicator */}
+        {isPreFilled && status === 'idle' && (
+          <Alert className="mb-6 border-primary">
+            <MessageSquare className="h-4 w-4" />
+            <AlertTitle>Help Chat Context Included</AlertTitle>
+            <AlertDescription>
+              Your conversation with the help assistant has been included below. Feel free to edit before submitting.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>

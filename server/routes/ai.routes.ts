@@ -651,7 +651,8 @@ Return your analysis as JSON.`;
         notebookId,
         projectId,
         guideId,
-        useExtendedThinking
+        useExtendedThinking,
+        context
       } = req.body;
 
       if (!message || typeof message !== 'string') {
@@ -661,7 +662,35 @@ Return your analysis as JSON.`;
       const userId = req.user?.claims?.sub;
 
       // Build context-aware system prompt
-      let systemPrompt = `You are a helpful writing assistant for creative writers. You provide guidance on:
+      let systemPrompt = '';
+
+      // Check if this is a help/support context
+      if (context === 'help_support') {
+        systemPrompt = `You are a helpful support assistant for WriteCraft, a creative writing platform. You help users with:
+
+- Navigating the application and understanding features
+- Using generators, notebooks, projects, and collaboration tools
+- Understanding subscription tiers and billing
+- Troubleshooting common issues
+- Finding documentation and tutorials
+
+Your responses should be:
+- Clear and concise
+- Friendly and supportive
+- Specific to WriteCraft features
+- Include step-by-step instructions when helpful
+
+IMPORTANT: If a user asks about any of the following, you MUST suggest they contact support:
+- Technical issues, bugs, or errors you cannot diagnose
+- Account-specific problems (login issues, payment failures, data loss)
+- Requests to speak with a real person, representative, customer service, or human
+- Billing disputes or refund requests
+- Feature requests or custom modifications
+- Issues that require administrative access or manual intervention
+
+When suggesting support, use phrases like "I recommend contacting our support team" or "You should reach out to customer service for help with this" to trigger the contact support button.`;
+      } else {
+        systemPrompt = `You are a helpful writing assistant for creative writers. You provide guidance on:
 - Character development and relationships
 - Plot structure and pacing
 - World-building and setting details
@@ -674,12 +703,13 @@ Your responses should be:
 - Grounded in storytelling principles
 - Tailored to the writer's current context`;
 
-      // Add document context if available
-      if (editorContent) {
-        systemPrompt += `\n\nThe writer is currently working on a ${documentType || 'document'} titled "${documentTitle || 'Untitled'}"`;
-        if (editorContent.length > 0) {
-          const preview = editorContent.substring(0, 1000);
-          systemPrompt += `\n\nCurrent content excerpt:\n${preview}${editorContent.length > 1000 ? '...' : ''}`;
+        // Add document context if available (only for writing assistant context)
+        if (editorContent) {
+          systemPrompt += `\n\nThe writer is currently working on a ${documentType || 'document'} titled "${documentTitle || 'Untitled'}"`;
+          if (editorContent.length > 0) {
+            const preview = editorContent.substring(0, 1000);
+            systemPrompt += `\n\nCurrent content excerpt:\n${preview}${editorContent.length > 1000 ? '...' : ''}`;
+          }
         }
       }
 
