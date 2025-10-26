@@ -2,28 +2,78 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertThemeSchema } from "@shared/schema";
 import { z } from "zod";
+import { makeAICall } from "../lib/aiHelper";
+import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { createRateLimiter } from "../security";
 
 const router = Router();
 
-router.post("/generate", async (req: any, res) => {
+// AI generation rate limiting: 30 requests per 15 minutes
+const aiRateLimiter = createRateLimiter({ 
+  maxRequests: 30, 
+  windowMs: 15 * 60 * 1000 
+});
+
+router.post("/generate", aiRateLimiter, trackAIUsage('theme_generation'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
+      notebookId: z.string().optional(),
     });
     
-    const { genre } = generateRequestSchema.parse(req.body);
+    const { genre, notebookId } = generateRequestSchema.parse(req.body);
     
-    // TODO: Extract generator function from main routes.ts file
+    // Load style instruction from database
+    const styleInstruction = await getBannedPhrasesInstruction();
+    
+    const genreContext = genre && genre !== 'any' ? ` for ${genre} stories` : '';
+    
+    // System prompt for AI generation
+    const systemPrompt = `You are a creative writing assistant specialized in literary themes. Generate compelling, thought-provoking themes that resonate with readers${genreContext}.${styleInstruction}
+
+IMPORTANT GUIDELINES:
+- Themes should be profound and meaningful, exploring universal human experiences
+- Focus on the deeper meaning and emotional resonance
+- Make themes specific enough to be interesting, but broad enough to explore
+- Avoid clichés and overused concepts`;
+
+    const userPrompt = `Generate a powerful literary theme${genreContext}.
+
+Return a JSON object with exactly these fields:
+{
+  "title": "Brief, evocative theme title (3-6 words)",
+  "description": "Thoughtful exploration of the theme (2-3 sentences that explain the core concept and why it matters)"
+}`;
+
+    // Use intelligent model selection
+    const result = await makeAICall({
+      operationType: 'theme_generation',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 512,
+      enableCaching: true
+    });
+
+    // Parse the AI response
+    const parsed = JSON.parse(result.content);
+    
     const theme = {
-      title: `Generated ${genre || 'universal'} theme`,
-      description: `A meaningful theme exploring ${genre || 'human nature'}`,
+      title: parsed.title,
+      description: parsed.description,
       genre: genre === 'any' ? null : genre,
-      userId: userId || null
+      userId: userId || null,
+      notebookId: notebookId || null
     };
 
     const validatedTheme = insertThemeSchema.parse(theme);
     const savedTheme = await storage.createTheme(validatedTheme);
+    
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, result.usage, result.model);
+    
     res.json(savedTheme);
   } catch (error) {
     console.error('Error generating theme:', error);

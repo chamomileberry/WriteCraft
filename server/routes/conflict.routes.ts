@@ -2,46 +2,83 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertConflictSchema } from "@shared/schema";
 import { z } from "zod";
+import { makeAICall } from "../lib/aiHelper";
+import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { createRateLimiter } from "../security";
 
 const router = Router();
 
-router.post("/generate", async (req: any, res) => {
+// AI generation rate limiting: 30 requests per 15 minutes
+const aiRateLimiter = createRateLimiter({ 
+  maxRequests: 30, 
+  windowMs: 15 * 60 * 1000 
+});
+
+router.post("/generate", aiRateLimiter, trackAIUsage('conflict_generation'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const generateRequestSchema = z.object({
       conflictType: z.string().optional(),
       genre: z.string().optional(),
+      notebookId: z.string().optional(),
     });
     
-    const { conflictType, genre } = generateRequestSchema.parse(req.body);
+    const { conflictType, genre, notebookId } = generateRequestSchema.parse(req.body);
     
-    // TODO: Extract generator function from main routes.ts file
-    const generatedConflicts = [{
-      name: `Generated ${conflictType || 'conflict'}`,
-      description: `A ${genre || 'general'} conflict involving ${conflictType || 'tension'}`,
-      conflictType: conflictType || 'internal',
-      genre,
-      userId: userId || null
-    }];
-    const conflictsList = generatedConflicts.map((conflict: any) => ({
-      ...conflict,
-      userId: userId || null
-    }));
+    // Load style instruction from database
+    const styleInstruction = await getBannedPhrasesInstruction();
+    
+    const typeContext = conflictType ? ` focusing on ${conflictType} conflict` : '';
+    const genreContext = genre && genre !== 'any' ? ` for ${genre} stories` : '';
+    
+    // System prompt for AI generation
+    const systemPrompt = `You are a creative writing assistant specialized in story conflicts. Generate compelling dramatic conflicts that drive compelling narratives${typeContext}${genreContext}.${styleInstruction}
 
-    // Create individual conflicts using createConflict
-    const createdConflicts = [];
-    for (const conflictData of conflictsList) {
-      try {
-        const validatedConflict = insertConflictSchema.parse(conflictData);
-        const savedConflict = await storage.createConflict(validatedConflict);
-        createdConflicts.push(savedConflict);
-      } catch (conflictError) {
-        console.error('Error creating individual conflict:', conflictError);
-        // Continue with other conflicts even if one fails
-      }
-    }
+IMPORTANT GUIDELINES:
+- Conflicts should have clear stakes and emotional resonance
+- Create tension that can be explored and developed
+- Make conflicts specific and actionable for storytelling
+- Include both external circumstances and internal dimensions`;
 
-    res.json(createdConflicts);
+    const userPrompt = `Generate a powerful story conflict${typeContext}${genreContext}.
+
+Return a JSON object with exactly these fields:
+{
+  "name": "Compelling conflict title (4-8 words)",
+  "description": "Detailed explanation of the conflict, including who/what is involved, what's at stake, and the core tension (2-3 sentences)",
+  "conflictType": "${conflictType || 'person vs person'}"
+}`;
+
+    // Use intelligent model selection
+    const result = await makeAICall({
+      operationType: 'conflict_generation',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 512,
+      enableCaching: true
+    });
+
+    // Parse the AI response
+    const parsed = JSON.parse(result.content);
+    
+    const conflict = {
+      name: parsed.name,
+      description: parsed.description,
+      conflictType: parsed.conflictType,
+      genre: genre === 'any' ? null : genre,
+      userId: userId || null,
+      notebookId: notebookId || null
+    };
+
+    const validatedConflict = insertConflictSchema.parse(conflict);
+    const savedConflict = await storage.createConflict(validatedConflict);
+    
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, result.usage, result.model);
+    
+    res.json([savedConflict]); // Return as array for backwards compatibility
   } catch (error) {
     console.error('Error generating conflicts:', error);
     if (error instanceof z.ZodError) {

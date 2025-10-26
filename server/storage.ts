@@ -882,10 +882,24 @@ export class DatabaseStorage implements IStorage {
       return true;
     }
     
-    // Check if notebook is shared with user
-    // TODO: Add shares check once share system is tested
-    // For now, only allow direct owners
-    return false;
+    // Check if notebook is shared with user (with Edit or Comment permissions)
+    const [sharedNotebook] = await db
+      .select()
+      .from(shares)
+      .where(
+        and(
+          eq(shares.userId, userId),
+          eq(shares.resourceType, 'notebook'),
+          eq(shares.resourceId, notebookId),
+          or(
+            eq(shares.permission, 'edit'),
+            eq(shares.permission, 'comment')
+          )
+        )
+      )
+      .limit(1);
+    
+    return !!sharedNotebook;
   }
 
   // Import Job methods
@@ -5085,99 +5099,6 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
     return uniqueResults.slice(0, 20);
   }
-
-  // Project link methods - TODO: Implement when project link types are available
-  // Note: Previously called "manuscript links" - renamed to "project links" for clarity
-  // async createProjectLink(link: InsertProjectLink): Promise<ProjectLink> {
-  //   const [newLink] = await db
-  //     .insert(projectLinks)
-  //     .values(link)
-  //     .returning();
-  //   return newLink;
-  // }
-
-  // async getProjectLinks(projectId: string, userId: string): Promise<ProjectLink[]> {
-  //   return await db
-  //     .select()
-  //     .from(projectLinks)
-  //     .where(and(
-  //       eq(projectLinks.sourceId, projectId),
-  //       eq(projectLinks.userId, userId)
-  //     ))
-  //     .orderBy(projectLinks.position);
-  // }
-
-  // async updateProjectLink(linkId: string, updates: Partial<InsertProjectLink>, userId: string): Promise<ProjectLink> {
-  //   const [updatedLink] = await db
-  //     .update(projectLinks)
-  //     .set(updates)
-  //     .where(and(
-  //       eq(projectLinks.id, linkId),
-  //       eq(projectLinks.userId, userId)
-  //     ))
-  //     .returning();
-  //
-  //   if (!updatedLink) {
-  //     throw new Error('Project link not found or access denied');
-  //   }
-  //
-  //   return updatedLink;
-  // }
-
-  // async deleteProjectLink(linkId: string, userId: string): Promise<void> {
-  //   const result = await db
-  //     .delete(projectLinks)
-  //     .where(and(
-  //       eq(projectLinks.id, linkId),
-  //       eq(projectLinks.userId, userId)
-  //     ));
-  //
-  //   if (result.rowCount === 0) {
-  //     throw new Error('Project link not found or access denied');
-  //   }
-  // }
-
-  // async getBacklinks(targetType: string, targetId: string, userId: string): Promise<Array<ProjectLink & { projectTitle: string }>> {
-  //   const backlinks = await db
-  //     .select({
-  //       id: projectLinks.id,
-  //       sourceId: projectLinks.sourceId,
-  //       targetType: projectLinks.targetType,
-  //       targetId: projectLinks.targetId,
-  //       contextText: projectLinks.contextText,
-  //       linkText: projectLinks.linkText,
-  //       position: projectLinks.position,
-  //       userId: projectLinks.userId,
-  //       createdAt: projectLinks.createdAt,
-  //       projectTitle: projects.title
-  //     })
-  //     .from(projectLinks)
-  //     .innerJoin(projects, eq(projectLinks.sourceId, projects.id))
-  //     .where(and(
-  //       eq(projectLinks.targetType, targetType),
-  //       eq(projectLinks.targetId, targetId),
-  //       eq(projectLinks.userId, userId)
-  //     ))
-  //     .orderBy(projectLinks.createdAt);
-  //
-  //   return backlinks;
-  // }
-
-  // async getProjectLinksForUser(userId: string): Promise<ProjectLink[]> {
-  //   return await db.select().from(projectLinks)
-  //     .where(eq(projectLinks.userId, userId))
-  //     .orderBy(desc(projectLinks.createdAt))
-  //     .limit(100);
-  // }
-
-  // async findLinksToContent(targetType: string, targetId: string, userId: string): Promise<ProjectLink[]> {
-  //   return await db.select().from(projectLinks)
-  //     .where(and(
-  //       eq(projectLinks.targetType, targetType),
-  //       eq(projectLinks.targetId, targetId),
-  //       eq(projectLinks.userId, userId)
-  //     ));
-  // }
 
   // Pinned content methods
   async pinContent(pin: InsertPinnedContent): Promise<PinnedContent> {

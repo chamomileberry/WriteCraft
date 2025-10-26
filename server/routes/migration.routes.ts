@@ -3,8 +3,11 @@
  */
 
 import { Router } from 'express';
-import { secureAuthentication } from '../security/middleware';
+import { secureAuthentication, requireAdmin } from '../security/middleware';
 import { userMigrationService } from '../services/userMigrationService';
+import { db } from '../db';
+import { users } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -14,19 +17,10 @@ const router = Router();
  * 
  * RESTRICTED: Admin-only endpoint
  */
-router.get('/preview', secureAuthentication, async (req: any, res) => {
+router.get('/preview', secureAuthentication, requireAdmin, async (req: any, res) => {
   try {
-    // Security: This endpoint requires admin privileges
-    // TODO: Implement proper admin role check
-    // For now, blocking all access until admin system is implemented
-    return res.status(403).json({ 
-      error: 'Unauthorized: Admin access required',
-      message: 'This endpoint is restricted to administrators. Admin role system not yet implemented.'
-    });
-    
-    // Commented out until admin system is ready:
-    // const preview = await userMigrationService.previewMigration();
-    // res.json(preview);
+    const preview = await userMigrationService.previewMigration();
+    res.json(preview);
   } catch (error) {
     console.error('Migration preview error:', error);
     res.status(500).json({ error: 'Failed to generate migration preview' });
@@ -42,9 +36,16 @@ router.get('/analyze/:userId', secureAuthentication, async (req: any, res) => {
     const { userId } = req.params;
     const requestingUserId = req.user.claims.sub;
     
-    // Security: Only allow users to analyze themselves
-    // TODO: Add proper admin role check to allow admins to analyze any user
-    if (userId !== requestingUserId) {
+    // Check if user is admin
+    const [requestingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, requestingUserId));
+    
+    const isAdmin = requestingUser?.isAdmin || false;
+    
+    // Security: Only allow users to analyze themselves, unless they're admin
+    if (userId !== requestingUserId && !isAdmin) {
       return res.status(403).json({ error: 'Unauthorized: Can only analyze your own account' });
     }
     
@@ -62,19 +63,10 @@ router.get('/analyze/:userId', secureAuthentication, async (req: any, res) => {
  * 
  * RESTRICTED: Admin-only endpoint
  */
-router.post('/execute', secureAuthentication, async (req: any, res) => {
+router.post('/execute', secureAuthentication, requireAdmin, async (req: any, res) => {
   try {
-    // Security: This endpoint requires admin privileges
-    // TODO: Implement proper admin role check
-    // For now, blocking all access until admin system is implemented
-    return res.status(403).json({ 
-      error: 'Unauthorized: Admin access required',
-      message: 'This endpoint is restricted to administrators. Admin role system not yet implemented.'
-    });
-    
-    // Commented out until admin system is ready:
-    // const stats = await userMigrationService.migrateAllUsers();
-    // res.json(stats);
+    const stats = await userMigrationService.migrateAllUsers();
+    res.json(stats);
   } catch (error) {
     console.error('Migration execution error:', error);
     res.status(500).json({ error: 'Failed to execute migration' });
@@ -90,9 +82,16 @@ router.post('/user/:userId', secureAuthentication, async (req: any, res) => {
     const { userId } = req.params;
     const requestingUserId = req.user.claims.sub;
     
-    // Security: Only allow users to migrate themselves
-    // TODO: Add proper admin role check to allow admins to migrate any user
-    if (userId !== requestingUserId) {
+    // Check if user is admin
+    const [requestingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, requestingUserId));
+    
+    const isAdmin = requestingUser?.isAdmin || false;
+    
+    // Security: Only allow users to migrate themselves, unless they're admin
+    if (userId !== requestingUserId && !isAdmin) {
       return res.status(403).json({ error: 'Unauthorized: Can only migrate your own account' });
     }
     

@@ -2,12 +2,21 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertItemSchema } from "@shared/schema";
 import { z } from "zod";
+import { makeAICall } from "../lib/aiHelper";
+import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { createRateLimiter } from "../security";
 
 const router = Router();
 
-router.post("/generate", async (req: any, res) => {
+// AI generation rate limiting: 30 requests per 15 minutes
+const aiRateLimiter = createRateLimiter({ 
+  maxRequests: 30, 
+  windowMs: 15 * 60 * 1000 
+});
+
+router.post("/generate", aiRateLimiter, trackAIUsage('item_generation'), async (req: any, res) => {
   try {
-    // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.user.claims.sub;
     
     const generateRequestSchema = z.object({
@@ -25,18 +34,58 @@ router.post("/generate", async (req: any, res) => {
       return res.status(404).json({ error: 'Notebook not found' });
     }
     
-    // TODO: Extract generator function from main routes.ts file
+    // Load style instruction from database
+    const styleInstruction = await getBannedPhrasesInstruction();
+    
+    const typeContext = itemType ? ` of type ${itemType}` : '';
+    const genreContext = genre && genre !== 'any' ? ` suitable for ${genre} stories` : '';
+    
+    // System prompt for AI generation
+    const systemPrompt = `You are a creative writing assistant specialized in worldbuilding items and objects. Generate imaginative, detailed items that enrich story worlds${typeContext}${genreContext}.${styleInstruction}
+
+IMPORTANT GUIDELINES:
+- Items should have clear purpose and significance to the story
+- Include sensory details and unique characteristics
+- Consider the item's history, creation, and impact
+- Make items memorable and distinctive`;
+
+    const userPrompt = `Generate an intriguing item${typeContext}${genreContext}.
+
+Return a JSON object with exactly these fields:
+{
+  "name": "Distinctive item name (2-5 words)",
+  "description": "Rich description including appearance, properties, origin, and significance (2-3 sentences)",
+  "itemType": "${itemType || 'artifact'}"
+}`;
+
+    // Use intelligent model selection
+    const result = await makeAICall({
+      operationType: 'item_generation',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 512,
+      enableCaching: true
+    });
+
+    // Parse the AI response
+    const parsed = JSON.parse(result.content);
+    
     const item = {
-      name: `Generated ${itemType || 'item'}`,
-      description: `A ${genre || 'mysterious'} ${itemType || 'object'} with special properties`,
-      itemType: itemType || 'artifact',
-      genre,
+      name: parsed.name,
+      description: parsed.description,
+      itemType: parsed.itemType,
+      genre: genre === 'any' ? null : genre,
       userId,
       notebookId
     };
 
     const validatedItem = insertItemSchema.parse(item);
     const savedItem = await storage.createItem(validatedItem);
+    
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, result.usage, result.model);
+    
     res.json(savedItem);
   } catch (error) {
     console.error('Error generating item:', error);

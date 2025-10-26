@@ -29,6 +29,8 @@ export type OperationType =
   | 'plant_generation'
   | 'description_generation'
   | 'mood_palette_generation'
+  | 'item_generation'
+  | 'location_generation'
   | 'improve_text'
   | 'field_generation'
   | 'text_improvement'

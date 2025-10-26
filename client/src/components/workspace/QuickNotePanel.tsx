@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { quickNotesApi, savedItemsApi } from '@/lib/api';
 import { useActiveNotebookId } from '@/hooks/useNotebookHooks';
-import { useWorkspaceLayout, useUpdatePanel } from '@/hooks/useWorkspaceHooks';
+import { useWorkspaceLayout, useUpdatePanel, useAddPanel } from '@/hooks/useWorkspaceHooks';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,6 +42,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const activeNotebookId = useActiveNotebookId();
   const currentLayout = useWorkspaceLayout();
   const updatePanel = useUpdatePanel();
+  const addPanel = useAddPanel();
   const { user } = useAuth();
 
   // Get the panel title and metadata from workspace store
@@ -699,10 +700,17 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
                 size="icon"
                 variant="outline"
                 onClick={() => {
-                  // TODO: Implement new note creation in task 9
+                  // Create a new Quick Note panel
+                  const newPanelId = `quick-note-${Date.now()}`;
+                  addPanel({
+                    id: newPanelId,
+                    title: 'Quick Note',
+                    type: 'quickNote',
+                    metadata: {},
+                  });
                   toast({
-                    title: 'Coming soon',
-                    description: 'Create new note feature will be added soon',
+                    title: 'New note created',
+                    description: 'A new quick note panel has been opened',
                   });
                 }}
                 className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"

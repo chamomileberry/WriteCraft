@@ -3,12 +3,21 @@ import { storage } from "../storage";
 import { insertLocationSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateArticleForContent } from "../article-generation";
+import { makeAICall } from "../lib/aiHelper";
+import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
+import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { createRateLimiter } from "../security";
 
 const router = Router();
 
-router.post("/generate", async (req: any, res) => {
+// AI generation rate limiting: 30 requests per 15 minutes
+const aiRateLimiter = createRateLimiter({ 
+  maxRequests: 30, 
+  windowMs: 15 * 60 * 1000 
+});
+
+router.post("/generate", aiRateLimiter, trackAIUsage('location_generation'), async (req: any, res) => {
   try {
-    // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.user.claims.sub;
     
     const generateRequestSchema = z.object({
@@ -26,18 +35,58 @@ router.post("/generate", async (req: any, res) => {
       return res.status(404).json({ error: 'Notebook not found' });
     }
     
-    // TODO: Extract generator function from main routes.ts file
+    // Load style instruction from database
+    const styleInstruction = await getBannedPhrasesInstruction();
+    
+    const typeContext = locationType ? ` of type ${locationType}` : '';
+    const genreContext = genre && genre !== 'any' ? ` for ${genre} stories` : '';
+    
+    // System prompt for AI generation
+    const systemPrompt = `You are a creative writing assistant specialized in worldbuilding locations and settings. Generate vivid, immersive locations that bring story worlds to life${typeContext}${genreContext}.${styleInstruction}
+
+IMPORTANT GUIDELINES:
+- Locations should evoke atmosphere and sense of place
+- Include sensory details (sights, sounds, smells, textures)
+- Consider the location's history, culture, and significance
+- Make locations feel lived-in and authentic`;
+
+    const userPrompt = `Generate a compelling location${typeContext}${genreContext}.
+
+Return a JSON object with exactly these fields:
+{
+  "name": "Evocative location name (2-5 words)",
+  "description": "Vivid description including atmosphere, key features, cultural significance, and what makes it unique (2-3 sentences)",
+  "locationType": "${locationType || 'city'}"
+}`;
+
+    // Use intelligent model selection
+    const result = await makeAICall({
+      operationType: 'location_generation',
+      userId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 512,
+      enableCaching: true
+    });
+
+    // Parse the AI response
+    const parsed = JSON.parse(result.content);
+    
     const location = {
-      name: `Generated ${locationType || 'location'}`,
-      description: `A ${genre || 'mysterious'} ${locationType || 'place'} with unique characteristics`,
-      locationType: locationType || 'city',
-      genre,
+      name: parsed.name,
+      description: parsed.description,
+      locationType: parsed.locationType,
+      genre: genre === 'any' ? null : genre,
       userId,
       notebookId
     };
 
     const validatedLocation = insertLocationSchema.parse(location);
     const savedLocation = await storage.createLocation(validatedLocation);
+    
+    // Attach usage metadata for tracking
+    attachUsageMetadata(res, result.usage, result.model);
+    
     res.json(savedLocation);
   } catch (error) {
     console.error('Error generating location:', error);
