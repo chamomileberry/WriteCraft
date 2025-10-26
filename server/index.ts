@@ -1,5 +1,5 @@
-// Sentry must be imported and initialized FIRST, before any other imports
-import "./instrument";
+// Sentry is initialized via --import flag in dev.sh and deployment config
+// DO NOT import "./instrument" here as it will initialize Sentry twice
 
 import { createApp } from "./app";
 import { setupVite, serveStatic, log } from "./vite";
