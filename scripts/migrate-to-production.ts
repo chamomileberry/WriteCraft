@@ -26,9 +26,9 @@ import {
   timelineRelationships, ceremonies, maps, music, dances, laws, policies,
   potions, pinnedContent, canvases, chatMessages, conversationThreads,
   userPreferences, conversationSummaries, feedback, shares,
-  collaborators, teams, teamMembers, teamInvitations,
-  subscriptions, aiUsageLogs, aiUsageDailySummary, discountCodes
-} from "@shared/schema";
+  userSubscriptions, lifetimeSubscriptions, teamMemberships, teamInvitations,
+  teamActivity, aiUsageLogs, aiUsageDailySummary, discountCodes, billingAlerts
+} from "../shared/schema.js";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -98,11 +98,18 @@ BEGIN;
     sqlStatements.push(generateInsert('users', userData));
     console.log(`   ✓ Exported ${userData.length} users`);
 
-    // Export subscriptions (must come after users)
-    console.log('📦 Exporting subscriptions...');
-    const subscriptionData = await db.select().from(subscriptions);
-    sqlStatements.push(generateInsert('subscriptions', subscriptionData));
-    console.log(`   ✓ Exported ${subscriptionData.length} subscriptions`);
+    // Export user subscriptions (must come after users)
+    console.log('📦 Exporting user subscriptions...');
+    const subscriptionData = await db.select().from(userSubscriptions);
+    sqlStatements.push(generateInsert('user_subscriptions', subscriptionData));
+    console.log(`   ✓ Exported ${subscriptionData.length} user subscriptions`);
+
+    // Export lifetime subscriptions
+    const lifetimeSubData = await db.select().from(lifetimeSubscriptions);
+    if (lifetimeSubData.length > 0) {
+      sqlStatements.push(generateInsert('lifetime_subscriptions', lifetimeSubData));
+      console.log(`   ✓ Exported ${lifetimeSubData.length} lifetime subscriptions`);
+    }
 
     // Export user preferences
     console.log('📦 Exporting user preferences...');
@@ -296,6 +303,40 @@ BEGIN;
     if (aiDailySummaryData.length > 0) {
       sqlStatements.push(generateInsert('ai_usage_daily_summary', aiDailySummaryData));
       console.log(`   ✓ Exported ${aiDailySummaryData.length} AI daily summaries`);
+    }
+
+    // Export team data
+    console.log('📦 Exporting team data...');
+    const teamMemberData = await db.select().from(teamMemberships);
+    if (teamMemberData.length > 0) {
+      sqlStatements.push(generateInsert('team_memberships', teamMemberData));
+      console.log(`   ✓ Exported ${teamMemberData.length} team memberships`);
+    }
+
+    const teamInviteData = await db.select().from(teamInvitations);
+    if (teamInviteData.length > 0) {
+      sqlStatements.push(generateInsert('team_invitations', teamInviteData));
+      console.log(`   ✓ Exported ${teamInviteData.length} team invitations`);
+    }
+
+    const teamActData = await db.select().from(teamActivity);
+    if (teamActData.length > 0) {
+      sqlStatements.push(generateInsert('team_activity', teamActData));
+      console.log(`   ✓ Exported ${teamActData.length} team activity records`);
+    }
+
+    // Export discount codes
+    const discountData = await db.select().from(discountCodes);
+    if (discountData.length > 0) {
+      sqlStatements.push(generateInsert('discount_codes', discountData));
+      console.log(`   ✓ Exported ${discountData.length} discount codes`);
+    }
+
+    // Export billing alerts
+    const alertData = await db.select().from(billingAlerts);
+    if (alertData.length > 0) {
+      sqlStatements.push(generateInsert('billing_alerts', alertData));
+      console.log(`   ✓ Exported ${alertData.length} billing alerts`);
     }
 
     // Add footer
