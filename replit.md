@@ -81,9 +81,10 @@ For production deployments with large JavaScript bundles (5+ MB), configure Node
   - **Production Hardening - Subscription Management**:
     - Fixed 29 TypeScript errors in stripe.routes.ts using hasStripeData type guard for proper type safety
     - Implemented cancellation survey dialog with reason dropdown and optional feedback collection
+    - Cancellation survey responses are submitted to admin feedback inbox with 'cancellation' tag for review and analysis
     - Added refund request workflow with dedicated page, form validation, and 7-day window detection
     - Implemented account deletion with confirmation dialog, Stripe subscription cancellation, and cascading data deletion
-    - Backend cancellation endpoint now logs cancellation reasons and feedback for analytics
+    - Backend cancellation endpoint logs reasons for analytics and creates feedback entries for admin visibility
     - Added "Request Refund" button in BillingSettings (only shown within 7-day refund window)
     - Created AccountDeletionDialog with "DELETE" confirmation input and data export prompt
   - Cleaned up misleading TODOs: Removed outdated share system comments (shares fully implemented), removed duplicate project links code

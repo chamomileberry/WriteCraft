@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { stripeService } from '../services/stripeService';
 import { subscriptionService } from '../services/subscriptionService';
 import { isAuthenticated } from '../replitAuth';
+import { storage } from '../storage';
 
 const router = Router();
 
@@ -112,6 +113,27 @@ router.post('/cancel-subscription', isAuthenticated, async (req: any, res) => {
       reason,
       feedback: feedback || 'No additional feedback',
       tier: subscription.tier || 'unknown',
+    });
+
+    // Submit cancellation survey to admin feedback inbox
+    const userEmail = req.user.claims.email || 'unknown@example.com';
+    const reasonLabels: Record<string, string> = {
+      'too-expensive': 'Too expensive',
+      'missing-features': 'Missing features I need',
+      'technical-issues': 'Technical issues',
+      'not-using': 'Not using it enough',
+      'switching': 'Switching to another service',
+      'temporary': 'Temporary pause',
+      'other': 'Other reason',
+    };
+
+    await storage.createFeedback({
+      userId,
+      type: 'cancellation',
+      title: `Subscription Cancellation: ${reasonLabels[reason] || reason}`,
+      description: `**Cancellation Reason:** ${reasonLabels[reason] || reason}\n**Tier:** ${subscription.tier || 'unknown'}\n\n**Feedback:**\n${feedback || 'No additional feedback provided.'}`,
+      userEmail,
+      status: 'new',
     });
 
     res.json({ success: true, message: 'Subscription will be canceled at the end of the billing period' });
