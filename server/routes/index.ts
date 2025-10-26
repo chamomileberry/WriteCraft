@@ -75,6 +75,22 @@ import canvasRoutes from "./canvas.routes";
 import userRoutes from "./user.routes";
 import contentRoutes from "./content.routes";
 import securityUserRoutes from "../security/userRoutes";
+import securityRoutes from "./security.routes";
+import mfaRoutes from "./mfa.routes";
+import subscriptionRoutes from "./subscription.routes";
+import stripeRoutes from "./stripe.routes";
+import billingAlertsRoutes from "./billingAlerts.routes";
+import { discountCodeRouter } from "./discountCode.routes";
+import migrationRoutes from "./migration.routes";
+import teamAnalyticsRoutes from "./team-analytics.routes";
+import feedbackRoutes from "./feedback.routes";
+import adminFeedbackRoutes from "./admin-feedback.routes";
+import exportRoutes from "./export.routes";
+import aiRoutes from "./ai.routes";
+import importRoutes from "./import.routes";
+import pexelsRoutes from "./pexels.routes";
+import ideogramRoutes from "./ideogram.routes";
+import stockImagesRoutes from "./stock-images.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -92,7 +108,37 @@ export function registerDomainRoutes(app: Express) {
   });
   
   // Register all domain-specific routes (now protected by authentication)
+  
+  // Security and authentication routes
   app.use("/api", securityUserRoutes); // Security-hardened user profile endpoints
+  app.use("/api/security", securityRoutes); // Admin security management
+  app.use("/api/auth/mfa", mfaRoutes); // Multi-factor authentication
+  
+  // Subscription and payment routes
+  app.use("/api/subscription", subscriptionRoutes);
+  app.use("/api/stripe", stripeRoutes);
+  app.use("/api/billing-alerts", billingAlertsRoutes);
+  app.use("/api/discount-codes", discountCodeRouter);
+  
+  // AI and generation routes
+  app.use("/api/ai", aiRoutes);
+  
+  // Import/Export routes
+  app.use("/api/import", importRoutes);
+  app.use("/api/export", exportRoutes);
+  
+  // Admin and analytics routes
+  app.use("/api/migration", migrationRoutes);
+  app.use("/api/team-analytics", teamAnalyticsRoutes);
+  app.use("/api/admin/feedback", adminFeedbackRoutes); // More specific route first
+  app.use("/api/feedback", feedbackRoutes);
+  
+  // Media and stock image routes
+  app.use("/api/pexels", pexelsRoutes);
+  app.use("/api/ideogram", ideogramRoutes);
+  app.use("/api/stock-images", stockImagesRoutes);
+  
+  // User preferences and general routes
   app.use("/api/user", userRoutes);
   app.use("/api/usage", usageRoutes);
   app.use("/api/conversation-threads", conversationThreadRoutes);
