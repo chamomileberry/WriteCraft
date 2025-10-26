@@ -30,7 +30,30 @@ Open `migration.sql` and review it to make sure everything looks correct. The fi
 - Conversation history
 - AI usage logs
 
-## Step 3: Get Production Database URL
+## Step 3: Update Production Schema First
+
+**IMPORTANT:** Before importing data, you need to make sure your production database has the latest schema.
+
+### Option A: Publish Your App (Easiest)
+1. Click the **Publish** button in Replit
+2. This automatically pushes schema changes to production
+3. Wait for the deployment to complete
+4. Skip to Step 4
+
+### Option B: Manual Schema Push
+1. Get your production database URL:
+   - Go to your published app
+   - Open the Database tool
+   - Copy the production connection string (looks like `postgresql://...`)
+
+2. Run the schema push script:
+   ```bash
+   DATABASE_URL='your-production-url-here' npm run db:push
+   ```
+
+3. Confirm the schema changes when prompted
+
+## Step 4: Get Production Database URL
 
 You need the connection string for your **production** database. This is different from your development DATABASE_URL.
 
@@ -44,7 +67,7 @@ It will look something like:
 postgresql://username:password@hostname/database?sslmode=require
 ```
 
-## Step 4: Backup Production Database
+## Step 5: Backup Production Database
 
 Before importing, **create a backup** of your production database:
 
@@ -53,7 +76,7 @@ Before importing, **create a backup** of your production database:
 pg_dump "YOUR_PRODUCTION_DATABASE_URL" > production_backup.sql
 ```
 
-## Step 5: Import to Production
+## Step 6: Import to Production
 
 Run the migration SQL file against your production database:
 
@@ -71,7 +94,7 @@ INSERT 0 1
 COMMIT
 ```
 
-## Step 6: Verify the Migration
+## Step 7: Verify the Migration
 
 1. Open your published WriteCraft app
 2. Log in with your Replit account
@@ -83,15 +106,17 @@ COMMIT
 
 ## Troubleshooting
 
+### "column does not exist" or "relation does not exist" errors
+This means your production database schema is out of date. Follow Step 3 to update the schema first.
+
+The easiest fix:
+1. Click **Publish** in Replit (this automatically updates the production schema)
+2. Wait for deployment to complete
+3. Try the import again
+
 ### "Permission denied" errors
 Make sure you're using the correct production database URL and have the necessary permissions.
 
-### "Relation does not exist" errors
-This means your production database schema isn't up to date. Run migrations first:
-```bash
-# Make sure you're connected to production, then:
-npm run db:push
-```
 
 ### Data appears duplicated
 The migration uses `ON CONFLICT DO NOTHING`, so if data already exists with the same ID, it won't be inserted again. This is intentional to prevent duplicates.
