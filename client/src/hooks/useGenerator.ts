@@ -5,6 +5,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 import { useSubscription } from '@/hooks/useSubscription';
 import { logger } from '@/lib/logger';
+import { analytics, EVENTS } from '@/lib/posthog';
 
 export interface UseGeneratorOptions<TResult, TParams = any> {
   /** API endpoint for generation */
@@ -111,10 +112,25 @@ export function useGenerator<TResult, TParams = any>({
     },
     onSuccess: (data) => {
       setResult(data);
+      
+      // Track generation event in PostHog
+      analytics.track(EVENTS.CONTENT_GENERATED, {
+        content_type: itemTypeName,
+        endpoint: generateEndpoint,
+      });
+      
       onGenerateSuccess?.(data);
     },
     onError: (error) => {
       logger.error(`Error generating ${itemTypeName}:`, error);
+      
+      // Track generation failure
+      analytics.track(EVENTS.GENERATION_CANCELLED, {
+        content_type: itemTypeName,
+        endpoint: generateEndpoint,
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+      });
+      
       toast({
         title: 'Generation Failed',
         description: `Failed to generate ${itemTypeName}. Please try again.`,
@@ -181,6 +197,12 @@ export function useGenerator<TResult, TParams = any>({
       // Invalidate specified queries
       invalidateOnSave.forEach(queryKey => {
         queryClient.invalidateQueries({ queryKey });
+      });
+      
+      // Track save event in PostHog
+      analytics.track(EVENTS.GENERATION_SAVED, {
+        content_type: itemTypeName,
+        notebook_id: notebookId,
       });
       
       // Check if we should navigate after save
@@ -250,6 +272,13 @@ export function useGenerator<TResult, TParams = any>({
       logger.error('Error checking limit:', error);
       // Continue with generation even if limit check fails (server will enforce)
     }
+
+    // Track generator usage start
+    analytics.track(EVENTS.GENERATOR_USED, {
+      content_type: itemTypeName,
+      endpoint: generateEndpoint,
+      has_notebook: !!notebookId,
+    });
 
     generateMutation.mutate();
   };

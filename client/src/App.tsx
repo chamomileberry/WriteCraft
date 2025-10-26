@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import { GracePeriodBanner } from "@/components/GracePeriodBanner";
 import { BetaDisclaimer } from "@/components/BetaDisclaimer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PostHogProvider } from "@/lib/posthog";
 import Landing from "@/pages/landing";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Home from "@/pages/Home";
@@ -61,6 +62,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { analytics } from "@/lib/posthog";
 
 // Notebook page component
 function NotebookPage() {
@@ -267,12 +269,14 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthenticatedApp />
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <PostHogProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthenticatedApp />
+            <Toaster />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </PostHogProvider>
     </ErrorBoundary>
   );
 }
@@ -280,12 +284,37 @@ function App() {
 function AuthenticatedApp() {
   const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [location] = useLocation();
 
   // Fetch user preferences to check onboarding status
   const { data: preferences, isLoading: preferencesLoading } = useQuery<any>({
     queryKey: ['/api/user/preferences'],
     enabled: !!user, // Only fetch when user is authenticated
   });
+
+  // Identify user in PostHog when authenticated
+  useEffect(() => {
+    if (user) {
+      analytics.identify(user.id.toString(), {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        subscriptionTier: user.subscriptionTier,
+        isAdmin: user.isAdmin,
+        created_at: user.createdAt,
+      });
+    } else {
+      analytics.reset();
+    }
+  }, [user]);
+
+  // Track page views (for all users, authenticated or not)
+  useEffect(() => {
+    analytics.pageView(location, {
+      authenticated: !!user,
+      ...(user && { user_tier: user.subscriptionTier }),
+    });
+  }, [location, user]);
 
   // Show onboarding wizard when user is loaded and hasn't completed onboarding
   useEffect(() => {

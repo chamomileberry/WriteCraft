@@ -38,6 +38,7 @@ import {
   Clock
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { analytics, EVENTS } from '@/lib/posthog';
 
 interface ConversationThread {
   id: string;
@@ -197,6 +198,13 @@ export default function ConversationManager() {
   });
 
   const handleOpenThread = (thread: ConversationThread) => {
+    // Track opening conversation
+    analytics.track(EVENTS.AI_CHAT_STARTED, {
+      thread_id: thread.id,
+      has_project: !!thread.projectId,
+      has_guide: !!thread.guideId,
+    });
+    
     // Navigate to workspace with thread ID in URL
     if (thread.projectId) {
       setLocation(`/workspace/project/${thread.projectId}?threadId=${thread.id}`);
