@@ -301,7 +301,7 @@ export default function FeedbackManagement() {
       {/* Feedback Detail Modal */}
       {selectedFeedback && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-60"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[var(--z-modal)]"
           onClick={() => setSelectedFeedback(null)}
         >
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
