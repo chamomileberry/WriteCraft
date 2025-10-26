@@ -74,6 +74,7 @@ import apiKeysRoutes from "./apiKeys.routes";
 import canvasRoutes from "./canvas.routes";
 import userRoutes from "./user.routes";
 import contentRoutes from "./content.routes";
+import securityUserRoutes from "../security/userRoutes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
@@ -91,6 +92,7 @@ export function registerDomainRoutes(app: Express) {
   });
   
   // Register all domain-specific routes (now protected by authentication)
+  app.use("/api", securityUserRoutes); // Security-hardened user profile endpoints
   app.use("/api/user", userRoutes);
   app.use("/api/usage", usageRoutes);
   app.use("/api/conversation-threads", conversationThreadRoutes);

@@ -1,0 +1,45 @@
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+chunk-NFC5BX5N.js?v=4ded00e1:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+posthog.tsx:26 [PostHog] Initialized successfully
+vendors.bundle.js:2 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-NFC5BX5N.js?v=4ded00e1:521 Warning: validateDOMNesting(...): <a> cannot appear as a descendant of <a>.
+    at a
+    at a
+    at https://writecraft.replit.app/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4ded00e1:205:18
+    at div
+    at div
+    at div
+    at _c9 (https://writecraft.replit.app/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://writecraft.replit.app/src/components/ui/card.tsx:20:11)
+    at BillingSettings (https://writecraft.replit.app/src/components/BillingSettings.tsx:31:39)
+    at div
+    at div
+    at div
+    at AccountSettings (https://writecraft.replit.app/src/pages/AccountSettings.tsx:42:31)
+    at Route (https://writecraft.replit.app/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4ded00e1:191:16)
+    at Switch (https://writecraft.replit.app/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4ded00e1:247:17)
+    at Router
+    at div
+    at div
+    at WorkspaceShell (https://writecraft.replit.app/src/components/workspace/WorkspaceShell.tsx:73:27)
+    at div
+    at AuthenticatedApp (https://writecraft.replit.app/src/App.tsx?v=RhVQXRfqkfJdIuQF3mPcf:601:31)
+    at Provider (https://writecraft.replit.app/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-XOUBXFGS.js?v=4ded00e1:38:15)
+    at TooltipProvider (https://writecraft.replit.app/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=4ded00e1:67:5)
+    at QueryClientProvider (https://writecraft.replit.app/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4ded00e1:2805:3)
+    at PostHogProvider (https://writecraft.replit.app/src/lib/posthog.tsx:24:35)
+    at ErrorBoundary (https://writecraft.replit.app/src/components/ErrorBoundary.tsx:9:5)
+    at App
+printWarning @ chunk-NFC5BX5N.js?v=4ded00e1:521
