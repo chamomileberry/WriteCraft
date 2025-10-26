@@ -23,8 +23,15 @@ router.get('/check-config', (req, res) => {
 });
 
 // Official Sentry test endpoint (recommended by Sentry docs)
+// Use /api/sentry/debug to avoid client-side router interception
+router.get('/debug', function mainHandler(req, res) {
+  console.log('[Sentry Test] /api/sentry/debug endpoint triggered - throwing error');
+  throw new Error('My first Sentry error!');
+});
+
+// Legacy endpoint for backward compatibility
 router.get('/debug-sentry', function mainHandler(req, res) {
-  console.log('[Sentry Test] /debug-sentry endpoint triggered');
+  console.log('[Sentry Test] /api/sentry/debug-sentry endpoint triggered - throwing error');
   throw new Error('My first Sentry error!');
 });
 

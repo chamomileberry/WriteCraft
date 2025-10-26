@@ -139,12 +139,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Sentry test endpoints (available in all environments to verify error tracking)
   app.use("/api/sentry", sentryTestRoutes);
-  
-  // Also register /debug-sentry at root level (Sentry's official test endpoint)
-  app.get("/debug-sentry", function mainHandler(req, res) {
-    console.log('[Sentry] /debug-sentry endpoint triggered - throwing error');
-    throw new Error('My first Sentry error!');
-  });
 
   // Register modular domain-specific routes
   registerDomainRoutes(app);
