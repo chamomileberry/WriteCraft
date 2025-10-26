@@ -27,7 +27,8 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 
 ### Feature Specifications
 - **Content Management**: Notebook system with rich text editor, modular generator system, writing guides, hierarchical project system, and an enhanced character editor.
-- **AI-Powered Tools**: Grammarly-style assistance, context-aware generation, conversational writing assistant, and literary examples. Employs a hybrid AI model strategy: Claude Haiku 4.5 for standard operations and Claude Opus 4.1 for premium features (Professional/Team tiers). Includes an entity detection system for extracting and managing character, location, and plot point details from conversations.
+- **AI-Powered Tools**: Grammarly-style assistance, context-aware generation, conversational writing assistant, and literary examples. Employs a hybrid AI model strategy: Claude Haiku 4.5 for standard operations and Claude Opus 4.1 for premium features (Professional/Team tiers). Includes an entity detection system for extracting and managing character, location, and plot point details from conversations. All AI generation endpoints use makeAICall with intelligent model selection, prompt caching, rate limiting (30 req/15min), usage tracking, and metadata attachment.
+- **Content Generators**: Theme, conflict, item, and location generators with contextual AI generation, notebook ownership validation, and proper error handling. All generators follow the established pattern: aiRateLimiter → trackAIUsage → makeAICall → attachUsageMetadata.
 - **AI Usage Tracking**: Comprehensive token-based usage tracking with tier-based limits, enforced via middleware. Logs usage to PostgreSQL and provides a Usage Dashboard API for real-time statistics and historical analysis.
 - **Timeline System**: Offers List, Canvas, and Gantt views with timescale toggles and swim lanes. Supports event type configuration with custom icons/colors, multi-character linking with avatar previews, and a relationship creation dialog for defining connections between events.
 - **Subscription & Monetization**: Tier system (Free, Author, Professional, Team) with server-side enforcement, AI usage tracking, and contextual upgrade prompts.
@@ -50,6 +51,12 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Code Organization**: Centralized constants, API layer, custom Zustand hooks, and schema-driven form generation.
 - **Code Reusability**: Custom hooks for autosave, debounced save, and generators.
 - **Testing**: Playwright for end-to-end and regression testing.
+- **Recent Improvements (Oct 26, 2025)**:
+  - Cleaned up misleading TODOs: Removed outdated share system comments (shares fully implemented), removed duplicate project links code
+  - Enhanced migration routes with proper requireAdmin middleware enforcement
+  - Implemented AI generation for themes, conflicts, items, and locations with full security and usage tracking
+  - Added 'item_generation' and 'location_generation' to OperationType enum for proper model selection and cache segregation
+  - Enhanced QuickNotePanel with functional new note creation using workspace panel management
 
 ## External Dependencies
 
