@@ -96,7 +96,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "./dev.sh"
 waitForPort = 5000
 
 [agent]
