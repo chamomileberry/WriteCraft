@@ -8,6 +8,8 @@ import { createRateLimiter } from "../security";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 import { secureAuthentication } from "../security/middleware";
 import { makeAICall } from "../lib/aiHelper";
+import { modelSelector, type OperationType } from "../services/modelSelector";
+import { entityCache } from "../lib/entityCache";
 
 const router = Router();
 
@@ -403,6 +405,13 @@ router.post("/detect-entities", secureAuthentication, aiRateLimiter, trackAIUsag
 
     // Take last 10 messages for context
     const recentMessages = messages.slice(-10);
+    
+    // Check cache first
+    const cachedResult = entityCache.get(recentMessages, userId);
+    if (cachedResult) {
+      console.log('[Entity Detection] Cache hit - returning cached entities');
+      return res.json(cachedResult);
+    }
     const conversationText = recentMessages
       .map((m: any) => `${m.type === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
       .join('\n\n');
@@ -518,6 +527,10 @@ Return your analysis as JSON with comprehensive details for each entity.`;
       analysis = { entities: [] };
     }
 
+    // Store in cache for future requests
+    entityCache.set(recentMessages, analysis, userId);
+    console.log('[Entity Detection] Stored result in cache');
+
     // Attach usage metadata
     attachUsageMetadata(res, result.usage, result.model);
 
@@ -541,6 +554,17 @@ router.post("/analyze-context", secureAuthentication, aiRateLimiter, trackAIUsag
 
     // Take last 3-5 messages for context
     const recentMessages = messages.slice(-5);
+    
+    // Create cache key from recent messages
+    const cacheKey = recentMessages.map((m: any) => `${m.type}:${m.content}`);
+    
+    // Check cache first
+    const cachedResult = entityCache.get(cacheKey, userId);
+    if (cachedResult) {
+      console.log('[Context Analysis] Cache hit - returning cached analysis');
+      return res.json(cachedResult);
+    }
+    
     const conversationText = recentMessages
       .map((m: any) => `${m.type === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
       .join('\n\n');
@@ -600,6 +624,10 @@ Return your analysis as JSON.`;
       analysis = { topics: [], entities: [] };
     }
 
+    // Store in cache for future requests
+    entityCache.set(cacheKey, analysis, userId);
+    console.log('[Context Analysis] Stored result in cache');
+
     // Attach usage metadata
     attachUsageMetadata(res, result.usage, result.model);
 
@@ -632,21 +660,76 @@ Return your analysis as JSON.`;
 
       const userId = req.user?.claims?.sub;
 
-      // Log authentication status for debugging
-      console.log('[Chat Endpoint] Authentication:', {
-        authenticated: !!userId,
-        userId: userId || 'none',
-        hasConversationHistory: !!conversationHistory,
-        useExtendedThinking: !!useExtendedThinking
-      });
-      // Simple echo response for now - just return the message back
-      // TODO: Implement full chat functionality with AI integration
-      const response = {
-        content: `You said: "${message}". The chat endpoint is working but AI integration needs to be completed.`,
-        timestamp: new Date().toISOString()
-      };
+      // Build context-aware system prompt
+      let systemPrompt = `You are a helpful writing assistant for creative writers. You provide guidance on:
+- Character development and relationships
+- Plot structure and pacing
+- World-building and setting details
+- Writing techniques and style
+- Story brainstorming and ideation
 
-      res.json(response);
+Your responses should be:
+- Specific and actionable
+- Encouraging and supportive
+- Grounded in storytelling principles
+- Tailored to the writer's current context`;
+
+      // Add document context if available
+      if (editorContent) {
+        systemPrompt += `\n\nThe writer is currently working on a ${documentType || 'document'} titled "${documentTitle || 'Untitled'}"`;
+        if (editorContent.length > 0) {
+          const preview = editorContent.substring(0, 1000);
+          systemPrompt += `\n\nCurrent content excerpt:\n${preview}${editorContent.length > 1000 ? '...' : ''}`;
+        }
+      }
+
+      // Build conversation messages
+      const messages: any[] = [];
+      
+      // Add conversation history if provided
+      if (conversationHistory && Array.isArray(conversationHistory)) {
+        messages.push(...conversationHistory.map((msg: any) => ({
+          role: msg.role,
+          content: msg.content
+        })));
+      }
+      
+      // Add current message
+      messages.push({
+        role: 'user',
+        content: message
+      });
+
+      // Select operation type based on Extended Thinking flag
+      const operationType: OperationType = useExtendedThinking ? 'extended_thinking' : 'conversational_chat';
+
+      // Make AI call using conversation format
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+
+      const model = modelSelector.selectModel(operationType);
+      
+      const response = await anthropic.messages.create({
+        model,
+        system: systemPrompt,
+        max_tokens: 4096,
+        messages
+      });
+
+      const content = response.content[0];
+      if (content.type !== 'text') {
+        throw new Error('Unexpected response format from Anthropic API');
+      }
+
+      // Attach usage metadata
+      attachUsageMetadata(res, response.usage, model);
+
+      res.json({
+        content: content.text,
+        model: modelSelector.getModelDisplayName(model),
+        timestamp: new Date().toISOString()
+      });
 
     } catch (error) {
       console.error('Error in chat endpoint:', error);

@@ -572,14 +572,16 @@ export default function WritingAssistantPanel({
   }, [messages.length]);
 
   // Trigger context analysis after messages change
-  // TEMPORARILY DISABLED: This was causing 5-11 second lag on every message
-  // Will re-enable with proper caching and optimization later
-  // useEffect(() => {
-  //   // Only analyze after assistant messages (when message count is even)
-  //   if (messages.length > 0 && messages[messages.length - 1].type === 'assistant') {
-  //     analyzeContext();
-  //   }
-  // }, [messages.length]);
+  // Re-enabled with caching and debouncing to prevent blocking on every message
+  useEffect(() => {
+    // Only analyze after assistant messages and with meaningful conversation
+    if (messages.length >= 3 && messages[messages.length - 1].type === 'assistant') {
+      const timer = setTimeout(() => {
+        analyzeContext();
+      }, 3000); // 3-second delay to batch rapid exchanges, cache handles identical content
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length]);
 
   // Register functions for header buttons
   useEffect(() => {
