@@ -141,26 +141,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/sentry", sentryTestRoutes);
   
   // Also register /debug-sentry at root level (Sentry's official test endpoint)
-  app.get("/debug-sentry", async function mainHandler(req, res, next) {
-    console.log('[Sentry] /debug-sentry endpoint triggered');
-    const error = new Error('My first Sentry error!');
-    
-    // Explicitly capture in Sentry
-    const Sentry = require('./instrument').default;
-    const eventId = Sentry.captureException(error);
-    
-    console.log('[Sentry] Error captured with event ID:', eventId);
-    
-    // CRITICAL: Flush the event to Sentry servers before responding
-    // This ensures the error is sent even though we're responding immediately
-    try {
-      await Sentry.flush(2000); // Wait up to 2 seconds for the event to be sent
-      console.log('[Sentry] Event successfully flushed to Sentry');
-      res.status(500).send(`Test error sent to Sentry! Event ID: ${eventId}<br><br>Check your Sentry dashboard.`);
-    } catch (flushError) {
-      console.error('[Sentry] Failed to flush event:', flushError);
-      res.status(500).send(`Error captured but failed to send to Sentry. Event ID: ${eventId}`);
-    }
+  app.get("/debug-sentry", function mainHandler(req, res) {
+    console.log('[Sentry] /debug-sentry endpoint triggered - throwing error');
+    throw new Error('My first Sentry error!');
   });
 
   // Register modular domain-specific routes

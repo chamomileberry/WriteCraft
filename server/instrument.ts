@@ -1,3 +1,4 @@
+
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
@@ -33,14 +34,8 @@ Sentry.init({
   ],
   profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
   
-  // Log monitoring
-  enableLogs: true,
-  
-  // User context (includes IP and headers)
-  sendDefaultPii: false, // We'll manually set user context for privacy
-  
-  // Release tracking
-  release: process.env.npm_package_version || 'unknown',
+  // Enable tracing
+  tracesSampleRate: 1.0,
   
   // Before send hook to filter out sensitive data
   beforeSend(event, hint) {
