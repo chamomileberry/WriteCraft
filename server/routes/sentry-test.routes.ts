@@ -60,4 +60,24 @@ router.get('/test-sentry-message', (req, res) => {
   });
 });
 
+// Simple test endpoint that manually captures an exception
+router.get('/test-capture', (req, res) => {
+  console.log('[Sentry Test] Manually capturing exception...');
+  
+  try {
+    // Create and capture an error without throwing it
+    const error = new Error('Manual Sentry test - captured without throwing');
+    const eventId = Sentry.captureException(error);
+    
+    res.json({
+      success: true,
+      message: 'Exception manually captured and sent to Sentry',
+      eventId,
+      instructions: 'Check your Sentry dashboard at https://writecraft.sentry.io to see this event'
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to capture exception', details: String(err) });
+  }
+});
+
 export default router;

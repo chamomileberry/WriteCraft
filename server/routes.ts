@@ -102,6 +102,10 @@ const timelineRateLimiter = createRateLimiter({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register Sentry test endpoints FIRST - must be before any auth or middleware
+  // These endpoints need to be completely public to test error tracking
+  app.use("/api/sentry", sentryTestRoutes);
+
   // Setup Replit Auth (must be before other routes)
   await setupAuth(app);
 
@@ -110,9 +114,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // CSP violation reporting endpoint (no authentication required - browser sends these automatically)
   app.use("/api/csp-report", cspReportRoutes);
-
-  // Register Sentry test endpoints BEFORE authentication (available in all environments to verify error tracking)
-  app.use("/api/sentry", sentryTestRoutes);
 
   // Versioned API routes (uses API key authentication instead of session)
   const { default: v1ApiRoutes } = await import('./routes/api/v1/index');
