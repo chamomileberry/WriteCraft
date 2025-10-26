@@ -2425,22 +2425,22 @@ Use this context to provide more relevant and specific advice about their curren
     // Add the current user message
     messages.push({ role: 'user', content: message });
 
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      system: systemPrompt,
-      max_tokens: 2048,
-      messages: messages,
+    // Use intelligent model selection with prompt caching
+    const result = await makeAICall({
+      operationType: 'conversational_chat',
+      userId: userId,
+      systemPrompt,
+      userPrompt: message,
+      conversationHistory: messages.slice(0, -1), // Exclude current message
+      maxTokens: 2048,
+      textLength: editorContent?.length || 0,
+      enableCaching: true
     });
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API');
-    }
-
     return {
-      result: content.text.trim(),
-      usage: response.usage,
-      model: DEFAULT_MODEL_STR
+      result: result.content.trim(),
+      usage: result.usage,
+      model: result.model
     };
   } catch (error) {
     console.error('Error in conversational chat with AI:', error);
