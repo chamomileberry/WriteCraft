@@ -107,9 +107,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoints (no authentication required - for uptime monitoring)
   registerHealthRoutes(app);
-  
+
   // CSP violation reporting endpoint (no authentication required - browser sends these automatically)
   app.use("/api/csp-report", cspReportRoutes);
+
+  // Register Sentry test endpoints BEFORE authentication (available in all environments to verify error tracking)
+  app.use("/api/sentry", sentryTestRoutes);
 
   // Versioned API routes (uses API key authentication instead of session)
   const { default: v1ApiRoutes } = await import('./routes/api/v1/index');
@@ -122,27 +125,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // - Input sanitization
   // - Admin field protection
   // - Security audit logging
-  const { default: secureUserRoutes } = await import('./security/userRoutes');
-  app.use('/api', secureUserRoutes);
-  
+  const { default: securityTestRoutes } = await import('./security/test-endpoints');
+  app.use('/api', securityTestRoutes);
+
   // Register MFA (Multi-Factor Authentication) routes
   app.use("/api/auth/mfa", mfaRoutes);
-  
+
   // Register security management routes (admin only)
   app.use("/api/security", securityRoutes);
-  
+
   // Register security test endpoints (development only)
   if (process.env.NODE_ENV !== 'production') {
     const { default: securityTestRoutes } = await import('./security/test-endpoints');
     app.use('/api', securityTestRoutes);
   }
 
-  // Register Sentry test endpoints (available in all environments to verify error tracking)
-  app.use("/api/sentry", sentryTestRoutes);
-
   // Register modular domain-specific routes
   registerDomainRoutes(app);
-  
+
   // Register AI routes
   app.use("/api/ai", aiRoutes);
 
@@ -169,10 +169,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register discount code routes
   app.use("/api/discount-codes", discountCodeRouter);
-  
+
   // Migration routes (admin endpoints for tier assignment)
   app.use("/api/migration", migrationRoutes);
-  
+
   // Team analytics and audit log routes (Team tier exclusive)
   app.use("/api/team", teamAnalyticsRoutes);
 
@@ -191,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check if this is a private object (in .private/ directory)
       const isPrivate = req.path.includes('/.private/');
-      
+
       if (isPrivate) {
         // Private objects require authentication and ownership check
         // For production use, implement ownership validation here
@@ -199,13 +199,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: "Private objects require authentication and ownership validation" 
         });
       }
-      
+
       // Extract the file path after /objects/
       const filePath = req.path.replace('/objects/', '');
-      
+
       // Try to find in public search paths (for avatars and other public content)
       let objectFile = await objectStorageService.searchPublicObject(filePath);
-      
+
       // If not found in public paths, try private entity storage for backward compatibility
       if (!objectFile) {
         try {
@@ -217,11 +217,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw err;
         }
       }
-      
+
       if (!objectFile) {
         return res.sendStatus(404);
       }
-      
+
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error retrieving object:", error);
@@ -237,11 +237,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const objectStorageService = new ObjectStorageService();
       const { visibility } = req.body;
       const isPublic = visibility === 'public';
-      
+
       let uploadURL: string;
       let objectId: string;
       let objectPath: string;
-      
+
       if (isPublic) {
         // Public uploads (avatars) go to public directory
         const result = await objectStorageService.getPublicObjectUploadURL();
@@ -255,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         objectId = result.objectId;
         objectPath = `/objects/uploads/${objectId}`;
       }
-      
+
       res.json({ 
         uploadURL,
         objectPath,
@@ -271,7 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload/finalize", isAuthenticated, async (req: any, res) => {
     try {
       const { objectPath } = req.body;
-      
+
       if (!objectPath) {
         return res.status(400).json({ error: "objectPath is required" });
       }
@@ -280,14 +280,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
 
       const objectStorageService = new ObjectStorageService();
-      
+
       // Check if this is a public avatar (no ACL needed for public storage)
       if (objectPath.startsWith('/objects/avatars/')) {
         // Public avatars are already in public storage, just return the path
         res.json({ objectPath });
         return;
       }
-      
+
       // For private uploads, set ACL policy
       const finalPath = await objectStorageService.trySetObjectEntityAclPolicy(
         objectPath,
@@ -319,14 +319,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const query = req.query.q as string || '';
       const typeFilter = req.query.type as string || ''; // Optional type filter
-      
+
       const searchResults = await storage.searchAllContent(userId, query);
-      
+
       // Filter by type if specified
       const filteredResults = typeFilter 
         ? searchResults.filter(result => result.type === typeFilter)
         : searchResults;
-      
+
       res.json(filteredResults);
     } catch (error) {
       console.error('Error searching content:', error);
@@ -340,18 +340,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const notebookId = req.query.notebookId as string;
       const category = req.query.category as string;
-      
+
       if (!notebookId) {
         return res.status(400).json({ error: 'Notebook ID is required' });
       }
-      
+
       const pinnedItems = await storage.getUserPinnedContent(userId, notebookId, category);
-      
+
       // Enhance pinned items with actual content data
       const enhancedItems = await Promise.all(pinnedItems.map(async (pin) => {
         let title = 'Unknown';
         let subtitle = '';
-        
+
         try {
           // Fetch the actual content based on type
           // Note: If pin.notebookId is not available, skip enhanced data
@@ -387,14 +387,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.error(`Error fetching ${pin.targetType} data:`, error);
         }
-        
+
         return {
           ...pin,
           title,
           subtitle
         };
       }));
-      
+
       res.json(enhancedItems);
     } catch (error) {
       console.error('Error fetching pinned content:', error);
@@ -406,11 +406,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { notebookId, targetType, targetId, category, notes } = req.body;
-      
+
       if (!notebookId) {
         return res.status(400).json({ error: 'Notebook ID is required' });
       }
-      
+
       const pinData = {
         userId,
         notebookId,
@@ -419,7 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         category,
         notes
       };
-      
+
       const pinnedItem = await storage.pinContent(pinData);
       res.json(pinnedItem);
     } catch (error) {
@@ -433,19 +433,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const pinnedId = req.params.id;
       const notebookId = req.query.notebookId as string;
-      
+
       if (!notebookId) {
         return res.status(400).json({ error: 'Notebook ID is required' });
       }
-      
+
       // Find the pinned item first to get its details
       const pinnedItems = await storage.getUserPinnedContent(userId, notebookId);
       const pinnedItem = pinnedItems.find(item => item.id === pinnedId);
-      
+
       if (!pinnedItem) {
         return res.status(404).json({ error: 'Pinned item not found' });
       }
-      
+
       await storage.unpinContent(userId, pinnedItem.targetType, pinnedItem.targetId, notebookId);
       res.json({ success: true });
     } catch (error) {
@@ -499,7 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { type, folderId, documentId } = req.query;
-      
+
       let notes;
       if (folderId) {
         notes = await storage.getFolderNotes(folderId as string, userId);
@@ -551,7 +551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { title, content } = req.body;
-      
+
       // Check if user already has a quick note
       const existingNote = await storage.getUserQuickNote(userId);
       if (existingNote) {
@@ -572,12 +572,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/quick-note", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       const quickNote = await storage.getUserQuickNote(userId);
       if (!quickNote) {
         return res.status(404).json({ error: 'Quick note not found' });
       }
-      
+
       res.json(quickNote);
     } catch (error) {
       console.error('Error fetching quick note:', error);
@@ -590,12 +590,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       const quickNote = await storage.getQuickNoteById(id, userId);
       if (!quickNote) {
         return res.status(404).json({ error: 'Quick note not found' });
       }
-      
+
       res.json(quickNote);
     } catch (error) {
       console.error('Error fetching quick note:', error);
@@ -609,7 +609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { id } = req.params;
       const { title, content } = req.body;
-      
+
       const updatedNote = await storage.updateQuickNote(id, userId, { title, content });
       res.json(updatedNote);
     } catch (error) {
@@ -624,12 +624,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/quick-note", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       const quickNote = await storage.getUserQuickNote(userId);
       if (!quickNote) {
         return res.status(404).json({ error: 'Quick note not found' });
       }
-      
+
       await storage.deleteQuickNote(quickNote.id, userId);
       res.status(204).send();
     } catch (error) {
@@ -704,10 +704,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { word } = z.object({ word: z.string() }).parse(req.body);
       const aiResult = await generateSynonyms(word);
-      
+
       // Attach usage metadata for tracking
       attachUsageMetadata(res, aiResult.usage, aiResult.model);
-      
+
       res.json({ synonyms: aiResult.result });
     } catch (error) {
       console.error('Error generating synonyms:', error);
@@ -723,10 +723,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { word } = z.object({ word: z.string() }).parse(req.body);
       const aiResult = await getWordDefinition(word);
-      
+
       // Attach usage metadata for tracking
       attachUsageMetadata(res, aiResult.usage, aiResult.model);
-      
+
       res.json({ definition: aiResult.result });
     } catch (error) {
       console.error('Error getting word definition:', error);
@@ -747,10 +747,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         documentType: z.enum(['manuscript', 'guide', 'project', 'section']).optional()
       }).parse(req.body);
       const aiResult = await generateQuestions(text, editorContent, documentTitle, documentType);
-      
+
       // Attach usage metadata for tracking
       attachUsageMetadata(res, aiResult.usage, aiResult.model);
-      
+
       res.json({ questions: aiResult.result });
     } catch (error) {
       console.error('Error generating questions:', error);
@@ -799,7 +799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projectId: z.string().optional(),
         guideId: z.string().optional()
       }).parse(req.body);
-      
+
       const aiResult = await conversationalChat(
         message, 
         conversationHistory, 
@@ -811,10 +811,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projectId,
         guideId
       );
-      
+
       // Attach usage metadata for tracking
       attachUsageMetadata(res, aiResult.usage, aiResult.model);
-      
+
       res.json({ message: aiResult.result });
     } catch (error) {
       console.error('Error in conversational chat:', error);
@@ -831,7 +831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get authenticated userId from session (never trust client headers)
       const userId = req.user.claims.sub;
-      
+
       const { projectId, guideId, type, content, metadata } = z.object({
         projectId: z.string().optional(),
         guideId: z.string().optional(),
@@ -864,7 +864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get authenticated userId from session (never trust client headers)
       const userId = req.user.claims.sub;
-      
+
       const { projectId, guideId, limit } = z.object({
         projectId: z.string().optional(),
         guideId: z.string().optional(),
@@ -887,7 +887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get authenticated userId from session (never trust client headers)
       const userId = req.user.claims.sub;
-      
+
       const { projectId, guideId } = z.object({
         projectId: z.string().optional(),
         guideId: z.string().optional()
@@ -910,11 +910,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const preferences = await storage.getUserPreferences(userId);
-      
+
       if (!preferences) {
         return res.status(404).json({ error: 'User preferences not found' });
       }
-      
+
       res.json(preferences);
     } catch (error) {
       console.error('Error fetching user preferences:', error);
@@ -925,7 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/user-preferences", async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       const preferences = z.object({
         experienceLevel: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
         preferredGenres: z.array(z.string()).optional(),
@@ -951,18 +951,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/conversation-summary", async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       const { projectId, guideId } = z.object({
         projectId: z.string().optional(),
         guideId: z.string().optional()
       }).parse(req.query);
 
       const summary = await storage.getConversationSummary(userId, projectId, guideId);
-      
+
       if (!summary) {
         return res.status(204).send(); // No content instead of 404
       }
-      
+
       res.json(summary);
     } catch (error) {
       console.error('Error fetching conversation summary:', error);
@@ -1019,7 +1019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timeline = await storage.getTimeline(id, userId, notebookId as string);
 
       logger.debug('[GET /api/timelines/:id] Query result:', timeline ? `Found timeline ${timeline.id}` : 'Timeline not found');
-      
+
       if (!timeline) {
         return res.status(404).json({ error: 'Timeline not found' });
       }
@@ -1082,7 +1082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { id } = req.params;
       const updates = req.body;
-      
+
       const event = await storage.updateTimelineEvent(id, userId, updates);
       res.json(event);
     } catch (error) {
@@ -1227,7 +1227,7 @@ function getRandomWordCount(): number {
 function generateRandomNames(nameType: string, culture: string, userId: string | null): any[] {
   const firstNames = ["Aria", "Zara", "Kai", "Luna", "Dex", "Nova", "Orion", "Maya", "Finn", "Phoenix"];
   const lastNames = ["Stormwind", "Shadowbane", "Goldleaf", "Ironforge", "Moonwhisper", "Starfall", "Bloodmoon", "Frostborn", "Earthshaker", "Voidwalker"];
-  
+
   const names = [];
   for (let i = 0; i < 10; i++) {
     names.push({
