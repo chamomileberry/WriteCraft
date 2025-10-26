@@ -564,22 +564,23 @@ export default function CharacterEditorWithSidebar({
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-card">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between p-3 md:p-4 border-b bg-card flex-shrink-0">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               data-testid="button-open-sidebar"
+              className="flex-shrink-0"
             >
               <Menu className="w-5 h-5" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold">{config.title}</h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg md:text-xl font-bold truncate">{config.title}</h1>
               {currentSection && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs md:text-sm text-muted-foreground truncate">
                   {currentSection.label} - {currentTab?.label}
                 </p>
               )}
@@ -601,9 +602,9 @@ export default function CharacterEditorWithSidebar({
 
         {/* Form Content */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-auto">
-              <div className="max-w-4xl mx-auto p-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-3 md:p-6">
                 {activeSection === "identity" && activeTab === "basic" && (
                   <ContentHero 
                     imageUrl={form.watch('imageUrl')} 

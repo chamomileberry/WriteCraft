@@ -362,17 +362,33 @@ export default function WritingAssistantPanel({
       addMessage('assistant', data.message);
     },
     onError: (error: any) => {
-      let errorMessage = "I'm having a moment of writer's block myself! Could you rephrase your question, or would you like to try a different aspect of your project?";
+      console.error('Chat API error:', error);
+      
+      let errorMessage = "I'm having trouble processing your request. Please try again.";
 
-      if (error?.response?.data?.error) {
+      // Handle specific error cases
+      if (error?.response?.status === 429) {
+        errorMessage = "You've reached your usage limit. Please wait a moment and try again.";
+      } else if (error?.response?.status === 401 || error?.response?.status === 403) {
+        errorMessage = "Your session has expired. Please refresh the page and try again.";
+      } else if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error?.message) {
-        if (error.message.includes('network') || error.message.includes('fetch')) {
+        if (error.message.includes('network') || error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
           errorMessage = "I'm having trouble connecting right now. Please check your internet connection and try again.";
+        } else if (error.message.includes('timeout')) {
+          errorMessage = "The request took too long. Please try a shorter question or try again.";
         }
       }
 
       addMessage('assistant', errorMessage);
+      
+      // Show a toast for additional visibility
+      toast({
+        title: 'Chat Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -1156,11 +1172,11 @@ export default function WritingAssistantPanel({
         </div>
       </ScrollArea>
 
-      {/* Detected Entities */}
+      {/* Detected Entities - moved inside ScrollArea for mobile visibility */}
       {detectedEntities.length > 0 && (
-        <div className="flex-shrink-0 border-t bg-muted/30">
+        <div className="flex-shrink-0 border-t bg-muted/30 max-h-[40vh] overflow-y-auto">
           <div className="p-3 space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sticky top-0 bg-muted/30 pb-2 z-10">
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-xs font-medium">Detected from conversation</span>
               {isDetectingEntities && (
