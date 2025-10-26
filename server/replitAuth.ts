@@ -205,6 +205,23 @@ export async function setupAuth(app: Express) {
     });
   });
 
+  // Get current authenticated user
+  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  });
+
   // User search endpoint for collaboration
   app.get("/api/auth/users/search", isAuthenticated, async (req: any, res) => {
     try {
