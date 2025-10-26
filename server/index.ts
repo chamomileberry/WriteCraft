@@ -1,5 +1,5 @@
-// Sentry is initialized via --import flag in dev.sh and deployment config
-// DO NOT import "./instrument" here as it will initialize Sentry twice
+// IMPORTANT: Sentry must be imported first before any other modules
+import "./instrument.mjs";
 
 import { createApp } from "./app";
 import { setupVite, serveStatic, log } from "./vite";

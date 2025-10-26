@@ -4,11 +4,7 @@ import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 const sentryDsn = process.env.SENTRY_DSN;
 
-console.log('[Sentry] Initializing...', { 
-  dsnConfigured: !!sentryDsn,
-  environment: process.env.NODE_ENV 
-});
-
+// Sentry initialization runs immediately when this module is imported
 Sentry.init({
   dsn: sentryDsn,
   enabled: !!sentryDsn,
@@ -41,7 +37,5 @@ Sentry.init({
     return event;
   },
 });
-
-console.log('[Sentry] Initialization complete');
 
 export default Sentry;
