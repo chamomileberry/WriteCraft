@@ -13,20 +13,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, AlertTriangle, Loader2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { logger } from "@/lib/logger";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
+import Header from "@/components/Header";
 
 type FeedbackType = "bug" | "feature-request" | "general-feedback";
 type SubmissionStatus = "idle" | "submitting" | "success" | "error";
 
 export default function FeedbackPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [feedbackType, setFeedbackType] = useState<FeedbackType>("bug");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<SubmissionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setLocation(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleNavigate = (path: string) => {
+    setLocation(path);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,21 +102,11 @@ export default function FeedbackPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with back navigation */}
-      <header className="sticky top-0 z-[var(--z-header)] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/">
-              <Button variant="ghost" size="sm" data-testid="button-back-to-home">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
-            <h1 className="text-lg font-semibold">Feedback</h1>
-            <div className="w-24"></div>
-          </div>
-        </div>
-      </header>
+      <Header
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+      />
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12">
