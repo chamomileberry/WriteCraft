@@ -16,6 +16,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import ContextualPromptCard from './ContextualPromptCard';
 import EntityActionCard from './EntityActionCard';
 import EntityPreviewDialog from './EntityPreviewDialog';
@@ -33,7 +41,8 @@ import {
   ArrowRightToLine,
   User,
   Bot,
-  Trash2
+  Trash2,
+  ImageIcon
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -126,6 +135,10 @@ export default function WritingAssistantPanel({
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const [extendedThinkingEnabled, setExtendedThinkingEnabled] = useState(false);
+
+  // Image generation state
+  const [showImagePromptDialog, setShowImagePromptDialog] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState('');
 
   // Thread management state
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
@@ -363,7 +376,7 @@ export default function WritingAssistantPanel({
     },
     onError: (error: any) => {
       console.error('Chat API error:', error);
-      
+
       let errorMessage = "I'm having trouble processing your request. Please try again.";
 
       // Handle specific error cases
@@ -382,11 +395,43 @@ export default function WritingAssistantPanel({
       }
 
       addMessage('assistant', errorMessage);
-      
+
       // Show a toast for additional visibility
       toast({
         title: 'Chat Error',
         description: errorMessage,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Mutation for AI image generation
+  const generateImageMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      const response = await fetch('/api/ideogram/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          prompt,
+          quality: 'standard',
+          size: '1024x1024'
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to generate image');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Add the generated image to the conversation
+      addMessage('assistant', `I've generated an image for you:\n\n![Generated Image](${data.imageUrl})`);
+      setShowImagePromptDialog(false);
+      setImagePrompt('');
+    },
+    onError: (error: any) => {
+      console.error('Image generation error:', error);
+      toast({
+        title: 'Image generation failed',
+        description: error.message || 'Failed to generate image. Please try again.',
         variant: 'destructive',
       });
     },
@@ -800,7 +845,7 @@ export default function WritingAssistantPanel({
         // Handle personality - convert to array if needed
         if (entity.details.personality) {
           let personalityArray: string[] = [];
-          
+
           // If it's already an array, use it
           if (Array.isArray(entity.details.personality)) {
             personalityArray = entity.details.personality;
@@ -817,7 +862,7 @@ export default function WritingAssistantPanel({
           if (personalityArray.length > 0) {
             const existingTraits = Array.isArray(existingChar.personality) ? existingChar.personality : [];
             const newTraits = personalityArray.filter(trait => !existingTraits.includes(trait));
-            
+
             if (newTraits.length > 0) {
               updates.personality = [...existingTraits, ...newTraits];
             }
@@ -870,7 +915,7 @@ export default function WritingAssistantPanel({
           'mannerisms', 'speech', 'beliefs', 'values', 'quirks',
           'appearance', 'voice', 'style', 'relationships'
         ];
-        
+
         textFields.forEach(field => {
           if (entity.details[field]) {
             const existingValue = (existingChar as any)[field];
@@ -916,9 +961,9 @@ export default function WritingAssistantPanel({
                 education: 'Education',
                 religiousBelief: 'Religious beliefs'
               };
-              
+
               const label = fieldLabels[key] || key.replace(/([A-Z])/g, ' $1').trim();
-              
+
               // Format the value for display
               let displayValue = '';
               if (Array.isArray(value)) {
@@ -932,7 +977,7 @@ export default function WritingAssistantPanel({
               } else {
                 displayValue = String(value);
               }
-              
+
               return `• ${label}: ${displayValue}`;
             }).join('\n');
 
@@ -948,7 +993,7 @@ export default function WritingAssistantPanel({
               ),
               duration: 10000 // Show for 10 seconds so user can read it
             });
-            
+
             // Remove this entity from detected entities
             setDetectedEntities(prev => prev.filter(e => e !== entity));
             // Invalidate characters query
@@ -1264,11 +1309,93 @@ export default function WritingAssistantPanel({
         )}
 
         {/* Chat Input */}
-        <ChatInput 
-          onSubmit={handleChatSubmit}
-          isPending={chatMutation.isPending}
-        />
+        <form onSubmit={(e) => { e.preventDefault(); handleChatSubmit(textareaRef.current?.value || ''); }}>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              onClick={() => setShowImagePromptDialog(true)}
+              disabled={chatMutation.isPending}
+              className="shrink-0"
+              data-testid="button-generate-image"
+              title="Generate AI Image"
+            >
+              <ImageIcon className="h-4 w-4" />
+            </Button>
+            <ChatInput 
+              onSubmit={handleChatSubmit}
+              isPending={chatMutation.isPending}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={chatMutation.isPending || !textareaRef.current?.value?.trim()}
+              className="shrink-0"
+              data-testid="button-send-message"
+            >
+              {chatMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowRightToLine className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
+
+      {/* Image Generation Dialog */}
+      <Dialog open={showImagePromptDialog} onOpenChange={setShowImagePromptDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Generate AI Image</DialogTitle>
+            <DialogDescription>
+              Describe the image you want to generate
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="E.g., A fantasy character portrait of an elven warrior with silver hair..."
+              value={imagePrompt}
+              onChange={(e) => setImagePrompt(e.target.value)}
+              rows={4}
+              data-testid="textarea-image-prompt"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowImagePromptDialog(false);
+                setImagePrompt('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (imagePrompt.trim()) {
+                  generateImageMutation.mutate(imagePrompt.trim());
+                }
+              }}
+              disabled={!imagePrompt.trim() || generateImageMutation.isPending}
+              data-testid="button-submit-image-generation"
+            >
+              {generateImageMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Generate
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Entity Preview Dialog */}
       <EntityPreviewDialog

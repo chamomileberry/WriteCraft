@@ -1741,6 +1741,21 @@ export async function conversationalChat(
   </important_code_snippet_instructions>
   */
   
+  // Check if the user is requesting an image generation
+  const imageGenerationPattern = /(?:generate|create|make|show me)\s+(?:an?\s+)?image\s+(?:of|showing|depicting|with)?\s*(.+)/i;
+  const imageMatch = message.match(imageGenerationPattern);
+  
+  if (imageMatch) {
+    // Extract the image prompt from the message
+    const imagePrompt = imageMatch[1] || message.replace(/(?:generate|create|make|show me)\s+(?:an?\s+)?image\s*/i, '').trim();
+    
+    return {
+      result: `I'll generate an image for you. Please use the "Generate Image" button in the chat interface with this prompt: "${imagePrompt}"`,
+      usage: undefined,
+      model: undefined
+    };
+  }
+  
   // Helper: Extract character names mentioned in recent conversation
   const extractMentionedCharacters = (history: Array<{ role: string; content: string }>) => {
     const recentMessages = history.slice(-3); // Last 3 messages
