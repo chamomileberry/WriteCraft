@@ -6,15 +6,22 @@ import { setupVite, serveStatic, log } from "./vite";
 import * as keyRotationService from "./services/apiKeyRotationService";
 
 (async () => {
+  const startTime = Date.now();
+  console.log('[Startup] Application initialization started');
+  
   const { app, server } = await createApp();
+  console.log(`[Startup] App created in ${Date.now() - startTime}ms`);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
+  const viteStartTime = Date.now();
   if (app.get("env") === "development") {
     await setupVite(app, server);
+    console.log(`[Startup] Vite setup completed in ${Date.now() - viteStartTime}ms`);
   } else {
     serveStatic(app);
+    console.log(`[Startup] Static serving configured in ${Date.now() - viteStartTime}ms`);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
@@ -27,6 +34,7 @@ import * as keyRotationService from "./services/apiKeyRotationService";
     host: "0.0.0.0",
     reusePort: true,
   }, async () => {
+    console.log(`[Startup] Server listening on port ${port} - Total startup time: ${Date.now() - startTime}ms`);
     log(`serving on port ${port}`);
     
     // Initialize API key rotation tracking
