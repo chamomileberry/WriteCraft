@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -49,6 +50,7 @@ export default function FeedbackManagement() {
   const [typeFilter, setTypeFilter] = useState<FeedbackType | "all">("all");
   const [statusFilter, setStatusFilter] = useState<FeedbackStatus | "all">("all");
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackResponse | null>(null);
+  const [replyText, setReplyText] = useState("");
   const queryClient = useQueryClient();
 
   // Fetch feedback
@@ -60,6 +62,39 @@ export default function FeedbackManagement() {
       });
       if (!res.ok) throw new Error("Failed to fetch feedback");
       return res.json();
+    },
+  });
+
+  // Reply to feedback mutation
+  const { mutate: replyToFeedback, isPending: isReplying } = useMutation({
+    mutationFn: async ({ id, reply }: { id: string; reply: string }) => {
+      // Fetch CSRF token first
+      const csrfResponse = await fetch('/api/auth/csrf-token', {
+        credentials: 'include',
+      });
+      const { csrfToken } = await csrfResponse.json();
+
+      // Send reply with CSRF token
+      const response = await fetch(`/api/admin/feedback/${id}/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
+        },
+        credentials: "include",
+        body: JSON.stringify({ reply }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send reply");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/feedback"] });
+      setReplyText("");
+      logger.info("Reply sent successfully");
     },
   });
 
@@ -343,6 +378,43 @@ export default function FeedbackManagement() {
                   <p className="font-semibold text-muted-foreground">Submitted</p>
                   <p>{new Date(selectedFeedback.createdAt).toLocaleString()}</p>
                 </div>
+              </div>
+
+              {selectedFeedback.adminReply && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Your Reply</h3>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm whitespace-pre-wrap">{selectedFeedback.adminReply}</p>
+                    {selectedFeedback.adminRepliedAt && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Sent on {new Date(selectedFeedback.adminRepliedAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <h3 className="font-semibold">Send Reply</h3>
+                <Textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your reply to the user..."
+                  className="min-h-[100px]"
+                  data-testid="textarea-admin-reply"
+                />
+                <Button
+                  onClick={() => {
+                    if (replyText.trim()) {
+                      replyToFeedback({ id: selectedFeedback.id, reply: replyText });
+                    }
+                  }}
+                  disabled={!replyText.trim() || isReplying}
+                  data-testid="button-send-reply"
+                >
+                  {isReplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Send Reply
+                </Button>
               </div>
             </CardContent>
           </Card>

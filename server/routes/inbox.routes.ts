@@ -1,9 +1,21 @@
 
 import { Router } from "express";
-import { storage } from "../storage";
+import { storage } from "../repositories/storage.facade";
 import { logger } from "../utils/logger";
 
 const router = Router();
+
+// GET /api/inbox/unread-count - Get unread reply count (must be before /:id routes)
+router.get("/unread-count", async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const count = await storage.getUnreadReplyCount(userId);
+    res.json({ count });
+  } catch (error) {
+    logger.error("Error getting unread count:", error);
+    res.status(500).json({ error: "Failed to get unread count" });
+  }
+});
 
 // GET /api/inbox - Get user's feedback with replies
 router.get("/", async (req: any, res) => {
@@ -33,18 +45,6 @@ router.put("/:id/mark-read", async (req: any, res) => {
   } catch (error) {
     logger.error("Error marking feedback as read:", error);
     res.status(500).json({ error: "Failed to mark as read" });
-  }
-});
-
-// GET /api/inbox/unread-count - Get unread reply count
-router.get("/unread-count", async (req: any, res) => {
-  try {
-    const userId = req.user.claims.sub;
-    const count = await storage.getUnreadReplyCount(userId);
-    res.json({ count });
-  } catch (error) {
-    logger.error("Error getting unread count:", error);
-    res.status(500).json({ error: "Failed to get unread count" });
   }
 });
 

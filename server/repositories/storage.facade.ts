@@ -1171,24 +1171,24 @@ export class StorageFacade implements IStorage {
   }
 
   // Map methods
-  async createMap(map: InsertMap): Promise<Map> {
-    return await contentRepository.createMap(map);
+  async createCanvasMap(map: InsertMap): Promise<Map> {
+    return await contentRepository.createCanvasMap(map);
   }
 
-  async getMap(id: string, userId: string, notebookId: string): Promise<Map | undefined> {
-    return await contentRepository.getMap(id, userId, notebookId);
+  async getCanvasMap(id: string, userId: string, notebookId: string): Promise<Map | undefined> {
+    return await contentRepository.getCanvasMap(id, userId, notebookId);
   }
 
-  async getUserMaps(userId: string, notebookId: string): Promise<Map[]> {
-    return await contentRepository.getUserMaps(userId, notebookId);
+  async getUserCanvasMaps(userId: string, notebookId: string): Promise<Map[]> {
+    return await contentRepository.getUserCanvasMaps(userId, notebookId);
   }
 
-  async updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
-    return await contentRepository.updateMap(id, userId, updates);
+  async updateCanvasMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
+    return await contentRepository.updateCanvasMap(id, userId, updates);
   }
 
-  async deleteMap(id: string, userId: string): Promise<void> {
-    await contentRepository.deleteMap(id, userId);
+  async deleteCanvasMap(id: string, userId: string): Promise<void> {
+    await contentRepository.deleteCanvasMap(id, userId);
   }
 
   // Music methods
@@ -1889,6 +1889,43 @@ export class StorageFacade implements IStorage {
     return updated || undefined;
   }
 
+  async getUserFeedback(userId: string): Promise<Feedback[]> {
+    return await db
+      .select()
+      .from(feedback)
+      .where(eq(feedback.userId, userId))
+      .orderBy(desc(feedback.createdAt));
+  }
+
+  async markFeedbackReplyAsRead(feedbackId: string, userId: string): Promise<Feedback | undefined> {
+    const [updated] = await db
+      .update(feedback)
+      .set({ repliedAt: new Date(), readAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(feedback.id, feedbackId), eq(feedback.userId, userId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async getUnreadReplyCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(feedback)
+      .where(and(
+        eq(feedback.userId, userId),
+        isNull(feedback.readAt)
+      ));
+    return result.count;
+  }
+
+  async replyToFeedback(feedbackId: string, reply: string, adminUserId: string): Promise<Feedback | undefined> {
+    const [updated] = await db
+      .update(feedback)
+      .set({ reply, repliedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(feedback.id, feedbackId), eq(feedback.adminUserId, adminUserId)))
+      .returning();
+    return updated || undefined;
+  }
+
   // Conversation thread methods
   async createConversationThread(thread: InsertConversationThread): Promise<ConversationThread> {
     const [newThread] = await db
@@ -2050,7 +2087,7 @@ export class StorageFacade implements IStorage {
       .select()
       .from(conversationThreads)
       .where(eq(conversationThreads.id, id));
-    
+
     if (!existing) {
       throw new Error('Conversation thread not found');
     }

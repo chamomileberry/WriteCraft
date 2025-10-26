@@ -61,6 +61,11 @@ router.put("/:id", async (req: any, res) => {
 // POST /api/admin/feedback/:id/reply - Reply to feedback (admin only)
 router.post("/:id/reply", async (req: any, res) => {
   try {
+    // Fetch CSRF token first
+    const csrfResponse = await fetch('/api/auth/csrf-token', {
+      credentials: 'include',
+    });
+
     // Check if user is admin
     const user = await storage.getUser(req.user.claims.sub);
     if (!user?.isAdmin) {

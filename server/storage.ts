@@ -5656,6 +5656,52 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .returning();
     return updated || undefined;
   }
+
+  async getUserFeedback(userId: string): Promise<Feedback[]> {
+    return await db
+      .select()
+      .from(feedback)
+      .where(eq(feedback.userId, userId))
+      .orderBy(desc(feedback.createdAt));
+  }
+
+  async markFeedbackReplyAsRead(feedbackId: string, userId: string): Promise<Feedback | undefined> {
+    const [updated] = await db
+      .update(feedback)
+      .set({ hasUnreadReply: false })
+      .where(and(
+        eq(feedback.id, feedbackId),
+        eq(feedback.userId, userId)
+      ))
+      .returning();
+    return updated || undefined;
+  }
+
+  async getUnreadReplyCount(userId: string): Promise<number> {
+    const results = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(feedback)
+      .where(and(
+        eq(feedback.userId, userId),
+        eq(feedback.hasUnreadReply, true)
+      ));
+    return Number(results[0]?.count || 0);
+  }
+
+  async replyToFeedback(feedbackId: string, reply: string, adminUserId: string): Promise<Feedback | undefined> {
+    const [updated] = await db
+      .update(feedback)
+      .set({
+        adminReply: reply,
+        adminRepliedAt: new Date(),
+        adminRepliedBy: adminUserId,
+        hasUnreadReply: true,
+        updatedAt: new Date()
+      })
+      .where(eq(feedback.id, feedbackId))
+      .returning();
+    return updated || undefined;
+  }
 }
 
 // Export the storage facade that delegates to modular repositories

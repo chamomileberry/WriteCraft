@@ -1,4 +1,4 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload, HelpCircle } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload, HelpCircle, Inbox, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -26,6 +26,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] = useState(false);
   const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
 
@@ -86,6 +87,26 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     setIsDark(isDarkMode);
     document.documentElement.classList.toggle('dark', isDarkMode);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch('/api/inbox/unread-count', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.count || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 60000); // Poll every minute
+    return () => clearInterval(interval);
+  }, [user]);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -151,6 +172,24 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               aria-label="Search"
             >
               <Search className="h-4 w-4" />
+            </Button>
+
+            {/* Inbox Button with Badge */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setLocation('/inbox')}
+              className="relative"
+              data-testid="button-inbox"
+              title="Inbox"
+              aria-label="Inbox"
+            >
+              <Inbox className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Button>
 
             <Button
@@ -239,6 +278,10 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                 {user?.isAdmin && (
                   <>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setLocation('/admin/feedback')} data-testid="menu-admin-feedback">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Feedback Management</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setLocation('/admin/discount-codes')} data-testid="menu-admin-discounts">
                       <Sparkles className="mr-2 h-4 w-4" />
                       <span>Discount Codes</span>
