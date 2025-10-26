@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Search, Upload, Loader2, ExternalLink, ImageIcon, Sparkles } from "lucide-react";
+import { Search, Upload, Loader2, ExternalLink, ImageIcon, Sparkles, Download } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -446,6 +446,30 @@ export function ImageSelector({
                   </>
                 )}
               </Button>
+
+              {value && value.startsWith('/objects/') && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = value;
+                    link.download = `ai-generated-${Date.now()}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    toast({
+                      title: "Download started",
+                      description: "Your AI-generated image is being downloaded.",
+                    });
+                  }}
+                  className="w-full"
+                  data-testid="button-download-ai-image"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Image
+                </Button>
+              )}
             </div>
           </TabsContent>
         )}

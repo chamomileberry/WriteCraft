@@ -1606,12 +1606,28 @@ export function EditorToolbar({
               </Button>
               
               {generatedAIImage && (
-                <div className="border rounded-lg p-4">
+                <div className="border rounded-lg p-4 space-y-2">
                   <img 
                     src={generatedAIImage} 
                     alt="AI generated" 
                     className="max-w-full h-auto max-h-64 mx-auto rounded-lg"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = generatedAIImage;
+                      link.download = `ai-generated-${Date.now()}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="w-full"
+                  >
+                    Download Image
+                  </Button>
                 </div>
               )}
               
