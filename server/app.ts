@@ -92,6 +92,9 @@ export async function createApp() {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    // Explicitly capture the exception in Sentry (in case setupExpressErrorHandler didn't catch it)
+    Sentry.captureException(err);
+
     // Log the error for debugging but don't throw after response is sent
     console.error('Error handler caught:', err);
     res.status(status).json({ message });

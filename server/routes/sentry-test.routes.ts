@@ -3,6 +3,31 @@ import * as Sentry from '@sentry/node';
 
 const router = Router();
 
+// Diagnostic endpoint to check Sentry configuration
+router.get('/check-config', (req, res) => {
+  const sentryDsn = process.env.SENTRY_DSN;
+  const isEnabled = !!sentryDsn;
+  
+  res.json({
+    sentryConfigured: isEnabled,
+    dsnPresent: isEnabled,
+    dsnPreview: sentryDsn ? `${sentryDsn.substring(0, 30)}...` : 'NOT SET',
+    environment: process.env.NODE_ENV || 'development',
+    message: isEnabled 
+      ? 'Sentry DSN is configured and Sentry should be active'
+      : 'SENTRY_DSN environment variable is not set. Please add it to Replit Secrets.',
+    instructions: !isEnabled 
+      ? 'Go to Replit Secrets and add SENTRY_DSN with your Sentry DSN value, then restart the server.'
+      : 'Configuration looks good. Try the /debug-sentry endpoint to test error tracking.'
+  });
+});
+
+// Official Sentry test endpoint (recommended by Sentry docs)
+router.get('/debug-sentry', function mainHandler(req, res) {
+  console.log('[Sentry Test] /debug-sentry endpoint triggered');
+  throw new Error('My first Sentry error!');
+});
+
 // Test endpoint that throws an error to verify Sentry error capture
 router.get('/test-sentry-error', (req, res) => {
   console.log('[Sentry Test] Triggering test error...');
