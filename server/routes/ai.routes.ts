@@ -639,3 +639,19 @@ Return your analysis as JSON.`;
         hasConversationHistory: !!conversationHistory,
         useExtendedThinking: !!useExtendedThinking
       });
+      // Simple echo response for now - just return the message back
+      // TODO: Implement full chat functionality with AI integration
+      const response = {
+        content: `You said: "${message}". The chat endpoint is working but AI integration needs to be completed.`,
+        timestamp: new Date().toISOString()
+      };
+
+      res.json(response);
+
+    } catch (error) {
+      console.error('Error in chat endpoint:', error);
+      res.status(500).json({ error: 'Failed to process chat message' });
+    }
+  });
+
+export default router;
