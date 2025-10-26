@@ -7,6 +7,32 @@ WriteCraft is a comprehensive web platform designed to empower creative writers 
 Preferred communication style: Simple, everyday language.
 Documentation: Proactively create documentation for new features, APIs, and system changes to help future developers understand the codebase.
 
+## Deployment Configuration
+
+### Health Check Endpoints
+The application provides multiple health check endpoints optimized for deployment systems:
+
+**Primary Health Checks (Ultra-Fast - No Dependencies):**
+- **`/` (root)**: Returns plain text "OK" with 200 status in ~3-6ms. Registered before all middleware for instant response.
+- **`/health`**: Returns JSON `{"status":"ok","timestamp":...}` in ~3-6ms. No database or external dependencies.
+
+**Detailed Health Checks:**
+- **`/api/health`**: Basic health check with environment info
+- **`/api/health/db`**: Verifies database connectivity
+- **`/api/health/detailed`**: Comprehensive system status (admin only in production)
+
+**Performance Metrics:**
+- Application startup time: ~634ms total
+  - App creation: ~591ms
+  - Vite setup: ~40ms
+- Health check response time: 3-6ms consistently
+- No database dependencies on primary endpoints
+
+### Node.js Memory Configuration
+For production deployments with large JavaScript bundles (5+ MB), configure Node.js memory allocation via deployment environment settings:
+- Recommended: `--max-old-space-size=2048` (2GB heap)
+- This prevents timeout issues during bundle initialization
+
 ## System Architecture
 
 ### UI/UX Decisions
