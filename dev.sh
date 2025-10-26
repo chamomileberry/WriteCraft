@@ -1,3 +1,4 @@
+
 #!/bin/bash
-# Development startup script with Sentry pre-loading
-NODE_ENV=development NODE_OPTIONS='--import ./server/instrument.mjs' tsx server/index.ts
+# Development startup script - Sentry is loaded via import in server/index.ts
+NODE_ENV=development tsx server/index.ts
