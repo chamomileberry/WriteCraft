@@ -77,9 +77,18 @@ import contentRoutes from "./content.routes";
 import { storage } from "../storage";
 
 export function registerDomainRoutes(app: Express) {
-  // Apply global authentication middleware to ALL domain routes
-  // This prevents the critical authentication bypass vulnerability
-  app.use("/api/*", isAuthenticated);
+  // Apply global authentication middleware to ALL domain routes EXCEPT certain public endpoints
+  // This prevents the critical authentication bypass vulnerability while allowing public test endpoints
+  app.use("/api/*", (req, res, next) => {
+    // Allow Sentry test endpoints to be accessed without authentication
+    // These are needed for error tracking setup and testing
+    if (req.path.startsWith('/api/sentry/')) {
+      return next();
+    }
+    
+    // Apply authentication to all other /api routes
+    isAuthenticated(req, res, next);
+  });
   
   // Register all domain-specific routes (now protected by authentication)
   app.use("/api/user", userRoutes);
