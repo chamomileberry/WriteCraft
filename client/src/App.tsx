@@ -53,6 +53,7 @@ import FeedbackPage from "@/pages/FeedbackPage";
 import FeedbackManagement from "@/pages/admin/FeedbackManagement";
 import HelpPage from "@/pages/HelpPage";
 import InboxPage from "@/pages/InboxPage";
+import ConversationThreadsManager from "@/pages/ConversationThreadsManager";
 import NotFound from "@/pages/not-found";
 import ContentEditor from "@/components/ContentEditor";
 import SavedItems from "@/components/SavedItems";
@@ -224,6 +225,7 @@ function Router() {
       <Route path="/feedback" component={FeedbackPage} />
       <Route path="/help" component={HelpPage} />
       <Route path="/inbox" component={InboxPage} />
+      <Route path="/conversation-threads" component={ConversationThreadsManager} />
       <Route path="/team" component={TeamManagement} />
       <Route path="/account" component={AccountSettings} />
       <Route path="/search" component={SearchPage} />
