@@ -71,6 +71,7 @@ interface SuggestedPrompt {
 interface DetectedEntity {
   type: 'character' | 'location' | 'plotPoint';
   name: string;
+  confidence: number;
   details: any;
 }
 
@@ -853,8 +854,8 @@ export default function WritingAssistantPanel({
           else if (typeof entity.details.personality === 'string') {
             personalityArray = entity.details.personality
               .split(/[,;]\s*|\n/)
-              .map(trait => trait.trim())
-              .filter(trait => trait.length > 0);
+              .map((trait: string) => trait.trim())
+              .filter((trait: string) => trait.length > 0);
           }
 
           // Merge with existing personality traits
