@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   BookOpen, 
   Clock, 
-  Star, 
   ArrowLeft, 
   User, 
   Calendar, 
@@ -17,12 +16,26 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Guide } from "@shared/schema";
+import Header from "@/components/Header";
+import { useState } from "react";
 
 export default function GuideDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setLocation(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleNavigate = (path: string) => {
+    // Handle relative paths from Header navigation
+    const absolutePath = path.startsWith('/') ? path : `/${path}`;
+    setLocation(absolutePath);
+  };
 
   // Fetch guide from API
   const { data: guide, isLoading, error } = useQuery<Guide>({
@@ -88,7 +101,13 @@ export default function GuideDetail() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 p-6">
+    <div className="min-h-screen bg-background">
+      <Header
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+      />
+      <div className="max-w-4xl mx-auto space-y-6 p-6">
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
         <Button variant="outline" size="sm" asChild data-testid="button-back-to-guides">
@@ -148,10 +167,6 @@ export default function GuideDetail() {
                 <Badge className={`text-xs ${getDifficultyColor(guide.difficulty)}`}>
                   {guide.difficulty}
                 </Badge>
-                <div className="flex items-center gap-1 text-chart-3">
-                  <Star className="h-4 w-4 fill-current" />
-                  <span className="text-sm">{guide.rating}</span>
-                </div>
               </div>
               
               <CardTitle className="text-3xl font-serif">
@@ -191,11 +206,10 @@ export default function GuideDetail() {
           {/* Guide Content */}
           <Card>
             <CardContent className="pt-6">
-              <div className="prose prose-gray dark:prose-invert max-w-none">
-                <div className="whitespace-pre-wrap text-foreground leading-relaxed">
-                  {guide.content}
-                </div>
-              </div>
+              <div 
+                className="prose prose-gray dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: guide.content }}
+              />
             </CardContent>
           </Card>
 
@@ -214,6 +228,7 @@ export default function GuideDetail() {
           </Card>
         </>
       )}
+      </div>
     </div>
   );
 }

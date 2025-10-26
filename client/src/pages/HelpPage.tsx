@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import { Link, useLocation } from "wouter";
+import { HelpChatWidget } from "@/components/HelpChatWidget";
 
 export default function HelpPage() {
   const [, setLocation] = useLocation();
@@ -261,6 +262,9 @@ export default function HelpPage() {
           </Card>
         </div>
       </div>
+      
+      {/* Floating Help Chat Widget */}
+      <HelpChatWidget />
     </div>
   );
 }

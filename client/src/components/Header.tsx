@@ -1,4 +1,4 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload } from "lucide-react";
+import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -227,6 +227,10 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                 <DropdownMenuItem onClick={() => setLocation('/import')} data-testid="menu-import">
                   <Upload className="mr-2 h-4 w-4" />
                   <span>Import</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation('/help')} data-testid="menu-help-support">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <span>Help & Support</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLocation('/account')} data-testid="menu-account-settings">
                   <Settings className="mr-2 h-4 w-4" />
