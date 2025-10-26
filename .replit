@@ -9,7 +9,7 @@ packages = ["imagemagickBig"]
 [deployment]
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "tsx --import ./server/instrument.ts server/index.ts"]
+run = ["sh", "-c", "tsx --import ./server/instrument.mjs server/index.ts"]
 
 [[ports]]
 localPort = 5000
