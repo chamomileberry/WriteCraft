@@ -136,6 +136,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/team-analytics", teamAnalyticsRoutes);
   app.use("/api/admin/feedback", adminFeedbackRoutes); // More specific route first
   app.use("/api/feedback", feedbackRoutes);
+  app.use("/api/inbox", inboxRoutes);
 
   // Media and stock image routes
   app.use("/api/pexels", pexelsRoutes);

@@ -1,0 +1,42 @@
+content.js:2417 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (content.js:2417:16)
+polyfill.js:501 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (polyfill.js:501:16)
+chrome-extension://g…ion/content.js:2417 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/vendor/@eyeo/webext-ad-filtering-solution/content.js:2417:16)
+chrome-extension://g…dom/polyfill.js:501 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/polyfill.js:501:16)
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+chrome-extension://g…ion/content.js:2417 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/vendor/@eyeo/webext-ad-filtering-solution/content.js:2417:16)
+chrome-extension://g…dom/polyfill.js:501 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/polyfill.js:501:16)
+chunk-NFC5BX5N.js?v=8a02b5ce:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chrome-extension://g…ion/content.js:2417 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/vendor/@eyeo/webext-ad-filtering-solution/content.js:2417:16)
+chrome-extension://g…dom/polyfill.js:501 Uncaught (in promise) Error: Internal error.
+    at wrappedSendMessageCallback (chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/polyfill.js:501:16)
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: <URL> <URL>". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+posthog.tsx:26 [PostHog] Initialized successfully
+vendors.bundle.js:2 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+Header.tsx:104 Failed to fetch unread count: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+fetchUnreadCount @ Header.tsx:104
+Home.tsx:40 Navigating to tool: notebook
+SavedItems.tsx:127 [SavedItems] Fetching notebooks list
+SavedItems.tsx:164 [SavedItems] Fetching items for notebook: 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+Header.tsx:104 Failed to fetch unread count: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+fetchUnreadCount @ Header.tsx:104
+SavedItems.tsx:164 [SavedItems] Fetching items for notebook: 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+SavedItems.tsx:164 [SavedItems] Fetching items for notebook: 0fe4e254-02d1-4a14-9046-6b3aefe17a89
+Header.tsx:104 Failed to fetch unread count: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+fetchUnreadCount @ Header.tsx:104
