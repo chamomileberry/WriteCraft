@@ -1,3 +1,4 @@
+// Version: 2025-10-27-fix-apiRequest-params v2
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -271,7 +272,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         endpoint = endpointMap[item.itemType || ''] || '';
 
         if (endpoint) {
-          const response = await apiRequest(endpoint, 'GET');
+          const response = await apiRequest('GET', endpoint);
           if (response.ok) {
             const data = await response.json();
             newFetchedData[item.itemId || ''] = data;
@@ -323,7 +324,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         deleteBody: body
       });
 
-      const response = await apiRequest('/api/saved-items', 'DELETE', body);
+      const response = await apiRequest('DELETE', '/api/saved-items', body);
       const result = await response.json();
       console.log('[SavedItems] Delete response:', result);
       return result;
