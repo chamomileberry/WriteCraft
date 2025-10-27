@@ -935,6 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         targetWordCount: z.number().optional(),
         writingSchedule: z.string().optional(),
         preferredTone: z.string().optional(),
+        theme: z.enum(['light', 'dark']).optional(),
       }).parse(req.body);
 
       const updated = await storage.upsertUserPreferences(userId, preferences);
