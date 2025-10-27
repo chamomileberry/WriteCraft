@@ -47,7 +47,7 @@ export default function TimelineViewPage() {
       if (!notebookId) {
         throw new Error('No notebook selected');
       }
-      const response = await apiRequest('GET', `/api/timelines/${id}?notebookId=${notebookId}`);
+      const response = await apiRequest(`/api/timelines/${id}?notebookId=${notebookId}`, 'GET');
       if (!response.ok) throw new Error('Failed to load timeline');
       return response.json() as Promise<Timeline>;
     },

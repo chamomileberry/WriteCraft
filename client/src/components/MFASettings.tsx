@@ -57,7 +57,7 @@ export function MFASettings() {
   // Setup MFA mutation
   const setupMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/mfa/setup");
+      const res = await apiRequest("/api/auth/mfa/setup", "POST");
       return await res.json() as MFASetupData;
     },
     onSuccess: (data) => {
@@ -76,7 +76,7 @@ export function MFASettings() {
   // Verify and enable MFA mutation
   const verifyMutation = useMutation({
     mutationFn: async (token: string) => {
-      return await apiRequest("POST", "/api/auth/mfa/verify", { token });
+      return await apiRequest("/api/auth/mfa/verify", "POST", { token });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/mfa/status"] });
@@ -99,7 +99,7 @@ export function MFASettings() {
   // Disable MFA mutation
   const disableMutation = useMutation({
     mutationFn: async (token: string) => {
-      return await apiRequest("POST", "/api/auth/mfa/disable", { token });
+      return await apiRequest("/api/auth/mfa/disable", "POST", { token });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/mfa/status"] });
@@ -123,8 +123,8 @@ export function MFASettings() {
   const regenerateMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest(
-        "POST", 
-        "/api/auth/mfa/regenerate-backup-codes"
+        "/api/auth/mfa/regenerate-backup-codes",
+        "POST"
       );
       return await res.json() as { backupCodes: string[] };
     },

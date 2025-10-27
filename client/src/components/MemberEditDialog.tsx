@@ -105,7 +105,7 @@ export function MemberEditDialog({
   // Mutation to update character
   const updateCharacterMutation = useMutation({
     mutationFn: async (updates: any) => {
-      return apiRequest('PATCH', `/api/characters/${member?.characterId}?notebookId=${notebookId}`, updates);
+      return apiRequest(`/api/characters/${member?.characterId}?notebookId=${notebookId}`, 'PATCH', updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/characters', member?.characterId] });

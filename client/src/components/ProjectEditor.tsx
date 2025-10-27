@@ -264,7 +264,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   const { data: project, isLoading: isLoadingProject } = useQuery({
     queryKey: ['/api/projects', projectId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/projects/${projectId}`);
+      const response = await apiRequest(`/api/projects/${projectId}`, 'GET');
       return response.json();
     },
     enabled: !!projectId && projectId !== 'new',
@@ -275,7 +275,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
     queryKey: ['/api/search', searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
-      const response = await apiRequest('GET', `/api/search?q=${encodeURIComponent(searchQuery)}`);
+      const response = await apiRequest(`/api/search?q=${encodeURIComponent(searchQuery)}`, 'GET');
       return response.json();
     },
     enabled: searchQuery.trim().length > 0,
@@ -521,7 +521,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
       };
     },
     mutationFunction: async (data) => {
-      const response = await apiRequest('PUT', `/api/projects/${projectId}`, data);
+      const response = await apiRequest(`/api/projects/${projectId}`, 'PUT', data);
       return response.json();
     },
     onSuccess: () => {
@@ -541,7 +541,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
   // Title update mutation
   const titleMutation = useMutation({
     mutationFn: async (newTitle: string) => {
-      const response = await apiRequest('PUT', `/api/projects/${projectId}`, { title: newTitle });
+      const response = await apiRequest(`/api/projects/${projectId}`, 'PUT', { title: newTitle });
       return response.json();
     },
     onSuccess: () => {

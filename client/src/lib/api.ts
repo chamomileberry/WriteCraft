@@ -27,12 +27,12 @@ export const authApi = {
   },
 
   logout: async () => {
-    const res = await apiRequest('POST', '/api/logout');
+    const res = await apiRequest('/api/logout', 'POST');
     return res.json();
   },
 
   updateProfile: async (updates: { displayName?: string; avatarUrl?: string }) => {
-    const res = await apiRequest('PUT', '/api/auth/user', updates);
+    const res = await apiRequest('/api/auth/user', 'PUT', updates);
     return res.json();
   },
 };
@@ -49,7 +49,7 @@ export const notebooksApi = {
   },
 
   create: async (data: { name: string; description?: string; imageUrl?: string }) => {
-    const res = await apiRequest('POST', '/api/notebooks', data);
+    const res = await apiRequest('/api/notebooks', 'POST', data);
     return res.json();
   },
 
@@ -60,12 +60,12 @@ export const notebooksApi = {
   },
 
   update: async (id: string, updates: { name?: string; description?: string; imageUrl?: string }) => {
-    const res = await apiRequest('PUT', `/api/notebooks/${id}`, updates);
+    const res = await apiRequest(`/api/notebooks/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/notebooks/${id}`);
+    const res = await apiRequest(`/api/notebooks/${id}`, 'DELETE');
     return res.json();
   },
 };
@@ -91,22 +91,22 @@ export const charactersApi = {
   },
 
   create: async (data: any) => {
-    const res = await apiRequest('POST', '/api/characters', data);
+    const res = await apiRequest('/api/characters', 'POST', data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/characters/${id}`, updates);
+    const res = await apiRequest(`/api/characters/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/characters/${id}`);
+    const res = await apiRequest(`/api/characters/${id}`, 'DELETE');
     return res.json();
   },
 
   generate: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-character', params);
+    const res = await apiRequest('/api/ai/generate-character', 'POST', params);
     return res.json();
   },
 
@@ -139,12 +139,12 @@ export const charactersApi = {
     },
 
     mergeCharacters: async (sourceId: string, targetId: string) => {
-      const res = await apiRequest('POST', '/api/characters/consolidate/merge', { sourceId, targetId });
+      const res = await apiRequest('/api/characters/consolidate/merge', 'POST', { sourceId, targetId });
       return res.json();
     },
 
     deleteCharacter: async (id: string) => {
-      const res = await apiRequest('DELETE', `/api/characters/${id}`);
+      const res = await apiRequest(`/api/characters/${id}`, 'DELETE');
       return res.json();
     },
   },
@@ -174,17 +174,17 @@ export const projectsApi = {
   },
 
   create: async (data: { title: string; description?: string; genre?: string }) => {
-    const res = await apiRequest('POST', '/api/projects', data);
+    const res = await apiRequest('/api/projects', 'POST', data);
     return res.json();
   },
 
   update: async (id: string, updates: { title?: string; description?: string; genre?: string }) => {
-    const res = await apiRequest('PUT', `/api/projects/${id}`, updates);
+    const res = await apiRequest(`/api/projects/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/projects/${id}`);
+    const res = await apiRequest(`/api/projects/${id}`, 'DELETE');
     return res.json();
   },
 
@@ -202,22 +202,22 @@ export const projectsApi = {
     },
 
     create: async (projectId: string, data: { title: string; parentId?: string; order?: number }) => {
-      const res = await apiRequest('POST', `/api/projects/${projectId}/sections`, data);
+      const res = await apiRequest(`/api/projects/${projectId}/sections`, 'POST', data);
       return res.json();
     },
 
     update: async (projectId: string, sectionId: string, updates: { title?: string; content?: string; parentId?: string; order?: number }) => {
-      const res = await apiRequest('PUT', `/api/projects/${projectId}/sections/${sectionId}`, updates);
+      const res = await apiRequest(`/api/projects/${projectId}/sections/${sectionId}`, 'PUT', updates);
       return res.json();
     },
 
     delete: async (projectId: string, sectionId: string) => {
-      const res = await apiRequest('DELETE', `/api/projects/${projectId}/sections/${sectionId}`);
+      const res = await apiRequest(`/api/projects/${projectId}/sections/${sectionId}`, 'DELETE');
       return res.json();
     },
 
     reorder: async (projectId: string, updates: Array<{ id: string; order: number; parentId: string | null }>) => {
-      const res = await apiRequest('PUT', `/api/projects/${projectId}/sections/reorder`, { updates });
+      const res = await apiRequest(`/api/projects/${projectId}/sections/reorder`, 'PUT', { updates });
       return res.json();
     },
   },
@@ -256,22 +256,22 @@ export const savedItemsApi = {
   },
 
   create: async (data: { userId: string; itemType: string; itemId: string; notebookId?: string; itemData?: any }) => {
-    const res = await apiRequest('POST', '/api/saved-items', data);
+    const res = await apiRequest('/api/saved-items', 'POST', data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/saved-items/${id}`, updates);
+    const res = await apiRequest(`/api/saved-items/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/saved-items/${id}`);
+    const res = await apiRequest(`/api/saved-items/${id}`, 'DELETE');
     return res.json();
   },
 
   deleteByItemId: async (itemId: string) => {
-    const res = await apiRequest('DELETE', `/api/saved-items/item/${itemId}`);
+    const res = await apiRequest(`/api/saved-items/item/${itemId}`, 'DELETE');
     return res.json();
   },
 };
@@ -300,17 +300,17 @@ export const guidesApi = {
   },
 
   create: async (data: { title: string; category: string; content: string; description?: string }) => {
-    const res = await apiRequest('POST', '/api/guides', data);
+    const res = await apiRequest('/api/guides', 'POST', data);
     return res.json();
   },
 
   update: async (id: string, updates: { title?: string; category?: string; content?: string; description?: string }) => {
-    const res = await apiRequest('PUT', `/api/guides/${id}`, updates);
+    const res = await apiRequest(`/api/guides/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/guides/${id}`);
+    const res = await apiRequest(`/api/guides/${id}`, 'DELETE');
     return res.json();
   },
 };
@@ -321,57 +321,57 @@ export const guidesApi = {
 
 export const generatorsApi = {
   character: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-character', params);
+    const res = await apiRequest('/api/ai/generate-character', 'POST', params);
     return res.json();
   },
 
   name: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-name', params);
+    const res = await apiRequest('/api/ai/generate-name', 'POST', params);
     return res.json();
   },
 
   plot: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-plot', params);
+    const res = await apiRequest('/api/ai/generate-plot', 'POST', params);
     return res.json();
   },
 
   setting: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-setting', params);
+    const res = await apiRequest('/api/ai/generate-setting', 'POST', params);
     return res.json();
   },
 
   creature: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-creature', params);
+    const res = await apiRequest('/api/ai/generate-creature', 'POST', params);
     return res.json();
   },
 
   conflict: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-conflict', params);
+    const res = await apiRequest('/api/ai/generate-conflict', 'POST', params);
     return res.json();
   },
 
   theme: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-theme', params);
+    const res = await apiRequest('/api/ai/generate-theme', 'POST', params);
     return res.json();
   },
 
   mood: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-mood', params);
+    const res = await apiRequest('/api/ai/generate-mood', 'POST', params);
     return res.json();
   },
 
   description: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-description', params);
+    const res = await apiRequest('/api/ai/generate-description', 'POST', params);
     return res.json();
   },
 
   plant: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-plant', params);
+    const res = await apiRequest('/api/ai/generate-plant', 'POST', params);
     return res.json();
   },
 
   prompt: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-prompt', params);
+    const res = await apiRequest('/api/ai/generate-prompt', 'POST', params);
     return res.json();
   },
 };
@@ -382,42 +382,42 @@ export const generatorsApi = {
 
 export const writingAssistantApi = {
   analyze: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/analyze', params);
+    const res = await apiRequest('/api/writing-assistant/analyze', 'POST', params);
     return res.json();
   },
 
   rephrase: async (params: { text: string; style?: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/rephrase', params);
+    const res = await apiRequest('/api/writing-assistant/rephrase', 'POST', params);
     return res.json();
   },
 
   proofread: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/proofread', params);
+    const res = await apiRequest('/api/writing-assistant/proofread', 'POST', params);
     return res.json();
   },
 
   synonyms: async (params: { word: string; context?: string }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/synonyms', params);
+    const res = await apiRequest('/api/writing-assistant/synonyms', 'POST', params);
     return res.json();
   },
 
   definition: async (params: { word: string }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/definition', params);
+    const res = await apiRequest('/api/writing-assistant/definition', 'POST', params);
     return res.json();
   },
 
   questions: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/questions', params);
+    const res = await apiRequest('/api/writing-assistant/questions', 'POST', params);
     return res.json();
   },
 
   improve: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/improve', params);
+    const res = await apiRequest('/api/writing-assistant/improve', 'POST', params);
     return res.json();
   },
 
   chat: async (params: { message: string; conversationHistory?: any[]; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/chat', params);
+    const res = await apiRequest('/api/writing-assistant/chat', 'POST', params);
     return res.json();
   },
 };
@@ -428,7 +428,7 @@ export const writingAssistantApi = {
 
 export const aiFieldAssistApi = {
   suggest: async (params: { field: string; context: any; notebookId?: string }) => {
-    const res = await apiRequest('POST', '/api/ai/field-assist', params);
+    const res = await apiRequest('/api/ai/field-assist', 'POST', params);
     return res.json();
   },
 };
@@ -439,7 +439,7 @@ export const aiFieldAssistApi = {
 
 export const uploadApi = {
   initiateImageUpload: async (filename: string, contentType: string) => {
-    const res = await apiRequest('POST', '/api/upload/image', { filename, contentType });
+    const res = await apiRequest('/api/upload/image', 'POST', { filename, contentType });
     return res.json();
   },
 
@@ -456,7 +456,7 @@ export const uploadApi = {
   },
 
   finalizeUpload: async (objectPath: string) => {
-    const res = await apiRequest('POST', '/api/upload/finalize', { objectPath });
+    const res = await apiRequest('/api/upload/finalize', 'POST', { objectPath });
     return res.json();
   },
 };
@@ -485,12 +485,12 @@ export const pinnedContentApi = {
   },
 
   create: async (data: { contentType: string; contentId: string; title: string; subtitle?: string }) => {
-    const res = await apiRequest('POST', '/api/pinned-content', data);
+    const res = await apiRequest('/api/pinned-content', 'POST', data);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/pinned-content/${id}`);
+    const res = await apiRequest(`/api/pinned-content/${id}`, 'DELETE');
     return res.json();
   },
 };
@@ -520,17 +520,17 @@ export const notesApi = {
   },
 
   create: async (data: { title: string; content?: string; type: string; parentId?: string; documentId?: string }) => {
-    const res = await apiRequest('POST', '/api/notes', data);
+    const res = await apiRequest('/api/notes', 'POST', data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/notes/${id}`, updates);
+    const res = await apiRequest(`/api/notes/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/notes/${id}`);
+    const res = await apiRequest(`/api/notes/${id}`, 'DELETE');
     return res.json();
   },
 };
@@ -553,17 +553,17 @@ export const quickNotesApi = {
   },
 
   create: async (data: { title?: string; content: string }) => {
-    const res = await apiRequest('POST', '/api/quick-note', data);
+    const res = await apiRequest('/api/quick-note', 'POST', data);
     return res.json();
   },
 
   update: async (id: string, updates: { title?: string; content: string }) => {
-    const res = await apiRequest('PUT', `/api/quick-note/${id}`, updates);
+    const res = await apiRequest(`/api/quick-note/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/quick-note/${id}`);
+    const res = await apiRequest(`/api/quick-note/${id}`, 'DELETE');
     return res.json();
   },
 };
@@ -582,12 +582,12 @@ export const chatMessagesApi = {
   },
 
   create: async (data: { conversationId: string; role: string; content: string }) => {
-    const res = await apiRequest('POST', '/api/chat-messages', data);
+    const res = await apiRequest('/api/chat-messages', 'POST', data);
     return res.json();
   },
 
   delete: async (conversationId: string) => {
-    const res = await apiRequest('DELETE', `/api/chat-messages?conversationId=${conversationId}`);
+    const res = await apiRequest(`/api/chat-messages?conversationId=${conversationId}`, 'DELETE');
     return res.json();
   },
 };
@@ -605,17 +605,17 @@ export const collaborationApi = {
     },
 
     create: async (data: { resourceType: string; resourceId: string; sharedWithEmail: string; permission: string }) => {
-      const res = await apiRequest('POST', '/api/shares', data);
+      const res = await apiRequest('/api/shares', 'POST', data);
       return res.json();
     },
 
     update: async (id: string, permission: string) => {
-      const res = await apiRequest('PUT', `/api/shares/${id}`, { permission });
+      const res = await apiRequest(`/api/shares/${id}`, 'PUT', { permission });
       return res.json();
     },
 
     delete: async (id: string) => {
-      const res = await apiRequest('DELETE', `/api/shares/${id}`);
+      const res = await apiRequest(`/api/shares/${id}`, 'DELETE');
       return res.json();
     },
 
@@ -678,7 +678,7 @@ export const imagesApi = {
 
   dalle: {
     generate: async (prompt: string, size: string = '1024x1024') => {
-      const res = await apiRequest('POST', '/api/dalle/generate', { prompt, size });
+      const res = await apiRequest('/api/dalle/generate', 'POST', { prompt, size });
       return res.json();
     },
   },
@@ -704,17 +704,17 @@ export const adminApi = {
     },
 
     create: async (data: { phrase: string; category: string; isActive?: boolean }) => {
-      const res = await apiRequest('POST', '/api/admin/banned-phrases', data);
+      const res = await apiRequest('/api/admin/banned-phrases', 'POST', data);
       return res.json();
     },
 
     update: async (id: string, updates: { phrase?: string; category?: string; isActive?: boolean }) => {
-      const res = await apiRequest('PUT', `/api/admin/banned-phrases/${id}`, updates);
+      const res = await apiRequest(`/api/admin/banned-phrases/${id}`, 'PUT', updates);
       return res.json();
     },
 
     delete: async (id: string) => {
-      const res = await apiRequest('DELETE', `/api/admin/banned-phrases/${id}`);
+      const res = await apiRequest(`/api/admin/banned-phrases/${id}`, 'DELETE');
       return res.json();
     },
   },
@@ -732,7 +732,7 @@ export const familyTreeApi = {
   },
 
   save: async (notebookId: string, data: any) => {
-    const res = await apiRequest('POST', `/api/family-tree/${notebookId}`, data);
+    const res = await apiRequest(`/api/family-tree/${notebookId}`, 'POST', data);
     return res.json();
   },
 };
@@ -756,17 +756,17 @@ export const foldersApi = {
   },
 
   create: async (data: { name: string; type: string; parentId?: string; documentId?: string }) => {
-    const res = await apiRequest('POST', '/api/folders', data);
+    const res = await apiRequest('/api/folders', 'POST', data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/folders/${id}`, updates);
+    const res = await apiRequest(`/api/folders/${id}`, 'PUT', updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/folders/${id}`);
+    const res = await apiRequest(`/api/folders/${id}`, 'DELETE');
     return res.json();
   },
 };

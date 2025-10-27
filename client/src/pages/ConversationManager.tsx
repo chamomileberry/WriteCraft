@@ -103,7 +103,7 @@ export default function ConversationManager() {
   // Archive/unarchive thread mutation
   const toggleArchiveMutation = useMutation({
     mutationFn: async (thread: ConversationThread) => {
-      const response = await apiRequest('PUT', `/api/conversation-threads/${thread.id}`, {
+      const response = await apiRequest(`/api/conversation-threads/${thread.id}`, 'PUT', {
         isActive: !thread.isActive
       });
       return response.json();
@@ -127,7 +127,7 @@ export default function ConversationManager() {
   // Rename thread mutation
   const renameMutation = useMutation({
     mutationFn: async ({ id, title }: { id: string; title: string }) => {
-      const response = await apiRequest('PUT', `/api/conversation-threads/${id}`, { title });
+      const response = await apiRequest(`/api/conversation-threads/${id}`, 'PUT', { title });
       return response.json();
     },
     onSuccess: () => {
@@ -151,7 +151,7 @@ export default function ConversationManager() {
   // Delete thread mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/conversation-threads/${id}`);
+      const response = await apiRequest(`/api/conversation-threads/${id}`, 'DELETE');
       return response.json();
     },
     onSuccess: () => {
@@ -174,7 +174,7 @@ export default function ConversationManager() {
   // Branch thread mutation
   const branchMutation = useMutation({
     mutationFn: async ({ parentId, title }: { parentId: string; title: string }) => {
-      const response = await apiRequest('POST', `/api/conversation-threads/${parentId}/branch`, { title });
+      const response = await apiRequest(`/api/conversation-threads/${parentId}/branch`, 'POST', { title });
       return response.json();
     },
     onSuccess: (newThread) => {

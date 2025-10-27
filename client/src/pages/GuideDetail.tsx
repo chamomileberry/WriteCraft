@@ -46,7 +46,7 @@ export default function GuideDetail() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('DELETE', `/api/guides/${id}`);
+      const response = await apiRequest(`/api/guides/${id}`, 'DELETE');
       return response;
     },
     onSuccess: () => {

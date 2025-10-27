@@ -48,7 +48,7 @@ export default function WritingPrompts() {
         throw new Error(validationError);
       }
       
-      const response = await apiRequest('POST', '/api/prompts/generate', {
+      const response = await apiRequest('/api/prompts/generate', 'POST', {
         genre: (genre && genre !== 'any') ? genre : undefined,
         type: (promptType && promptType !== 'any') ? promptType : undefined,
         userId: user?.id,
@@ -74,7 +74,7 @@ export default function WritingPrompts() {
     mutationFn: async () => {
       if (!currentPrompt?.id) return;
       
-      const response = await apiRequest('POST', '/api/saved-items', {
+      const response = await apiRequest('/api/saved-items', 'POST', {
         userId: user?.id,
         itemType: 'prompt',
         itemId: currentPrompt.id,

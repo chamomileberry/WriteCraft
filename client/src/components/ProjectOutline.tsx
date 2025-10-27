@@ -97,7 +97,7 @@ export function ProjectOutline({
 
   const createMutation = useMutation({
     mutationFn: async (data: { parentId: string | null; title: string; type: 'folder' | 'page'; position: number }) => {
-      const response = await apiRequest('POST', `/api/projects/${projectId}/sections`, data);
+      const response = await apiRequest(`/api/projects/${projectId}/sections`, 'POST', data);
       return response.json();
     },
     onSuccess: (newSection, variables) => {
@@ -113,7 +113,7 @@ export function ProjectOutline({
 
   const updateMutation = useMutation({
     mutationFn: async (data: { id: string; title: string }) => {
-      const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/${data.id}`, {
+      const response = await apiRequest(`/api/projects/${projectId}/sections/${data.id}`, 'PUT', {
         title: data.title,
       });
       return response.json();
@@ -126,7 +126,7 @@ export function ProjectOutline({
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/projects/${projectId}/sections/${id}`);
+      await apiRequest(`/api/projects/${projectId}/sections/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
@@ -135,7 +135,7 @@ export function ProjectOutline({
 
   const reorderMutation = useMutation({
     mutationFn: async (reorders: Array<{ id: string; parentId: string | null; position: number }>) => {
-      const response = await apiRequest('POST', `/api/projects/${projectId}/sections/reorder`, {
+      const response = await apiRequest(`/api/projects/${projectId}/sections/reorder`, 'POST', {
         sectionOrders: reorders
       });
       return response.json();

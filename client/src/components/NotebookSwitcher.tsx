@@ -48,7 +48,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
   const { isLoading } = useQuery({
     queryKey: ['/api/notebooks'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/notebooks');
+      const response = await apiRequest('/api/notebooks', 'GET');
       const fetchedNotebooks = await response.json() as Notebook[];
       setNotebooks(fetchedNotebooks);
 

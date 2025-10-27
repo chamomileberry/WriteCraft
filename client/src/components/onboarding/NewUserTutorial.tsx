@@ -69,7 +69,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
   // Create a default notebook for the tutorial
   const createNotebook = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
+      const response = await apiRequest('/api/notebooks', 'POST', {
         name: "My First Notebook",
         description: "Created during onboarding",
       });
@@ -101,7 +101,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       if (!notebookId) {
         throw new Error("Notebook not ready");
       }
-      const response = await apiRequest('POST', '/api/characters/generate', {
+      const response = await apiRequest('/api/characters/generate', 'POST', {
         prompt: prompt || "a mysterious traveler with a hidden past",
         genre: "Fantasy",
         notebookId: notebookId
@@ -136,7 +136,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       if (!generatedCharacter) throw new Error("No character to save");
       if (!notebookId) throw new Error("Notebook ID not available");
       
-      const response = await apiRequest('POST', '/api/characters', {
+      const response = await apiRequest('/api/characters', 'POST', {
         name: generatedCharacter.name,
         backstory: generatedCharacter.backstory,
         personalityTraits: generatedCharacter.personalityTraits.split(",").map(t => t.trim()),

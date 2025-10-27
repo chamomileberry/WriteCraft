@@ -91,7 +91,7 @@ export default function GuideCategoriesAdmin() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: CategoryFormData) => {
-      const res = await apiRequest('POST', '/api/guide-categories', data);
+      const res = await apiRequest('/api/guide-categories', 'POST', data);
       return await res.json();
     },
     onSuccess: () => {
@@ -115,7 +115,7 @@ export default function GuideCategoriesAdmin() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: CategoryFormData }) => {
-      const res = await apiRequest('PUT', `/api/guide-categories/${id}`, data);
+      const res = await apiRequest(`/api/guide-categories/${id}`, 'PUT', data);
       return await res.json();
     },
     onSuccess: () => {
@@ -140,7 +140,7 @@ export default function GuideCategoriesAdmin() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/guide-categories/${id}`);
+      await apiRequest(`/api/guide-categories/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });
@@ -163,7 +163,7 @@ export default function GuideCategoriesAdmin() {
   // Reorder mutation
   const reorderMutation = useMutation({
     mutationFn: async (categoryOrders: Array<{ id: string; order: number }>) => {
-      await apiRequest('POST', '/api/guide-categories/reorder', { categoryOrders });
+      await apiRequest('/api/guide-categories/reorder', 'POST', { categoryOrders });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });

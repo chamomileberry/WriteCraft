@@ -107,7 +107,7 @@ export function HelpChatWidget() {
 
     try {
       // Call the AI assistant with help context
-      const response = await apiRequest('POST', '/api/writing-assistant/chat', {
+      const response = await apiRequest('/api/writing-assistant/chat', 'POST', {
         message: input,
         conversationHistory: messages.slice(-5).map(m => ({
           role: m.role,

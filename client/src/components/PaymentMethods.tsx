@@ -56,7 +56,7 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 
     try {
       // Create setup intent
-      const response = await apiRequest('POST', '/api/stripe/create-setup-intent', {});
+      const response = await apiRequest('/api/stripe/create-setup-intent', 'POST', {});
       const { clientSecret } = await response.json();
 
       // Get card element
@@ -141,7 +141,7 @@ export function PaymentMethods() {
   // Delete payment method mutation
   const deleteMutation = useMutation({
     mutationFn: async (paymentMethodId: string) => {
-      await apiRequest('DELETE', `/api/stripe/payment-methods/${paymentMethodId}`, {});
+      await apiRequest(`/api/stripe/payment-methods/${paymentMethodId}`, 'DELETE', {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/stripe/payment-methods'] });
@@ -162,7 +162,7 @@ export function PaymentMethods() {
   // Set default payment method mutation
   const setDefaultMutation = useMutation({
     mutationFn: async (paymentMethodId: string) => {
-      await apiRequest('POST', `/api/stripe/payment-methods/${paymentMethodId}/set-default`, {});
+      await apiRequest(`/api/stripe/payment-methods/${paymentMethodId}/set-default`, 'POST', {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/stripe/payment-methods'] });

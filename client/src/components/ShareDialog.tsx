@@ -101,7 +101,7 @@ export function ShareDialog({
 
   const createShareMutation = useMutation({
     mutationFn: async (data: { userId: string; permission: string }) => {
-      return await apiRequest("POST", `/api/shares`, {
+      return await apiRequest(`/api/shares`, "POST", {
         resourceType,
         resourceId,
         userId: data.userId,
@@ -130,7 +130,7 @@ export function ShareDialog({
 
   const deleteShareMutation = useMutation({
     mutationFn: async (shareId: string) => {
-      return await apiRequest("DELETE", `/api/shares/${shareId}`);
+      return await apiRequest(`/api/shares/${shareId}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/shares", resourceType, resourceId] });
@@ -150,7 +150,7 @@ export function ShareDialog({
 
   const updatePermissionMutation = useMutation({
     mutationFn: async (data: { shareId: string; permission: string }) => {
-      return await apiRequest("PATCH", `/api/shares/${data.shareId}/permission`, {
+      return await apiRequest(`/api/shares/${data.shareId}/permission`, "PATCH", {
         permission: data.permission,
       });
     },

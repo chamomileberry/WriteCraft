@@ -43,7 +43,7 @@ export default function BannedPhrasesManagement() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest('POST', '/api/admin/banned-phrases', data);
+      const response = await apiRequest('/api/admin/banned-phrases', 'POST', data);
       return response.json();
     },
     onSuccess: () => {
@@ -66,7 +66,7 @@ export default function BannedPhrasesManagement() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const response = await apiRequest('PATCH', `/api/admin/banned-phrases/${id}`, data);
+      const response = await apiRequest(`/api/admin/banned-phrases/${id}`, 'PATCH', data);
       return response.json();
     },
     onSuccess: () => {
@@ -89,7 +89,7 @@ export default function BannedPhrasesManagement() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/admin/banned-phrases/${id}`);
+      await apiRequest(`/api/admin/banned-phrases/${id}`, 'DELETE');
     },
     onSuccess: () => {
       toast({
@@ -110,7 +110,7 @@ export default function BannedPhrasesManagement() {
   // Toggle active status
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await apiRequest('PATCH', `/api/admin/banned-phrases/${id}`, { isActive });
+      const response = await apiRequest(`/api/admin/banned-phrases/${id}`, 'PATCH', { isActive });
       return response.json();
     },
     onSuccess: () => {

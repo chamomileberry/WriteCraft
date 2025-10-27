@@ -279,7 +279,7 @@ const ArticleEditor = forwardRef<ArticleEditorRef, ArticleEditorProps>(({
     },
     mutationFunction: async (content: string) => {
       const url = `${apiBase}/${contentId}?notebookId=${activeNotebookId}`;
-      const response = await apiRequest('PATCH', url, { 
+      const response = await apiRequest(url, 'PATCH', { 
         articleContent: content 
       });
       return response.json();

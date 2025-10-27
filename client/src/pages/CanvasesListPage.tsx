@@ -30,7 +30,7 @@ export default function CanvasesListPage() {
   const { data: canvases, isLoading } = useQuery({
     queryKey: ['/api/canvases'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/canvases');
+      const response = await apiRequest('/api/canvases', 'GET');
       if (!response.ok) throw new Error('Failed to load canvases');
       return response.json() as Promise<Canvas[]>;
     },
@@ -39,7 +39,7 @@ export default function CanvasesListPage() {
   // Delete canvas mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/canvases/${id}`);
+      const response = await apiRequest(`/api/canvases/${id}`, 'DELETE');
       if (!response.ok) throw new Error('Failed to delete canvas');
     },
     onSuccess: () => {

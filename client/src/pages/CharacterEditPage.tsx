@@ -53,7 +53,7 @@ export default function CharacterEditPage() {
       if (!notebookId) {
         throw new Error('No active notebook selected. Please create or select a notebook first.');
       }
-      const response = await apiRequest('GET', `/api/characters/${id}?notebookId=${notebookId}`);
+      const response = await apiRequest(`/api/characters/${id}?notebookId=${notebookId}`, 'GET');
       return response.json();
     },
     enabled: !!id && !!notebookId,
@@ -76,7 +76,7 @@ export default function CharacterEditPage() {
     mutationFn: async ({ fieldName }: { fieldName: string }) => {
       // Get current form values to provide fresh context to AI
       const currentFormValues = form.getValues();
-      const response = await apiRequest("POST", `/api/characters/${id}/generate-field`, { 
+      const response = await apiRequest(`/api/characters/${id}/generate-field`, "POST", { 
         fieldName,
         currentFormData: currentFormValues 
       });
@@ -159,7 +159,7 @@ export default function CharacterEditPage() {
       if (!notebookId) {
         throw new Error('No notebook ID available for update');
       }
-      const response = await apiRequest('PATCH', `/api/characters/${id}?notebookId=${notebookId}`, data);
+      const response = await apiRequest(`/api/characters/${id}?notebookId=${notebookId}`, 'PATCH', data);
       return response.json();
     },
     onSuccess: () => {

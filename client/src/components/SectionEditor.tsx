@@ -343,7 +343,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         };
       },
       mutationFunction: async (data) => {
-        const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/${section.id}`, { 
+        const response = await apiRequest(`/api/projects/${projectId}/sections/${section.id}`, 'PUT', { 
           content: data.content 
         });
         return response.json();

@@ -61,7 +61,7 @@ export default function AIFieldAssist({
       // Get fresh context values including any AI-generated content
       const characterContext = getCharacterContext();
       
-      const response = await apiRequest('POST', '/api/ai/generate-field', {
+      const response = await apiRequest('/api/ai/generate-field', 'POST', {
         fieldName,
         fieldLabel,
         action,

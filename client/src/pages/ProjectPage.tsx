@@ -104,7 +104,7 @@ export default function ProjectPage() {
   // Create new project mutation
   const createProjectMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/projects', {
+      const response = await apiRequest('/api/projects', 'POST', {
         title: 'Untitled Project',
         content: '',
         status: 'draft',
@@ -122,7 +122,7 @@ export default function ProjectPage() {
   // Delete project mutation
   const deleteProjectMutation = useMutation({
     mutationFn: async (projectId: string) => {
-      await apiRequest('DELETE', `/api/projects/${projectId}`);
+      await apiRequest(`/api/projects/${projectId}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });

@@ -35,7 +35,7 @@ export function ContentTypeSwitcher({
 
   const updateTypeMutation = useMutation({
     mutationFn: async (newType: string) => {
-      return await apiRequest("PATCH", `/api/saved-items/${savedItemId}/type`, {
+      return await apiRequest(`/api/saved-items/${savedItemId}/type`, "PATCH", {
         newItemType: newType
       });
     },

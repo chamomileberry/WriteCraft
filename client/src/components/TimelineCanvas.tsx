@@ -77,7 +77,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const { data: timeline, isLoading: isLoadingTimeline } = useQuery({
     queryKey: ['/api/timelines', timelineId, notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timelines/${timelineId}?notebookId=${notebookId}`);
+      const response = await apiRequest(`/api/timelines/${timelineId}?notebookId=${notebookId}`, 'GET');
       return response.json();
     },
     enabled: !!timelineId && !!notebookId,
@@ -87,7 +87,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const { data: events, isLoading: isLoadingEvents } = useQuery({
     queryKey: ['/api/timeline-events', timelineId, notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timeline-events?timelineId=${timelineId}&notebookId=${notebookId}`);
+      const response = await apiRequest(`/api/timeline-events?timelineId=${timelineId}&notebookId=${notebookId}`, 'GET');
       return response.json();
     },
     enabled: !!timelineId && !!notebookId,
@@ -97,7 +97,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const { data: relationships, isLoading: isLoadingRelationships } = useQuery({
     queryKey: ['/api/timeline-relationships', timelineId, notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timeline-relationships?timelineId=${timelineId}&notebookId=${notebookId}`);
+      const response = await apiRequest(`/api/timeline-relationships?timelineId=${timelineId}&notebookId=${notebookId}`, 'GET');
       return response.json();
     },
     enabled: !!timelineId && !!notebookId,
@@ -107,7 +107,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const { data: allCharacters = [] } = useQuery({
     queryKey: ['/api/characters', notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/characters?notebookId=${notebookId}`);
+      const response = await apiRequest(`/api/characters?notebookId=${notebookId}`, 'GET');
       return response.json();
     },
     enabled: !!notebookId,
@@ -116,7 +116,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   // Delete event mutation
   const deleteEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
-      const response = await apiRequest('DELETE', `/api/timeline-events/${eventId}?timelineId=${timelineId}&notebookId=${notebookId}`);
+      const response = await apiRequest(`/api/timeline-events/${eventId}?timelineId=${timelineId}&notebookId=${notebookId}`, 'DELETE');
       if (!response.ok) throw new Error('Failed to delete event');
       // 204 No Content - don't parse JSON
       return;
@@ -140,7 +140,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   // Create relationship mutation
   const createRelationshipMutation = useMutation({
     mutationFn: async (data: { fromEventId: string; toEventId: string; relationshipType: string }) => {
-      const response = await apiRequest('POST', '/api/timeline-relationships', {
+      const response = await apiRequest('/api/timeline-relationships', 'POST', {
         timelineId,
         notebookId,
         ...data,
@@ -168,7 +168,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const savePositionMutation = useMutation({
     mutationFn: async (positions: { id: string; x: number; y: number }[]) => {
       const updates = positions.map(async ({ id, x, y }) => {
-        const response = await apiRequest('PATCH', `/api/timeline-events/${id}`, {
+        const response = await apiRequest(`/api/timeline-events/${id}`, 'PATCH', {
           timelineId,
           notebookId,
           positionX: x,

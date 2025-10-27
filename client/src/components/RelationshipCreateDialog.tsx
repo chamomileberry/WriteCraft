@@ -83,7 +83,7 @@ export function RelationshipCreateDialog({
   // Create relationship mutation
   const createMutation = useMutation({
     mutationFn: async (data: RelationshipFormData) => {
-      const response = await apiRequest('POST', '/api/timeline-relationships', {
+      const response = await apiRequest('/api/timeline-relationships', 'POST', {
         timelineId,
         notebookId,
         fromEventId: sourceEvent?.id,

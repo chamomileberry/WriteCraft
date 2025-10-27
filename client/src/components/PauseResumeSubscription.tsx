@@ -49,7 +49,7 @@ export function PauseResumeSubscription() {
   // Pause subscription mutation
   const pauseMutation = useMutation({
     mutationFn: async (data: { resumeAt?: string; reason?: string }) => {
-      return await apiRequest("POST", "/api/stripe/pause-subscription", data);
+      return await apiRequest("/api/stripe/pause-subscription", "POST", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/stripe/pause-status"] });
@@ -74,7 +74,7 @@ export function PauseResumeSubscription() {
   // Resume subscription mutation
   const resumeMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/stripe/resume-subscription", {});
+      return await apiRequest("/api/stripe/resume-subscription", "POST", {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/stripe/pause-status"] });

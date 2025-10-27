@@ -99,7 +99,7 @@ export function useGenerator<TResult, TParams = any>({
 
       try {
         const params = getGenerateParams();
-        const response = await apiRequest('POST', generateEndpoint, params, { signal });
+        const response = await apiRequest(generateEndpoint, 'POST', params, { signal });
         return response.json() as Promise<TResult>;
       } catch (error) {
         // Don't throw AbortError to user
@@ -182,7 +182,7 @@ export function useGenerator<TResult, TParams = any>({
           };
 
       try {
-        const response = await apiRequest('POST', saveEndpoint, payload, { signal });
+        const response = await apiRequest(saveEndpoint, 'POST', payload, { signal });
         return response.json();
       } catch (error) {
         // Don't throw AbortError to user

@@ -55,7 +55,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         }
         
         try {
-          const response = await apiRequest('POST', '/api/family-trees', {
+          const response = await apiRequest('/api/family-trees', 'POST', {
             name: 'Untitled Family Tree',
             description: '',
             notebookId
@@ -121,7 +121,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
 
     try {
       const timestamp = new Date().toLocaleDateString();
-      const response = await apiRequest('POST', '/api/timelines', {
+      const response = await apiRequest('/api/timelines', 'POST', {
         name: `${template.name} ${timestamp}`,
         description: template.description,
         timelineType: template.timelineType,
@@ -182,7 +182,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         throw new Error('No notebook selected. Cannot fetch content.');
       }
       
-      const response = await apiRequest('GET', `${apiBase}/${currentItemId}?notebookId=${notebookId}`);
+      const response = await apiRequest(`${apiBase}/${currentItemId}?notebookId=${notebookId}`, 'GET');
       return response.json();
     },
     enabled: !isCreating && !!activeNotebookId, // Only run query if not creating new content and notebook is selected
@@ -209,7 +209,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         throw new Error('No notebook selected. Cannot generate article.');
       }
       
-      const response = await apiRequest('POST', `${apiBase}/${currentItemId}/generate-article?notebookId=${notebookId}`);
+      const response = await apiRequest(`${apiBase}/${currentItemId}/generate-article?notebookId=${notebookId}`, 'POST');
       return response.json();
     },
     onSuccess: (updatedContent) => {
@@ -255,7 +255,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         const createData = { ...data, notebookId };
         
         console.log('Making POST request to:', apiBase, 'with data:', createData);
-        const response = await apiRequest('POST', apiBase, createData);
+        const response = await apiRequest(apiBase, 'POST', createData);
         console.log('POST response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
@@ -276,7 +276,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         }
         
         console.log('Making PATCH request to:', `${apiBase}/${currentItemId}`, 'with data:', data, 'notebookId:', notebookId);
-        const response = await apiRequest('PATCH', `${apiBase}/${currentItemId}?notebookId=${notebookId}`, data);
+        const response = await apiRequest(`${apiBase}/${currentItemId}?notebookId=${notebookId}`, 'PATCH', data);
         console.log('PATCH response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
@@ -319,7 +319,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         
         // Automatically save the newly created item to saved-items
         try {
-          const saveResponse = await apiRequest('POST', '/api/saved-items', {
+          const saveResponse = await apiRequest('/api/saved-items', 'POST', {
             userId: 'demo-user', // Use demo-user for consistency with authentication
             itemType: contentType,
             itemId: result.id,
@@ -352,7 +352,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           
           if (notebookId) {
             // Update the saved-items record with the latest data
-            const savedItemsResponse = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${notebookId}`);
+            const savedItemsResponse = await apiRequest(`/api/saved-items/demo-user?notebookId=${notebookId}`, 'GET');
             const savedItems = await savedItemsResponse.json();
             
             // Find the saved item that matches this content
@@ -360,7 +360,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             
             if (savedItem) {
               // Update the itemData with the latest content
-              await apiRequest('PATCH', `/api/saved-items/${savedItem.id}`, {
+              await apiRequest(`/api/saved-items/${savedItem.id}`, 'PATCH', {
                 itemData: result
               });
               console.log('Successfully updated saved-items itemData:', { savedItemId: savedItem.id, itemId: result.id });

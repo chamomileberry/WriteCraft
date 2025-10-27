@@ -35,7 +35,7 @@ export function ProjectViewer({ projectId, onBack, onEdit }: ProjectViewerProps)
   const { data: project, isLoading: isLoadingProject } = useQuery({
     queryKey: ['/api/projects', projectId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/projects/${projectId}`);
+      const response = await apiRequest(`/api/projects/${projectId}`, 'GET');
       return response.json();
     },
     enabled: !!projectId,
@@ -45,7 +45,7 @@ export function ProjectViewer({ projectId, onBack, onEdit }: ProjectViewerProps)
   const { data: sections = [], isLoading: isLoadingSections } = useQuery({
     queryKey: ['/api/projects', projectId, 'sections'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/projects/${projectId}/sections`);
+      const response = await apiRequest(`/api/projects/${projectId}/sections`, 'GET');
       return response.json();
     },
     enabled: !!projectId,
@@ -56,7 +56,7 @@ export function ProjectViewer({ projectId, onBack, onEdit }: ProjectViewerProps)
     queryKey: ['/api/projects', projectId, 'sections', selectedSectionId],
     queryFn: async () => {
       if (!selectedSectionId) return null;
-      const response = await apiRequest('GET', `/api/projects/${projectId}/sections/${selectedSectionId}`);
+      const response = await apiRequest(`/api/projects/${projectId}/sections/${selectedSectionId}`, 'GET');
       return response.json();
     },
     enabled: !!selectedSectionId,

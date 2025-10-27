@@ -501,10 +501,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     },
     mutationFunction: async (data: any) => {
       if (currentGuideId === 'new') {
-        const response = await apiRequest('POST', '/api/guides', data);
+        const response = await apiRequest('/api/guides', 'POST', data);
         return response.json();
       } else {
-        const response = await apiRequest('PUT', `/api/guides/${currentGuideId}`, data);
+        const response = await apiRequest(`/api/guides/${currentGuideId}`, 'PUT', data);
         return response.json();
       }
     },

@@ -115,7 +115,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
 
     try {
       // Call AI API
-      const response = await apiRequest('POST', '/api/ai/improve-text', {
+      const response = await apiRequest('/api/ai/improve-text', 'POST', {
         text: selectedText,
         action: action
       });
@@ -163,7 +163,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
 
     try {
       // Call AI API with custom prompt
-      const response = await apiRequest('POST', '/api/ai/improve-text', {
+      const response = await apiRequest('/api/ai/improve-text', 'POST', {
         text: selectedTextForAsk,
         action: 'ask',
         customPrompt: customPrompt

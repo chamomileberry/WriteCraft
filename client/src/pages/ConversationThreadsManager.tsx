@@ -111,7 +111,7 @@ export default function ConversationThreadsManager() {
   // Create thread mutation
   const createThreadMutation = useMutation<ConversationThread, Error, { title: string; projectId?: string; guideId?: string }>({
     mutationFn: async (data) => {
-      const response = await apiRequest('POST', '/api/conversation-threads', {
+      const response = await apiRequest('/api/conversation-threads', 'POST', {
         title: data.title,
         projectId: data.projectId || undefined,
         guideId: data.guideId || undefined,
@@ -142,7 +142,7 @@ export default function ConversationThreadsManager() {
   // Delete thread mutation
   const deleteThreadMutation = useMutation({
     mutationFn: async (threadId: string) => {
-      return apiRequest('DELETE', `/api/conversation-threads/${threadId}`);
+      return apiRequest(`/api/conversation-threads/${threadId}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
@@ -169,7 +169,7 @@ export default function ConversationThreadsManager() {
   // Update thread mutation
   const updateThreadMutation = useMutation<ConversationThread, Error, { id: string; updates: Partial<ConversationThread> }>({
     mutationFn: async ({ id, updates }) => {
-      const response = await apiRequest('PUT', `/api/conversation-threads/${id}`, updates);
+      const response = await apiRequest(`/api/conversation-threads/${id}`, 'PUT', updates);
       return response.json();
     },
     onSuccess: (updatedThread: ConversationThread) => {
@@ -193,7 +193,7 @@ export default function ConversationThreadsManager() {
   // Generate tags mutation
   const generateTagsMutation = useMutation<ConversationThread, Error, string>({
     mutationFn: async (threadId: string) => {
-      const response = await apiRequest('POST', `/api/conversation-threads/${threadId}/generate-tags`);
+      const response = await apiRequest(`/api/conversation-threads/${threadId}/generate-tags`, 'POST');
       return response.json();
     },
     onSuccess: (updatedThread: ConversationThread) => {

@@ -100,7 +100,7 @@ export default function SecurityDashboard() {
   // Acknowledge alert mutation
   const acknowledgeMutation = useMutation({
     mutationFn: async (alertId: string) => {
-      return apiRequest('POST', `/api/security/alerts/${alertId}/acknowledge`);
+      return apiRequest(`/api/security/alerts/${alertId}/acknowledge`, 'POST');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/security/alerts'] });
@@ -122,7 +122,7 @@ export default function SecurityDashboard() {
   // Block IP mutation
   const blockIpMutation = useMutation({
     mutationFn: async (data: { ipAddress: string; reason: string; severity: string; durationMinutes?: number }) => {
-      return apiRequest('POST', '/api/security/block-ip', data);
+      return apiRequest('/api/security/block-ip', 'POST', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/security/blocked-ips'] });
@@ -148,7 +148,7 @@ export default function SecurityDashboard() {
   // Unblock IP mutation
   const unblockIpMutation = useMutation({
     mutationFn: async (ipAddress: string) => {
-      return apiRequest('POST', '/api/security/unblock-ip', { ipAddress });
+      return apiRequest('/api/security/unblock-ip', 'POST', { ipAddress });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/security/blocked-ips'] });

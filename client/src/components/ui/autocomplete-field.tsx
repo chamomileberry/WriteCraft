@@ -279,7 +279,7 @@ export function AutocompleteField({
       // Save the newly created item to the notebook's saved_items
       if (activeNotebookId && newItem.id) {
         try {
-          await apiRequest('POST', '/api/saved-items', {
+          await apiRequest('/api/saved-items', 'POST', {
             itemType: contentType,
             itemId: newItem.id,
             notebookId: activeNotebookId,

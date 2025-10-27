@@ -42,7 +42,7 @@ export function BillingAlertsDropdown() {
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: (alertId: string) => apiRequest('PATCH', `/api/billing-alerts/${alertId}/read`),
+    mutationFn: (alertId: string) => apiRequest(`/api/billing-alerts/${alertId}/read`, 'PATCH'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts/unread-count'] });
@@ -50,7 +50,7 @@ export function BillingAlertsDropdown() {
   });
 
   const dismissMutation = useMutation({
-    mutationFn: (alertId: string) => apiRequest('PATCH', `/api/billing-alerts/${alertId}/dismiss`),
+    mutationFn: (alertId: string) => apiRequest(`/api/billing-alerts/${alertId}/dismiss`, 'PATCH'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts/unread-count'] });
