@@ -67,6 +67,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { analytics } from "@/lib/posthog";
+import { ThemeProvider } from "@/hooks/use-theme";
 
 // Notebook page component
 function NotebookPage() {
@@ -279,8 +280,10 @@ function App() {
       <PostHogProvider>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <AuthenticatedApp />
-            <Toaster />
+            <ThemeProvider>
+              <AuthenticatedApp />
+              <Toaster />
+            </ThemeProvider>
           </TooltipProvider>
         </QueryClientProvider>
         <CookieConsentBanner />
