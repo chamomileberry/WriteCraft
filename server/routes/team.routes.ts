@@ -2,6 +2,10 @@ import { Router } from 'express';
 import { teamService } from '../services/teamService';
 import { isAuthenticated } from '../replitAuth';
 import { z } from 'zod';
+import { emailService } from '../services/emailService';
+import { db } from '../db';
+import { users, userSubscriptions } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -84,6 +88,27 @@ router.post('/invite', isAuthenticated, async (req, res, next) => {
       userId
     );
 
+    // Send invitation email
+    const [inviter] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const inviterName = inviter?.firstName 
+      ? `${inviter.firstName} ${inviter.lastName || ''}`.trim()
+      : inviter?.email?.split('@')[0] || 'Someone';
+    
+    const [subscription] = await db.select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.id, teamSubscription.id))
+      .limit(1);
+    
+    const teamName = subscription?.teamName || 'WriteCraft Team';
+    
+    await emailService.sendTeamInvitation(data.email, {
+      recipientName: data.email.split('@')[0],
+      teamName,
+      inviterName,
+      role: data.role,
+      inviteToken: invitation.token,
+    });
+
     res.json(invitation);
   } catch (error: any) {
     if (error.message.includes('already')) {
@@ -134,7 +159,29 @@ router.delete('/members/:userId', isAuthenticated, async (req, res, next) => {
       return res.status(403).json({ message: 'Only team owner can remove members' });
     }
 
+    // Get user details before removing
+    const [targetUser] = await db.select().from(users).where(eq(users.id, targetUserId)).limit(1);
+    const [subscription] = await db.select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.id, teamSubscription.id))
+      .limit(1);
+    
     await teamService.removeMember(teamSubscription.id, targetUserId, currentUserId);
+    
+    // Send removal notification email
+    if (targetUser?.email) {
+      const userName = targetUser.firstName 
+        ? `${targetUser.firstName} ${targetUser.lastName || ''}`.trim()
+        : targetUser.email.split('@')[0];
+      
+      const teamName = subscription?.teamName || 'WriteCraft Team';
+      
+      await emailService.sendTeamMemberRemoved(targetUser.email, {
+        recipientName: userName,
+        teamName,
+      });
+    }
+    
     res.json({ success: true });
   } catch (error: any) {
     next(error);
@@ -181,6 +228,27 @@ router.patch('/members/:userId', isAuthenticated, async (req, res, next) => {
       },
       currentUserId
     );
+
+    // Send role change notification email
+    const [targetUser] = await db.select().from(users).where(eq(users.id, targetUserId)).limit(1);
+    const [subscription] = await db.select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.id, teamSubscription.id))
+      .limit(1);
+    
+    if (targetUser?.email) {
+      const userName = targetUser.firstName 
+        ? `${targetUser.firstName} ${targetUser.lastName || ''}`.trim()
+        : targetUser.email.split('@')[0];
+      
+      const teamName = subscription?.teamName || 'WriteCraft Team';
+      
+      await emailService.sendTeamRoleChanged(targetUser.email, {
+        recipientName: userName,
+        teamName,
+        role: data.role,
+      });
+    }
 
     res.json(updated);
   } catch (error: any) {
