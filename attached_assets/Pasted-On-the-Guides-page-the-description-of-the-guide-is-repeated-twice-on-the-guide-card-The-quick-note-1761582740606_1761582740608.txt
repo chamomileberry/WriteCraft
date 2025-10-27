@@ -1,0 +1,13 @@
+On the Guides page, the description of the guide is repeated twice on the guide card. The quick note feature also has a weird black border around the entire purple part now instead of just having the header and then the purple sticky note as the full note beneath it like it used to be. The AI writing assistant continues to display suggestion cards for creating content, after already clicking the suggestion and creating the content in my notebook. When clicking to read a guide, the sidebar from the guides page should remain so that users can quickly navigate between guides. Each guide should also have a unique URL that uses the guide's title. For example, the current guide is called, "What is Worldbuilding?" but the URL is currently: https://writecraft.app/guides/3b20771a-480c-454c-a3aa-f7c97509c6a5. This would be a prime situation in terms of SEO since the guides basically function as a blog, where the URL could point to http://writecraft.app/guides/what-is-worldbuilding instead.
+
+I'm also receiving this error when I'm trying to edit guides: 
+[plugin:runtime-error-plugin] Failed to execute 'fetch' on 'Window': '/api/guides/3b20771a-480c-454c-a3aa-f7c97509c6a5' is not a valid HTTP method.
+/home/runner/workspace/client/src/lib/queryClient.ts:28:21
+26 |    options?: { signal?: AbortSignal }
+27 |  ): Promise<Response> {
+28 |    const res = await fetch(url, {
+   |                      ^
+29 |      method,
+30 |      headers: data ? { "Content-Type": "application/json" } : {},
+
+I also still don't have the ability to @ mention other guides to link them like wikipedia/obsidian style where users can then quickly and easily navigate to other guides with topics that might interest them on their worldbuilding journey. Lastly, sometimes even when i'm not doing anything on the website, it just randomly refreshes. Or sometimes it'll refresh itself while I'm trying to work on something which is quite annoying and inconvenient because then I have to wait for the page to reload, which takes a significant amount of time.
