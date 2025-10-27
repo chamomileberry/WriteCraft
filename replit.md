@@ -79,6 +79,15 @@ For production deployments with large JavaScript bundles (5+ MB), configure Node
 - **Analytics**: PostHog integration for product analytics, tracking page views, user identification, content generation, and AI assistant usage.
 - **Logging Strategy**: Pino structured logging with JSON output in production, redacting sensitive fields.
 - **Uptime Monitoring**: Health check endpoints at `/api/health`, `/api/health/db`, `/api/health/detailed`.
+- **Email Notification System**: Nodemailer with Zoho SMTP (writecraft.app domain) for transactional emails. Comprehensive notification coverage including:
+  - **Subscription Lifecycle**: Activation, cancellation, reactivation, trial ending alerts
+  - **Payment Events**: Failed payments with retry instructions, refund confirmations
+  - **Security Alerts**: MFA enable/disable, new device login, password changes
+  - **Team Management**: Invitations with tokens, member removal, role changes
+  - **Usage Limits**: 80% warnings, grace period start (7-day countdown), grace period ending, and limit exceeded notifications
+  - **Configuration**: Environment variables (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM). Test mode via EMAIL_TEST_MODE=true.
+  - **Templates**: Branded HTML + plain text alternatives in server/templates/email/emailTemplates.ts with consistent WriteCraft styling.
+  - **Admin Tools**: Preview endpoint at /api/admin/email-preview for testing all templates with sample data.
 
 ### System Design Choices
 - **Code Organization**: Centralized constants, API layer, custom Zustand hooks, and schema-driven form generation.
@@ -111,7 +120,15 @@ For production deployments with large JavaScript bundles (5+ MB), configure Node
   - Implemented AI generation for themes, conflicts, items, and locations with full security and usage tracking
   - Added 'item_generation' and 'location_generation' to OperationType enum for proper model selection and cache segregation
   - Enhanced QuickNotePanel with functional new note creation using workspace panel management
-  - **Email Notifications**: See PRODUCTION_TODOS.md for detailed email notification requirements and implementation plan. Email system is not yet implemented but is documented for future production deployment.
+  - **Email Notification System Implementation** (Oct 27, 2025):
+    - Integrated Nodemailer with Zoho SMTP for transactional emails
+    - Created comprehensive email template system with branded HTML/text templates for all notification types
+    - Integrated email notifications into Stripe webhooks for subscription and payment events
+    - Added security notifications for MFA changes (enable/disable)
+    - Implemented team management notifications (invitations, removals, role changes)
+    - Added usage limit warnings and grace period notifications with dynamic limit type support
+    - Created admin email preview endpoint at /api/admin/email-preview for testing all templates
+    - All email sending is async/non-blocking to prevent request delays
 
 ## External Dependencies
 
