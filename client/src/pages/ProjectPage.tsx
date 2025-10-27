@@ -104,7 +104,7 @@ export default function ProjectPage() {
   // Create new project mutation
   const createProjectMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/projects', 'POST', {
+      const response = await apiRequest('POST', '/api/projects', {
         title: 'Untitled Project',
         content: '',
         status: 'draft',

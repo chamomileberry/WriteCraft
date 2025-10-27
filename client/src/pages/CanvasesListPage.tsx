@@ -30,7 +30,7 @@ export default function CanvasesListPage() {
   const { data: canvases, isLoading } = useQuery({
     queryKey: ['/api/canvases'],
     queryFn: async () => {
-      const response = await apiRequest('/api/canvases', 'GET');
+      const response = await apiRequest('GET', '/api/canvases',);
       if (!response.ok) throw new Error('Failed to load canvases');
       return response.json() as Promise<Canvas[]>;
     },

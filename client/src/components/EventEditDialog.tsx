@@ -147,7 +147,7 @@ export function EventEditDialog({
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
-      const response = await apiRequest('/api/timeline-events', 'POST', {
+      const response = await apiRequest('POST', '/api/timeline-events', {
         timelineId,
         notebookId,
         ...data,

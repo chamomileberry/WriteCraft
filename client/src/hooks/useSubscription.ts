@@ -89,7 +89,7 @@ export function useSubscription() {
    */
   const checkLimitMutation = useMutation({
     mutationFn: async (action: string) => {
-      const response = await apiRequest("/api/subscription/check-limit", "POST", { action });
+      const response = await apiRequest("POST", "/api/subscription/check-limit", { action });
       return response.json() as Promise<LimitCheckResult>;
     },
   });

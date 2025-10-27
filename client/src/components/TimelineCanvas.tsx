@@ -140,7 +140,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   // Create relationship mutation
   const createRelationshipMutation = useMutation({
     mutationFn: async (data: { fromEventId: string; toEventId: string; relationshipType: string }) => {
-      const response = await apiRequest('/api/timeline-relationships', 'POST', {
+      const response = await apiRequest('POST', '/api/timeline-relationships', {
         timelineId,
         notebookId,
         ...data,

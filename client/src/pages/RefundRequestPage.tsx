@@ -52,7 +52,7 @@ export default function RefundRequestPage() {
     setIsSubmitting(true);
     try {
       // Submit as feedback with 'refund' tag
-      await apiRequest('/api/feedback', 'POST', {
+      await apiRequest('POST', '/api/feedback', {
         type: 'refund',
         subject: `Refund Request: ${REFUND_REASONS.find((r) => r.value === reason)?.label}`,
         message: explanation,

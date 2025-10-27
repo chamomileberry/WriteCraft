@@ -113,7 +113,7 @@ export default function AccountSettings() {
 
   const handleRestartOnboarding = async () => {
     try {
-      await apiRequest('/api/user/preferences', 'PATCH', {
+      await apiRequest('PATCH', '/api/user/preferences', {
         onboardingCompleted: false,
         onboardingStep: 0
       });

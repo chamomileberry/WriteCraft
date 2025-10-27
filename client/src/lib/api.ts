@@ -27,12 +27,12 @@ export const authApi = {
   },
 
   logout: async () => {
-    const res = await apiRequest('/api/logout', 'POST');
+    const res = await apiRequest('POST', '/api/logout',);
     return res.json();
   },
 
   updateProfile: async (updates: { displayName?: string; avatarUrl?: string }) => {
-    const res = await apiRequest('/api/auth/user', 'PUT', updates);
+    const res = await apiRequest('PUT', '/api/auth/user', updates);
     return res.json();
   },
 };
@@ -49,7 +49,7 @@ export const notebooksApi = {
   },
 
   create: async (data: { name: string; description?: string; imageUrl?: string }) => {
-    const res = await apiRequest('/api/notebooks', 'POST', data);
+    const res = await apiRequest('POST', '/api/notebooks', data);
     return res.json();
   },
 
@@ -91,7 +91,7 @@ export const charactersApi = {
   },
 
   create: async (data: any) => {
-    const res = await apiRequest('/api/characters', 'POST', data);
+    const res = await apiRequest('POST', '/api/characters', data);
     return res.json();
   },
 
@@ -106,7 +106,7 @@ export const charactersApi = {
   },
 
   generate: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-character', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-character', params);
     return res.json();
   },
 
@@ -139,7 +139,7 @@ export const charactersApi = {
     },
 
     mergeCharacters: async (sourceId: string, targetId: string) => {
-      const res = await apiRequest('/api/characters/consolidate/merge', 'POST', { sourceId, targetId });
+      const res = await apiRequest('POST', '/api/characters/consolidate/merge', { sourceId, targetId });
       return res.json();
     },
 
@@ -174,7 +174,7 @@ export const projectsApi = {
   },
 
   create: async (data: { title: string; description?: string; genre?: string }) => {
-    const res = await apiRequest('/api/projects', 'POST', data);
+    const res = await apiRequest('POST', '/api/projects', data);
     return res.json();
   },
 
@@ -256,7 +256,7 @@ export const savedItemsApi = {
   },
 
   create: async (data: { userId: string; itemType: string; itemId: string; notebookId?: string; itemData?: any }) => {
-    const res = await apiRequest('/api/saved-items', 'POST', data);
+    const res = await apiRequest('POST', '/api/saved-items', data);
     return res.json();
   },
 
@@ -300,7 +300,7 @@ export const guidesApi = {
   },
 
   create: async (data: { title: string; category: string; content: string; description?: string }) => {
-    const res = await apiRequest('/api/guides', 'POST', data);
+    const res = await apiRequest('POST', '/api/guides', data);
     return res.json();
   },
 
@@ -321,57 +321,57 @@ export const guidesApi = {
 
 export const generatorsApi = {
   character: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-character', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-character', params);
     return res.json();
   },
 
   name: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-name', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-name', params);
     return res.json();
   },
 
   plot: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-plot', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-plot', params);
     return res.json();
   },
 
   setting: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-setting', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-setting', params);
     return res.json();
   },
 
   creature: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-creature', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-creature', params);
     return res.json();
   },
 
   conflict: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-conflict', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-conflict', params);
     return res.json();
   },
 
   theme: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-theme', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-theme', params);
     return res.json();
   },
 
   mood: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-mood', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-mood', params);
     return res.json();
   },
 
   description: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-description', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-description', params);
     return res.json();
   },
 
   plant: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-plant', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-plant', params);
     return res.json();
   },
 
   prompt: async (params: any) => {
-    const res = await apiRequest('/api/ai/generate-prompt', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/generate-prompt', params);
     return res.json();
   },
 };
@@ -382,42 +382,42 @@ export const generatorsApi = {
 
 export const writingAssistantApi = {
   analyze: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('/api/writing-assistant/analyze', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/analyze', params);
     return res.json();
   },
 
   rephrase: async (params: { text: string; style?: string; context?: any }) => {
-    const res = await apiRequest('/api/writing-assistant/rephrase', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/rephrase', params);
     return res.json();
   },
 
   proofread: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('/api/writing-assistant/proofread', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/proofread', params);
     return res.json();
   },
 
   synonyms: async (params: { word: string; context?: string }) => {
-    const res = await apiRequest('/api/writing-assistant/synonyms', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/synonyms', params);
     return res.json();
   },
 
   definition: async (params: { word: string }) => {
-    const res = await apiRequest('/api/writing-assistant/definition', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/definition', params);
     return res.json();
   },
 
   questions: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('/api/writing-assistant/questions', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/questions', params);
     return res.json();
   },
 
   improve: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('/api/writing-assistant/improve', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/improve', params);
     return res.json();
   },
 
   chat: async (params: { message: string; conversationHistory?: any[]; context?: any }) => {
-    const res = await apiRequest('/api/writing-assistant/chat', 'POST', params);
+    const res = await apiRequest('POST', '/api/writing-assistant/chat', params);
     return res.json();
   },
 };
@@ -428,7 +428,7 @@ export const writingAssistantApi = {
 
 export const aiFieldAssistApi = {
   suggest: async (params: { field: string; context: any; notebookId?: string }) => {
-    const res = await apiRequest('/api/ai/field-assist', 'POST', params);
+    const res = await apiRequest('POST', '/api/ai/field-assist', params);
     return res.json();
   },
 };
@@ -439,7 +439,7 @@ export const aiFieldAssistApi = {
 
 export const uploadApi = {
   initiateImageUpload: async (filename: string, contentType: string) => {
-    const res = await apiRequest('/api/upload/image', 'POST', { filename, contentType });
+    const res = await apiRequest('POST', '/api/upload/image', { filename, contentType });
     return res.json();
   },
 
@@ -456,7 +456,7 @@ export const uploadApi = {
   },
 
   finalizeUpload: async (objectPath: string) => {
-    const res = await apiRequest('/api/upload/finalize', 'POST', { objectPath });
+    const res = await apiRequest('POST', '/api/upload/finalize', { objectPath });
     return res.json();
   },
 };
@@ -485,7 +485,7 @@ export const pinnedContentApi = {
   },
 
   create: async (data: { contentType: string; contentId: string; title: string; subtitle?: string }) => {
-    const res = await apiRequest('/api/pinned-content', 'POST', data);
+    const res = await apiRequest('POST', '/api/pinned-content', data);
     return res.json();
   },
 
@@ -520,7 +520,7 @@ export const notesApi = {
   },
 
   create: async (data: { title: string; content?: string; type: string; parentId?: string; documentId?: string }) => {
-    const res = await apiRequest('/api/notes', 'POST', data);
+    const res = await apiRequest('POST', '/api/notes', data);
     return res.json();
   },
 
@@ -553,7 +553,7 @@ export const quickNotesApi = {
   },
 
   create: async (data: { title?: string; content: string }) => {
-    const res = await apiRequest('/api/quick-note', 'POST', data);
+    const res = await apiRequest('POST', '/api/quick-note', data);
     return res.json();
   },
 
@@ -582,7 +582,7 @@ export const chatMessagesApi = {
   },
 
   create: async (data: { conversationId: string; role: string; content: string }) => {
-    const res = await apiRequest('/api/chat-messages', 'POST', data);
+    const res = await apiRequest('POST', '/api/chat-messages', data);
     return res.json();
   },
 
@@ -605,7 +605,7 @@ export const collaborationApi = {
     },
 
     create: async (data: { resourceType: string; resourceId: string; sharedWithEmail: string; permission: string }) => {
-      const res = await apiRequest('/api/shares', 'POST', data);
+      const res = await apiRequest('POST', '/api/shares', data);
       return res.json();
     },
 
@@ -678,7 +678,7 @@ export const imagesApi = {
 
   dalle: {
     generate: async (prompt: string, size: string = '1024x1024') => {
-      const res = await apiRequest('/api/dalle/generate', 'POST', { prompt, size });
+      const res = await apiRequest('POST', '/api/dalle/generate', { prompt, size });
       return res.json();
     },
   },
@@ -704,7 +704,7 @@ export const adminApi = {
     },
 
     create: async (data: { phrase: string; category: string; isActive?: boolean }) => {
-      const res = await apiRequest('/api/admin/banned-phrases', 'POST', data);
+      const res = await apiRequest('POST', '/api/admin/banned-phrases', data);
       return res.json();
     },
 
@@ -756,7 +756,7 @@ export const foldersApi = {
   },
 
   create: async (data: { name: string; type: string; parentId?: string; documentId?: string }) => {
-    const res = await apiRequest('/api/folders', 'POST', data);
+    const res = await apiRequest('POST', '/api/folders', data);
     return res.json();
   },
 

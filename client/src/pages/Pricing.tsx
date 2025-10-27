@@ -63,7 +63,7 @@ export default function Pricing() {
     setLoadingTier(previewTier);
 
     try {
-      const response = await apiRequest('/api/stripe/create-checkout', 'POST', {
+      const response = await apiRequest('POST', '/api/stripe/create-checkout', {
         tier: previewTier,
         billingCycle: isAnnual ? 'annual' : 'monthly',
         ...(discountCode && { discountCode }),

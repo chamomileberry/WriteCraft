@@ -57,7 +57,7 @@ export default function CharacterEditPageWithSidebar() {
       // Automatically save character to collection when edited
       if (user?.id) {
         try {
-          await apiRequest('/api/saved-items', 'POST', {
+          await apiRequest('POST', '/api/saved-items', {
             userId: user.id,
             itemType: 'character',
             itemId: id,

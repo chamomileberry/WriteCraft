@@ -122,7 +122,7 @@ export default function SecurityDashboard() {
   // Block IP mutation
   const blockIpMutation = useMutation({
     mutationFn: async (data: { ipAddress: string; reason: string; severity: string; durationMinutes?: number }) => {
-      return apiRequest('/api/security/block-ip', 'POST', data);
+      return apiRequest('POST', '/api/security/block-ip', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/security/blocked-ips'] });
@@ -148,7 +148,7 @@ export default function SecurityDashboard() {
   // Unblock IP mutation
   const unblockIpMutation = useMutation({
     mutationFn: async (ipAddress: string) => {
-      return apiRequest('/api/security/unblock-ip', 'POST', { ipAddress });
+      return apiRequest('POST', '/api/security/unblock-ip', { ipAddress });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/security/blocked-ips'] });

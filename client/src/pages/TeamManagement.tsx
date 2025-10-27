@@ -137,7 +137,7 @@ export default function TeamManagement() {
   // Invite member mutation
   const inviteMutation = useMutation({
     mutationFn: async (data: { email: string; role: 'admin' | 'member'; canEdit: boolean; canComment: boolean; canInvite: boolean }) => {
-      return await apiRequest('/api/team/invite', 'POST', data);
+      return await apiRequest('POST', '/api/team/invite', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team/invitations'] });

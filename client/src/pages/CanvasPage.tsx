@@ -74,7 +74,7 @@ export default function CanvasPage() {
   // Create canvas mutation
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; data: string }) => {
-      const response = await apiRequest('/api/canvases', 'POST', data);
+      const response = await apiRequest('POST', '/api/canvases', data);
       if (!response.ok) throw new Error('Failed to create canvas');
       return response.json();
     },

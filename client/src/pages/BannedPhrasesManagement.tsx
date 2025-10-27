@@ -43,7 +43,7 @@ export default function BannedPhrasesManagement() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest('/api/admin/banned-phrases', 'POST', data);
+      const response = await apiRequest('POST', '/api/admin/banned-phrases', data);
       return response.json();
     },
     onSuccess: () => {

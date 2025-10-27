@@ -91,7 +91,7 @@ export default function GuideCategoriesAdmin() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: CategoryFormData) => {
-      const res = await apiRequest('/api/guide-categories', 'POST', data);
+      const res = await apiRequest('POST', '/api/guide-categories', data);
       return await res.json();
     },
     onSuccess: () => {
@@ -163,7 +163,7 @@ export default function GuideCategoriesAdmin() {
   // Reorder mutation
   const reorderMutation = useMutation({
     mutationFn: async (categoryOrders: Array<{ id: string; order: number }>) => {
-      await apiRequest('/api/guide-categories/reorder', 'POST', { categoryOrders });
+      await apiRequest('POST', '/api/guide-categories/reorder', { categoryOrders });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });

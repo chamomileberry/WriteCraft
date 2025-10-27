@@ -111,7 +111,7 @@ export default function ConversationThreadsManager() {
   // Create thread mutation
   const createThreadMutation = useMutation<ConversationThread, Error, { title: string; projectId?: string; guideId?: string }>({
     mutationFn: async (data) => {
-      const response = await apiRequest('/api/conversation-threads', 'POST', {
+      const response = await apiRequest('POST', '/api/conversation-threads', {
         title: data.title,
         projectId: data.projectId || undefined,
         guideId: data.guideId || undefined,

@@ -129,7 +129,7 @@ export default function DiscountCodesAdmin() {
   // Create discount code mutation
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/admin/discount-codes", "POST", data);
+      return await apiRequest("POST", "/api/admin/discount-codes", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/discount-codes'] });

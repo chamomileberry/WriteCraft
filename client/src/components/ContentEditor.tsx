@@ -55,7 +55,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         }
         
         try {
-          const response = await apiRequest('/api/family-trees', 'POST', {
+          const response = await apiRequest('POST', '/api/family-trees', {
             name: 'Untitled Family Tree',
             description: '',
             notebookId
@@ -121,7 +121,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
 
     try {
       const timestamp = new Date().toLocaleDateString();
-      const response = await apiRequest('/api/timelines', 'POST', {
+      const response = await apiRequest('POST', '/api/timelines', {
         name: `${template.name} ${timestamp}`,
         description: template.description,
         timelineType: template.timelineType,
@@ -319,7 +319,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         
         // Automatically save the newly created item to saved-items
         try {
-          const saveResponse = await apiRequest('/api/saved-items', 'POST', {
+          const saveResponse = await apiRequest('POST', '/api/saved-items', {
             userId: 'demo-user', // Use demo-user for consistency with authentication
             itemType: contentType,
             itemId: result.id,

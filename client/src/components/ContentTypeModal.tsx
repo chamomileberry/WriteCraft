@@ -44,7 +44,7 @@ export default function ContentTypeModal({ isOpen, onClose, onSelectType }: Cont
   const { data: fetchedNotebooks, isLoading: isLoadingNotebooks, error: notebooksError, refetch } = useQuery({
     queryKey: ['/api/notebooks'],
     queryFn: async () => {
-      const response = await apiRequest('/api/notebooks', 'GET');
+      const response = await apiRequest('GET', '/api/notebooks',);
       const data = await response.json() as Notebook[];
       return data;
     },

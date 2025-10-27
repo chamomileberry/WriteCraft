@@ -80,7 +80,7 @@ export function APIKeysSettings() {
   // Create API key mutation
   const createKeyMutation = useMutation({
     mutationFn: async (data: { name: string; scope: string }) => {
-      const response = await apiRequest("/api/api-keys", "POST", data);
+      const response = await apiRequest("POST", "/api/api-keys", data);
       return await response.json() as NewKeyResponse;
     },
     onSuccess: (data) => {

@@ -19,7 +19,7 @@ export function BetaDisclaimer() {
 
   const dismissMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/user/preferences', 'PATCH', {
+      const response = await apiRequest('PATCH', '/api/user/preferences', {
         betaBannerDismissed: true,
       });
       return response.json();

@@ -127,7 +127,7 @@ export function AIPreferencesSettings() {
   // Update preferences mutation
   const updatePreferencesMutation = useMutation({
     mutationFn: async (updates: Partial<UserPreferences>) => {
-      const response = await apiRequest('/api/user/preferences', 'PATCH', updates);
+      const response = await apiRequest('PATCH', '/api/user/preferences', updates);
       return response.json();
     },
     onSuccess: () => {

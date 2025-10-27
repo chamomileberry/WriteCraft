@@ -21,7 +21,7 @@ export function OnboardingWizard({ isOpen, onClose, userId }: OnboardingWizardPr
   const handleExperienceSelection = async (level: 'new_to_worldbuilding' | 'experienced_worldbuilder') => {
     try {
       // Update user preferences with experience level
-      await apiRequest('/api/user/preferences', 'PATCH', { 
+      await apiRequest('PATCH', '/api/user/preferences', { 
         experienceLevel: level,
         onboardingStep: 1
       });
@@ -44,7 +44,7 @@ export function OnboardingWizard({ isOpen, onClose, userId }: OnboardingWizardPr
 
   const handleSkipOnboarding = async () => {
     try {
-      await apiRequest('/api/user/preferences', 'PATCH', { 
+      await apiRequest('PATCH', '/api/user/preferences', { 
         onboardingCompleted: true,
         onboardingStep: 999
       });
@@ -59,7 +59,7 @@ export function OnboardingWizard({ isOpen, onClose, userId }: OnboardingWizardPr
 
   const handleCompleteOnboarding = async () => {
     try {
-      await apiRequest('/api/user/preferences', 'PATCH', { 
+      await apiRequest('PATCH', '/api/user/preferences', { 
         onboardingCompleted: true
       });
       

@@ -61,7 +61,7 @@ export function PolishButton({
 
     setIsPolishing(true);
     try {
-      const response = await apiRequest("/api/ai/polish", "POST", {
+      const response = await apiRequest("POST", "/api/ai/polish", {
         content,
         contentType,
       });

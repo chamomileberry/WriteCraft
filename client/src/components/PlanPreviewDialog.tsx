@@ -71,7 +71,7 @@ export function PlanPreviewDialog({
 
   const previewMutation = useMutation({
     mutationFn: async (variables: { tier: SubscriptionTier; billingCycle: 'monthly' | 'annual'; discountCode?: string }) => {
-      const response = await apiRequest('/api/stripe/preview-subscription-change', 'POST', {
+      const response = await apiRequest('POST', '/api/stripe/preview-subscription-change', {
         tier: variables.tier,
         billingCycle: variables.billingCycle,
         ...(variables.discountCode && { discountCode: variables.discountCode }),

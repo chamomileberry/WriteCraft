@@ -23,7 +23,7 @@ export function BillingSettings() {
   const handleOpenBillingPortal = async () => {
     setIsPortalLoading(true);
     try {
-      const response = await apiRequest('/api/stripe/create-portal', 'POST', {});
+      const response = await apiRequest('POST', '/api/stripe/create-portal', {});
       if (response.url) {
         window.location.href = response.url;
       }
@@ -44,7 +44,7 @@ export function BillingSettings() {
   const handleCancelSubscription = async (reason: string, feedback?: string) => {
     setIsCanceling(true);
     try {
-      await apiRequest('/api/stripe/cancel-subscription', 'POST', { reason, feedback });
+      await apiRequest('POST', '/api/stripe/cancel-subscription', { reason, feedback });
       toast({
         title: 'Subscription canceled',
         description: 'Your subscription will remain active until the end of your billing period.',
@@ -65,7 +65,7 @@ export function BillingSettings() {
   const handleReactivateSubscription = async () => {
     setIsReactivating(true);
     try {
-      await apiRequest('/api/stripe/reactivate-subscription', 'POST', {});
+      await apiRequest('POST', '/api/stripe/reactivate-subscription', {});
       toast({
         title: 'Subscription reactivated',
         description: 'Your subscription has been successfully reactivated.',

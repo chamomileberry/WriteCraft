@@ -56,7 +56,7 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 
     try {
       // Create setup intent
-      const response = await apiRequest('/api/stripe/create-setup-intent', 'POST', {});
+      const response = await apiRequest('POST', '/api/stripe/create-setup-intent', {});
       const { clientSecret } = await response.json();
 
       // Get card element
