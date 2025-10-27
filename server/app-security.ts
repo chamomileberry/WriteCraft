@@ -17,6 +17,7 @@ import {
  */
 export function applySecurityMiddleware(app: Express): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
+  const enableIDS = process.env.ENABLE_IDS === 'true'; // Opt-in IDS (disabled by default)
   
   // Generate CSP nonce for each request (MUST be before securityHeaders)
   app.use(generateCSPNonce);
@@ -24,8 +25,8 @@ export function applySecurityMiddleware(app: Express): void {
   // Apply security headers to all requests (uses the nonce)
   app.use(securityHeaders);
   
-  // Block blacklisted IPs (ONLY in production - disabled in development)
-  if (!isDevelopment) {
+  // Block blacklisted IPs (opt-in only - requires ENABLE_IDS=true)
+  if (enableIDS && !isDevelopment) {
     app.use(blockBlacklistedIps);
   }
   
@@ -35,8 +36,8 @@ export function applySecurityMiddleware(app: Express): void {
     windowMs: 15 * 60 * 1000
   }));
   
-  // Detect injection attacks (ONLY in production - disabled in development)
-  if (!isDevelopment) {
+  // Detect injection attacks (opt-in only - requires ENABLE_IDS=true)
+  if (enableIDS && !isDevelopment) {
     app.use(detectInjectionAttacks);
   }
   
@@ -47,10 +48,10 @@ export function applySecurityMiddleware(app: Express): void {
   // Log security initialization
   console.log('[SECURITY] Security middleware initialized:');
   console.log('[SECURITY] ✓ Security headers enabled');
-  console.log(`[SECURITY] ${isDevelopment ? '○' : '✓'} Intrusion Detection System (IDS) ${isDevelopment ? 'disabled (dev mode)' : 'active'}`);
-  console.log(`[SECURITY] ${isDevelopment ? '○' : '✓'} IP blocking ${isDevelopment ? 'disabled (dev mode)' : 'enabled'}`);
+  console.log(`[SECURITY] ${enableIDS && !isDevelopment ? '✓' : '○'} Intrusion Detection System (IDS) ${enableIDS && !isDevelopment ? 'active' : 'disabled (set ENABLE_IDS=true to enable)'}`);
+  console.log(`[SECURITY] ${enableIDS && !isDevelopment ? '✓' : '○'} IP blocking ${enableIDS && !isDevelopment ? 'enabled' : 'disabled (set ENABLE_IDS=true to enable)'}`);
   console.log(`[SECURITY] ✓ Rate limiting enabled (${isDevelopment ? '10000' : '1000'} req/15min)`);
-  console.log(`[SECURITY] ${isDevelopment ? '○' : '✓'} Injection detection ${isDevelopment ? 'disabled (dev mode)' : 'active'}`);
+  console.log(`[SECURITY] ${enableIDS && !isDevelopment ? '✓' : '○'} Injection detection ${enableIDS && !isDevelopment ? 'active' : 'disabled (set ENABLE_IDS=true to enable)'}`);
   console.log('[SECURITY] ✓ Input sanitization enabled');
   console.log('[SECURITY] ✓ CSRF protection available per route');
   console.log('[SECURITY] ✓ Row-level security enforced');
