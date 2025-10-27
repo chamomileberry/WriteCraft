@@ -125,7 +125,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     queryKey: ['/api/notebooks'],
     queryFn: async () => {
       console.log('[SavedItems] Fetching notebooks list');
-      const response = await apiRequest('/api/notebooks', 'GET');
+      const response = await apiRequest('GET', '/api/notebooks');
       const notebooks = await response.json();
       console.log('[SavedItems] Fetched notebooks:', notebooks);
       return notebooks;
@@ -163,7 +163,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       }
       console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
       // Use notebook-specific endpoint to get fresh data
-      const response = await apiRequest(`/api/saved-items/notebook/${activeNotebookId}`, 'GET');
+      const response = await apiRequest('GET', `/api/saved-items/notebook/${activeNotebookId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch saved items: ${response.status}`);
       }
