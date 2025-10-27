@@ -4,6 +4,7 @@ import { stripeService } from '../services/stripeService';
 import { subscriptionService } from '../services/subscriptionService';
 import { isAuthenticated } from '../replitAuth';
 import { storage } from '../storage';
+import { emailService } from '../services/emailService';
 
 const router = Router();
 
@@ -135,6 +136,19 @@ router.post('/cancel-subscription', isAuthenticated, async (req: any, res) => {
       userEmail,
       status: 'new',
     });
+
+    // Send cancellation confirmation email
+    if (userEmail && subscription.currentPeriodEnd) {
+      const userName = req.user.claims.name || userEmail.split('@')[0];
+      const tierName = (subscription.tier || 'Unknown').charAt(0).toUpperCase() + (subscription.tier || 'unknown').slice(1);
+      
+      await emailService.sendSubscriptionCanceled(userEmail, {
+        userName,
+        planName: tierName,
+        periodEnd: subscription.currentPeriodEnd,
+        cancelAtPeriodEnd: true,
+      });
+    }
 
     res.json({ success: true, message: 'Subscription will be canceled at the end of the billing period' });
   } catch (error: any) {

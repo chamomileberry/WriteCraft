@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import type { SubscriptionTier } from '@shared/types/subscription';
 import { billingAlertsService } from './billingAlertsService';
 import { discountCodeService } from './discountCodeService';
+import { emailService } from './emailService';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -249,6 +250,22 @@ export class StripeService {
 
     console.log(`[Stripe] Subscription created/updated for user ${userId}`);
 
+    // Send subscription activated email
+    if (user?.email) {
+      const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+      const amount = subscription.items.data[0].price.unit_amount
+        ? `$${(subscription.items.data[0].price.unit_amount / 100).toFixed(2)}`
+        : undefined;
+      
+      await emailService.sendSubscriptionActivated(user.email, {
+        userName: user.name || user.email.split('@')[0],
+        planName: tierName,
+        amount,
+        periodEnd: new Date((subscription as any).current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      });
+    }
+
     // Record discount code usage if applied
     if (discountCodeId) {
       try {
@@ -308,6 +325,29 @@ export class StripeService {
       .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id));
 
     console.log(`[Stripe] Subscription updated in database for user ${userId}`);
+
+    // Send reactivation email if subscription was reactivated (cancel_at_period_end changed from true to false)
+    if (!subscription.cancel_at_period_end) {
+      const [userSub] = await db
+        .select()
+        .from(userSubscriptions)
+        .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id))
+        .limit(1);
+
+      if (userSub) {
+        const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        
+        if (user?.email) {
+          const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+          
+          await emailService.sendSubscriptionReactivated(user.email, {
+            userName: user.name || user.email.split('@')[0],
+            planName: tierName,
+            periodEnd: new Date((subscription as any).current_period_end * 1000),
+          });
+        }
+      }
+    }
   }
 
   /**
@@ -371,6 +411,21 @@ export class StripeService {
     );
 
     console.log(`[Stripe] Payment failure alert created for user ${subscription.userId}`);
+
+    // Send payment failed email
+    const [user] = await db.select().from(users).where(eq(users.id, subscription.userId)).limit(1);
+    
+    if (user?.email) {
+      const amount = `$${(invoice.amount_due / 100).toFixed(2)}`;
+      const failureReason = (invoice as any).last_payment_error?.message || undefined;
+      
+      await emailService.sendPaymentFailed(user.email, {
+        userName: user.name || user.email.split('@')[0],
+        amount,
+        failureReason,
+        invoiceUrl: invoice.hosted_invoice_url || undefined,
+      });
+    }
   }
 
   /**
