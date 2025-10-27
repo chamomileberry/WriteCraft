@@ -108,7 +108,7 @@ export default function WritingGuides() {
   // Delete guide mutation
   const deleteGuideMutation = useMutation({
     mutationFn: async (guideId: string) => {
-      const response = await apiRequest(`/api/guides/${guideId}`, 'DELETE');
+      const response = await apiRequest('DELETE', `/api/guides/${guideId}`);
       return response;
     },
     onSuccess: () => {
