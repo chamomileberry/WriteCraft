@@ -8,6 +8,7 @@ import Layout from "@/components/Layout";
 import Header from "@/components/Header";
 import { GracePeriodBanner } from "@/components/GracePeriodBanner";
 import { BetaDisclaimer } from "@/components/BetaDisclaimer";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PostHogProvider } from "@/lib/posthog";
 import Landing from "@/pages/landing";
@@ -282,6 +283,7 @@ function App() {
             <Toaster />
           </TooltipProvider>
         </QueryClientProvider>
+        <CookieConsentBanner />
       </PostHogProvider>
     </ErrorBoundary>
   );

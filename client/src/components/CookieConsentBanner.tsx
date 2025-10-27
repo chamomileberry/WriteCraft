@@ -61,8 +61,13 @@ export function CookieConsentBanner() {
     // Apply preferences (e.g., disable analytics if opted out)
     if (!prefs.analytics) {
       // Disable PostHog if analytics is disabled
-      if (window.posthog) {
+      if (typeof window !== 'undefined' && window.posthog) {
         window.posthog.opt_out_capturing();
+      }
+    } else {
+      // Re-enable PostHog if analytics is enabled
+      if (typeof window !== 'undefined' && window.posthog) {
+        window.posthog.opt_in_capturing();
       }
     }
   };
