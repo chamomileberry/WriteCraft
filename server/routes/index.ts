@@ -87,6 +87,7 @@ import feedbackRoutes from "./feedback.routes";
 import adminFeedbackRoutes from "./admin-feedback.routes";
 import exportRoutes from "./export.routes";
 import aiRoutes from "./ai.routes";
+import emailPreviewRoutes from "./email-preview.routes";
 import importRoutes from "./import.routes";
 import pexelsRoutes from "./pexels.routes";
 import ideogramRoutes from "./ideogram.routes";
@@ -211,6 +212,7 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/potions", potionRoutes);
   app.use("/api/conditions", conditionRoutes);
   app.use("/api/admin", adminRoutes);
+  app.use("/api/admin/email-preview", emailPreviewRoutes);
   app.use("/api/banned-phrases", bannedPhraseRoutes);
   app.use("/api/admin/key-rotations", keyRotationRoutes);
   app.use("/api/team", teamRoutes);
