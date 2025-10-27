@@ -39,14 +39,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const { user } = useAuth();
   
   // Theme toggle state - must be at top level before any conditional returns
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme');
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return savedTheme === 'dark' || (!savedTheme && systemDark);
-    }
-    return false;
-  });
+  const [isDark, setIsDark] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -60,6 +53,41 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
       setIsSidebarOpen(false);
     }
   }, [currentLayout.regions.main.length, currentLayout.regions.split.length]);
+
+  // Load theme from user preferences or localStorage
+  useEffect(() => {
+    const loadTheme = async () => {
+      if (user) {
+        // User is logged in - fetch from preferences
+        try {
+          const res = await fetch('/api/user-preferences', { credentials: 'include' });
+          if (res.ok) {
+            const preferences = await res.json();
+            if (preferences.theme) {
+              const isDarkMode = preferences.theme === 'dark';
+              setIsDark(isDarkMode);
+              document.documentElement.classList.toggle('dark', isDarkMode);
+              // Sync to localStorage for consistency
+              localStorage.setItem('theme', preferences.theme);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch user preferences:', error);
+        }
+      }
+      
+      // Fallback to localStorage or system preference
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDarkMode = savedTheme === 'dark' || (!savedTheme && systemDark);
+      
+      setIsDark(isDarkMode);
+      document.documentElement.classList.toggle('dark', isDarkMode);
+    };
+
+    loadTheme();
+  }, [user]);
 
   // Project rename mutation
   const renameProjectMutation = useMutation({
@@ -220,11 +248,28 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const showEmptyState = !activeSectionId || activeSection?.type === 'folder';
   const showEditor = activeSectionId && activeSection?.type === 'page';
 
-  const toggleTheme = () => {
+  const toggleTheme = async () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    const themeValue = newTheme ? 'dark' : 'light';
+    
+    // Update localStorage immediately for responsiveness
+    localStorage.setItem('theme', themeValue);
     document.documentElement.classList.toggle('dark', newTheme);
+    
+    // Save to user preferences if logged in
+    if (user) {
+      try {
+        await fetch('/api/user-preferences', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ theme: themeValue }),
+        });
+      } catch (error) {
+        console.error('Failed to save theme preference:', error);
+      }
+    }
   };
 
   // Writing Assistant functionality
