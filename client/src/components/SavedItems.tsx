@@ -121,16 +121,27 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const { openQuickNote } = useWorkspaceStore();
 
   // Fetch notebooks to ensure we have a list
-  const { data: fetchedNotebooks } = useQuery({
+  const { data: fetchedNotebooks, error: notebooksError } = useQuery({
     queryKey: ['/api/notebooks'],
     queryFn: async () => {
       console.log('[SavedItems] Fetching notebooks list');
-      const response = await apiRequest('GET', '/api/notebooks');
-      const notebooks = await response.json();
-      console.log('[SavedItems] Fetched notebooks:', notebooks);
-      return notebooks;
+      try {
+        const response = await apiRequest('GET', '/api/notebooks');
+        console.log('[SavedItems] Notebooks response:', response.status, response.statusText);
+        const notebooks = await response.json();
+        console.log('[SavedItems] Fetched notebooks:', notebooks);
+        return notebooks;
+      } catch (error) {
+        console.error('[SavedItems] Error fetching notebooks:', error);
+        throw error;
+      }
     }
   });
+  
+  // Log notebook fetch errors
+  if (notebooksError) {
+    console.error('[SavedItems] Notebooks query error:', notebooksError);
+  }
 
   // Initialize notebooks in store and select first one if none is active
   useEffect(() => {
@@ -162,14 +173,22 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
         throw new Error('User not authenticated');
       }
       console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
-      // Use notebook-specific endpoint to get fresh data
-      const response = await apiRequest('GET', `/api/saved-items/notebook/${activeNotebookId}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch saved items: ${response.status}`);
+      try {
+        // Use notebook-specific endpoint to get fresh data
+        const response = await apiRequest('GET', `/api/saved-items/notebook/${activeNotebookId}`);
+        console.log('[SavedItems] Saved items response:', response.status, response.statusText);
+        if (!response.ok) {
+          const text = await response.text();
+          console.error('[SavedItems] Failed response body:', text.substring(0, 200));
+          throw new Error(`Failed to fetch saved items: ${response.status}`);
+        }
+        const data = await response.json() as SavedItem[];
+        console.log('[SavedItems] Fetched', data.length, 'items for notebook', activeNotebookId);
+        return data;
+      } catch (error) {
+        console.error('[SavedItems] Error fetching saved items:', error);
+        throw error;
       }
-      const data = await response.json() as SavedItem[];
-      console.log('[SavedItems] Fetched', data.length, 'items for notebook', activeNotebookId);
-      return data;
     },
     enabled: !!activeNotebookId && !!user?.id, // Only enabled when there's an active notebook and authenticated user
     gcTime: 0, // Don't cache query results at all
