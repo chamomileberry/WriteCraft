@@ -101,18 +101,30 @@ export function registerDomainRoutes(app: Express) {
   // Apply global authentication middleware to ALL domain routes EXCEPT certain public endpoints
   // This prevents the critical authentication bypass vulnerability while allowing public test endpoints
   app.use("/api/*", (req, res, next) => {
+    console.log('[global-auth] Checking authentication for:', {
+      path: req.path,
+      method: req.method,
+      hasSession: !!req.session,
+      hasUser: !!req.user,
+      sessionID: req.sessionID,
+      cookies: req.headers.cookie ? 'present' : 'missing'
+    });
+    
     // Allow Sentry test endpoints to be accessed without authentication
     // These are needed for error tracking setup and testing
     if (req.path.startsWith('/api/sentry/')) {
+      console.log('[global-auth] Allowing Sentry endpoint without auth');
       return next();
     }
 
     // Allow authentication callback endpoint - required for login to work
     if (req.path === '/api/callback' || req.path === '/api/login') {
+      console.log('[global-auth] Allowing auth callback/login endpoint');
       return next();
     }
 
     // Apply authentication to all other /api routes
+    console.log('[global-auth] Applying authentication check');
     isAuthenticated(req, res, next);
   });
 

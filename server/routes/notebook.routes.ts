@@ -10,11 +10,30 @@ const router = Router();
 // Get all notebooks for a user
 router.get("/", async (req: any, res) => {
   try {
+    console.log('[notebook.routes] GET / - Fetching notebooks', {
+      userId: req.user?.claims?.sub,
+      isAuthenticated: !!req.user,
+      sessionID: req.sessionID,
+      path: req.path,
+      method: req.method,
+      headers: {
+        cookie: req.headers.cookie ? 'present' : 'missing',
+        referer: req.headers.referer
+      }
+    });
+    
     const userId = req.user.claims.sub;
     const notebooks = await storage.getUserNotebooks(userId);
+    
+    console.log('[notebook.routes] Successfully fetched notebooks:', {
+      userId,
+      count: notebooks.length,
+      notebookIds: notebooks.map((n: any) => n.id)
+    });
+    
     res.json(notebooks);
   } catch (error) {
-    console.error('Error fetching notebooks:', error);
+    console.error('[notebook.routes] Error fetching notebooks:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
       console.warn(`[Security] Unauthorized notebook operation - userId: ${userId}`);

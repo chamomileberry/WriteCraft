@@ -25,12 +25,27 @@ export async function apiRequest(
   data?: unknown | undefined,
   options?: { signal?: AbortSignal }
 ): Promise<Response> {
+  console.log(`[apiRequest] Making request:`, {
+    method,
+    url,
+    hasData: !!data,
+    data: data ? JSON.stringify(data).substring(0, 100) : null
+  });
+  
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
     signal: options?.signal,
+  });
+
+  console.log(`[apiRequest] Response:`, {
+    url,
+    status: res.status,
+    statusText: res.statusText,
+    ok: res.ok,
+    headers: Object.fromEntries(res.headers.entries())
   });
 
   await throwIfResNotOk(res);
