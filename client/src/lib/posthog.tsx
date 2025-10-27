@@ -19,12 +19,46 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
     const host = import.meta.env.VITE_POSTHOG_HOST;
 
     if (apiKey && host) {
+      // Helper to get current analytics consent state
+      const getAnalyticsConsent = (): boolean => {
+        try {
+          const savedPreferences = localStorage.getItem('writecraft_cookie_preferences');
+          if (!savedPreferences) return false;
+          const prefs = JSON.parse(savedPreferences);
+          return prefs.analytics === true;
+        } catch (e) {
+          console.error('[PostHog] Failed to parse cookie preferences:', e);
+          return false;
+        }
+      };
+
+      // Check for saved cookie preferences before initializing
+      const initialConsent = getAnalyticsConsent();
+
       posthog.init(apiKey, {
         api_host: host,
         loaded: (posthog) => {
           if (import.meta.env.DEV) {
             console.log('[PostHog] Initialized successfully');
           }
+          
+          // Re-read consent state to avoid race condition with user accepting consent during initialization
+          const currentConsent = getAnalyticsConsent();
+          
+          // Apply most recent preferences immediately after initialization
+          if (!currentConsent) {
+            posthog.opt_out_capturing();
+            if (import.meta.env.DEV) {
+              console.log('[PostHog] Analytics disabled per user preferences');
+            }
+          } else {
+            // Explicitly opt in if consent exists
+            posthog.opt_in_capturing();
+            if (import.meta.env.DEV) {
+              console.log('[PostHog] Analytics enabled per user preferences');
+            }
+          }
+          
           setIsReady(true);
         },
         capture_pageview: false, // We'll handle pageviews manually
@@ -35,6 +69,9 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
           maskAllInputs: true, // Privacy: mask form inputs
           maskTextSelector: '[data-private]', // Mask elements with data-private attribute
         },
+        // If no consent yet, opt out by default until user consents
+        opt_out_capturing_by_default: !initialConsent,
+        persistence: 'localStorage', // Store opt-in/out preference
       });
     } else {
       console.warn('[PostHog] API key or host not configured - analytics disabled');
@@ -57,10 +94,35 @@ export function usePostHog() {
   return useContext(PostHogContext);
 }
 
-// Analytics helper functions - PostHog queues events internally if not loaded yet
+// Helper to check if analytics consent has been granted and PostHog is ready
+const canTrack = (): boolean => {
+  try {
+    // First check localStorage consent
+    const savedPreferences = localStorage.getItem('writecraft_cookie_preferences');
+    if (!savedPreferences) {
+      return false; // No consent given yet
+    }
+    const prefs = JSON.parse(savedPreferences);
+    if (prefs.analytics !== true) {
+      return false; // User has not consented to analytics
+    }
+
+    // Check if PostHog has opted out (includes default opt-out before consent is applied)
+    if (posthog.has_opted_out_capturing?.()) {
+      return false; // PostHog is still opted out, consent hasn't been applied yet
+    }
+
+    return true; // Consent granted AND PostHog is ready
+  } catch (e) {
+    return false; // Error, assume no consent
+  }
+};
+
+// Analytics helper functions - All calls check for consent AND readiness before executing
 export const analytics = {
   // Page view tracking
   pageView: (path: string, properties?: Record<string, any>) => {
+    if (!canTrack()) return;
     posthog.capture('$pageview', {
       $current_url: window.location.href,
       path,
@@ -70,31 +132,35 @@ export const analytics = {
 
   // User identification
   identify: (userId: string, properties?: Record<string, any>) => {
+    if (!canTrack()) return;
     posthog.identify(userId, properties);
   },
 
   // Event tracking
   track: (eventName: string, properties?: Record<string, any>) => {
+    if (!canTrack()) return;
     posthog.capture(eventName, properties);
   },
 
-  // Reset on logout
+  // Reset on logout (always allowed)
   reset: () => {
     posthog.reset();
   },
 
-  // Feature flags
+  // Feature flags (always allowed, doesn't track)
   isFeatureEnabled: (flag: string): boolean => {
     return posthog.isFeatureEnabled(flag) || false;
   },
 
   // User properties
   setUserProperties: (properties: Record<string, any>) => {
+    if (!canTrack()) return;
     posthog.setPersonProperties(properties);
   },
 
   // Group analytics (for teams)
   group: (groupType: string, groupKey: string, properties?: Record<string, any>) => {
+    if (!canTrack()) return;
     posthog.group(groupType, groupKey, properties);
   },
 };

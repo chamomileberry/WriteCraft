@@ -114,7 +114,7 @@ export function CookieConsentBanner() {
                 <p className="text-sm text-muted-foreground">
                   We use cookies and similar technologies to enhance your experience, analyze usage, and provide essential functionality. 
                   You can customize your preferences or accept all cookies.{' '}
-                  <Link href="/privacy-policy" className="text-primary hover:underline">
+                  <Link href="/privacy" className="text-primary hover:underline">
                     Learn more
                   </Link>
                 </p>
@@ -233,12 +233,12 @@ export function CookieConsentBanner() {
             <Button
               variant="outline"
               onClick={() => {
-                setPreferences({
+                // Pass the intended preferences directly to avoid stale state
+                savePreferences({
                   necessary: true,
                   analytics: false,
                   functional: false,
                 });
-                saveCustomPreferences();
               }}
               data-testid="button-reject-optional"
             >
