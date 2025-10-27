@@ -57,7 +57,7 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasTeamAnalytics: false,
     hasRoleBasedPermissions: false,
     hasTeamResourceLibrary: false,
-    exportFormats: ['txt', 'docx']
+    exportFormats: ['txt', 'docx'] // Basic text exports only
   },
   author: {
     name: 'Author',
@@ -77,7 +77,7 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasTeamAnalytics: false,
     hasRoleBasedPermissions: false,
     hasTeamResourceLibrary: false,
-    exportFormats: ['txt', 'docx', 'epub', 'pdf', 'markdown', 'fdx']
+    exportFormats: ['txt', 'docx', 'pdf', 'html'] // Working formats only
   },
   professional: {
     name: 'Professional',
@@ -97,7 +97,7 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasTeamAnalytics: false,
     hasRoleBasedPermissions: false,
     hasTeamResourceLibrary: false,
-    exportFormats: ['txt', 'docx', 'epub', 'pdf', 'markdown', 'fdx']
+    exportFormats: ['txt', 'docx', 'pdf', 'html'] // Working formats only
   },
   team: {
     name: 'Team',
@@ -113,10 +113,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasApiAccess: true,
     apiCallsPerMonth: 25000, // 25,000 API calls/month (5x more than Professional)
     hasPrioritySupport: true,
-    hasAuditLogs: true, // Team-exclusive
-    hasTeamAnalytics: true, // Team-exclusive
-    hasRoleBasedPermissions: true, // Team-exclusive
-    hasTeamResourceLibrary: true, // Team-exclusive
-    exportFormats: ['txt', 'docx', 'epub', 'pdf', 'markdown', 'fdx']
+    hasAuditLogs: true, // Team-exclusive - IMPLEMENTED
+    hasTeamAnalytics: true, // Team-exclusive - IMPLEMENTED
+    hasRoleBasedPermissions: true, // Team-exclusive - IMPLEMENTED
+    hasTeamResourceLibrary: false, // NOT YET IMPLEMENTED - UI doesn't exist
+    exportFormats: ['txt', 'docx', 'pdf', 'html'] // Working formats only
   }
 };

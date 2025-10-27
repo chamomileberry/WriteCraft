@@ -310,10 +310,6 @@ export default function Pricing() {
                           <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm">25K API calls/month</span>
                         </div>
-                        <div className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                          <span className="text-sm">Shared resource library</span>
-                        </div>
                       </>
                     )}
 
