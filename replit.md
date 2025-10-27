@@ -11,7 +11,13 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 
 ### UI/UX Decisions
 - **Design System**: Custom design system using Tailwind CSS and Radix UI (shadcn/ui), supporting Dark/Light modes.
-- **Theming**: Professional writer-focused color palette (purple, teal, orange accents).
+- **Theming**: Professional writer-focused color palette (purple, teal, orange accents). Theme preferences persist across sessions, devices, and browser tabs.
+- **Theme Persistence Architecture**: Centralized ThemeProvider (use-theme.tsx) with race-condition-free implementation:
+  - Database-first approach with localStorage fallback for non-logged-in users
+  - Cross-tab synchronization via storage events
+  - Per-user theme isolation with automatic reset on user changes (login/logout/switch)
+  - Guard against late-resolving preference fetches overwriting manual toggles
+  - Prevents flash of unstyled content by initializing from localStorage immediately
 - **Typography**: Hierarchical font sizing with serif headings and sans-serif body text.
 - **User Feedback**: Standardized toast notifications and auto-navigation post-generation/save.
 - **Page Layout Conventions**: Fixed-viewport experiences use `h-screen`, scrollable content pages use `min-h-screen`.
