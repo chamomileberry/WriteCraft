@@ -492,6 +492,7 @@ export default function AccountSettings() {
         onOpenChange={setShowAccountDeletion}
         onConfirm={handleDeleteAccount}
         isPending={isDeleting}
+        onExportData={handleExportData}
       />
     </div>
   );
