@@ -314,7 +314,10 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  onClick={() => window.location.href = '/api/logout'} 
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    window.location.href = '/api/logout';
+                  }}
                   data-testid="menu-logout"
                   className="text-destructive focus:text-destructive"
                 >
