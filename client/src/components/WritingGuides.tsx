@@ -365,10 +365,6 @@ export default function WritingGuides() {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {guide.excerpt}
-              </p>
-              
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
