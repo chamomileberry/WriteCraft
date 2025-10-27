@@ -97,17 +97,20 @@ router.get("/user-data", async (req: any, res) => {
     // Get user-level data (not scoped to notebooks)
     const [
       projects,
-      guides,
+      allGuides,
       canvases,
       conversationThreads,
       userPreferences,
     ] = await Promise.all([
       storage.getUserProjects(userId),
-      storage.getGuides(), // getGuides doesn't filter by user - returns all public guides
+      storage.getGuides(), // Get all guides, then filter by userId
       storage.getUserCanvases(userId),
       storage.getConversationThreads({ userId }),
       storage.getUserPreferences(userId),
     ]);
+
+    // Filter guides to only include those created by the user
+    const guides = allGuides.filter((guide: any) => guide.userId === userId);
 
     // Build export data object
     const exportData = {
