@@ -17,6 +17,9 @@ router.get("/user-data", async (req: any, res) => {
 
     // Get data across all notebooks
     const notebookContent: any = {};
+    const allTimelines: any[] = [];
+    const allFamilyTrees: any[] = [];
+    
     for (const notebook of notebooks) {
       const [
         characters,
@@ -37,6 +40,8 @@ router.get("/user-data", async (req: any, res) => {
         religions,
         languages,
         technologies,
+        timelines,
+        familyTrees,
       ] = await Promise.all([
         storage.getUserCharacters(userId, notebook.id),
         storage.getUserPlots(userId, notebook.id),
@@ -56,6 +61,8 @@ router.get("/user-data", async (req: any, res) => {
         storage.getUserReligions(userId, notebook.id),
         storage.getUserLanguages(userId, notebook.id),
         storage.getUserTechnologies(userId, notebook.id),
+        storage.getUserTimelines(userId, notebook.id),
+        storage.getUserFamilyTrees(userId, notebook.id),
       ]);
 
       notebookContent[notebook.id] = {
@@ -78,23 +85,25 @@ router.get("/user-data", async (req: any, res) => {
         religions,
         languages,
         technologies,
+        timelines,
+        familyTrees,
       };
+      
+      // Collect all timelines and family trees across notebooks
+      allTimelines.push(...timelines);
+      allFamilyTrees.push(...familyTrees);
     }
 
     // Get user-level data (not scoped to notebooks)
     const [
       projects,
       guides,
-      timelines,
-      familyTrees,
       canvases,
       conversationThreads,
       userPreferences,
     ] = await Promise.all([
       storage.getUserProjects(userId),
-      storage.getGuides(userId, { includeShared: true }),
-      storage.getUserTimelines(userId),
-      storage.getUserFamilyTrees(userId),
+      storage.getGuides(), // getGuides doesn't filter by user - returns all public guides
       storage.getUserCanvases(userId),
       storage.getConversationThreads({ userId }),
       storage.getUserPreferences(userId),
@@ -111,8 +120,8 @@ router.get("/user-data", async (req: any, res) => {
       notebookContent,
       projects: {
         projects,
-        timelines,
-        familyTrees,
+        timelines: allTimelines,
+        familyTrees: allFamilyTrees,
         canvases,
       },
       guides,
