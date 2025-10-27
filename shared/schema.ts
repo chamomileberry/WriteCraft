@@ -1850,6 +1850,9 @@ export const userPreferences = pgTable("user_preferences", {
   // Beta launch preferences
   betaBannerDismissed: boolean("beta_banner_dismissed").default(false),
   
+  // UI preferences
+  theme: text("theme"), // 'light', 'dark', or null (follow system)
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
