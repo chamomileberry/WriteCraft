@@ -18,6 +18,7 @@ interface AccountDeletionDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void>;
   isPending: boolean;
+  onExportData?: () => Promise<void>;
 }
 
 export function AccountDeletionDialog({
@@ -25,9 +26,11 @@ export function AccountDeletionDialog({
   onOpenChange,
   onConfirm,
   isPending,
+  onExportData,
 }: AccountDeletionDialogProps) {
   const [confirmText, setConfirmText] = useState('');
   const [showDataExportPrompt, setShowDataExportPrompt] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   const isConfirmed = confirmText === 'DELETE';
 
@@ -45,10 +48,22 @@ export function AccountDeletionDialog({
     onOpenChange(false);
   };
 
-  const handleExportData = () => {
-    // TODO: Implement data export functionality
-    alert('Data export feature coming soon! Please contact support if you need your data exported.');
-    setShowDataExportPrompt(false);
+  const handleExportData = async () => {
+    if (!onExportData) {
+      setShowDataExportPrompt(false);
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      await onExportData();
+      setShowDataExportPrompt(false);
+    } catch (error) {
+      // Error handling is done in the parent component via toast
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -77,15 +92,27 @@ export function AccountDeletionDialog({
                     size="sm"
                     variant="outline"
                     onClick={handleExportData}
+                    disabled={isExporting}
                     data-testid="button-export-data"
                   >
-                    Export Data
+                    {isExporting ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-3 w-3 mr-1" />
+                        Export Data
+                      </>
+                    )}
                   </Button>
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
                     onClick={() => setShowDataExportPrompt(false)}
+                    disabled={isExporting}
                     data-testid="button-skip-export"
                   >
                     Skip
