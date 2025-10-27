@@ -3,6 +3,10 @@ import { isAuthenticated } from '../replitAuth';
 import * as mfaService from '../services/mfaService';
 import { SecurityAuditLog } from '../security';
 import { z } from 'zod';
+import { emailService } from '../services/emailService';
+import { db } from '../db';
+import { users } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -115,6 +119,20 @@ router.post('/verify', isAuthenticated, async (req, res) => {
       details: 'MFA enabled successfully',
       severity: 'LOW',
     });
+
+    // Send MFA enabled email
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (user?.email) {
+      const userName = user.firstName 
+        ? `${user.firstName} ${user.lastName || ''}`.trim()
+        : user.email.split('@')[0];
+      
+      await emailService.sendMfaEnabled(user.email, {
+        userName,
+        timestamp: new Date(),
+        ipAddress: req.ip || 'Unknown',
+      });
+    }
 
     res.json({ success: true, message: 'MFA enabled successfully' });
   } catch (error) {
@@ -287,6 +305,20 @@ router.post('/disable', isAuthenticated, async (req, res) => {
       details: 'MFA disabled',
       severity: 'MEDIUM',
     });
+
+    // Send MFA disabled email
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (user?.email) {
+      const userName = user.firstName 
+        ? `${user.firstName} ${user.lastName || ''}`.trim()
+        : user.email.split('@')[0];
+      
+      await emailService.sendMfaDisabled(user.email, {
+        userName,
+        timestamp: new Date(),
+        ipAddress: req.ip || 'Unknown',
+      });
+    }
 
     res.json({ success: true, message: 'MFA disabled successfully' });
   } catch (error) {
