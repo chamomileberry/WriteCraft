@@ -422,11 +422,13 @@ export const sanitizeAllInputs: RequestHandler = (req: Request, res: Response, n
  */
 export class SecurityAuditLog {
   static log(event: {
-    type: 'AUTH_FAILURE' | 'PRIVILEGE_ESCALATION' | 'UNAUTHORIZED_ACCESS' | 'DATA_BREACH_ATTEMPT' | 'RATE_LIMIT' | 'CSRF_FAILURE';
+    type: 'AUTH_FAILURE' | 'PRIVILEGE_ESCALATION' | 'UNAUTHORIZED_ACCESS' | 'DATA_BREACH_ATTEMPT' | 'RATE_LIMIT' | 'CSRF_FAILURE' | 'INJECTION_DETECTED' | 'IP_BLOCKED' | 'IP_UNBLOCKED';
     userId?: string;
     ip?: string;
+    userAgent?: string;
     details: string;
     severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    metadata?: Record<string, any>;
   }) {
     const timestamp = new Date().toISOString();
     const logEntry = {
@@ -434,14 +436,44 @@ export class SecurityAuditLog {
       ...event
     };
     
-    // In production, this should write to a secure audit log
+    // Console logging for immediate visibility
     console.error('[SECURITY AUDIT]', JSON.stringify(logEntry));
     
     // For critical events, trigger alerts
     if (event.severity === 'CRITICAL') {
-      // In production, send alerts to security team
       console.error('[SECURITY ALERT] CRITICAL EVENT:', event.details);
     }
+    
+    // Send to PostHog for analytics and baseline analysis
+    const { serverAnalytics, SERVER_EVENTS } = require('../services/serverAnalytics');
+    
+    const eventNameMap: Record<string, string> = {
+      'AUTH_FAILURE': SERVER_EVENTS.SECURITY_AUTH_FAILURE,
+      'PRIVILEGE_ESCALATION': SERVER_EVENTS.SECURITY_PRIVILEGE_ESCALATION,
+      'UNAUTHORIZED_ACCESS': SERVER_EVENTS.SECURITY_UNAUTHORIZED_ACCESS,
+      'DATA_BREACH_ATTEMPT': SERVER_EVENTS.SECURITY_DATA_BREACH_ATTEMPT,
+      'RATE_LIMIT': SERVER_EVENTS.SECURITY_RATE_LIMIT,
+      'CSRF_FAILURE': SERVER_EVENTS.SECURITY_CSRF_FAILURE,
+      'INJECTION_DETECTED': SERVER_EVENTS.SECURITY_INJECTION_DETECTED,
+      'IP_BLOCKED': SERVER_EVENTS.SECURITY_IP_BLOCKED,
+      'IP_UNBLOCKED': SERVER_EVENTS.SECURITY_IP_UNBLOCKED,
+    };
+    
+    const eventName = eventNameMap[event.type] || 'security_unknown';
+    
+    serverAnalytics.capture({
+      distinctId: event.userId || event.ip || 'anonymous',
+      event: eventName,
+      properties: {
+        type: event.type,
+        severity: event.severity,
+        details: event.details,
+        ip: event.ip,
+        userAgent: event.userAgent,
+        timestamp,
+        ...event.metadata,
+      },
+    });
   }
 }
 

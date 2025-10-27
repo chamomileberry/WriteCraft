@@ -3834,6 +3834,26 @@ export const ipBlocks = pgTable("ip_blocks", {
   expiresAtIdx: index("ip_blocks_expires_at_idx").on(table.expiresAt),
 }));
 
+// IP Whitelist for bypassing IDS checks
+export const ipWhitelist = pgTable("ip_whitelist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // IP or CIDR range
+  ipAddress: varchar("ip_address").notNull().unique(), // Can be single IP (1.2.3.4) or CIDR (1.2.3.0/24)
+  description: text("description"), // Why this IP is whitelisted
+  
+  // Who added it
+  addedBy: varchar("added_by").references(() => users.id, { onDelete: 'set null' }),
+  addedAt: timestamp("added_at").defaultNow(),
+  
+  // Optional expiration
+  expiresAt: timestamp("expires_at"), // Null means permanent
+  isActive: boolean("is_active").default(true),
+}, (table) => ({
+  ipAddressIdx: index("ip_whitelist_ip_idx").on(table.ipAddress),
+  isActiveIdx: index("ip_whitelist_is_active_idx").on(table.isActive),
+}));
+
 // Security Alerts for Admin Dashboard
 export const securityAlerts = pgTable("security_alerts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -4093,12 +4113,19 @@ export const insertSecurityAlertSchema = createInsertSchema(securityAlerts).omit
   createdAt: true,
 });
 
+export const insertIpWhitelistSchema = createInsertSchema(ipWhitelist).omit({
+  id: true,
+  addedAt: true,
+});
+
 export type InsertIntrusionAttempt = z.infer<typeof insertIntrusionAttemptSchema>;
 export type IntrusionAttempt = typeof intrusionAttempts.$inferSelect;
 export type InsertIpBlock = z.infer<typeof insertIpBlockSchema>;
 export type IpBlock = typeof ipBlocks.$inferSelect;
 export type InsertSecurityAlert = z.infer<typeof insertSecurityAlertSchema>;
 export type SecurityAlert = typeof securityAlerts.$inferSelect;
+export type InsertIpWhitelist = z.infer<typeof insertIpWhitelistSchema>;
+export type IpWhitelist = typeof ipWhitelist.$inferSelect;
 
 // API Key Rotation schemas and types
 export const insertApiKeyRotationSchema = createInsertSchema(apiKeyRotations).omit({

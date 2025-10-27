@@ -31,6 +31,12 @@ export const blockBlacklistedIps: RequestHandler = async (req: Request, res: Res
       return next();
     }
     
+    // Check if IP is whitelisted first - whitelist bypasses all IDS checks
+    const isWhitelisted = await IntrusionDetectionService.isIpWhitelisted(ipAddress);
+    if (isWhitelisted) {
+      return next();
+    }
+    
     const isBlocked = await IntrusionDetectionService.isIpBlocked(ipAddress);
     
     if (isBlocked) {

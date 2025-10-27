@@ -49,8 +49,14 @@ For production deployments with large JavaScript bundles (5+ MB), configure Node
 - **Data Storage**: PostgreSQL (Neon serverless) with Drizzle ORM.
 - **Authentication**: Replit Auth integration with PostgreSQL-backed sessions, supporting Google, GitHub, X, Apple, and email/password.
 - **Session Management**: PostgreSQL for persistent sessions, in-memory Map for concurrent tracking, max 3 concurrent sessions per user with auto-eviction.
-- **Security**: Multi-Factor Authentication, API Key Rotation, Intrusion Detection (opt-in via ENABLE_IDS=true), Nonce-based CSP, Zod validation, Redis-backed rate limiting, enhanced security headers, SRI, XSS protection, bcrypt for password hashing, Row-Level Security, and strict ownership validation.
-  - **IDS Configuration**: Intrusion Detection System is disabled by default to prevent false positives. Set environment variable `ENABLE_IDS=true` to enable IP blocking and injection detection in production. When enabled, IDS monitors brute force attempts (5 in 15min → 4hr block), rate limit violations (10 in 15min → 2hr block), and injection attacks (3 in 60min → 24hr block).
+- **Security**: Multi-Factor Authentication, API Key Rotation, Intrusion Detection (opt-in with dry run mode), IP Whitelist (CIDR support), Nonce-based CSP, Zod validation, Redis-backed rate limiting, enhanced security headers, SRI, XSS protection, bcrypt for password hashing, Row-Level Security, and strict ownership validation.
+  - **IDS Configuration**: Intrusion Detection System auto-blocking is disabled by default to prevent false positives. Manual IP blocks always work. Three modes:
+    1. **Disabled** (default): Manual blocks only, no auto-blocking
+    2. **Dry Run** (`ENABLE_IDS_DRY_RUN=true`): Tracks violations and logs what would be blocked (for testing thresholds)
+    3. **Enabled** (`ENABLE_IDS=true`): Auto-blocks malicious IPs based on thresholds
+  - **IDS Thresholds**: All configurable via environment variables. Defaults: brute force (5 in 15min → 4hr block), rate limit (10 in 15min → 2hr block), injection (3 in 60min → 24hr block). See IDS_TESTING_GUIDE.md.
+  - **IP Whitelist**: Supports single IPs and CIDR ranges (/16, /24). Whitelisted IPs bypass all IDS checks. Database-backed with expiration support.
+  - **Security Analytics**: Server-side PostHog integration tracks all security events (auth failures, rate limits, injections, IP blocks) for baseline analysis and threshold tuning.
 
 ### Feature Specifications
 - **Content Management**: Notebook system with rich text editor, modular generator system, writing guides, hierarchical project system, and an enhanced character editor.
@@ -80,7 +86,17 @@ For production deployments with large JavaScript bundles (5+ MB), configure Node
 - **Testing**: Playwright for end-to-end and regression testing.
 - **Recent Improvements (Oct 27, 2025)**:
   - **Critical API Bug Fix**: Fixed 186+ incorrect `apiRequest` calls across 56 files affecting all major features (character management, projects, timeline, canvas, guides, conversations, editors, workspace, admin, settings, onboarding). Corrected parameter order from `apiRequest('METHOD', url, data)` to `apiRequest(url, 'METHOD', data)`.
-  - **IDS Configuration Update**: Changed Intrusion Detection System from auto-enabled to opt-in via `ENABLE_IDS=true` environment variable to prevent false positive IP blocks in production. IDS now disabled by default for safer production deployments.
+  - **IDS Testing & Monitoring System** (Oct 27, 2025):
+    - Implemented comprehensive IDS testing infrastructure to prevent false positives
+    - Added server-side PostHog integration for security event tracking
+    - Created dry run mode (`ENABLE_IDS_DRY_RUN=true`) that tracks without blocking
+    - Implemented IP whitelist with CIDR support (/16, /24 subnets)
+    - Made all IDS thresholds configurable via environment variables
+    - Added tracking for API volume, content paste events, and login patterns
+    - Manual admin IP blocks always work regardless of IDS settings
+    - Auto-blocking requires `ENABLE_IDS=true` (opt-in to prevent false positives)
+    - Created IDS_TESTING_GUIDE.md with full testing workflow and threshold tuning guide
+    - PostHog integration uses `POSTHOG_API_KEY`/`POSTHOG_HOST` (server-side) with fallback to `VITE_*` vars
   - **Production Hardening - Subscription Management**:
     - Fixed 29 TypeScript errors in stripe.routes.ts using hasStripeData type guard for proper type safety
     - Implemented cancellation survey dialog with reason dropdown and optional feedback collection
