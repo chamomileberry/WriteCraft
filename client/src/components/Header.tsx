@@ -81,14 +81,40 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     }
   };
 
+  // Load theme from user preferences or localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDarkMode = savedTheme === 'dark' || (!savedTheme && systemDark);
+    const loadTheme = async () => {
+      if (user) {
+        // User is logged in - fetch from preferences
+        try {
+          const res = await fetch('/api/user-preferences', { credentials: 'include' });
+          if (res.ok) {
+            const preferences = await res.json();
+            if (preferences.theme) {
+              const isDarkMode = preferences.theme === 'dark';
+              setIsDark(isDarkMode);
+              document.documentElement.classList.toggle('dark', isDarkMode);
+              // Sync to localStorage for consistency
+              localStorage.setItem('theme', preferences.theme);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch user preferences:', error);
+        }
+      }
+      
+      // Fallback to localStorage or system preference
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDarkMode = savedTheme === 'dark' || (!savedTheme && systemDark);
+      
+      setIsDark(isDarkMode);
+      document.documentElement.classList.toggle('dark', isDarkMode);
+    };
 
-    setIsDark(isDarkMode);
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, []);
+    loadTheme();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -110,12 +136,28 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
     return () => clearInterval(interval);
   }, [user]);
 
-  const toggleTheme = () => {
+  const toggleTheme = async () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    const themeValue = newTheme ? 'dark' : 'light';
+    
+    // Update localStorage immediately for responsiveness
+    localStorage.setItem('theme', themeValue);
     document.documentElement.classList.toggle('dark', newTheme);
-    console.log('Theme toggled to:', newTheme ? 'dark' : 'light');
+    
+    // Save to user preferences if logged in
+    if (user) {
+      try {
+        await fetch('/api/user-preferences', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ theme: themeValue }),
+        });
+      } catch (error) {
+        console.error('Failed to save theme preference:', error);
+      }
+    }
   };
 
   return (
