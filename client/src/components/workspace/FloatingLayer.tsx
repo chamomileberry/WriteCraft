@@ -118,8 +118,8 @@ function FloatingWindow({ panel }: FloatingWindowProps) {
       className="z-50"
       data-testid={`floating-window-${panel.id}`}
     >
-      <Card className="w-full h-full shadow-lg border-2 hover:border-primary/20 flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 flex-shrink-0">
+      <Card className="w-full h-full shadow-lg hover:border-primary/20 flex flex-col overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 flex-shrink-0 border-b">
           <div className="flex items-center gap-2 min-w-0">
             {/* Window drag handle - for moving the floating window */}
             <div 
