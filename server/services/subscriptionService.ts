@@ -8,6 +8,7 @@ import {
 } from '@shared/schema';
 import { eq, and, sql, inArray } from 'drizzle-orm';
 import { TIER_LIMITS, type SubscriptionTier } from '@shared/types/subscription';
+import { emailService } from './emailService';
 
 export class SubscriptionService {
   /**
@@ -117,7 +118,7 @@ export class SubscriptionService {
           };
         } else if (!graceStatus.inGracePeriod) {
           // Start grace period
-          await this.startGracePeriod(userId);
+          await this.startGracePeriod(userId, 'projects');
           return {
             allowed: true,
             inGracePeriod: true,
@@ -153,7 +154,7 @@ export class SubscriptionService {
             reason: `You've reached your limit of ${subscription.limits.maxNotebooks} notebook${subscription.limits.maxNotebooks > 1 ? 's' : ''}. Your grace period has expired. Please upgrade to continue.`
           };
         } else if (!graceStatus.inGracePeriod) {
-          await this.startGracePeriod(userId);
+          await this.startGracePeriod(userId, 'notebooks');
           return {
             allowed: true,
             inGracePeriod: true,
@@ -188,7 +189,7 @@ export class SubscriptionService {
             reason: `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. Your grace period has expired. Please upgrade to continue.`
           };
         } else if (!graceStatus.inGracePeriod) {
-          await this.startGracePeriod(userId);
+          await this.startGracePeriod(userId, 'aiGenerations');
           return {
             allowed: true,
             inGracePeriod: true,
@@ -811,7 +812,7 @@ export class SubscriptionService {
    * Start a 7-day grace period for a user who exceeded limits
    * Only starts if not already in grace period
    */
-  async startGracePeriod(userId: string): Promise<void> {
+  async startGracePeriod(userId: string, limitType?: string): Promise<void> {
     const graceStatus = await this.checkGracePeriodStatus(userId);
     
     // Don't restart if already in grace period
@@ -832,6 +833,45 @@ export class SubscriptionService {
       .where(eq(userSubscriptions.userId, userId));
     
     console.log(`[Grace Period] Started for user ${userId}, expires ${gracePeriodEnd.toISOString()}`);
+    
+    // Send grace period started email
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const subscription = await this.getUserSubscription(userId);
+    
+    if (user?.email) {
+      const userName = user.firstName 
+        ? `${user.firstName} ${user.lastName || ''}`.trim()
+        : user.email.split('@')[0];
+      
+      // Determine which limit was exceeded
+      let currentUsage = 0;
+      let limit = 0;
+      let limitTypeName = limitType || 'usage';
+      
+      if (limitType === 'projects') {
+        currentUsage = await this.getUserProjectCount(userId);
+        limit = subscription.limits.maxProjects || 0;
+        limitTypeName = 'projects';
+      } else if (limitType === 'notebooks') {
+        currentUsage = await this.getUserNotebookCount(userId);
+        limit = subscription.limits.maxNotebooks || 0;
+        limitTypeName = 'notebooks';
+      } else if (limitType === 'aiGenerations') {
+        const todayUsage = await this.getTodayAIUsage(userId);
+        currentUsage = todayUsage;
+        limit = subscription.limits.aiGenerationsPerDay || 0;
+        limitTypeName = 'AI generations';
+      }
+      
+      await emailService.sendGracePeriodStarted(user.email, {
+        userName,
+        limitType: limitTypeName,
+        currentUsage,
+        limit,
+        gracePeriodDays: 7,
+        percentageUsed: Math.round((currentUsage / limit) * 100),
+      });
+    }
   }
   
   /**
