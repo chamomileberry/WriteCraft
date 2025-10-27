@@ -107,6 +107,11 @@ export function registerDomainRoutes(app: Express) {
       return next();
     }
 
+    // Allow authentication callback endpoint - required for login to work
+    if (req.path === '/api/callback' || req.path === '/api/login') {
+      return next();
+    }
+
     // Apply authentication to all other /api routes
     isAuthenticated(req, res, next);
   });
