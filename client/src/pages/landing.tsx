@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Feather, Globe, Lightbulb, Sparkles, Users } from "lucide-react";
+import { BookOpen, Feather, Globe, Lightbulb, Sparkles, Users, MessageSquare } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function Landing() {
+  const { isDark } = useTheme();
+  
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
@@ -107,6 +110,34 @@ export default function Landing() {
               </CardDescription>
             </CardHeader>
           </Card>
+        </div>
+      </div>
+
+      {/* Community Section */}
+      <div className="container mx-auto px-4 py-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Join Our Community</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Connect with fellow writers, share your work, get feedback, and stay updated on new features.
+            </p>
+          </div>
+          
+          <div className="flex justify-center">
+            <div className="w-full max-w-md">
+              <iframe 
+                src={`https://discord.com/widget?id=1432757366717284414&theme=${isDark ? 'dark' : 'light'}`}
+                width="350" 
+                height="500" 
+                allowTransparency={true}
+                frameBorder="0" 
+                sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+                className="w-full rounded-lg shadow-lg"
+                title="Discord Community Widget"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

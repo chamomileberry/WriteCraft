@@ -314,7 +314,7 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
     `connect-src 'self' wss: https:; ` +
     `worker-src 'self' blob:; ` + // Allow Web Workers for Excalidraw
     `child-src 'self' blob:; ` + // Allow blob: children for Excalidraw
-    `frame-src https://js.stripe.com https://*.stripe.com; ` + // Allow Stripe frames for 3D Secure
+    `frame-src https://js.stripe.com https://*.stripe.com https://discord.com https://*.discord.com; ` + // Allow Stripe frames and Discord widget
     `frame-ancestors 'none'; ` + // Prevent embedding (redundant with X-Frame-Options but more secure)
     `base-uri 'self'; ` + // Restrict <base> tag URLs
     `form-action 'self'; ` + // Restrict form submissions
