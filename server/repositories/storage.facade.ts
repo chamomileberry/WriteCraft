@@ -1171,24 +1171,24 @@ export class StorageFacade implements IStorage {
   }
 
   // Map methods
-  async createCanvasMap(map: InsertMap): Promise<Map> {
-    return await contentRepository.createCanvasMap(map);
+  async createMap(map: InsertMap): Promise<Map> {
+    return await contentRepository.createMap(map);
   }
 
-  async getCanvasMap(id: string, userId: string, notebookId: string): Promise<Map | undefined> {
-    return await contentRepository.getCanvasMap(id, userId, notebookId);
+  async getMap(id: string, userId: string, notebookId: string): Promise<Map | undefined> {
+    return await contentRepository.getMap(id, userId, notebookId);
   }
 
-  async getUserCanvasMaps(userId: string, notebookId: string): Promise<Map[]> {
-    return await contentRepository.getUserCanvasMaps(userId, notebookId);
+  async getUserMaps(userId: string, notebookId: string): Promise<Map[]> {
+    return await contentRepository.getUserMaps(userId, notebookId);
   }
 
-  async updateCanvasMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
-    return await contentRepository.updateCanvasMap(id, userId, updates);
+  async updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
+    return await contentRepository.updateMap(id, userId, updates);
   }
 
-  async deleteCanvasMap(id: string, userId: string): Promise<void> {
-    await contentRepository.deleteCanvasMap(id, userId);
+  async deleteMap(id: string, userId: string): Promise<void> {
+    await contentRepository.deleteMap(id, userId);
   }
 
   // Music methods

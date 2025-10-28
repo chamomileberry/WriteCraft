@@ -154,7 +154,7 @@ router.get("/user-data", async (req: any, res) => {
         storage.getUserTraditions(userId, notebook.id),
         storage.getUserRituals(userId, notebook.id),
         storage.getUserCeremonies(userId, notebook.id),
-        storage.getUserCanvasMaps(userId, notebook.id),
+        storage.getUserMaps(userId, notebook.id),
         storage.getUserMusic(userId, notebook.id),
         storage.getUserDances(userId, notebook.id),
         storage.getUserLaws(userId, notebook.id),
