@@ -38,7 +38,7 @@ export default function CharacterEditPageWithSidebar() {
       if (!notebookId) {
         throw new Error('No active notebook selected. Please create or select a notebook first.');
       }
-      const response = await apiRequest(`/api/characters/${id}?notebookId=${notebookId}`, 'GET');
+      const response = await apiRequest('GET', `/api/characters/${id}?notebookId=${notebookId}`);
       return response.json();
     },
     enabled: !!id && !!notebookId,
@@ -50,7 +50,7 @@ export default function CharacterEditPageWithSidebar() {
       if (!notebookId) {
         throw new Error('No notebook ID available for update');
       }
-      const response = await apiRequest(`/api/characters/${id}?notebookId=${notebookId}`, 'PATCH', data);
+      const response = await apiRequest('PATCH', `/api/characters/${id}?notebookId=${notebookId}`, data);
       return response.json();
     },
     onSuccess: async (updatedCharacter) => {
@@ -116,8 +116,8 @@ export default function CharacterEditPageWithSidebar() {
         throw new Error('No notebook ID available');
       }
       const response = await apiRequest(
-        `/api/characters/${id}/generate-article?notebookId=${notebookId}`,
-        'POST'
+        'POST',
+        `/api/characters/${id}/generate-article?notebookId=${notebookId}`
       );
       if (!response.ok) {
         throw new Error('Failed to generate article');

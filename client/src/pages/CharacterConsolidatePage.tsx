@@ -72,7 +72,7 @@ export default function CharacterConsolidatePage() {
   // Update character mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Character> }) => {
-      const response = await apiRequest(`/api/characters/${id}?notebookId=${activeNotebookId}`, 'PATCH', updates);
+      const response = await apiRequest('PATCH', `/api/characters/${id}?notebookId=${activeNotebookId}`, updates);
       return response.json();
     },
     onSuccess: () => {
@@ -99,7 +99,7 @@ export default function CharacterConsolidatePage() {
   // Delete character mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest(`/api/characters/${id}?notebookId=${activeNotebookId}`, 'DELETE');
+      await apiRequest('DELETE', `/api/characters/${id}?notebookId=${activeNotebookId}`);
     },
     onSuccess: () => {
       toast({
@@ -123,7 +123,7 @@ export default function CharacterConsolidatePage() {
   // Bulk delete all characters with issues mutation
   const bulkDeleteMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/admin/characters/bulk-delete-issues?notebookId=${activeNotebookId}`, 'DELETE');
+      const response = await apiRequest('DELETE', `/api/admin/characters/bulk-delete-issues?notebookId=${activeNotebookId}`);
       return response.json();
     },
     onSuccess: (data) => {
