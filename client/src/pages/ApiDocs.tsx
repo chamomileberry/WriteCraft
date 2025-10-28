@@ -153,7 +153,7 @@ export default function ApiDocs() {
                   </p>
                   <CodeBlock
                     label="curl-example"
-                    code={`curl https://writecraft.replit.app/api/v1/projects \\
+                    code={`curl https://writecraft.app/api/v1/projects \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
                   />
                 </div>
@@ -188,7 +188,7 @@ export default function ApiDocs() {
               <CardContent>
                 <CodeBlock
                   label="base-url"
-                  code="https://writecraft.replit.app/api/v1"
+                  code="https://writecraft.app/api/v1"
                 />
                 <p className="text-sm text-muted-foreground mt-2">
                   All API endpoints are relative to this base URL.
@@ -219,7 +219,7 @@ export default function ApiDocs() {
                   <h3 className="font-semibold mb-2">Example with cURL</h3>
                   <CodeBlock
                     label="curl-auth"
-                    code={`curl https://writecraft.replit.app/api/v1/projects \\
+                    code={`curl https://writecraft.app/api/v1/projects \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json"`}
                   />
@@ -230,7 +230,7 @@ export default function ApiDocs() {
                   <CodeBlock
                     label="js-auth"
                     language="javascript"
-                    code={`const response = await fetch('https://writecraft.replit.app/api/v1/projects', {
+                    code={`const response = await fetch('https://writecraft.app/api/v1/projects', {
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
     'Content-Type': 'application/json'
@@ -294,7 +294,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">List all your projects</p>
                       <CodeBlock
                         label="get-projects"
-                        code={`curl https://writecraft.replit.app/api/v1/projects \\
+                        code={`curl https://writecraft.app/api/v1/projects \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
                       />
                     </div>
@@ -307,7 +307,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">Get a specific project by ID</p>
                       <CodeBlock
                         label="get-project"
-                        code={`curl https://writecraft.replit.app/api/v1/projects/123 \\
+                        code={`curl https://writecraft.app/api/v1/projects/123 \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
                       />
                     </div>
@@ -321,7 +321,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">Create a new project</p>
                       <CodeBlock
                         label="create-project"
-                        code={`curl -X POST https://writecraft.replit.app/api/v1/projects \\
+                        code={`curl -X POST https://writecraft.app/api/v1/projects \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -340,7 +340,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">Update an existing project</p>
                       <CodeBlock
                         label="update-project"
-                        code={`curl -X PATCH https://writecraft.replit.app/api/v1/projects/123 \\
+                        code={`curl -X PATCH https://writecraft.app/api/v1/projects/123 \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -358,7 +358,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">Delete a project</p>
                       <CodeBlock
                         label="delete-project"
-                        code={`curl -X DELETE https://writecraft.replit.app/api/v1/projects/123 \\
+                        code={`curl -X DELETE https://writecraft.app/api/v1/projects/123 \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
                       />
                     </div>
@@ -377,7 +377,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">List all your notebooks</p>
                       <CodeBlock
                         label="get-notebooks"
-                        code={`curl https://writecraft.replit.app/api/v1/notebooks \\
+                        code={`curl https://writecraft.app/api/v1/notebooks \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
                       />
                     </div>
@@ -391,7 +391,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">Create a new notebook</p>
                       <CodeBlock
                         label="create-notebook"
-                        code={`curl -X POST https://writecraft.replit.app/api/v1/notebooks \\
+                        code={`curl -X POST https://writecraft.app/api/v1/notebooks \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -415,7 +415,7 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">List characters in a notebook</p>
                       <CodeBlock
                         label="get-characters"
-                        code={`curl "https://writecraft.replit.app/api/v1/characters?notebookId=456" \\
+                        code={`curl "https://writecraft.app/api/v1/characters?notebookId=456" \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
                       />
                     </div>
@@ -429,9 +429,9 @@ const data = await response.json();`}
                       <p className="text-sm text-muted-foreground mb-2">Create a new character</p>
                       <CodeBlock
                         label="create-character"
-                        code={`curl -X POST https://writecraft.replit.app/api/v1/characters \\
+                        code={`curl -X POST https://writecraft.app/api/v1/characters \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
+  -H "Content-Type": "application/json" \\
   -d '{
     "notebookId": "456",
     "name": "Jane Doe",
