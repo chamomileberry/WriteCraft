@@ -178,7 +178,7 @@ export default function AccountSettings() {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      await apiRequest(`/api/users/${user?.id}`, 'DELETE', {});
+      await apiRequest('DELETE', `/api/users/${user?.id}`, {});
       
       toast({
         title: 'Account deleted',

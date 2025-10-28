@@ -66,7 +66,7 @@ export default function BannedPhrasesManagement() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const response = await apiRequest(`/api/admin/banned-phrases/${id}`, 'PATCH', data);
+      const response = await apiRequest('PATCH', `/api/admin/banned-phrases/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -89,7 +89,7 @@ export default function BannedPhrasesManagement() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest(`/api/admin/banned-phrases/${id}`, 'DELETE');
+      await apiRequest('DELETE', `/api/admin/banned-phrases/${id}`);
     },
     onSuccess: () => {
       toast({
@@ -110,7 +110,7 @@ export default function BannedPhrasesManagement() {
   // Toggle active status
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await apiRequest(`/api/admin/banned-phrases/${id}`, 'PATCH', { isActive });
+      const response = await apiRequest('PATCH', `/api/admin/banned-phrases/${id}`, { isActive });
       return response.json();
     },
     onSuccess: () => {

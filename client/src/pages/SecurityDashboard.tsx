@@ -100,7 +100,7 @@ export default function SecurityDashboard() {
   // Acknowledge alert mutation
   const acknowledgeMutation = useMutation({
     mutationFn: async (alertId: string) => {
-      return apiRequest(`/api/security/alerts/${alertId}/acknowledge`, 'POST');
+      return apiRequest('POST', `/api/security/alerts/${alertId}/acknowledge`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/security/alerts'] });

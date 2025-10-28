@@ -152,7 +152,7 @@ export default function DiscountCodesAdmin() {
   // Update discount code mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return await apiRequest(`/api/admin/discount-codes/${id}`, "PATCH", data);
+      return await apiRequest("PATCH", `/api/admin/discount-codes/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/discount-codes'] });
@@ -176,7 +176,7 @@ export default function DiscountCodesAdmin() {
   // Delete discount code mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/admin/discount-codes/${id}`, "DELETE");
+      return await apiRequest("DELETE", `/api/admin/discount-codes/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/discount-codes'] });

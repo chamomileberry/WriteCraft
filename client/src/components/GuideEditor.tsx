@@ -504,7 +504,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         const response = await apiRequest('POST', '/api/guides', data);
         return response.json();
       } else {
-        const response = await apiRequest(`/api/guides/${currentGuideId}`, 'PUT', data);
+        const response = await apiRequest('PUT', `/api/guides/${currentGuideId}`, data);
         return response.json();
       }
     },
