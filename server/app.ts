@@ -33,16 +33,7 @@ process.on('uncaughtException', (error) => {
 export async function createApp() {
   const app = express();
   
-  // CRITICAL: Ultra-fast health check endpoint for deployment system
-  // This MUST be registered FIRST, before any middleware, to respond immediately
-  // Deployment health checks time out if they wait for heavy initialization
-  // Only enable in production to avoid interfering with Vite dev server
-  if (process.env.NODE_ENV === 'production') {
-    app.get('/', (req, res) => {
-      res.status(200).send('OK');
-    });
-  }
-  
+  // Health check endpoint for deployment monitoring
   app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: Date.now() });
   });
