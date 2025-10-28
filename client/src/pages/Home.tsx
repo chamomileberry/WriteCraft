@@ -20,8 +20,9 @@ import SavedItems from "@/components/SavedItems";
 import ContentEditor from "@/components/ContentEditor";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 import { getMappingById } from "@shared/contentTypes";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function Home() {
   const [location, setLocation] = useLocation();
