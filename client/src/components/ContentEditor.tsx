@@ -352,7 +352,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
           
           if (notebookId) {
             // Update the saved-items record with the latest data
-            const savedItemsResponse = await apiRequest(`/api/saved-items/demo-user?notebookId=${notebookId}`, 'GET');
+            const savedItemsResponse = await apiRequest('GET', `/api/saved-items/demo-user?notebookId=${notebookId}`);
             const savedItems = await savedItemsResponse.json();
             
             // Find the saved item that matches this content
@@ -360,7 +360,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
             
             if (savedItem) {
               // Update the itemData with the latest content
-              await apiRequest(`/api/saved-items/${savedItem.id}`, 'PATCH', {
+              await apiRequest('PATCH', `/api/saved-items/${savedItem.id}`, {
                 itemData: result
               });
               console.log('Successfully updated saved-items itemData:', { savedItemId: savedItem.id, itemId: result.id });

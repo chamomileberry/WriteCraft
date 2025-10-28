@@ -105,7 +105,7 @@ export function APIKeysSettings() {
   // Revoke API key mutation
   const revokeKeyMutation = useMutation({
     mutationFn: async (keyId: string) => {
-      return await apiRequest(`/api/api-keys/${keyId}`, "DELETE");
+      return await apiRequest("DELETE", `/api/api-keys/${keyId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/api-keys"] });
@@ -126,7 +126,7 @@ export function APIKeysSettings() {
   // Rotate API key mutation
   const rotateKeyMutation = useMutation({
     mutationFn: async (keyId: string) => {
-      const response = await apiRequest(`/api/api-keys/${keyId}/rotate`, "POST");
+      const response = await apiRequest("POST", `/api/api-keys/${keyId}/rotate`);
       return await response.json() as NewKeyResponse;
     },
     onSuccess: (data) => {

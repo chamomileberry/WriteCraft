@@ -164,7 +164,7 @@ export default function TeamManagement() {
   // Remove member mutation
   const removeMemberMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return await apiRequest(`/api/team/members/${userId}`, 'DELETE', {});
+      return await apiRequest('DELETE', `/api/team/members/${userId}`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team/members'] });
@@ -186,7 +186,7 @@ export default function TeamManagement() {
   // Update member role mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: { userId: string; role: string; canEdit: boolean; canComment: boolean; canInvite: boolean }) => {
-      return await apiRequest(`/api/team/members/${data.userId}`, 'PATCH', data);
+      return await apiRequest('PATCH', `/api/team/members/${data.userId}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team/members'] });
@@ -210,7 +210,7 @@ export default function TeamManagement() {
   // Revoke invitation mutation
   const revokeInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      return await apiRequest(`/api/team/invitations/${invitationId}`, 'DELETE', {});
+      return await apiRequest('DELETE', `/api/team/invitations/${invitationId}`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team/invitations'] });

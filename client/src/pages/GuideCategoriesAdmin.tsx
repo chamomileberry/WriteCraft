@@ -115,7 +115,7 @@ export default function GuideCategoriesAdmin() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: CategoryFormData }) => {
-      const res = await apiRequest(`/api/guide-categories/${id}`, 'PUT', data);
+      const res = await apiRequest('PUT', `/api/guide-categories/${id}`, data);
       return await res.json();
     },
     onSuccess: () => {
@@ -140,7 +140,7 @@ export default function GuideCategoriesAdmin() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest(`/api/guide-categories/${id}`, 'DELETE');
+      await apiRequest('DELETE', `/api/guide-categories/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });

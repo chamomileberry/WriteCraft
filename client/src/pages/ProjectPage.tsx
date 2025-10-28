@@ -122,7 +122,7 @@ export default function ProjectPage() {
   // Delete project mutation
   const deleteProjectMutation = useMutation({
     mutationFn: async (projectId: string) => {
-      await apiRequest(`/api/projects/${projectId}`, 'DELETE');
+      await apiRequest('DELETE', `/api/projects/${projectId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });

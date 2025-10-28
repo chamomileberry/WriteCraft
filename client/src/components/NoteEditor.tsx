@@ -259,7 +259,7 @@ export default function NoteEditor({ noteId, onBack }: NoteEditorProps) {
 
   // Mutation function for autosave
   const mutationFunction = useCallback(async (data: { title: string; content: string }) => {
-    return await apiRequest(`/api/notes/${noteId}`, 'PUT', data);
+    return await apiRequest('PUT', `/api/notes/${noteId}`, data);
   }, [noteId]);
 
   // Set up autosave

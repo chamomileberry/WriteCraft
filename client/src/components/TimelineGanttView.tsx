@@ -28,7 +28,7 @@ export function TimelineGanttView({ timelineId, notebookId }: TimelineGanttViewP
   const { data: events = [], isLoading } = useQuery<TimelineEvent[]>({
     queryKey: ['/api/timeline-events', timelineId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/timeline-events?timelineId=${timelineId}&notebookId=${notebookId}`, 'GET');
+      const response = await apiRequest('GET', `/api/timeline-events?timelineId=${timelineId}&notebookId=${notebookId}`);
       return response.json();
     }
   });

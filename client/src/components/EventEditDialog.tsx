@@ -72,7 +72,7 @@ export function EventEditDialog({
   const { data: characters = [], isLoading: isLoadingCharacters } = useQuery<Character[]>({
     queryKey: ['/api/characters', notebookId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/characters?notebookId=${notebookId}`, 'GET');
+      const response = await apiRequest('GET', `/api/characters?notebookId=${notebookId}`);
       return response.json();
     },
     enabled: !!notebookId && open,
@@ -177,7 +177,7 @@ export function EventEditDialog({
   const updateMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
       if (!event) throw new Error('No event to update');
-      const response = await apiRequest(`/api/timeline-events/${event.id}`, 'PATCH', {
+      const response = await apiRequest('PATCH', `/api/timeline-events/${event.id}`, {
         timelineId,
         notebookId,
         ...data,

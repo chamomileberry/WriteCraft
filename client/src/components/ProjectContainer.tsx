@@ -56,7 +56,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   // Project rename mutation
   const renameProjectMutation = useMutation({
     mutationFn: async (newTitle: string) => {
-      await apiRequest(`/api/projects/${projectId}`, 'PUT', { title: newTitle });
+      await apiRequest('PUT', `/api/projects/${projectId}`, { title: newTitle });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
@@ -78,7 +78,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const { data: project, isLoading: isLoadingProject } = useQuery({
     queryKey: ['/api/projects', projectId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/projects/${projectId}`, 'GET');
+      const response = await apiRequest('GET', `/api/projects/${projectId}`);
       return response.json();
     },
     enabled: !!projectId,
@@ -88,7 +88,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const { data: sections = [], isLoading: isLoadingSections } = useQuery({
     queryKey: ['/api/projects', projectId, 'sections'],
     queryFn: async () => {
-      const response = await apiRequest(`/api/projects/${projectId}/sections`, 'GET');
+      const response = await apiRequest('GET', `/api/projects/${projectId}/sections`);
       return response.json();
     },
     enabled: !!projectId,
@@ -99,7 +99,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
     queryKey: ['/api/projects', projectId, 'sections', activeSectionId],
     queryFn: async () => {
       if (!activeSectionId) return null;
-      const response = await apiRequest(`/api/projects/${projectId}/sections/${activeSectionId}`, 'GET');
+      const response = await apiRequest('GET', `/api/projects/${projectId}/sections/${activeSectionId}`);
       return response.json();
     },
     enabled: !!activeSectionId,

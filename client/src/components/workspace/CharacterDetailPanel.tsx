@@ -81,7 +81,7 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
     queryFn: async () => {
       // Use notebookId from panel data, or fall back to default
       const nbId = notebookId || 'main-notebook';
-      const response = await apiRequest(`/api/characters/${characterId}?notebookId=${nbId}`, 'GET');
+      const response = await apiRequest('GET', `/api/characters/${characterId}?notebookId=${nbId}`);
       return response.json();
     },
     enabled: !!characterId  // Remove notebookId requirement - use fallback if missing
@@ -221,7 +221,7 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
       
       // Use notebookId from panel data, or fall back to default
       const nbId = notebookId || 'main-notebook';
-      return apiRequest(`/api/characters/${characterId}?notebookId=${nbId}`, 'PATCH', updateData);
+      return apiRequest('PATCH', `/api/characters/${characterId}?notebookId=${nbId}`, updateData);
     },
     onSuccess: () => {
       toast({ title: 'Character updated successfully' });

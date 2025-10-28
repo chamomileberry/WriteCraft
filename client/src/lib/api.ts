@@ -60,12 +60,12 @@ export const notebooksApi = {
   },
 
   update: async (id: string, updates: { name?: string; description?: string; imageUrl?: string }) => {
-    const res = await apiRequest(`/api/notebooks/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/notebooks/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/notebooks/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/notebooks/${id}`);
     return res.json();
   },
 };
@@ -96,12 +96,12 @@ export const charactersApi = {
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest(`/api/characters/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/characters/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/characters/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/characters/${id}`);
     return res.json();
   },
 
@@ -144,7 +144,7 @@ export const charactersApi = {
     },
 
     deleteCharacter: async (id: string) => {
-      const res = await apiRequest(`/api/characters/${id}`, 'DELETE');
+      const res = await apiRequest('DELETE', `/api/characters/${id}`);
       return res.json();
     },
   },
@@ -179,12 +179,12 @@ export const projectsApi = {
   },
 
   update: async (id: string, updates: { title?: string; description?: string; genre?: string }) => {
-    const res = await apiRequest(`/api/projects/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/projects/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/projects/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/projects/${id}`);
     return res.json();
   },
 
@@ -202,22 +202,22 @@ export const projectsApi = {
     },
 
     create: async (projectId: string, data: { title: string; parentId?: string; order?: number }) => {
-      const res = await apiRequest(`/api/projects/${projectId}/sections`, 'POST', data);
+      const res = await apiRequest('POST', `/api/projects/${projectId}/sections`, data);
       return res.json();
     },
 
     update: async (projectId: string, sectionId: string, updates: { title?: string; content?: string; parentId?: string; order?: number }) => {
-      const res = await apiRequest(`/api/projects/${projectId}/sections/${sectionId}`, 'PUT', updates);
+      const res = await apiRequest('PUT', `/api/projects/${projectId}/sections/${sectionId}`, updates);
       return res.json();
     },
 
     delete: async (projectId: string, sectionId: string) => {
-      const res = await apiRequest(`/api/projects/${projectId}/sections/${sectionId}`, 'DELETE');
+      const res = await apiRequest('DELETE', `/api/projects/${projectId}/sections/${sectionId}`);
       return res.json();
     },
 
     reorder: async (projectId: string, updates: Array<{ id: string; order: number; parentId: string | null }>) => {
-      const res = await apiRequest(`/api/projects/${projectId}/sections/reorder`, 'PUT', { updates });
+      const res = await apiRequest('PUT', `/api/projects/${projectId}/sections/reorder`, { updates });
       return res.json();
     },
   },
@@ -261,17 +261,17 @@ export const savedItemsApi = {
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest(`/api/saved-items/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/saved-items/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/saved-items/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/saved-items/${id}`);
     return res.json();
   },
 
   deleteByItemId: async (itemId: string) => {
-    const res = await apiRequest(`/api/saved-items/item/${itemId}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/saved-items/item/${itemId}`);
     return res.json();
   },
 };
@@ -305,12 +305,12 @@ export const guidesApi = {
   },
 
   update: async (id: string, updates: { title?: string; category?: string; content?: string; description?: string }) => {
-    const res = await apiRequest(`/api/guides/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/guides/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/guides/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/guides/${id}`);
     return res.json();
   },
 };
@@ -490,7 +490,7 @@ export const pinnedContentApi = {
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/pinned-content/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/pinned-content/${id}`);
     return res.json();
   },
 };
@@ -525,12 +525,12 @@ export const notesApi = {
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest(`/api/notes/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/notes/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/notes/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/notes/${id}`);
     return res.json();
   },
 };
@@ -558,12 +558,12 @@ export const quickNotesApi = {
   },
 
   update: async (id: string, updates: { title?: string; content: string }) => {
-    const res = await apiRequest(`/api/quick-note/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/quick-note/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/quick-note/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/quick-note/${id}`);
     return res.json();
   },
 };
@@ -587,7 +587,7 @@ export const chatMessagesApi = {
   },
 
   delete: async (conversationId: string) => {
-    const res = await apiRequest(`/api/chat-messages?conversationId=${conversationId}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/chat-messages?conversationId=${conversationId}`);
     return res.json();
   },
 };
@@ -610,12 +610,12 @@ export const collaborationApi = {
     },
 
     update: async (id: string, permission: string) => {
-      const res = await apiRequest(`/api/shares/${id}`, 'PUT', { permission });
+      const res = await apiRequest('PUT', `/api/shares/${id}`, { permission });
       return res.json();
     },
 
     delete: async (id: string) => {
-      const res = await apiRequest(`/api/shares/${id}`, 'DELETE');
+      const res = await apiRequest('DELETE', `/api/shares/${id}`);
       return res.json();
     },
 
@@ -709,12 +709,12 @@ export const adminApi = {
     },
 
     update: async (id: string, updates: { phrase?: string; category?: string; isActive?: boolean }) => {
-      const res = await apiRequest(`/api/admin/banned-phrases/${id}`, 'PUT', updates);
+      const res = await apiRequest('PUT', `/api/admin/banned-phrases/${id}`, updates);
       return res.json();
     },
 
     delete: async (id: string) => {
-      const res = await apiRequest(`/api/admin/banned-phrases/${id}`, 'DELETE');
+      const res = await apiRequest('DELETE', `/api/admin/banned-phrases/${id}`);
       return res.json();
     },
   },
@@ -732,7 +732,7 @@ export const familyTreeApi = {
   },
 
   save: async (notebookId: string, data: any) => {
-    const res = await apiRequest(`/api/family-tree/${notebookId}`, 'POST', data);
+    const res = await apiRequest('POST', `/api/family-tree/${notebookId}`, data);
     return res.json();
   },
 };
@@ -761,12 +761,12 @@ export const foldersApi = {
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest(`/api/folders/${id}`, 'PUT', updates);
+    const res = await apiRequest('PUT', `/api/folders/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest(`/api/folders/${id}`, 'DELETE');
+    const res = await apiRequest('DELETE', `/api/folders/${id}`);
     return res.json();
   },
 };

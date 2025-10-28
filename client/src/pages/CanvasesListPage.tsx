@@ -39,7 +39,7 @@ export default function CanvasesListPage() {
   // Delete canvas mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest(`/api/canvases/${id}`, 'DELETE');
+      const response = await apiRequest('DELETE', `/api/canvases/${id}`);
       if (!response.ok) throw new Error('Failed to delete canvas');
     },
     onSuccess: () => {

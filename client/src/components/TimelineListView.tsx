@@ -40,7 +40,7 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
   const { data: timeline } = useQuery<TimelineType>({
     queryKey: ['/api/timelines', timelineId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/timelines/${timelineId}?notebookId=${notebookId}`, 'GET');
+      const response = await apiRequest('GET', `/api/timelines/${timelineId}?notebookId=${notebookId}`);
       return await response.json();
     },
     enabled: !!timelineId && !!notebookId,
@@ -59,7 +59,7 @@ export function TimelineListView({ timelineId, notebookId }: TimelineListViewPro
   // Toggle listViewMode mutation
   const toggleModeMutation = useMutation({
     mutationFn: async (newMode: 'compact' | 'timescale') => {
-      const response = await apiRequest(`/api/timelines/${timelineId}`, 'PATCH', {
+      const response = await apiRequest('PATCH', `/api/timelines/${timelineId}`, {
         listViewMode: newMode,
         notebookId
       });

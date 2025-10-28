@@ -141,7 +141,7 @@ export function PaymentMethods() {
   // Delete payment method mutation
   const deleteMutation = useMutation({
     mutationFn: async (paymentMethodId: string) => {
-      await apiRequest(`/api/stripe/payment-methods/${paymentMethodId}`, 'DELETE', {});
+      await apiRequest('DELETE', `/api/stripe/payment-methods/${paymentMethodId}`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/stripe/payment-methods'] });
@@ -162,7 +162,7 @@ export function PaymentMethods() {
   // Set default payment method mutation
   const setDefaultMutation = useMutation({
     mutationFn: async (paymentMethodId: string) => {
-      await apiRequest(`/api/stripe/payment-methods/${paymentMethodId}/set-default`, 'POST', {});
+      await apiRequest('POST', `/api/stripe/payment-methods/${paymentMethodId}/set-default`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/stripe/payment-methods'] });

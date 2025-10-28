@@ -39,7 +39,7 @@ export default function CanvasPage() {
     queryKey: ['/api/canvases', id],
     queryFn: async () => {
       if (!id || id === 'new') return null;
-      const response = await apiRequest(`/api/canvases/${id}`, 'GET');
+      const response = await apiRequest('GET', `/api/canvases/${id}`);
       if (!response.ok) throw new Error('Failed to load canvas');
       return response.json() as Promise<Canvas>;
     },
@@ -103,7 +103,7 @@ export default function CanvasPage() {
   const updateMutation = useMutation({
     mutationFn: async (data: { name: string; data: string }) => {
       if (!id || id === 'new') throw new Error('Canvas ID is required');
-      const response = await apiRequest(`/api/canvases/${id}`, 'PUT', data);
+      const response = await apiRequest('PUT', `/api/canvases/${id}`, data);
       if (!response.ok) throw new Error('Failed to update canvas');
       return response.json();
     },
