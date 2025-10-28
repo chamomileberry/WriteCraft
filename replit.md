@@ -26,7 +26,7 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Frontend**: React with TypeScript, Zustand for client state, TanStack Query for server state, Wouter for routing, and Vite for building.
 - **Backend**: Node.js with Express.js and TypeScript, using RESTful APIs.
 - **Data Storage**: PostgreSQL (Neon serverless) with Drizzle ORM.
-- **Authentication**: Replit Auth integrated with PostgreSQL-backed sessions, supporting Google, GitHub, X, Apple, and email/password. Max 3 concurrent sessions per user with auto-eviction.
+- **Authentication**: Replit Auth integrated with PostgreSQL-backed sessions, supporting Google, GitHub, X, Apple, and email/password. Max 3 concurrent sessions per user with auto-eviction. Session store configured with automatic cleanup (15-minute pruning interval) to prevent performance degradation.
 - **Security**: Multi-Factor Authentication, API Key Rotation, Intrusion Detection (opt-in dry run mode, configurable thresholds), IP Whitelist (CIDR support), Nonce-based CSP, Zod validation, Redis-backed rate limiting, enhanced security headers, SRI, XSS protection, bcrypt for password hashing, Row-Level Security, and strict ownership validation.
 - **Production Infrastructure**: Sentry for error tracking, PostHog for product analytics (GDPR/CCPA compliant), Pino for structured logging, and health check endpoints for uptime monitoring.
 - **GDPR/CCPA Compliance**: Cookie consent banner, detailed privacy policy, documented data retention policies, and consent-gated PostHog analytics.
