@@ -5,6 +5,7 @@ import { db } from '../db';
 import { users, shares, notebooks, projects, guides } from '@shared/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { getRedisClient } from '../services/redisClient';
+import { serverAnalytics, SERVER_EVENTS } from '../services/serverAnalytics';
 
 // Security configuration
 const SECURITY_CONFIG = {
@@ -445,8 +446,6 @@ export class SecurityAuditLog {
     }
     
     // Send to PostHog for analytics and baseline analysis
-    const { serverAnalytics, SERVER_EVENTS } = require('../services/serverAnalytics');
-    
     const eventNameMap: Record<string, string> = {
       'AUTH_FAILURE': SERVER_EVENTS.SECURITY_AUTH_FAILURE,
       'PRIVILEGE_ESCALATION': SERVER_EVENTS.SECURITY_PRIVILEGE_ESCALATION,

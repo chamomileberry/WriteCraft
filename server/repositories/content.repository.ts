@@ -2308,6 +2308,16 @@ export class ContentRepository extends BaseRepository {
   }
 
   // ========== GUIDE REFERENCE METHODS ==========
+  async createGuideReference(reference: InsertGuideReference): Promise<GuideReference> {
+    const [newReference] = await db.insert(guideReferences).values(reference).returning();
+    return newReference;
+  }
+
+  async getGuideReferences(sourceGuideId: string): Promise<GuideReference[]> {
+    return await db.select().from(guideReferences)
+      .where(eq(guideReferences.sourceGuideId, sourceGuideId));
+  }
+
   async syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void> {
     // First, delete all existing references from this guide
     await db.delete(guideReferences)
