@@ -1900,7 +1900,7 @@ export class StorageFacade implements IStorage {
   async markFeedbackReplyAsRead(feedbackId: string, userId: string): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
-      .set({ repliedAt: new Date(), readAt: new Date(), updatedAt: new Date() })
+      .set({ hasUnreadReply: false, updatedAt: new Date() })
       .where(and(eq(feedback.id, feedbackId), eq(feedback.userId, userId)))
       .returning();
     return updated || undefined;
@@ -1908,20 +1908,20 @@ export class StorageFacade implements IStorage {
 
   async getUnreadReplyCount(userId: string): Promise<number> {
     const [result] = await db
-      .select({ count: sql`COUNT(*)` })
+      .select({ count: sql<number>`COUNT(*)::int` })
       .from(feedback)
       .where(and(
         eq(feedback.userId, userId),
-        isNull(feedback.readAt)
+        eq(feedback.hasUnreadReply, true)
       ));
-    return result.count;
+    return result?.count || 0;
   }
 
   async replyToFeedback(feedbackId: string, reply: string, adminUserId: string): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
-      .set({ reply, repliedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(feedback.id, feedbackId), eq(feedback.adminUserId, adminUserId)))
+      .set({ adminReply: reply, adminRepliedAt: new Date(), adminRepliedBy: adminUserId, hasUnreadReply: true, updatedAt: new Date() })
+      .where(eq(feedback.id, feedbackId))
       .returning();
     return updated || undefined;
   }
