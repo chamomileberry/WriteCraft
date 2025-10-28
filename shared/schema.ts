@@ -3462,6 +3462,9 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   gracePeriodStart: timestamp("grace_period_start"),
   gracePeriodEnd: timestamp("grace_period_end"),
   
+  // Team-specific fields
+  teamName: varchar("team_name"),
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -3964,6 +3967,10 @@ export const teamInvitationsRelations = relations(teamInvitations, ({ one }) => 
   teamSubscription: one(userSubscriptions, {
     fields: [teamInvitations.teamSubscriptionId],
     references: [userSubscriptions.id],
+  }),
+  inviter: one(users, {
+    fields: [teamInvitations.invitedBy],
+    references: [users.id],
   }),
 }));
 

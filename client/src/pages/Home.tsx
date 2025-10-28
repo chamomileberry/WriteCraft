@@ -364,7 +364,6 @@ export default function Home() {
                       src={`https://discord.com/widget?id=1432757366717284414&theme=${isDark ? 'dark' : 'light'}`}
                       width="350" 
                       height="500" 
-                      allowTransparency={true}
                       frameBorder="0" 
                       sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
                       className="w-full rounded-lg shadow-lg"
