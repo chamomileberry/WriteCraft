@@ -182,7 +182,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         throw new Error('No notebook selected. Cannot fetch content.');
       }
       
-      const response = await apiRequest(`${apiBase}/${currentItemId}?notebookId=${notebookId}`, 'GET');
+      const response = await apiRequest('GET', `${apiBase}/${currentItemId}?notebookId=${notebookId}`);
       return response.json();
     },
     enabled: !isCreating && !!activeNotebookId, // Only run query if not creating new content and notebook is selected
@@ -209,7 +209,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         throw new Error('No notebook selected. Cannot generate article.');
       }
       
-      const response = await apiRequest(`${apiBase}/${currentItemId}/generate-article?notebookId=${notebookId}`, 'POST');
+      const response = await apiRequest('POST', `${apiBase}/${currentItemId}/generate-article?notebookId=${notebookId}`);
       return response.json();
     },
     onSuccess: (updatedContent) => {
@@ -255,7 +255,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         const createData = { ...data, notebookId };
         
         console.log('Making POST request to:', apiBase, 'with data:', createData);
-        const response = await apiRequest(apiBase, 'POST', createData);
+        const response = await apiRequest('POST', apiBase, createData);
         console.log('POST response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
@@ -276,7 +276,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
         }
         
         console.log('Making PATCH request to:', `${apiBase}/${currentItemId}`, 'with data:', data, 'notebookId:', notebookId);
-        const response = await apiRequest(`${apiBase}/${currentItemId}?notebookId=${notebookId}`, 'PATCH', data);
+        const response = await apiRequest('PATCH', `${apiBase}/${currentItemId}?notebookId=${notebookId}`, data);
         console.log('PATCH response status:', response.status, 'ok:', response.ok);
         
         if (!response.ok) {
