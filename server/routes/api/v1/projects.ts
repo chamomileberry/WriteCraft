@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { apiAuthMiddleware, requireScope, addRateLimitHeaders, ApiAuthRequest } from '../../../middleware/apiAuthMiddleware';
 import { storage } from '../../../storage';
+import { readRateLimiter, writeRateLimiter } from '../../../security/rateLimiters';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.use(addRateLimitHeaders);
  * List all projects for the authenticated user
  * GET /api/v1/projects
  */
-router.get('/', async (req: ApiAuthRequest, res) => {
+router.get('/', readRateLimiter, async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     
@@ -34,7 +35,7 @@ router.get('/', async (req: ApiAuthRequest, res) => {
  * Get a specific project by ID
  * GET /api/v1/projects/:id
  */
-router.get('/:id', async (req: ApiAuthRequest, res) => {
+router.get('/:id', readRateLimiter, async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const projectId = req.params.id;
@@ -60,7 +61,7 @@ router.get('/:id', async (req: ApiAuthRequest, res) => {
  * Create a new project
  * POST /api/v1/projects
  */
-router.post('/', requireScope('write'), async (req: ApiAuthRequest, res) => {
+router.post('/', writeRateLimiter, requireScope('write'), async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     
@@ -82,7 +83,7 @@ router.post('/', requireScope('write'), async (req: ApiAuthRequest, res) => {
  * Update a project
  * PATCH /api/v1/projects/:id
  */
-router.patch('/:id', requireScope('write'), async (req: ApiAuthRequest, res) => {
+router.patch('/:id', writeRateLimiter, requireScope('write'), async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const projectId = req.params.id;
@@ -108,7 +109,7 @@ router.patch('/:id', requireScope('write'), async (req: ApiAuthRequest, res) => 
  * Delete a project
  * DELETE /api/v1/projects/:id
  */
-router.delete('/:id', requireScope('write'), async (req: ApiAuthRequest, res) => {
+router.delete('/:id', writeRateLimiter, requireScope('write'), async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const projectId = req.params.id;
