@@ -172,8 +172,14 @@ export function renderBaseTemplate(options: EmailTemplateOptions): string {
 
 export function renderPlainText(content: string): string {
   // Strip HTML tags and format for plain text
-  return content
-    .replace(/<[^>]*>/g, '')
+  let plainText = content;
+  let previous;
+  // Remove all HTML tags by repeatedly applying the regex
+  do {
+    previous = plainText;
+    plainText = plainText.replace(/<[^>]*>/g, '');
+  } while (plainText !== previous);
+  return plainText
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
