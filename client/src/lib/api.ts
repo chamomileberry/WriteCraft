@@ -11,6 +11,9 @@ import { apiRequest } from '@/lib/queryClient';
  * - Consistent error handling
  */
 
+// Re-export apiRequest for components that need direct access
+export { apiRequest } from '@/lib/queryClient';
+
 // ============================================================================
 // AUTH
 // ============================================================================
