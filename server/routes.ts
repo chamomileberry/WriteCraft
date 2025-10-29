@@ -336,6 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Pinned content endpoints
+  // Uses contentRateLimiter to prevent abuse of expensive enhanced data fetching
   app.get("/api/pinned-content", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
