@@ -228,8 +228,8 @@ export async function setupAuth(app: Express) {
   // User search endpoint for collaboration
   app.get("/api/auth/users/search", isAuthenticated, async (req: any, res) => {
     try {
-      const query = req.query.q as string;
-      if (!query || query.length < 2) {
+      const query = req.query.q;
+      if (typeof query !== "string" || query.length < 2) {
         return res.json([]);
       }
 
