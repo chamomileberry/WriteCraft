@@ -2,11 +2,12 @@ import { Router } from "express";
 import { db } from "../db";
 import { savedItems, projects } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
+import { readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // GET /api/content/preview - Get preview data for any content type
-router.get("/preview", async (req: any, res) => {
+router.get("/preview", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { type, id } = req.query;
