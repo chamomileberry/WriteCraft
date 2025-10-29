@@ -73,6 +73,8 @@ export async function getSession(): Promise<RequestHandler[]> {
     },
   });
   
+  return [sessionMiddleware, lusca.csrf()];
+  
   const csrfMiddleware = lusca.csrf();
   
   // Wrap CSRF middleware to skip for static assets and CSP reports
