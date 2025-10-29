@@ -2,10 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertPlantSchema, updatePlantSchema } from "@shared/schema";
 import { z } from "zod";
+import { aiRateLimiter, writeRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", aiRateLimiter, async (req: any, res) => {
   try {
     const { genre, type, notebookId } = req.body;
     const userId = req.user.claims.sub;
@@ -45,7 +46,7 @@ router.post("/generate", async (req: any, res) => {
   }
 });
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
@@ -71,7 +72,7 @@ router.post("/", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -88,7 +89,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -108,7 +109,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.patch("/:id", async (req: any, res) => {
+router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -136,7 +137,7 @@ router.patch("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -164,7 +165,7 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -187,7 +188,7 @@ router.delete("/:id", async (req: any, res) => {
   }
 });
 
-router.post("/:id/generate-article", async (req: any, res) => {
+router.post("/:id/generate-article", aiRateLimiter, async (req: any, res) => {
   try {
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;

@@ -132,7 +132,7 @@ router.get('/shares', secureAuthentication, readRateLimiter, async (req: any, re
   }
 });
 
-router.delete('/shares/:id', secureAuthentication, async (req: any, res) => {
+router.delete('/shares/:id', secureAuthentication, writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const shareId = req.params.id;
@@ -161,7 +161,7 @@ router.delete('/shares/:id', secureAuthentication, async (req: any, res) => {
   }
 });
 
-router.patch('/shares/:id/permission', secureAuthentication, requireBooleanFeature('collaboration'), async (req: any, res) => {
+router.patch('/shares/:id/permission', secureAuthentication, requireBooleanFeature('collaboration'), writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const shareId = req.params.id;

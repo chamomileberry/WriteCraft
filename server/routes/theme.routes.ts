@@ -5,15 +5,9 @@ import { z } from "zod";
 import { makeAICall } from "../lib/aiHelper";
 import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
-import { createRateLimiter } from "../security";
+import { aiRateLimiter, writeRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
-
-// AI generation rate limiting: 30 requests per 15 minutes
-const aiRateLimiter = createRateLimiter({ 
-  maxRequests: 30, 
-  windowMs: 15 * 60 * 1000 
-});
 
 router.post("/generate", aiRateLimiter, trackAIUsage('theme_generation'), async (req: any, res) => {
   try {
@@ -85,7 +79,7 @@ Return a JSON object with exactly these fields:
   }
 });
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
@@ -111,7 +105,7 @@ router.post("/", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -128,7 +122,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;

@@ -5,6 +5,7 @@ import { AuditLogService } from '../services/auditLogService';
 import { db } from '../db';
 import { auditLogs, teamMemberships, aiUsageLogs, aiUsageDailySummary, teamActivity, users } from '@shared/schema';
 import { eq, and, desc, sql, gte } from 'drizzle-orm';
+import { teamRateLimiter, readRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ const router = Router();
  */
 router.get('/audit-logs', 
   secureAuthentication, 
+  readRateLimiter,
   requireTeamTier,
   requirePermission('canAccessAuditLogs'),
   async (req: any, res) => {
@@ -74,6 +76,7 @@ router.get('/audit-logs',
  */
 router.get('/analytics',
   secureAuthentication,
+  readRateLimiter,
   requireTeamTier,
   requirePermission('canAccessAnalytics'),
   async (req: any, res) => {
