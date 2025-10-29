@@ -437,10 +437,14 @@ router.delete(
       
       // Only allow users to delete their own account or admin to delete any account
       if (userId !== requesterId && !user?.isAdmin) {
-        await SecurityAuditLog.logSecurityEvent({
-          userId: requesterId,
-          eventType: 'unauthorized_delete_attempt',
-          severity: 'high',
+        await SecurityAuditLog.log({
+        type: 'UNAUTHORIZED_ACCESS', // or another appropriate type
+        userId: requesterId,
+        ip: req.ip || '',
+        userAgent: req.headers['user-agent'] || '',
+        details: `User ${requesterId} attempted to delete account ${userId}`,
+        severity: 'HIGH'
+        });
           details: JSON.stringify({ action: 'attempted to delete account', requesterId, targetUserId: userId }),
           ipAddress: req.ip || '',
           userAgent: req.headers['user-agent'] || ''
