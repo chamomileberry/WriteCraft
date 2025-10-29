@@ -20,6 +20,7 @@ import NotebookSwitcher from "./NotebookSwitcher";
 import ContentTypeModal from "./ContentTypeModal";
 import ContentTypeSidebar from "./ContentTypeSidebar";
 import { ContentTypeSwitcherModal } from "./ContentTypeSwitcherModal";
+import { PageHeaderSkeleton, CardGridSkeleton } from "@/components/skeletons";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
@@ -480,22 +481,9 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 bg-muted animate-pulse rounded" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="space-y-2">
-                <div className="h-4 bg-muted rounded w-3/4" />
-                <div className="h-3 bg-muted rounded w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 bg-muted rounded w-full mb-2" />
-                <div className="h-3 bg-muted rounded w-2/3" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="space-y-6">
+        <PageHeaderSkeleton />
+        <CardGridSkeleton count={9} />
       </div>
     );
   }

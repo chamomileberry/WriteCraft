@@ -12,6 +12,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import type { Guide, GuideCategory } from "@shared/schema";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CardGridSkeleton } from "@/components/skeletons";
 
 const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
@@ -236,8 +238,12 @@ export default function WritingGuides() {
                 </Badge>
               </div>
               {isLoadingCategories ? (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <div className="space-y-2 px-3">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
                 </div>
               ) : (
                 categories.map((category) => (
@@ -313,9 +319,7 @@ export default function WritingGuides() {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+          <CardGridSkeleton count={6} />
         )}
 
         {/* Error State */}

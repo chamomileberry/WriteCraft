@@ -19,6 +19,7 @@ import { FamilyTreeEditor } from "@/components/FamilyTreeEditor";
 import { TimelineTemplateDialog } from "@/components/TimelineTemplateDialog";
 import { getContentTypeConfig } from "@/configs/content-types";
 import type { ContentTypeFormConfig } from "@/components/forms/types";
+import { EditorSkeleton } from "@/components/skeletons";
 
 interface ContentEditorProps {
   contentType: string;
@@ -470,9 +471,7 @@ export default function ContentEditor({ contentType, contentId, onBack }: Conten
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <EditorSkeleton />
       </div>
     );
   }

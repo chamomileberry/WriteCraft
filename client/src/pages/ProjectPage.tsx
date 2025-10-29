@@ -17,6 +17,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { LimitExceededDialog } from "@/components/LimitExceededDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useToast } from "@/hooks/use-toast";
+import { CardGridSkeleton } from "@/components/skeletons";
 
 interface Project {
   id: string;
@@ -287,20 +288,7 @@ export default function ProjectPage() {
 
         {/* Projects Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="pb-3">
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-3 bg-muted rounded w-1/2 mt-2"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-3 bg-muted rounded w-full mb-2"></div>
-                  <div className="h-3 bg-muted rounded w-2/3"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CardGridSkeleton count={6} />
         ) : displayedProjects.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
