@@ -2,11 +2,12 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertCanvasSchema } from "@shared/schema";
 import { validateInput } from "../security/middleware";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Get all canvases for the current user
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const canvases = await storage.getUserCanvases(userId);
@@ -18,7 +19,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // Get canvases for a specific project
-router.get("/project/:projectId", async (req: any, res) => {
+router.get("/project/:projectId", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId } = req.params;
@@ -38,7 +39,7 @@ router.get("/project/:projectId", async (req: any, res) => {
 });
 
 // Create a new canvas
-router.post("/", validateInput(insertCanvasSchema.omit({ userId: true })), async (req: any, res) => {
+router.post("/", writeRateLimiter, validateInput(insertCanvasSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const canvasData = { ...req.body, userId };
@@ -60,7 +61,7 @@ router.post("/", validateInput(insertCanvasSchema.omit({ userId: true })), async
 });
 
 // Get a specific canvas
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const canvas = await storage.getCanvas(req.params.id, userId);
@@ -75,7 +76,7 @@ router.get("/:id", async (req: any, res) => {
 });
 
 // Update a canvas
-router.put("/:id", validateInput(insertCanvasSchema.omit({ userId: true }).partial()), async (req: any, res) => {
+router.put("/:id", writeRateLimiter, validateInput(insertCanvasSchema.omit({ userId: true }).partial()), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updateData = req.body;
@@ -108,7 +109,7 @@ router.put("/:id", validateInput(insertCanvasSchema.omit({ userId: true }).parti
 });
 
 // Delete a canvas
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteCanvas(req.params.id, userId);
