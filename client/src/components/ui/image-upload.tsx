@@ -19,6 +19,24 @@ interface ImageUploadProps {
   visibility?: 'public' | 'private'; // Specify upload visibility
 }
 
+/**
+ * Validates that a URL is safe to use in an <img> src attribute
+ * Only allows http, https, and data URLs to prevent XSS attacks
+ */
+function isSafeImageUrl(url: string): boolean {
+  if (!url) return false;
+  
+  try {
+    // Attempt to parse as URL
+    const parsed = new URL(url, window.location.origin);
+    // Only allow http, https, and data protocols
+    return ['http:', 'https:', 'data:'].includes(parsed.protocol);
+  } catch {
+    // If URL parsing fails, check if it's a relative path (starts with /)
+    return url.startsWith('/');
+  }
+}
+
 export function ImageUpload({ 
   value, 
   onChange, 
@@ -32,7 +50,8 @@ export function ImageUpload({
   visibility = 'private' // Default to private for backward compatibility
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState(value || '');
+  // Validate initial value to prevent XSS
+  const [imageUrl, setImageUrl] = useState(value && isSafeImageUrl(value) ? value : '');
   const [urlInput, setUrlInput] = useState('');
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -126,9 +145,21 @@ export function ImageUpload({
   };
 
   const handleUrlSubmit = () => {
-    if (urlInput.trim()) {
-      setImageUrl(urlInput.trim());
-      onChange(urlInput.trim());
+    const trimmedUrl = urlInput.trim();
+    
+    // Validate URL to prevent XSS attacks (e.g., javascript: URLs)
+    if (!isSafeImageUrl(trimmedUrl)) {
+      toast({
+        title: 'Invalid URL',
+        description: 'Please enter a valid image URL (http://, https://, or data:)',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (trimmedUrl) {
+      setImageUrl(trimmedUrl);
+      onChange(trimmedUrl);
       setShowUrlInput(false);
       setUrlInput('');
       toast({
