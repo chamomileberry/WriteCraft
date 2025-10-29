@@ -55,6 +55,8 @@ import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 import { Switch } from '@/components/ui/switch';
 import { useWorkspaceStore, type EditorActions } from '@/stores/workspaceStore';
 import { marked } from 'marked';
+import { useCollaboration } from '@/hooks/useCollaboration';
+import { CollaborationIndicator } from '@/components/CollaborationIndicator';
 
 interface GuideEditorProps {
   guideId: string;
