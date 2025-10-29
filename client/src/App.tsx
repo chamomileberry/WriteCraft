@@ -68,6 +68,7 @@ import { useQuery } from "@tanstack/react-query";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { analytics } from "@/lib/posthog";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { BottomNavigation } from "@/components/BottomNavigation";
 
 // Notebook page component
 function NotebookPage() {
@@ -98,7 +99,7 @@ function NotebookPage() {
     // Force close popover and unmount NotebookSwitcher
     setNotebookPopoverOpen(false);
     setMountNotebookSwitcher(false);
-    
+
     // Wait for popover to fully close and unmount before opening modal
     setTimeout(() => {
       setIsContentModalOpen(true);
@@ -349,14 +350,26 @@ function AuthenticatedApp() {
     return <Landing />;
   }
 
+  const [, setLocation] = useLocation();
+
+  const handleCreateNew = () => {
+    setLocation('/notebook');
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <BetaDisclaimer />
       <GracePeriodBanner />
       <WorkspaceShell>
-        <Router />
+        {/* Add padding bottom on mobile for bottom navigation */}
+        <div className="pb-16 md:pb-0">
+          <Router />
+        </div>
       </WorkspaceShell>
-      
+
+      {/* Bottom Navigation for Mobile */}
+      <BottomNavigation onCreateNew={handleCreateNew} />
+
       {/* Show onboarding wizard on first login */}
       {showOnboarding && (
         <OnboardingWizard

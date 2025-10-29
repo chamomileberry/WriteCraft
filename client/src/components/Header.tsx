@@ -1,4 +1,4 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload, HelpCircle, Inbox, MessageSquare, Shield, Tag, Ban, FileText, Users, LogOut } from "lucide-react";
+import { Search, BookOpen, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, Upload, HelpCircle, Inbox, MessageSquare, Shield, Tag, Ban, FileText, Users, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -24,8 +24,6 @@ interface HeaderProps {
 
 export default function Header({ onSearch, searchQuery = "", onNavigate, onCreateNew }: HeaderProps) {
   const { isDark, toggleTheme } = useTheme();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] = useState(false);
   const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -111,8 +109,8 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
             data-testid="button-logo-home"
           >
-            <BookOpen className="h-7 w-7 text-primary flex-shrink-0" />
-            <h1 className={`font-serif font-bold text-foreground whitespace-nowrap ${isMobile ? 'text-lg' : 'text-lg lg:text-xl'}`}>WriteCraft</h1>
+            <BookOpen className={`text-primary flex-shrink-0 ${isMobile ? 'h-6 w-6' : 'h-7 w-7'}`} />
+            <h1 className={`font-serif font-bold text-foreground whitespace-nowrap ${isMobile ? 'text-base' : 'text-lg lg:text-xl'}`}>WriteCraft</h1>
           </button>
 
           <nav className="hidden md:flex items-center gap-8 flex-shrink-0">
@@ -148,7 +146,8 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {/* Search Button - Opens Command Palette */}
+            {/* Desktop: Show all actions */}
+            {/* Mobile: Show only essential actions */}
             <Button
               variant="ghost"
               size="icon"
@@ -156,16 +155,17 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               data-testid="button-search"
               title="Search (⌘K)"
               aria-label="Search"
+              className="hidden sm:flex"
             >
               <Search className="h-4 w-4" />
             </Button>
 
-            {/* Inbox Button with Badge */}
+            {/* Inbox Button with Badge - Desktop only, mobile has it in bottom nav via Account */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setLocation('/inbox')}
-              className="relative"
+              className="relative hidden sm:flex"
               data-testid="button-inbox"
               title="Inbox"
               aria-label="Inbox"
@@ -178,22 +178,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               )}
             </Button>
 
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => onCreateNew?.()}
-              className="flex bg-primary hover:bg-primary/90 text-primary-foreground"
-              data-testid="button-create-new"
-            >
-              <Plus className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Create</span>
-            </Button>
-
+            {/* Quick Note - Desktop only, less critical on mobile */}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleQuickNote}
-              className={`${isQuickNoteOpen() ? 'bg-primary/10 text-primary' : ''}`}
+              className={`hidden sm:flex ${isQuickNoteOpen() ? 'bg-primary/10 text-primary' : ''}`}
               data-testid="button-quick-note"
               title="Quick Note"
               aria-label="Quick Note"
@@ -201,32 +191,21 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               <StickyNote className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={openWritingAssistant}
-              className="hover:bg-primary/10 hover:text-primary"
-              style={{
-                background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)',
-                color: 'white'
-              }}
-              data-testid="button-writing-assistant"
-              title="Writing Assistant"
-              aria-label="Writing Assistant"
-            >
-              <Sparkles className="h-4 w-4" />
-            </Button>
-
+            {/* Theme Toggle - Desktop only */}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
               data-testid="button-theme-toggle"
+              className="hidden sm:flex"
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
 
-            <BillingAlertsDropdown />
+            {/* Billing Alerts - Desktop only */}
+            <div className="hidden sm:block">
+              <BillingAlertsDropdown />
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -311,95 +290,13 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              data-testid="button-menu"
-              title="Menu"
-              aria-label="Menu"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-
+            {/* Mobile: Show workspace menu button only when in manuscript editor with panels */}
             {isWorkspaceMobile && hasPanels && isInManuscriptEditor() && <MobileMenuButton />}
           </div>
         </div>
       </div>
 
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-background border-b border-border max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <div className="px-4 py-4 space-y-4">
-            <button
-              onClick={() => {
-                onNavigate?.('notebook');
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
-              data-testid="mobile-link-notebook"
-            >
-              Notebook
-            </button>
-            <button
-              onClick={() => {
-                onNavigate?.('projects');
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
-              data-testid="mobile-link-projects"
-            >
-              Projects
-            </button>
-
-            <div className="space-y-2">
-              <button
-                onClick={() => setIsMobileGeneratorsExpanded(!isMobileGeneratorsExpanded)}
-                className="flex items-center justify-between w-full text-left text-foreground hover:text-primary transition-colors py-2"
-                data-testid="mobile-link-generators"
-              >
-                <span>Generators</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isMobileGeneratorsExpanded ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isMobileGeneratorsExpanded && (
-                <div className="pl-4 space-y-2">
-                  {GENERATORS.map((generator) => {
-                    const Icon = generator.icon;
-                    return (
-                      <button
-                        key={generator.id}
-                        onClick={() => {
-                          setActiveGenerator(generator.id);
-                          setIsMobileMenuOpen(false);
-                          setIsMobileGeneratorsExpanded(false);
-                        }}
-                        className="flex items-center gap-2 w-full text-left text-sm text-foreground hover:text-primary transition-colors py-2"
-                        data-testid={`mobile-${generator.id}`}
-                      >
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span>{generator.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                setLocation('/guides');
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
-              data-testid="mobile-link-guides"
-            >
-              Guides
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* Generator Modals */}
       <GeneratorModals
         activeGenerator={activeGenerator}
         onClose={() => setActiveGenerator(null)}
