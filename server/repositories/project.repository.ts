@@ -125,7 +125,7 @@ export class ProjectRepository extends BaseRepository {
     // Count words if content is being updated
     if (updates.content) {
       const plainText = (updates.content as string)
-        .replace(/<[^>]*>/g, ' ')
+        .replace(/<[^<>]*>/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
       const words = plainText.split(/\s+/).filter((word: string) => word.length > 0);

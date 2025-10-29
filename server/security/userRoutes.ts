@@ -416,7 +416,7 @@ router.post(
         return res.status(500).json({ message: "Logout failed" });
       }
       
-      console.log(`[SECURITY] User ${userId} logged out successfully`);
+      console.log('[SECURITY] User logged out successfully:', { userId });
       res.json({ message: "Logged out successfully" });
     });
   }
@@ -441,7 +441,7 @@ router.delete(
           userId: requesterId,
           eventType: 'unauthorized_delete_attempt',
           severity: 'high',
-          details: `User ${requesterId} attempted to delete account ${userId}`,
+          details: JSON.stringify({ action: 'attempted to delete account', requesterId, targetUserId: userId }),
           ipAddress: req.ip || '',
           userAgent: req.headers['user-agent'] || ''
         });
@@ -458,7 +458,7 @@ router.delete(
           await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
         }
       } catch (error) {
-        console.error(`[Account Deletion] Error canceling subscription for ${userId}:`, error);
+        console.error('[Account Deletion] Error canceling subscription for user:', { userId, error });
         // Continue with deletion even if subscription cancellation fails
       }
 
@@ -470,7 +470,7 @@ router.delete(
         userId: requesterId,
         eventType: 'account_deleted',
         severity: 'medium',
-        details: `Account ${userId} deleted by ${requesterId === userId ? 'self' : 'admin'}`,
+        details: JSON.stringify({ action: 'account deleted', deletedUserId: userId, deletedBy: requesterId === userId ? 'self' : 'admin' }),
         ipAddress: req.ip || '',
         userAgent: req.headers['user-agent'] || ''
       });

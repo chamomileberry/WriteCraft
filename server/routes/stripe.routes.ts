@@ -110,7 +110,8 @@ router.post('/cancel-subscription', isAuthenticated, async (req: any, res) => {
     await stripeService.cancelSubscription(subscription.stripeSubscriptionId);
 
     // Log cancellation reason for analytics
-    console.log(`[Stripe] Subscription canceled for user ${userId}:`, {
+    console.log('[Stripe] Subscription canceled for user:', {
+      userId,
       reason,
       feedback: feedback || 'No additional feedback',
       tier: subscription.tier || 'unknown',
@@ -128,11 +129,17 @@ router.post('/cancel-subscription', isAuthenticated, async (req: any, res) => {
       'other': 'Other reason',
     };
 
+    // Sanitize user input by removing control characters
+    const sanitize = (str: string) => str.replace(/[\x00-\x1F\x7F]/g, '');
+    const sanitizedReason = sanitize(String(reason || ''));
+    const sanitizedFeedback = sanitize(String(feedback || ''));
+    const reasonLabel = reasonLabels[sanitizedReason] || 'Other reason';
+
     await storage.createFeedback({
       userId,
       type: 'cancellation',
-      title: `Subscription Cancellation: ${reasonLabels[reason] || reason}`,
-      description: `**Cancellation Reason:** ${reasonLabels[reason] || reason}\n**Tier:** ${subscription.tier || 'unknown'}\n\n**Feedback:**\n${feedback || 'No additional feedback provided.'}`,
+      title: `Subscription Cancellation: ${reasonLabel}`,
+      description: `**Cancellation Reason:** ${reasonLabel}\n**Tier:** ${subscription.tier || 'unknown'}\n\n**Feedback:**\n${sanitizedFeedback || 'No additional feedback provided.'}`,
       userEmail,
       status: 'new',
     });
