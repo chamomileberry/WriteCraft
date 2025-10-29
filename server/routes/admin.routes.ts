@@ -4,6 +4,22 @@ import { isAuthenticated } from "../replitAuth";
 
 const router = Router();
 
+/**
+ * Safely extracts a string value from query parameters.
+ * Handles type confusion where query params can be string | string[] | undefined
+ * @param value - The query parameter value
+ * @returns The first string value or undefined
+ */
+function getQueryParamAsString(value: string | string[] | undefined): string | undefined {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+    return value[0];
+  }
+  return undefined;
+}
+
 // Apply authentication middleware to all admin routes
 router.use(isAuthenticated);
 
@@ -15,7 +31,7 @@ router.get("/characters/issues", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    let notebookId = req.query.notebookId as string;
+    let notebookId = getQueryParamAsString(req.query.notebookId);
     if (!notebookId) {
       return res.status(400).json({ error: "notebookId is required" });
     }
@@ -60,7 +76,7 @@ router.get("/characters/duplicates", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    let notebookId = req.query.notebookId as string;
+    let notebookId = getQueryParamAsString(req.query.notebookId);
     if (!notebookId) {
       return res.status(400).json({ error: "notebookId is required" });
     }
@@ -100,7 +116,7 @@ router.delete("/characters/bulk-delete-issues", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    let notebookId = req.query.notebookId as string;
+    let notebookId = getQueryParamAsString(req.query.notebookId);
     if (!notebookId) {
       return res.status(400).json({ error: "notebookId is required" });
     }
