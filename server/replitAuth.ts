@@ -22,6 +22,15 @@ const userSearchLimiter = rateLimit({
   message: { error: "Too many search requests, please try again later." }
 });
 
+// Rate limiter for user profile endpoint
+const userProfileLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute window
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." }
+});
+
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
@@ -219,7 +228,7 @@ export async function setupAuth(app: Express) {
   });
 
   // Get current authenticated user
-  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
+  app.get("/api/auth/user", isAuthenticated, userProfileLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
