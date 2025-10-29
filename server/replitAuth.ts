@@ -5,7 +5,7 @@ import { Strategy, type VerifyFunction } from "openid-client/passport";
 import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
-import { csrf } from "lusca";
+import lusca from "lusca";
 import memoize from "memoizee";
 import rateLimit from "express-rate-limit";
 import { RedisStore } from "connect-redis";
@@ -85,7 +85,7 @@ export async function getSession(): Promise<RequestHandler[]> {
       maxAge: sessionTtl,
     },
   });
-  return [sessionMiddleware, csrf()];
+  return [sessionMiddleware, lusca.csrf()];
 }
 
 function updateUserSession(

@@ -617,7 +617,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Update word count when editor is first created
   useEffect(() => {
     if (editor) {
-      dispatch({ type: 'SET_WORD_COUNT', editor.storage.characterCount.words() });
+      dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
     }
   }, [editor]);
 
