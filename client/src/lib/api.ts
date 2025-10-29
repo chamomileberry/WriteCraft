@@ -676,9 +676,9 @@ export const imagesApi = {
     },
   },
 
-  dalle: {
+  ideogram: {
     generate: async (prompt: string, size: string = '1024x1024') => {
-      const res = await apiRequest('POST', '/api/dalle/generate', { prompt, size });
+      const res = await apiRequest('POST', '/api/ideogram/generate', { prompt, size });
       return res.json();
     },
   },

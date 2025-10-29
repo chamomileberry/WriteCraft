@@ -402,13 +402,13 @@ export function EditorToolbar({
 
     setGeneratingAI(true);
     try {
-      const response = await fetch('/api/dalle/generate', {
+      const response = await fetch('/api/ideogram/generate', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           prompt: aiPrompt,
           quality: 'standard',
           size: '1024x1024'
