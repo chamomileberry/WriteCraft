@@ -7,14 +7,14 @@ import { IntrusionDetectionService } from '../services/intrusionDetectionService
  */
 function getClientIp(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
-  
+
   if (forwarded) {
     const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
     return ips.split(',')[0].trim();
   }
-  
-  return req.headers['x-real-ip'] as string || 
-         req.socket.remoteAddress || 
+
+  return req.headers['x-real-ip'] as string ||
+         req.socket.remoteAddress ||
          'unknown';
 }
 
@@ -25,23 +25,23 @@ function getClientIp(req: Request): string {
 export const blockBlacklistedIps: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const ipAddress = getClientIp(req);
-    
+
     // Skip for unknown IPs
     if (ipAddress === 'unknown') {
       return next();
     }
-    
+
     // Check if IP is whitelisted first - whitelist bypasses all IDS checks
     const isWhitelisted = await IntrusionDetectionService.isIpWhitelisted(ipAddress);
     if (isWhitelisted) {
       return next();
     }
-    
+
     const isBlocked = await IntrusionDetectionService.isIpBlocked(ipAddress);
-    
+
     if (isBlocked) {
       console.warn(`[IDS] Blocked request from blacklisted IP: ${ipAddress}`);
-      
+
       // Log the blocked attempt
       await IntrusionDetectionService.logAttempt({
         ipAddress,
@@ -51,13 +51,13 @@ export const blockBlacklistedIps: RequestHandler = async (req: Request, res: Res
         severity: 'HIGH',
         blocked: true,
       });
-      
-      return res.status(403).json({ 
+
+      return res.status(403).json({
         error: 'Access denied',
         message: 'Your IP address has been blocked due to suspicious activity'
       });
     }
-    
+
     next();
   } catch (error) {
     console.error('[IDS] Error checking IP block status:', error);
@@ -71,14 +71,14 @@ export const blockBlacklistedIps: RequestHandler = async (req: Request, res: Res
  */
 function detectSqlInjection(value: any): boolean {
   if (typeof value !== 'string') return false;
-  
+
   const sqlPatterns = [
     /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b.*\b(FROM|INTO|TABLE|DATABASE)\b)/i,
     /(\bUNION\b.*\bSELECT\b)/i,
     /(;|\-\-|\/\*|\*\/|xp_|sp_)/i,
     /(\bOR\b.*=.*|'\s*OR\s*'1'\s*=\s*'1)/i,
   ];
-  
+
   return sqlPatterns.some(pattern => pattern.test(value));
 }
 
@@ -87,7 +87,7 @@ function detectSqlInjection(value: any): boolean {
  */
 function detectXss(value: any): boolean {
   if (typeof value !== 'string') return false;
-  
+
   const xssPatterns = [
     /<script[^>]*>.*?<\/script[\s\S]*?>/is, // Matches <script>...</script> with any whitespace (including \t, \n) before >
     /javascript:/i,
@@ -100,7 +100,7 @@ function detectXss(value: any): boolean {
     /vbscript:/i, // VBScript protocol
     /data:text\/html/i, // Data URIs with HTML
   ];
-  
+
   return xssPatterns.some(pattern => pattern.test(value));
 }
 
@@ -117,21 +117,21 @@ function scanForInjection(obj: any): { type: 'SQL_INJECTION' | 'XSS' | null; pay
     }
     return { type: null, payload: null };
   }
-  
+
   if (Array.isArray(obj)) {
     for (const item of obj) {
       const result = scanForInjection(item);
       if (result.type) return result;
     }
   }
-  
+
   if (typeof obj === 'object' && obj !== null) {
     for (const value of Object.values(obj)) {
       const result = scanForInjection(value);
       if (result.type) return result;
     }
   }
-  
+
   return { type: null, payload: null };
 }
 
@@ -142,20 +142,20 @@ function scanForInjection(obj: any): { type: 'SQL_INJECTION' | 'XSS' | null; pay
 export const detectInjectionAttacks: RequestHandler = async (req: any, res: Response, next: NextFunction) => {
   try {
     const ipAddress = getClientIp(req);
-    
+
     // Scan all input sources
     const sources = [
       { name: 'body', data: req.body },
       { name: 'query', data: req.query },
       { name: 'params', data: req.params },
     ];
-    
+
     for (const source of sources) {
       const { type, payload } = scanForInjection(source.data);
-      
+
       if (type) {
         console.warn(`[IDS] ${type} detected in ${source.name} from IP: ${ipAddress}`);
-        
+
         // Log the injection attempt
         await IntrusionDetectionService.logAttempt({
           userId: req.user?.claims?.sub,
@@ -167,13 +167,18 @@ export const detectInjectionAttacks: RequestHandler = async (req: any, res: Resp
           severity: 'CRITICAL',
           blocked: false, // We're not blocking yet, just logging
         });
-        
+
         // Note: Not blocking the request here - sanitization middleware will clean it
         // But the pattern is logged and may trigger auto-block after threshold
         break;
       }
     }
-    
+
+    // Track failed authentication attempts
+    if (req.path === '/api/auth/user' && res.statusCode === 401) {
+      trackFailedAuth(ipAddress, req.headers['user-agent'] || 'unknown');
+    }
+
     next();
   } catch (error) {
     console.error('[IDS] Error detecting injection attacks:', error);

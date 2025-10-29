@@ -45,7 +45,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/api';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -86,11 +86,11 @@ interface GuideCategory {
 const convertMarkdownToHTML = (content: string): string => {
   // First, always sanitize the input to remove any existing script tags
   let safeContent = sanitizeHtml(content);
-  
+
   // Check if content has markdown headings wrapped in paragraph tags
   // Pattern: <p>### Heading</p> or <p>## Heading</p>
   const hasWrappedMarkdownHeadings = /<p>\s*(#{1,6})\s+([^<]+)<\/p>/g.test(safeContent);
-  
+
   if (hasWrappedMarkdownHeadings) {
     // Replace markdown headings inside <p> tags with proper heading tags
     let convertedContent = safeContent.replace(/<p>\s*(#{1,6})\s+([^<]+)<\/p>/g, (match, hashes, text) => {
@@ -101,17 +101,17 @@ const convertMarkdownToHTML = (content: string): string => {
     // Sanitize the final output
     return sanitizeHtml(convertedContent);
   }
-  
+
   // Check if content looks like pure markdown (contains markdown heading patterns at root level)
   const hasMarkdownHeadings = /^#{1,6}\s+.+$/m.test(safeContent);
-  
+
   if (hasMarkdownHeadings) {
     // Content looks like markdown, convert it to HTML and sanitize twice
     // (once before parsing, once after to catch any generated tags)
     const htmlContent = marked.parse(safeContent) as string;
     return sanitizeHtml(htmlContent);
   }
-  
+
   // Content is already HTML or plain text - it's already sanitized
   return safeContent;
 };
@@ -277,14 +277,14 @@ const GoogleDocsEnter = Extension.create({
             // Empty paragraph - create new paragraph (default behavior)
             return false;
           }
-          
+
           // Check if cursor is immediately after a hard break
           const nodeBefore = $from.nodeBefore;
           if (nodeBefore && nodeBefore.type.name === 'hardBreak') {
             // Cursor is after a hard break - create new paragraph (double Enter)
             return false;
           }
-          
+
           // Paragraph has content but cursor is not after a hard break - insert hard break
           return editor.commands.setHardBreak();
         }
@@ -332,7 +332,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   const { toast } = useToast();
   const { user } = useAuth();
   const { updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
-  
+
   // Check if current user is admin
   const isAdmin = user?.isAdmin || false;
 
@@ -376,7 +376,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
 
   // Initialize TipTap editor
   const lowlight = createLowlight();
-  
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -490,7 +490,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     debounceMs: 5000, // Wait 5 seconds after user stops typing before saving
     saveDataFunction: () => {
       if (!editor || !isFormValid()) return null;
-      
+
       const content = editor.getHTML();
       const wordCount = editor.storage.characterCount.words();
       const calculatedReadTime = Math.max(1, Math.round(wordCount / 200));
@@ -525,21 +525,21 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         dispatch({ type: 'SET_HAS_BEEN_SAVED_ONCE', payload: true });
         onGuideCreated?.(savedGuide.id);
       }
-      
+
       // Update the cache directly for the current guide to prevent refetching
       // This prevents cursor jumping and content reversion during autosave
       const guideId = savedGuide.id || currentGuideId;
       if (guideId && guideId !== 'new') {
         queryClient.setQueryData(['/api/guides', guideId], savedGuide);
       }
-      
+
       // Only invalidate list queries, not the detail query for the current guide
       // This keeps the guide list fresh without disrupting the editor
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           if (!Array.isArray(query.queryKey)) return false;
           if (query.queryKey[0] !== '/api/guides') return false;
-          
+
           // Only invalidate list queries (length 1) or queries that aren't for the current guide
           return query.queryKey.length === 1 || query.queryKey[1] !== guideId;
         }
@@ -561,18 +561,18 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Set up the onUpdate handler using useEffect to avoid circular dependency
   useEffect(() => {
     if (!editor) return;
-    
+
     const handleUpdate = ({ editor }: { editor: TiptapEditor }) => {
       // Update word count
       const currentWordCount = editor.storage.characterCount.words();
       dispatch({ type: 'SET_WORD_COUNT', payload: currentWordCount });
-      
+
       // Trigger autosave using the hook
       autosave.setupAutosave();
     };
-    
+
     editor.on('update', handleUpdate);
-    
+
     return () => {
       editor.off('update', handleUpdate);
     };
@@ -592,21 +592,21 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         published: guide.published === true,
         hasBeenSavedOnce: true,
       } });
-      
+
       // Only update editor content on initial load or when switching guides
       // Never update during normal editing to prevent cursor jumping
       const isNewGuide = lastLoadedGuideIdRef.current !== currentGuideId;
       const needsInitialLoad = isInitialLoadRef.current || isNewGuide;
-      
+
       if (editor && guide.content && needsInitialLoad) {
         // Convert markdown to HTML if needed
         const htmlContent = convertMarkdownToHTML(guide.content);
-        
+
         // Set the content only on initial load
         editor.commands.setContent(htmlContent);
         // Update word count after setting content
         dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
-        
+
         // Mark that we've loaded this guide
         isInitialLoadRef.current = false;
         lastLoadedGuideIdRef.current = currentGuideId;
@@ -617,7 +617,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
   // Update word count when editor is first created
   useEffect(() => {
     if (editor) {
-      dispatch({ type: 'SET_WORD_COUNT', payload: editor.storage.characterCount.words() });
+      dispatch({ type: 'SET_WORD_COUNT', editor.storage.characterCount.words() });
     }
   }, [editor]);
 
@@ -716,7 +716,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         <h1 className="text-2xl font-serif font-bold">
           {currentGuideId === 'new' ? 'New Guide' : 'Edit Guide'}
         </h1>
-        
+
         <div className="flex items-center gap-4">
           {isAdmin && (
             <div className="flex items-center gap-2">
@@ -740,7 +740,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               />
             </div>
           )}
-          
+
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {autosave.saveStatus === 'saving' && <Loader2 className="h-4 w-4 animate-spin" />}
             {autosave.saveStatus === 'saved' && <Clock className="h-4 w-4" />}
@@ -753,7 +753,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               }
             </span>
           </div>
-          
+
           <Button onClick={handleSave} disabled={autosave.isSaving} data-testid="button-save">
             <Save className="h-4 w-4 mr-2" />
             Save Guide
@@ -778,7 +778,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
                 data-testid="input-title"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="author">Author</Label>
               <Input
@@ -790,7 +790,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -802,7 +802,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               data-testid="input-description"
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
@@ -833,7 +833,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="difficulty">Difficulty</Label>
               <Select value={difficulty} onValueChange={(value) => dispatch({ type: 'SET_DIFFICULTY', payload: value })}>
@@ -850,8 +850,8 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               </Select>
             </div>
           </div>
-          
-          
+
+
           <div className="space-y-2">
             <Label htmlFor="tags">Tags</Label>
             <div className="flex gap-2 mb-2">
@@ -888,7 +888,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               <div className="flex items-center gap-3">
                 {/* Collaboration Indicator */}
                 <CollaborationIndicator state={collaborationState} />
-                
+
                 {/* Word Count */}
                 {editor && (
                   <div className="text-sm text-muted-foreground">
@@ -914,7 +914,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
               </div>
             </div>
           </CardHeader>
-          
+
           <EditorToolbar 
             editor={editor} 
             title={title}
@@ -924,7 +924,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
             onZoomChange={setZoomLevel}
           />
         </div>
-        
+
         <CardContent>
           <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring">
             <div 
