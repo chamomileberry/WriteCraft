@@ -22,10 +22,10 @@ const userSearchLimiter = rateLimit({
   message: { error: "Too many search requests, please try again later." }
 });
 
-// Rate limiter for user profile endpoint
+// Rate limiter for user profile endpoint (stricter limit for auth operations)
 const userProfileLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute window
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 30, // limit each IP to 30 requests per windowMs (reduced from 100)
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests, please try again later." }
