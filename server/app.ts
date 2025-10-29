@@ -6,6 +6,7 @@ import { applySecurityMiddleware } from "./app-security";
 import Sentry from "./instrument";
 import pinoHttp from "pino-http";
 import { logger } from "./lib/logger";
+import { setupCollaborationServer } from "./collaboration";
 
 // Global error handlers to prevent server crashes
 process.on('unhandledRejection', (reason, promise) => {
@@ -89,6 +90,9 @@ export async function createApp() {
   });
 
   const server = await registerRoutes(app);
+
+  // Setup WebSocket collaboration server
+  setupCollaborationServer(server);
 
   // Sentry error handler - must be after routes but before other error handlers
   Sentry.setupExpressErrorHandler(app);
