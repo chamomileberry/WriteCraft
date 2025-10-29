@@ -84,30 +84,36 @@ interface GuideCategory {
 
 // Helper function to convert markdown to HTML if needed
 const convertMarkdownToHTML = (content: string): string => {
+  // First, always sanitize the input to remove any existing script tags
+  let safeContent = sanitizeHtml(content);
+  
   // Check if content has markdown headings wrapped in paragraph tags
   // Pattern: <p>### Heading</p> or <p>## Heading</p>
-  const hasWrappedMarkdownHeadings = /<p>\s*(#{1,6})\s+([^<]+)<\/p>/g.test(content);
+  const hasWrappedMarkdownHeadings = /<p>\s*(#{1,6})\s+([^<]+)<\/p>/g.test(safeContent);
   
   if (hasWrappedMarkdownHeadings) {
     // Replace markdown headings inside <p> tags with proper heading tags
-    let convertedContent = content.replace(/<p>\s*(#{1,6})\s+([^<]+)<\/p>/g, (match, hashes, text) => {
+    let convertedContent = safeContent.replace(/<p>\s*(#{1,6})\s+([^<]+)<\/p>/g, (match, hashes, text) => {
       const level = hashes.length;
-      return `<h${level}>${text.trim()}</h${level}>`;
+      // Sanitize the text content as well
+      return `<h${level}>${sanitizeHtml(text.trim())}</h${level}>`;
     });
-    return convertedContent;
+    // Sanitize the final output
+    return sanitizeHtml(convertedContent);
   }
   
   // Check if content looks like pure markdown (contains markdown heading patterns at root level)
-  const hasMarkdownHeadings = /^#{1,6}\s+.+$/m.test(content);
+  const hasMarkdownHeadings = /^#{1,6}\s+.+$/m.test(safeContent);
   
   if (hasMarkdownHeadings) {
-    // Content looks like markdown, convert it to HTML and sanitize
-    const htmlContent = marked.parse(content) as string;
+    // Content looks like markdown, convert it to HTML and sanitize twice
+    // (once before parsing, once after to catch any generated tags)
+    const htmlContent = marked.parse(safeContent) as string;
     return sanitizeHtml(htmlContent);
   }
   
-  // Content is already HTML or plain text - sanitize it
-  return sanitizeHtml(content);
+  // Content is already HTML or plain text - it's already sanitized
+  return safeContent;
 };
 
 // Guide editor state management
