@@ -7,29 +7,16 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import lusca from "lusca";
 import memoize from "memoizee";
-import rateLimit from "express-rate-limit";
 import { RedisStore } from "connect-redis";
 import { getRedisClient } from "./services/redisClient";
 import { sessionManager } from "./services/sessionManager";
 import { storage } from "./storage";
-
-// Rate limiter for user search endpoint
-const userSearchLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute window
-  max: 10, // limit each IP to 10 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Too many search requests, please try again later." }
-});
-
-// Rate limiter for user profile endpoint (stricter limit for auth operations)
-const userProfileLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute window
-  max: 30, // limit each IP to 30 requests per windowMs (reduced from 100)
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Too many requests, please try again later." }
-});
+import { 
+  authRateLimiter, 
+  sessionRateLimiter, 
+  userSearchRateLimiter, 
+  profileRateLimiter 
+} from "./security/rateLimiters";
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
@@ -145,14 +132,15 @@ export async function setupAuth(app: Express) {
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
-  app.get("/api/login", (req, res, next) => {
+  // Apply strict rate limiting to authentication endpoints
+  app.get("/api/login", authRateLimiter, (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
-  app.get("/api/callback", (req, res, next) => {
+  app.get("/api/callback", authRateLimiter, (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, (err: any, user: any) => {
       if (err) {
         console.error('[AUTH] Authentication error:', err);
@@ -203,7 +191,7 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/logout", (req, res) => {
+  app.get("/api/logout", sessionRateLimiter, (req, res) => {
     const userId = (req.user as any)?.claims?.sub;
     const sessionId = req.sessionID;
     
@@ -228,7 +216,7 @@ export async function setupAuth(app: Express) {
   });
 
   // Get current authenticated user
-  app.get("/api/auth/user", isAuthenticated, userProfileLimiter, async (req: any, res) => {
+  app.get("/api/auth/user", isAuthenticated, profileRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -245,7 +233,7 @@ export async function setupAuth(app: Express) {
   });
 
   // User search endpoint for collaboration
-  app.get("/api/auth/users/search", isAuthenticated, userSearchLimiter, async (req: any, res) => {
+  app.get("/api/auth/users/search", isAuthenticated, userSearchRateLimiter, async (req: any, res) => {
     try {
       const query = req.query.q;
       if (typeof query !== "string" || query.length < 2) {

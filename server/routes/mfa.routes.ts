@@ -7,6 +7,7 @@ import { emailService } from '../services/emailService';
 import { db } from '../db';
 import { users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { mfaRateLimiter, profileRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -23,7 +24,7 @@ const verifyBackupCodeSchema = z.object({
  * GET /api/auth/mfa/status
  * Check if user has MFA enabled
  */
-router.get('/status', isAuthenticated, async (req, res) => {
+router.get('/status', isAuthenticated, profileRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const enabled = await mfaService.isMFAEnabled(userId);
@@ -39,7 +40,7 @@ router.get('/status', isAuthenticated, async (req, res) => {
  * POST /api/auth/mfa/setup
  * Initialize MFA setup for a user
  */
-router.post('/setup', isAuthenticated, async (req, res) => {
+router.post('/setup', isAuthenticated, mfaRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const email = (req.user as any).claims.email || 'user@writecraft.com';
@@ -82,7 +83,7 @@ router.post('/setup', isAuthenticated, async (req, res) => {
  * POST /api/auth/mfa/verify
  * Verify MFA token and enable MFA (first-time setup)
  */
-router.post('/verify', isAuthenticated, async (req, res) => {
+router.post('/verify', isAuthenticated, mfaRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const parseResult = verifyTokenSchema.safeParse(req.body);
@@ -145,7 +146,7 @@ router.post('/verify', isAuthenticated, async (req, res) => {
  * POST /api/auth/mfa/verify-login
  * Verify MFA token during login
  */
-router.post('/verify-login', isAuthenticated, async (req, res) => {
+router.post('/verify-login', isAuthenticated, mfaRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const parseResult = verifyTokenSchema.safeParse(req.body);
@@ -191,7 +192,7 @@ router.post('/verify-login', isAuthenticated, async (req, res) => {
  * POST /api/auth/mfa/verify-backup
  * Verify backup code (for account recovery)
  */
-router.post('/verify-backup', isAuthenticated, async (req, res) => {
+router.post('/verify-backup', isAuthenticated, mfaRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const parseResult = verifyBackupCodeSchema.safeParse(req.body);
@@ -237,7 +238,7 @@ router.post('/verify-backup', isAuthenticated, async (req, res) => {
  * POST /api/auth/mfa/regenerate-backup-codes
  * Regenerate backup codes
  */
-router.post('/regenerate-backup-codes', isAuthenticated, async (req, res) => {
+router.post('/regenerate-backup-codes', isAuthenticated, mfaRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
 
@@ -268,7 +269,7 @@ router.post('/regenerate-backup-codes', isAuthenticated, async (req, res) => {
  * POST /api/auth/mfa/disable
  * Disable MFA (requires token verification)
  */
-router.post('/disable', isAuthenticated, async (req, res) => {
+router.post('/disable', isAuthenticated, mfaRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const parseResult = verifyTokenSchema.safeParse(req.body);

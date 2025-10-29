@@ -4,21 +4,14 @@ import { db } from "../db";
 import { characters } from "@shared/schema";
 import { and, eq, or, ilike } from "drizzle-orm";
 import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
-import { createRateLimiter } from "../security";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
 import { secureAuthentication } from "../security/middleware";
 import { makeAICall } from "../lib/aiHelper";
 import { modelSelector, type OperationType } from "../services/modelSelector";
 import { entityCache } from "../lib/entityCache";
+import { aiRateLimiter, aiChatRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
-
-// AI generation rate limiting: 30 requests per 15 minutes
-// This protects against API abuse and controls costs
-const aiRateLimiter = createRateLimiter({ 
-  maxRequests: 30, 
-  windowMs: 15 * 60 * 1000 
-});
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -640,7 +633,7 @@ Return your analysis as JSON.`;
 });
 
 // Conversational chat endpoint
-  router.post('/writing-assistant/chat', secureAuthentication, trackAIUsage('conversational_chat'), async (req: any, res) => {
+  router.post('/writing-assistant/chat', secureAuthentication, aiChatRateLimiter, trackAIUsage('conversational_chat'), async (req: any, res) => {
     try {
       const { 
         message, 

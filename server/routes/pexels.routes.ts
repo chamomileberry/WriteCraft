@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { imageSearchRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
 // Pexels API search endpoint
-router.get('/search', async (req, res) => {
+router.get('/search', imageSearchRateLimiter, async (req, res) => {
   try {
     const apiKey = process.env.PEXELS_API_KEY;
     
@@ -69,7 +70,7 @@ router.get('/search', async (req, res) => {
 });
 
 // Get curated photos (for homepage/default view)
-router.get('/curated', async (req, res) => {
+router.get('/curated', imageSearchRateLimiter, async (req, res) => {
   try {
     const apiKey = process.env.PEXELS_API_KEY;
     

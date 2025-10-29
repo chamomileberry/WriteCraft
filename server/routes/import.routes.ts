@@ -4,7 +4,7 @@ import AdmZip from 'adm-zip';
 import { storage } from '../storage';
 import { z } from 'zod';
 import { insertImportJobSchema } from '@shared/schema';
-import { createRateLimiter } from '../security/middleware';
+import { importRateLimiter } from '../security/rateLimiters';
 import * as cheerio from 'cheerio';
 import mammoth from 'mammoth';
 import * as pdfParse from 'pdf-parse';
@@ -14,12 +14,6 @@ const router = Router();
 
 // Helper to handle pdf-parse's default export in ESM
 const pdfParseFn = (pdfParse as any).default || pdfParse;
-
-// Create a stricter rate limiter for import uploads (10 per 15 minutes)
-const uploadRateLimiter = createRateLimiter({
-  maxRequests: 10,
-  windowMs: 15 * 60 * 1000,
-});
 
 // Configure multer for file uploads
 const upload = multer({
@@ -1192,7 +1186,7 @@ function mapArticleToContent(article: WorldAnvilArticle, userId: string, noteboo
 }
 
 // Upload and start import job (with stricter rate limiting)
-router.post('/upload', uploadRateLimiter, upload.array('file'), async (req: any, res) => {
+router.post('/upload', importRateLimiter, upload.array('file'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 

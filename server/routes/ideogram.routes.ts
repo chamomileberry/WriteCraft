@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ObjectStorageService } from "../objectStorage";
 import { setObjectAclPolicy } from "../objectAcl";
 import { logger } from "../utils/logger";
+import { imageGenerationRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -55,7 +56,7 @@ function sizeToAspectRatio(size: string): string {
   return mapping[size] || "1:1";
 }
 
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", imageGenerationRateLimiter, async (req: any, res) => {
   try {
     if (!process.env.REPLICATE_API_TOKEN) {
       return res.status(500).json({
