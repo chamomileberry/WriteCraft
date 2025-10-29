@@ -264,6 +264,184 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 
 ---
 
+### 6. Collaboration & Sharing
+
+#### Real-Time Collaboration (Team Subscribers)
+**Purpose:** Work together with your team on projects simultaneously.
+
+**Key Capabilities:**
+- Real-time synchronization using CRDT technology (Yjs)
+- See who's actively editing in real-time
+- Automatic conflict resolution
+- Connection status indicators
+- Awareness system showing active collaborators
+- WebSocket-based for instant updates
+
+**Available For:**
+- **Projects:** Multiple team members can edit the same document simultaneously
+- **Team Tier Only:** Requires Team subscription (up to 5 members)
+
+**How It Works:**
+- When you open a project, the system automatically connects via WebSocket
+- Changes are synced instantly across all connected users
+- You can see avatars/names of active collaborators
+- All edits are merged seamlessly without manual conflict resolution
+- Collaboration state persists even if connection temporarily drops
+
+**When to Use:**
+- Co-writing with a partner or team
+- Real-time brainstorming sessions
+- Pair writing and immediate feedback
+- Team editing and revision sessions
+- Collaborative worldbuilding with team members
+
+**Works With:** Projects (Team tier)
+
+**Technical Details:**
+- Uses Yjs CRDT for conflict-free document merging
+- Supports offline editing with sync on reconnect
+- Maintains document consistency across all clients
+- 30-minute document cleanup after last user disconnects
+
+---
+
+#### Content Sharing
+**Purpose:** Share notebooks, projects, and guides with specific users.
+
+**Key Capabilities:**
+- Share resources with other WriteCraft users
+- Granular permission control (View, Comment, Edit)
+- Share notebooks, projects, or writing guides
+- Owner retains full control
+- Email-based user identification
+- Revoke access anytime
+
+**Permission Levels:**
+- **View:** Read-only access to content
+- **Comment:** Can view and add comments/feedback
+- **Edit:** Full editing capabilities (except ownership transfer)
+
+**When to Use:**
+- Sharing worldbuilding resources with co-authors
+- Giving beta readers access to manuscripts
+- Collaborating with editors
+- Sharing writing guides with writing groups
+- Providing reference material to team members
+
+**Works With:** Notebooks, Projects, Guides, Team Features
+
+**Workflow:**
+1. Navigate to resource (notebook/project/guide)
+2. Click "Share" button
+3. Enter collaborator's email
+4. Select permission level
+5. Send invitation
+6. Collaborator receives access
+
+---
+
+#### Team Management (Team Tier)
+**Purpose:** Organize and manage team members for collaborative projects.
+
+**Key Capabilities:**
+- Add up to 5 team members (Team tier)
+- Role-based access control
+- Team member invitations via email
+- Permission management per member:
+  - Can Edit: Full editing rights
+  - Can Comment: Feedback and annotation
+  - Can Invite: Add new team members
+- Team activity tracking
+- Member analytics and usage insights
+- View active team members in real-time
+
+**When to Use:**
+- Managing a writing team or group
+- Collaborative book projects
+- Writing room environments
+- Co-author partnerships
+- Editorial teams
+
+**Works With:** Real-Time Collaboration, Sharing, Projects
+
+**Team Workflow:**
+1. Subscribe to Team tier
+2. Invite team members via email
+3. Set individual permissions
+4. Share projects with team
+5. Collaborate in real-time
+6. Track team activity and contributions
+
+---
+
+## Subscription Tiers
+
+WriteCraft offers four subscription tiers, each designed for different writing needs:
+
+### Free Tier
+**Best for:** Writers exploring the platform or working on single projects
+
+**Includes:**
+- 3 projects
+- 1 notebook per project
+- 20 AI generations per day
+- Basic search
+- TXT and DOCX export
+- 7 days version history
+- Help docs + AI chat support
+
+---
+
+### Author Tier
+**Best for:** Individual authors working on multiple projects
+
+**Includes:**
+- Unlimited projects
+- 10 notebooks per project
+- 100 AI generations per day
+- Advanced search
+- TXT, DOCX, PDF, HTML export
+- 30 days version history
+- 5 custom templates
+- List + Canvas timeline views
+- Advanced AI writing suggestions
+
+---
+
+### Professional Tier
+**Best for:** Professional writers needing unlimited AI and advanced features
+
+**Includes:**
+- Everything in Author tier
+- Unlimited notebooks per project
+- Unlimited AI generations
+- Custom AI prompts
+- Full API access
+- Priority support
+- 1 year version history
+- Unlimited custom templates
+- All timeline views (List, Canvas, Gantt)
+- Saved searches
+
+---
+
+### Team Tier
+**Best for:** Collaborative writing teams and co-author partnerships
+
+**Includes:**
+- Everything in Professional tier
+- Up to 5 team members
+- Real-time collaboration on projects
+- Team management dashboard
+- Team analytics and usage insights
+- Shared AI generation pool
+- Team template sharing
+- Team search capabilities
+- Unlimited version history
+- API access for all members
+
+---
+
 ## Feature Comparison
 
 ### When to Use What for Writing
@@ -280,6 +458,10 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 | Research for chapter | Notes (attached to project) | Quick Notes |
 | Learn techniques | Writing Guides | Writing Assistant (ask questions) |
 | Overcome writer's block | Writing Prompts + Generators | Writing Assistant (brainstorm) |
+| Co-write with team | Real-Time Collaboration (Team tier) | Content Sharing with Edit permission |
+| Share with beta readers | Content Sharing (View/Comment permission) | Export and email |
+| Collaborate with editor | Content Sharing (Edit permission) | Export/import workflow |
+| Manage writing team | Team Management (Team tier) | Manual coordination |
 
 ---
 
@@ -322,27 +504,137 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 
 ---
 
+### Workflow 4: Team Collaboration on a Novel (Team Tier)
+
+1. **Subscribe to Team tier** and set up team
+2. **Invite team members** via email (up to 5 members)
+3. **Create shared notebook** for worldbuilding
+4. **Share notebook** with team (Edit permission)
+5. **Generate characters/locations** collaboratively using AI
+6. **Create project** for manuscript
+7. **Share project** with team for real-time editing
+8. **Open project** - team members see each other online
+9. **Co-write scenes** simultaneously in different chapters
+10. **Use Writing Assistant** for team-wide feedback
+11. **Track team activity** in analytics dashboard
+12. **Monitor contributions** and editing patterns
+
+**Team Benefits:**
+- Multiple writers can draft different chapters simultaneously
+- Immediate feedback and iteration
+- Shared worldbuilding resources
+- Consistent voice through AI suggestions
+- Real-time conflict resolution
+- Transparent collaboration with activity tracking
+
+---
+
+### Workflow 5: Sharing with Beta Readers
+
+1. **Complete draft** in Project
+2. **Click Share button** on project
+3. **Enter beta reader emails** (one at a time or multiple)
+4. **Set permission to "Comment"** (read + feedback only)
+5. **Beta readers receive notification** and access
+6. **Readers add comments** on specific sections
+7. **Review feedback** in project
+8. **Make revisions** based on comments
+9. **Use Writing Assistant** to implement suggestions
+10. **Revoke access** when beta period ends (optional)
+
+**Sharing Benefits:**
+- No need to export/email documents
+- Real-time comment notifications
+- Maintain version control
+- Track who provided which feedback
+- Keep work secure and controlled
+- Easy access management
+
+---
+
+### Workflow 6: Editor Collaboration Workflow
+
+1. **Share project** with editor (Edit permission)
+2. **Editor opens project** and sees real-time changes
+3. **Editor makes inline edits** while you write other sections
+4. **Both use Writing Assistant** for style consistency
+5. **Use @ mentions** to reference worldbuilding for fact-checking
+6. **Editor uses AI Inline Editing** for suggestions
+7. **Review changes together** in real-time session
+8. **Export final version** in required format (PDF/DOCX)
+
+**Editor Benefits:**
+- No version conflict issues
+- Instant synchronization of changes
+- Can work simultaneously on different sections
+- Shared access to worldbuilding resources
+- Professional export formats included
+
+---
+
 ## Feature Relationships
 
 ### Content Flow
 ```
 Generators → Notebooks (storage) → Projects (reference while writing)
-     ↓
-Content Types (structured data)
+     ↓                                  ↓
+Content Types (structured data)   Real-Time Collaboration
+                                       ↓
+                              Team Members (Team tier)
 ```
 
 ### Writing Flow
 ```
 Writing Prompts → Projects (drafting) → AI Editing → Writing Assistant (feedback)
-                      ↓
-                 Quick Notes (ideas)
-                      ↓
-                 Notes (research)
+                      ↓                      ↓
+                 Quick Notes (ideas)    Content Sharing
+                      ↓                      ↓
+                 Notes (research)      Beta Readers/Editors
 ```
 
 ### Learning Flow
 ```
 Writing Guides → Writing Assistant (questions) → Projects (apply techniques)
+                                                      ↓
+                                              Share with Team
+```
+
+### Collaboration Flow
+```
+Team Management → Invite Members → Share Resources → Real-Time Collaboration
+                       ↓                                    ↓
+                Set Permissions                    Track Activity
+                       ↓                                    ↓
+                Content Sharing                      Team Analytics
+```
+
+### Complete Creative Workflow
+This diagram shows how all features work together in a typical creative process:
+
+```
+PLANNING PHASE
+├─ Writing Prompts (inspiration)
+├─ Notebooks (worldbuilding container)
+└─ Generators (AI-powered content creation)
+    └─ Save to Content Types (characters, locations, etc.)
+
+WRITING PHASE
+├─ Projects (manuscript structure)
+├─ @ Mentions (reference worldbuilding)
+├─ Quick Notes (capture ideas)
+└─ Real-Time Collaboration (Team tier)
+    └─ Multiple writers working simultaneously
+
+EDITING PHASE
+├─ AI Inline Editing (quick fixes)
+├─ Writing Assistant (deep feedback)
+├─ Content Sharing (editor/beta reader access)
+└─ Team Review (collaborative editing)
+
+REFINEMENT PHASE
+├─ Notes (organize feedback)
+├─ Writing Guides (reference techniques)
+└─ Export (final manuscript delivery)
 ```
 
 ---
@@ -380,6 +672,7 @@ Separate notebooks for:
 
 ## Tips for Maximum Productivity
 
+### Solo Writing Tips
 1. **Use Notebooks liberally** - Don't cram everything into one
 2. **Start with structure** - Build project outline before drafting
 3. **Generate first, refine later** - Use AI for initial content, customize after
@@ -388,17 +681,49 @@ Separate notebooks for:
 6. **Get feedback early** - Use Writing Assistant while drafting, not just revising
 7. **Learn continuously** - Read guides, apply techniques, iterate
 
+### Team Collaboration Tips
+1. **Define roles early** - Establish who writes what sections/chapters
+2. **Use shared notebooks** - Keep worldbuilding consistent across team
+3. **Leverage real-time editing** - Work on different chapters simultaneously
+4. **Set permission levels thoughtfully** - Not everyone needs edit access
+5. **Monitor team activity** - Use analytics to track contributions
+6. **Establish style guide** - Use Writing Assistant to maintain consistent voice
+7. **Schedule collaboration sessions** - Real-time editing works best with communication
+8. **Share templates** - Create and share custom templates for consistency
+
+### Sharing & Feedback Tips
+1. **Use Comment permission for beta readers** - Prevents accidental edits
+2. **Share sections, not full manuscripts** - Give focused feedback requests
+3. **Set clear deadlines** - Communicate when you need feedback by
+4. **Use Writing Assistant with feedback** - Implement suggestions efficiently
+5. **Revoke access appropriately** - Clean up shares after project completion
+6. **Export final versions** - Provide polished formats to stakeholders
+
 ---
 
-## Feature Limitations
+## Feature Limitations & Boundaries
+
+### What WriteCraft Does
+✓ Real-time collaboration (Team tier)
+✓ Content sharing with permission control
+✓ Team management (up to 5 members)
+✓ AI-powered writing assistance
+✓ Comprehensive worldbuilding tools
+✓ Rich text editing with auto-save
+✓ Multiple export formats (PDF, DOCX, HTML, TXT)
+✓ API access (Professional/Team tiers)
 
 ### What WriteCraft Does NOT Do
-- **Real-time collaboration** - Single-user editing only
-- **Version control** - No Git-style branching/merging
-- **Publishing integration** - No direct export to platforms
+- **Git-style version control** - No branching/merging (but has version history)
+- **Publishing platform integration** - No direct export to Amazon, etc.
 - **Plagiarism checking** - Use external tools
-- **Advanced formatting** - Limited to rich text basics
-- **Community features** - No built-in sharing/critique groups
+- **Advanced formatting** - Limited to rich text basics (no complex page layouts)
+- **Community/social features** - No public sharing or critique groups
+- **Offline mode** - Requires internet connection (though edits sync when reconnected)
+- **Unlimited team size** - Maximum 5 members on Team tier
+- **Real-time collaboration on notebooks** - Only available for projects
+- **Video/voice integration** - Text-based collaboration only
+- **Automated backups** - Manual export recommended for backups
 
 ---
 
@@ -411,4 +736,25 @@ Separate notebooks for:
 
 ---
 
-Last updated: 2025-01-31
+---
+
+## Summary: How Features Work Together
+
+WriteCraft is designed with interconnected features that support your entire creative process:
+
+1. **Worldbuilding Foundation**: Use Notebooks and Content Types to build your story universe
+2. **AI Acceleration**: Leverage Generators to quickly create initial content
+3. **Structured Writing**: Organize manuscripts in Projects with hierarchical sections
+4. **Smart References**: Link worldbuilding to writing with @ mentions for consistency
+5. **Real-Time Feedback**: Get instant AI suggestions via Inline Editing and Writing Assistant
+6. **Team Collaboration**: Work simultaneously with team members (Team tier)
+7. **Controlled Sharing**: Share with editors and beta readers with granular permissions
+8. **Continuous Learning**: Apply techniques from Writing Guides throughout the process
+9. **Flexible Output**: Export in multiple formats for different purposes
+10. **Activity Tracking**: Monitor team contributions and usage (Team tier)
+
+The key to maximizing WriteCraft is understanding that these features aren't isolated tools—they're designed to work together seamlessly throughout your creative journey, from initial idea through final manuscript.
+
+---
+
+Last updated: 2025-10-29
