@@ -1,237 +1,193 @@
-import { WebSocketServer, WebSocket as WSWebSocket } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 import * as Y from 'yjs';
-import { db } from './db';
-import { projects } from '../shared/schema';
-import { eq } from 'drizzle-orm';
+import * as encoding from 'lib0/encoding';
+import * as decoding from 'lib0/decoding';
+import * as syncProtocol from 'y-protocols/sync';
+import * as awarenessProtocol from 'y-protocols/awareness';
 import type { Server } from 'http';
 import type { IncomingMessage } from 'http';
 
-interface CollaborationRoom {
+const wsReadyStateConnecting = 0;
+const wsReadyStateOpen = 1;
+
+interface WSConnection {
+  ws: WebSocket;
   doc: Y.Doc;
-  users: Set<string>;
-  lastUpdate: number;
-  connections: Set<WSWebSocket>;
+  awareness: awarenessProtocol.Awareness;
 }
 
-const rooms = new Map<string, CollaborationRoom>();
-const ROOM_TIMEOUT = 30 * 60 * 1000; // 30 minutes of inactivity
+// Store all active documents
+const docs = new Map<string, Y.Doc>();
+// Track connections per document
+const docConnections = new Map<string, Set<WSConnection>>();
 
-// Custom persistence for saving to database
-class DatabasePersistence {
-  async bindState(docName: string, ydoc: Y.Doc) {
-    // Load existing content from database
-    try {
-      const [resourceType, resourceId] = docName.split(':');
-      
-      if (resourceType === 'project') {
-        const project = await db.query.projects.findFirst({
-          where: eq(projects.id, resourceId),
-        });
-        
-        if (project && project.content) {
-          // Initialize Yjs document with existing content
-          const fragment = ydoc.getXmlFragment('prosemirror');
-          try {
-            const content = typeof project.content === 'string' 
-              ? JSON.parse(project.content)
-              : project.content;
-            
-            if (content && typeof content === 'object') {
-              // Convert JSON content to XML fragment
-              // This is a simplified approach - in production you'd want proper conversion
-              console.log(`[Collaboration] Loaded project ${resourceId} content`);
-            }
-          } catch (e) {
-            console.error(`[Collaboration] Error parsing content for ${docName}:`, e);
-          }
-        }
-      }
-    } catch (error) {
-      console.error(`[Collaboration] Error loading document ${docName}:`, error);
-    }
-  }
-
-  async writeState(docName: string, ydoc: Y.Doc) {
-    // Save to database
-    try {
-      const [resourceType, resourceId] = docName.split(':');
-      
-      if (resourceType === 'project') {
-        // Get the prosemirror content from the Yjs doc
-        const fragment = ydoc.getXmlFragment('prosemirror');
-        
-        // Convert to JSON format that Tiptap expects
-        const content = JSON.stringify(fragment.toJSON());
-        
-        await db.update(projects)
-          .set({
-            content,
-            updatedAt: new Date(),
-          })
-          .where(eq(projects.id, resourceId));
-          
-        console.log(`[Collaboration] Saved document ${docName} to database`);
-      }
-    } catch (error) {
-      console.error(`[Collaboration] Error saving document ${docName}:`, error);
-    }
-  }
-}
-
-const persistence = new DatabasePersistence();
-
-// Simplified message handling without y-websocket dependency
-function handleConnection(ws: WSWebSocket, docName: string, userId: string) {
-  let room = rooms.get(docName);
-  
-  if (!room) {
-    const doc = new Y.Doc();
-    room = {
-      doc,
-      users: new Set(),
-      lastUpdate: Date.now(),
-      connections: new Set(),
-    };
-    rooms.set(docName, room);
-    
-    // Load persisted state
-    persistence.bindState(docName, doc);
-    
-    // Set up auto-save on updates
-    doc.on('update', (update: Uint8Array) => {
-      room!.lastUpdate = Date.now();
-      
-      // Broadcast update to all other clients
-      const message = {
-        type: 'update',
-        update: Array.from(update),
-      };
-      
-      room!.connections.forEach((client) => {
-        if (client !== ws && client.readyState === WSWebSocket.OPEN) {
-          client.send(JSON.stringify(message));
-        }
-      });
-      
-      // Debounce saves
-      clearTimeout((room as any).saveTimeout);
-      (room as any).saveTimeout = setTimeout(() => {
-        persistence.writeState(docName, doc);
-      }, 2000);
-    });
-  }
-
-  room.users.add(userId);
-  room.connections.add(ws);
-
-  // Send current document state to new connection
-  const state = Y.encodeStateAsUpdate(room.doc);
-  ws.send(JSON.stringify({
-    type: 'sync',
-    state: Array.from(state),
-  }));
-
-  // Send awareness (active users) update
-  broadcastAwareness(room, docName);
-
-  ws.on('message', (data: Buffer) => {
-    try {
-      const message = JSON.parse(data.toString());
-      
-      if (message.type === 'update') {
-        const update = new Uint8Array(message.update);
-        Y.applyUpdate(room!.doc, update);
-      }
-    } catch (error) {
-      console.error('[Collaboration] Error handling message:', error);
-    }
-  });
-
-  ws.on('close', () => {
-    console.log(`[Collaboration] User ${userId} disconnected from ${docName}`);
-    if (room) {
-      room.users.delete(userId);
-      room.connections.delete(ws);
-      
-      // Broadcast updated awareness
-      broadcastAwareness(room, docName);
-      
-      // Clean up empty rooms after timeout
-      if (room.users.size === 0) {
-        setTimeout(() => {
-          const currentRoom = rooms.get(docName);
-          if (currentRoom && currentRoom.users.size === 0) {
-            const timeSinceUpdate = Date.now() - currentRoom.lastUpdate;
-            if (timeSinceUpdate > ROOM_TIMEOUT) {
-              console.log(`[Collaboration] Cleaning up inactive room ${docName}`);
-              currentRoom.doc.destroy();
-              rooms.delete(docName);
-            }
-          }
-        }, ROOM_TIMEOUT);
-      }
-    }
-  });
-}
-
-function broadcastAwareness(room: CollaborationRoom, docName: string) {
-  const message = {
-    type: 'awareness',
-    users: Array.from(room.users),
-  };
-  
-  room.connections.forEach((client) => {
-    if (client.readyState === WSWebSocket.OPEN) {
-      client.send(JSON.stringify(message));
-    }
-  });
-}
+// Message types
+const messageSync = 0;
+const messageAwareness = 1;
 
 export function setupCollaborationServer(server: Server) {
-  const wss = new WebSocketServer({ 
-    noServer: true,
-  });
+  const wss = new WebSocketServer({ noServer: true });
 
   // Handle WebSocket upgrade
   server.on('upgrade', (request: IncomingMessage, socket: any, head: Buffer) => {
     const { pathname } = new URL(request.url!, `http://${request.headers.host}`);
     
-    if (pathname === '/collaboration') {
-      wss.handleUpgrade(request, socket, head, (ws) => {
+    // Accept /collaboration or /collaboration/anything (y-websocket appends room name)
+    if (pathname === '/collaboration' || pathname.startsWith('/collaboration/')) {
+      wss.handleUpgrade(request, socket, head, (ws: WebSocket) => {
         wss.emit('connection', ws, request);
       });
+    } else {
+      socket.destroy();
     }
   });
 
-  wss.on('connection', (conn: WSWebSocket, req: IncomingMessage) => {
+  wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
     console.log('[Collaboration] New WebSocket connection');
     
-    // Extract room (document) name from query params
     const url = new URL(req.url!, `http://${req.headers.host}`);
-    const docName = url.searchParams.get('doc');
+    const { pathname } = url;
+    
+    // Extract doc name from path (y-websocket appends it) or query params
+    let docName = url.searchParams.get('doc');
+    if (!docName && pathname.startsWith('/collaboration/')) {
+      docName = pathname.substring('/collaboration/'.length);
+    }
+    
     const userId = url.searchParams.get('userId');
     
-    if (!docName || !userId) {
-      conn.close(1008, 'Document name and user ID required');
+    if (!docName) {
+      console.error('[Collaboration] Missing doc parameter');
+      ws.close(1008, 'Document name required');
       return;
     }
 
-    console.log(`[Collaboration] User ${userId} connecting to document ${docName}`);
-    handleConnection(conn, docName, userId);
-  });
+    console.log(`[Collaboration] User ${userId || 'unknown'} connecting to ${docName}`);
 
-  // Periodic cleanup of stale rooms
-  setInterval(() => {
-    const now = Date.now();
-    const roomEntries = Array.from(rooms.entries());
-    for (const [docName, room] of roomEntries) {
-      if (room.users.size === 0 && now - room.lastUpdate > ROOM_TIMEOUT) {
-        console.log(`[Collaboration] Cleaning up stale room ${docName}`);
-        room.doc.destroy();
-        rooms.delete(docName);
-      }
+    // Get or create document
+    let doc = docs.get(docName);
+    if (!doc) {
+      doc = new Y.Doc();
+      docs.set(docName, doc);
+      console.log(`[Collaboration] Created new document ${docName}`);
     }
-  }, 5 * 60 * 1000); // Check every 5 minutes
+
+    // Create awareness instance
+    const awareness = new awarenessProtocol.Awareness(doc);
+    
+    // Track this connection
+    const conn: WSConnection = { ws, doc, awareness };
+    if (!docConnections.has(docName)) {
+      docConnections.set(docName, new Set());
+    }
+    docConnections.get(docName)!.add(conn);
+
+    // Set up document update handler - broadcast to all other clients
+    const updateHandler = (update: Uint8Array, origin: any) => {
+      if (origin !== conn) {
+        const encoder = encoding.createEncoder();
+        encoding.writeVarUint(encoder, messageSync);
+        syncProtocol.writeUpdate(encoder, update);
+        const message = encoding.toUint8Array(encoder);
+        
+        // Send to all clients except origin
+        docConnections.get(docName)?.forEach((c) => {
+          if (c !== conn && c.ws.readyState === wsReadyStateOpen) {
+            c.ws.send(message, (err: any) => {
+              if (err) console.error('[Collaboration] Error sending update:', err);
+            });
+          }
+        });
+      }
+    };
+    doc.on('update', updateHandler);
+
+    // Set up awareness handler - broadcast awareness changes
+    const awarenessChangeHandler = ({ added, updated, removed }: any, origin: any) => {
+      const changedClients = added.concat(updated).concat(removed);
+      const encoder = encoding.createEncoder();
+      encoding.writeVarUint(encoder, messageAwareness);
+      encoding.writeVarUint8Array(encoder, awarenessProtocol.encodeAwarenessUpdate(awareness, changedClients));
+      const message = encoding.toUint8Array(encoder);
+      
+      // Broadcast to all clients
+      docConnections.get(docName)?.forEach((c) => {
+        if (c.ws.readyState === wsReadyStateOpen) {
+          c.ws.send(message, (err: any) => {
+            if (err) console.error('[Collaboration] Error sending awareness:', err);
+          });
+        }
+      });
+    };
+    awareness.on('update', awarenessChangeHandler);
+
+    // Handle incoming messages
+    ws.on('message', (message: Buffer) => {
+      try {
+        const decoder = decoding.createDecoder(message);
+        const messageType = decoding.readVarUint(decoder);
+        
+        switch (messageType) {
+          case messageSync:
+            encoding.writeVarUint(encoding.createEncoder(), messageSync);
+            syncProtocol.readSyncMessage(decoder, encoding.createEncoder(), doc, conn);
+            break;
+          case messageAwareness:
+            awarenessProtocol.applyAwarenessUpdate(awareness, decoding.readVarUint8Array(decoder), conn);
+            break;
+        }
+      } catch (err) {
+        console.error('[Collaboration] Error handling message:', err);
+      }
+    });
+
+    // Send sync step 1 immediately
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, messageSync);
+    syncProtocol.writeSyncStep1(encoder, doc);
+    ws.send(encoding.toUint8Array(encoder), (err: any) => {
+      if (err) console.error('[Collaboration] Error sending sync step 1:', err);
+    });
+
+    // Send current awareness state
+    if (awareness.getStates().size > 0) {
+      const awarenessEncoder = encoding.createEncoder();
+      encoding.writeVarUint(awarenessEncoder, messageAwareness);
+      encoding.writeVarUint8Array(awarenessEncoder, 
+        awarenessProtocol.encodeAwarenessUpdate(awareness, Array.from(awareness.getStates().keys()))
+      );
+      ws.send(encoding.toUint8Array(awarenessEncoder));
+    }
+
+    // Handle disconnection
+    ws.on('close', () => {
+      console.log(`[Collaboration] Client disconnected from ${docName}`);
+      
+      // Clean up
+      doc.off('update', updateHandler);
+      awareness.off('update', awarenessChangeHandler);
+      awarenessProtocol.removeAwarenessStates(awareness, [awareness.clientID], null);
+      
+      docConnections.get(docName)?.delete(conn);
+      
+      // Clean up empty documents
+      if (docConnections.get(docName)?.size === 0) {
+        docConnections.delete(docName);
+        setTimeout(() => {
+          // Double-check before destroying
+          if (docConnections.get(docName)?.size === 0 || !docConnections.has(docName)) {
+            console.log(`[Collaboration] Cleaning up document ${docName}`);
+            doc.destroy();
+            docs.delete(docName);
+          }
+        }, 30 * 60 * 1000); // 30 minutes
+      }
+    });
+
+    ws.on('error', (error) => {
+      console.error('[Collaboration] WebSocket error:', error);
+    });
+  });
 
   console.log('[Collaboration] WebSocket server initialized on /collaboration');
   
@@ -240,11 +196,23 @@ export function setupCollaborationServer(server: Server) {
 
 // Get active users in a room
 export function getRoomUsers(docName: string): string[] {
-  const room = rooms.get(docName);
-  return room ? Array.from(room.users) : [];
+  const connections = docConnections.get(docName);
+  if (!connections) return [];
+  
+  const users = new Set<string>();
+  connections.forEach(conn => {
+    const states = conn.awareness.getStates();
+    states.forEach((state: any) => {
+      if (state.user && state.user.id) {
+        users.add(state.user.id);
+      }
+    });
+  });
+  
+  return Array.from(users);
 }
 
 // Get all active rooms
 export function getActiveRooms(): string[] {
-  return Array.from(rooms.keys());
+  return Array.from(docs.keys());
 }
