@@ -74,6 +74,29 @@ export async function getSession(): Promise<RequestHandler[]> {
   });
   
   return [sessionMiddleware, lusca.csrf()];
+  
+  const csrfMiddleware = lusca.csrf();
+  
+  // Wrap CSRF middleware to skip for static assets and CSP reports
+  // Session middleware always runs, but CSRF is skipped for performance/compatibility
+  const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
+    // Skip CSRF for static assets (Vite dev files, assets, etc.) and CSP reports
+    const path = req.path;
+    if (
+      path.startsWith('/@fs/') ||
+      path.startsWith('/@vite/') ||
+      path.startsWith('/assets/') ||
+      path.startsWith('/node_modules/') ||
+      path === '/api/csp-report' // CSP reports don't include CSRF tokens
+    ) {
+      return next();
+    }
+    
+    // Run CSRF middleware for all other requests
+    csrfMiddleware(req, res, next);
+  };
+  
+  return [sessionMiddleware, conditionalCsrfMiddleware];
 }
 
 function updateUserSession(
