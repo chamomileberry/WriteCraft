@@ -6,10 +6,11 @@ import {
   insertFamilyTreeRelationshipSchema 
 } from "@shared/schema";
 import { z } from "zod";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
@@ -52,7 +53,7 @@ router.post("/", async (req: any, res) => {
 });
 
 // GET /api/family-trees - Get all family trees across all notebooks (when no notebookId provided)
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
@@ -100,7 +101,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -117,7 +118,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -137,7 +138,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId || req.query.notebookId;
@@ -172,7 +173,7 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteFamilyTree(req.params.id, userId);
@@ -190,7 +191,7 @@ router.delete("/:id", async (req: any, res) => {
 });
 
 // Family Tree Member Routes
-router.post("/:treeId/members", async (req: any, res) => {
+router.post("/:treeId/members", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -219,7 +220,7 @@ router.post("/:treeId/members", async (req: any, res) => {
 });
 
 // Add related family member with automatic positioning
-router.post("/:treeId/members/add-related", async (req: any, res) => {
+router.post("/:treeId/members/add-related", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -525,7 +526,7 @@ router.post("/:treeId/members/add-related", async (req: any, res) => {
   }
 });
 
-router.get("/:treeId/members", async (req: any, res) => {
+router.get("/:treeId/members", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -550,7 +551,7 @@ router.get("/:treeId/members", async (req: any, res) => {
   }
 });
 
-router.put("/:treeId/members/:memberId", async (req: any, res) => {
+router.put("/:treeId/members/:memberId", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -580,7 +581,7 @@ router.put("/:treeId/members/:memberId", async (req: any, res) => {
   }
 });
 
-router.delete("/:treeId/members/:memberId", async (req: any, res) => {
+router.delete("/:treeId/members/:memberId", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -607,7 +608,7 @@ router.delete("/:treeId/members/:memberId", async (req: any, res) => {
 });
 
 // Family Tree Relationship Routes
-router.post("/:treeId/relationships", async (req: any, res) => {
+router.post("/:treeId/relationships", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -652,7 +653,7 @@ router.post("/:treeId/relationships", async (req: any, res) => {
   }
 });
 
-router.get("/:treeId/relationships", async (req: any, res) => {
+router.get("/:treeId/relationships", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -677,7 +678,7 @@ router.get("/:treeId/relationships", async (req: any, res) => {
   }
 });
 
-router.put("/:treeId/relationships/:relationshipId", async (req: any, res) => {
+router.put("/:treeId/relationships/:relationshipId", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
@@ -707,7 +708,7 @@ router.put("/:treeId/relationships/:relationshipId", async (req: any, res) => {
   }
 });
 
-router.delete("/:treeId/relationships/:relationshipId", async (req: any, res) => {
+router.delete("/:treeId/relationships/:relationshipId", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const treeId = req.params.treeId;
