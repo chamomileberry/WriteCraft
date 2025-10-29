@@ -29,7 +29,9 @@ export async function getRedisClient() {
             return new Error('Max reconnection attempts reached');
           }
           return Math.min(retries * 100, 3000);
-        }
+        },
+        // Add connection timeout to prevent hanging
+        connectTimeout: 5000,
       }
     });
 
@@ -45,20 +47,29 @@ export async function getRedisClient() {
       console.log('[REDIS] Reconnecting...');
     });
 
-    await redisClient.connect();
+    // Set a timeout for the connection attempt
+    const connectPromise = redisClient.connect();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Redis connection timeout after 5 seconds')), 5000);
+    });
+
+    await Promise.race([connectPromise, timeoutPromise]);
     
     console.log('[REDIS] Client initialized and connected');
     return redisClient;
   } catch (error) {
     console.error('[REDIS] Failed to initialize:', error);
+    // Clean up the failed client
+    if (redisClient) {
+      try {
+        await redisClient.disconnect();
+      } catch (disconnectError) {
+        console.error('[REDIS] Error disconnecting failed client:', disconnectError);
+      }
+    }
     redisClient = null;
     return null;
   }
 }
-
-// Initialize Redis on module load (async, won't block)
-getRedisClient().catch(err => {
-  console.error('[REDIS] Initialization error:', err);
-});
 
 export { redisClient };
