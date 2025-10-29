@@ -5,6 +5,7 @@ import { Strategy, type VerifyFunction } from "openid-client/passport";
 import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
+import { csrf } from "lusca";
 import memoize from "memoizee";
 import { RedisStore } from "connect-redis";
 import { getRedisClient } from "./services/redisClient";
@@ -25,7 +26,7 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
-export async function getSession() {
+export async function getSession(): Promise<RequestHandler[]> {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   
   // Try to use Redis for session storage (faster, scalable)
@@ -53,7 +54,7 @@ export async function getSession() {
     });
   }
   
-  return session({
+  const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
     resave: false,
@@ -65,6 +66,7 @@ export async function getSession() {
       maxAge: sessionTtl,
     },
   });
+  return [sessionMiddleware, csrf()];
 }
 
 function updateUserSession(
