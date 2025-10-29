@@ -140,7 +140,7 @@ For each route file above, follow this proven pattern:
 
 ### Step 1: Add Imports
 ```typescript
-import { readRateLimiter, writeRateLimiter, generatorRateLimiter } from "../security/rateLimiters";
+import { readRateLimiter, writeRateLimiter, aiRateLimiter } from "../security/rateLimiters";
 ```
 
 ### Step 2: Apply Rate Limiters by HTTP Method
@@ -177,15 +177,15 @@ router.delete("/:id", writeRateLimiter, async (req, res) => {
 
 #### AI Generation Routes (Expensive Operations)
 ```typescript
-router.post("/generate", generatorRateLimiter, trackAIUsage('operation_type'), async (req, res) => {
+router.post("/generate", aiRateLimiter, trackAIUsage('operation_type'), async (req, res) => {
   // ... existing code
 });
 
-router.post("/:id/generate-field", generatorRateLimiter, trackAIUsage('field_generation'), async (req, res) => {
+router.post("/:id/generate-field", aiRateLimiter, trackAIUsage('field_generation'), async (req, res) => {
   // ... existing code
 });
 
-router.post("/:id/generate-article", generatorRateLimiter, async (req, res) => {
+router.post("/:id/generate-article", aiRateLimiter, async (req, res) => {
   // ... existing code
 });
 ```
@@ -210,7 +210,7 @@ Replace with the centralized rate limiters from `server/security/rateLimiters.ts
 |---------|-------|----------|
 | `readRateLimiter` | 100 req/15min | GET operations (reading data) |
 | `writeRateLimiter` | 50 req/15min | POST/PUT/PATCH/DELETE (modifying data) |
-| `generatorRateLimiter` | 10 req/15min | AI generation endpoints |
+| `aiRateLimiter` | 10 req/15min | AI generation endpoints |
 | `generousRateLimiter` | 200 req/15min | Low-cost, high-frequency operations |
 | `analyticsRateLimiter` | 100 req/15min | Analytics and usage tracking |
 
@@ -222,7 +222,7 @@ After applying rate limiting to a route file:
 
 1. [ ] All GET routes have `readRateLimiter`
 2. [ ] All POST/PUT/PATCH/DELETE routes have `writeRateLimiter`
-3. [ ] All AI generation routes have `generatorRateLimiter`
+3. [ ] All AI generation routes have `aiRateLimiter`
 4. [ ] Old ad-hoc rate limiters removed
 5. [ ] Imports added at top of file
 6. [ ] Middleware ordered correctly: `router.method(path, rateLimiter, otherMiddleware, handler)`

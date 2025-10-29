@@ -2,12 +2,12 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertPlotSchema } from "@shared/schema";
 import { z } from "zod";
-import { generatorRateLimiter, readRateLimiter } from "../security/rateLimiters";
+import { aiRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Plot generator routes
-router.post("/generate", generatorRateLimiter, async (req: any, res) => {
+router.post("/generate", aiRateLimiter, async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),

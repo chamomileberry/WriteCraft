@@ -6,11 +6,11 @@ import { generateArticleForContent } from "../article-generation";
 import { makeAICall } from "../lib/aiHelper";
 import { getBannedPhrasesInstruction } from "../utils/banned-phrases";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
-import { generatorRateLimiter, readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
+import { aiRateLimiter, readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-router.post("/generate", generatorRateLimiter, trackAIUsage('location_generation'), async (req: any, res) => {
+router.post("/generate", aiRateLimiter, trackAIUsage('location_generation'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -158,7 +158,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
 });
 
 // Generate article from structured location data
-router.post("/:id/generate-article", generatorRateLimiter, async (req: any, res) => {
+router.post("/:id/generate-article", aiRateLimiter, async (req: any, res) => {
   try {
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
