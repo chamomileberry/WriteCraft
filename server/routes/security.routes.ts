@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { IntrusionDetectionService } from '../services/intrusionDetectionService';
 import { requireAdmin } from '../security/middleware';
 import { z } from 'zod';
+import { readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
  * Get security overview statistics
  * Admin only
  */
-router.get('/overview', requireAdmin, async (req, res) => {
+router.get('/overview', readRateLimiter, requireAdmin, async (req, res) => {
   try {
     const [
       unacknowledgedAlerts,
@@ -45,7 +46,7 @@ router.get('/overview', requireAdmin, async (req, res) => {
  * Get security alerts with pagination
  * Admin only
  */
-router.get('/alerts', requireAdmin, async (req, res) => {
+router.get('/alerts', readRateLimiter, requireAdmin, async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const acknowledgedFilter = req.query.acknowledged === 'true' ? true : 
@@ -69,7 +70,7 @@ router.get('/alerts', requireAdmin, async (req, res) => {
  * Acknowledge a security alert
  * Admin only
  */
-router.post('/alerts/:alertId/acknowledge', requireAdmin, async (req: any, res) => {
+router.post('/alerts/:alertId/acknowledge', writeRateLimiter, requireAdmin, async (req: any, res) => {
   try {
     const { alertId } = req.params;
     const adminUserId = req.user.claims.sub;
@@ -87,7 +88,7 @@ router.post('/alerts/:alertId/acknowledge', requireAdmin, async (req: any, res) 
  * Get intrusion attempts with pagination
  * Admin only
  */
-router.get('/intrusion-attempts', requireAdmin, async (req, res) => {
+router.get('/intrusion-attempts', readRateLimiter, requireAdmin, async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
     
@@ -104,7 +105,7 @@ router.get('/intrusion-attempts', requireAdmin, async (req, res) => {
  * Get blocked IPs
  * Admin only
  */
-router.get('/blocked-ips', requireAdmin, async (req, res) => {
+router.get('/blocked-ips', readRateLimiter, requireAdmin, async (req, res) => {
   try {
     const blockedIps = await IntrusionDetectionService.getBlockedIps();
     
@@ -119,7 +120,7 @@ router.get('/blocked-ips', requireAdmin, async (req, res) => {
  * Block an IP manually
  * Admin only
  */
-router.post('/block-ip', requireAdmin, async (req: any, res) => {
+router.post('/block-ip', writeRateLimiter, requireAdmin, async (req: any, res) => {
   try {
     const schema = z.object({
       ipAddress: z.string().min(7),
@@ -155,7 +156,7 @@ router.post('/block-ip', requireAdmin, async (req: any, res) => {
  * Unblock an IP
  * Admin only
  */
-router.post('/unblock-ip', requireAdmin, async (req: any, res) => {
+router.post('/unblock-ip', writeRateLimiter, requireAdmin, async (req: any, res) => {
   try {
     const schema = z.object({
       ipAddress: z.string().min(7),
