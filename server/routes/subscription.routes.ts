@@ -130,7 +130,7 @@ router.post("/check-limit", analyticsRateLimiter, async (req: any, res) => {
  * GET /api/subscription/analytics
  * Get comprehensive usage analytics for dashboard
  */
-router.get("/analytics", async (req: any, res) => {
+router.get("/analytics", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     
@@ -152,7 +152,7 @@ router.get("/analytics", async (req: any, res) => {
  * GET /api/subscription/forecast
  * Get usage forecast and recommendations
  */
-router.get("/forecast", async (req: any, res) => {
+router.get("/forecast", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     
@@ -173,7 +173,7 @@ router.get("/forecast", async (req: any, res) => {
  * GET /api/subscription/status
  * Get comprehensive subscription status including grace period, limits, and usage
  */
-router.get("/status", async (req: any, res) => {
+router.get("/status", generousRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     

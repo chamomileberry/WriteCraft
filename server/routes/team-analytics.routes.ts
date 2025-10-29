@@ -234,6 +234,7 @@ router.get('/analytics',
  */
 router.get('/members',
   secureAuthentication,
+  readRateLimiter,
   requireTeamTier,
   async (req: any, res) => {
     try {
@@ -273,6 +274,7 @@ router.get('/members',
  */
 router.patch('/members/:memberId/role',
   secureAuthentication,
+  teamRateLimiter,
   requireTeamTier,
   requirePermission('canChangeRoles'),
   async (req: any, res) => {

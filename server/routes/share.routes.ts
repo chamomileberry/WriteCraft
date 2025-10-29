@@ -203,7 +203,7 @@ router.patch('/shares/:id/permission', secureAuthentication, requireBooleanFeatu
   }
 });
 
-router.get('/shares/with-me', secureAuthentication, async (req: any, res) => {
+router.get('/shares/with-me', secureAuthentication, readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { resourceType } = req.query;

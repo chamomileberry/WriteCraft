@@ -38,7 +38,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   }
 });
 
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;

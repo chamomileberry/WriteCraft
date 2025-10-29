@@ -205,7 +205,7 @@ router.get('/:templateType', isAuthenticated, requireAdmin, readRateLimiter, asy
  * GET /api/email-preview
  * List all available email templates
  */
-router.get('/', isAuthenticated, requireAdmin, async (req, res) => {
+router.get('/', isAuthenticated, requireAdmin, readRateLimiter, async (req, res) => {
   res.json({
     templates: [
       { id: 'subscription-activated', name: 'Subscription Activated', category: 'billing' },
