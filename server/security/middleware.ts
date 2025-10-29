@@ -4,10 +4,10 @@ import crypto from 'crypto';
 import { db } from '../db';
 import { users, shares, notebooks, projects, guides } from '@shared/schema';
 import { eq, and, or } from 'drizzle-orm';
-import { getRedisClient } from '../services/redisClient';
+// Redis import removed - using MemoryStore only for now
+// import { getRedisClient } from '../services/redisClient';
 import { serverAnalytics, SERVER_EVENTS } from '../services/serverAnalytics';
 import rateLimit from 'express-rate-limit';
-import RedisStore from 'rate-limit-redis';
 
 // Security configuration
 const SECURITY_CONFIG = {
@@ -26,7 +26,7 @@ const SECURITY_CONFIG = {
 };
 
 // Rate limiting now handled by express-rate-limit library
-// No custom store needed - library provides MemoryStore by default
+// Using default MemoryStore for simplicity and reliability
 
 /**
  * Enhanced authentication middleware with security checks
@@ -87,14 +87,36 @@ export const secureAuthentication: RequestHandler = async (req: any, res, next) 
 /**
  * Rate limiting middleware using express-rate-limit library
  * 
- * Uses the standard express-rate-limit library which is recognized by
- * GitHub CodeQL security analysis as a valid rate limiting implementation.
+ * Uses the industry-standard express-rate-limit library which is recognized by
+ * GitHub CodeQL security analysis as valid rate limiting middleware. This resolves
+ * CodeQL js/missing-rate-limiting alerts that were triggered by custom rate limiter
+ * implementations.
+ * 
+ * Storage Strategy:
+ * - Uses express-rate-limit's default MemoryStore (in-process memory)
+ * - Works well for single-instance deployments
+ * - Simple, reliable, zero configuration needed
+ * 
+ * IMPORTANT LIMITATION - Multi-Instance Deployments:
+ * This implementation loses distributed rate limiting coordination that the previous
+ * custom Redis-backed implementation provided. In horizontally scaled (multi-instance)
+ * deployments, each instance maintains its own separate rate limit counters, which
+ * means the effective rate limit is multiplied by the number of instances.
+ * 
+ * For example, with 3 instances and a 100 req/min limit:
+ * - Actual limit becomes ~300 req/min total (100/min per instance)
+ * 
+ * Future Enhancement Needed:
+ * RedisStore integration should be added to restore distributed rate limiting for
+ * multi-instance deployments while maintaining express-rate-limit for CodeQL recognition.
+ * This requires careful async initialization to avoid the timing issues encountered
+ * in previous attempts.
  * 
  * Benefits:
- * - Industry-standard library with security audit
- * - CodeQL-recognized rate limiting protection  
- * - Supports Redis store for distributed rate limiting
- * - Automatic standardized headers (X-RateLimit-*)
+ * - Industry-standard library with security audits
+ * - CodeQL-recognized rate limiting protection (resolves GitHub security alerts)
+ * - Simple and reliable with zero failure modes
+ * - Automatic standardized headers (both X-RateLimit-* and RateLimit-*)
  */
 export function createRateLimiter(options?: { 
   maxRequests?: number; 
@@ -117,20 +139,16 @@ export function createRateLimiter(options?: {
     keyGenerator,
     skipSuccessfulRequests: false,
     skipFailedRequests: false,
-    handler: (req, res) => {
-      console.warn(`[SECURITY] Rate limit exceeded for ${keyGenerator(req as any)}`);
+    handler: (req: any, res: Response) => {
+      console.warn(`[SECURITY] Rate limit exceeded for ${keyGenerator(req)}`);
       res.status(429).json({
         message: "Too many requests, please try again later",
         retryAfter: Math.ceil((req.rateLimit?.resetTime?.getTime() ?? Date.now()) / 1000)
       });
     },
-    // Use in-memory store by default (express-rate-limit's MemoryStore)
-    // In production with Redis, we can configure RedisStore here
+    // Uses express-rate-limit's default MemoryStore automatically
   });
 }
-
-// Remove unused rate limit store
-// const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 /**
  * CSRF token generation and validation
@@ -659,15 +677,8 @@ export async function canAccessResource(
   return { canAccess: false, permission: null, isOwner: false };
 }
 
-// Clean up expired rate limit entries periodically
-setInterval(() => {
-  const now = Date.now();
-  rateLimitStore.forEach((entry, key) => {
-    if (now > entry.resetTime + SECURITY_CONFIG.RATE_LIMIT_WINDOW_MS) {
-      rateLimitStore.delete(key);
-    }
-  });
-}, 60000); // Every minute
+// express-rate-limit library handles rate limit cleanup automatically
+// No custom cleanup interval needed
 
 // Clean up expired CSRF tokens periodically  
 setInterval(() => {
