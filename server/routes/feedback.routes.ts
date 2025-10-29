@@ -3,11 +3,12 @@ import { storage } from "../storage";
 import { insertFeedbackSchema } from "@shared/schema";
 import { z } from "zod";
 import { logger } from "../utils/logger";
+import { writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // POST /api/feedback - Create new feedback
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userEmail = req.user.claims.email || "";
