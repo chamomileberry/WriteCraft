@@ -55,6 +55,8 @@ import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 import { Switch } from '@/components/ui/switch';
 import { useWorkspaceStore, type EditorActions } from '@/stores/workspaceStore';
 import { marked } from 'marked';
+import { useCollaboration } from '@/hooks/useCollaboration';
+import { CollaborationIndicator } from '@/components/CollaborationIndicator';
 
 interface GuideEditorProps {
   guideId: string;
@@ -540,6 +542,14 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
     errorMessage: 'Failed to save the guide. Please try again.',
   });
 
+  // Initialize collaboration for team editing (only for existing guides)
+  const collaborationState = useCollaboration(
+    editor,
+    currentGuideId !== 'new' ? currentGuideId : null,
+    'guide',
+    currentGuideId !== 'new' // Only enable collaboration for existing guides
+  );
+
   // Set up the onUpdate handler using useEffect to avoid circular dependency
   useEffect(() => {
     if (!editor) return;
@@ -868,6 +878,9 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
             <div className="flex items-center justify-between gap-4">
               <CardTitle>{title || 'Untitled Guide'}</CardTitle>
               <div className="flex items-center gap-3">
+                {/* Collaboration Indicator */}
+                <CollaborationIndicator state={collaborationState} />
+                
                 {/* Word Count */}
                 {editor && (
                   <div className="text-sm text-muted-foreground">

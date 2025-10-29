@@ -92,6 +92,7 @@ import importRoutes from "./import.routes";
 import pexelsRoutes from "./pexels.routes";
 import ideogramRoutes from "./ideogram.routes";
 import stockImagesRoutes from "./stock-images.routes";
+import collaborationRoutes from "./collaboration.routes";
 import { storage } from "../storage";
 import { requireAuth } from "../middleware/requireAuth";
 import { csrfProtection } from "../middleware/csrfProtection";
@@ -236,4 +237,5 @@ export function registerDomainRoutes(app: Express) {
   app.use("/api/team", teamRoutes);
   app.use("/api/api-keys", apiKeysRoutes);
   app.use("/api/content", contentRoutes);
+  app.use("/api/collaboration", collaborationRoutes);
 }

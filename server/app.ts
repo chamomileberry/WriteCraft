@@ -1,11 +1,54 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { createServer } from "http";
+import { createServer, type Server } from "http";
 import { registerRoutes } from "./routes";
 import { log } from "./vite";
 import { applySecurityMiddleware } from "./app-security";
 import Sentry from "./instrument";
 import pinoHttp from "pino-http";
 import { logger } from "./lib/logger";
+import { setupCollaborationServer } from "./collaboration";
+
+// Track server instance for graceful shutdown
+let serverInstance: Server | null = null;
+
+export function setServerInstance(server: Server) {
+  serverInstance = server;
+}
+
+// Graceful shutdown function
+async function gracefulShutdown(signal: string) {
+  console.log(`\n[SHUTDOWN] Received ${signal}, starting graceful shutdown...`);
+  
+  if (serverInstance) {
+    try {
+      // Stop accepting new connections
+      await new Promise<void>((resolve, reject) => {
+        serverInstance!.close((err) => {
+          if (err) {
+            console.error('[SHUTDOWN] Error closing server:', err);
+            reject(err);
+          } else {
+            console.log('[SHUTDOWN] Server closed successfully');
+            resolve();
+          }
+        });
+      });
+    } catch (error) {
+      console.error('[SHUTDOWN] Error during graceful shutdown:', error);
+    }
+  }
+  
+  // Flush Sentry events
+  try {
+    await Sentry.close(2000);
+    console.log('[SHUTDOWN] Sentry client closed');
+  } catch (error) {
+    console.error('[SHUTDOWN] Error closing Sentry:', error);
+  }
+  
+  console.log('[SHUTDOWN] Graceful shutdown complete');
+  process.exit(0);
+}
 
 // Global error handlers to prevent server crashes
 process.on('unhandledRejection', (reason, promise) => {
@@ -29,6 +72,10 @@ process.on('uncaughtException', (error) => {
   // In production, you might want to gracefully shutdown
   // For now, we log and continue
 });
+
+// Signal handlers for graceful shutdown
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export async function createApp() {
   const app = express();
@@ -89,6 +136,9 @@ export async function createApp() {
   });
 
   const server = await registerRoutes(app);
+
+  // Setup WebSocket collaboration server
+  setupCollaborationServer(server);
 
   // Sentry error handler - must be after routes but before other error handlers
   Sentry.setupExpressErrorHandler(app);
