@@ -125,29 +125,32 @@ export function createRateLimiter(options?: {
 }): RequestHandler {
   const maxRequests = options?.maxRequests || SECURITY_CONFIG.RATE_LIMIT_MAX_REQUESTS;
   const windowMs = options?.windowMs || SECURITY_CONFIG.RATE_LIMIT_WINDOW_MS;
-  const keyGenerator = options?.keyGenerator || ((req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
-    const ip = req.ip || req.connection.remoteAddress;
-    return `${userId}:${ip}`;
-  });
-
-  return rateLimit({
+  
+  const config: any = {
     windowMs,
     max: maxRequests,
     standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
     legacyHeaders: true, // Keep `X-RateLimit-*` headers for backward compatibility
-    keyGenerator,
     skipSuccessfulRequests: false,
     skipFailedRequests: false,
     handler: (req: any, res: Response) => {
-      console.warn(`[SECURITY] Rate limit exceeded for ${keyGenerator(req)}`);
+      const userId = req.user?.claims?.sub;
+      const key = userId ? `user:${userId}` : req.ip;
+      console.warn(`[SECURITY] Rate limit exceeded for ${key}`);
       res.status(429).json({
         message: "Too many requests, please try again later",
         retryAfter: Math.ceil((req.rateLimit?.resetTime?.getTime() ?? Date.now()) / 1000)
       });
     },
-    // Uses express-rate-limit's default MemoryStore automatically
-  });
+  };
+
+  // Only use custom keyGenerator if explicitly provided
+  // Otherwise let express-rate-limit use default IP-based keying with proper IPv6 normalization
+  if (options?.keyGenerator) {
+    config.keyGenerator = options.keyGenerator;
+  }
+
+  return rateLimit(config);
 }
 
 /**
