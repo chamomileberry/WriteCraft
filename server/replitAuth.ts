@@ -72,7 +72,48 @@ export async function getSession(): Promise<RequestHandler[]> {
       maxAge: sessionTtl,
     },
   });
+<<<<<<< HEAD
   return [sessionMiddleware, lusca.csrf()];
+=======
+  
+  const csrfMiddleware = csrf();
+  
+  // Wrap session and CSRF middleware to skip for static assets
+  // This prevents slow database queries on Vite client files and other static resources
+  const conditionalSessionMiddleware: RequestHandler = (req, res, next) => {
+    // Skip session/CSRF for static assets (Vite dev files, assets, etc.)
+    const path = req.path;
+    if (
+      path.startsWith('/@fs/') ||
+      path.startsWith('/@vite/') ||
+      path.startsWith('/assets/') ||
+      path.startsWith('/node_modules/')
+    ) {
+      return next();
+    }
+    
+    // Run session middleware for all other requests
+    sessionMiddleware(req, res, next);
+  };
+  
+  const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
+    // Skip CSRF for static assets (Vite dev files, assets, etc.)
+    const path = req.path;
+    if (
+      path.startsWith('/@fs/') ||
+      path.startsWith('/@vite/') ||
+      path.startsWith('/assets/') ||
+      path.startsWith('/node_modules/')
+    ) {
+      return next();
+    }
+    
+    // Run CSRF middleware for all other requests
+    csrfMiddleware(req, res, next);
+  };
+  
+  return [conditionalSessionMiddleware, conditionalCsrfMiddleware];
+>>>>>>> 68d67d17085771af64dfbff13476c2375714ac04
 }
 
 function updateUserSession(
