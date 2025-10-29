@@ -89,11 +89,16 @@ function detectXss(value: any): boolean {
   if (typeof value !== 'string') return false;
   
   const xssPatterns = [
-    /<script[^>]*>.*<\/script>/i,
+    /<script[^>]*>.*?<\/script\s*>/is, // Matches <script>...</script> with optional spaces before >
     /javascript:/i,
-    /\bon\w+\s*=/i, // HTML event handlers: onclick, onload, onerror, etc. (word boundary ensures we don't match "content=")
+    /\bon\w+\s*=/i, // HTML event handlers: onclick, onload, onerror, etc.
     /<iframe[^>]*>/i,
-    /eval\(/i,
+    /<object[^>]*>/i, // Object tags can execute code
+    /<embed[^>]*>/i, // Embed tags can execute code
+    /eval\s*\(/i, // eval() function calls
+    /expression\s*\(/i, // CSS expression() for IE
+    /vbscript:/i, // VBScript protocol
+    /data:text\/html/i, // Data URIs with HTML
   ];
   
   return xssPatterns.some(pattern => pattern.test(value));
