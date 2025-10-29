@@ -572,7 +572,7 @@ router.post('/webhook', async (req, res) => {
   // Critical: Fail fast if webhook secret is not configured
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
     console.error('[Stripe] STRIPE_WEBHOOK_SECRET is not configured - webhook verification cannot proceed');
-    return res.status(500).send('Webhook configuration error');
+    return res.status(500).json({ error: 'Webhook configuration error' });
   }
 
   let event: Stripe.Event;
@@ -586,7 +586,8 @@ router.post('/webhook', async (req, res) => {
     );
   } catch (err: any) {
     console.error('[Stripe] Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    // Use res.json() instead of res.send() to prevent XSS - JSON encoding escapes special characters
+    return res.status(400).json({ error: 'Webhook signature verification failed', message: err.message });
   }
 
   try {
