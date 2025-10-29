@@ -11,10 +11,10 @@ router.get("/preview", async (req: any, res) => {
     const userId = req.user.claims.sub;
     const { type, id } = req.query;
 
-    if (!type || !id) {
-      return res.status(400).json({ error: 'Missing type or id parameter' });
+    // Ensure both 'type' and 'id' are strings (not arrays or undefined)
+    if (typeof type !== 'string' || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Missing or invalid "type" or "id" parameter' });
     }
-
     let preview: any = null;
 
     // Handle projects separately as they're not in savedItems
