@@ -103,5 +103,6 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  // Temporarily disabled @tailwindcss/typography due to package loading issue
+  plugins: [require("tailwindcss-animate")],
 } satisfies Config;
