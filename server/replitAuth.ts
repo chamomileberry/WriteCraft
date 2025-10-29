@@ -85,7 +85,36 @@ export async function getSession(): Promise<RequestHandler[]> {
       maxAge: sessionTtl,
     },
   });
-  return [sessionMiddleware, csrf()];
+  
+  // Helper to check if a path is a static asset that should skip session processing
+  const isStaticAssetPath = (path: string): boolean => {
+    return (
+      path.startsWith('/@fs/') ||
+      path.startsWith('/@vite/') ||
+      path.startsWith('/assets/') ||
+      path.startsWith('/node_modules/') ||
+      path.startsWith('/@id/')
+    );
+  };
+  
+  // Wrap session middleware to skip static assets
+  const conditionalSessionMiddleware: RequestHandler = (req, res, next) => {
+    if (isStaticAssetPath(req.path)) {
+      return next();
+    }
+    return sessionMiddleware(req, res, next);
+  };
+  
+  // Wrap CSRF middleware to skip static assets
+  const csrfMiddleware = csrf();
+  const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
+    if (isStaticAssetPath(req.path)) {
+      return next();
+    }
+    return csrfMiddleware(req, res, next);
+  };
+  
+  return [conditionalSessionMiddleware, conditionalCsrfMiddleware];
 }
 
 function updateUserSession(
