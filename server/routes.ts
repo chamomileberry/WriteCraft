@@ -269,7 +269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Finalize upload - requires authentication for security
-  app.post("/api/upload/finalize", isAuthenticated, async (req: any, res) => {
+  app.post("/api/upload/finalize", isAuthenticated, uploadRateLimiter, async (req: any, res) => {
     try {
       const { objectPath } = req.body;
 
@@ -336,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Pinned content endpoints
-  app.get("/api/pinned-content", isAuthenticated, async (req: any, res) => {
+  app.get("/api/pinned-content", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const notebookId = req.query.notebookId as string;
@@ -403,7 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/pinned-content", isAuthenticated, async (req: any, res) => {
+  app.post("/api/pinned-content", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { notebookId, targetType, targetId, category, notes } = req.body;
@@ -429,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/pinned-content/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/pinned-content/:id", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const pinnedId = req.params.id;
@@ -548,7 +548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quick note routes
-  app.post("/api/quick-note", isAuthenticated, async (req: any, res) => {
+  app.post("/api/quick-note", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { title, content } = req.body;
@@ -570,7 +570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/quick-note", isAuthenticated, async (req: any, res) => {
+  app.get("/api/quick-note", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
 
@@ -587,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Fetch a specific quick note by ID
-  app.get("/api/quick-note/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/quick-note/:id", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -640,7 +640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Writing Assistant API routes
-  app.post("/api/writing-assistant/analyze", isAuthenticated, async (req, res) => {
+  app.post("/api/writing-assistant/analyze", isAuthenticated, contentRateLimiter, async (req, res) => {
     try {
       const { text, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(),
@@ -660,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/rephrase", isAuthenticated, async (req, res) => {
+  app.post("/api/writing-assistant/rephrase", isAuthenticated, contentRateLimiter, async (req, res) => {
     try {
       const { text, style, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(), 
@@ -681,7 +681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/proofread", isAuthenticated, async (req, res) => {
+  app.post("/api/writing-assistant/proofread", isAuthenticated, contentRateLimiter, async (req, res) => {
     try {
       const { text, editorContent, documentTitle, documentType } = z.object({ 
         text: z.string(),
@@ -763,7 +763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/writing-assistant/improve", isAuthenticated, async (req, res) => {
+  app.post("/api/writing-assistant/improve", isAuthenticated, contentRateLimiter, async (req, res) => {
     try {
       const { text, instruction } = z.object({ 
         text: z.string(), 
@@ -828,7 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat Messages API routes
-  app.post("/api/chat-messages", async (req: any, res) => {
+  app.post("/api/chat-messages", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       // Get authenticated userId from session (never trust client headers)
       const userId = req.user.claims.sub;
@@ -861,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/chat-messages", async (req: any, res) => {
+  app.get("/api/chat-messages", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       // Get authenticated userId from session (never trust client headers)
       const userId = req.user.claims.sub;
@@ -884,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/chat-messages", async (req: any, res) => {
+  app.delete("/api/chat-messages", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       // Get authenticated userId from session (never trust client headers)
       const userId = req.user.claims.sub;
@@ -907,7 +907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User Preferences API routes
-  app.get("/api/user-preferences", async (req: any, res) => {
+  app.get("/api/user-preferences", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const preferences = await storage.getUserPreferences(userId);
@@ -923,7 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/user-preferences", async (req: any, res) => {
+  app.put("/api/user-preferences", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
 
@@ -950,7 +950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Conversation Summaries API routes
-  app.get("/api/conversation-summary", async (req: any, res) => {
+  app.get("/api/conversation-summary", isAuthenticated, contentRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
 
@@ -1006,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/timelines/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/timelines/:id", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -1034,7 +1034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline Event routes
-  app.get("/api/timeline-events", isAuthenticated, async (req: any, res) => {
+  app.get("/api/timeline-events", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { timelineId, notebookId } = req.query;
@@ -1079,7 +1079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/timeline-events/:id", async (req: any, res) => {
+  app.patch("/api/timeline-events/:id", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -1112,7 +1112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline Relationship routes
-  app.get("/api/timeline-relationships", isAuthenticated, async (req: any, res) => {
+  app.get("/api/timeline-relationships", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { timelineId, notebookId } = req.query;
