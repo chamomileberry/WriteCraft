@@ -3,11 +3,12 @@ import { getRoomUsers, getActiveRooms } from '../collaboration';
 import { db } from '../db';
 import { shares, users, projects } from '../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
+import { collaborationRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
 // Get active collaborators for a document
-router.get('/rooms/:resourceType/:resourceId/users', async (req: Request, res: Response) => {
+router.get('/rooms/:resourceType/:resourceId/users', collaborationRateLimiter, async (req: Request, res: Response) => {
   try {
     const { resourceType, resourceId } = req.params;
     const userId = (req as any).user.id;
@@ -63,7 +64,7 @@ router.get('/rooms/:resourceType/:resourceId/users', async (req: Request, res: R
 });
 
 // Get all active rooms (admin only)
-router.get('/rooms', async (req: Request, res: Response) => {
+router.get('/rooms', collaborationRateLimiter, async (req: Request, res: Response) => {
   try {
     const activeRooms = getActiveRooms();
     

@@ -5,6 +5,7 @@ import { insertShareSchema } from '@shared/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { secureAuthentication } from '../security/middleware';
 import { requireBooleanFeature } from '../middleware/featureGate';
+import { shareRateLimiter, readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -48,7 +49,7 @@ async function validateResourceOwnership(
   }
 }
 
-router.post('/shares', secureAuthentication, requireBooleanFeature('collaboration'), async (req: any, res) => {
+router.post('/shares', secureAuthentication, requireBooleanFeature('collaboration'), shareRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -84,7 +85,7 @@ router.post('/shares', secureAuthentication, requireBooleanFeature('collaboratio
   }
 });
 
-router.get('/shares', secureAuthentication, async (req: any, res) => {
+router.get('/shares', secureAuthentication, readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { resourceType, resourceId } = req.query;

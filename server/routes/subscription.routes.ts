@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { subscriptionService } from "../services/subscriptionService";
 import { TIER_LIMITS } from "@shared/types/subscription";
+import { analyticsRateLimiter, generousRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -8,7 +9,7 @@ const router = Router();
  * GET /api/subscription
  * Get user's current subscription status and limits
  */
-router.get("/", async (req: any, res) => {
+router.get("/", generousRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     
@@ -29,7 +30,7 @@ router.get("/", async (req: any, res) => {
  * GET /api/subscription/tiers
  * Get all available subscription tiers and their limits
  */
-router.get("/tiers", async (req: any, res) => {
+router.get("/tiers", generousRateLimiter, async (req: any, res) => {
   try {
     res.json(TIER_LIMITS);
   } catch (error) {
@@ -42,7 +43,7 @@ router.get("/tiers", async (req: any, res) => {
  * GET /api/subscription/usage
  * Get AI usage statistics for the current user
  */
-router.get("/usage", async (req: any, res) => {
+router.get("/usage", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     
@@ -64,7 +65,7 @@ router.get("/usage", async (req: any, res) => {
  * GET /api/subscription/premium-quota
  * Get remaining premium operation quota (Polish and Extended Thinking)
  */
-router.get("/premium-quota", async (req: any, res) => {
+router.get("/premium-quota", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     
@@ -103,7 +104,7 @@ router.get("/premium-quota", async (req: any, res) => {
  * POST /api/subscription/check-limit
  * Check if user can perform a specific action
  */
-router.post("/check-limit", async (req: any, res) => {
+router.post("/check-limit", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const { action } = req.body;

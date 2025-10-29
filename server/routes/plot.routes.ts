@@ -2,11 +2,12 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertPlotSchema } from "@shared/schema";
 import { z } from "zod";
+import { aiRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Plot generator routes
-router.post("/generate", async (req: any, res) => {
+router.post("/generate", aiRateLimiter, async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
@@ -57,7 +58,7 @@ router.post("/generate", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -74,7 +75,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;

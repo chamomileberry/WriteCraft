@@ -16,11 +16,12 @@ import {
   discountCodeUsage
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { exportRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // GET /api/export/user-data - Export all user data as JSON (GDPR compliance)
-router.get("/user-data", async (req: any, res) => {
+router.get("/user-data", exportRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userEmail = req.user.claims.email || "unknown";

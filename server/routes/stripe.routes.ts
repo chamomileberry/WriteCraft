@@ -5,6 +5,7 @@ import { subscriptionService } from '../services/subscriptionService';
 import { isAuthenticated } from '../replitAuth';
 import { storage } from '../storage';
 import { emailService } from '../services/emailService';
+import { billingRateLimiter, subscriptionChangeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -25,7 +26,7 @@ function hasStripeData(sub: any): sub is { stripeCustomerId?: string | null; str
  * Create Stripe checkout session for subscription
  * POST /api/stripe/create-checkout
  */
-router.post('/create-checkout', isAuthenticated, async (req: any, res) => {
+router.post('/create-checkout', isAuthenticated, billingRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { tier, billingCycle } = req.body;
@@ -69,7 +70,7 @@ router.post('/create-checkout', isAuthenticated, async (req: any, res) => {
  * Create customer portal session for billing management
  * POST /api/stripe/create-portal
  */
-router.post('/create-portal', isAuthenticated, async (req: any, res) => {
+router.post('/create-portal', isAuthenticated, billingRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -94,7 +95,7 @@ router.post('/create-portal', isAuthenticated, async (req: any, res) => {
  * Cancel subscription at period end
  * POST /api/stripe/cancel-subscription
  */
-router.post('/cancel-subscription', isAuthenticated, async (req: any, res) => {
+router.post('/cancel-subscription', isAuthenticated, subscriptionChangeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { reason, feedback } = req.body;

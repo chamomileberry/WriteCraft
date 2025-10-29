@@ -6,11 +6,12 @@ import { db } from "../db";
 import { users, auditLogs } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { logger } from "../utils/logger";
+import { profileRateLimiter, accountDeletionRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Get user preferences
-router.get("/preferences", async (req: any, res) => {
+router.get("/preferences", profileRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const preferences = await storage.getUserPreferences(userId);
@@ -42,7 +43,7 @@ router.get("/preferences", async (req: any, res) => {
 });
 
 // Update user preferences (PATCH)
-router.patch("/preferences", async (req: any, res) => {
+router.patch("/preferences", profileRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -67,7 +68,7 @@ router.patch("/preferences", async (req: any, res) => {
 });
 
 // DELETE /api/users/account - Delete user account and all associated data (GDPR Right to Deletion)
-router.delete("/account", async (req: any, res) => {
+router.delete("/account", accountDeletionRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userEmail = req.user.claims.email || "unknown";
@@ -131,7 +132,7 @@ router.delete("/account", async (req: any, res) => {
 });
 
 // DELETE /api/users/account/request - Request account deletion with confirmation (optional soft delete)
-router.post("/account/deletion-request", async (req: any, res) => {
+router.post("/account/deletion-request", accountDeletionRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userEmail = req.user.claims.email || "unknown";

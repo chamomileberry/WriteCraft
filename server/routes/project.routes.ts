@@ -4,6 +4,7 @@ import { insertProjectSchema, insertProjectSectionSchema, type ProjectSection, t
 import { z } from "zod";
 import { validateInput } from "../security/middleware";
 import { requireFeature } from "../middleware/featureGate";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -46,7 +47,7 @@ function buildTree(sections: ProjectSection[]): ProjectSectionWithChildren[] {
   return roots;
 }
 
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const projects = await storage.getUserProjects(userId);
@@ -62,7 +63,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.post("/", requireFeature('create_project'), validateInput(insertProjectSchema.omit({ userId: true })), async (req: any, res) => {
+router.post("/", writeRateLimiter, requireFeature('create_project'), validateInput(insertProjectSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const projectData = { ...req.body, userId };
@@ -75,7 +76,7 @@ router.post("/", requireFeature('create_project'), validateInput(insertProjectSc
   }
 });
 
-router.get("/search", async (req: any, res) => {
+router.get("/search", readRateLimiter, async (req: any, res) => {
   try {
     const query = req.query.q as string;
     const userId = req.user.claims.sub;
@@ -92,7 +93,7 @@ router.get("/search", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const project = await storage.getProject(req.params.id, userId);
@@ -106,7 +107,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", validateInput(insertProjectSchema.omit({ userId: true }).partial()), async (req: any, res) => {
+router.put("/:id", writeRateLimiter, validateInput(insertProjectSchema.omit({ userId: true }).partial()), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updateData = { ...req.body, userId };
@@ -130,7 +131,7 @@ router.put("/:id", validateInput(insertProjectSchema.omit({ userId: true }).part
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteProject(req.params.id, userId);
@@ -148,7 +149,7 @@ router.delete("/:id", async (req: any, res) => {
 });
 
 // Project Section routes
-router.get("/:projectId/sections", async (req: any, res) => {
+router.get("/:projectId/sections", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId } = req.params;
@@ -181,7 +182,7 @@ router.get("/:projectId/sections", async (req: any, res) => {
   }
 });
 
-router.post("/:projectId/sections", validateInput(insertProjectSectionSchema.omit({ projectId: true })), async (req: any, res) => {
+router.post("/:projectId/sections", writeRateLimiter, validateInput(insertProjectSectionSchema.omit({ projectId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId } = req.params;
@@ -215,7 +216,7 @@ router.post("/:projectId/sections", validateInput(insertProjectSectionSchema.omi
   }
 });
 
-router.get("/:projectId/sections/:sectionId", async (req: any, res) => {
+router.get("/:projectId/sections/:sectionId", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId, sectionId } = req.params;
@@ -238,7 +239,7 @@ router.get("/:projectId/sections/:sectionId", async (req: any, res) => {
   }
 });
 
-router.put("/:projectId/sections/:sectionId", validateInput(insertProjectSectionSchema.omit({ projectId: true }).partial()), async (req: any, res) => {
+router.put("/:projectId/sections/:sectionId", writeRateLimiter, validateInput(insertProjectSectionSchema.omit({ projectId: true }).partial()), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId, sectionId } = req.params;
@@ -274,7 +275,7 @@ router.put("/:projectId/sections/:sectionId", validateInput(insertProjectSection
   }
 });
 
-router.delete("/:projectId/sections/:sectionId", async (req: any, res) => {
+router.delete("/:projectId/sections/:sectionId", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId, sectionId } = req.params;
@@ -300,7 +301,7 @@ router.delete("/:projectId/sections/:sectionId", async (req: any, res) => {
   }
 });
 
-router.post("/:projectId/sections/reorder", async (req: any, res) => {
+router.post("/:projectId/sections/reorder", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId } = req.params;

@@ -6,11 +6,12 @@ import { emailService } from '../services/emailService';
 import { db } from '../db';
 import { users, userSubscriptions } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { teamRateLimiter, inviteRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
 // Get team members
-router.get('/members', isAuthenticated, async (req, res, next) => {
+router.get('/members', isAuthenticated, teamRateLimiter, async (req, res, next) => {
   try {
     const userId = (req.user as any).claims.sub;
     
@@ -29,7 +30,7 @@ router.get('/members', isAuthenticated, async (req, res, next) => {
 });
 
 // Get pending invitations
-router.get('/invitations', isAuthenticated, async (req, res, next) => {
+router.get('/invitations', isAuthenticated, teamRateLimiter, async (req, res, next) => {
   try {
     const userId = (req.user as any).claims.sub;
     
@@ -48,7 +49,7 @@ router.get('/invitations', isAuthenticated, async (req, res, next) => {
 });
 
 // Invite a member
-router.post('/invite', isAuthenticated, async (req, res, next) => {
+router.post('/invite', isAuthenticated, inviteRateLimiter, async (req, res, next) => {
   try {
     const userId = (req.user as any).claims.sub;
     
@@ -119,7 +120,7 @@ router.post('/invite', isAuthenticated, async (req, res, next) => {
 });
 
 // Accept invitation
-router.post('/accept-invitation', isAuthenticated, async (req, res, next) => {
+router.post('/accept-invitation', isAuthenticated, teamRateLimiter, async (req, res, next) => {
   try {
     const userId = (req.user as any).claims.sub;
     
@@ -140,7 +141,7 @@ router.post('/accept-invitation', isAuthenticated, async (req, res, next) => {
 });
 
 // Remove a member
-router.delete('/members/:userId', isAuthenticated, async (req, res, next) => {
+router.delete('/members/:userId', isAuthenticated, teamRateLimiter, async (req, res, next) => {
   try {
     const currentUserId = (req.user as any).claims.sub;
     const targetUserId = req.params.userId;
