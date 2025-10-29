@@ -357,16 +357,18 @@ export class TeamService {
     const today = new Date().toISOString().split('T')[0];
     
     // Get all team member user IDs
-    const members = await db.query.teamMemberships.findMany({
-      where: eq(teamMemberships.teamSubscriptionId, teamSubscriptionId),
-      columns: { userId: true },
-    });
+    const members = await db
+      .select({
+        userId: teamMemberships.userId,
+      })
+      .from(teamMemberships)
+      .where(eq(teamMemberships.teamSubscriptionId, teamSubscriptionId));
 
     if (members.length === 0) {
       return 0;
     }
 
-    const memberIds = members.map((m: { userId: string }) => m.userId);
+    const memberIds = members.map((m) => m.userId);
 
     // Get team owner
     const teamSub = await db.query.userSubscriptions.findFirst({
@@ -382,7 +384,7 @@ export class TeamService {
     const result = await db.execute(sql`
       SELECT COALESCE(SUM(total_operations), 0) as total
       FROM ai_usage_daily_summary
-      WHERE user_id = ANY(${memberIds}::varchar[])
+      WHERE user_id = ANY(${memberIds})
       AND date = ${today}
     `);
 
