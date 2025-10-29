@@ -8,6 +8,7 @@ import { userMigrationService } from '../services/userMigrationService';
 import { db } from '../db';
 import { users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -17,7 +18,7 @@ const router = Router();
  * 
  * RESTRICTED: Admin-only endpoint
  */
-router.get('/preview', secureAuthentication, requireAdmin, async (req: any, res) => {
+router.get('/preview', secureAuthentication, requireAdmin, readRateLimiter, async (req: any, res) => {
   try {
     const preview = await userMigrationService.previewMigration();
     res.json(preview);
@@ -31,7 +32,7 @@ router.get('/preview', secureAuthentication, requireAdmin, async (req: any, res)
  * Analyze a specific user's usage
  * GET /api/migration/analyze/:userId
  */
-router.get('/analyze/:userId', secureAuthentication, async (req: any, res) => {
+router.get('/analyze/:userId', secureAuthentication, readRateLimiter, async (req: any, res) => {
   try {
     const { userId } = req.params;
     const requestingUserId = req.user.claims.sub;
@@ -63,7 +64,7 @@ router.get('/analyze/:userId', secureAuthentication, async (req: any, res) => {
  * 
  * RESTRICTED: Admin-only endpoint
  */
-router.post('/execute', secureAuthentication, requireAdmin, async (req: any, res) => {
+router.post('/execute', secureAuthentication, requireAdmin, writeRateLimiter, async (req: any, res) => {
   try {
     const stats = await userMigrationService.migrateAllUsers();
     res.json(stats);
@@ -77,7 +78,7 @@ router.post('/execute', secureAuthentication, requireAdmin, async (req: any, res
  * Migrate a specific user
  * POST /api/migration/user/:userId
  */
-router.post('/user/:userId', secureAuthentication, async (req: any, res) => {
+router.post('/user/:userId', secureAuthentication, writeRateLimiter, async (req: any, res) => {
   try {
     const { userId } = req.params;
     const requestingUserId = req.user.claims.sub;
