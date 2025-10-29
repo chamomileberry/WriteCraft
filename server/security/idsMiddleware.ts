@@ -91,7 +91,7 @@ function detectXss(value: any): boolean {
   const xssPatterns = [
     /<script[^>]*>.*<\/script>/i,
     /javascript:/i,
-    /on\w+\s*=/i, // onclick, onload, etc.
+    /\bon\w+\s*=/i, // HTML event handlers: onclick, onload, onerror, etc. (word boundary ensures we don't match "content=")
     /<iframe[^>]*>/i,
     /eval\(/i,
   ];
