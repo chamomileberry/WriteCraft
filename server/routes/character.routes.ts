@@ -6,11 +6,12 @@ import { generateCharacterWithAI, generateCharacterFieldWithAI } from "../ai-gen
 import { generateArticleForContent } from "../article-generation";
 import { validateInput } from "../security/middleware";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { generatorRateLimiter, readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Character generator routes
-router.post("/generate", trackAIUsage('character_generation'), async (req: any, res) => {
+router.post("/generate", generatorRateLimiter, trackAIUsage('character_generation'), async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.user.claims.sub;
@@ -147,7 +148,7 @@ router.post("/generate", trackAIUsage('character_generation'), async (req: any, 
 });
 
 // Character field generation route
-router.post("/:id/generate-field", trackAIUsage('character_field_generation'), async (req: any, res) => {
+router.post("/:id/generate-field", generatorRateLimiter, trackAIUsage('character_field_generation'), async (req: any, res) => {
   try {
     // Valid field names for character generation
     const validFieldNames = [
@@ -211,7 +212,7 @@ router.post("/:id/generate-field", trackAIUsage('character_field_generation'), a
 });
 
 // Create character manually (from comprehensive form)
-router.post("/", validateInput(insertCharacterSchema.omit({ userId: true })), async (req: any, res) => {
+router.post("/", writeRateLimiter, validateInput(insertCharacterSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     // Extract userId from header for security (override client payload)
     const userId = req.user.claims.sub;
@@ -239,7 +240,7 @@ router.post("/", validateInput(insertCharacterSchema.omit({ userId: true })), as
   }
 });
 
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
@@ -272,7 +273,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client-supplied userId)
     const userId = req.user.claims.sub;
@@ -290,7 +291,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
@@ -310,7 +311,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.patch("/:id", async (req: any, res) => {
+router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -353,7 +354,7 @@ router.patch("/:id", async (req: any, res) => {
 });
 
 // Delete character
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -378,7 +379,7 @@ router.delete("/:id", async (req: any, res) => {
 });
 
 // Generate article from structured character data
-router.post("/:id/generate-article", async (req: any, res) => {
+router.post("/:id/generate-article", generatorRateLimiter, async (req: any, res) => {
   try {
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
