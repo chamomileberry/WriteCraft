@@ -57,6 +57,7 @@ import { useWorkspaceStore, type EditorActions } from '@/stores/workspaceStore';
 import { marked } from 'marked';
 import { useCollaboration } from '@/hooks/useCollaboration';
 import { CollaborationIndicator } from '@/components/CollaborationIndicator';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 interface GuideEditorProps {
   guideId: string;
@@ -100,12 +101,13 @@ const convertMarkdownToHTML = (content: string): string => {
   const hasMarkdownHeadings = /^#{1,6}\s+.+$/m.test(content);
   
   if (hasMarkdownHeadings) {
-    // Content looks like markdown, convert it to HTML
-    return marked.parse(content) as string;
+    // Content looks like markdown, convert it to HTML and sanitize
+    const htmlContent = marked.parse(content) as string;
+    return sanitizeHtml(htmlContent);
   }
   
-  // Content is already HTML or plain text
-  return content;
+  // Content is already HTML or plain text - sanitize it
+  return sanitizeHtml(content);
 };
 
 // Guide editor state management
