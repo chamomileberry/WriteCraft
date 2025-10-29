@@ -89,12 +89,12 @@ function detectXss(value: any): boolean {
   if (typeof value !== 'string') return false;
   
   const xssPatterns = [
-    /<script[^>]*>.*?<\/script\s*>/is, // Matches <script>...</script> with optional spaces before >
+    /<script[^>]*>.*?<\/script[\s\S]*?>/is, // Matches <script>...</script> with any whitespace (including \t, \n) before >
     /javascript:/i,
     /\bon\w+\s*=/i, // HTML event handlers: onclick, onload, onerror, etc.
-    /<iframe[^>]*>/i,
-    /<object[^>]*>/i, // Object tags can execute code
-    /<embed[^>]*>/i, // Embed tags can execute code
+    /<iframe[\s\S]*?>/i, // Match iframe with any whitespace
+    /<object[\s\S]*?>/i, // Object tags can execute code
+    /<embed[\s\S]*?>/i, // Embed tags can execute code
     /eval\s*\(/i, // eval() function calls
     /expression\s*\(/i, // CSS expression() for IE
     /vbscript:/i, // VBScript protocol
