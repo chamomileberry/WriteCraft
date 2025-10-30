@@ -218,15 +218,18 @@ export function ImageUpload({
     await uploadFile(imageFile);
   };
 
+  // Sanitize URL at point of use to prevent XSS - only render if URL is safe
+  const safeImageUrl = imageUrl && isSafeImageUrl(imageUrl) ? imageUrl : '';
+
   return (
     <div className={cn("space-y-4", className)}>
       {label && <Label>{label}</Label>}
       
-      {imageUrl ? (
+      {safeImageUrl ? (
         <div className="flex justify-center">
           <div className="relative inline-block max-w-full">
             <img 
-              src={imageUrl} 
+              src={safeImageUrl} 
               alt={caption || "Uploaded image"} 
               className="max-w-full h-auto max-h-64 rounded-lg border block"
             />
