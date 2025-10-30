@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle, Filter } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle, PanelLeft } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -609,10 +609,10 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsSidebarOpen(true)}
-                    data-testid="button-open-filters"
+                    data-testid="button-toggle-sidebar"
                     className="mr-2"
                   >
-                    <Filter className="h-5 w-5" />
+                    <PanelLeft className="h-5 w-5" />
                   </Button>
                 )}
                 <BookOpen className="h-8 w-8 text-primary" />
