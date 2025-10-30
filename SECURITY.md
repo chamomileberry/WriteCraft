@@ -653,5 +653,352 @@ For security incidents or questions:
 
 ---
 
-**Last Updated:** [Current Date]  
-**Next Review:** [Schedule quarterly reviews]
+## CodeQL & Dependabot Security Remediations (Oct 2025)
+
+This section documents critical security fixes that resolved GitHub CodeQL and Dependabot alerts. **These patterns must be followed in all new code to prevent regressions.**
+
+### 1. ✅ Rate Limiting - CodeQL Recognition (699 Alerts Resolved)
+
+**Issue**: Custom rate limiting implementation not recognized by CodeQL static analysis
+- Alert: `js/missing-rate-limiting` (699 instances)
+- Root cause: CodeQL requires specific library patterns to recognize rate limiting
+
+**Solution**: Migrated to `express-rate-limit` library with proper IPv6 support
+
+```typescript
+// ✅ CORRECT: CodeQL-recognized rate limiting
+import rateLimit from 'express-rate-limit';
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 100,                   // limit each IP to 100 requests per windowMs
+  standardHeaders: true,       // Return rate limit info in headers
+  legacyHeaders: false,        // Disable X-RateLimit-* headers
+  message: 'Too many requests',
+  handler: (req, res) => {
+    res.status(429).json({ error: 'Too many requests' });
+  }
+});
+
+router.get('/api/endpoint', limiter, handler);
+```
+
+**IPv6 Bypass Prevention:**
+```typescript
+// ✅ CORRECT: Properly handles IPv6 addresses
+keyGenerator: (req) => {
+  // Uses req.ip which express-rate-limit handles correctly
+  return req.ip || 'unknown';
+}
+
+// ❌ WRONG: Manual IP extraction can allow IPv6 bypass
+keyGenerator: (req) => {
+  return req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+}
+```
+
+**Key Requirements:**
+- Use `express-rate-limit` package (v6.0.0+)
+- Never implement custom IP extraction - let the library handle it
+- Always include `standardHeaders: true` for transparency
+- Configure appropriate limits per endpoint type
+
+---
+
+### 2. ✅ Incomplete Multi-Character Sanitization (XSS Prevention)
+
+**Issue**: Regular expressions cannot safely sanitize multi-character HTML entities
+- Alert: `js/incomplete-multi-character-sanitization`
+- Location: `client/src/components/GuideEditor.tsx:502`
+- Risk: XSS through incomplete entity removal
+
+**Solution**: Use TipTap's built-in text extraction instead of regex
+
+```typescript
+// ❌ WRONG: Regex cannot handle all multi-character HTML entities
+const sanitizeContent = (html: string) => {
+  return html
+    .replace(/<[^>]*>/g, '')  // Incomplete - misses edge cases
+    .replace(/&[^;]+;/g, ''); // Cannot handle all entity combinations
+};
+
+// ✅ CORRECT: Use editor's getText() method
+const sanitizeContent = (editor: Editor) => {
+  return editor.getText({ blockSeparator: '\n' });
+};
+
+// For TipTap/ProseMirror editors
+const cleanText = editor.getText();
+
+// For other rich text editors, use their built-in text extraction
+const cleanText = editor.getTextContent(); // or similar method
+```
+
+**Prevention Guidelines:**
+- **Never use regex** to sanitize HTML or extract text from rich content
+- Use the editor/library's built-in text extraction methods
+- If you must process HTML, use a proper HTML parser (e.g., `DOMParser`, `cheerio`)
+- For character counting, always use `.getText()` or equivalent
+
+---
+
+### 3. ✅ Sensitive Data in GET Requests
+
+**Issue**: Sensitive identifiers exposed in URL paths and query parameters
+- Alert: `js/sensitive-get-query`
+- Location: `server/routes/apiKeys.routes.ts:105`
+- Risk: API keys/IDs logged in URLs, browser history, Referer headers
+
+**Solution**: Use POST with body parameters for sensitive operations
+
+```typescript
+// ❌ WRONG: Sensitive data in URL
+router.get('/api/api-keys/:id/stats', async (req, res) => {
+  const { id } = req.params;  // ID exposed in URL!
+  const stats = await getKeyStats(id);
+  res.json(stats);
+});
+
+// ✅ CORRECT: Sensitive data in request body
+router.post('/api/api-keys/stats', async (req, res) => {
+  const { apiKeyId } = req.body;  // ID safely in body
+  const stats = await getKeyStats(apiKeyId);
+  res.json(stats);
+});
+```
+
+**When to use POST instead of GET:**
+- API keys or secrets
+- User IDs or session tokens
+- Payment information
+- Any personally identifiable information (PII)
+- Resource IDs that should not be cached or logged
+
+**Safe GET usage:**
+- Public resource identifiers (e.g., product IDs)
+- Non-sensitive pagination/filter parameters
+- Public search queries
+
+---
+
+### 4. ✅ XSS via Exception Text (Error Response Handling)
+
+**Issue**: Error messages sent as HTML allow XSS if error text is user-influenced
+- Alert: `js/xss-through-exception`
+- Location: `server/routes/stripe.routes.ts:589`
+- Risk: Error messages containing user input can execute scripts
+
+**Solution**: Always use `res.json()` for error responses, never `res.send()`
+
+```typescript
+// ❌ WRONG: res.send() with string treats as HTML
+try {
+  event = stripe.webhooks.constructEvent(req.body, sig, secret);
+} catch (err: any) {
+  return res.status(400).send(`Webhook Error: ${err.message}`);
+  // If err.message contains user input like <script>, XSS occurs!
+}
+
+// ✅ CORRECT: res.json() automatically escapes special characters
+try {
+  event = stripe.webhooks.constructEvent(req.body, sig, secret);
+} catch (err: any) {
+  return res.status(400).json({ 
+    error: 'Webhook signature verification failed', 
+    message: err.message  // Safely JSON-encoded
+  });
+}
+```
+
+**Error Response Best Practices:**
+1. **Always use `res.json()`** for all API error responses
+2. **Never use `res.send()`** with template literals or concatenation
+3. **Structure error responses** consistently:
+   ```typescript
+   res.status(statusCode).json({
+     error: 'Safe static message',
+     message: dynamicContent,  // Auto-escaped by JSON
+     code: 'ERROR_CODE'
+   });
+   ```
+4. **Sanitize before logging**: Don't log raw error messages that might contain PII
+
+---
+
+### 5. ✅ DOM Text Reinterpreted as HTML (Image URL XSS)
+
+**Issue**: User-controlled URLs rendered in `<img src>` without validation
+- Alert: `js/xss-through-dom`
+- Location: `client/src/components/ui/image-upload.tsx:229`
+- Risk: `javascript:` or malicious `data:` URLs execute code
+
+**Solution**: Validate URLs at both input and render time
+
+```typescript
+// ✅ CORRECT: Multi-layer URL validation
+function isSafeImageUrl(url: string): boolean {
+  if (!url) return false;
+  
+  try {
+    const parsed = new URL(url, window.location.origin);
+    // Only allow safe protocols
+    return ['http:', 'https:', 'data:'].includes(parsed.protocol);
+  } catch {
+    // If URL parsing fails, check if relative path
+    return url.startsWith('/');
+  }
+}
+
+// Layer 1: Validate on input
+const handleUrlSubmit = () => {
+  const trimmedUrl = urlInput.trim();
+  
+  if (!isSafeImageUrl(trimmedUrl)) {
+    toast({
+      title: 'Invalid URL',
+      description: 'Please enter a valid image URL (http://, https://, or data:)',
+      variant: 'destructive'
+    });
+    return;
+  }
+  
+  setImageUrl(trimmedUrl);
+};
+
+// Layer 2: Validate at render time
+const safeImageUrl = imageUrl && isSafeImageUrl(imageUrl) ? imageUrl : '';
+
+return (
+  <img src={safeImageUrl} alt="User upload" />
+);
+```
+
+**Dangerous URL patterns to block:**
+```typescript
+// ❌ These can execute JavaScript:
+javascript:alert('XSS')
+data:text/html,<script>alert('XSS')</script>
+vbscript:msgbox("XSS")
+
+// ✅ These are safe:
+https://example.com/image.jpg
+/assets/image.png
+data:image/png;base64,...
+```
+
+**URL Validation Checklist:**
+- ✅ Validate when user inputs URL
+- ✅ Validate when setting state
+- ✅ Validate again before rendering
+- ✅ Use `URL()` constructor for parsing
+- ✅ Whitelist safe protocols only
+- ✅ Handle parsing failures gracefully
+
+---
+
+### 6. ✅ Transitive Dependency Vulnerabilities (esbuild)
+
+**Issue**: Build tool pulled in vulnerable transitive dependencies
+- Alert: Dependabot `esbuild` CORS vulnerability (CVE-2024-XXXXX)
+- Source: `drizzle-kit` → `esbuild@0.18.20` (vulnerable)
+- Impact: Development server allows cross-origin access
+
+**Solution**: Use package.json `overrides` to force safe versions
+
+```json
+{
+  "devDependencies": {
+    "esbuild": "^0.25.11"
+  },
+  "overrides": {
+    "esbuild": "^0.25.11"
+  }
+}
+```
+
+**Dependency Security Checklist:**
+1. ✅ Run `npm audit` before each deployment
+2. ✅ Use `overrides` to force vulnerable transitive deps to safe versions
+3. ✅ Keep direct dependencies updated regularly
+4. ✅ Review Dependabot PRs within 48 hours
+5. ✅ Test after dependency updates
+
+---
+
+## Security Coding Standards (Mandatory)
+
+These patterns **must be followed** in all new code:
+
+### Error Handling
+```typescript
+// ✅ CORRECT
+res.status(500).json({ error: 'Operation failed', message: err.message });
+
+// ❌ WRONG
+res.status(500).send(`Error: ${err.message}`);
+res.status(500).send(err.toString());
+```
+
+### URL/Input Validation
+```typescript
+// ✅ CORRECT: Validate before use
+const safeUrl = isValidUrl(userInput) ? userInput : '';
+
+// ❌ WRONG: Direct use of user input
+<img src={userInput} />
+<a href={userInput}>Link</a>
+```
+
+### Text Extraction from Rich Content
+```typescript
+// ✅ CORRECT: Use editor methods
+const text = editor.getText();
+
+// ❌ WRONG: Regex sanitization
+const text = html.replace(/<[^>]*>/g, '');
+```
+
+### Rate Limiting
+```typescript
+// ✅ CORRECT: express-rate-limit
+import rateLimit from 'express-rate-limit';
+const limiter = rateLimit({ windowMs: 900000, max: 100 });
+router.get('/endpoint', limiter, handler);
+
+// ❌ WRONG: Custom implementation
+const requestCounts = new Map();
+// CodeQL won't recognize this
+```
+
+### Sensitive Operations
+```typescript
+// ✅ CORRECT: POST with body
+router.post('/sensitive-op', (req, res) => {
+  const { secretId } = req.body;
+});
+
+// ❌ WRONG: GET with URL params
+router.get('/sensitive-op/:secretId', (req, res) => {
+  const { secretId } = req.params;  // Logged in URLs!
+});
+```
+
+---
+
+## Pre-Commit Security Checklist
+
+Before pushing code, verify:
+
+- [ ] All error responses use `res.json()` (never `res.send()` with variables)
+- [ ] User-controlled URLs validated with protocol whitelist
+- [ ] Rich text editors use `.getText()` (never regex for HTML stripping)
+- [ ] Sensitive data in POST body (never in GET URLs)
+- [ ] Rate limiting uses `express-rate-limit` on all endpoints
+- [ ] No custom IP extraction (let libraries handle IPv6)
+- [ ] Dependencies scanned with `npm audit`
+- [ ] No secrets committed to repository
+
+---
+
+**Last Updated:** October 30, 2025  
+**Next Review:** January 2026 (or after any CodeQL/Dependabot alert)
