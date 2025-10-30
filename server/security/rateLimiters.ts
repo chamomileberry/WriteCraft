@@ -52,10 +52,10 @@ export const mfaRateLimiter: RequestHandler = createRateLimiter({
 export const passwordRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 3,
   windowMs: 60 * 1000,
-  keyGenerator: (req: any) => {
+  keyGenerator: ((req: any) => {
     const userId = req.user?.claims?.sub;
     return userId ? `password:${userId}` : undefined;
-  }
+  }) as any
 });
 
 /**
@@ -398,10 +398,10 @@ export const accountDeletionRateLimiter: RequestHandler = createRateLimiter({
 export const feedbackRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 60 * 1000, // 1 hour window
-  keyGenerator: (req: any) => {
+  keyGenerator: ((req: any) => {
     const userId = req.user?.claims?.sub;
     return userId ? `feedback:${userId}` : undefined;
-  }
+  }) as any
 });
 
 /**
