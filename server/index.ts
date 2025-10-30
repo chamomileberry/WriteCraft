@@ -4,6 +4,7 @@ import "./instrument.mjs";
 import { createApp, setServerInstance } from "./app";
 import { setupVite, serveStatic, log } from "./vite";
 import * as keyRotationService from "./services/apiKeyRotationService";
+import { initializeSecurityCleanup } from "./security/middleware";
 
 (async () => {
   const startTime = Date.now();
@@ -48,6 +49,13 @@ import * as keyRotationService from "./services/apiKeyRotationService";
       }, async () => {
         console.log(`[Startup] Server listening on port ${port} - Total startup time: ${Date.now() - startTime}ms`);
         log(`serving on port ${port}`);
+        
+        // Initialize security cleanup intervals
+        try {
+          initializeSecurityCleanup();
+        } catch (error) {
+          console.error('[SECURITY] Failed to initialize cleanup intervals:', error);
+        }
         
         // Initialize API key rotation tracking
         try {

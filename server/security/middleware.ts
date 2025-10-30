@@ -209,6 +209,18 @@ export class CSRFProtection {
       next();
     };
   }
+  
+  static startCleanupInterval(): void {
+    // Clean up expired CSRF tokens periodically
+    setInterval(() => {
+      const now = Date.now();
+      CSRFProtection.tokens.forEach((data, sessionId) => {
+        if (now > data.expires) {
+          CSRFProtection.tokens.delete(sessionId);
+        }
+      });
+    }, 300000); // Every 5 minutes
+  }
 }
 
 /**
