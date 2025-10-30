@@ -4,7 +4,7 @@ import AdmZip from 'adm-zip';
 import { storage } from '../storage';
 import { z } from 'zod';
 import { insertImportJobSchema } from '@shared/schema';
-import { importRateLimiter } from '../security/rateLimiters';
+import { importRateLimiter, readRateLimiter } from '../security/rateLimiters';
 import * as cheerio from 'cheerio';
 import mammoth from 'mammoth';
 import * as pdfParse from 'pdf-parse';
@@ -1601,7 +1601,7 @@ async function processImport(
 }
 
 // Get import job status
-router.get('/status/:jobId', async (req: any, res) => {
+router.get('/status/:jobId', readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { jobId } = req.params;
