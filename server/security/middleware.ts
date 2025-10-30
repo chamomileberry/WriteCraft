@@ -225,6 +225,18 @@ export class CSRFProtection {
       next();
     };
   }
+  
+  static startCleanupInterval(): void {
+    // Clean up expired CSRF tokens periodically
+    setInterval(() => {
+      const now = Date.now();
+      CSRFProtection.tokens.forEach((data, sessionId) => {
+        if (now > data.expires) {
+          CSRFProtection.tokens.delete(sessionId);
+        }
+      });
+    }, 300000); // Every 5 minutes
+  }
 }
 
 /**
@@ -700,25 +712,26 @@ export async function canAccessResource(
   return { canAccess: false, permission: null, isOwner: false };
 }
 
-// Clean up expired rate limit entries periodically
-setInterval(() => {
-  const now = Date.now();
-  rateLimitStore.forEach((entry, key) => {
-    if (now > entry.resetTime + SECURITY_CONFIG.RATE_LIMIT_WINDOW_MS) {
-      rateLimitStore.delete(key);
-    }
-  });
-}, 60000); // Every minute
-
-// Clean up expired CSRF tokens periodically  
-setInterval(() => {
-  const now = Date.now();
-  CSRFProtection['tokens'].forEach((data, sessionId) => {
-    if (now > data.expires) {
-      CSRFProtection['tokens'].delete(sessionId);
-    }
-  });
-}, 300000); // Every 5 minutes
+/**
+ * Initialize security cleanup intervals
+ * Should be called once during server startup
+ */
+export function initializeSecurityCleanup(): void {
+  // Clean up expired rate limit entries periodically
+  setInterval(() => {
+    const now = Date.now();
+    rateLimitStore.forEach((entry, key) => {
+      if (now > entry.resetTime + SECURITY_CONFIG.RATE_LIMIT_WINDOW_MS) {
+        rateLimitStore.delete(key);
+      }
+    });
+  }, 60000); // Every minute
+  
+  // Start CSRF token cleanup
+  CSRFProtection.startCleanupInterval();
+  
+  console.log('[SECURITY] Cleanup intervals initialized');
+}
 
 export default {
   secureAuthentication,
