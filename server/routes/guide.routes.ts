@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -19,7 +20,7 @@ async function isAdmin(userId: string): Promise<boolean> {
   }
 }
 
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const category = req.query.category as string;
@@ -67,7 +68,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // Endpoint to check if current user is admin (MUST be before /:id route)
-router.get("/auth/is-admin", async (req: any, res) => {
+router.get("/auth/is-admin", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -78,7 +79,7 @@ router.get("/auth/is-admin", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -112,7 +113,7 @@ function extractGuideIdsFromContent(content: string): string[] {
   return Array.from(guideIds);
 }
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -144,7 +145,7 @@ router.post("/", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -182,7 +183,7 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -211,7 +212,7 @@ router.delete("/:id", async (req: any, res) => {
 });
 
 // Get guides referenced by a specific guide
-router.get("/:id/references", async (req: any, res) => {
+router.get("/:id/references", readRateLimiter, async (req: any, res) => {
   try {
     const references = await storage.getGuideReferences(req.params.id);
     
@@ -233,7 +234,7 @@ router.get("/:id/references", async (req: any, res) => {
 });
 
 // Get guides that reference a specific guide
-router.get("/:id/referenced-by", async (req: any, res) => {
+router.get("/:id/referenced-by", readRateLimiter, async (req: any, res) => {
   try {
     const references = await storage.getGuideReferencedBy(req.params.id);
     

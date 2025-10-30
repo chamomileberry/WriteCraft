@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { securityAlerts } from '@shared/schema';
 import { db } from '../db';
+import { writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
  * Endpoint for receiving Content Security Policy violation reports
  * This is called automatically by the browser when CSP violations occur
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', writeRateLimiter, async (req: Request, res: Response) => {
   try {
     // CSP reports can be sent in different formats:
     // 1. Nested: { "csp-report": { ... } }

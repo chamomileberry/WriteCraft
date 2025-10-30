@@ -2,11 +2,12 @@
 import { Router } from "express";
 import { storage } from "../storage";
 import { logger } from "../utils/logger";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // GET /api/inbox/unread-count - Get unread reply count (must be before /:id routes)
-router.get("/unread-count", async (req: any, res) => {
+router.get("/unread-count", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const count = await storage.getUnreadReplyCount(userId);
@@ -18,7 +19,7 @@ router.get("/unread-count", async (req: any, res) => {
 });
 
 // GET /api/inbox - Get user's feedback with replies
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const feedbackList = await storage.getUserFeedback(userId);
@@ -30,7 +31,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // PUT /api/inbox/:id/mark-read - Mark feedback reply as read
-router.put("/:id/mark-read", async (req: any, res) => {
+router.put("/:id/mark-read", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const feedbackId = req.params.id;

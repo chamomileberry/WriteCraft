@@ -73,15 +73,10 @@ export async function getSession(): Promise<RequestHandler[]> {
     },
   });
   
-  // Helper to check if a path is a static asset that should skip session processing
-  const isStaticAssetPath = (path: string): boolean => {
-    return (
-  return [sessionMiddleware, lusca.csrf()];
-  
   const csrfMiddleware = lusca.csrf();
   
   // Wrap CSRF middleware to skip for static assets and CSP reports
-  // Session middleware always runs, but CSRF is skipped for performance/compatibility
+  // Session middleware always runs (required for Passport), but CSRF is skipped for performance/compatibility
   const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
     // Skip CSRF for static assets (Vite dev files, assets, etc.) and CSP reports
     const path = req.path;
@@ -90,28 +85,7 @@ export async function getSession(): Promise<RequestHandler[]> {
       path.startsWith('/@vite/') ||
       path.startsWith('/assets/') ||
       path.startsWith('/node_modules/') ||
-      path.startsWith('/@id/')
-    );
-  };
-  
-  // Wrap session middleware to skip static assets
-  const conditionalSessionMiddleware: RequestHandler = (req, res, next) => {
-    if (isStaticAssetPath(req.path)) {
-      return next();
-    }
-    return sessionMiddleware(req, res, next);
-  };
-  
-  // Wrap CSRF middleware to skip static assets
-  const csrfMiddleware = csrf();
-  const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
-    if (isStaticAssetPath(req.path)) {
-      return next();
-    }
-    return csrfMiddleware(req, res, next);
-  };
-  
-  return [conditionalSessionMiddleware, conditionalCsrfMiddleware];
+      path.startsWith('/@id/') ||
       path === '/api/csp-report' // CSP reports don't include CSRF tokens
     ) {
       return next();

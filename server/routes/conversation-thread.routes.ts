@@ -5,11 +5,12 @@ import { z } from "zod";
 import { validateInput } from "../security/middleware";
 import { generateThreadTags } from "../ai-generation";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { aiRateLimiter, readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Get all conversation threads for a user (with optional filtering)
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { projectId, guideId, isActive, tags } = req.query;
@@ -40,7 +41,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // Search conversation threads (by title, summary, tags, and message content)
-router.get("/search", async (req: any, res) => {
+router.get("/search", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { query, projectId, guideId } = req.query;
@@ -58,7 +59,7 @@ router.get("/search", async (req: any, res) => {
 });
 
 // Create a new conversation thread
-router.post("/", validateInput(insertConversationThreadSchema.omit({ userId: true })), async (req: any, res) => {
+router.post("/", writeRateLimiter, validateInput(insertConversationThreadSchema.omit({ userId: true })), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const threadData = { ...req.body, userId };
@@ -73,7 +74,7 @@ router.post("/", validateInput(insertConversationThreadSchema.omit({ userId: tru
 });
 
 // Branch a conversation (create new thread with parent reference)
-router.post("/:id/branch", async (req: any, res) => {
+router.post("/:id/branch", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const parentThreadId = req.params.id;
@@ -103,7 +104,7 @@ router.post("/:id/branch", async (req: any, res) => {
 });
 
 // Get a specific conversation thread by ID
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const thread = await storage.getConversationThread(req.params.id, userId);
@@ -118,7 +119,7 @@ router.get("/:id", async (req: any, res) => {
 });
 
 // Update a conversation thread (title, tags, archive status, summary)
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = req.body;
@@ -138,7 +139,7 @@ router.put("/:id", async (req: any, res) => {
 });
 
 // Generate/update AI tags for a thread
-router.post("/:id/generate-tags", trackAIUsage('thread_tags_generation'), async (req: any, res) => {
+router.post("/:id/generate-tags", aiRateLimiter, trackAIUsage('thread_tags_generation'), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const threadId = req.params.id;
@@ -168,7 +169,7 @@ router.post("/:id/generate-tags", trackAIUsage('thread_tags_generation'), async 
 });
 
 // Delete a conversation thread
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteConversationThread(req.params.id, userId);

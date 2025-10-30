@@ -2,11 +2,12 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { z } from "zod";
 import { logger } from "../utils/logger";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // GET /api/admin/feedback - Get all feedback (admin only)
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     // Check if user is admin
     const user = await storage.getUser(req.user.claims.sub);
@@ -23,7 +24,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // PUT /api/admin/feedback/:id - Update feedback status (admin only)
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     // Check if user is admin
     const user = await storage.getUser(req.user.claims.sub);
@@ -59,7 +60,7 @@ router.put("/:id", async (req: any, res) => {
 });
 
 // POST /api/admin/feedback/:id/reply - Reply to feedback (admin only)
-router.post("/:id/reply", async (req: any, res) => {
+router.post("/:id/reply", writeRateLimiter, async (req: any, res) => {
   try {
     // Fetch CSRF token first
     const csrfResponse = await fetch('/api/auth/csrf-token', {

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { apiKeyService } from '../services/apiKeyService';
 import { insertApiKeySchema } from '@shared/schema';
 import { z } from 'zod';
+import { readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
  * Create a new API key
  * POST /api/api-keys
  */
-router.post('/', async (req: any, res) => {
+router.post('/', writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -72,7 +73,7 @@ router.post('/', async (req: any, res) => {
  * List all API keys for the authenticated user
  * GET /api/api-keys
  */
-router.get('/', async (req: any, res) => {
+router.get('/', readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -96,12 +97,22 @@ router.get('/', async (req: any, res) => {
 
 /**
  * Get usage statistics for a specific API key
- * GET /api/api-keys/:id/stats
+ * POST /api/api-keys/stats (changed from GET to avoid sensitive data in URL)
+ * Body: { apiKeyId: string }
+ * 
+ * Security Note: Changed from GET with path parameter to POST with body parameter
+ * to prevent API key IDs from appearing in URLs, logs, and browser history.
  */
-router.get('/:id/stats', async (req: any, res) => {
+router.post('/stats', readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const apiKeyId = req.params.id;
+    const { apiKeyId } = req.body;
+
+    if (!apiKeyId) {
+      return res.status(400).json({
+        error: 'Missing apiKeyId in request body',
+      });
+    }
 
     const stats = await apiKeyService.getUsageStats(apiKeyId, userId);
 
@@ -125,7 +136,7 @@ router.get('/:id/stats', async (req: any, res) => {
  * Revoke an API key
  * DELETE /api/api-keys/:id
  */
-router.delete('/:id', async (req: any, res) => {
+router.delete('/:id', writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const apiKeyId = req.params.id;
@@ -149,7 +160,7 @@ router.delete('/:id', async (req: any, res) => {
  * Rotate an API key (create new one, revoke old one)
  * POST /api/api-keys/:id/rotate
  */
-router.post('/:id/rotate', async (req: any, res) => {
+router.post('/:id/rotate', writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const apiKeyId = req.params.id;

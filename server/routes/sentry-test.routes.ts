@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import * as Sentry from '@sentry/node';
+import { readRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
 // Diagnostic endpoint to check Sentry configuration
-router.get('/check-config', (req, res) => {
+router.get('/check-config', readRateLimiter, (req, res) => {
   const sentryDsn = process.env.SENTRY_DSN;
   const isEnabled = !!sentryDsn;
   
@@ -24,19 +25,19 @@ router.get('/check-config', (req, res) => {
 
 // Official Sentry test endpoint (recommended by Sentry docs)
 // Use /api/sentry/debug to avoid client-side router interception
-router.get('/debug', function mainHandler(req, res) {
+router.get('/debug', readRateLimiter, function mainHandler(req, res) {
   console.log('[Sentry Test] /api/sentry/debug endpoint triggered - throwing error');
   throw new Error('My first Sentry error!');
 });
 
 // Legacy endpoint for backward compatibility
-router.get('/debug-sentry', function mainHandler(req, res) {
+router.get('/debug-sentry', readRateLimiter, function mainHandler(req, res) {
   console.log('[Sentry Test] /api/sentry/debug-sentry endpoint triggered - throwing error');
   throw new Error('My first Sentry error!');
 });
 
 // Test endpoint that throws an error to verify Sentry error capture
-router.get('/test-sentry-error', (req, res) => {
+router.get('/test-sentry-error', readRateLimiter, (req, res) => {
   console.log('[Sentry Test] Triggering test error...');
   
   // Capture a message first
@@ -47,7 +48,7 @@ router.get('/test-sentry-error', (req, res) => {
 });
 
 // Test endpoint that captures a message (doesn't throw an error)
-router.get('/test-sentry-message', (req, res) => {
+router.get('/test-sentry-message', readRateLimiter, (req, res) => {
   console.log('[Sentry Test] Sending test message to Sentry...');
   
   const eventId = Sentry.captureMessage('Sentry message test - integration is working!', 'info');
@@ -61,7 +62,7 @@ router.get('/test-sentry-message', (req, res) => {
 });
 
 // Simple test endpoint that manually captures an exception
-router.get('/test-capture', async (req, res) => {
+router.get('/test-capture', readRateLimiter, async (req, res) => {
   console.log('[Sentry Test] Manually capturing exception...');
   
   try {

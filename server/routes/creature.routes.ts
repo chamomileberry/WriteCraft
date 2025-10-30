@@ -5,11 +5,12 @@ import { z } from "zod";
 import { generateCreatureWithAI } from "../ai-generation";
 import { validateInput } from "../security/middleware";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { aiRateLimiter, writeRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Creature generator routes
-router.post("/generate", trackAIUsage('creature_generation'), async (req: any, res) => {
+router.post("/generate", aiRateLimiter, trackAIUsage('creature_generation'), async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
@@ -71,7 +72,7 @@ router.post("/generate", trackAIUsage('creature_generation'), async (req: any, r
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -88,7 +89,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -108,7 +109,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.patch("/:id", validateInput(insertCreatureSchema.omit({ userId: true }).partial()), async (req: any, res) => {
+router.patch("/:id", writeRateLimiter, validateInput(insertCreatureSchema.omit({ userId: true }).partial()), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     

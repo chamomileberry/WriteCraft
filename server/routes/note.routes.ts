@@ -2,17 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertNoteSchema } from "@shared/schema";
 import { z } from "zod";
-import { createRateLimiter } from "../security";
+import { writeRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-// Notes rate limiting: 200 requests per 15 minutes
-const contentRateLimiter = createRateLimiter({
-  maxRequests: 200,
-  windowMs: 15 * 60 * 1000
-});
-
-router.post("/", contentRateLimiter, async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const noteData = { ...req.body, userId };
@@ -35,7 +29,7 @@ router.post("/", contentRateLimiter, async (req: any, res) => {
   }
 });
 
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notes = await storage.getUserNotes(userId);
@@ -46,7 +40,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const note = await storage.getNote(req.params.id, userId);
@@ -61,7 +55,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", contentRateLimiter, async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -88,7 +82,7 @@ router.put("/:id", contentRateLimiter, async (req: any, res) => {
   }
 });
 
-router.delete("/:id", contentRateLimiter, async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteNote(req.params.id, userId);

@@ -3,6 +3,7 @@ import { isAuthenticated } from '../replitAuth';
 import { requireAdmin } from '../security/middleware';
 import * as keyRotationService from '../services/apiKeyRotationService';
 import { z } from 'zod';
+import { readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -22,7 +23,7 @@ const markRotatedSchema = z.object({
  * GET /api/admin/key-rotations
  * Get all API key rotation status (Admin only)
  */
-router.get('/', isAuthenticated, requireAdmin, async (req, res) => {
+router.get('/', isAuthenticated, requireAdmin, readRateLimiter, async (req, res) => {
   try {
     const rotations = await keyRotationService.getAllKeyRotations();
     res.json(rotations);
@@ -36,7 +37,7 @@ router.get('/', isAuthenticated, requireAdmin, async (req, res) => {
  * GET /api/admin/key-rotations/:keyName/history
  * Get rotation history for a specific key (Admin only)
  */
-router.get('/:keyName/history', isAuthenticated, requireAdmin, async (req, res) => {
+router.get('/:keyName/history', isAuthenticated, requireAdmin, readRateLimiter, async (req, res) => {
   try {
     const { keyName } = req.params;
     const history = await keyRotationService.getKeyRotationHistory(keyName);
@@ -56,7 +57,7 @@ router.get('/:keyName/history', isAuthenticated, requireAdmin, async (req, res) 
  * POST /api/admin/key-rotations/register
  * Register a new API key for rotation tracking (Admin only)
  */
-router.post('/register', isAuthenticated, requireAdmin, async (req, res) => {
+router.post('/register', isAuthenticated, requireAdmin, writeRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const parseResult = registerKeySchema.safeParse(req.body);
@@ -80,7 +81,7 @@ router.post('/register', isAuthenticated, requireAdmin, async (req, res) => {
  * POST /api/admin/key-rotations/mark-rotated
  * Mark an API key as rotated (Admin only)
  */
-router.post('/mark-rotated', isAuthenticated, requireAdmin, async (req, res) => {
+router.post('/mark-rotated', isAuthenticated, requireAdmin, writeRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any).claims.sub;
     const parseResult = markRotatedSchema.safeParse(req.body);
@@ -104,7 +105,7 @@ router.post('/mark-rotated', isAuthenticated, requireAdmin, async (req, res) => 
  * POST /api/admin/key-rotations/check
  * Manually trigger rotation status check (Admin only)
  */
-router.post('/check', isAuthenticated, requireAdmin, async (req, res) => {
+router.post('/check', isAuthenticated, requireAdmin, writeRateLimiter, async (req, res) => {
   try {
     await keyRotationService.checkRotationStatus();
     res.json({ success: true, message: 'Rotation status check completed' });

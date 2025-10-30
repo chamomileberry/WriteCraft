@@ -4,10 +4,11 @@ import { insertDescriptionSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateDescriptionWithAI } from "../ai-generation";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { readRateLimiter, writeRateLimiter, aiRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-router.post("/generate", trackAIUsage('description_generation'), async (req: any, res) => {
+router.post("/generate", aiRateLimiter, trackAIUsage('description_generation'), async (req: any, res) => {
   try {
     const { descriptionType, genre, userId, notebookId } = req.body;
     
@@ -29,7 +30,7 @@ router.post("/generate", trackAIUsage('description_generation'), async (req: any
   }
 });
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const validatedDescription = insertDescriptionSchema.parse(req.body);
     const savedDescription = await storage.createDescription(validatedDescription);
@@ -49,7 +50,7 @@ router.post("/", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -66,7 +67,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -86,7 +87,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertDescriptionSchema.parse(req.body);
@@ -108,7 +109,7 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteDescription(req.params.id, userId);

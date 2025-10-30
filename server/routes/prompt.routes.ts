@@ -4,11 +4,12 @@ import { insertPromptSchema } from "@shared/schema";
 import { z } from "zod";
 import { generatePromptWithAI } from "../ai-generation";
 import { trackAIUsage, attachUsageMetadata } from "../middleware/aiUsageMiddleware";
+import { aiRateLimiter, readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Prompt generator routes
-router.post("/generate", trackAIUsage('prompt_generation'), async (req: any, res) => {
+router.post("/generate", aiRateLimiter, trackAIUsage('prompt_generation'), async (req: any, res) => {
   try {
     const generateRequestSchema = z.object({
       genre: z.string().optional(),
@@ -63,7 +64,7 @@ router.post("/generate", trackAIUsage('prompt_generation'), async (req: any, res
   }
 });
 
-router.get("/random", async (req: any, res) => {
+router.get("/random", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -84,7 +85,7 @@ router.get("/random", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -101,7 +102,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;

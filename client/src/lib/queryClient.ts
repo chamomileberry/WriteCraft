@@ -19,6 +19,43 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// CSRF token cache with timestamp for short-lived caching
+let csrfTokenCache: { token: string; timestamp: number } | null = null;
+const CSRF_CACHE_DURATION = 5000; // 5 seconds cache
+
+async function getCsrfToken(): Promise<string> {
+  // Return cached token if still valid
+  if (csrfTokenCache && Date.now() - csrfTokenCache.timestamp < CSRF_CACHE_DURATION) {
+    return csrfTokenCache.token;
+  }
+
+  try {
+    const res = await fetch('/api/auth/csrf-token', {
+      credentials: 'include',
+    });
+    
+    if (!res.ok) {
+      // If unauthorized, user might not be logged in yet - return empty string
+      if (res.status === 401) {
+        return '';
+      }
+      console.warn('[CSRF] Failed to fetch CSRF token:', res.status);
+      return '';
+    }
+
+    const data = await res.json();
+    const token = data.csrfToken || ''; // Note: endpoint returns 'csrfToken', not 'token'
+    
+    // Cache the token
+    csrfTokenCache = { token, timestamp: Date.now() };
+    
+    return token;
+  } catch (error) {
+    console.warn('[CSRF] Error fetching CSRF token:', error);
+    return '';
+  }
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -31,10 +68,25 @@ export async function apiRequest(
     hasData: !!data,
     data: data ? JSON.stringify(data).substring(0, 100) : null
   });
+
+  // Build headers
+  const headers: Record<string, string> = {};
+  
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  // Include CSRF token for state-changing requests
+  if (method !== 'GET' && method !== 'HEAD') {
+    const token = await getCsrfToken();
+    if (token) {
+      headers["x-csrf-token"] = token;
+    }
+  }
   
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
     signal: options?.signal,
@@ -47,6 +99,50 @@ export async function apiRequest(
     ok: res.ok,
     headers: Object.fromEntries(res.headers.entries())
   });
+
+  // If CSRF token is invalid, clear cache and retry once
+  if (res.status === 403 && (await res.clone().text()).includes('CSRF')) {
+    console.log('[apiRequest] CSRF token invalid, retrying...');
+    csrfTokenCache = null; // Clear the cache
+    
+    const token = await getCsrfToken();
+    if (token) {
+      headers["x-csrf-token"] = token;
+    }
+
+    const retryRes = await fetch(url, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+      signal: options?.signal,
+    });
+
+    await throwIfResNotOk(retryRes);
+    return retryRes;
+  }
+  
+  // Also handle 500 errors with CSRF token missing message
+  if (res.status === 500 && (await res.clone().text()).includes('CSRF token missing')) {
+    console.log('[apiRequest] CSRF token missing (500), retrying...');
+    csrfTokenCache = null; // Clear the cache
+    
+    const token = await getCsrfToken();
+    if (token) {
+      headers["x-csrf-token"] = token;
+    }
+
+    const retryRes = await fetch(url, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+      signal: options?.signal,
+    });
+
+    await throwIfResNotOk(retryRes);
+    return retryRes;
+  }
 
   await throwIfResNotOk(res);
   return res;

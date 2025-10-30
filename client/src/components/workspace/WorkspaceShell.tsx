@@ -264,8 +264,8 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
       {isMobile ? (
         /* Mobile Layout - Full screen with drawer */
         <>
-          {/* Full-width main content for mobile */}
-          <div className="w-full min-h-screen">
+          {/* Full-width main content for mobile with bottom padding for nav */}
+          <div className="w-full min-h-screen pb-mobile-nav">
             {children}
           </div>
           
@@ -274,7 +274,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             <SidebarDrawer
               isOpen={isMobileDrawerOpen}
               onClose={closeMobileDrawer}
-              title="Writing Tools"
+              title={dockedPanels[0]?.title || "Tools"}
             >
               {renderSidebarContent()}
             </SidebarDrawer>

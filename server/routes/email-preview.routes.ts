@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { isAuthenticated } from '../replitAuth';
 import { requireAdmin } from '../security/middleware';
 import * as emailTemplates from '../templates/email/emailTemplates';
+import { readRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
  * GET /api/email-preview/:templateType
  * Preview email templates with sample data (admin only)
  */
-router.get('/:templateType', isAuthenticated, requireAdmin, async (req, res) => {
+router.get('/:templateType', isAuthenticated, requireAdmin, readRateLimiter, async (req, res) => {
   try {
     const { templateType } = req.params;
     const { format = 'html' } = req.query;
@@ -204,7 +205,7 @@ router.get('/:templateType', isAuthenticated, requireAdmin, async (req, res) => 
  * GET /api/email-preview
  * List all available email templates
  */
-router.get('/', isAuthenticated, requireAdmin, async (req, res) => {
+router.get('/', isAuthenticated, requireAdmin, readRateLimiter, async (req, res) => {
   res.json({
     templates: [
       { id: 'subscription-activated', name: 'Subscription Activated', category: 'billing' },
