@@ -179,17 +179,24 @@ The following security features have been successfully implemented:
 - **Files Modified**: `client/src/components/ui/image-upload.tsx`
 - **Impact**: Blocks `javascript:` and malicious `data:` URLs
 
-#### 6. ✅ Transitive Dependency Vulnerability (esbuild)
+#### 6. ✅ DOM-Based XSS via Unsanitized HTML Rendering
+- **Issue**: User-generated HTML content rendered without sanitization
+- **Solution**: DOMPurify sanitization before all `dangerouslySetInnerHTML` usage
+- **Files Modified**: `client/src/pages/GuideDetail.tsx`
+- **Impact**: Prevents malicious scripts in guide content from executing
+
+#### 7. ✅ Transitive Dependency Vulnerability (esbuild)
 - **Issue**: `drizzle-kit` pulled in vulnerable `esbuild@0.18.20`
 - **Solution**: Used package.json `overrides` to force safe version
 - **Files Modified**: `package.json`
 - **Impact**: Development server CORS vulnerability eliminated
 
 ### Security Metrics
-- **CodeQL Alerts Resolved**: 702 (699 rate limiting + 3 XSS)
+- **CodeQL Alerts Resolved**: 702 (699 rate limiting + 4 XSS vulnerabilities)
 - **Dependabot Alerts Resolved**: 1 (esbuild)
-- **Total Security Improvements**: 6 critical fixes
+- **Total Security Improvements**: 7 critical fixes
 - **False Positive Rate**: 0%
+- **Latest Fix**: DOM XSS in GuideDetail.tsx (Oct 30, 2025)
 
 ## Recommendations for Future Enhancement
 

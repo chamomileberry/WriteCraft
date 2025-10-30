@@ -896,7 +896,88 @@ data:image/png;base64,...
 
 ---
 
-### 6. ✅ Transitive Dependency Vulnerabilities (esbuild)
+### 6. ✅ DOM-Based XSS via Unsanitized HTML Rendering
+
+**Issue**: User-generated HTML content rendered without sanitization
+- Alert: DOM-based XSS vulnerability
+- Location: `client/src/pages/GuideDetail.tsx:211`
+- Risk: Malicious HTML/JavaScript in guide content executes in user's browser
+
+**Solution**: Always sanitize HTML before rendering with `dangerouslySetInnerHTML`
+
+```typescript
+// ❌ WRONG: Direct rendering allows XSS
+<div 
+  className="prose prose-gray dark:prose-invert max-w-none"
+  dangerouslySetInnerHTML={{ __html: guide.content }}
+/>
+
+// ✅ CORRECT: Sanitize with DOMPurify before rendering
+import { sanitizeHtml } from "@/lib/sanitize";
+
+<div 
+  className="prose prose-gray dark:prose-invert max-w-none"
+  dangerouslySetInnerHTML={{ __html: sanitizeHtml(guide.content) }}
+/>
+```
+
+**Sanitization Configuration** (`client/src/lib/sanitize.ts`):
+```typescript
+import DOMPurify from 'isomorphic-dompurify';
+
+export function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'blockquote', 'a', 'img',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'hr', 'div', 'span', 'mark', 'sup', 'sub', 'iframe'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'target', 'rel', 'src', 'alt', 
+      'width', 'height', 'class', 'style',
+      'colspan', 'rowspan', 'data-type',
+      'allowfullscreen', 'frameborder'
+    ],
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    ALLOW_DATA_ATTR: false
+  });
+}
+```
+
+**HTML Rendering Checklist:**
+- ✅ **NEVER** use `dangerouslySetInnerHTML` without sanitization
+- ✅ **ALWAYS** import and use `sanitizeHtml()` from `@/lib/sanitize`
+- ✅ Configure DOMPurify with strict allowlists (not denylists)
+- ✅ Block dangerous protocols (`javascript:`, `data:text/html`, `vbscript:`)
+- ✅ Review and minimize `ALLOWED_TAGS` for each use case
+- ✅ Test with malicious payloads: `<img src=x onerror=alert(1)>`
+
+**Attack Vectors Prevented:**
+```html
+<!-- ❌ These are blocked by sanitization: -->
+<script>alert('XSS')</script>
+<img src=x onerror=alert(1)>
+<iframe src="javascript:alert(1)"></iframe>
+<a href="javascript:alert(1)">Click me</a>
+<div onclick="alert(1)">Click me</div>
+
+<!-- ✅ These are allowed (safe HTML): -->
+<p>Normal text with <strong>bold</strong> and <em>italic</em></p>
+<a href="https://example.com" target="_blank">Safe link</a>
+<img src="https://example.com/image.jpg" alt="Safe image">
+```
+
+**When to Use Sanitization:**
+1. **User-generated content**: Forum posts, comments, blog posts, guides
+2. **Rich text editors**: TipTap, Quill, Draft.js output
+3. **Imported content**: World Anvil imports, Markdown-to-HTML conversion
+4. **Third-party data**: API responses containing HTML
+
+---
+
+### 7. ✅ Transitive Dependency Vulnerabilities (esbuild)
 
 **Issue**: Build tool pulled in vulnerable transitive dependencies
 - Alert: Dependabot `esbuild` CORS vulnerability (CVE-2024-XXXXX)
