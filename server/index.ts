@@ -4,6 +4,7 @@ import "./instrument.mjs";
 import { createApp, setServerInstance } from "./app";
 import { setupVite, serveStatic, log } from "./vite";
 import * as keyRotationService from "./services/apiKeyRotationService";
+import { initializeSecurityCleanup } from "./security/middleware";
 
 (async () => {
   const startTime = Date.now();
@@ -48,16 +49,23 @@ import * as keyRotationService from "./services/apiKeyRotationService";
       }, async () => {
         console.log(`[Startup] Server listening on port ${port} - Total startup time: ${Date.now() - startTime}ms`);
         log(`serving on port ${port}`);
-        
+
+        // Initialize security cleanup intervals (CSRF token cleanup)
+        try {
+          initializeSecurityCleanup();
+        } catch (error) {
+          console.error('[Security] Failed to initialize cleanup intervals:', error);
+        }
+
         // Initialize API key rotation tracking
         try {
           await keyRotationService.initializeCommonKeys();
           console.log('[API Key Rotation] Initialized rotation tracking for common keys');
-          
+
           // Run initial rotation status check
           await keyRotationService.checkRotationStatus();
           console.log('[API Key Rotation] Initial rotation status check completed');
-          
+
           // Schedule rotation checks every 24 hours
           setInterval(async () => {
             try {
@@ -70,7 +78,7 @@ import * as keyRotationService from "./services/apiKeyRotationService";
         } catch (error) {
           console.error('[API Key Rotation] Failed to initialize:', error);
         }
-        
+
         resolve();
       }).on('error', (err: Error) => {
         reject(err);
