@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Guide } from "@shared/schema";
 import Header from "@/components/Header";
 import { useState } from "react";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export default function GuideDetail() {
   const { id } = useParams<{ id: string }>();
@@ -208,7 +209,7 @@ export default function GuideDetail() {
             <CardContent className="pt-6">
               <div 
                 className="prose prose-gray dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: guide.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(guide.content) }}
               />
             </CardContent>
           </Card>
