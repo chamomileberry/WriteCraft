@@ -2,7 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertTimelineRelationshipSchema } from "@shared/schema";
 import { z } from "zod";
-import { createRateLimiter } from "../security/middleware";
+import { createRateLimiter } from "../security";
 
 const router = Router();
 
