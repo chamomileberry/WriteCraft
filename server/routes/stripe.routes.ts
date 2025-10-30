@@ -5,7 +5,7 @@ import { subscriptionService } from '../services/subscriptionService';
 import { isAuthenticated } from '../replitAuth';
 import { storage } from '../storage';
 import { emailService } from '../services/emailService';
-import { billingRateLimiter, subscriptionChangeRateLimiter } from '../security/rateLimiters';
+import { billingRateLimiter, subscriptionChangeRateLimiter, readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -169,7 +169,7 @@ router.post('/cancel-subscription', isAuthenticated, subscriptionChangeRateLimit
  * Get customer invoices
  * GET /api/stripe/invoices
  */
-router.get('/invoices', isAuthenticated, async (req: any, res) => {
+router.get('/invoices', isAuthenticated, readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -194,7 +194,7 @@ router.get('/invoices', isAuthenticated, async (req: any, res) => {
  * Get specific invoice (for PDF download)
  * GET /api/stripe/invoices/:id
  */
-router.get('/invoices/:id', isAuthenticated, async (req: any, res) => {
+router.get('/invoices/:id', isAuthenticated, readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { id } = req.params;
@@ -230,7 +230,7 @@ router.get('/invoices/:id', isAuthenticated, async (req: any, res) => {
  * Reactivate a canceled subscription
  * POST /api/stripe/reactivate-subscription
  */
-router.post('/reactivate-subscription', isAuthenticated, async (req: any, res) => {
+router.post('/reactivate-subscription', isAuthenticated, subscriptionChangeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -259,7 +259,7 @@ router.post('/reactivate-subscription', isAuthenticated, async (req: any, res) =
  * Pause subscription
  * POST /api/stripe/pause-subscription
  */
-router.post('/pause-subscription', isAuthenticated, async (req: any, res) => {
+router.post('/pause-subscription', isAuthenticated, subscriptionChangeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { resumeAt, reason } = req.body;
@@ -306,7 +306,7 @@ router.post('/pause-subscription', isAuthenticated, async (req: any, res) => {
  * Resume paused subscription
  * POST /api/stripe/resume-subscription
  */
-router.post('/resume-subscription', isAuthenticated, async (req: any, res) => {
+router.post('/resume-subscription', isAuthenticated, subscriptionChangeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -335,7 +335,7 @@ router.post('/resume-subscription', isAuthenticated, async (req: any, res) => {
  * Get pause status of subscription
  * GET /api/stripe/pause-status
  */
-router.get('/pause-status', isAuthenticated, async (req: any, res) => {
+router.get('/pause-status', isAuthenticated, readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -360,7 +360,7 @@ router.get('/pause-status', isAuthenticated, async (req: any, res) => {
  * Preview subscription change with proration
  * POST /api/stripe/preview-subscription-change
  */
-router.post('/preview-subscription-change', isAuthenticated, async (req: any, res) => {
+router.post('/preview-subscription-change', isAuthenticated, billingRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { tier, billingCycle, discountCode } = req.body;
@@ -404,7 +404,7 @@ router.post('/preview-subscription-change', isAuthenticated, async (req: any, re
  * Create setup intent for adding a new payment method
  * POST /api/stripe/create-setup-intent
  */
-router.post('/create-setup-intent', isAuthenticated, async (req: any, res) => {
+router.post('/create-setup-intent', isAuthenticated, billingRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -445,7 +445,7 @@ router.post('/create-setup-intent', isAuthenticated, async (req: any, res) => {
  * List payment methods for current user
  * GET /api/stripe/payment-methods
  */
-router.get('/payment-methods', isAuthenticated, async (req: any, res) => {
+router.get('/payment-methods', isAuthenticated, readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
 
@@ -488,7 +488,7 @@ router.get('/payment-methods', isAuthenticated, async (req: any, res) => {
  * Delete a payment method
  * DELETE /api/stripe/payment-methods/:id
  */
-router.delete('/payment-methods/:id', isAuthenticated, async (req: any, res) => {
+router.delete('/payment-methods/:id', isAuthenticated, writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const paymentMethodId = req.params.id;
@@ -520,7 +520,7 @@ router.delete('/payment-methods/:id', isAuthenticated, async (req: any, res) => 
  * Set default payment method
  * POST /api/stripe/payment-methods/:id/set-default
  */
-router.post('/payment-methods/:id/set-default', isAuthenticated, async (req: any, res) => {
+router.post('/payment-methods/:id/set-default', isAuthenticated, writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const paymentMethodId = req.params.id;
@@ -572,7 +572,7 @@ router.post('/webhook', async (req, res) => {
   // Critical: Fail fast if webhook secret is not configured
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
     console.error('[Stripe] STRIPE_WEBHOOK_SECRET is not configured - webhook verification cannot proceed');
-    return res.status(500).send('Webhook configuration error');
+    return res.status(500).json({ error: 'Webhook configuration error' });
   }
 
   let event: Stripe.Event;
@@ -586,7 +586,8 @@ router.post('/webhook', async (req, res) => {
     );
   } catch (err: any) {
     console.error('[Stripe] Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    // Use res.json() instead of res.send() to prevent XSS - JSON encoding escapes special characters
+    return res.status(400).json({ error: 'Webhook signature verification failed', message: err.message });
   }
 
   try {

@@ -21,7 +21,7 @@ import teamAnalyticsRoutes from "./routes/team-analytics.routes";
 import feedbackRoutes from "./routes/feedback.routes";
 import adminFeedbackRoutes from "./routes/admin-feedback.routes";
 import exportRoutes from "./routes/export.routes";
-import { registerHealthRoutes } from "./routes/health.routes";
+import healthRoutes from "./routes/health.routes";
 import sentryTestRoutes from "./routes/sentry-test.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { createRateLimiter } from "./security";
@@ -110,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Health check endpoints (no authentication required - for uptime monitoring)
-  registerHealthRoutes(app);
+  app.use("/api/health", healthRoutes);
 
   // CSP violation reporting endpoint (no authentication required - browser sends these automatically)
   app.use("/api/csp-report", cspReportRoutes);

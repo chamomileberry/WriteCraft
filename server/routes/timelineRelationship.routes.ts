@@ -2,18 +2,12 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertTimelineRelationshipSchema } from "@shared/schema";
 import { z } from "zod";
-import { createRateLimiter } from "../security/middleware";
+import { writeRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-// Timeline rate limiting: 100 requests per 15 minutes
-const timelineRateLimiter = createRateLimiter({
-  maxRequests: 100,
-  windowMs: 15 * 60 * 1000
-});
-
 // Create a new relationship between timeline events
-router.post("/", timelineRateLimiter, async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const timelineId = req.body.timelineId;
@@ -42,7 +36,7 @@ router.post("/", timelineRateLimiter, async (req: any, res) => {
 });
 
 // Get all relationships for a specific timeline
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const timelineId = req.query.timelineId as string;
@@ -66,7 +60,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // Update a timeline relationship
-router.patch("/:id", timelineRateLimiter, async (req: any, res) => {
+router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = insertTimelineRelationshipSchema.partial().parse(req.body);
@@ -88,7 +82,7 @@ router.patch("/:id", timelineRateLimiter, async (req: any, res) => {
 });
 
 // Delete a timeline relationship
-router.delete("/:id", timelineRateLimiter, async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const timelineId = req.query.timelineId as string;

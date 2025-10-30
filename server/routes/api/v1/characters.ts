@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { apiAuthMiddleware, requireScope, addRateLimitHeaders, ApiAuthRequest } from '../../../middleware/apiAuthMiddleware';
 import { storage } from '../../../storage';
+import { readRateLimiter, writeRateLimiter } from '../../../security/rateLimiters';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.use(addRateLimitHeaders);
  * List all characters for the authenticated user
  * GET /api/v1/characters?notebookId=<id>
  */
-router.get('/', async (req: ApiAuthRequest, res) => {
+router.get('/', readRateLimiter, async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const notebookId = req.query.notebookId as string;
@@ -41,7 +42,7 @@ router.get('/', async (req: ApiAuthRequest, res) => {
  * Get a specific character by ID
  * GET /api/v1/characters/:id?notebookId=<id>
  */
-router.get('/:id', async (req: ApiAuthRequest, res) => {
+router.get('/:id', readRateLimiter, async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const characterId = req.params.id;
@@ -74,7 +75,7 @@ router.get('/:id', async (req: ApiAuthRequest, res) => {
  * Create a new character
  * POST /api/v1/characters
  */
-router.post('/', requireScope('write'), async (req: ApiAuthRequest, res) => {
+router.post('/', writeRateLimiter, requireScope('write'), async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     
@@ -96,7 +97,7 @@ router.post('/', requireScope('write'), async (req: ApiAuthRequest, res) => {
  * Update a character
  * PATCH /api/v1/characters/:id?notebookId=<id>
  */
-router.patch('/:id', requireScope('write'), async (req: ApiAuthRequest, res) => {
+router.patch('/:id', writeRateLimiter, requireScope('write'), async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const characterId = req.params.id;
@@ -129,7 +130,7 @@ router.patch('/:id', requireScope('write'), async (req: ApiAuthRequest, res) => 
  * Delete a character
  * DELETE /api/v1/characters/:id?notebookId=<id>
  */
-router.delete('/:id', requireScope('write'), async (req: ApiAuthRequest, res) => {
+router.delete('/:id', writeRateLimiter, requireScope('write'), async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const characterId = req.params.id;

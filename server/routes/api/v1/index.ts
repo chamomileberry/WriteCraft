@@ -2,6 +2,7 @@ import { Router } from 'express';
 import projectsRouter from './projects';
 import notebooksRouter from './notebooks';
 import charactersRouter from './characters';
+import { readRateLimiter } from '../../../security/rateLimiters';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ router.use('/notebooks', notebooksRouter);
 router.use('/characters', charactersRouter);
 
 // API info endpoint
-router.get('/', (req, res) => {
+router.get('/', readRateLimiter, (req, res) => {
   res.json({
     version: '1.0.0',
     endpoints: [

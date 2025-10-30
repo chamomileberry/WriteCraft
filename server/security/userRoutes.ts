@@ -7,7 +7,6 @@ import { storage } from '../storage';
 import Stripe from 'stripe';
 import {
   secureAuthentication,
-  createRateLimiter,
   CSRFProtection,
   validateInput,
   sanitizeAllInputs,
@@ -15,6 +14,13 @@ import {
   requireAdmin,
   enforceRowLevelSecurity
 } from './middleware';
+import { 
+  profileRateLimiter, 
+  writeRateLimiter, 
+  readRateLimiter,
+  accountDeletionRateLimiter,
+  adminRateLimiter
+} from './rateLimiters';
 
 const router = Router();
 
@@ -37,7 +43,7 @@ const updateUserSchema = z.object({
 router.get(
   '/auth/user',
   secureAuthentication,
-  createRateLimiter({ maxRequests: 60 }), // 60 requests per 15 minutes
+  profileRateLimiter,
   async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -72,7 +78,7 @@ router.get(
 router.patch(
   '/users/:id',
   secureAuthentication,
-  createRateLimiter({ maxRequests: 20 }), // Stricter rate limit for updates
+  profileRateLimiter,
   CSRFProtection.middleware(), // CSRF protection for state-changing operation
   sanitizeAllInputs,
   validateInput(updateUserSchema),
@@ -178,7 +184,7 @@ router.patch(
   '/admin/users/:id/role',
   secureAuthentication,
   requireAdmin,
-  createRateLimiter({ maxRequests: 10 }), // Very strict rate limit
+  adminRateLimiter,
   CSRFProtection.middleware(),
   sanitizeAllInputs,
   async (req: any, res) => {
@@ -250,7 +256,7 @@ router.patch(
 router.get(
   '/users/:id',
   secureAuthentication,
-  createRateLimiter(),
+  readRateLimiter,
   enforceRowLevelSecurity('user'),
   async (req: any, res) => {
     try {
@@ -305,7 +311,7 @@ router.get(
 router.delete(
   '/users/:id',
   secureAuthentication,
-  createRateLimiter({ maxRequests: 5 }), // Very strict for deletion
+  accountDeletionRateLimiter,
   CSRFProtection.middleware(),
   enforceRowLevelSecurity('user'),
   async (req: any, res) => {
@@ -389,7 +395,7 @@ router.delete(
 router.get(
   '/auth/csrf-token',
   secureAuthentication,
-  createRateLimiter(),
+  readRateLimiter,
   (req: any, res) => {
     const sessionId = req.sessionID;
     if (!sessionId) {

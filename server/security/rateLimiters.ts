@@ -23,52 +23,52 @@ import type { RequestHandler } from 'express';
 /**
  * Strict rate limiter for authentication endpoints
  * Prevents brute-force attacks on login/callback endpoints
+ * No custom keyGenerator - let express-rate-limit handle IPv6 normalization
  */
 export const authRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 1000, // 1 minute
-  keyGenerator: (req: any) => {
-    // Rate limit by IP for authentication to prevent account enumeration
-    return `auth:${req.ip || req.connection.remoteAddress}`;
-  }
 });
 
 /**
  * Rate limiter for MFA operations
  * Prevents brute-force attacks on MFA codes
+ * Rate limited per user only (no IP) since we already have user auth
  */
 export const mfaRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
     const userId = req.user?.claims?.sub || 'anonymous';
-    return `mfa:${userId}:${req.ip}`;
+    return `mfa:${userId}`;
   }
 });
 
 /**
  * Rate limiter for password operations
  * Prevents password change/reset abuse
+ * For unauthenticated users, let express-rate-limit handle IP properly
  */
 export const passwordRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 3,
   windowMs: 60 * 1000,
-  keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || req.ip;
-    return `password:${userId}`;
-  }
+  keyGenerator: ((req: any) => {
+    const userId = req.user?.claims?.sub;
+    return userId ? `password:${userId}` : undefined;
+  }) as any
 });
 
 /**
  * Rate limiter for session operations
  * Prevents session enumeration/hijacking attempts
+ * Rate limited per user only (no IP) since we already have user auth
  */
 export const sessionRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
     const userId = req.user?.claims?.sub || 'anonymous';
-    return `session:${userId}:${req.ip}`;
+    return `session:${userId}`;
   }
 });
 
@@ -393,14 +393,15 @@ export const accountDeletionRateLimiter: RequestHandler = createRateLimiter({
 /**
  * Rate limiter for feedback submission
  * Prevents spam but allows legitimate feedback
+ * For unauthenticated users, let express-rate-limit handle IP properly
  */
 export const feedbackRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 60 * 1000, // 1 hour window
-  keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || req.ip;
-    return `feedback:${userId}`;
-  }
+  keyGenerator: ((req: any) => {
+    const userId = req.user?.claims?.sub;
+    return userId ? `feedback:${userId}` : undefined;
+  }) as any
 });
 
 /**

@@ -3,6 +3,7 @@ import { discountCodeService } from "../services/discountCodeService";
 import { secureAuthentication, requireAdmin } from "../security/middleware";
 import { insertDiscountCodeSchema } from "@shared/schema";
 import { z } from "zod";
+import { readRateLimiter, writeRateLimiter, billingRateLimiter } from "../security/rateLimiters";
 
 export const discountCodeRouter = Router();
 
@@ -15,6 +16,7 @@ discountCodeRouter.post(
   "/admin/create",
   secureAuthentication,
   requireAdmin,
+  writeRateLimiter,
   async (req: any, res, next) => {
     try {
       const validatedData = insertDiscountCodeSchema.parse({
@@ -41,6 +43,7 @@ discountCodeRouter.get(
   "/admin/all",
   secureAuthentication,
   requireAdmin,
+  readRateLimiter,
   async (req: any, res, next) => {
     try {
       const codes = await discountCodeService.getAllDiscountCodes();
@@ -62,6 +65,7 @@ discountCodeRouter.get(
   "/admin/:id",
   secureAuthentication,
   requireAdmin,
+  readRateLimiter,
   async (req: any, res, next) => {
     try {
       const code = await discountCodeService.getDiscountCodeById(req.params.id);
@@ -90,6 +94,7 @@ discountCodeRouter.patch(
   "/admin/:id",
   secureAuthentication,
   requireAdmin,
+  writeRateLimiter,
   async (req: any, res, next) => {
     try {
       const updates = req.body;
@@ -115,6 +120,7 @@ discountCodeRouter.delete(
   "/admin/:id",
   secureAuthentication,
   requireAdmin,
+  writeRateLimiter,
   async (req: any, res, next) => {
     try {
       await discountCodeService.deleteDiscountCode(req.params.id);
@@ -136,6 +142,7 @@ discountCodeRouter.get(
   "/admin/:id/stats",
   secureAuthentication,
   requireAdmin,
+  readRateLimiter,
   async (req: any, res, next) => {
     try {
       const stats = await discountCodeService.getCodeUsageStats(req.params.id);
@@ -158,6 +165,7 @@ discountCodeRouter.get(
 discountCodeRouter.post(
   "/validate",
   secureAuthentication,
+  billingRateLimiter,
   async (req: any, res, next) => {
     try {
       const schema = z.object({
@@ -198,6 +206,7 @@ discountCodeRouter.post(
 discountCodeRouter.get(
   "/my-usage",
   secureAuthentication,
+  readRateLimiter,
   async (req: any, res, next) => {
     try {
       const history = await discountCodeService.getUserDiscountHistory(req.user.claims.sub);

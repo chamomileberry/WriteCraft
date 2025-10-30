@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import axios from "axios";
+import { writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -16,7 +17,7 @@ if (!process.env.PEXELS_API_KEY) {
 
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 
-router.post("/search", async (req: any, res) => {
+router.post("/search", writeRateLimiter, async (req: any, res) => {
   try {
     const validated = stockSearchSchema.parse(req.body);
 

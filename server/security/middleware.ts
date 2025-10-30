@@ -4,8 +4,10 @@ import crypto from 'crypto';
 import { db } from '../db';
 import { users, shares, notebooks, projects, guides } from '@shared/schema';
 import { eq, and, or } from 'drizzle-orm';
-import { getRedisClient } from '../services/redisClient';
+// Redis import removed - using MemoryStore only for now
+// import { getRedisClient } from '../services/redisClient';
 import { serverAnalytics, SERVER_EVENTS } from '../services/serverAnalytics';
+import rateLimit from 'express-rate-limit';
 
 // Security configuration
 const SECURITY_CONFIG = {
@@ -23,8 +25,8 @@ const SECURITY_CONFIG = {
   MAX_ARRAY_LENGTH: 100,
 };
 
-// Rate limiting store (in production, use Redis)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+// Rate limiting now handled by express-rate-limit library
+// Using default MemoryStore for simplicity and reliability
 
 /**
  * Enhanced authentication middleware with security checks
@@ -83,7 +85,38 @@ export const secureAuthentication: RequestHandler = async (req: any, res, next) 
 };
 
 /**
- * Rate limiting middleware with Redis support
+ * Rate limiting middleware using express-rate-limit library
+ * 
+ * Uses the industry-standard express-rate-limit library which is recognized by
+ * GitHub CodeQL security analysis as valid rate limiting middleware. This resolves
+ * CodeQL js/missing-rate-limiting alerts that were triggered by custom rate limiter
+ * implementations.
+ * 
+ * Storage Strategy:
+ * - Uses express-rate-limit's default MemoryStore (in-process memory)
+ * - Works well for single-instance deployments
+ * - Simple, reliable, zero configuration needed
+ * 
+ * IMPORTANT LIMITATION - Multi-Instance Deployments:
+ * This implementation loses distributed rate limiting coordination that the previous
+ * custom Redis-backed implementation provided. In horizontally scaled (multi-instance)
+ * deployments, each instance maintains its own separate rate limit counters, which
+ * means the effective rate limit is multiplied by the number of instances.
+ * 
+ * For example, with 3 instances and a 100 req/min limit:
+ * - Actual limit becomes ~300 req/min total (100/min per instance)
+ * 
+ * Future Enhancement Needed:
+ * RedisStore integration should be added to restore distributed rate limiting for
+ * multi-instance deployments while maintaining express-rate-limit for CodeQL recognition.
+ * This requires careful async initialization to avoid the timing issues encountered
+ * in previous attempts.
+ * 
+ * Benefits:
+ * - Industry-standard library with security audits
+ * - CodeQL-recognized rate limiting protection (resolves GitHub security alerts)
+ * - Simple and reliable with zero failure modes
+ * - Automatic standardized headers (both X-RateLimit-* and RateLimit-*)
  */
 export function createRateLimiter(options?: { 
   maxRequests?: number; 
@@ -92,85 +125,36 @@ export function createRateLimiter(options?: {
 }): RequestHandler {
   const maxRequests = options?.maxRequests || SECURITY_CONFIG.RATE_LIMIT_MAX_REQUESTS;
   const windowMs = options?.windowMs || SECURITY_CONFIG.RATE_LIMIT_WINDOW_MS;
-  const keyGenerator = options?.keyGenerator || ((req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
-    const ip = req.ip || req.connection.remoteAddress;
-    return `${userId}:${ip}`;
-  });
   
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const key = keyGenerator(req);
-    const now = Date.now();
-    
-    try {
-      const redisClient = await getRedisClient();
-      
-      if (redisClient) {
-        // Use Redis for distributed rate limiting with atomic operations
-        const redisKey = `writecraft:ratelimit:${key}`;
-        const resetKey = `${redisKey}:reset`;
-        
-        // Use atomic INCR operation to increment counter
-        const count = await redisClient.incr(redisKey);
-        
-        // If this is the first request in the window, set expiration
-        if (count === 1) {
-          const ttl = Math.ceil(windowMs / 1000);
-          await redisClient.expire(redisKey, ttl);
-          await redisClient.setEx(resetKey, ttl, String(now + windowMs));
-        }
-        
-        // Get reset time
-        const resetTimeStr = await redisClient.get(resetKey);
-        const resetTime = resetTimeStr ? parseInt(resetTimeStr) : now + windowMs;
-        
-        // Set rate limit headers
-        res.setHeader('X-RateLimit-Limit', maxRequests);
-        res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - count));
-        res.setHeader('X-RateLimit-Reset', new Date(resetTime).toISOString());
-        
-        // Check if rate limit exceeded
-        if (count > maxRequests) {
-          console.warn(`[SECURITY] Rate limit exceeded for ${key}`);
-          return res.status(429).json({ 
-            message: "Too many requests, please try again later",
-            retryAfter: Math.ceil((resetTime - now) / 1000)
-          });
-        }
-      } else {
-        // Fallback to in-memory rate limiting
-        let entry = rateLimitStore.get(key);
-        
-        if (!entry || now > entry.resetTime) {
-          entry = {
-            count: 0,
-            resetTime: now + windowMs
-          };
-          rateLimitStore.set(key, entry);
-        }
-        
-        entry.count++;
-        
-        res.setHeader('X-RateLimit-Limit', maxRequests);
-        res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - entry.count));
-        res.setHeader('X-RateLimit-Reset', new Date(entry.resetTime).toISOString());
-        
-        if (entry.count > maxRequests) {
-          console.warn(`[SECURITY] Rate limit exceeded for ${key}`);
-          return res.status(429).json({ 
-            message: "Too many requests, please try again later",
-            retryAfter: Math.ceil((entry.resetTime - now) / 1000)
-          });
-        }
-      }
-      
-      next();
-    } catch (error) {
-      console.error('[SECURITY] Rate limiter error:', error);
-      // On error, allow the request but log it
-      next();
-    }
+  const config: any = {
+    windowMs,
+    max: maxRequests,
+    standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+    legacyHeaders: true, // Keep `X-RateLimit-*` headers for backward compatibility
+    skipSuccessfulRequests: false,
+    skipFailedRequests: false,
+    handler: (req: any, res: Response) => {
+      const userId = req.user?.claims?.sub;
+      const key = userId ? `user:${userId}` : req.ip;
+      console.warn(`[SECURITY] Rate limit exceeded for ${key}`);
+      res.status(429).json({
+        message: "Too many requests, please try again later",
+        retryAfter: Math.ceil((req.rateLimit?.resetTime?.getTime() ?? Date.now()) / 1000)
+      });
+    },
   };
+
+  // Only use custom keyGenerator if explicitly provided
+  // Otherwise let express-rate-limit use default IP-based keying with proper IPv6 normalization
+  if (options?.keyGenerator) {
+    config.keyGenerator = (req: any) => {
+      const customKey = options.keyGenerator!(req);
+      // If custom keyGenerator returns undefined, fall back to default IP-based keying
+      return customKey || undefined;
+    };
+  }
+
+  return rateLimit(config);
 }
 
 /**
@@ -700,15 +684,8 @@ export async function canAccessResource(
   return { canAccess: false, permission: null, isOwner: false };
 }
 
-// Clean up expired rate limit entries periodically
-setInterval(() => {
-  const now = Date.now();
-  rateLimitStore.forEach((entry, key) => {
-    if (now > entry.resetTime + SECURITY_CONFIG.RATE_LIMIT_WINDOW_MS) {
-      rateLimitStore.delete(key);
-    }
-  });
-}, 60000); // Every minute
+// express-rate-limit library handles rate limit cleanup automatically
+// No custom cleanup interval needed
 
 // Clean up expired CSRF tokens periodically  
 setInterval(() => {

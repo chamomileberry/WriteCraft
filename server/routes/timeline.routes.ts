@@ -2,17 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertTimelineSchema } from "@shared/schema";
 import { z } from "zod";
-import { createRateLimiter } from "../security/middleware";
+import { writeRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-// Timeline rate limiting: 100 requests per 15 minutes
-const timelineRateLimiter = createRateLimiter({
-  maxRequests: 100,
-  windowMs: 15 * 60 * 1000
-});
-
-router.post("/", timelineRateLimiter, async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
@@ -53,7 +47,7 @@ router.post("/", timelineRateLimiter, async (req: any, res) => {
 });
 
 // GET /api/timelines - Get all user timelines across all notebooks
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -74,7 +68,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -91,7 +85,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -111,7 +105,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.patch("/:id", timelineRateLimiter, async (req: any, res) => {
+router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = insertTimelineSchema.partial().parse(req.body);
@@ -133,7 +127,7 @@ router.patch("/:id", timelineRateLimiter, async (req: any, res) => {
   }
 });
 
-router.delete("/:id", timelineRateLimiter, async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteTimeline(req.params.id, userId);

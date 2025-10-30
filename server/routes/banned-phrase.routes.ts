@@ -5,6 +5,7 @@ import { bannedPhrases, insertBannedPhraseSchema } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../security/middleware";
 import { clearBannedPhrasesCache } from "../utils/banned-phrases";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const router = Router();
 router.use(requireAdmin);
 
 // GET /api/banned-phrases - Get all banned phrases
-router.get("/", async (req, res) => {
+router.get("/", readRateLimiter, async (req, res) => {
   try {
     const category = req.query.category as string | undefined;
     const activeOnly = req.query.activeOnly === 'true';
@@ -41,7 +42,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/banned-phrases - Create a new banned phrase
-router.post("/", async (req, res) => {
+router.post("/", writeRateLimiter, async (req, res) => {
   try {
     const validatedData = insertBannedPhraseSchema.parse(req.body);
     
@@ -64,7 +65,7 @@ router.post("/", async (req, res) => {
 });
 
 // PATCH /api/banned-phrases/:id - Update a banned phrase
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", writeRateLimiter, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -95,7 +96,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 // DELETE /api/banned-phrases/:id - Delete a banned phrase
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", writeRateLimiter, async (req, res) => {
   try {
     const { id } = req.params;
     

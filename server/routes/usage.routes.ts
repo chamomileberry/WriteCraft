@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { subscriptionService } from "../services/subscriptionService";
 import { z } from "zod";
+import { readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -8,7 +9,7 @@ const router = Router();
  * GET /api/usage/today
  * Returns today's AI usage statistics and tier limits for the authenticated user
  */
-router.get("/today", async (req: any, res) => {
+router.get("/today", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -30,7 +31,7 @@ router.get("/today", async (req: any, res) => {
  * - endDate: ISO date string (default: today)
  * - limit: number of records (default: 100)
  */
-router.get("/history", async (req: any, res) => {
+router.get("/history", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     

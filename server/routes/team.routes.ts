@@ -6,7 +6,7 @@ import { emailService } from '../services/emailService';
 import { db } from '../db';
 import { users, userSubscriptions } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { teamRateLimiter, inviteRateLimiter } from '../security/rateLimiters';
+import { teamRateLimiter, inviteRateLimiter, readRateLimiter, analyticsRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
@@ -190,7 +190,7 @@ router.delete('/members/:userId', isAuthenticated, teamRateLimiter, async (req, 
 });
 
 // Update member role
-router.patch('/members/:userId', isAuthenticated, async (req, res, next) => {
+router.patch('/members/:userId', isAuthenticated, teamRateLimiter, async (req, res, next) => {
   try {
     const currentUserId = (req.user as any).claims.sub;
     const targetUserId = req.params.userId;
@@ -258,7 +258,7 @@ router.patch('/members/:userId', isAuthenticated, async (req, res, next) => {
 });
 
 // Revoke invitation
-router.delete('/invitations/:invitationId', isAuthenticated, async (req, res, next) => {
+router.delete('/invitations/:invitationId', isAuthenticated, inviteRateLimiter, async (req, res, next) => {
   try {
     const userId = (req.user as any).claims.sub;
     const invitationId = req.params.invitationId;
@@ -285,7 +285,7 @@ router.delete('/invitations/:invitationId', isAuthenticated, async (req, res, ne
 });
 
 // Get team activity feed
-router.get('/activity', isAuthenticated, async (req, res, next) => {
+router.get('/activity', isAuthenticated, readRateLimiter, async (req, res, next) => {
   try {
     const userId = (req.user as any).claims.sub;
     const limit = parseInt(req.query.limit as string) || 50;
@@ -305,7 +305,7 @@ router.get('/activity', isAuthenticated, async (req, res, next) => {
 });
 
 // Get team daily usage
-router.get('/usage', isAuthenticated, async (req, res, next) => {
+router.get('/usage', isAuthenticated, analyticsRateLimiter, async (req, res, next) => {
   try {
     const userId = (req.user as any).claims.sub;
     

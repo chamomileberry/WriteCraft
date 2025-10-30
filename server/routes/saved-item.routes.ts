@@ -2,10 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertSavedItemSchema } from "@shared/schema";
 import { z } from "zod";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client payload)
     const userId = req.user.claims.sub;
@@ -59,7 +60,7 @@ router.post("/", async (req: any, res) => {
   }
 });
 
-router.patch("/:id", async (req: any, res) => {
+router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const savedItemId = req.params.id;
@@ -90,7 +91,7 @@ router.patch("/:id", async (req: any, res) => {
   }
 });
 
-router.patch("/:id/type", async (req: any, res) => {
+router.patch("/:id/type", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const savedItemId = req.params.id;
@@ -128,7 +129,7 @@ router.patch("/:id/type", async (req: any, res) => {
   }
 });
 
-router.delete("/", async (req: any, res) => {
+router.delete("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     // Extract userId from authentication headers for security (ignore client payload)
@@ -180,7 +181,7 @@ router.delete("/", async (req: any, res) => {
 });
 
 // Get saved items for a user
-router.get('/:userId', async (req: any, res) => {
+router.get('/:userId', readRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security
     const authenticatedUserId = req.user.claims.sub;
@@ -216,7 +217,7 @@ router.get('/:userId', async (req: any, res) => {
 });
 
 // Get all saved items for a specific notebook
-router.get("/notebook/:notebookId", async (req: any, res) => {
+router.get("/notebook/:notebookId", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { notebookId } = req.params;
@@ -243,7 +244,7 @@ router.get("/notebook/:notebookId", async (req: any, res) => {
 
 
 // Sync endpoint to update itemData for all saved_items with current content
-router.post("/sync/:userId", async (req: any, res) => {
+router.post("/sync/:userId", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const requestedUserId = req.params.userId;

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -20,7 +21,7 @@ async function isAdmin(userId: string): Promise<boolean> {
 }
 
 // Get all categories (with hierarchy)
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -35,7 +36,7 @@ router.get("/", async (req: any, res) => {
 });
 
 // Create a new category (admin only)
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -61,7 +62,7 @@ router.post("/", async (req: any, res) => {
 });
 
 // Update a category (admin only)
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -125,7 +126,7 @@ router.put("/:id", async (req: any, res) => {
 });
 
 // Delete a category (admin only)
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);
@@ -144,7 +145,7 @@ router.delete("/:id", async (req: any, res) => {
 });
 
 // Reorder categories (admin only)
-router.post("/reorder", async (req: any, res) => {
+router.post("/reorder", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const userIsAdmin = await isAdmin(userId);

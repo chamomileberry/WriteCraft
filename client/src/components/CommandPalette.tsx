@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
 import { getMappingById } from "@shared/contentTypes";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
+import { GENERATORS } from "@/components/GeneratorDropdown";
 import {
   Dialog,
   DialogContent,
@@ -26,14 +27,22 @@ interface SearchResult {
 interface CommandPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSelectGenerator?: (generatorId: string) => void;
 }
 
-export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange, onSelectGenerator }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const debouncedQuery = useDebounce(query, 300);
   const [, setLocation] = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Filter generators based on search query
+  const filteredGenerators = query.trim() 
+    ? GENERATORS.filter(gen => 
+        gen.label.toLowerCase().includes(query.toLowerCase())
+      )
+    : GENERATORS;
 
   // Search API call
   const { data: searchResults = [], isLoading } = useQuery({
@@ -200,8 +209,38 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               </div>
             )}
 
+            {/* Generators Section */}
+            {filteredGenerators.length > 0 && (
+              <div className="space-y-1 mb-4">
+                <div className="px-2 py-1">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Generators
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                  {filteredGenerators.map((generator) => {
+                    const Icon = generator.icon;
+                    return (
+                      <button
+                        key={generator.id}
+                        onClick={() => {
+                          onSelectGenerator?.(generator.id);
+                          onOpenChange(false);
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 rounded-md hover-elevate text-left"
+                        data-testid={`generator-${generator.id}`}
+                      >
+                        <Icon className="h-4 w-4 flex-shrink-0 text-primary" />
+                        <span className="text-sm font-medium">{generator.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Empty State - No Query */}
-            {!query.trim() && !isLoading && (
+            {!query.trim() && !isLoading && filteredGenerators.length === 0 && (
               <div className="py-8 px-4 text-center">
                 <Search className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
                 <h3 className="text-sm font-semibold mb-1">Quick Search</h3>

@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../replitAuth';
 import { billingAlertsService } from '../services/billingAlertsService';
+import { readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 
 const router = Router();
 
 /**
  * Get all billing alerts for the authenticated user
  */
-router.get('/', isAuthenticated, async (req: any, res, next) => {
+router.get('/', isAuthenticated, readRateLimiter, async (req: any, res, next) => {
   try {
     const userId = req.user.claims.sub;
     const status = req.query.status as string | undefined;
@@ -23,7 +24,7 @@ router.get('/', isAuthenticated, async (req: any, res, next) => {
 /**
  * Get unread alert count
  */
-router.get('/unread-count', isAuthenticated, async (req: any, res, next) => {
+router.get('/unread-count', isAuthenticated, readRateLimiter, async (req: any, res, next) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -38,7 +39,7 @@ router.get('/unread-count', isAuthenticated, async (req: any, res, next) => {
 /**
  * Mark an alert as read
  */
-router.patch('/:id/read', isAuthenticated, async (req: any, res, next) => {
+router.patch('/:id/read', isAuthenticated, writeRateLimiter, async (req: any, res, next) => {
   try {
     const userId = req.user.claims.sub;
     const alertId = req.params.id;
@@ -58,7 +59,7 @@ router.patch('/:id/read', isAuthenticated, async (req: any, res, next) => {
 /**
  * Dismiss an alert
  */
-router.patch('/:id/dismiss', isAuthenticated, async (req: any, res, next) => {
+router.patch('/:id/dismiss', isAuthenticated, writeRateLimiter, async (req: any, res, next) => {
   try {
     const userId = req.user.claims.sub;
     const alertId = req.params.id;
@@ -78,7 +79,7 @@ router.patch('/:id/dismiss', isAuthenticated, async (req: any, res, next) => {
 /**
  * Resolve an alert
  */
-router.patch('/:id/resolve', isAuthenticated, async (req: any, res, next) => {
+router.patch('/:id/resolve', isAuthenticated, writeRateLimiter, async (req: any, res, next) => {
   try {
     const userId = req.user.claims.sub;
     const alertId = req.params.id;

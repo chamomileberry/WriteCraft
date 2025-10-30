@@ -311,94 +311,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              data-testid="button-menu"
-              title="Menu"
-              aria-label="Menu"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-
+            {/* Mobile workspace menu button - only show when there are workspace panels */}
             {isWorkspaceMobile && hasPanels && isInManuscriptEditor() && <MobileMenuButton />}
           </div>
         </div>
       </div>
 
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-background border-b border-border max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <div className="px-4 py-4 space-y-4">
-            <button
-              onClick={() => {
-                onNavigate?.('notebook');
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
-              data-testid="mobile-link-notebook"
-            >
-              Notebook
-            </button>
-            <button
-              onClick={() => {
-                onNavigate?.('projects');
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
-              data-testid="mobile-link-projects"
-            >
-              Projects
-            </button>
-
-            <div className="space-y-2">
-              <button
-                onClick={() => setIsMobileGeneratorsExpanded(!isMobileGeneratorsExpanded)}
-                className="flex items-center justify-between w-full text-left text-foreground hover:text-primary transition-colors py-2"
-                data-testid="mobile-link-generators"
-              >
-                <span>Generators</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isMobileGeneratorsExpanded ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isMobileGeneratorsExpanded && (
-                <div className="pl-4 space-y-2">
-                  {GENERATORS.map((generator) => {
-                    const Icon = generator.icon;
-                    return (
-                      <button
-                        key={generator.id}
-                        onClick={() => {
-                          setActiveGenerator(generator.id);
-                          setIsMobileMenuOpen(false);
-                          setIsMobileGeneratorsExpanded(false);
-                        }}
-                        className="flex items-center gap-2 w-full text-left text-sm text-foreground hover:text-primary transition-colors py-2"
-                        data-testid={`mobile-${generator.id}`}
-                      >
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span>{generator.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                setLocation('/guides');
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
-              data-testid="mobile-link-guides"
-            >
-              Guides
-            </button>
-          </div>
-        </div>
-      )}
 
       <GeneratorModals
         activeGenerator={activeGenerator}
@@ -408,6 +326,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       <CommandPalette
         open={isCommandPaletteOpen}
         onOpenChange={setIsCommandPaletteOpen}
+        onSelectGenerator={(id) => setActiveGenerator(id as GeneratorType)}
       />
     </header>
   );

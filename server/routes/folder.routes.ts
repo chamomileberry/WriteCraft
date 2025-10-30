@@ -2,10 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertFolderSchema } from "@shared/schema";
 import { z } from "zod";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const folderData = { ...req.body, userId };
@@ -28,7 +29,7 @@ router.post("/", async (req: any, res) => {
   }
 });
 
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const type = req.query.type as string;
@@ -53,7 +54,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const folder = await storage.getFolder(req.params.id, userId);
@@ -68,7 +69,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.put("/:id", async (req: any, res) => {
+router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const folderData = { ...req.body, userId };
@@ -96,7 +97,7 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     await storage.deleteFolder(req.params.id, userId);

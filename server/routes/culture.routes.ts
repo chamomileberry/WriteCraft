@@ -2,10 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertCultureSchema } from "@shared/schema";
 import { z } from "zod";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
-router.post("/", async (req: any, res) => {
+router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
@@ -38,7 +39,7 @@ router.post("/", async (req: any, res) => {
   }
 });
 
-router.get("/", async (req: any, res) => {
+router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
@@ -64,7 +65,7 @@ router.get("/", async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client-supplied userId)
     const userId = req.user.claims.sub;
@@ -82,7 +83,7 @@ router.get("/user/:userId?", async (req: any, res) => {
   }
 });
 
-router.get("/:id", async (req: any, res) => {
+router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -102,7 +103,7 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-router.patch("/:id", async (req: any, res) => {
+router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
@@ -129,7 +130,7 @@ router.patch("/:id", async (req: any, res) => {
   }
 });
 
-router.delete("/:id", async (req: any, res) => {
+router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;

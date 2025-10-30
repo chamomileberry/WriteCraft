@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
+import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
@@ -24,7 +25,7 @@ function getQueryParamAsString(value: string | string[] | undefined): string | u
 router.use(isAuthenticated);
 
 // GET /api/admin/characters/issues - Get characters with incomplete data
-router.get("/characters/issues", async (req, res) => {
+router.get("/characters/issues", readRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any)?.claims?.sub;
     if (!userId) {
@@ -69,7 +70,7 @@ router.get("/characters/issues", async (req, res) => {
 });
 
 // GET /api/admin/characters/duplicates - Get potential duplicate characters
-router.get("/characters/duplicates", async (req, res) => {
+router.get("/characters/duplicates", readRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any)?.claims?.sub;
     if (!userId) {
@@ -109,7 +110,7 @@ router.get("/characters/duplicates", async (req, res) => {
 });
 
 // DELETE /api/admin/characters/bulk-delete-issues - Delete all characters with data issues
-router.delete("/characters/bulk-delete-issues", async (req, res) => {
+router.delete("/characters/bulk-delete-issues", writeRateLimiter, async (req, res) => {
   try {
     const userId = (req.user as any)?.claims?.sub;
     if (!userId) {
