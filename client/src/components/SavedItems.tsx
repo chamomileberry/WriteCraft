@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle, PanelLeft } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +17,7 @@ import { useLocation } from "wouter";
 import { getMappingById } from "@shared/contentTypes";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useIsMobile } from "@/hooks/use-mobile";
 import NotebookSwitcher from "./NotebookSwitcher";
 import ContentTypeModal from "./ContentTypeModal";
 import ContentTypeSidebar from "./ContentTypeSidebar";
@@ -115,6 +117,8 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [fetchedItemData, setFetchedItemData] = useState<{ [key: string]: any }>({});
   const fetchedItemsRef = useRef<Set<string>>(new Set());
+  const isMobile = useIsMobile();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -566,13 +570,32 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
   return (
     <div className="flex h-full gap-0">
-      {/* Content Type Sidebar */}
-      <ContentTypeSidebar
-        items={allItems}
-        selectedType={selectedType}
-        onSelectType={setSelectedType}
-        className="w-64 flex-shrink-0"
-      />
+      {/* Content Type Sidebar - Sheet on mobile, fixed on desktop */}
+      {isMobile ? (
+        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+          <SheetContent side="left" className="w-64 p-0">
+            <SheetHeader className="px-4 pt-6 pb-4">
+              <SheetTitle>Filter Content</SheetTitle>
+            </SheetHeader>
+            <ContentTypeSidebar
+              items={allItems}
+              selectedType={selectedType}
+              onSelectType={(type) => {
+                setSelectedType(type);
+                setIsSidebarOpen(false);
+              }}
+              className="h-full"
+            />
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <ContentTypeSidebar
+          items={allItems}
+          selectedType={selectedType}
+          onSelectType={setSelectedType}
+          className="w-64 flex-shrink-0"
+        />
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto">
@@ -581,6 +604,17 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
+                {isMobile && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsSidebarOpen(true)}
+                    data-testid="button-toggle-sidebar"
+                    className="mr-2"
+                  >
+                    <PanelLeft className="h-5 w-5" />
+                  </Button>
+                )}
                 <BookOpen className="h-8 w-8 text-primary" />
                 Writing Notebook
               </h1>

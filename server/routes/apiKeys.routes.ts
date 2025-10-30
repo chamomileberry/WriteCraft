@@ -97,12 +97,22 @@ router.get('/', readRateLimiter, async (req: any, res) => {
 
 /**
  * Get usage statistics for a specific API key
- * GET /api/api-keys/:id/stats
+ * POST /api/api-keys/stats (changed from GET to avoid sensitive data in URL)
+ * Body: { apiKeyId: string }
+ * 
+ * Security Note: Changed from GET with path parameter to POST with body parameter
+ * to prevent API key IDs from appearing in URLs, logs, and browser history.
  */
-router.get('/:id/stats', readRateLimiter, async (req: any, res) => {
+router.post('/stats', readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const apiKeyId = req.params.id;
+    const { apiKeyId } = req.body;
+
+    if (!apiKeyId) {
+      return res.status(400).json({
+        error: 'Missing apiKeyId in request body',
+      });
+    }
 
     const stats = await apiKeyService.getUsageStats(apiKeyId, userId);
 

@@ -492,6 +492,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       if (!editor || !isFormValid()) return null;
 
       const content = editor.getHTML();
+      const textContent = editor.getText();
       const wordCount = editor.storage.characterCount.words();
       const calculatedReadTime = Math.max(1, Math.round(wordCount / 200));
 
@@ -499,7 +500,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
         title: title.trim(),
         description: description.trim(),
         content,
-        excerpt: description.trim() || content.substring(0, 200).replace(/<[^>]+>/g, ''),
+        excerpt: description.trim() || textContent.substring(0, 200),
         category: category || 'Writing Craft', // Legacy field for backward compatibility
         categoryId: categoryId,
         readTime: calculatedReadTime,

@@ -44,6 +44,16 @@
   .tap-highlight-none {
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Safe area support for devices with notches */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Mobile bottom nav spacing - add to content that needs to avoid bottom nav */
+  .pb-mobile-nav {
+    @apply pb-20 md:pb-0;
+  }
 }
 
 /* Force sticky positioning for docked sidebar */
