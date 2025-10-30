@@ -326,6 +326,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
       <CommandPalette
         open={isCommandPaletteOpen}
         onOpenChange={setIsCommandPaletteOpen}
+        onSelectGenerator={(id) => setActiveGenerator(id as GeneratorType)}
       />
     </header>
   );

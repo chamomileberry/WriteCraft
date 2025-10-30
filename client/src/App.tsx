@@ -69,6 +69,13 @@ import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { analytics } from "@/lib/posthog";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 // Notebook page component
 function NotebookPage() {
@@ -296,7 +303,11 @@ function App() {
 function AuthenticatedApp() {
   const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
+  const [isContentModalOpen, setIsContentModalOpen] = useState(false);
+  
+  const { addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel } = useWorkspaceStore();
 
   // Fetch user preferences to check onboarding status
   const { data: preferences, isLoading: preferencesLoading } = useQuery<any>({
@@ -350,6 +361,57 @@ function AuthenticatedApp() {
     return <Landing />;
   }
 
+  const handleMobileCreateNew = () => {
+    setIsContentModalOpen(true);
+  };
+
+  const handleMobileWritingAssistant = () => {
+    const existingPanel = findPanel('writingAssistant', 'writing-assistant');
+
+    if (existingPanel) {
+      if (existingPanel.mode === 'docked') {
+        if (existingPanel.minimized) {
+          restorePanel(existingPanel.id);
+        }
+        focusPanel(existingPanel.id);
+        openMobileDrawer();
+        return;
+      }
+      if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
+        updatePanel(existingPanel.id, {
+          mode: 'docked',
+          regionId: 'docked',
+          minimized: false
+        });
+        openMobileDrawer();
+        return;
+      }
+    }
+
+    addPanel({
+      id: `writing-assistant-${Date.now()}`,
+      type: 'writingAssistant' as const,
+      title: 'Writing Assistant',
+      mode: 'docked' as const,
+      regionId: 'docked' as const,
+      size: { width: 400, height: 600 },
+      entityId: 'writing-assistant',
+    });
+
+    openMobileDrawer();
+  };
+
+  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+    setIsContentModalOpen(false);
+    const mapping = getMappingById(contentType);
+    if (mapping) {
+      const url = notebookId 
+        ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
+        : `/editor/${mapping.urlSegment}/new`;
+      setLocation(url);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <BetaDisclaimer />
@@ -359,7 +421,62 @@ function AuthenticatedApp() {
       </WorkspaceShell>
       
       {/* Mobile bottom navigation */}
-      <MobileBottomNav />
+      <MobileBottomNav 
+        onCreateNew={handleMobileCreateNew}
+        onOpenWritingAssistant={handleMobileWritingAssistant}
+        onOpenMore={() => setIsMobileMoreOpen(true)}
+      />
+
+      {/* Mobile More Menu */}
+      <Sheet open={isMobileMoreOpen} onOpenChange={setIsMobileMoreOpen}>
+        <SheetContent side="bottom" className="h-[60vh]">
+          <SheetHeader>
+            <SheetTitle>More</SheetTitle>
+          </SheetHeader>
+          <div className="py-4 space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                setLocation('/guides');
+                setIsMobileMoreOpen(false);
+              }}
+              data-testid="more-menu-guides"
+            >
+              Guides
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                setLocation('/account');
+                setIsMobileMoreOpen(false);
+              }}
+              data-testid="more-menu-account"
+            >
+              Account Settings
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                setLocation('/pricing');
+                setIsMobileMoreOpen(false);
+              }}
+              data-testid="more-menu-pricing"
+            >
+              Pricing & Billing
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile Content Creation Modal */}
+      <ContentTypeModal
+        isOpen={isContentModalOpen}
+        onClose={() => setIsContentModalOpen(false)}
+        onSelectType={handleSelectContentType}
+      />
       
       {/* Show onboarding wizard on first login */}
       {showOnboarding && (
