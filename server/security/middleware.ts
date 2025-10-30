@@ -147,7 +147,11 @@ export function createRateLimiter(options?: {
   // Only use custom keyGenerator if explicitly provided
   // Otherwise let express-rate-limit use default IP-based keying with proper IPv6 normalization
   if (options?.keyGenerator) {
-    config.keyGenerator = options.keyGenerator;
+    config.keyGenerator = (req: any) => {
+      const customKey = options.keyGenerator!(req);
+      // If custom keyGenerator returns undefined, fall back to default IP-based keying
+      return customKey || undefined;
+    };
   }
 
   return rateLimit(config);
