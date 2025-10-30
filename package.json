@@ -217,6 +217,7 @@
   },
   "overrides": {
     "mermaid": "^11.10.0",
-    "nanoid": ">=5.0.9"
+    "nanoid": ">=5.0.9",
+    "esbuild": ">=0.25.0"
   }
 }
