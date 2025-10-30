@@ -68,6 +68,7 @@ import { useQuery } from "@tanstack/react-query";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { analytics } from "@/lib/posthog";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 // Notebook page component
 function NotebookPage() {
@@ -356,6 +357,9 @@ function AuthenticatedApp() {
       <WorkspaceShell>
         <Router />
       </WorkspaceShell>
+      
+      {/* Mobile bottom navigation */}
+      <MobileBottomNav />
       
       {/* Show onboarding wizard on first login */}
       {showOnboarding && (
