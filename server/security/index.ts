@@ -9,7 +9,8 @@ export {
   sanitizeAllInputs,
   SecurityAuditLog,
   requireAdmin,
-  enforceRowLevelSecurity
+  enforceRowLevelSecurity,
+  initializeSecurityCleanup
 } from './middleware';
 
 export { default as secureUserRoutes } from './userRoutes';

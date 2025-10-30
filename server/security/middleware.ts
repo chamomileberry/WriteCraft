@@ -162,64 +162,69 @@ export function createRateLimiter(options?: {
  */
 export class CSRFProtection {
   private static tokens = new Map<string, { token: string; expires: number }>();
-  
+
   static generateToken(sessionId: string): string {
     const token = crypto.randomBytes(32).toString('hex');
     const expires = Date.now() + (60 * 60 * 1000); // 1 hour
-    
+
     this.tokens.set(sessionId, { token, expires });
     return token;
   }
-  
+
   static validateToken(sessionId: string, token: string): boolean {
     const stored = this.tokens.get(sessionId);
-    
+
     if (!stored) return false;
     if (Date.now() > stored.expires) {
       this.tokens.delete(sessionId);
       return false;
     }
-    
+
     // Use timing-safe comparison
     return crypto.timingSafeEqual(
       Buffer.from(stored.token),
       Buffer.from(token)
     );
   }
-  
+
   static middleware(): RequestHandler {
     return (req: any, res: Response, next: NextFunction) => {
       // Skip CSRF for GET and HEAD requests
       if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
         return next();
       }
-      
+
       const sessionId = req.sessionID;
       const csrfToken = req.headers['x-csrf-token'] as string || req.body?._csrf;
-      
+
       if (!sessionId) {
         return res.status(401).json({ message: "No session" });
       }
-      
+
       if (!csrfToken || !this.validateToken(sessionId, csrfToken)) {
         console.warn(`[SECURITY] CSRF validation failed for session ${sessionId}`);
         return res.status(403).json({ message: "Invalid CSRF token" });
       }
-      
+
       next();
     };
   }
-  
+
+  /**
+   * Start the cleanup interval for expired CSRF tokens
+   * Should be called once during server initialization
+   */
   static startCleanupInterval(): void {
-    // Clean up expired CSRF tokens periodically
     setInterval(() => {
       const now = Date.now();
-      CSRFProtection.tokens.forEach((data, sessionId) => {
+      this.tokens.forEach((data, sessionId) => {
         if (now > data.expires) {
-          CSRFProtection.tokens.delete(sessionId);
+          this.tokens.delete(sessionId);
         }
       });
     }, 300000); // Every 5 minutes
+
+    console.log('[SECURITY] CSRF token cleanup interval started');
   }
 }
 
@@ -696,18 +701,17 @@ export async function canAccessResource(
   return { canAccess: false, permission: null, isOwner: false };
 }
 
-// express-rate-limit library handles rate limit cleanup automatically
-// No custom cleanup interval needed
-
-// Clean up expired CSRF tokens periodically  
-setInterval(() => {
-  const now = Date.now();
-  CSRFProtection['tokens'].forEach((data, sessionId) => {
-    if (now > data.expires) {
-      CSRFProtection['tokens'].delete(sessionId);
-    }
-  });
-}, 300000); // Every 5 minutes
+/**
+ * Initialize security cleanup intervals
+ * Should be called once during server startup
+ *
+ * Note: express-rate-limit library handles rate limit cleanup automatically,
+ * so we only need to initialize CSRF token cleanup
+ */
+export function initializeSecurityCleanup(): void {
+  CSRFProtection.startCleanupInterval();
+  console.log('[SECURITY] Security cleanup intervals initialized');
+}
 
 export default {
   secureAuthentication,
@@ -720,5 +724,6 @@ export default {
   SecurityAuditLog,
   requireAdmin,
   enforceRowLevelSecurity,
-  canAccessResource
+  canAccessResource,
+  initializeSecurityCleanup
 };
