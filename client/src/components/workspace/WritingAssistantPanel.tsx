@@ -45,6 +45,7 @@ import {
   ImageIcon
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 interface WritingAssistantPanelProps {
   panelId: string;
@@ -521,14 +522,9 @@ export default function WritingAssistantPanel({
     try {
       setIsDetectingEntities(true);
 
-      const response = await fetch('/api/ai/detect-entities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          messages: messages.map(m => ({ type: m.type, content: m.content })),
-          notebookId: activeNotebookId
-        })
+      const response = await apiRequest('POST', '/api/ai/detect-entities', {
+        messages: messages.map(m => ({ type: m.type, content: m.content })),
+        notebookId: activeNotebookId
       });
 
       if (response.ok) {

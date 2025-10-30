@@ -274,7 +274,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             <SidebarDrawer
               isOpen={isMobileDrawerOpen}
               onClose={closeMobileDrawer}
-              title="Writing Tools"
+              title={dockedPanels[0]?.title || "Tools"}
             >
               {renderSidebarContent()}
             </SidebarDrawer>
