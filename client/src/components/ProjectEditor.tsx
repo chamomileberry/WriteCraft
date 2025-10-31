@@ -908,7 +908,7 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
   return (
     <WorkspaceLayout>
       <div className="flex h-full bg-background flex-col" key={`project-editor-${projectId}`}>
-        {/* Navigation Header with Back button and Project Title */}
+        {/* Navigation Header with Back button and Project Title  - Collaboration UI Active */}
         <div className="border-b bg-background/95 backdrop-blur flex-shrink-0">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
