@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   HoverCard,
@@ -28,6 +28,22 @@ interface ContentPreview {
 
 export default function MentionHoverCard({ contentType, contentId, children }: MentionHoverCardProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [side, setSide] = useState<'top' | 'bottom'>('top');
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  // Detect position when hover card opens to decide if we should show above or below
+  const handleOpenChange = (open: boolean) => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      // If within 300px of top of viewport, show below; otherwise show above
+      if (rect.top < 300) {
+        setSide('bottom');
+      } else {
+        setSide('top');
+      }
+    }
+    setIsOpen(open);
+  };
 
   // For features, get data from client-side config instead of fetching
   const featurePreview = useMemo((): ContentPreview | null => {
@@ -66,14 +82,16 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
   const displayPreview = featurePreview || preview;
 
   return (
-    <HoverCard open={isOpen} onOpenChange={setIsOpen} openDelay={300}>
+    <HoverCard open={isOpen} onOpenChange={handleOpenChange} openDelay={300}>
       <HoverCardTrigger asChild>
-        {children}
+        <span ref={triggerRef as any}>
+          {children}
+        </span>
       </HoverCardTrigger>
       <HoverCardContent 
         className="w-80" 
         style={{ zIndex: 99999 }}
-        side="top" 
+        side={side}
         align="start"
         sideOffset={10}
         data-testid="mention-hover-card"

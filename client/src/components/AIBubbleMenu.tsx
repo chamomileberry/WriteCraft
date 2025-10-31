@@ -268,8 +268,16 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       <BubbleMenu
         editor={editor}
         pluginKey="aiActionMenu"
-        shouldShow={({ from, to }) => {
-          return from !== to && !hasActiveSuggestion();
+        shouldShow={({ from, to, view }) => {
+          // Don't show if no text selected or if there's an active suggestion
+          if (from === to || hasActiveSuggestion()) return false;
+          
+          // Get the coordinates of the selection to check if it's near the top
+          const coords = view.coordsAtPos(from);
+          
+          // If selection is within 300px of viewport top, don't show this menu
+          // (it would appear behind the sticky header)
+          return coords.top > 300;
         }}
         options={{
           placement: 'top',
