@@ -75,7 +75,15 @@ export const ClickableMention = Mention.extend({
       },
       label: {
         default: null,
-        parseHTML: (element: HTMLElement) => element.getAttribute('data-mention-label'),
+        parseHTML: (element: HTMLElement) => {
+          // Try to get from attribute first, then extract from text content
+          const attrLabel = element.getAttribute('data-mention-label');
+          if (attrLabel) return attrLabel;
+          
+          // Extract label from text content like "@Name Generator"
+          const textContent = element.textContent || '';
+          return textContent.replace(/^@/, '').trim() || null;
+        },
         renderHTML: (attributes: Record<string, any>) => {
           if (!attributes.label) {
             return {};

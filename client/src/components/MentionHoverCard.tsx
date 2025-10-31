@@ -71,7 +71,7 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
-        className="w-80 z-[100]" 
+        className="w-80 z-50" 
         side="top" 
         align="start"
         data-testid="mention-hover-card"
