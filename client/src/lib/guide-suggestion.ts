@@ -1,26 +1,37 @@
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import MentionList from '@/components/MentionList';
+import { searchFeatures } from './features-config';
 
 export const guideSuggestion = {
   items: async ({ query }: { query: string }) => {
     if (!query) return [];
     
     try {
-      // Search for guides using the guides endpoint with search parameter
-      const response = await fetch(`/api/guides?search=${encodeURIComponent(query)}`, {
-        credentials: 'include'
-      });
+      // Search for both guides and features in parallel
+      const [guidesResponse, featureResults] = await Promise.all([
+        fetch(`/api/guides?search=${encodeURIComponent(query)}`, {
+          credentials: 'include'
+        }).then(res => res.ok ? res.json() : []).catch(() => []),
+        Promise.resolve(searchFeatures(query))
+      ]);
       
-      if (!response.ok) return [];
-      
-      const guides = await response.json();
-      // Map guides to include type field for mention system
-      const guideResults = guides.map((guide: any) => ({
+      // Map guides to include type field
+      const guideResults = guidesResponse.map((guide: any) => ({
         ...guide,
         type: 'guide'
       }));
-      return guideResults.slice(0, 10); // Limit to 10 suggestions
+      
+      // Map features to match expected format
+      const mappedFeatures = featureResults.map(feature => ({
+        id: feature.id,
+        title: feature.title,
+        type: 'feature',
+        description: feature.description
+      }));
+      
+      // Combine and return results (features first for better discovery)
+      return [...mappedFeatures, ...guideResults].slice(0, 10);
     } catch (error) {
       console.error('Error fetching guide suggestions:', error);
       return [];

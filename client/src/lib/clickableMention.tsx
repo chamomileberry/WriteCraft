@@ -9,6 +9,12 @@ function ClickableMentionComponent({ node }: NodeViewProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     
+    // For features, id contains the full route
+    if (type === 'feature') {
+      window.location.href = `/generators#${id}`;
+      return;
+    }
+    
     // Navigate to the appropriate page based on content type
     const navigationMap: Record<string, string> = {
       'character': `/characters/${id}/edit`,
