@@ -35,6 +35,11 @@ import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import type { ProjectSection } from '@shared/schema';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
+import { PresenceIndicators } from '@/components/collaboration/PresenceIndicators';
+import { ActivityLogSidebar } from '@/components/collaboration/ActivityLogSidebar';
+import { VersionHistory } from '@/components/collaboration/VersionHistory';
+import { PendingChanges } from '@/components/collaboration/PendingChanges';
+import { useAuth } from '@/hooks/useAuth';
 
 // Custom HorizontalRule extension
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -201,8 +206,15 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const { updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
+    const { user } = useAuth();
 
     const lowlight = createLowlight();
+
+    // Collaboration state
+    const [showPresence, setShowPresence] = useState(false);
+    const [showActivityLog, setShowActivityLog] = useState(false);
+    const [showVersionHistory, setShowVersionHistory] = useState(false);
+    const [showPendingChanges, setShowPendingChanges] = useState(false);
 
     // Create ref for autosave
     const autosaveRef = useRef<{ triggerAutosave: () => void } | null>(null);
@@ -433,7 +445,16 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         {/* Toolbar */}
         {!readOnly && (
           <div className="border-b bg-muted/20 p-2">
-            <EditorToolbar editor={editor} title={section.title} />
+            <EditorToolbar 
+              editor={editor} 
+              title={section.title}
+              projectId={projectId}
+              activeUsersCount={0}
+              onTogglePresence={() => setShowPresence(!showPresence)}
+              onToggleActivityLog={() => setShowActivityLog(!showActivityLog)}
+              onToggleVersionHistory={() => setShowVersionHistory(!showVersionHistory)}
+              onTogglePendingChanges={() => setShowPendingChanges(!showPendingChanges)}
+            />
           </div>
         )}
 
@@ -442,6 +463,34 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
           <EditorContent editor={editor} data-testid="editor-content" />
           {!readOnly && <AIBubbleMenu editor={editor} />}
         </div>
+
+        {/* Collaboration Sidebars */}
+        {showPresence && (
+          <PresenceIndicators 
+            projectId={projectId}
+            currentUserId={user?.id || ''}
+            onClose={() => setShowPresence(false)}
+          />
+        )}
+        {showActivityLog && (
+          <ActivityLogSidebar 
+            projectId={projectId}
+            onClose={() => setShowActivityLog(false)}
+          />
+        )}
+        {showVersionHistory && (
+          <VersionHistory 
+            projectId={projectId}
+            onClose={() => setShowVersionHistory(false)}
+          />
+        )}
+        {showPendingChanges && user && (
+          <PendingChanges 
+            projectId={projectId}
+            currentUserId={user.id}
+            onClose={() => setShowPendingChanges(false)}
+          />
+        )}
       </div>
     );
   }
