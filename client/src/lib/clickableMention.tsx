@@ -1,6 +1,5 @@
 import Mention from '@tiptap/extension-mention';
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
-import MentionHoverCard from '@/components/MentionHoverCard';
 import { FEATURES } from './features-config';
 
 // React component for rendering clickable mentions with hover preview
@@ -55,18 +54,16 @@ function ClickableMentionComponent({ node }: NodeViewProps) {
 
   return (
     <NodeViewWrapper as="span" className="mention-wrapper inline">
-      <MentionHoverCard contentType={type} contentId={id}>
-        <span
-          className="mention cursor-pointer inline-flex items-center bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20 hover:bg-primary/20 hover:border-primary/30 transition-colors no-underline"
-          onClick={handleClick}
-          data-testid={`mention-${type}-${id}`}
-          data-mention-type={type}
-          data-mention-id={id}
-          data-mention-label={displayLabel}
-        >
-          {displayLabel}
-        </span>
-      </MentionHoverCard>
+      <span
+        className="mention cursor-pointer inline-flex items-center bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20 hover:bg-primary/20 hover:border-primary/30 transition-colors no-underline"
+        onClick={handleClick}
+        data-testid={`mention-${type}-${id}`}
+        data-mention-type={type}
+        data-mention-id={id}
+        data-mention-label={displayLabel}
+      >
+        {displayLabel}
+      </span>
     </NodeViewWrapper>
   );
 }
