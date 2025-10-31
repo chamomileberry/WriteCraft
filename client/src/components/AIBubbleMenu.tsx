@@ -269,6 +269,8 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
         editor={editor}
         pluginKey="aiActionMenu"
         shouldShow={({ from, to, view }) => {
+          if (from === to || hasActiveSuggestion()) return true;
+          
           // Don't show if no text selected or if there's an active suggestion
           if (from === to || hasActiveSuggestion()) return false;
           
@@ -280,7 +282,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
           return coords.top > 300;
         }}
         options={{
-          placement: 'top',
+          placement: 'bottom',
           offset: 8,
         }}
       >
