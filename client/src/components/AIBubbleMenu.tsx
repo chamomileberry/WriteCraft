@@ -26,12 +26,32 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
   const [askSuggestionPosition, setAskSuggestionPosition] = useState({ from: 0, to: 0 });
   const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const { toast } = useToast();
+  const [suggestionCount, setSuggestionCount] = useState(0);
 
   // Update popup position when suggestion becomes active
   useEffect(() => {
     if (!editor) {
       setPopupPosition(null);
       return;
+      
+    }
+    
+    const pluginState = aiSuggestionPluginKey.getState(editor.state);
+    if (pluginState && pluginState.suggestions.length > 0) {
+      const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+      if (activeSuggestion) {
+        const { view } = editor;
+        const { to } = activeSuggestion.deleteRange;
+        const coords = view.coordsAtPos(to);
+        setPopupPosition({
+          top: coords.bottom + 8,
+          left: coords.left
+        });
+      } else {
+        setPopupPosition(null);
+      }
+    } else {
+      setPopupPosition(null);
     }
 
     // Throttle function to limit update frequency
@@ -90,7 +110,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       window.removeEventListener('scroll', throttledUpdate, true);
       window.removeEventListener('resize', throttledUpdate);
     };
-  }, [editor]);
+  }, [editor, suggestionCount]);
 
   const handleAIAction = async (action: AIAction) => {
     if (!editor) return;
@@ -107,6 +127,8 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       setSelectedTextForAsk(selectedText);
       setAskSuggestionPosition(suggestionPosition);
       setShowAskDialog(true);
+      // Clear selection to hide menu
+      editor.commands.setTextSelection(to);
       return;
     }
 
@@ -140,6 +162,8 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       const tr = view.state.tr;
       tr.setMeta(aiSuggestionPluginKey, suggestion);
       view.dispatch(tr);
+      editor.commands.setTextSelection(suggestion.deleteRange.to);
+      setSuggestionCount(prev => prev + 1);
 
     } catch (error) {
       console.error('AI action failed:', error);
@@ -237,17 +261,20 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
 
   // Handle dismissing a suggestion
   const handleDismissSuggestion = () => {
-    if (!editor) return;
-    const pluginState = aiSuggestionPluginKey.getState(editor.state);
-    if (!pluginState || pluginState.suggestions.length === 0) return;
+      if (!editor) return;
+      const pluginState = aiSuggestionPluginKey.getState(editor.state);
+      if (!pluginState || pluginState.suggestions.length === 0) return;
 
-    const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
-    if (!activeSuggestion) return;
+      const activeSuggestion = pluginState.suggestions.find((s: AISuggestion) => s.status === 'pending');
+      if (!activeSuggestion) return;
 
-    const tr = editor.state.tr;
-    const updatedSuggestions = pluginState.suggestions.filter((s: AISuggestion) => s.id !== activeSuggestion.id);
-    tr.setMeta('updateSuggestions', updatedSuggestions);
-    editor.view.dispatch(tr);
+      const tr = editor.state.tr;
+      const updatedSuggestions = pluginState.suggestions.filter((s: AISuggestion) => s.id !== activeSuggestion.id);
+      tr.setMeta('updateSuggestions', updatedSuggestions);
+      editor.view.dispatch(tr);
+
+      // Force React to re-render by updating a state value
+      setPopupPosition(null);
   };
 
   // Get active suggestion details
