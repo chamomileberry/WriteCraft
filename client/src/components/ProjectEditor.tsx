@@ -69,6 +69,8 @@ import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
 import { useSubscription } from '@/hooks/useSubscription';
 import { UpgradePrompt } from '@/components/UpgradePrompt';
+import { useCollaboration } from '@/hooks/useCollaboration';
+import { CollaborationIndicator } from '@/components/CollaborationIndicator';
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -237,7 +239,7 @@ const GoogleDocsEnter = Extension.create({
   },
 });
 
-const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projectId, onBack }, ref) => {
+const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref: React.Ref<ProjectEditorRef>) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState('');
@@ -538,6 +540,14 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
     autosaveRef.current = autosave;
   }, [autosave]);
 
+  // Initialize collaboration for team editing (only for existing projects)
+  const collaborationState = useCollaboration(
+    editor,
+    projectId !== 'new' ? projectId : null,
+    'project',
+    projectId !== 'new' // Only enable collaboration for existing projects
+  );
+
   // Title update mutation
   const titleMutation = useMutation({
     mutationFn: async (newTitle: string) => {
@@ -829,8 +839,13 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
                 <EditorToolbar editor={editor} title={project?.title} />
               </div>
               
-              {/* Media insertion with dialogs */}
-              <div className="flex items-center gap-2">
+              {/* Right side - Collaboration & Media insertion */}
+              <div className="flex items-center gap-3">
+                {/* Collaboration Indicator */}
+                <CollaborationIndicator state={collaborationState} />
+                
+                {/* Media insertion with dialogs */}
+                <div className="flex items-center gap-2">
                 <Dialog open={isInsertImageDialogOpen} onOpenChange={setIsInsertImageDialogOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" title="Insert Image">
@@ -951,6 +966,7 @@ const ProjectEditor = forwardRef<ProjectEditorRef, ProjectEditorProps>(({ projec
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </div>
               </div>
             </div>
           </div>
