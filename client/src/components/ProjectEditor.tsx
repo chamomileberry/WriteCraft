@@ -71,6 +71,14 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { UpgradePrompt } from '@/components/UpgradePrompt';
 import { useCollaboration } from '@/hooks/useCollaboration';
 import { CollaborationIndicator } from '@/components/CollaborationIndicator';
+import { PresenceIndicators } from '@/components/collaboration/PresenceIndicators';
+import { ActivityLogSidebar } from '@/components/collaboration/ActivityLogSidebar';
+import { VersionHistory } from '@/components/collaboration/VersionHistory';
+import { PendingChanges } from '@/components/collaboration/PendingChanges';
+import { Users, History, GitBranch, MessageSquare } from 'lucide-react';
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import Collaboration from '@tiptap/extension-collaboration';
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -257,10 +265,64 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
   const [insertLinkUrl, setInsertLinkUrl] = useState('');
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   
+  // Collaboration sidebar states
+  const [showPresence, setShowPresence] = useState(true);
+  const [showActivityLog, setShowActivityLog] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showPendingChanges, setShowPendingChanges] = useState(false);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { subscription } = useSubscription();
   const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
+  
+  // Y.js document and WebSocket provider for real-time collaboration
+  // Recreate when projectId changes to handle project switching and new→saved transitions
+  const [yjsState, setYjsState] = useState<{ ydoc: Y.Doc | null; provider: WebsocketProvider | null }>(() => ({ ydoc: null, provider: null }));
+  
+  const { ydoc, provider } = yjsState;
+  
+  // Initialize/reinitialize Y.js when projectId changes
+  useEffect(() => {
+    // Cleanup any existing state first
+    if (provider) {
+      provider.destroy();
+    }
+    if (ydoc) {
+      ydoc.destroy();
+    }
+    
+    // Don't create collaboration state for new projects
+    if (!projectId || projectId === 'new') {
+      setYjsState({ ydoc: null, provider: null });
+      return;
+    }
+    
+    // Create Y.js document
+    const doc = new Y.Doc();
+    
+    // Get WebSocket URL (use wss:// for https, ws:// for http)
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/collaboration-sync`;
+    
+    // Create WebSocket provider
+    const prov = new WebsocketProvider(
+      wsUrl,
+      `project-${projectId}`,
+      doc,
+      {
+        connect: true,
+      }
+    );
+    
+    setYjsState({ ydoc: doc, provider: prov });
+    
+    // Cleanup on unmount or before next projectId change
+    return () => {
+      prov.destroy();
+      doc.destroy();
+    };
+  }, [projectId]);
 
   // Fetch project data
   const { data: project, isLoading: isLoadingProject } = useQuery({
@@ -383,6 +445,7 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
         link: false,
         codeBlock: false,
         horizontalRule: false,
+        history: false, // Disable history when using collaboration
         // hardBreak is enabled by default - needed for Google Docs-style line breaks
       }),
       GoogleDocsEnter, // Custom Enter key handler for Google Docs-style behavior
@@ -458,6 +521,12 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
       }),
       Typography,
       AISuggestionsExtension,
+      // Add Collaboration extension if Y.js document is available
+      ...(ydoc ? [
+        Collaboration.configure({
+          document: ydoc,
+        }),
+      ] : []),
     ],
     content: project?.content || '',
     editorProps: {
@@ -510,7 +579,7 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
       // Trigger autosave with debouncing (handled by useAutosave hook)
       autosaveRef.current?.triggerAutosave();
     },
-  });
+  }, [projectId, ydoc]); // Recreate editor when project or Y.js document changes
 
   // Set up autosave hook for content
   const autosave = useAutosave({
@@ -801,7 +870,7 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
 
   return (
     <WorkspaceLayout>
-      <div className="flex h-full bg-background flex-col">
+      <div className="flex h-full bg-background flex-col" key={`project-editor-${projectId}`}>
         {/* Navigation Header with Back button and Project Title */}
         <div className="border-b bg-background/95 backdrop-blur flex-shrink-0">
           <div className="flex items-center justify-between px-4 py-3">
@@ -841,6 +910,46 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
               
               {/* Right side - Collaboration & Media insertion */}
               <div className="flex items-center gap-3">
+                {/* Collaboration Controls */}
+                <div className="flex items-center gap-2 border-r pr-3">
+                  <Button
+                    variant={showPresence ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowPresence(!showPresence)}
+                    title="Show Active Users"
+                    data-testid="button-toggle-presence"
+                  >
+                    <Users className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={showActivityLog ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowActivityLog(!showActivityLog)}
+                    title="Activity Log"
+                    data-testid="button-toggle-activity"
+                  >
+                    <History className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={showVersionHistory ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowVersionHistory(!showVersionHistory)}
+                    title="Version History"
+                    data-testid="button-toggle-versions"
+                  >
+                    <GitBranch className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={showPendingChanges ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowPendingChanges(!showPendingChanges)}
+                    title="Pending Changes"
+                    data-testid="button-toggle-pending"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                </div>
+                
                 {/* Collaboration Indicator */}
                 <CollaborationIndicator state={collaborationState} />
                 
@@ -972,9 +1081,56 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
           </div>
 
           {/* **REFINED**: Main editor area with focus mode support */}
-          <div className="flex-1 overflow-auto" onPaste={handlePaste}>
-            <EditorContent editor={editor} />
-            <AIBubbleMenu editor={editor} />
+          <div className="flex-1 flex overflow-hidden">
+            {/* Main Editor */}
+            <div className="flex-1 overflow-auto" onPaste={handlePaste}>
+              {/* Presence Indicators (when enabled) */}
+              {showPresence && provider && (
+                <div className="px-6 py-2 border-b bg-muted/50">
+                  <PresenceIndicators provider={provider} />
+                </div>
+              )}
+              
+              <EditorContent editor={editor} />
+              <AIBubbleMenu editor={editor} />
+            </div>
+            
+            {/* Activity Log Sidebar */}
+            {showActivityLog && (
+              <div className="w-80 border-l bg-background flex-shrink-0 overflow-hidden">
+                <ActivityLogSidebar
+                  projectId={projectId}
+                  onClose={() => setShowActivityLog(false)}
+                />
+              </div>
+            )}
+            
+            {/* Version History Sidebar */}
+            {showVersionHistory && (
+              <div className="w-80 border-l bg-background flex-shrink-0 overflow-hidden">
+                <VersionHistory
+                  projectId={projectId}
+                  onClose={() => setShowVersionHistory(false)}
+                  onRestore={(content) => {
+                    editor?.commands.setContent(content);
+                    toast({
+                      title: "Version Restored",
+                      description: "The selected version has been restored successfully."
+                    });
+                  }}
+                />
+              </div>
+            )}
+            
+            {/* Pending Changes Sidebar */}
+            {showPendingChanges && (
+              <div className="w-80 border-l bg-background flex-shrink-0 overflow-hidden">
+                <PendingChanges
+                  projectId={projectId}
+                  onClose={() => setShowPendingChanges(false)}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
