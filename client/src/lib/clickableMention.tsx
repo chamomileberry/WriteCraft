@@ -1,4 +1,4 @@
-import { mergeAttributes, Node } from '@tiptap/core';
+import Mention from '@tiptap/extension-mention';
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
 import MentionHoverCard from '@/components/MentionHoverCard';
 
@@ -49,24 +49,16 @@ function ClickableMentionComponent({ node }: NodeViewProps) {
   );
 }
 
-// Custom TipTap extension for clickable mentions
-export const ClickableMention = Node.create({
+// Custom TipTap extension for clickable mentions - extends official Mention with custom rendering
+export const ClickableMention = Mention.extend({
   name: 'mention',
-
-  group: 'inline',
-
-  inline: true,
-
-  selectable: false,
-
-  atom: true,
 
   addAttributes() {
     return {
       id: {
         default: null,
-        parseHTML: element => element.getAttribute('data-mention-id'),
-        renderHTML: attributes => {
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-mention-id'),
+        renderHTML: (attributes: Record<string, any>) => {
           if (!attributes.id) {
             return {};
           }
@@ -77,8 +69,8 @@ export const ClickableMention = Node.create({
       },
       label: {
         default: null,
-        parseHTML: element => element.getAttribute('data-mention-label'),
-        renderHTML: attributes => {
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-mention-label'),
+        renderHTML: (attributes: Record<string, any>) => {
           if (!attributes.label) {
             return {};
           }
@@ -89,8 +81,8 @@ export const ClickableMention = Node.create({
       },
       type: {
         default: null,
-        parseHTML: element => element.getAttribute('data-mention-type'),
-        renderHTML: attributes => {
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-mention-type'),
+        renderHTML: (attributes: Record<string, any>) => {
           if (!attributes.type) {
             return {};
           }
@@ -110,18 +102,16 @@ export const ClickableMention = Node.create({
     ];
   },
 
-  renderHTML({ node, HTMLAttributes }) {
+  renderHTML({ node, HTMLAttributes }: { node: any; HTMLAttributes: Record<string, any> }) {
     return [
       'span',
-      mergeAttributes(
-        {
-          'data-mention-type': node.attrs.type,
-          'data-mention-id': node.attrs.id,
-          'data-mention-label': node.attrs.label,
-          class: 'mention',
-        },
-        HTMLAttributes
-      ),
+      {
+        ...HTMLAttributes,
+        'data-mention-type': node.attrs.type,
+        'data-mention-id': node.attrs.id,
+        'data-mention-label': node.attrs.label,
+        class: 'mention',
+      },
       `@${node.attrs.label || node.attrs.id}`,
     ];
   },
