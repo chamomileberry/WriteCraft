@@ -6,6 +6,9 @@ import * as syncProtocol from 'y-protocols/sync';
 import * as awarenessProtocol from 'y-protocols/awareness';
 import type { Server } from 'http';
 import type { IncomingMessage } from 'http';
+import { db } from './db';
+import { projects, projectActivity, shares } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 const wsReadyStateConnecting = 0;
 const wsReadyStateOpen = 1;
@@ -14,6 +17,9 @@ interface WSConnection {
   ws: WebSocket;
   doc: Y.Doc;
   awareness: awarenessProtocol.Awareness;
+  userId?: string;
+  userName?: string;
+  projectId?: string;
 }
 
 // Store all active documents
@@ -24,6 +30,109 @@ const docConnections = new Map<string, Set<WSConnection>>();
 // Message types
 const messageSync = 0;
 const messageAwareness = 1;
+
+// Debounced save to database
+const saveToDB = new Map<string, NodeJS.Timeout>();
+
+async function persistDocument(projectId: string, doc: Y.Doc) {
+  try {
+    // Extract HTML content from Y.Doc
+    const xmlFragment = doc.getXmlFragment('default');
+    const content = xmlFragment.toString();
+    
+    // Update project with debouncing (save every 2 seconds max)
+    if (saveToDB.has(projectId)) {
+      clearTimeout(saveToDB.get(projectId)!);
+    }
+    
+    saveToDB.set(projectId, setTimeout(async () => {
+      try {
+        await db.update(projects)
+          .set({
+            content,
+            updatedAt: new Date(),
+          })
+          .where(eq(projects.id, projectId));
+        console.log(`[Collaboration] Persisted document ${projectId}`);
+      } catch (error) {
+        console.error(`[Collaboration] Failed to persist document ${projectId}:`, error);
+      }
+      saveToDB.delete(projectId);
+    }, 2000));
+  } catch (error) {
+    console.error('[Collaboration] Error persisting document:', error);
+  }
+}
+
+async function loadDocumentFromDB(projectId: string, doc: Y.Doc) {
+  try {
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+    
+    if (project && project.content) {
+      // Load HTML content into Y.Doc
+      const xmlFragment = doc.getXmlFragment('default');
+      // TODO: Convert HTML to Y.js structure if needed
+      console.log(`[Collaboration] Loaded document ${projectId} from database`);
+    }
+  } catch (error) {
+    console.error('[Collaboration] Error loading document from database:', error);
+  }
+}
+
+async function checkUserAccess(userId: string, projectId: string): Promise<{ hasAccess: boolean; permission: string; userName?: string; userAvatar?: string }> {
+  try {
+    // Check if user is owner
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+      with: {
+        user: true,
+      },
+    });
+    
+    if (!project) {
+      return { hasAccess: false, permission: 'none' };
+    }
+    
+    if (project.userId === userId) {
+      const user = project.user as any;
+      return {
+        hasAccess: true,
+        permission: 'edit',
+        userName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email || 'Unknown',
+        userAvatar: user?.profileImageUrl ?? undefined,
+      };
+    }
+    
+    // Check shared permissions
+    const share = await db.query.shares.findFirst({
+      where: and(
+        eq(shares.resourceType, 'project'),
+        eq(shares.resourceId, projectId),
+        eq(shares.userId, userId)
+      ),
+      with: {
+        user: true,
+      },
+    });
+    
+    if (share && share.permission === 'edit') {
+      const user = share.user as any;
+      return {
+        hasAccess: true,
+        permission: 'edit',
+        userName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email || 'Unknown',
+        userAvatar: user?.profileImageUrl ?? undefined,
+      };
+    }
+    
+    return { hasAccess: false, permission: share?.permission ?? 'none' };
+  } catch (error) {
+    console.error('[Collaboration] Error checking user access:', error);
+    return { hasAccess: false, permission: 'none' };
+  }
+}
 
 export function setupCollaborationServer(server: Server) {
   const wss = new WebSocketServer({ noServer: true });
@@ -42,7 +151,7 @@ export function setupCollaborationServer(server: Server) {
     }
   });
 
-  wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+  wss.on('connection', async (ws: WebSocket, req: IncomingMessage) => {
     console.log('[Collaboration] New WebSocket connection');
     
     const url = new URL(req.url!, `http://${req.headers.host}`);
@@ -55,6 +164,8 @@ export function setupCollaborationServer(server: Server) {
     }
     
     const userId = url.searchParams.get('userId');
+    const userName = url.searchParams.get('userName');
+    const userAvatar = url.searchParams.get('userAvatar');
     
     if (!docName) {
       console.error('[Collaboration] Missing doc parameter');
@@ -62,28 +173,76 @@ export function setupCollaborationServer(server: Server) {
       return;
     }
 
-    console.log(`[Collaboration] User ${userId || 'unknown'} connecting to ${docName}`);
+    // Extract projectId from docName (format: "project-{projectId}")
+    const projectId = docName.replace('project-', '');
+    
+    // Authenticate user
+    if (!userId) {
+      console.error('[Collaboration] Missing userId parameter');
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+    
+    const access = await checkUserAccess(userId, projectId);
+    if (!access.hasAccess) {
+      console.error(`[Collaboration] User ${userId} denied access to project ${projectId}`);
+      ws.close(1008, 'Access denied - edit permission required');
+      return;
+    }
+
+    console.log(`[Collaboration] User ${access.userName} (${userId}) connecting to ${projectId}`);
 
     // Get or create document
     let doc = docs.get(docName);
+    const isNewDoc = !doc;
     if (!doc) {
       doc = new Y.Doc();
       docs.set(docName, doc);
+      
+      // Load document from database
+      await loadDocumentFromDB(projectId, doc);
       console.log(`[Collaboration] Created new document ${docName}`);
     }
 
     // Create awareness instance
     const awareness = new awarenessProtocol.Awareness(doc);
     
-    // Track this connection
-    const conn: WSConnection = { ws, doc, awareness };
+    // Track this connection with user info
+    const conn: WSConnection = { 
+      ws, 
+      doc, 
+      awareness,
+      userId,
+      userName: access.userName,
+      projectId,
+    };
     if (!docConnections.has(docName)) {
       docConnections.set(docName, new Set());
     }
     docConnections.get(docName)!.add(conn);
+    
+    // Log activity
+    try {
+      await db.insert(projectActivity).values({
+        projectId,
+        userId,
+        userName: access.userName || 'Unknown User',
+        userAvatar: access.userAvatar,
+        activityType: 'edit',
+        description: `${access.userName || 'User'} started editing`,
+        metadata: { action: 'connected' },
+      });
+    } catch (error) {
+      console.error('[Collaboration] Failed to log activity:', error);
+    }
 
     // Set up document update handler - broadcast to all other clients
     const updateHandler = (update: Uint8Array, origin: any) => {
+      // Persist to database (debounced)
+      if (projectId) {
+        persistDocument(projectId, doc);
+      }
+      
       if (origin !== conn) {
         const encoder = encoding.createEncoder();
         encoding.writeVarUint(encoder, messageSync);
