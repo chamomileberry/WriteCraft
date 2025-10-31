@@ -137,16 +137,37 @@ export class ProjectRepository extends BaseRepository {
       }
     }
 
+    // Check if user is owner OR has edit permission through sharing
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, id),
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Check ownership or edit permission
+    const isOwner = project.userId === userId;
+    const hasEditPermission = !isOwner && await db.query.shares.findFirst({
+      where: and(
+        eq(shares.resourceType, 'project'),
+        eq(shares.resourceId, id),
+        eq(shares.userId, userId),
+        eq(shares.permission, 'edit')
+      ),
+    });
+
+    if (!isOwner && !hasEditPermission) {
+      throw new Error('Project not found or access denied');
+    }
+
     const [updatedProject] = await db
       .update(projects)
       .set({
         ...updates,
         updatedAt: new Date(),
       })
-      .where(and(
-        eq(projects.id, id),
-        eq(projects.userId, userId)
-      ))
+      .where(eq(projects.id, id))
       .returning();
 
     if (!updatedProject) {
