@@ -1129,8 +1129,10 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
               )}
               
               <EditorContent editor={editor} />
-              <AIBubbleMenu editor={editor} />
             </div>
+            
+            {/* AI Bubble Menu rendered outside editor div to avoid stacking context issues */}
+            <AIBubbleMenu editor={editor} />
             
             {/* Activity Log Sidebar */}
             {showActivityLog && (

@@ -926,9 +926,10 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
                 }}
               />
             </div>
-            <AIBubbleMenu editor={editor} />
           </CardContent>
         </Card>
+        {/* AI Bubble Menu rendered outside Card to avoid stacking context issues */}
+        <AIBubbleMenu editor={editor} />
       </div>
     </div>
   );
