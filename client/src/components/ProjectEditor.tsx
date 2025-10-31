@@ -303,7 +303,7 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
     
     // Get WebSocket URL (use wss:// for https, ws:// for http)
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/collaboration-sync`;
+    const wsUrl = `${protocol}//${window.location.host}/collaboration`;
     
     // Create WebSocket provider
     const prov = new WebsocketProvider(
