@@ -4,11 +4,44 @@ import { storage } from "../storage";
 import { insertUserPreferencesSchema } from "@shared/schema";
 import { db } from "../db";
 import { users, auditLogs } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, ilike } from "drizzle-orm";
 import { logger } from "../utils/logger";
-import { profileRateLimiter, accountDeletionRateLimiter } from "../security/rateLimiters";
+import { profileRateLimiter, accountDeletionRateLimiter, readRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
+
+// Search for users by email (for sharing/collaboration)
+router.get("/search", readRateLimiter, async (req: any, res) => {
+  try {
+    const { email } = req.query;
+    
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: "Email parameter is required" });
+    }
+
+    // Search for user by exact email match
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      })
+      .from(users)
+      .where(eq(users.email, email.toLowerCase().trim()))
+      .limit(1);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error searching for user:", error);
+    res.status(500).json({ error: "Failed to search for user" });
+  }
+});
 
 // Get user preferences
 router.get("/preferences", profileRateLimiter, async (req: any, res) => {
