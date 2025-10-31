@@ -1,13 +1,25 @@
 import Mention from '@tiptap/extension-mention';
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
 import MentionHoverCard from '@/components/MentionHoverCard';
+import { FEATURES } from './features-config';
 
 // React component for rendering clickable mentions with hover preview
 function ClickableMentionComponent({ node }: NodeViewProps) {
   const { id, label, type } = node.attrs as { id: string; label: string | null; type: string };
   
-  // If label is missing, try to extract from the node's text content as fallback
-  const displayLabel = label || (node.textContent && node.textContent.replace(/^@/, '').trim()) || id;
+  // If label is missing, determine it based on type
+  let displayLabel = label;
+  
+  if (!displayLabel) {
+    if (type === 'feature') {
+      // Look up feature title from config
+      const feature = FEATURES.find(f => f.id === id);
+      displayLabel = feature?.title || id;
+    } else {
+      // For other types, try to extract from text content or use ID
+      displayLabel = (node.textContent && node.textContent.replace(/^@/, '').trim()) || id;
+    }
+  }
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
