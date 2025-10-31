@@ -78,4 +78,336 @@ router.get('/rooms', collaborationRateLimiter, async (req: Request, res: Respons
   }
 });
 
+// Get project activity log
+router.get('/projects/:projectId/activity', collaborationRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Check if user has access to this project
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Check access
+    const hasAccess = project.userId === userId || await db.query.shares.findFirst({
+      where: and(
+        eq(shares.resourceType, 'project'),
+        eq(shares.resourceId, projectId),
+        eq(shares.userId, userId)
+      ),
+    });
+
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Get activity log
+    const { projectActivity } = await import('../../shared/schema');
+    const { desc } = await import('drizzle-orm');
+    const activities = await db.query.projectActivity.findMany({
+      where: eq(projectActivity.projectId, projectId),
+      orderBy: desc(projectActivity.createdAt),
+      limit: 100,
+    });
+
+    res.json({ activities });
+  } catch (error: any) {
+    console.error('[Collaboration API] Error fetching activity log:', error);
+    res.status(500).json({ message: error.message || 'Failed to fetch activity log' });
+  }
+});
+
+// Get project versions
+router.get('/projects/:projectId/versions', collaborationRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Check access
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const hasAccess = project.userId === userId || await db.query.shares.findFirst({
+      where: and(
+        eq(shares.resourceType, 'project'),
+        eq(shares.resourceId, projectId),
+        eq(shares.userId, userId)
+      ),
+    });
+
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Get versions
+    const { projectVersions } = await import('../../shared/schema');
+    const { desc } = await import('drizzle-orm');
+    const versions = await db.query.projectVersions.findMany({
+      where: eq(projectVersions.projectId, projectId),
+      orderBy: desc(projectVersions.createdAt),
+      limit: 50,
+    });
+
+    res.json({ versions });
+  } catch (error: any) {
+    console.error('[Collaboration API] Error fetching versions:', error);
+    res.status(500).json({ message: error.message || 'Failed to fetch versions' });
+  }
+});
+
+// Create manual snapshot
+router.post('/projects/:projectId/versions', collaborationRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const { label } = req.body;
+    const userId = (req as any).user?.id;
+    const user = (req as any).user;
+    const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Unknown';
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Check if user is owner or has edit permission
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (project.userId !== userId) {
+      const hasEditAccess = await db.query.shares.findFirst({
+        where: and(
+          eq(shares.resourceType, 'project'),
+          eq(shares.resourceId, projectId),
+          eq(shares.userId, userId),
+          eq(shares.permission, 'edit')
+        ),
+      });
+
+      if (!hasEditAccess) {
+        return res.status(403).json({ message: 'Edit permission required' });
+      }
+    }
+
+    // Create snapshot
+    const { projectVersions, projectActivity } = await import('../../shared/schema');
+    
+    // Get the latest version number
+    const latestVersion = await db.query.projectVersions.findFirst({
+      where: eq(projectVersions.projectId, projectId),
+      orderBy: [desc(projectVersions.versionNumber)],
+    });
+    
+    const versionNumber = (latestVersion?.versionNumber ?? 0) + 1;
+    
+    const [version] = await db.insert(projectVersions).values({
+      projectId,
+      userId,
+      title: project.title,
+      content: project.content || '',
+      wordCount: project.wordCount ?? 0,
+      versionNumber,
+      versionType: 'manual',
+      versionLabel: label || `Manual snapshot by ${userName}`,
+    }).returning();
+
+    // Log activity
+    await db.insert(projectActivity).values({
+      projectId,
+      userId,
+      userName,
+      activityType: 'version',
+      description: `Created snapshot: ${version.versionLabel || 'Untitled'}`,
+      metadata: { versionId: version.id },
+    });
+
+    res.json({ version });
+  } catch (error: any) {
+    console.error('[Collaboration API] Error creating version:', error);
+    res.status(500).json({ message: error.message || 'Failed to create version' });
+  }
+});
+
+// Restore version
+router.post('/projects/:projectId/versions/:versionId/restore', collaborationRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { projectId, versionId } = req.params;
+    const userId = (req as any).user?.id;
+    const user = (req as any).user;
+    const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Unknown';
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Check if user is owner
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project || project.userId !== userId) {
+      return res.status(403).json({ message: 'Only owner can restore versions' });
+    }
+
+    // Get version
+    const { projectVersions, projectActivity } = await import('../../shared/schema');
+    const version = await db.query.projectVersions.findFirst({
+      where: and(
+        eq(projectVersions.id, versionId),
+        eq(projectVersions.projectId, projectId)
+      ),
+    });
+
+    if (!version) {
+      return res.status(404).json({ message: 'Version not found' });
+    }
+
+    // Restore content
+    await db.update(projects)
+      .set({
+        content: version.content,
+        updatedAt: new Date(),
+      })
+      .where(eq(projects.id, projectId));
+
+    // Log activity
+    await db.insert(projectActivity).values({
+      projectId,
+      userId,
+      userName,
+      activityType: 'version',
+      description: `Restored version: ${version.versionLabel || 'Untitled'}`,
+      metadata: { versionId: version.id },
+    });
+
+    res.json({ success: true, version });
+  } catch (error: any) {
+    console.error('[Collaboration API] Error restoring version:', error);
+    res.status(500).json({ message: error.message || 'Failed to restore version' });
+  }
+});
+
+// Get pending changes
+router.get('/projects/:projectId/pending-changes', collaborationRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Check if user is owner
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project || project.userId !== userId) {
+      return res.status(403).json({ message: 'Only owner can view pending changes' });
+    }
+
+    // Get pending changes
+    const { pendingChanges } = await import('../../shared/schema');
+    const { desc } = await import('drizzle-orm');
+    const changes = await db.query.pendingChanges.findMany({
+      where: and(
+        eq(pendingChanges.projectId, projectId),
+        eq(pendingChanges.status, 'pending')
+      ),
+      orderBy: desc(pendingChanges.createdAt),
+    });
+
+    res.json({ changes });
+  } catch (error: any) {
+    console.error('[Collaboration API] Error fetching pending changes:', error);
+    res.status(500).json({ message: error.message || 'Failed to fetch pending changes' });
+  }
+});
+
+// Approve/reject change
+router.post('/projects/:projectId/pending-changes/:changeId/:action', collaborationRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { projectId, changeId, action } = req.params;
+    const userId = (req as any).user?.id;
+    const user = (req as any).user;
+    const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Unknown';
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (action !== 'approve' && action !== 'reject') {
+      return res.status(400).json({ message: 'Invalid action' });
+    }
+
+    // Check if user is owner
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project || project.userId !== userId) {
+      return res.status(403).json({ message: 'Only owner can approve/reject changes' });
+    }
+
+    // Get change
+    const { pendingChanges, projectActivity } = await import('../../shared/schema');
+    const change = await db.query.pendingChanges.findFirst({
+      where: and(
+        eq(pendingChanges.id, changeId),
+        eq(pendingChanges.projectId, projectId)
+      ),
+    });
+
+    if (!change) {
+      return res.status(404).json({ message: 'Change not found' });
+    }
+
+    // Update status
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+    await db.update(pendingChanges)
+      .set({
+        status: newStatus,
+        reviewedBy: userId,
+        reviewedAt: new Date(),
+      })
+      .where(eq(pendingChanges.id, changeId));
+
+    // Log activity
+    await db.insert(projectActivity).values({
+      projectId,
+      userId,
+      userName,
+      activityType: 'review',
+      description: `${action === 'approve' ? 'Approved' : 'Rejected'} change from ${change.userName}`,
+      metadata: { changeId: change.id, action },
+    });
+
+    res.json({ success: true, change: { ...change, status: newStatus } });
+  } catch (error: any) {
+    console.error('[Collaboration API] Error updating change:', error);
+    res.status(500).json({ message: error.message || 'Failed to update change' });
+  }
+});
+
 export default router;

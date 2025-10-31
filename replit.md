@@ -41,11 +41,25 @@ Documentation: Proactively create documentation for new features, APIs, and syst
 - **Subscription & Monetization**: Tier system (Free, Author, Professional, Team) with server-side enforcement, AI usage tracking, contextual upgrade prompts, and a 7-day grace period system for exceeding quotas.
 - **Billing Infrastructure**: Stripe integration for plan preview, real-time proration, payment method and invoice management, billing alerts, subscription pause/resume, and discount codes. Includes refund request workflow and cancellation survey.
 - **User Migration System**: Intelligent tier recommendation service with self-service and admin migration endpoints.
-- **Collaboration & Sharing**: Granular permission controls (View, Comment, Edit) enforced via Row-Level Security.
+- **Collaboration & Sharing**: Granular permission controls (View, Comment, Edit) enforced via Row-Level Security. Real-time collaborative editing system with Y.js CRDT for conflict-free synchronization, presence indicators showing active users with colored avatars, activity log tracking all edit history, version snapshots (auto and manual) for rollback capability, and approval workflow where commenters submit changes for owner review.
 - **Team Management System**: Role hierarchy, token-based invitations, real-time activity feed, shared AI quota, and dedicated UI.
 - **Data Import/Export**: World Anvil import system (17 content types) and development data migration to production.
 - **Canvas System**: Visual whiteboard using Excalidraw for story diagrams and plot structures.
 - **Onboarding System**: Interactive wizard with "Experienced User Tour" or "New User Tutorial" options.
+
+### Collaboration Infrastructure (Added Oct 2025)
+- **Real-Time Sync Server**: WebSocket-based collaboration server (`server/collaboration.ts`) using Y.js CRDT for conflict-free real-time editing. Supports multiple simultaneous editors with automatic document persistence and activity logging.
+- **Permission-Based Access**: Authentication middleware validates project ownership and shared permissions before allowing WebSocket connections. Owners and edit-permission users can directly modify content; comment-permission users connect in read-only mode with changes queued for approval.
+- **Database Schema**: 
+  - `projectVersions`: Stores version snapshots with incremental version numbers, labels, and full content snapshots for rollback capability
+  - `projectActivity`: Comprehensive edit log tracking all user actions (edits, comments, versions, shares) with timestamps and metadata
+  - `pendingChanges`: Approval queue for suggested edits from comment-permission users, including original/proposed content and review status
+- **UI Components**:
+  - `PresenceIndicators`: Shows active collaborators with colored avatars and real-time count
+  - `ActivityLogSidebar`: Edit history panel displaying who edited what and when
+  - `VersionHistory`: Version snapshot management with manual creation and one-click restore
+  - `PendingChanges`: Owner-only interface for reviewing and approving/rejecting suggested changes from commenters
+- **API Endpoints**: RESTful endpoints at `/api/collaboration/projects/:id/*` for fetching activity logs, managing versions, and processing pending changes
 
 ### System Design Choices
 - **Code Organization**: Centralized constants, API layer, custom Zustand hooks, and schema-driven form generation.

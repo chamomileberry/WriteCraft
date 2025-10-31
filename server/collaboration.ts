@@ -109,17 +109,17 @@ async function checkUserAccess(userId: string, projectId: string): Promise<{ has
       },
     });
     
-    if (share && share.permission === 'edit') {
+    if (share) {
       const user = share.user as any;
       return {
         hasAccess: true,
-        permission: 'edit',
+        permission: share.permission, // 'edit', 'comment', or 'view'
         userName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email || 'Unknown',
         userAvatar: user?.profileImageUrl ?? undefined,
       };
     }
     
-    return { hasAccess: false, permission: share?.permission ?? 'none' };
+    return { hasAccess: false, permission: 'none' };
   } catch (error) {
     console.error('[Collaboration] Error checking user access:', error);
     return { hasAccess: false, permission: 'none' };
