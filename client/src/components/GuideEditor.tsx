@@ -872,7 +872,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       {/* Editor */}
       <Card>
         {/* Sticky Header & Toolbar */}
-        <div className="sticky top-0 z-40 bg-card border-b">
+        <div className="sticky top-0 z-[45] bg-card border-b">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
               <CardTitle>{title || 'Untitled Guide'}</CardTitle>
@@ -913,16 +913,17 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
           />
         </div>
 
-        <CardContent>
-          <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring">
-            <div 
+        <CardContent className="relative">
+          <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring overflow-visible">
+            <EditorContent 
+              editor={editor} 
+              data-testid="editor-content"
               style={{ 
                 transform: `scale(${zoomLevel})`, 
-                transformOrigin: 'top left' 
+                transformOrigin: 'top left',
+                willChange: zoomLevel !== 1 ? 'transform' : 'auto'
               }}
-            >
-              <EditorContent editor={editor} data-testid="editor-content" />
-            </div>
+            />
           </div>
           <AIBubbleMenu editor={editor} />
         </CardContent>

@@ -64,7 +64,7 @@ function ClickableMentionComponent({ node }: NodeViewProps) {
           data-mention-id={id}
           data-mention-label={displayLabel}
         >
-          @{displayLabel}
+          {displayLabel}
         </span>
       </MentionHoverCard>
     </NodeViewWrapper>
