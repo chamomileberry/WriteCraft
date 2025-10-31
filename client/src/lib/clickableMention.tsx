@@ -4,7 +4,10 @@ import MentionHoverCard from '@/components/MentionHoverCard';
 
 // React component for rendering clickable mentions with hover preview
 function ClickableMentionComponent({ node }: NodeViewProps) {
-  const { id, label, type } = node.attrs as { id: string; label: string; type: string };
+  const { id, label, type } = node.attrs as { id: string; label: string | null; type: string };
+  
+  // If label is missing, try to extract from the node's text content as fallback
+  const displayLabel = label || (node.textContent && node.textContent.replace(/^@/, '').trim()) || id;
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -47,8 +50,9 @@ function ClickableMentionComponent({ node }: NodeViewProps) {
           data-testid={`mention-${type}-${id}`}
           data-mention-type={type}
           data-mention-id={id}
+          data-mention-label={displayLabel}
         >
-          @{label}
+          @{displayLabel}
         </span>
       </MentionHoverCard>
     </NodeViewWrapper>
