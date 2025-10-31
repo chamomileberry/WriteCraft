@@ -276,7 +276,7 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
           offset: 8,
         }}
       >
-        <Card className="flex items-center gap-1 p-1 shadow-lg border z-50">
+        <Card className="flex items-center gap-1 p-1 shadow-lg border" style={{ zIndex: 99999 }}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -373,10 +373,11 @@ export default function AIBubbleMenu({ editor }: AIBubbleMenuProps) {
       {/* AI Suggestion Popup - custom positioned near highlighted text */}
       {activeSuggestion && popupPosition && (
         <div
-          className="fixed z-50"
+          className="fixed"
           style={{
             top: `${popupPosition.top}px`,
             left: `${popupPosition.left}px`,
+            zIndex: 99999
           }}
         >
           <Card className="max-w-md p-4 shadow-xl border">
