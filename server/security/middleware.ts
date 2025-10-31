@@ -266,8 +266,14 @@ export const generateCSPNonce: RequestHandler = (req: Request, res: Response, ne
  * Security headers middleware with nonce-based CSP
  */
 export const securityHeaders: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
-  // Prevent clickjacking
-  res.setHeader('X-Frame-Options', 'DENY');
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // Prevent clickjacking - Allow Replit preview in development
+  // In development, omit X-Frame-Options to allow CSP frame-ancestors to handle it
+  // In production, use DENY for maximum security
+  if (!isDevelopment) {
+    res.setHeader('X-Frame-Options', 'DENY');
+  }
   
   // Prevent MIME type sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -301,10 +307,14 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   
   // Content Security Policy with nonce-based script execution
   // In development, we need to allow 'unsafe-eval' and 'unsafe-inline' for Vite HMR
-  const isDevelopment = process.env.NODE_ENV === 'development';
   const scriptSrc = isDevelopment 
     ? `'self' 'unsafe-inline' 'unsafe-eval' blob: https://replit.com https://js.stripe.com` // Dev: Allow inline for Vite + Stripe + Excalidraw + Replit banner
     : `'self' 'nonce-${nonce}' blob: https://replit.com https://js.stripe.com`; // Production: nonce-based + allow Replit banner
+  
+  // Allow Replit preview iframe in development, prevent all embedding in production
+  const frameAncestors = isDevelopment
+    ? `frame-ancestors 'self' https://*.repl.co https://*.replit.dev https://*.replit.com; ` // Dev: Allow Replit preview
+    : `frame-ancestors 'none'; `; // Production: No embedding allowed
   
   res.setHeader('Content-Security-Policy', 
     `default-src 'self'; ` +
@@ -316,7 +326,7 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
     `worker-src 'self' blob:; ` + // Allow Web Workers for Excalidraw
     `child-src 'self' blob:; ` + // Allow blob: children for Excalidraw
     `frame-src https://js.stripe.com https://*.stripe.com https://discord.com https://*.discord.com; ` + // Allow Stripe frames and Discord widget
-    `frame-ancestors 'none'; ` + // Prevent embedding (redundant with X-Frame-Options but more secure)
+    frameAncestors + // Controlled per environment
     `base-uri 'self'; ` + // Restrict <base> tag URLs
     `form-action 'self'; ` + // Restrict form submissions
     `upgrade-insecure-requests; ` + // Auto-upgrade HTTP to HTTPS
