@@ -1749,6 +1749,64 @@ export const projectLinks = pgTable("project_links", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Project Versions - Snapshots for version control and restore points
+export const projectVersions = pgTable("project_versions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  versionNumber: integer("version_number").notNull(), // Incremental version number
+  title: text("title").notNull(),
+  content: text("content").notNull(), // Full snapshot of content
+  wordCount: integer("word_count").default(0),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }), // Who created this version
+  versionType: text("version_type").notNull().default('auto'), // 'auto', 'manual', 'restore'
+  versionLabel: text("version_label"), // Optional label like "Before major revision"
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  projectIdx: index("project_versions_project_idx").on(table.projectId),
+  createdAtIdx: index("project_versions_created_at_idx").on(table.createdAt),
+}));
+
+// Project Activity - Edit log for tracking who changed what
+export const projectActivity = pgTable("project_activity", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userName: text("user_name").notNull(), // Cached for display
+  userAvatar: text("user_avatar"), // User profile image
+  activityType: text("activity_type").notNull(), // 'edit', 'comment', 'version_created', 'shared', 'permission_changed'
+  description: text("description").notNull(), // Human-readable description
+  metadata: jsonb("metadata"), // Additional data like character count change, sections edited, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  projectIdx: index("project_activity_project_idx").on(table.projectId),
+  userIdx: index("project_activity_user_idx").on(table.userId),
+  createdAtIdx: index("project_activity_created_at_idx").on(table.createdAt),
+  activityTypeIdx: index("project_activity_type_idx").on(table.activityType),
+}));
+
+// Pending Changes - Approval workflow for suggested edits from comment-only users
+export const pendingChanges = pgTable("pending_changes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }), // Suggester
+  userName: text("user_name").notNull(),
+  userAvatar: text("user_avatar"),
+  changeType: text("change_type").notNull(), // 'insert', 'delete', 'format', 'replace'
+  position: integer("position").notNull(), // Position in document
+  originalContent: text("original_content"), // Original text (for delete/replace)
+  proposedContent: text("proposed_content"), // Suggested text (for insert/replace)
+  description: text("description"), // Optional description from suggester
+  status: text("status").notNull().default('pending'), // 'pending', 'approved', 'rejected'
+  reviewedBy: varchar("reviewed_by").references(() => users.id, { onDelete: 'set null' }),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  projectIdx: index("pending_changes_project_idx").on(table.projectId),
+  statusIdx: index("pending_changes_status_idx").on(table.status),
+  userIdx: index("pending_changes_user_idx").on(table.userId),
+  createdAtIdx: index("pending_changes_created_at_idx").on(table.createdAt),
+}));
+
 // Pinned Content - User's pinned items for quick access
 export const pinnedContent = pgTable("pinned_content", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -3148,6 +3206,22 @@ export const insertProjectLinkSchema = createInsertSchema(projectLinks).omit({
   createdAt: true,
 });
 
+export const insertProjectVersionSchema = createInsertSchema(projectVersions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProjectActivitySchema = createInsertSchema(projectActivity).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPendingChangeSchema = createInsertSchema(pendingChanges).omit({
+  id: true,
+  createdAt: true,
+  reviewedAt: true,
+});
+
 export const insertPinnedContentSchema = createInsertSchema(pinnedContent).omit({
   id: true,
   createdAt: true,
@@ -3251,6 +3325,12 @@ export type InsertNote = z.infer<typeof insertNoteSchema>;
 export type Note = typeof notes.$inferSelect;
 export type InsertProjectLink = z.infer<typeof insertProjectLinkSchema>;
 export type ProjectLink = typeof projectLinks.$inferSelect;
+export type InsertProjectVersion = z.infer<typeof insertProjectVersionSchema>;
+export type ProjectVersion = typeof projectVersions.$inferSelect;
+export type InsertProjectActivity = z.infer<typeof insertProjectActivitySchema>;
+export type ProjectActivity = typeof projectActivity.$inferSelect;
+export type InsertPendingChange = z.infer<typeof insertPendingChangeSchema>;
+export type PendingChange = typeof pendingChanges.$inferSelect;
 export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;
 export type PinnedContent = typeof pinnedContent.$inferSelect;
 export type InsertCanvas = z.infer<typeof insertCanvasSchema>;
