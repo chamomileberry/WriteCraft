@@ -49,6 +49,10 @@ import {
   Upload,
   Loader2,
   X,
+  Users,
+  History,
+  GitBranch,
+  MessageSquare,
 } from 'lucide-react';
 
 interface EditorToolbarProps {
@@ -58,6 +62,12 @@ interface EditorToolbarProps {
   onFocusModeToggle?: () => void;
   zoomLevel?: number;
   onZoomChange?: (zoom: number) => void;
+  projectId?: string;
+  activeUsersCount?: number;
+  onTogglePresence?: () => void;
+  onToggleActivityLog?: () => void;
+  onToggleVersionHistory?: () => void;
+  onTogglePendingChanges?: () => void;
 }
 
 // Hook for preserving editor selection during dropdown interactions
@@ -99,7 +109,13 @@ export function EditorToolbar({
   isFocusMode = false,
   onFocusModeToggle,
   zoomLevel = 1,
-  onZoomChange
+  onZoomChange,
+  projectId,
+  activeUsersCount = 0,
+  onTogglePresence,
+  onToggleActivityLog,
+  onToggleVersionHistory,
+  onTogglePendingChanges
 }: EditorToolbarProps) {
   const { toast } = useToast();
   const { isMobile } = useMobileDetection();
@@ -1325,6 +1341,87 @@ export function EditorToolbar({
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Collaboration buttons - only show if projectId is provided */}
+            {projectId && (
+              <>
+                <Separator orientation="vertical" className="mx-1 h-6" />
+                
+                {/* Active Users */}
+                {onTogglePresence && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onTogglePresence}
+                        data-testid="button-toggle-presence"
+                        className="relative"
+                      >
+                        <Users className="h-4 w-4" />
+                        {activeUsersCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                            {activeUsersCount}
+                          </span>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Show Active Users</TooltipContent>
+                  </Tooltip>
+                )}
+
+                {/* Activity Log */}
+                {onToggleActivityLog && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onToggleActivityLog}
+                        data-testid="button-toggle-activity"
+                      >
+                        <History className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Activity Log</TooltipContent>
+                  </Tooltip>
+                )}
+
+                {/* Version History */}
+                {onToggleVersionHistory && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onToggleVersionHistory}
+                        data-testid="button-toggle-versions"
+                      >
+                        <GitBranch className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Version History</TooltipContent>
+                  </Tooltip>
+                )}
+
+                {/* Pending Changes */}
+                {onTogglePendingChanges && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onTogglePendingChanges}
+                        data-testid="button-toggle-pending"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Pending Changes</TooltipContent>
+                  </Tooltip>
+                )}
+              </>
+            )}
           </div>
         </TooltipProvider>
       )}
