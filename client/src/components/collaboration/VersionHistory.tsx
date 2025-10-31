@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { History, RotateCcw, Plus, Clock, ChevronRight } from "lucide-react";
+import { History, RotateCcw, Plus, Clock, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -110,18 +109,25 @@ export function VersionHistory({ projectId, onClose, isOwner }: VersionHistoryPr
 
   return (
     <>
-      <div className="h-full flex flex-col" data-testid="version-history-sidebar">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <History className="h-5 w-5" />
-            Version History
-          </h2>
-          <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-version-history">
-            <ChevronRight className="h-4 w-4" />
+      <div className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-lg z-50 flex flex-col" data-testid="version-history-sidebar">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Version History</h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            data-testid="button-close-version-history"
+          >
+            <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="p-4 border-b">
+        {/* Create Snapshot Button */}
+        <div className="p-4 border-b border-border">
           <Button
             onClick={() => setShowCreateDialog(true)}
             className="w-full"
@@ -132,71 +138,79 @@ export function VersionHistory({ projectId, onClose, isOwner }: VersionHistoryPr
           </Button>
         </div>
 
-        <ScrollArea className="h-[calc(100vh-220px)] p-4">
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="animate-pulse rounded-lg border p-4">
-                    <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-muted rounded w-1/2" />
-                  </div>
-                ))}
-              </div>
-            ) : data?.versions && data.versions.length > 0 ? (
-              <div className="space-y-3">
-                {data.versions.map(version => (
-                  <div
-                    key={version.id}
-                    className="rounded-lg border p-4 hover-elevate active-elevate-2 transition-all"
-                    data-testid={`version-${version.id}`}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm">
-                          {version.versionLabel || `Version ${version.versionNumber}`}
-                        </h4>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                          <Clock className="h-3 w-3" />
-                          <span>
-                            {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
-                          </span>
-                          <span>•</span>
-                          <span>{version.wordCount} words</span>
-                        </div>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="animate-pulse rounded-lg border p-4">
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : data?.versions && data.versions.length > 0 ? (
+            <div className="space-y-3">
+              {data.versions.map(version => (
+                <div
+                  key={version.id}
+                  className="rounded-lg border border-border p-4 hover-elevate active-elevate-2 transition-all"
+                  data-testid={`version-${version.id}`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm">
+                        {version.versionLabel || `Version ${version.versionNumber}`}
+                      </h4>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <Clock className="h-3 w-3" />
+                        <span>
+                          {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
+                        </span>
+                        <span>•</span>
+                        <span>{version.wordCount} words</span>
                       </div>
-
-                      {isOwner && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedVersion(version);
-                            setShowRestoreDialog(true);
-                          }}
-                          data-testid={`button-restore-${version.id}`}
-                        >
-                          <RotateCcw className="h-4 w-4 mr-1" />
-                          Restore
-                        </Button>
-                      )}
                     </div>
 
-                    <div className="mt-2 p-2 bg-muted/50 rounded text-xs text-muted-foreground line-clamp-3">
-                      {version.content.substring(0, 150)}...
-                    </div>
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedVersion(version);
+                          setShowRestoreDialog(true);
+                        }}
+                        data-testid={`button-restore-${version.id}`}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-1" />
+                        Restore
+                      </Button>
+                    )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
-                <History className="h-12 w-12 mb-4 opacity-50" />
-                <p>No versions yet</p>
-                <p className="text-sm mt-2">
-                  Create manual snapshots to save specific versions
-                </p>
-              </div>
-            )}
-          </ScrollArea>
+
+                  <div className="mt-2 p-2 bg-muted/50 rounded text-xs text-muted-foreground line-clamp-3">
+                    {version.content.substring(0, 150)}...
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+              <History className="h-12 w-12 mb-4 opacity-50" />
+              <p className="font-medium">No versions yet</p>
+              <p className="text-sm mt-2">
+                Create manual snapshots to save specific versions
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-border">
+          <p className="text-xs text-center text-muted-foreground">
+            Automatic snapshots created every 50 edits
+          </p>
+        </div>
       </div>
 
       {/* Create Snapshot Dialog */}
