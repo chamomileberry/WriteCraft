@@ -170,8 +170,10 @@ export function ShareDialog({
     },
   });
 
-  const handleShare = () => {
-    if (!selectedUserId || !selectedPermission) {
+  const handleShare = (userId?: string) => {
+    const userIdToShare = userId || selectedUserId;
+    
+    if (!userIdToShare || !selectedPermission) {
       toast({
         title: "Error",
         description: "Please select a user and permission level",
@@ -181,7 +183,7 @@ export function ShareDialog({
     }
 
     createShareMutation.mutate({
-      userId: selectedUserId,
+      userId: userIdToShare,
       permission: selectedPermission,
     });
   };
@@ -256,10 +258,7 @@ export function ShareDialog({
                     .map((user) => (
                       <button
                         key={user.id}
-                        onClick={() => {
-                          setSelectedUserId(user.id);
-                          handleShare();
-                        }}
+                        onClick={() => handleShare(user.id)}
                         className="w-full flex items-center gap-3 p-2 hover-elevate active-elevate-2"
                         data-testid={`user-option-${user.id}`}
                       >
