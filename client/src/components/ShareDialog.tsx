@@ -238,7 +238,7 @@ export function ShareDialog({
                 <SelectTrigger className="w-32" data-testid="select-permission">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[100]">
                   <SelectItem value="view">View</SelectItem>
                   <SelectItem value="comment">Comment</SelectItem>
                   <SelectItem value="edit">Edit</SelectItem>
@@ -310,7 +310,7 @@ export function ShareDialog({
                       <SelectTrigger className="w-28" data-testid={`select-permission-${share.id}`}>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-[100]">
                         <SelectItem value="view">View</SelectItem>
                         <SelectItem value="comment">Comment</SelectItem>
                         <SelectItem value="edit">Edit</SelectItem>
