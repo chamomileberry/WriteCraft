@@ -870,12 +870,12 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
       </Card>
 
       {/* Editor */}
-      <Card>
-        {/* Sticky Header & Toolbar */}
-        <div className="sticky top-0 z-[40] bg-card border-b">
-          <CardHeader>
+      <div className="relative">
+        {/* Sticky Header & Toolbar - outside Card to avoid stacking context issues */}
+        <div className="sticky top-0 z-40 bg-card border-b border-card-border rounded-t-xl">
+          <div className="flex flex-col space-y-1.5 p-4 sm:p-6">
             <div className="flex items-center justify-between gap-4">
-              <CardTitle>{title || 'Untitled Guide'}</CardTitle>
+              <div className="text-2xl font-semibold leading-none tracking-tight">{title || 'Untitled Guide'}</div>
               <div className="flex items-center gap-3">
                 {/* Word Count */}
                 {editor && (
@@ -901,7 +901,7 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
                 </Button>
               </div>
             </div>
-          </CardHeader>
+          </div>
 
           <EditorToolbar 
             editor={editor} 
@@ -913,21 +913,23 @@ const GuideEditor = forwardRef<GuideEditorRef, GuideEditorProps>(({ guideId: ini
           />
         </div>
 
-        <CardContent className="relative">
-          <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring overflow-visible">
-            <EditorContent 
-              editor={editor} 
-              data-testid="editor-content"
-              style={{ 
-                transform: `scale(${zoomLevel})`, 
-                transformOrigin: 'top left',
-                willChange: zoomLevel !== 1 ? 'transform' : 'auto'
-              }}
-            />
-          </div>
-          <AIBubbleMenu editor={editor} />
-        </CardContent>
-      </Card>
+        <Card className="rounded-t-none border-t-0">
+          <CardContent className="relative">
+            <div className="border rounded-md focus-within:ring-2 focus-within:ring-ring overflow-visible">
+              <EditorContent 
+                editor={editor} 
+                data-testid="editor-content"
+                style={{ 
+                  transform: `scale(${zoomLevel})`, 
+                  transformOrigin: 'top left',
+                  willChange: zoomLevel !== 1 ? 'transform' : 'auto'
+                }}
+              />
+            </div>
+            <AIBubbleMenu editor={editor} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 });
