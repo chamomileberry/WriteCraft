@@ -79,6 +79,7 @@ import { Users, History, GitBranch, MessageSquare } from 'lucide-react';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import Collaboration from '@tiptap/extension-collaboration';
+import { useAuth } from '@/hooks/useAuth';
 
 // Custom HorizontalRule extension with proper backspace handling
 const CustomHorizontalRule = HorizontalRule.extend({
@@ -275,10 +276,14 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
   const queryClient = useQueryClient();
   const { subscription } = useSubscription();
   const { addPanel, isPanelOpen, focusPanel, updateEditorContext, clearEditorContext, registerEditorActions } = useWorkspaceStore();
+  const { user } = useAuth();
   
   // Y.js document and WebSocket provider for real-time collaboration
   // Recreate when projectId changes to handle project switching and new→saved transitions
   const [yjsState, setYjsState] = useState<{ ydoc: Y.Doc | null; provider: WebsocketProvider | null }>(() => ({ ydoc: null, provider: null }));
+  
+  // Track active users from awareness state
+  const [activeUsers, setActiveUsers] = useState<Array<{ id: string; name: string; email: string; color: string }>>([]);
   
   const { ydoc, provider } = yjsState;
   
@@ -323,6 +328,39 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
       doc.destroy();
     };
   }, [projectId]);
+
+  // Extract active users from awareness state
+  useEffect(() => {
+    if (!provider) return;
+    
+    const updateAwareness = () => {
+      const states = provider.awareness.getStates();
+      const users: Array<{ id: string; name: string; email: string; color: string }> = [];
+      
+      states.forEach((state: any, clientId: number) => {
+        if (state.user) {
+          users.push({
+            id: state.user.id || `user-${clientId}`,
+            name: state.user.name || 'Anonymous',
+            email: state.user.email || '',
+            color: state.user.color || '#' + Math.floor(Math.random()*16777215).toString(16)
+          });
+        }
+      });
+      
+      setActiveUsers(users);
+    };
+    
+    // Initial update
+    updateAwareness();
+    
+    // Listen for awareness changes
+    provider.awareness.on('change', updateAwareness);
+    
+    return () => {
+      provider.awareness.off('change', updateAwareness);
+    };
+  }, [provider]);
 
   // Fetch project data
   const { data: project, isLoading: isLoadingProject } = useQuery({
@@ -445,7 +483,6 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
         link: false,
         codeBlock: false,
         horizontalRule: false,
-        history: false, // Disable history when using collaboration
         // hardBreak is enabled by default - needed for Google Docs-style line breaks
       }),
       GoogleDocsEnter, // Custom Enter key handler for Google Docs-style behavior
@@ -1085,9 +1122,9 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
             {/* Main Editor */}
             <div className="flex-1 overflow-auto" onPaste={handlePaste}>
               {/* Presence Indicators (when enabled) */}
-              {showPresence && provider && (
+              {showPresence && provider && activeUsers.length > 0 && (
                 <div className="px-6 py-2 border-b bg-muted/50">
-                  <PresenceIndicators provider={provider} />
+                  <PresenceIndicators activeUsers={activeUsers} currentUserId={user?.id || ''} />
                 </div>
               )}
               
@@ -1111,13 +1148,7 @@ const ProjectEditor = forwardRef(({ projectId, onBack }: ProjectEditorProps, ref
                 <VersionHistory
                   projectId={projectId}
                   onClose={() => setShowVersionHistory(false)}
-                  onRestore={(content) => {
-                    editor?.commands.setContent(content);
-                    toast({
-                      title: "Version Restored",
-                      description: "The selected version has been restored successfully."
-                    });
-                  }}
+                  isOwner={project?.userId === user?.id}
                 />
               </div>
             )}

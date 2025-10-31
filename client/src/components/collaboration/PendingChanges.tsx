@@ -1,16 +1,9 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Check, X, AlertCircle } from "lucide-react";
+import { Check, X, AlertCircle, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -34,16 +27,15 @@ interface PendingChange {
 
 interface PendingChangesProps {
   projectId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
 }
 
-export function PendingChanges({ projectId, open, onOpenChange }: PendingChangesProps) {
+export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
   const { toast } = useToast();
 
   const { data, isLoading } = useQuery<{ changes: PendingChange[] }>({
     queryKey: ['/api/collaboration/projects', projectId, 'pending-changes'],
-    enabled: open && !!projectId,
+    enabled: !!projectId,
   });
 
   const reviewChangeMutation = useMutation({
@@ -104,19 +96,18 @@ export function PendingChanges({ projectId, open, onOpenChange }: PendingChanges
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:w-[500px]" data-testid="pending-changes-sidebar">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            Pending Changes
-          </SheetTitle>
-          <SheetDescription>
-            Review and approve suggested changes from collaborators
-          </SheetDescription>
-        </SheetHeader>
+    <div className="h-full flex flex-col" data-testid="pending-changes-sidebar">
+      <div className="p-4 border-b flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          Pending Changes
+        </h2>
+        <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-pending-changes">
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
 
-        <ScrollArea className="h-[calc(100vh-140px)] mt-4">
+      <ScrollArea className="h-[calc(100vh-120px)] p-4">
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2].map(i => (
@@ -213,7 +204,6 @@ export function PendingChanges({ projectId, open, onOpenChange }: PendingChanges
             </div>
           )}
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+    </div>
   );
 }

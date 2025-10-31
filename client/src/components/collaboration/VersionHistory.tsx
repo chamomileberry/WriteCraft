@@ -1,12 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -19,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { History, RotateCcw, Plus, Clock } from "lucide-react";
+import { History, RotateCcw, Plus, Clock, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -39,12 +32,11 @@ interface Version {
 
 interface VersionHistoryProps {
   projectId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   isOwner: boolean;
 }
 
-export function VersionHistory({ projectId, open, onOpenChange, isOwner }: VersionHistoryProps) {
+export function VersionHistory({ projectId, onClose, isOwner }: VersionHistoryProps) {
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
@@ -53,7 +45,7 @@ export function VersionHistory({ projectId, open, onOpenChange, isOwner }: Versi
 
   const { data, isLoading } = useQuery<{ versions: Version[] }>({
     queryKey: ['/api/collaboration/projects', projectId, 'versions'],
-    enabled: open && !!projectId,
+    enabled: !!projectId,
   });
 
   const createVersionMutation = useMutation({
@@ -92,7 +84,7 @@ export function VersionHistory({ projectId, open, onOpenChange, isOwner }: Versi
         title: "Version restored",
         description: "Project content has been restored to this version",
       });
-      onOpenChange(false);
+      onClose();
       window.location.reload(); // Reload to show restored content
     },
     onError: () => {
@@ -118,30 +110,29 @@ export function VersionHistory({ projectId, open, onOpenChange, isOwner }: Versi
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="w-full sm:w-[500px]" data-testid="version-history-sidebar">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <History className="h-5 w-5" />
-              Version History
-            </SheetTitle>
-            <SheetDescription>
-              View and restore previous versions of this project
-            </SheetDescription>
-          </SheetHeader>
+      <div className="h-full flex flex-col" data-testid="version-history-sidebar">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Version History
+          </h2>
+          <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-version-history">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
 
-          <div className="mt-4 mb-4">
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              className="w-full"
-              data-testid="button-create-snapshot"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Snapshot
-            </Button>
-          </div>
+        <div className="p-4 border-b">
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="w-full"
+            data-testid="button-create-snapshot"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Snapshot
+          </Button>
+        </div>
 
-          <ScrollArea className="h-[calc(100vh-220px)]">
+        <ScrollArea className="h-[calc(100vh-220px)] p-4">
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => (
@@ -206,8 +197,7 @@ export function VersionHistory({ projectId, open, onOpenChange, isOwner }: Versi
               </div>
             )}
           </ScrollArea>
-        </SheetContent>
-      </Sheet>
+      </div>
 
       {/* Create Snapshot Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

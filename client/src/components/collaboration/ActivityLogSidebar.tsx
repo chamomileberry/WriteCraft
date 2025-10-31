@@ -11,7 +11,6 @@ import {
   Shield,
   ChevronRight 
 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 interface ActivityItem {
@@ -28,14 +27,13 @@ interface ActivityItem {
 
 interface ActivityLogSidebarProps {
   projectId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
 }
 
-export function ActivityLogSidebar({ projectId, open, onOpenChange }: ActivityLogSidebarProps) {
+export function ActivityLogSidebar({ projectId, onClose }: ActivityLogSidebarProps) {
   const { data, isLoading } = useQuery<{ activities: ActivityItem[] }>({
     queryKey: ['/api/collaboration/projects', projectId, 'activity'],
-    enabled: open && !!projectId,
+    enabled: !!projectId,
     refetchInterval: 10000, // Refresh every 10 seconds
   });
 
@@ -65,14 +63,16 @@ export function ActivityLogSidebar({ projectId, open, onOpenChange }: ActivityLo
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:w-96" data-testid="activity-log-sidebar">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Activity Log
-          </SheetTitle>
-        </SheetHeader>
+    <div className="h-full flex flex-col" data-testid="activity-log-sidebar">
+      <div className="p-4 border-b flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Clock className="h-5 w-5" />
+          Activity Log
+        </h2>
+        <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-activity">
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
 
         <ScrollArea className="h-[calc(100vh-120px)] mt-4">
           {isLoading ? (
@@ -145,7 +145,6 @@ export function ActivityLogSidebar({ projectId, open, onOpenChange }: ActivityLo
             </div>
           )}
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+    </div>
   );
 }
