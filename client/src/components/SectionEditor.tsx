@@ -35,7 +35,7 @@ import { EditorToolbar } from '@/components/ui/editor-toolbar';
 import type { ProjectSection } from '@shared/schema';
 import AIBubbleMenu from '@/components/AIBubbleMenu';
 import { AISuggestionsExtension } from '@/lib/ai-suggestions-plugin';
-import { PresenceIndicators } from '@/components/collaboration/PresenceIndicators';
+import { ActiveUsersSidebar } from '@/components/collaboration/ActiveUsersSidebar';
 import { ActivityLogSidebar } from '@/components/collaboration/ActivityLogSidebar';
 import { VersionHistory } from '@/components/collaboration/VersionHistory';
 import { PendingChanges } from '@/components/collaboration/PendingChanges';
@@ -466,7 +466,7 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
 
         {/* Collaboration Sidebars */}
         {showPresence && (
-          <PresenceIndicators 
+          <ActiveUsersSidebar 
             projectId={projectId}
             currentUserId={user?.id || ''}
             onClose={() => setShowPresence(false)}
@@ -481,13 +481,13 @@ export const SectionEditor = forwardRef<{ saveContent: () => Promise<void> }, Se
         {showVersionHistory && (
           <VersionHistory 
             projectId={projectId}
+            isOwner={true}
             onClose={() => setShowVersionHistory(false)}
           />
         )}
         {showPendingChanges && user && (
           <PendingChanges 
             projectId={projectId}
-            currentUserId={user.id}
             onClose={() => setShowPendingChanges(false)}
           />
         )}
