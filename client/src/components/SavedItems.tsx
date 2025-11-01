@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle, PanelLeft } from "lucide-react";
+import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle, PanelLeft, Map as MapIcon } from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ import NotebookSwitcher from "./NotebookSwitcher";
 import ContentTypeModal from "./ContentTypeModal";
 import ContentTypeSidebar from "./ContentTypeSidebar";
 import { ContentTypeSwitcherModal } from "./ContentTypeSwitcherModal";
+import { Link } from "wouter";
 
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
@@ -630,8 +631,17 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
                 </Badge>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setLocation('/map-studio')}
+                variant="default"
+                className="flex items-center gap-2"
+                data-testid="button-open-map-studio"
+                <MapIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Create Map</span>
+              </Button>
+            </div>
           </div>
-
       {/* Notebook Switcher */}
       <div className="bg-muted/50 rounded-lg p-4 space-y-3">
         <NotebookSwitcher 
