@@ -76,6 +76,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import MapStudio from "@/pages/MapStudio";
 
 // Notebook page component
 function NotebookPage() {
@@ -276,6 +277,7 @@ function Router() {
       <Route path="/conversations" component={ConversationManager} />
       <Route path="/team/analytics" component={TeamAnalytics} />
       <Route path="/team/audit-logs" component={TeamAuditLogs} />
+      <Route path="/maps" component={MapStudio} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
