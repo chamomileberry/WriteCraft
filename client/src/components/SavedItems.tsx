@@ -633,7 +633,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
             </div>
             <div className="flex items-center gap-2">
               <Button
-                onClick={() => setLocation('/map-studio')}
+                onClick={() => setLocation('/maps')}
                 variant="default"
                 className="flex items-center gap-2"
                 data-testid="button-open-map-studio"
