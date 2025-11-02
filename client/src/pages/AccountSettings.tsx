@@ -107,8 +107,19 @@ export default function AccountSettings() {
     setIsEditing(false);
   };
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  const handleLogout = async () => {
+    // Use POST endpoint for secure logout with CSRF protection
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Fallback to GET endpoint if POST fails
+      window.location.href = '/api/logout';
+    }
   };
 
   const handleRestartOnboarding = async () => {
@@ -186,8 +197,19 @@ export default function AccountSettings() {
       });
 
       // Log out after a short delay
-      setTimeout(() => {
-        window.location.href = '/api/auth/logout';
+      setTimeout(async () => {
+        // Use POST endpoint for secure logout with CSRF protection
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+          });
+          window.location.href = '/';
+        } catch (error) {
+          console.error('Logout failed:', error);
+          // Fallback to GET endpoint if POST fails
+          window.location.href = '/api/logout';
+        }
       }, 1500);
     } catch (error: any) {
       toast({

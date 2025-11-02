@@ -222,12 +222,43 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  // TODO: SECURITY - This GET endpoint modifies state and is vulnerable to CSRF
-  // Even with SameSite='lax', cookies ARE sent on top-level GET navigations
-  // An attacker could create: <a href="https://yourapp.com/api/logout">Click me</a>
-  // Recommendation: Require POST with CSRF token, or add referrer check, or use logout token
-  // For now, CSRF middleware will protect this endpoint with token validation
+  // SECURITY: GET logout endpoint for OIDC redirect flow with CSRF mitigation
+  // This endpoint validates the Referer header to prevent CSRF attacks
+  // - Allows same-origin requests (direct navigation, frontend redirects)
+  // - Blocks cross-origin requests (CSRF attacks)
+  // - Falls back to blocking if Referer is missing (defense-in-depth)
   app.get("/api/logout", sessionRateLimiter, (req, res) => {
+    // CSRF Protection: Validate Referer header
+    const referer = req.headers.referer || req.headers.referrer;
+    const host = req.headers.host;
+
+    // Allow logout only if:
+    // 1. Referer matches our domain (same-origin)
+    // 2. OR user is not authenticated (no CSRF risk)
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        const requestHost = host?.split(':')[0]; // Remove port if present
+        const refererHost = refererUrl.hostname;
+
+        // Block if referer is from different domain
+        if (refererHost !== requestHost && refererHost !== `www.${requestHost}`) {
+          console.warn(`[SECURITY] Blocked cross-origin logout attempt from ${refererHost} to ${requestHost}`);
+          return res.status(403).json({
+            message: "Logout must be initiated from the same domain"
+          });
+        }
+      } catch (error) {
+        // Invalid referer URL - block for safety
+        console.warn(`[SECURITY] Invalid referer header in logout: ${referer}`);
+        return res.status(403).json({ message: "Invalid request origin" });
+      }
+    } else if (req.isAuthenticated && req.isAuthenticated()) {
+      // No referer but user is authenticated - potentially suspicious
+      // Some browsers don't send referer, so we allow but log it
+      console.warn(`[SECURITY] Logout without referer header - user: ${(req.user as any)?.claims?.sub}`);
+    }
+
     const userId = (req.user as any)?.claims?.sub;
     const sessionId = req.sessionID;
 

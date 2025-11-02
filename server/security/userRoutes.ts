@@ -7,7 +7,6 @@ import { storage } from '../storage';
 import Stripe from 'stripe';
 import {
   secureAuthentication,
-  CSRFProtection,
   validateInput,
   sanitizeAllInputs,
   SecurityAuditLog,
@@ -79,7 +78,7 @@ router.patch(
   '/users/:id',
   secureAuthentication,
   profileRateLimiter,
-  CSRFProtection.middleware(), // CSRF protection for state-changing operation
+  // CSRF protection provided by global Lusca middleware (no need for double validation)
   sanitizeAllInputs,
   validateInput(updateUserSchema),
   enforceRowLevelSecurity('user'),
@@ -185,7 +184,7 @@ router.patch(
   secureAuthentication,
   requireAdmin,
   adminRateLimiter,
-  CSRFProtection.middleware(),
+  // CSRF protection provided by global Lusca middleware (no need for double validation)
   sanitizeAllInputs,
   async (req: any, res) => {
     try {
@@ -312,7 +311,7 @@ router.delete(
   '/users/:id',
   secureAuthentication,
   accountDeletionRateLimiter,
-  CSRFProtection.middleware(),
+  // CSRF protection provided by global Lusca middleware (no need for double validation)
   enforceRowLevelSecurity('user'),
   async (req: any, res) => {
     try {
