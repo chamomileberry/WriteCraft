@@ -2418,7 +2418,7 @@ export class ContentRepository extends BaseRepository {
       .orderBy(timelineEvents.startDate);
   }
 
-  async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<any[]> {
+  async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]> {
     const timelineIds = await db
       .select({ id: timelines.id })
       .from(timelines)
