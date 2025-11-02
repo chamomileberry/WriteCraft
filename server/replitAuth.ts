@@ -18,12 +18,14 @@ import {
   profileRateLimiter 
 } from "./security/rateLimiters";
 
-if (!process.env.REPLIT_DOMAINS) {
+// Bypass Replit auth if not on Replit
+if (!process.env.REPLIT_DOMAINS && process.env.NODE_ENV !== "development") {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
 const getOidcConfig = memoize(
   async () => {
+    if (!process.env.REPLIT_DOMAINS) return null;
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
       process.env.REPL_ID!
@@ -163,6 +165,7 @@ export async function setupAuth(app: Express) {
   app.use(conditionalCsrfMiddleware);
 
   const config = await getOidcConfig();
+  if (!config) return;
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
@@ -256,6 +259,7 @@ export async function setupAuth(app: Express) {
   // - Blocks cross-origin requests (CSRF attacks)
   // - Falls back to blocking if Referer is missing (defense-in-depth)
   app.get("/api/logout", sessionRateLimiter, (req, res) => {
+    if (!config) return res.redirect("/");
     // CSRF Protection: Validate Referer header
     const referer = req.headers.referer || req.headers.referrer;
     const host = req.headers.host;
@@ -397,6 +401,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
+    if (process.env.NODE_ENV === 'development') {
+      (req as any).user = { claims: { sub: 'dev-user' } };
+      return next();
+    }
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -413,6 +421,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   try {
     const config = await getOidcConfig();
+    if (!config) return res.status(401).json({ message: "Unauthorized" });
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
     return next();

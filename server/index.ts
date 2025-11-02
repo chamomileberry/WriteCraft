@@ -1,113 +1,87 @@
-// IMPORTANT: Sentry must be imported first before any other modules
-import "./instrument.mjs";
+import { createApp } from './app';
+import { setupCollaborationServer } from './collaboration';
+import { logger } from './lib/logger';
+import http from 'http';
+import { AddressInfo } from 'net';
 
-import { createApp, setServerInstance } from "./app";
-import { setupVite, serveStatic, log } from "./vite";
-import * as keyRotationService from "./services/apiKeyRotationService";
-import { initializeSecurityCleanup } from "./security/middleware";
+// Graceful shutdown and error handling
+const setupProcessHooks = (server: http.Server) => {
+  process.on('uncaughtException', (err) => {
+    logger.error('Uncaught Exception:', err);
+  });
 
-(async () => {
-  const startTime = Date.now();
-  console.log('[Startup] Application initialization started');
-  
-  let app;
-  let server;
-  
-  try {
-    const result = await createApp();
-    app = result.app;
-    server = result.server;
-    console.log(`[Startup] App created in ${Date.now() - startTime}ms`);
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  });
 
-    // Register server instance for graceful shutdown
-    setServerInstance(server);
-
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    const viteStartTime = Date.now();
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-      console.log(`[Startup] Vite setup completed in ${Date.now() - viteStartTime}ms`);
-    } else {
-      serveStatic(app);
-      console.log(`[Startup] Static serving configured in ${Date.now() - viteStartTime}ms`);
-    }
-
-    // ALWAYS serve the app on the port specified in the environment variable PORT
-    // Other ports are firewalled. Default to 5000 if not specified.
-    // this serves both the API and the client.
-    // It is the only port that is not firewalled.
-    const port = parseInt(process.env.PORT || '5000', 10);
-    
-    // Wrap server.listen in try-catch for proper error handling
-    await new Promise<void>((resolve, reject) => {
-      server.listen({
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, async () => {
-        console.log(`[Startup] Server listening on port ${port} - Total startup time: ${Date.now() - startTime}ms`);
-        log(`serving on port ${port}`);
-
-        // Initialize security cleanup intervals (CSRF token cleanup)
-        try {
-          initializeSecurityCleanup();
-        } catch (error) {
-          console.error('[Security] Failed to initialize cleanup intervals:', error);
-        }
-
-        // Initialize API key rotation tracking
-        try {
-          await keyRotationService.initializeCommonKeys();
-          console.log('[API Key Rotation] Initialized rotation tracking for common keys');
-
-          // Run initial rotation status check
-          await keyRotationService.checkRotationStatus();
-          console.log('[API Key Rotation] Initial rotation status check completed');
-
-          // Schedule rotation checks every 24 hours
-          setInterval(async () => {
-            try {
-              await keyRotationService.checkRotationStatus();
-              console.log('[API Key Rotation] Scheduled rotation status check completed');
-            } catch (error) {
-              console.error('[API Key Rotation] Error in scheduled check:', error);
-            }
-          }, 24 * 60 * 60 * 1000); // 24 hours
-        } catch (error) {
-          console.error('[API Key Rotation] Failed to initialize:', error);
-        }
-
-        resolve();
-      }).on('error', (err: Error) => {
-        reject(err);
-      });
+  const gracefulShutdown = (signal: string) => {
+    logger.info(`[SHUTDOWN] Received ${signal}, closing server gracefully.`);
+    server.close(() => {
+      logger.info('[SHUTDOWN] HTTP server closed.');
+      process.exit(0);
     });
-  } catch (error) {
-    console.error('[Startup] Fatal error during application initialization:', error);
+  };
+
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+};
+
+// --- Simplified Argument Parsing ---
+const getArgValue = (argName: string): string | undefined => {
+  const argIndex = process.argv.indexOf(argName);
+  if (argIndex > -1 && process.argv[argIndex + 1]) {
+    return process.argv[argIndex + 1];
+  }
+  return undefined;
+};
+
+const startServer = async () => {
+  try {
+    // 1. Parse command-line arguments for port and host (simplified)
+    const portArg = getArgValue('--port') || getArgValue('-p');
+    const hostArg = getArgValue('--host') || getArgValue('-h');
+
+    // Use provided port/host or fall back to environment/defaults
+    const port = portArg ? parseInt(portArg, 10) : (process.env.PORT ? parseInt(process.env.PORT, 10) : 9000);
+    const host = hostArg || process.env.HOST || '0.0.0.0';
+
+    logger.info(`[Startup] Attempting to start server on ${host}:${port}`);
+
+    // 2. Create the Express application instance
+    logger.info('[Startup] Creating Express application...');
+    const { expressApp, creationTimeMs } = await createApp();
+    logger.info(`[Startup] Express application created in ${creationTimeMs}ms`);
+
+    // 3. Create a single HTTP server from the Express app
+    const server = http.createServer(expressApp);
+
+    // 4. Initialize WebSocket server on the same HTTP server
+    setupCollaborationServer(server);
+    logger.info('[Collaboration] WebSocket server initialized.');
+
+    // 5. Setup graceful shutdown hooks
+    setupProcessHooks(server);
     
-    // Clean up server socket if it exists
-    if (server) {
-      try {
-        console.log('[Startup] Attempting to close server socket...');
-        await new Promise<void>((resolve) => {
-          server.close(() => {
-            console.log('[Startup] Server socket closed successfully');
-            resolve();
-          });
-          // Force close after timeout
-          setTimeout(() => {
-            console.log('[Startup] Force closing server socket after timeout');
-            resolve();
-          }, 5000);
-        });
-      } catch (closeError) {
-        console.error('[Startup] Error closing server socket:', closeError);
+    // 6. Start the server
+    server.listen(port, host, () => {
+      const address = server.address() as AddressInfo;
+      logger.info(`[Startup] Server listening on http://${address.address}:${address.port}`);
+    });
+
+    server.on('error', (e: Error & { code?: string }) => {
+      if (e.code === 'EADDRINUSE') {
+        logger.error(`[Startup] FATAL: Port ${port} is already in use.`);
+        process.exit(1);
+      } else {
+        logger.error('[Startup] An unexpected server error occurred:', e);
+        process.exit(1);
       }
-    }
-    
-    console.error('[Startup] Exiting due to fatal error');
+    });
+
+  } catch (error) {
+    logger.error('[Startup] A fatal error occurred during server initialization:', error);
     process.exit(1);
   }
-})();
+};
+
+startServer();

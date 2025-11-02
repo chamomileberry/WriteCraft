@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Feather, Globe, Lightbulb, Sparkles, Users, MessageSquare } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
+import { signInWithGoogle } from "@/lib/authUtils";
 
 export default function Landing() {
   const { isDark } = useTheme();
@@ -30,7 +31,7 @@ export default function Landing() {
               <Button 
                 size="lg" 
                 className="text-lg px-8"
-                onClick={() => window.location.href = '/api/login'}
+                onClick={signInWithGoogle}
                 data-testid="button-login"
               >
                 <Users className="w-5 h-5 mr-2" />
@@ -152,7 +153,7 @@ export default function Landing() {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={() => window.location.href = '/api/login'}
+            onClick={signInWithGoogle}
             data-testid="button-login-cta"
           >
             Sign In Now

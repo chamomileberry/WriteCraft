@@ -1,0 +1,5 @@
+runConfig:
+  minInstances: 0
+build:
+  command: 'npm run build:server'
+entryPoint: 'node dist/server/index.js'
