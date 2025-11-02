@@ -15,6 +15,22 @@ export default function MapStudio() {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
+  const handleNavigate = (toolId: string) => {
+    if (toolId === 'notebook') {
+      setLocation('/notebook');
+    } else if (toolId === 'projects') {
+      setLocation('/projects');
+    } else if (toolId === 'generators') {
+      setLocation('/generators');
+    } else if (toolId === 'guides') {
+      setLocation('/guides');
+    }
+  };
+
+  const handleCreateNew = () => {
+    setLocation('/notebook');
+  };
+
   // Handler functions for toolbar actions
   const handleToolChange = (tool: MapTool) => {
     setSelectedTool(tool);
@@ -109,7 +125,7 @@ export default function MapStudio() {
   return (
     <div className="flex flex-col h-screen">
       {/* Main Navigation Header */}
-      <Header onNavigate={(view) => setLocation(`/?view=${view}`)} />
+      <Header onNavigate={handleNavigate} onCreateNew={handleCreateNew} />
 
       {/* Map Studio Header */} 
       <div className="border-b p-4 flex items-center gap-4">
