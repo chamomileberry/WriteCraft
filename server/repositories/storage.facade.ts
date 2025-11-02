@@ -1771,22 +1771,14 @@ export class StorageFacade implements IStorage {
       throw new Error('Unauthorized: You do not have access to this notebook');
     }
 
-    const timelineIds = await db
-      .select({ id: timelines.id })
-      .from(timelines)
-      .where(eq(timelines.notebookId, notebookId));
-
-    if (!timelineIds.length) {
-      return [];
-    }
-
-    const timelineIdValues = timelineIds.map(({ id }) => id);
-
-    return await db
+    const results = await db
       .select()
       .from(timelineEvents)
-      .where(inArray(timelineEvents.timelineId, timelineIdValues))
+      .innerJoin(timelines, eq(timelineEvents.timelineId, timelines.id))
+      .where(eq(timelines.notebookId, notebookId))
       .orderBy(timelineEvents.startDate);
+
+    return results.map((r) => r.timelineEvents);
   }
 
   async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
