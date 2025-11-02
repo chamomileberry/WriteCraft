@@ -32,6 +32,19 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
+// Helper function to check if path is a static asset
+// Used by session, passport, and CSRF middlewares to skip unnecessary processing
+const isStaticAsset = (path: string): boolean => {
+  return (
+    path.startsWith('/@fs/') ||
+    path.startsWith('/@vite/') ||
+    path.startsWith('/assets/') ||
+    path.startsWith('/node_modules/') ||
+    path.startsWith('/@id/') ||
+    path === '/api/csp-report' // CSP reports are browser-generated
+  );
+};
+
 export async function getSession(): Promise<RequestHandler[]> {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   
@@ -74,18 +87,6 @@ export async function getSession(): Promise<RequestHandler[]> {
   });
 
   const csrfMiddleware = lusca.csrf();
-
-  // Helper function to check if path is a static asset
-  const isStaticAsset = (path: string): boolean => {
-    return (
-      path.startsWith('/@fs/') ||
-      path.startsWith('/@vite/') ||
-      path.startsWith('/assets/') ||
-      path.startsWith('/node_modules/') ||
-      path.startsWith('/@id/') ||
-      path === '/api/csp-report' // CSP reports are browser-generated
-    );
-  };
 
   // Wrap session middleware to skip for static assets (performance optimization)
   // Static assets don't need session data, so we avoid expensive database lookups
@@ -139,9 +140,27 @@ async function upsertUser(
 
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
-  app.use(await getSession());
+
+  const [conditionalSessionMiddleware, conditionalCsrfMiddleware] = await getSession();
+
+  // Apply session middleware (conditionally skips static assets)
+  app.use(conditionalSessionMiddleware);
+
+  // Apply Passport middlewares
   app.use(passport.initialize());
-  app.use(passport.session());
+
+  // Passport session middleware - must also skip for static assets
+  // because it requires req.session to exist (set by express-session)
+  app.use((req, res, next) => {
+    if (isStaticAsset(req.path)) {
+      return next(); // Skip passport.session() for static assets
+    }
+    // Run passport session deserialization for all other routes
+    passport.session()(req, res, next);
+  });
+
+  // Apply CSRF middleware (conditionally skips static assets)
+  app.use(conditionalCsrfMiddleware);
 
   const config = await getOidcConfig();
 
