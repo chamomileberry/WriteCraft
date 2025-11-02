@@ -74,29 +74,32 @@ export async function getSession(): Promise<RequestHandler[]> {
   });
   
   const csrfMiddleware = lusca.csrf();
-  
-  // Wrap CSRF middleware to skip for API routes, static assets, and CSP reports
-  // Session middleware always runs (required for Passport), but CSRF is skipped for API routes
-  // because the application uses session-based authentication with SameSite cookies for CSRF protection
+
+  // Wrap CSRF middleware to skip ONLY for static assets and CSP reports
+  // CSRF protection is ENABLED for all API routes for defense-in-depth security
+  // While SameSite cookies provide some protection, CSRF tokens are required for:
+  // - Defense against browser bugs and implementation variations
+  // - Protection in older browsers that don't support SameSite
+  // - Defense against subdomain takeover attacks
+  // - Compliance with OWASP security best practices
   const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
     const path = req.path;
-    
-    // Skip CSRF for:
-    // 1. All API routes - the app uses session auth with SameSite cookies and rate limiting
-    // 2. Static assets (Vite dev files, assets, etc.)
-    // 3. CSP reports (browser-generated, don't include CSRF tokens)
+
+    // Skip CSRF ONLY for:
+    // 1. Static assets (Vite dev files, assets, etc.) - no state modification
+    // 2. CSP reports (browser-generated, don't include CSRF tokens)
     if (
-      path.startsWith('/api/') ||
       path.startsWith('/@fs/') ||
       path.startsWith('/@vite/') ||
       path.startsWith('/assets/') ||
       path.startsWith('/node_modules/') ||
-      path.startsWith('/@id/')
+      path.startsWith('/@id/') ||
+      path === '/api/csp-report' // CSP reports are browser-generated
     ) {
       return next();
     }
-    
-    // Run CSRF middleware for all other requests (e.g., form submissions from HTML pages)
+
+    // Run CSRF middleware for ALL other requests, including ALL API routes
     csrfMiddleware(req, res, next);
   };
   
@@ -219,10 +222,15 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
+  // TODO: SECURITY - This GET endpoint modifies state and is vulnerable to CSRF
+  // Even with SameSite='lax', cookies ARE sent on top-level GET navigations
+  // An attacker could create: <a href="https://yourapp.com/api/logout">Click me</a>
+  // Recommendation: Require POST with CSRF token, or add referrer check, or use logout token
+  // For now, CSRF middleware will protect this endpoint with token validation
   app.get("/api/logout", sessionRateLimiter, (req, res) => {
     const userId = (req.user as any)?.claims?.sub;
     const sessionId = req.sessionID;
-    
+
     req.logout(async () => {
       // Remove session from concurrent session tracking
       if (userId && sessionId) {
@@ -233,7 +241,7 @@ export async function setupAuth(app: Express) {
           console.error('[SESSION] Failed to remove session:', sessionErr);
         }
       }
-      
+
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,

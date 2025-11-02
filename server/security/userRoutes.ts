@@ -391,6 +391,7 @@ router.delete(
 
 /**
  * Generate CSRF token endpoint
+ * Uses Lusca's CSRF token generation for consistency with validation
  */
 router.get(
   '/auth/csrf-token',
@@ -401,8 +402,16 @@ router.get(
     if (!sessionId) {
       return res.status(401).json({ message: "No session" });
     }
-    
-    const token = CSRFProtection.generateToken(sessionId);
+
+    // Use Lusca's csrfToken() method to get the token
+    // Lusca automatically generates and stores the token in the session
+    const token = req.csrfToken ? req.csrfToken() : '';
+
+    if (!token) {
+      console.error('[CSRF] Failed to generate CSRF token - Lusca may not be properly configured');
+      return res.status(500).json({ message: "Failed to generate CSRF token" });
+    }
+
     res.json({ csrfToken: token });
   }
 );
