@@ -470,6 +470,7 @@ export interface IStorage {
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
   getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined>;
   getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]>;
+  getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]>;
   updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent>;
   deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void>;
 
@@ -3709,6 +3710,30 @@ async getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEve
 
   return await db.select().from(timelineEvents)
     .where(eq(timelineEvents.timelineId, timelineId))
+    .orderBy(timelineEvents.startDate);
+}
+
+async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]> {
+  const hasAccess = await this.validateNotebookOwnership(notebookId, userId);
+  if (!hasAccess) {
+    throw new Error('Unauthorized: You do not have access to this notebook');
+  }
+
+  const timelineIds = await db
+    .select({ id: timelines.id })
+    .from(timelines)
+    .where(eq(timelines.notebookId, notebookId));
+
+  if (!timelineIds.length) {
+    return [];
+  }
+
+  const timelineIdValues = timelineIds.map((timeline) => timeline.id);
+
+  return await db
+    .select()
+    .from(timelineEvents)
+    .where(inArray(timelineEvents.timelineId, timelineIdValues))
     .orderBy(timelineEvents.startDate);
 }
 

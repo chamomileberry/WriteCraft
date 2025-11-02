@@ -91,7 +91,7 @@ import { ImportRepository } from './import.repository';
 import { ShareRepository } from './share.repository';
 import { db } from '../db';
 import { eq, and, desc, or, ilike, isNull, sql, inArray } from 'drizzle-orm';
-import { guides, savedItems, notebooks, userPreferences, conversationSummaries, conversationThreads, chatMessages, feedback } from '@shared/schema';
+import { guides, savedItems, notebooks, timelines, timelineEvents, userPreferences, conversationSummaries, conversationThreads, chatMessages, feedback } from '@shared/schema';
 
 export class StorageFacade implements IStorage {
   private userRepository = new UserRepository();
@@ -1761,6 +1761,32 @@ export class StorageFacade implements IStorage {
 
   async getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]> {
     return await contentRepository.getTimelineEvents(timelineId, userId);
+  }
+
+  async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]> {
+    const ownsNotebook = await this.notebookRepository.validateNotebookOwnership(notebookId, userId);
+    const hasSharedAccess = await this.shareRepository.validateShareAccess(userId, 'notebook', notebookId);
+
+    if (!ownsNotebook && !hasSharedAccess) {
+      throw new Error('Unauthorized: You do not have access to this notebook');
+    }
+
+    const timelineIds = await db
+      .select({ id: timelines.id })
+      .from(timelines)
+      .where(eq(timelines.notebookId, notebookId));
+
+    if (!timelineIds.length) {
+      return [];
+    }
+
+    const timelineIdValues = timelineIds.map(({ id }) => id);
+
+    return await db
+      .select()
+      .from(timelineEvents)
+      .where(inArray(timelineEvents.timelineId, timelineIdValues))
+      .orderBy(timelineEvents.startDate);
   }
 
   async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {

@@ -59,6 +59,28 @@ router.get("/", readRateLimiter, async (req: any, res) => {
   }
 });
 
+router.get("/notebook/:notebookId", readRateLimiter, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const { notebookId } = req.params;
+
+    if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
+    }
+
+    const events = await storage.getTimelineEventsForNotebook(notebookId, userId);
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching notebook timeline events:', error);
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      const userId = req.user?.claims?.sub || 'unknown';
+      console.warn(`[Security] Unauthorized notebook timeline access attempt - userId: ${userId}, notebookId: ${req.params?.notebookId}`);
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    res.status(500).json({ error: 'Failed to fetch timeline events' });
+  }
+});
+
 // Get a specific event by ID
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
