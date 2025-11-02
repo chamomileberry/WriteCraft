@@ -157,7 +157,11 @@ export default function MapStudio() {
     setZoom(prev => Math.max(prev - 0.25, 0.25)); // Min zoom 25%
   };
 
-  const saveToHistory = () => {
+  const saveToHistory = (overrides?: {
+    icons?: MapIcon[];
+    labels?: MapLabel[];
+    borders?: MapBorder[];
+  }) => {
     const canvas = offscreenCanvasRef.current;
     if (!canvas) return;
 
@@ -170,9 +174,9 @@ export default function MapStudio() {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push({
       imageData,
-      icons: [...icons],
-      labels: [...labels],
-      borders: [...borders],
+      icons: overrides?.icons ?? [...icons],
+      labels: overrides?.labels ?? [...labels],
+      borders: overrides?.borders ?? [...borders],
     });
 
     // Limit history to 50 states
@@ -489,9 +493,12 @@ export default function MapStudio() {
                 lineWidth: 3,
                 closed: true,
               };
-              setBorders(prev => [...prev, newBorder]);
+              setBorders(prev => {
+                const updatedBorders = [...prev, newBorder];
+                saveToHistory({ borders: updatedBorders });
+                return updatedBorders;
+              });
               setCurrentBorder([]);
-              saveToHistory();
             }
             break;
           case 'escape':
@@ -504,14 +511,25 @@ export default function MapStudio() {
             // Delete selected item
             if (selectedItem) {
               if (selectedItem.type === 'icon') {
-                setIcons(prev => prev.filter(i => i.id !== selectedItem.id));
+                setIcons(prev => {
+                  const updatedIcons = prev.filter(i => i.id !== selectedItem.id);
+                  saveToHistory({ icons: updatedIcons });
+                  return updatedIcons;
+                });
               } else if (selectedItem.type === 'label') {
-                setLabels(prev => prev.filter(l => l.id !== selectedItem.id));
+                setLabels(prev => {
+                  const updatedLabels = prev.filter(l => l.id !== selectedItem.id);
+                  saveToHistory({ labels: updatedLabels });
+                  return updatedLabels;
+                });
               } else if (selectedItem.type === 'border') {
-                setBorders(prev => prev.filter(b => b.id !== selectedItem.id));
+                setBorders(prev => {
+                  const updatedBorders = prev.filter(b => b.id !== selectedItem.id);
+                  saveToHistory({ borders: updatedBorders });
+                  return updatedBorders;
+                });
               }
               setSelectedItem(null);
-              saveToHistory();
             }
             break;
         }
@@ -528,8 +546,8 @@ export default function MapStudio() {
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left - pan.x) / zoom;
-    const y = (e.clientY - rect.top - pan.y) / zoom;
+    const x = (e.clientX - rect.left) / zoom - pan.x;
+    const y = (e.clientY - rect.top) / zoom - pan.y;
     return { x, y };
   };
 
@@ -588,8 +606,11 @@ export default function MapStudio() {
         y: pos.y,
         name: iconName || '',
       };
-      setIcons(prev => [...prev, newIcon]);
-      saveToHistory();
+      setIcons(prev => {
+        const updatedIcons = [...prev, newIcon];
+        saveToHistory({ icons: updatedIcons });
+        return updatedIcons;
+      });
     } else if (selectedTool === 'label') {
       // Create a label
       const labelText = prompt('Enter label text:');
@@ -603,8 +624,11 @@ export default function MapStudio() {
           color: '#FFFFFF',
           fontWeight: 'bold',
         };
-        setLabels(prev => [...prev, newLabel]);
-        saveToHistory();
+        setLabels(prev => {
+          const updatedLabels = [...prev, newLabel];
+          saveToHistory({ labels: updatedLabels });
+          return updatedLabels;
+        });
       }
     } else if (selectedTool === 'border') {
       // Add point to current border
