@@ -1,11 +1,33 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import MapToolbar, { MapTool } from "@/components/MapToolbar";
 import Header from "@/components/Header";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useNotebookStore } from "@/stores/notebookStore";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type {
+  Character,
+  Location,
+  Settlement,
+  TimelineEvent,
+  InsertLocation,
+  InsertSettlement,
+} from "@shared/schema";
 
 // Terrain color palette
 const TERRAIN_COLORS: Record<string, string> = {
@@ -34,6 +56,32 @@ const ICON_SYMBOLS: Record<IconType, string> = {
   ruins: '🏚️',
 };
 
+type LinkedContentType = 'location' | 'settlement';
+
+const ICON_METADATA: Record<IconType, { label: string; contentType: LinkedContentType; defaultType: string }> = {
+  city: { label: 'City', contentType: 'settlement', defaultType: 'City' },
+  castle: { label: 'Castle', contentType: 'settlement', defaultType: 'Castle' },
+  village: { label: 'Village', contentType: 'settlement', defaultType: 'Village' },
+  port: { label: 'Port City', contentType: 'settlement', defaultType: 'Port City' },
+  mountain: { label: 'Mountain', contentType: 'location', defaultType: 'Mountain' },
+  forest: { label: 'Forest', contentType: 'location', defaultType: 'Forest' },
+  cave: { label: 'Cave', contentType: 'location', defaultType: 'Cave' },
+  tower: { label: 'Tower', contentType: 'location', defaultType: 'Tower' },
+  ruins: { label: 'Ruins', contentType: 'location', defaultType: 'Ruins' },
+};
+
+interface LinkedContentDetail {
+  type: LinkedContentType;
+  data: Location | Settlement;
+}
+
+const PREVIEW_CARD_DIMENSIONS = { width: 280, height: 220 };
+
+const truncateText = (value: string | null | undefined, limit = 160) => {
+  if (!value) return '';
+  return value.length > limit ? `${value.slice(0, limit).trim()}…` : value;
+};
+
 // Layer data structures
 interface MapIcon {
   id: string;
@@ -42,6 +90,7 @@ interface MapIcon {
   y: number;
   name: string;
   linkedContentId?: string;
+  linkedContentType?: LinkedContentType;
 }
 
 interface MapLabel {
@@ -81,6 +130,13 @@ export default function MapStudio() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { activeNotebookId, getActiveNotebook } = useNotebookStore(state => ({
+    activeNotebookId: state.activeNotebookId,
+    getActiveNotebook: state.getActiveNotebook,
+  }));
+  const activeNotebook = getActiveNotebook();
 
   const [selectedTool, setSelectedTool] = useState<MapTool>("pencil");
   const [brushSize, setBrushSize] = useState(20);
@@ -110,6 +166,269 @@ export default function MapStudio() {
 
   // Selected item for editing
   const [selectedItem, setSelectedItem] = useState<{ type: 'icon' | 'label' | 'border', id: string } | null>(null);
+
+  // Map-to-notebook integration state
+  const [pendingIcon, setPendingIcon] = useState<{ x: number; y: number; iconType: IconType } | null>(null);
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [locationFormName, setLocationFormName] = useState('');
+  const [locationFormDescription, setLocationFormDescription] = useState('');
+  const [localContentOverrides, setLocalContentOverrides] = useState<Record<string, LinkedContentDetail>>({});
+  const [hoveredIconId, setHoveredIconId] = useState<string | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
+
+  const { data: notebookLocations = [] } = useQuery<Location[]>({
+    queryKey: ['/api/locations/user', activeNotebookId],
+    enabled: !!activeNotebookId,
+    queryFn: async () => {
+      if (!activeNotebookId) return [] as Location[];
+      try {
+        const response = await apiRequest('GET', `/api/locations/user?notebookId=${activeNotebookId}`);
+        const locations: Location[] = await response.json();
+        return locations;
+      } catch (error) {
+        console.error('Failed to load locations for notebook', error);
+        return [] as Location[];
+      }
+    },
+  });
+
+  const { data: notebookSettlements = [] } = useQuery<Settlement[]>({
+    queryKey: ['/api/settlements/user', activeNotebookId],
+    enabled: !!activeNotebookId,
+    queryFn: async () => {
+      if (!activeNotebookId) return [] as Settlement[];
+      try {
+        const response = await apiRequest('GET', `/api/settlements/user?notebookId=${activeNotebookId}`);
+        const settlements: Settlement[] = await response.json();
+        return settlements;
+      } catch (error) {
+        console.error('Failed to load settlements for notebook', error);
+        return [] as Settlement[];
+      }
+    },
+  });
+
+  const { data: characters = [] } = useQuery<Character[]>({
+    queryKey: ['/api/characters', activeNotebookId],
+    enabled: !!activeNotebookId,
+    queryFn: async () => {
+      if (!activeNotebookId) return [] as Character[];
+      try {
+        const response = await apiRequest('GET', `/api/characters?notebookId=${activeNotebookId}`);
+        const notebookCharacters: Character[] = await response.json();
+        return notebookCharacters;
+      } catch (error) {
+        console.error('Failed to load characters for notebook', error);
+        return [] as Character[];
+      }
+    },
+  });
+
+  const { data: timelineEvents = [] } = useQuery<TimelineEvent[]>({
+    queryKey: ['/api/timeline-events/notebook', activeNotebookId],
+    enabled: !!activeNotebookId,
+    queryFn: async () => {
+      if (!activeNotebookId) return [] as TimelineEvent[];
+      try {
+        const response = await apiRequest('GET', `/api/timeline-events/notebook/${activeNotebookId}`);
+        const events: TimelineEvent[] = await response.json();
+        return events;
+      } catch (error) {
+        console.error('Failed to load timeline events for notebook', error);
+        return [] as TimelineEvent[];
+      }
+    },
+  });
+
+  const contentEntries = useMemo(() => {
+    const entries: Record<string, LinkedContentDetail> = { ...localContentOverrides };
+    notebookLocations.forEach(location => {
+      entries[location.id] = { type: 'location', data: location };
+    });
+    notebookSettlements.forEach(settlement => {
+      entries[settlement.id] = { type: 'settlement', data: settlement };
+    });
+    return entries;
+  }, [localContentOverrides, notebookLocations, notebookSettlements]);
+
+  const hoveredIcon = useMemo(() => {
+    return icons.find(icon => icon.id === hoveredIconId) || null;
+  }, [icons, hoveredIconId]);
+
+  const hoverContent = hoveredIcon?.linkedContentId
+    ? contentEntries[hoveredIcon.linkedContentId]
+    : undefined;
+
+  const hoverCharacters = useMemo(() => {
+    if (!hoverContent) return [] as Character[];
+    const locationName = (hoverContent.data.name || '').toLowerCase();
+    if (!locationName) return [] as Character[];
+
+    return characters.filter(character => {
+      const residence = (character.currentResidence || '').toLowerCase();
+      const currentLocation = (character.currentLocation || '').toLowerCase();
+      return residence === locationName || currentLocation === locationName;
+    });
+  }, [characters, hoverContent]);
+
+  const hoverEvents = useMemo(() => {
+    if (!hoveredIcon?.linkedContentId) return [] as TimelineEvent[];
+    return timelineEvents.filter(event => {
+      if (event.linkedContentId !== hoveredIcon.linkedContentId) {
+        return false;
+      }
+      if (!event.linkedContentType) {
+        return true;
+      }
+      return event.linkedContentType === (hoverContent?.type || event.linkedContentType);
+    });
+  }, [hoverContent?.type, hoveredIcon, timelineEvents]);
+
+  const displayedResidents = useMemo(() => hoverCharacters.slice(0, 4), [hoverCharacters]);
+  const residentOverflow = hoverCharacters.length - displayedResidents.length;
+  const displayedEvents = useMemo(() => hoverEvents.slice(0, 4), [hoverEvents]);
+  const eventOverflow = hoverEvents.length - displayedEvents.length;
+
+  const pendingIconMeta = pendingIcon ? ICON_METADATA[pendingIcon.iconType] : null;
+
+  const mapToScreen = useCallback((x: number, y: number) => ({
+    x: x * zoom + pan.x,
+    y: y * zoom + pan.y,
+  }), [zoom, pan]);
+
+  const createLocationMutation = useMutation<
+    Location,
+    Error,
+    Pick<InsertLocation, 'name' | 'locationType' | 'description' | 'notebookId'>
+  >({
+    mutationFn: async (payload) => {
+      const response = await apiRequest('POST', '/api/locations', payload);
+      const created: Location = await response.json();
+      return created;
+    },
+  });
+
+  const createSettlementMutation = useMutation<
+    Settlement,
+    Error,
+    Pick<InsertSettlement, 'name' | 'settlementType' | 'description' | 'notebookId'>
+  >({
+    mutationFn: async (payload) => {
+      const response = await apiRequest('POST', '/api/settlements', payload);
+      const created: Settlement = await response.json();
+      return created;
+    },
+  });
+
+  const isSavingLocation = createLocationMutation.isPending || createSettlementMutation.isPending;
+
+  const previewPositionStyle = useMemo(() => {
+    if (!hoverPosition) return null;
+
+    const canvas = canvasRef.current;
+    const basePosition = {
+      left: hoverPosition.x + 16,
+      top: hoverPosition.y - 16,
+    };
+
+    if (!canvas) {
+      return basePosition;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const maxLeft = Math.max(rect.width - PREVIEW_CARD_DIMENSIONS.width, 0);
+    const maxTop = Math.max(rect.height - PREVIEW_CARD_DIMENSIONS.height, 0);
+
+    return {
+      left: Math.min(Math.max(basePosition.left, 0), maxLeft),
+      top: Math.min(Math.max(basePosition.top, 0), maxTop),
+    };
+  }, [hoverPosition]);
+
+  useEffect(() => {
+    if (!hoveredIconId) {
+      setHoverPosition(null);
+      return;
+    }
+
+    const icon = icons.find(item => item.id === hoveredIconId);
+    if (!icon) {
+      setHoverPosition(null);
+      return;
+    }
+
+    setHoverPosition(mapToScreen(icon.x, icon.y));
+  }, [hoveredIconId, icons, mapToScreen]);
+
+  useEffect(() => {
+    if (!layerVisibility.icons) {
+      setHoveredIconId(null);
+      setHoverPosition(null);
+    }
+  }, [layerVisibility.icons]);
+
+  useEffect(() => {
+    if (!hoveredIconId || !activeNotebookId) {
+      return;
+    }
+
+    const icon = icons.find(item => item.id === hoveredIconId);
+    if (!icon?.linkedContentId || !icon.linkedContentType) {
+      return;
+    }
+
+    const hasLocal = !!localContentOverrides[icon.linkedContentId];
+    const hasQueryData = icon.linkedContentType === 'location'
+      ? notebookLocations.some(location => location.id === icon.linkedContentId)
+      : notebookSettlements.some(settlement => settlement.id === icon.linkedContentId);
+
+    if (hasLocal || hasQueryData) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const endpoint = icon.linkedContentType === 'settlement'
+          ? `/api/settlements/${icon.linkedContentId}?notebookId=${activeNotebookId}`
+          : `/api/locations/${icon.linkedContentId}?notebookId=${activeNotebookId}`;
+        const response = await apiRequest('GET', endpoint, undefined, { signal: controller.signal });
+        const detail = await response.json() as Location | Settlement;
+        setLocalContentOverrides(prev => ({
+          ...prev,
+          [icon.linkedContentId!]: {
+            type: icon.linkedContentType!,
+            data: detail,
+          },
+        }));
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        console.error('Failed to load location preview data', error);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [
+    hoveredIconId,
+    icons,
+    activeNotebookId,
+    localContentOverrides,
+    notebookLocations,
+    notebookSettlements,
+  ]);
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (isSavingLocation) return;
+    setLocationDialogOpen(open);
+    if (!open) {
+      setPendingIcon(null);
+      setLocationFormName('');
+      setLocationFormDescription('');
+    }
+  };
 
   // Undo/Redo history
   const [history, setHistory] = useState<HistoryState[]>([]);
@@ -187,6 +506,124 @@ export default function MapStudio() {
     }
 
     setHistory(newHistory);
+  };
+
+  const addIconForContent = (content: Location | Settlement, type: LinkedContentType) => {
+    if (!pendingIcon) return;
+
+    const newIcon: MapIcon = {
+      id: `icon-${Date.now()}`,
+      type: pendingIcon.iconType,
+      x: pendingIcon.x,
+      y: pendingIcon.y,
+      name: content.name ?? '',
+      linkedContentId: content.id,
+      linkedContentType: type,
+    };
+
+    setIcons(prev => {
+      const updatedIcons = [...prev, newIcon];
+      saveToHistory({ icons: updatedIcons });
+      return updatedIcons;
+    });
+
+    setLocalContentOverrides(prev => ({
+      ...prev,
+      [content.id]: { type, data: content },
+    }));
+  };
+
+  const getCharacterDisplayName = useCallback((character: Character) => {
+    const parts = [character.givenName, character.familyName].filter(Boolean);
+    if (parts.length) {
+      return parts.join(' ');
+    }
+    if (character.nickname) {
+      return character.nickname;
+    }
+    if (character.occupation) {
+      return character.occupation;
+    }
+    return 'Unnamed Character';
+  }, []);
+
+  const handleLocationDialogSubmit = async () => {
+    if (!pendingIcon || !pendingIconMeta || !activeNotebookId) {
+      toast({
+        title: 'Unable to add location',
+        description: 'Select a notebook and a map icon before creating a location.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const trimmedName = locationFormName.trim();
+    const trimmedDescription = locationFormDescription.trim();
+
+    if (!trimmedName) {
+      toast({
+        title: 'Name required',
+        description: 'Give this location a name so it can be added to your notebook.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!trimmedDescription) {
+      toast({
+        title: 'Description required',
+        description: 'Add a short description to remember what makes this place unique.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      if (pendingIconMeta.contentType === 'settlement') {
+        const payload: Pick<InsertSettlement, 'name' | 'settlementType' | 'description' | 'notebookId'> = {
+          name: trimmedName,
+          settlementType: pendingIconMeta.defaultType,
+          description: trimmedDescription,
+          notebookId: activeNotebookId,
+        };
+        const created = await createSettlementMutation.mutateAsync(payload);
+        addIconForContent(created, 'settlement');
+        queryClient.invalidateQueries({ queryKey: ['/api/settlements/user', activeNotebookId] });
+        toast({
+          title: 'Settlement added',
+          description: `${created.name} is now part of ${activeNotebook?.name ?? 'your notebook'}.`,
+        });
+      } else {
+        const payload: Pick<InsertLocation, 'name' | 'locationType' | 'description' | 'notebookId'> = {
+          name: trimmedName,
+          locationType: pendingIconMeta.defaultType,
+          description: trimmedDescription,
+          notebookId: activeNotebookId,
+        };
+        const created = await createLocationMutation.mutateAsync(payload);
+        addIconForContent(created, 'location');
+        queryClient.invalidateQueries({ queryKey: ['/api/locations/user', activeNotebookId] });
+        toast({
+          title: 'Location added',
+          description: `${created.name} is now part of ${activeNotebook?.name ?? 'your notebook'}.`,
+        });
+      }
+
+      setLocationDialogOpen(false);
+      setPendingIcon(null);
+      setLocationFormName('');
+      setLocationFormDescription('');
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Request cancelled') {
+        return;
+      }
+      console.error('Failed to create notebook entry from map', error);
+      toast({
+        title: 'Failed to add location',
+        description: 'We could not save this entry. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleUndo = () => {
@@ -586,6 +1023,8 @@ export default function MapStudio() {
   // Mouse event handlers
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const pos = getMousePos(e);
+    setHoveredIconId(null);
+    setHoverPosition(null);
 
     if (selectedTool === 'pan') {
       setIsPanning(true);
@@ -597,20 +1036,23 @@ export default function MapStudio() {
       setLastPoint(pos);
       drawBrushStroke(pos.x, pos.y, pos.x, pos.y);
     } else if (selectedTool === 'icon') {
-      // Place an icon
-      const iconName = prompt('Enter name for this location (optional):');
-      const newIcon: MapIcon = {
-        id: `icon-${Date.now()}`,
-        type: selectedIconType,
-        x: pos.x,
-        y: pos.y,
-        name: iconName || '',
-      };
-      setIcons(prev => {
-        const updatedIcons = [...prev, newIcon];
-        saveToHistory({ icons: updatedIcons });
-        return updatedIcons;
-      });
+      if (!activeNotebookId) {
+        toast({
+          title: 'Select a notebook',
+          description: 'Choose or create a notebook before adding locations to the map.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (locationDialogOpen || isSavingLocation) {
+        return;
+      }
+
+      setPendingIcon({ x: pos.x, y: pos.y, iconType: selectedIconType });
+      setLocationFormName(ICON_METADATA[selectedIconType].label);
+      setLocationFormDescription('');
+      setLocationDialogOpen(true);
     } else if (selectedTool === 'label') {
       // Create a label
       const labelText = prompt('Enter label text:');
@@ -680,6 +1122,23 @@ export default function MapStudio() {
       const pos = getMousePos(e);
       drawBrushStroke(lastPoint.x, lastPoint.y, pos.x, pos.y);
       setLastPoint(pos);
+    } else if (layerVisibility.icons) {
+      const pos = getMousePos(e);
+      const hovered = icons.find(icon => {
+        if (!icon.linkedContentId) return false;
+        const distance = Math.sqrt((icon.x - pos.x) ** 2 + (icon.y - pos.y) ** 2);
+        return distance < 20;
+      });
+
+      if (hovered) {
+        if (hoveredIconId !== hovered.id) {
+          setHoveredIconId(hovered.id);
+        }
+        setHoverPosition(mapToScreen(hovered.x, hovered.y));
+      } else if (hoveredIconId) {
+        setHoveredIconId(null);
+        setHoverPosition(null);
+      }
     }
   };
 
@@ -690,6 +1149,8 @@ export default function MapStudio() {
     setIsDrawing(false);
     setIsPanning(false);
     setLastPoint(null);
+    setHoveredIconId(null);
+    setHoverPosition(null);
   };
 
   const handleMouseLeave = () => {
@@ -699,10 +1160,71 @@ export default function MapStudio() {
     setIsDrawing(false);
     setIsPanning(false);
     setLastPoint(null);
+    setHoveredIconId(null);
+    setHoverPosition(null);
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <>
+      <Dialog open={locationDialogOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              Add {pendingIconMeta?.label ?? 'Location'} to {activeNotebook?.name ?? 'your notebook'}
+            </DialogTitle>
+            <DialogDescription>
+              We'll create a {pendingIconMeta?.contentType ?? 'location'} entry linked to this map marker.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="map-location-name">Name</Label>
+              <Input
+                id="map-location-name"
+                value={locationFormName}
+                onChange={(event) => setLocationFormName(event.target.value)}
+                disabled={isSavingLocation}
+                placeholder={`Name this ${pendingIconMeta?.label?.toLowerCase() ?? 'location'}`}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="map-location-description">Description</Label>
+              <Textarea
+                id="map-location-description"
+                rows={4}
+                value={locationFormDescription}
+                onChange={(event) => setLocationFormDescription(event.target.value)}
+                disabled={isSavingLocation}
+                placeholder="Describe this place so you remember why it's important."
+              />
+              <p className="text-xs text-muted-foreground">
+                This description will be saved to your {pendingIconMeta?.contentType ?? 'location'} entry.
+              </p>
+            </div>
+            <div className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Map marker: <span className="font-medium capitalize">{pendingIconMeta?.label ?? 'Location'}</span> • Notebook type:{' '}
+              <span className="font-medium capitalize">{pendingIconMeta?.contentType ?? 'location'}</span>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => handleDialogOpenChange(false)} disabled={isSavingLocation}>
+              Cancel
+            </Button>
+            <Button onClick={handleLocationDialogSubmit} disabled={isSavingLocation}>
+              {isSavingLocation ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                'Add to notebook'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="flex flex-col h-screen">
       {/* Main Navigation Header */}
       <Header onNavigate={handleNavigate} onCreateNew={handleCreateNew} />
 
@@ -867,6 +1389,64 @@ export default function MapStudio() {
           </div>
         </div>
 
+        {hoverContent && previewPositionStyle && layerVisibility.icons && (
+          <div
+            className="absolute z-30 w-[280px] pointer-events-none"
+            style={{ left: previewPositionStyle.left, top: previewPositionStyle.top }}
+          >
+            <div className="rounded-lg border border-border bg-background/95 backdrop-blur-sm p-4 shadow-lg space-y-3">
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">
+                  {hoverContent.type === 'settlement' ? 'Settlement' : 'Location'} Preview
+                </p>
+                <h3 className="text-sm font-semibold text-foreground">{hoverContent.data.name}</h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {truncateText(hoverContent.data.description)}
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Residents</h4>
+                {displayedResidents.length ? (
+                  <ul className="space-y-1">
+                    {displayedResidents.map(resident => (
+                      <li key={resident.id} className="text-xs text-foreground">
+                        {getCharacterDisplayName(resident)}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No characters linked to this place yet.</p>
+                )}
+                {residentOverflow > 0 && (
+                  <p className="text-[11px] text-muted-foreground mt-1">+{residentOverflow} more residents</p>
+                )}
+              </div>
+
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Timeline events</h4>
+                {displayedEvents.length ? (
+                  <ul className="space-y-1">
+                    {displayedEvents.map(event => (
+                      <li key={event.id} className="text-xs text-foreground">
+                        <span className="font-medium">{event.title}</span>
+                        {event.startDate && (
+                          <span className="text-muted-foreground"> • {event.startDate}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No recorded events here yet.</p>
+                )}
+                {eventOverflow > 0 && (
+                  <p className="text-[11px] text-muted-foreground mt-1">+{eventOverflow} more events</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Instructions Overlay */}
         <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-sm">
           <h3 className="font-semibold mb-2">Quick Tips:</h3>
@@ -880,5 +1460,6 @@ export default function MapStudio() {
         </div>
       </div>
     </div>
+    </>
   );
 }

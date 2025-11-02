@@ -128,7 +128,7 @@ import {
   canvases, type Canvas, type InsertCanvas,
   notebooks
 } from '@shared/schema';
-import { eq, and, or, desc, isNull, sql } from 'drizzle-orm';
+import { eq, and, or, desc, isNull, sql, inArray } from 'drizzle-orm';
 
 export class ContentRepository extends BaseRepository {
   // ========== PLOT METHODS ==========
@@ -2415,6 +2415,25 @@ export class ContentRepository extends BaseRepository {
 
     return await db.select().from(timelineEvents)
       .where(eq(timelineEvents.timelineId, timelineId))
+      .orderBy(timelineEvents.startDate);
+  }
+
+  async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<any[]> {
+    const timelineIds = await db
+      .select({ id: timelines.id })
+      .from(timelines)
+      .where(and(eq(timelines.notebookId, notebookId), eq(timelines.userId, userId)));
+
+    if (!timelineIds.length) {
+      return [];
+    }
+
+    const ids = timelineIds.map(timeline => timeline.id);
+
+    return await db
+      .select()
+      .from(timelineEvents)
+      .where(inArray(timelineEvents.timelineId, ids))
       .orderBy(timelineEvents.startDate);
   }
 

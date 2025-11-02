@@ -470,6 +470,7 @@ export interface IStorage {
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
   getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined>;
   getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]>;
+  getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]>;
   updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent>;
   deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void>;
 
