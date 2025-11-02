@@ -72,8 +72,29 @@ export async function getSession(): Promise<RequestHandler[]> {
       maxAge: sessionTtl,
     },
   });
-  
+
   const csrfMiddleware = lusca.csrf();
+
+  // Helper function to check if path is a static asset
+  const isStaticAsset = (path: string): boolean => {
+    return (
+      path.startsWith('/@fs/') ||
+      path.startsWith('/@vite/') ||
+      path.startsWith('/assets/') ||
+      path.startsWith('/node_modules/') ||
+      path.startsWith('/@id/') ||
+      path === '/api/csp-report' // CSP reports are browser-generated
+    );
+  };
+
+  // Wrap session middleware to skip for static assets (performance optimization)
+  // Static assets don't need session data, so we avoid expensive database lookups
+  const conditionalSessionMiddleware: RequestHandler = (req, res, next) => {
+    if (isStaticAsset(req.path)) {
+      return next(); // Skip session loading for static assets
+    }
+    sessionMiddleware(req, res, next);
+  };
 
   // Wrap CSRF middleware to skip ONLY for static assets and CSP reports
   // CSRF protection is ENABLED for all API routes for defense-in-depth security
@@ -83,27 +104,15 @@ export async function getSession(): Promise<RequestHandler[]> {
   // - Defense against subdomain takeover attacks
   // - Compliance with OWASP security best practices
   const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
-    const path = req.path;
-
-    // Skip CSRF ONLY for:
-    // 1. Static assets (Vite dev files, assets, etc.) - no state modification
-    // 2. CSP reports (browser-generated, don't include CSRF tokens)
-    if (
-      path.startsWith('/@fs/') ||
-      path.startsWith('/@vite/') ||
-      path.startsWith('/assets/') ||
-      path.startsWith('/node_modules/') ||
-      path.startsWith('/@id/') ||
-      path === '/api/csp-report' // CSP reports are browser-generated
-    ) {
-      return next();
+    if (isStaticAsset(req.path)) {
+      return next(); // Skip CSRF validation for static assets
     }
 
     // Run CSRF middleware for ALL other requests, including ALL API routes
     csrfMiddleware(req, res, next);
   };
-  
-  return [sessionMiddleware, conditionalCsrfMiddleware];
+
+  return [conditionalSessionMiddleware, conditionalCsrfMiddleware];
 }
 
 function updateUserSession(
