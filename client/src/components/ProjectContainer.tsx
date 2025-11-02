@@ -417,7 +417,23 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                     <span>Import Data</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => { window.location.href = '/api/auth/logout'; }} data-testid="menu-logout">
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      // Use POST endpoint for secure logout with CSRF protection
+                      try {
+                        await fetch('/api/auth/logout', {
+                          method: 'POST',
+                          credentials: 'include',
+                        });
+                        window.location.href = '/';
+                      } catch (error) {
+                        console.error('Logout failed:', error);
+                        // Fallback to GET endpoint if POST fails
+                        window.location.href = '/api/logout';
+                      }
+                    }}
+                    data-testid="menu-logout"
+                  >
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>

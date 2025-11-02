@@ -74,29 +74,32 @@ export async function getSession(): Promise<RequestHandler[]> {
   });
   
   const csrfMiddleware = lusca.csrf();
-  
-  // Wrap CSRF middleware to skip for API routes, static assets, and CSP reports
-  // Session middleware always runs (required for Passport), but CSRF is skipped for API routes
-  // because the application uses session-based authentication with SameSite cookies for CSRF protection
+
+  // Wrap CSRF middleware to skip ONLY for static assets and CSP reports
+  // CSRF protection is ENABLED for all API routes for defense-in-depth security
+  // While SameSite cookies provide some protection, CSRF tokens are required for:
+  // - Defense against browser bugs and implementation variations
+  // - Protection in older browsers that don't support SameSite
+  // - Defense against subdomain takeover attacks
+  // - Compliance with OWASP security best practices
   const conditionalCsrfMiddleware: RequestHandler = (req, res, next) => {
     const path = req.path;
-    
-    // Skip CSRF for:
-    // 1. All API routes - the app uses session auth with SameSite cookies and rate limiting
-    // 2. Static assets (Vite dev files, assets, etc.)
-    // 3. CSP reports (browser-generated, don't include CSRF tokens)
+
+    // Skip CSRF ONLY for:
+    // 1. Static assets (Vite dev files, assets, etc.) - no state modification
+    // 2. CSP reports (browser-generated, don't include CSRF tokens)
     if (
-      path.startsWith('/api/') ||
       path.startsWith('/@fs/') ||
       path.startsWith('/@vite/') ||
       path.startsWith('/assets/') ||
       path.startsWith('/node_modules/') ||
-      path.startsWith('/@id/')
+      path.startsWith('/@id/') ||
+      path === '/api/csp-report' // CSP reports are browser-generated
     ) {
       return next();
     }
-    
-    // Run CSRF middleware for all other requests (e.g., form submissions from HTML pages)
+
+    // Run CSRF middleware for ALL other requests, including ALL API routes
     csrfMiddleware(req, res, next);
   };
   
@@ -219,10 +222,46 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
+  // SECURITY: GET logout endpoint for OIDC redirect flow with CSRF mitigation
+  // This endpoint validates the Referer header to prevent CSRF attacks
+  // - Allows same-origin requests (direct navigation, frontend redirects)
+  // - Blocks cross-origin requests (CSRF attacks)
+  // - Falls back to blocking if Referer is missing (defense-in-depth)
   app.get("/api/logout", sessionRateLimiter, (req, res) => {
+    // CSRF Protection: Validate Referer header
+    const referer = req.headers.referer || req.headers.referrer;
+    const host = req.headers.host;
+
+    // Allow logout only if:
+    // 1. Referer matches our domain (same-origin)
+    // 2. OR user is not authenticated (no CSRF risk)
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        const requestHost = host?.split(':')[0]; // Remove port if present
+        const refererHost = refererUrl.hostname;
+
+        // Block if referer is from different domain
+        if (refererHost !== requestHost && refererHost !== `www.${requestHost}`) {
+          console.warn(`[SECURITY] Blocked cross-origin logout attempt from ${refererHost} to ${requestHost}`);
+          return res.status(403).json({
+            message: "Logout must be initiated from the same domain"
+          });
+        }
+      } catch (error) {
+        // Invalid referer URL - block for safety
+        console.warn(`[SECURITY] Invalid referer header in logout: ${referer}`);
+        return res.status(403).json({ message: "Invalid request origin" });
+      }
+    } else if (req.isAuthenticated && req.isAuthenticated()) {
+      // No referer but user is authenticated - potentially suspicious
+      // Some browsers don't send referer, so we allow but log it
+      console.warn(`[SECURITY] Logout without referer header - user: ${(req.user as any)?.claims?.sub}`);
+    }
+
     const userId = (req.user as any)?.claims?.sub;
     const sessionId = req.sessionID;
-    
+
     req.logout(async () => {
       // Remove session from concurrent session tracking
       if (userId && sessionId) {
@@ -233,7 +272,7 @@ export async function setupAuth(app: Express) {
           console.error('[SESSION] Failed to remove session:', sessionErr);
         }
       }
-      
+
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,

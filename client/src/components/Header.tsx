@@ -297,10 +297,21 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onSelect={(event) => {
+                <DropdownMenuItem
+                  onSelect={async (event) => {
                     event.preventDefault();
-                    window.location.href = '/api/logout';
+                    // Use POST endpoint for secure logout with CSRF protection
+                    try {
+                      await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include',
+                      });
+                      window.location.href = '/';
+                    } catch (error) {
+                      console.error('Logout failed:', error);
+                      // Fallback to GET endpoint if POST fails
+                      window.location.href = '/api/logout';
+                    }
                   }}
                   data-testid="menu-logout"
                   className="text-destructive focus:text-destructive"
