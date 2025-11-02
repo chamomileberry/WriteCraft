@@ -16,6 +16,9 @@ import {
   ZoomOut,
   Undo,
   Redo,
+  MapPin,
+  Tag,
+  Maximize2,
 } from "lucide-react";
 
 export type MapTool =
@@ -29,7 +32,10 @@ export type MapTool =
   | "forest"
   | "water"
   | "settlement"
-  | "eraser";
+  | "eraser"
+  | "icon"
+  | "label"
+  | "border";
 
 interface MapToolbarProps {
   selectedTool: MapTool;
@@ -99,6 +105,15 @@ export default function MapToolbar({
         <ToolButton tool="forest" icon={Trees} label="Forest (F)" />
         <ToolButton tool="water" icon={Waves} label="Water (W)" />
         <ToolButton tool="settlement" icon={Home} label="Settlement (S)" />
+      </div>
+
+      <Separator orientation="vertical" className="h-6" />
+
+      {/* Layer Tools */}
+      <div className="flex gap-1">
+        <ToolButton tool="icon" icon={MapPin} label="Place Icon (I)" />
+        <ToolButton tool="label" icon={Tag} label="Add Label (L)" />
+        <ToolButton tool="border" icon={Maximize2} label="Draw Border (B)" />
       </div>
 
       <Separator orientation="vertical" className="h-6" />
