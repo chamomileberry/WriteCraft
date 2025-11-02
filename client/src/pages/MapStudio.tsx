@@ -272,17 +272,20 @@ export default function MapStudio() {
   }, [characters, hoverContent]);
 
   const hoverEvents = useMemo(() => {
-    if (!hoveredIcon?.linkedContentId) return [] as TimelineEvent[];
+    if (!hoveredIcon?.linkedContentId || !hoverContent) return [] as TimelineEvent[];
+
     return timelineEvents.filter(event => {
       if (event.linkedContentId !== hoveredIcon.linkedContentId) {
         return false;
       }
+      // If event has no type, it's a legacy match.
       if (!event.linkedContentType) {
         return true;
       }
-      return event.linkedContentType === (hoverContent?.type || event.linkedContentType);
+      // Otherwise, types must match.
+      return event.linkedContentType === hoverContent.type;
     });
-  }, [hoverContent?.type, hoveredIcon, timelineEvents]);
+  }, [hoverContent, hoveredIcon, timelineEvents]);
 
   const displayedResidents = useMemo(() => hoverCharacters.slice(0, 4), [hoverCharacters]);
   const residentOverflow = hoverCharacters.length - displayedResidents.length;
