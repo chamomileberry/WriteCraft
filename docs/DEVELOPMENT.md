@@ -5,24 +5,23 @@
 
 ### Prerequisites
 
-- Node.js 18+ (provided by Replit)
+- Node.js 18+
 - PostgreSQL database (Neon serverless, configured via environment variables)
 - Anthropic API key for AI features (optional for development)
 
 ### Environment Variables
 
-Required environment variables (set in Replit Secrets):
+Required environment variables (set in Secrets):
 
 ```bash
 DATABASE_URL=postgresql://...  # Neon database connection string
 ANTHROPIC_API_KEY=sk-...       # For AI features (optional)
-REPLIT_DB_URL=...              # Managed by Replit
 SESSION_SECRET=...             # Auto-generated
 ```
 
 ### Installation
 
-The project auto-installs dependencies via Replit. To manually install:
+The project auto-installs dependencies. To manually install:
 
 ```bash
 npm install
@@ -35,12 +34,6 @@ Click the **Run** button, or:
 ```bash
 npm run dev
 ```
-
-This starts:
-- Vite dev server (frontend) on port 5173
-- Express API server (backend) on port 5000
-
-The app will be available at the Replit webview URL.
 
 ## Project Structure
 
@@ -66,7 +59,7 @@ The app will be available at the Replit webview URL.
 - **Backend**: Express, Drizzle ORM, PostgreSQL
 - **UI Components**: Radix UI (shadcn/ui), TipTap editor
 - **AI**: Anthropic Claude 3.5 Sonnet
-- **Auth**: Replit Auth
+- **Auth**: Google Auth
 
 ## Database Migrations
 
@@ -168,14 +161,13 @@ Use browser DevTools:
 
 ## Performance Considerations
 
-- Images stored in Replit Object Storage (not database)
+- Images stored in Object Storage (not database)
 - Database indexes on frequently queried fields
 - React Query caching reduces API calls
 - Auto-save debounced to reduce database writes
 
 ## Security
 
-See `replit.md` for comprehensive security documentation:
 
 - All content operations enforce ownership validation
 - Unauthorized access returns 404 (not 403)
@@ -184,7 +176,7 @@ See `replit.md` for comprehensive security documentation:
 
 ## Contributing Workflow
 
-1. Make changes in your Replit workspace
+1. Make changes in your workspace
 2. Test thoroughly
 3. Update documentation if needed
 4. Verify no TypeScript errors (`npx tsc --noEmit`)
@@ -192,7 +184,6 @@ See `replit.md` for comprehensive security documentation:
 
 ## Additional Resources
 
-- [Replit Documentation](https://docs.replit.com)
 - [TanStack Query Docs](https://tanstack.com/query)
 - [Drizzle ORM Docs](https://orm.drizzle.team)
 - [TipTap Editor Docs](https://tiptap.dev)

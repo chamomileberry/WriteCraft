@@ -65,8 +65,6 @@ This document outlines all critical steps required before deploying WriteCraft t
 **Verification:**
 ```bash
 # Test rate limiting
-for i in {1..100}; do curl -X GET https://your-app.replit.app/api/health; done
-```
 
 ### CORS Configuration
 **Status:** ✅ Not Required
@@ -277,7 +275,6 @@ Create `scripts/load-test.js`:
 
 // load-test.yml
 config:
-  target: 'https://your-app.replit.app'
   phases:
     - duration: 60
       arrivalRate: 10  # 10 users per second
@@ -339,8 +336,7 @@ redis-cli INFO stats
 
 ### Deployment Steps
 1. **Create checkpoint:**
-   - Replit automatically creates checkpoints
-   - Manual checkpoint: Use Replit UI > History > Create Checkpoint
+   - Manual checkpoint: Use UI > History > Create Checkpoint
 
 2. **Deploy new code:**
    ```bash
@@ -359,8 +355,8 @@ redis-cli INFO stats
 ### Rollback Procedure
 If issues detected post-deployment:
 
-**Option 1: Replit Checkpoint Rollback (Fastest)**
-1. Navigate to Replit > History tab
+**Option 1: Checkpoint Rollback (Fastest)**
+1. Navigate to History tab
 2. Find last known good checkpoint (before deployment)
 3. Click "Restore" on that checkpoint
 4. Database and code roll back together

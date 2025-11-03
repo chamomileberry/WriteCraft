@@ -474,13 +474,13 @@ CREATE POLICY user_isolation_policy ON notebooks
 #### 8. ⏳ Encrypted Secrets Management
 **Status:** Environment Variables  
 **Priority:** HIGH  
-**Required:** Replit Secrets or external secrets manager
+**Required:** Secrets or external secrets manager
 
-**Current:** Environment variables in Replit  
+**Current:** Environment variables
 **Enhancement:** Encrypted secrets with rotation
 
 **Implementation Steps:**
-1. Use Replit Secrets for all sensitive values
+1. Use Secrets for all sensitive values
 2. Implement secret rotation schedule
 3. Never log or expose secrets in errors
 4. Add secret validation on startup
@@ -647,7 +647,7 @@ After implementing any security enhancement:
 ### Contact & Escalation
 
 For security incidents or questions:
-- **Email:** security@replit.com (replace with your security email)
+- **Email:** admin@writecraft.app
 - **Escalation:** [Define your escalation process]
 - **On-Call:** [Define your on-call rotation]
 

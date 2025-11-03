@@ -34,7 +34,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error saving timeline:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
@@ -115,7 +115,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error updating timeline:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';

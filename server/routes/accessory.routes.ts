@@ -26,7 +26,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error saving accessory:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     res.status(500).json({ error: 'Failed to save accessory' });
   }
@@ -78,7 +78,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error updating accessory:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });

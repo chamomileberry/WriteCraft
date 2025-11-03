@@ -16,9 +16,9 @@ router.get('/check-config', readRateLimiter, (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     message: isEnabled 
       ? 'Sentry DSN is configured and Sentry should be active'
-      : 'SENTRY_DSN environment variable is not set. Please add it to Replit Secrets.',
+      : 'SENTRY_DSN environment variable is not set. Please add it to Secrets.',
     instructions: !isEnabled 
-      ? 'Go to Replit Secrets and add SENTRY_DSN with your Sentry DSN value, then restart the server.'
+      ? 'Go to Secrets and add SENTRY_DSN with your Sentry DSN value, then restart the server.'
       : 'Configuration looks good. Try the /debug-sentry endpoint to test error tracking.'
   });
 });

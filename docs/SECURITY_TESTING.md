@@ -429,7 +429,7 @@ docker run -t owasp/zap2docker-stable \
 ```
 
 ### 2. Burp Suite (Manual Testing)
-- Configure browser proxy to localhost:8080
+- Configure browser proxy to localhost
 - Intercept and modify requests
 - Test for injection, XSS, CSRF
 - Analyze session tokens

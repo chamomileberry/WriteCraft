@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../replitAuth';
 import * as mfaService from '../services/mfaService';
 import { SecurityAuditLog } from '../security';
 import { z } from 'zod';

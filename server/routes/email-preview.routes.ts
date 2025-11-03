@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../replitAuth';
 import { requireAdmin } from '../security/middleware';
 import * as emailTemplates from '../templates/email/emailTemplates';
 import { readRateLimiter } from '../security/rateLimiters';
+import { isAuthenticated } from 'server/security';
 
 const router = Router();
 
@@ -52,15 +52,6 @@ router.get('/:templateType', isAuthenticated, requireAdmin, readRateLimiter, asy
           amount: '$19.99',
           failureReason: 'Your card was declined',
           invoiceUrl: 'https://writecraft.app/billing/invoices/inv_123',
-        });
-        break;
-
-      case 'trial-ending':
-        emailContent = emailTemplates.renderTrialEndingEmail({
-          userName: 'Jane Doe',
-          planName: 'Professional',
-          trialEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-          daysRemaining: 3,
         });
         break;
 
@@ -173,7 +164,6 @@ router.get('/:templateType', isAuthenticated, requireAdmin, readRateLimiter, asy
             'subscription-canceled',
             'subscription-reactivated',
             'payment-failed',
-            'trial-ending',
             'mfa-enabled',
             'mfa-disabled',
             'new-device-login',
@@ -212,7 +202,6 @@ router.get('/', isAuthenticated, requireAdmin, readRateLimiter, async (req, res)
       { id: 'subscription-canceled', name: 'Subscription Canceled', category: 'billing' },
       { id: 'subscription-reactivated', name: 'Subscription Reactivated', category: 'billing' },
       { id: 'payment-failed', name: 'Payment Failed', category: 'billing' },
-      { id: 'trial-ending', name: 'Trial Ending Soon', category: 'billing' },
       { id: 'mfa-enabled', name: 'MFA Enabled', category: 'security' },
       { id: 'mfa-disabled', name: 'MFA Disabled', category: 'security' },
       { id: 'new-device-login', name: 'New Device Login', category: 'security' },

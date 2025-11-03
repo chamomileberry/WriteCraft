@@ -172,23 +172,6 @@ This was verified during development with runtime tests:
 3. Right-click any request → "Edit and Resend"
 4. Modify headers/body to test security
 
-### Using Curl (Command Line):
-```bash
-# Get CSRF token
-curl -X GET https://your-app.replit.app/api/auth/csrf-token \
-  --cookie "session=your-session-cookie"
-
-# Test admin field injection
-curl -X PATCH https://your-app.replit.app/api/users/YOUR_USER_ID \
-  -H "Content-Type: application/json" \
-  -H "X-CSRF-Token: your-csrf-token" \
-  --cookie "session=your-session-cookie" \
-  -d '{"isAdmin": true, "firstName": "Test"}'
-
-# Test RLS (try accessing another user's notebook)
-curl -X GET https://your-app.replit.app/api/notebooks/OTHER_USER_NOTEBOOK_ID \
-  --cookie "session=your-session-cookie"
-```
 
 ---
 

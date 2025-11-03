@@ -32,7 +32,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error saving condition:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     res.status(500).json({ error: 'Failed to save condition' });
   }
@@ -110,7 +110,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error updating condition:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';

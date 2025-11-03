@@ -11,8 +11,8 @@ export const tsvector = customType<{ data: string }>({
   },
 });
 
-// Session storage table for Replit Auth
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// Session storage table for Auth
+// (IMPORTANT) This table is mandatory for Auth, don't drop it.
 export const sessions = pgTable(
   "sessions",
   {
@@ -23,8 +23,8 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// Users table for authentication and user data (Replit Auth compatible)
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// Users table for authentication and user data (Auth compatible)
+// (IMPORTANT) This table is mandatory for Auth, don't drop it.
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),

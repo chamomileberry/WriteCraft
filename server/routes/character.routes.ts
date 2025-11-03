@@ -135,7 +135,7 @@ router.post("/generate", aiRateLimiter, trackAIUsage('character_generation'), as
   } catch (error) {
     console.error('Error generating character:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
@@ -168,7 +168,7 @@ router.post("/:id/generate-field", aiRateLimiter, trackAIUsage('character_field_
       fieldName: z.string().refine(name => validFieldNames.includes(name), {
         message: `Field name must be one of: ${validFieldNames.join(', ')}`
       }),
-      currentFormData: z.record(z.any()).optional(),
+      currentFormData: z.record(z.string(),z.any()).optional(),
       notebookId: z.string()
     });
     
@@ -204,7 +204,7 @@ router.post("/:id/generate-field", aiRateLimiter, trackAIUsage('character_field_
   } catch (error) {
     console.error('Error generating character field:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
@@ -212,7 +212,11 @@ router.post("/:id/generate-field", aiRateLimiter, trackAIUsage('character_field_
 });
 
 // Create character manually (from comprehensive form)
-router.post("/", writeRateLimiter, validateInput(insertCharacterSchema.omit({ userId: true })), async (req: any, res) => {
+// 1. Define the schema for this specific route FIRST
+const postCharacterSchema = insertCharacterSchema.omit({ userId: true });
+
+// 2. Then, pass the new, simpler constant to your middleware
+router.post("/", writeRateLimiter, validateInput(postCharacterSchema), async (req: any, res) => {
   try {
     // Extract userId from header for security (override client payload)
     const userId = req.user.claims.sub;
@@ -273,7 +277,7 @@ router.get("/", readRateLimiter, async (req: any, res) => {
   }
 });
 
-router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
+router.get("/user(/:userId?)", readRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client-supplied userId)
     const userId = req.user.claims.sub;
@@ -340,7 +344,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error updating character:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {

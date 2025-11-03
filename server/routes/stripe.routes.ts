@@ -2,7 +2,6 @@ import { Router } from 'express';
 import Stripe from 'stripe';
 import { stripeService } from '../services/stripeService';
 import { subscriptionService } from '../services/subscriptionService';
-import { isAuthenticated } from '../replitAuth';
 import { storage } from '../storage';
 import { emailService } from '../services/emailService';
 import { billingRateLimiter, subscriptionChangeRateLimiter, readRateLimiter, writeRateLimiter } from '../security/rateLimiters';

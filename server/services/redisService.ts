@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { Redis } from '@upstash/redis'
 
 export type RedisClient = ReturnType<typeof createClient>;
 
@@ -12,9 +13,17 @@ export async function getRedisClient(): Promise<RedisClient> {
     return redisClient;
   }
 
-  // Use Replit Redis URL if available, otherwise use default local connection
-  const redisUrl = process.env.REDIS_URL || process.env.REPLIT_DB_URL || 'redis://localhost:6379';
+  // Use Redis URL if available, otherwise use default local connection
+  const redisUrl = process.env.REDIS_URL || 'rediss://default:********@amazed-redbird-35857.upstash.io:6379';
 
+  const redis = new Redis({
+    url: 'https://amazed-redbird-35857.upstash.io',
+    token: '********',
+  })
+  
+  await redis.set("foo", "bar");
+  await redis.get("foo");
+  
   redisClient = createClient({
     url: redisUrl,
     socket: {

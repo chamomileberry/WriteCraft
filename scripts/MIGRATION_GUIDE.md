@@ -35,7 +35,7 @@ Open `migration.sql` and review it to make sure everything looks correct. The fi
 **IMPORTANT:** Before importing data, you need to make sure your production database has the latest schema.
 
 ### Option A: Publish Your App (Easiest)
-1. Click the **Publish** button in Replit
+1. Click the **Publish** button
 2. This automatically pushes schema changes to production
 3. Wait for the deployment to complete
 4. Skip to Step 4
@@ -58,7 +58,7 @@ Open `migration.sql` and review it to make sure everything looks correct. The fi
 You need the connection string for your **production** database. This is different from your development DATABASE_URL.
 
 To find it:
-1. Go to your published Replit app
+1. Go to your published app
 2. Click on the "Database" tool in the left sidebar
 3. Look for the production database connection string
 
@@ -97,7 +97,7 @@ COMMIT
 ## Step 7: Verify the Migration
 
 1. Open your published WriteCraft app
-2. Log in with your Replit account
+2. Log in with your account
 3. Verify that all your content is present:
    - Check your notebooks
    - Check your projects
@@ -110,7 +110,7 @@ COMMIT
 This means your production database schema is out of date. Follow Step 3 to update the schema first.
 
 The easiest fix:
-1. Click **Publish** in Replit (this automatically updates the production schema)
+1. Click **Publish** in (this automatically updates the production schema)
 2. Wait for deployment to complete
 3. Try the import again
 

@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { teamService } from '../services/teamService';
-import { isAuthenticated } from '../replitAuth';
 import { z } from 'zod';
 import { emailService } from '../services/emailService';
 import { db } from '../db';

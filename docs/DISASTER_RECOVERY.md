@@ -24,7 +24,7 @@ This document outlines the disaster recovery procedures for the WriteCraft platf
 1. Database corruption or loss
 2. Application server failure
 3. Security breach or data compromise
-4. Third-party service outage (Anthropic, Neon, Replit)
+4. Third-party service outage (Anthropic, Neon)
 5. Accidental data deletion
 6. Natural disaster or regional outage
 
@@ -71,7 +71,7 @@ gzip backup_*.sql
 
 ### 2. Application Code Backups
 
-**Repository:** Git (Replit + GitHub mirror recommended)
+**Repository:** Git (Firebase Studio + GitHub mirror recommended)
 - **Frequency:** Continuous (on every commit)
 - **Retention:** Unlimited (git history)
 - **Branches:**
@@ -138,7 +138,7 @@ git push github main
 
 4. **Update Connection String:**
    ```bash
-   # Update DATABASE_URL in Replit Secrets
+   # Update DATABASE_URL in Secrets
    # Point to recovered database branch
    ```
 
@@ -162,39 +162,6 @@ psql $DATABASE_URL -c "SELECT COUNT(*) FROM users;"
 psql $DATABASE_URL -c "SELECT COUNT(*) FROM projects;"
 ```
 
-**Estimated Time:** 1-2 hours (depending on database size)
-
-### Scenario 2: Application Server Failure
-
-#### Replit Platform Failure
-1. **Check Replit Status:**
-   ```
-   https://status.replit.com/
-   ```
-
-2. **If Regional Outage:**
-   - Wait for Replit to restore service
-   - Monitor status page for updates
-   - Communicate with users about downtime
-
-3. **If Repl-Specific Issue:**
-   - Fork Repl to create new instance
-   - Update DATABASE_URL and secrets
-   - Redeploy application
-
-#### Code Deployment Failure
-```bash
-# Rollback to previous working version
-git log --oneline  # Find last working commit
-git reset --hard <commit-hash>
-git push --force origin main
-
-# Restart application
-# (Replit auto-restarts on git changes)
-```
-
-**Estimated Time:** 30 minutes - 1 hour
-
 ### Scenario 3: Security Breach or Data Compromise
 
 #### Immediate Actions (First 30 Minutes)
@@ -210,7 +177,7 @@ git push --force origin main
    openssl rand -hex 32  # New MFA_ENCRYPTION_KEY
    openssl rand -base64 32  # New SESSION_SECRET
    
-   # Update Replit Secrets
+   # Update Secrets
    # Restart application
    ```
 
@@ -257,10 +224,10 @@ git push --force origin main
   3. Use manual backup to provision new database
 - **Action:** Implement database failover strategy
 
-#### Replit Platform Down
+#### Platform Down
 - **Impact:** Application unavailable
 - **Recovery:**
-  1. Monitor Replit status
+  1. Monitor status
   2. If extended, consider migrating to alternative hosting
   3. Deploy to Vercel/Netlify/Railway as backup
 - **Action:** Maintain deployment scripts for alternative platforms
@@ -310,25 +277,16 @@ git push --force origin main
 ## Critical Systems
 
 ### System Dependencies
-1. **Replit Platform** - Application hosting
+1. **Firebase Studio Platform** - Application hosting
 2. **Neon PostgreSQL** - Primary database
 3. **Anthropic Claude** - AI generation
 4. **Redis** (if enabled) - Caching and session storage
 
 ### Monitoring & Alerting
-- **Uptime Monitoring:** Replit built-in
+- **Uptime Monitoring:** Firebase Studio built-in
 - **Database Monitoring:** Neon console metrics
 - **Security Monitoring:** IDS dashboard (`/admin/security-dashboard`)
 - **Error Tracking:** Server logs and security alerts
-
-### Health Check Endpoints
-```bash
-# Application health
-curl https://your-app.replit.app/health
-
-# Database connection
-curl https://your-app.replit.app/api/health/db
-```
 
 ## Emergency Contacts
 
@@ -338,7 +296,6 @@ curl https://your-app.replit.app/api/health/db
 - **On-Call Engineer:** oncall@writecraft.com
 
 ### External Services
-- **Replit Support:** support@replit.com
 - **Neon Support:** support@neon.tech
 - **Anthropic Support:** support@anthropic.com
 
@@ -422,9 +379,6 @@ echo "Backup completed: backup_$DATE.sql.gz"
 NEW_MFA_KEY=$(openssl rand -hex 32)
 NEW_SESSION_SECRET=$(openssl rand -base64 32)
 
-# 2. Update Replit Secrets (via UI or CLI)
-# MFA_ENCRYPTION_KEY=$NEW_MFA_KEY
-# SESSION_SECRET=$NEW_SESSION_SECRET
 
 # 3. For Anthropic key, rotate via their dashboard
 # https://console.anthropic.com/settings/keys
@@ -436,13 +390,8 @@ VALUES ('EMERGENCY_ROTATION', NOW(), 'COMPLETED');
 EOF
 
 # 5. Restart application
-# (Replit auto-restarts on secret changes)
 
 # 6. Verify functionality
-curl -X POST https://your-app.replit.app/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"test"}'
-```
 
 ---
 

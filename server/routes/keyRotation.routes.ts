@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../replitAuth';
 import { requireAdmin } from '../security/middleware';
 import * as keyRotationService from '../services/apiKeyRotationService';
 import { z } from 'zod';

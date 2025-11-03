@@ -240,10 +240,10 @@ export function validateInput(schema: z.ZodSchema): RequestHandler {
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.warn('[SECURITY] Input validation failed:', error.errors);
+        console.warn('[SECURITY] Input validation failed:', error.issues);
         return res.status(400).json({ 
           message: "Invalid input",
-          errors: error.errors 
+          errors: error.issues 
         });
       }
       next(error);
@@ -268,7 +268,7 @@ export const generateCSPNonce: RequestHandler = (req: Request, res: Response, ne
 export const securityHeaders: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
   
-  // Prevent clickjacking - Allow Replit preview in development
+  // Prevent clickjacking - Allow Google preview in development
   // In development, omit X-Frame-Options to allow CSP frame-ancestors to handle it
   // In production, use DENY for maximum security
   if (!isDevelopment) {
@@ -307,13 +307,13 @@ export const securityHeaders: RequestHandler = (req: Request, res: Response, nex
   
   // Content Security Policy with nonce-based script execution
   // In development, we need to allow 'unsafe-eval' and 'unsafe-inline' for Vite HMR
-  const scriptSrc = isDevelopment 
-    ? `'self' 'unsafe-inline' 'unsafe-eval' blob: https://replit.com https://js.stripe.com` // Dev: Allow inline for Vite + Stripe + Excalidraw + Replit banner
-    : `'self' 'nonce-${nonce}' blob: https://replit.com https://js.stripe.com`; // Production: nonce-based + allow Replit banner
-  
-  // Allow Replit preview iframe in development, prevent all embedding in production
+  // --- AFTER ---
+const scriptSrc = isDevelopment 
+? `'self' 'unsafe-inline' 'unsafe-eval' blob: https://replit.com https://js.stripe.com` // Dev rules (unchanged)
+: `'self' 'nonce-${nonce}' blob: https://js.stripe.com`; // Production rules
+  // Allow preview iframe in development, prevent all embedding in production
   const frameAncestors = isDevelopment
-    ? `frame-ancestors 'self' https://*.repl.co https://*.replit.dev https://*.replit.com; ` // Dev: Allow Replit preview
+    ? `frame-ancestors 'self' https://*.repl.co https://*.replit.dev https://*.replit.com; ` // Dev: Allow preview
     : `frame-ancestors 'none'; `; // Production: No embedding allowed
   
   res.setHeader('Content-Security-Policy', 

@@ -7,7 +7,7 @@ This document provides a comprehensive reference for all API endpoints in WriteC
 
 ## Authentication
 
-All API endpoints (except `/api/auth/*`) require authentication via Replit Auth. The user ID is extracted from `req.user.claims.sub`.
+All API endpoints (except `/api/auth/*`) require authentication. The user ID is extracted from `req.user.claims.sub`.
 
 ## Base URL
 

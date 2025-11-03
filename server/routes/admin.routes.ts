@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { isAuthenticated } from "../replitAuth";
 import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
 
 const router = Router();

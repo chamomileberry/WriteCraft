@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { registerDomainRoutes } from "./routes/index";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { logger } from "./utils/logger";
 import aiRoutes from "./routes/ai.routes";
 import importRoutes from "./routes/import.routes";
@@ -24,7 +23,7 @@ import exportRoutes from "./routes/export.routes";
 import healthRoutes from "./routes/health.routes";
 import sentryTestRoutes from "./routes/sentry-test.routes";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { createRateLimiter } from "./security";
+import { createRateLimiter, isAuthenticated } from "./security";
 import { 
   insertCharacterSchema, 
   updateCharacterSchema,
@@ -105,9 +104,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Sentry test endpoints FIRST - must be before any auth or middleware
   // These endpoints need to be completely public to test error tracking
   app.use("/api/sentry", sentryTestRoutes);
-
-  // Setup Replit Auth (must be before other routes)
-  await setupAuth(app);
 
   // Health check endpoints (no authentication required - for uptime monitoring)
   app.use("/api/health", healthRoutes);
@@ -305,15 +301,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-
-
-
-
-
-
-
-
   // Universal search endpoint
   app.get("/api/search", isAuthenticated, searchRateLimiter, async (req: any, res) => {
     try {
@@ -455,17 +442,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to unpin content' });
     }
   });
-
-
-
-
-
-
-
-
-
-
-
 
   // Note routes
   app.post("/api/notes", isAuthenticated, contentRateLimiter, async (req: any, res) => {
@@ -654,7 +630,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error analyzing text:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -675,7 +651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error rephrasing text:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -695,7 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error proofreading text:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -714,7 +690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error generating synonyms:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -733,7 +709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error getting word definition:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -757,7 +733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error generating questions:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -775,7 +751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error improving text:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -821,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error in conversational chat:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -855,7 +831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating chat message:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -878,7 +854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching chat messages:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -900,7 +876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting chat history:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ error: errorMessage });
@@ -944,7 +920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating user preferences:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       res.status(500).json({ error: 'Failed to update user preferences' });
     }
@@ -970,7 +946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching conversation summary:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        return res.status(400).json({ error: 'Invalid request data', details: error.issues });
       }
       res.status(500).json({ error: 'Failed to fetch conversation summary' });
     }

@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../replitAuth';
 import { billingAlertsService } from '../services/billingAlertsService';
 import { readRateLimiter, writeRateLimiter } from '../security/rateLimiters';
 

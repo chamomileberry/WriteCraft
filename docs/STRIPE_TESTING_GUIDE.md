@@ -5,8 +5,8 @@ This guide provides step-by-step instructions for testing the Stripe payment int
 
 ## Prerequisites
 - Stripe account with test mode enabled
-- STRIPE_SECRET_KEY and VITE_STRIPE_PUBLIC_KEY configured in Replit Secrets
-- Application running locally or on Replit
+- STRIPE_SECRET_KEY and VITE_STRIPE_PUBLIC_KEY configured in Secrets
+- Application running locally on Firebase
 
 ## Test Cards
 Use these Stripe test cards for different scenarios:

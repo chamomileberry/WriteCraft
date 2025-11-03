@@ -7,11 +7,15 @@ import { AddressInfo } from 'net';
 // Graceful shutdown and error handling
 const setupProcessHooks = (server: http.Server) => {
   process.on('uncaughtException', (err) => {
-    logger.error('Uncaught Exception:', err);
+    logger.error('Uncaught Exception:');
+    logger.error(err);
   });
 
   process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled Rejection at promise:');
+    logger.error(promise);
+    logger.error('Reason:');
+    logger.error(reason);
   });
 
   const gracefulShutdown = (signal: string) => {
@@ -42,7 +46,7 @@ const startServer = async () => {
     const hostArg = getArgValue('--host') || getArgValue('-h');
 
     // Use provided port/host or fall back to environment/defaults
-    const port = portArg ? parseInt(portArg, 10) : (process.env.PORT ? parseInt(process.env.PORT, 10) : 9000);
+    const port = portArg ? parseInt(portArg, 10) : (process.env.PORT ? parseInt(process.env.PORT, 10) : 8080);
     const host = hostArg || process.env.HOST || '0.0.0.0';
 
     logger.info(`[Startup] Attempting to start server on ${host}:${port}`);
@@ -73,13 +77,15 @@ const startServer = async () => {
         logger.error(`[Startup] FATAL: Port ${port} is already in use.`);
         process.exit(1);
       } else {
-        logger.error('[Startup] An unexpected server error occurred:', e);
+        logger.error('[Startup] An unexpected server error occurred:');
+        logger.error(e);
         process.exit(1);
       }
     });
 
   } catch (error) {
-    logger.error('[Startup] A fatal error occurred during server initialization:', error);
+    logger.error('[Startup] A fatal error occurred during server initialization:');
+    logger.error(error);
     process.exit(1);
   }
 };

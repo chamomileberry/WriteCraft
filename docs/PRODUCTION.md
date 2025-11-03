@@ -11,7 +11,6 @@ These must be configured in your deployment environment:
 ```bash
 # Core Application
 NODE_ENV=production
-PORT=5000
 DATABASE_URL=<neon-postgres-connection-string>
 SESSION_SECRET=<random-64-char-string>
 
@@ -91,7 +90,6 @@ Sentry is integrated for comprehensive error tracking and performance monitoring
 3. Copy your DSN from project settings
 4. Set `SENTRY_DSN` environment variable
 5. Deploy application - errors will automatically flow to Sentry
-6. **Test your setup**: Visit `https://your-app.replit.app/api/sentry/test-capture` to send a test event
 
 #### Features Enabled:
 - **Error Capture**: All uncaught exceptions and rejections
@@ -139,9 +137,9 @@ captureSentryMessage('Large AI request detected', 'warning', {
 #### Setup Steps:
 1. Create account at https://uptimerobot.com
 2. Add monitors for:
-   - Main app: `https://your-app.replit.app` (HTTP)
-   - Health endpoint: `https://your-app.replit.app/api/health` (HTTP, expect 200)
-   - Database connectivity: `https://your-app.replit.app/api/health/db` (HTTP, expect 200)
+  - Main App
+  - Health Endpoint
+  - Data Security
 3. Configure alerts:
    - Email alerts to ops team
    - Webhook to Slack/Discord (optional)
@@ -268,7 +266,7 @@ autocannon -c 50 -d 30 \
   -m POST \
   -H "Content-Type: application/json" \
   -b '{"message":"Test message","projectId":"test-project"}' \
-  https://your-app.replit.app/api/ai/chat
+
 
 # High traffic (200 concurrent, 60 seconds)
 autocannon -c 200 -d 60 \
@@ -276,7 +274,6 @@ autocannon -c 200 -d 60 \
   -m POST \
   -H "Content-Type: application/json" \
   -b '{"message":"Test","projectId":"test"}' \
-  https://your-app.replit.app/api/ai/chat
 ```
 
 #### Test Character Generation:
@@ -286,7 +283,6 @@ autocannon -c 100 -d 30 \
   -m POST \
   -H "Content-Type: application/json" \
   -b '{"name":"Test Character","genre":"Fantasy"}' \
-  https://your-app.replit.app/api/generators/character
 ```
 
 #### Baseline Performance Targets:
@@ -354,7 +350,6 @@ if (isEnabled) {
    - Check Sentry for error spike
    - Check UptimeRobot alerts
    - Verify database connectivity: `psql $DATABASE_URL -c "SELECT 1"`
-   - Check Replit deployment status
 
 2. **Diagnosis** (5 minutes):
    - Review recent deployments (last 2 hours)
@@ -363,7 +358,6 @@ if (isEnabled) {
    - Check Neon database status
 
 3. **Mitigation** (10 minutes):
-   - If recent deployment caused issue: Rollback via Replit deployments
    - If database issue: Check Neon status, restart if needed
    - If API key issue: Rotate keys via admin panel
    - If DDoS: Enable Cloudflare DDoS protection
@@ -391,17 +385,6 @@ if (isEnabled) {
    - Scale database compute if performance issue
 
 ### Rollback Procedures
-
-#### Code Rollback (Replit):
-```bash
-# Via Replit UI:
-# 1. Go to deployments page
-# 2. Find last known good deployment
-# 3. Click "Redeploy"
-
-# Via Replit CLI (if available):
-replit deploy --rollback
-```
 
 #### Database Rollback (Neon):
 ```bash
@@ -460,7 +443,6 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 - **Sentry**: https://sentry.io/organizations/[your-org]/projects/writecraft/
 - **UptimeRobot**: https://uptimerobot.com/dashboard
 - **Neon Console**: https://console.neon.tech
-- **Replit Deployments**: https://replit.com/[your-username]/[your-repl]/deployments
 - **Stripe Dashboard**: https://dashboard.stripe.com
 
 ## Performance Metrics
@@ -501,7 +483,6 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 
 ## Additional Resources
 
-- [Replit Deployment Docs](https://docs.replit.com/hosting/deployments)
 - [Neon Documentation](https://neon.tech/docs/)
 - [Sentry Node.js Guide](https://docs.sentry.io/platforms/node/)
 - [Stripe Production Checklist](https://stripe.com/docs/development/checklist)

@@ -1,5 +1,4 @@
 import { Express } from "express";
-import { isAuthenticated } from "../replitAuth";
 import characterRoutes from "./character.routes";
 import creatureRoutes from "./creature.routes";
 import guideRoutes from "./guide.routes";

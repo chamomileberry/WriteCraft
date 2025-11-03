@@ -17,6 +17,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "@anthropic-ai/sdk": "^0.68.0",
     "@atlaskit/theme": "^21.0.1",
     "@atlaskit/tree": "^9.0.1",
@@ -191,8 +192,6 @@
   },
   "devDependencies": {
     "@jridgewell/trace-mapping": "^0.3.31",
-    "@replit/vite-plugin-cartographer": "^0.4.1",
-    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.19",
     "@types/adm-zip": "^0.5.7",
     "@types/bcrypt": "^6.0.0",
@@ -217,7 +216,6 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
-
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.19",
     "drizzle-kit": "^0.31.6",

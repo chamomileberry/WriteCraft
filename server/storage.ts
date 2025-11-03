@@ -96,7 +96,7 @@ import {
   shares
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, isNull, isNotNull, inArray, sql } from "drizzle-orm";
+import { eq, desc, and, or, ilike, isNull, isNotNull, inArray, sql, getTableColumns } from "drizzle-orm";
 
 // Types for content mapping
 export interface ContentMapping {
@@ -682,6 +682,30 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  createConversationThread(thread: InsertConversationThread): Promise<ConversationThread> {
+    throw new Error("Method not implemented.");
+  }
+  getConversationThread(id: string, userId: string): Promise<ConversationThread | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getConversationThreads(filters: { userId: string; projectId?: string; guideId?: string; isActive?: boolean; }): Promise<ConversationThread[]> {
+    throw new Error("Method not implemented.");
+  }
+  searchConversationThreads(userId: string, query: string, filters?: { projectId?: string; guideId?: string; }): Promise<ConversationThread[]> {
+    throw new Error("Method not implemented.");
+  }
+  updateConversationThread(id: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  updateThreadActivity(threadId: string, userId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  deleteConversationThread(id: string, userId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getChatMessagesByThread(threadId: string, userId: string, limit?: number): Promise<ChatMessage[]> {
+    throw new Error("Method not implemented.");
+  }
   // User methods
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -689,7 +713,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    // Note: This method is deprecated - users are now identified by email with Replit Auth
     const [user] = await db.select().from(users).where(eq(users.email, username));
     return user || undefined;
   }
@@ -4854,7 +4877,8 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
     // Enhanced full-text search using PostgreSQL tsvector with ranking
     const searchQuery = sql`plainto_tsquery('english', ${trimmedQuery})`;
-    return await db.select({
+    const results = await db.select({
+      ...getTableColumns(projects),
       id: projects.id,
       title: projects.title,
       content: projects.content,
@@ -4877,7 +4901,11 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       )
     )
     .orderBy(desc(sql`ts_rank(${projects.searchVector}, ${searchQuery})`));
+
+    return results;
   }
+
+
 
   // Project Section methods
   async createProjectSection(section: InsertProjectSection): Promise<ProjectSection> {

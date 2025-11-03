@@ -2,7 +2,6 @@
 
 **Date:** October 16, 2025  
 **Version:** 1.0.0  
-**Auditor:** Replit Agent  
 
 ## Executive Summary
 
@@ -152,15 +151,15 @@ This document provides a comprehensive security audit of the WriteCraft platform
 ### Current Secrets Inventory
 | Secret | Purpose | Rotation | Storage |
 |--------|---------|----------|---------|
-| `ANTHROPIC_API_KEY` | AI service auth | 90 days | Replit Secrets |
-| `MFA_ENCRYPTION_KEY` | MFA data encryption | 90 days | Replit Secrets |
-| `SESSION_SECRET` | Session signing | 90 days | Replit Secrets |
-| `DATABASE_URL` | Database connection | Manual | Replit Secrets |
-| `REDIS_URL` | Cache connection | Manual | Replit Secrets |
+| `ANTHROPIC_API_KEY` | AI service auth | 90 days | Secrets |
+| `MFA_ENCRYPTION_KEY` | MFA data encryption | 90 days | Secrets |
+| `SESSION_SECRET` | Session signing | 90 days | Secrets |
+| `DATABASE_URL` | Database connection | Manual | Secrets |
+| `REDIS_URL` | Cache connection | Manual | Secrets |
 
 ### Secrets Best Practices
 - ✅ Never commit secrets to git
-- ✅ All secrets stored in Replit Secrets (encrypted at rest)
+- ✅ All secrets stored in Secrets (encrypted at rest)
 - ✅ Automated rotation tracking for critical keys
 - ✅ Audit logging for all secret access
 - ✅ Minimum privilege principle (scoped API keys)
