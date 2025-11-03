@@ -24,6 +24,7 @@ import type {
   Character,
   Location,
   Settlement,
+  Timeline,
   TimelineEvent,
   InsertLocation,
   InsertSettlement,
@@ -230,9 +231,29 @@ export default function MapStudio() {
     queryFn: async () => {
       if (!activeNotebookId) return [] as TimelineEvent[];
       try {
-        const response = await apiRequest('GET', `/api/timeline-events/notebook/${activeNotebookId}`);
-        const events: TimelineEvent[] = await response.json();
-        return events;
+        const timelinesResponse = await apiRequest('GET', `/api/timelines/user?notebookId=${activeNotebookId}`);
+        const timelines: Timeline[] = await timelinesResponse.json();
+        if (!timelines.length) {
+          return [] as TimelineEvent[];
+        }
+
+        const eventsArrays = await Promise.all(
+          timelines.map(async (timeline) => {
+            try {
+              const eventsResponse = await apiRequest(
+                'GET',
+                `/api/timeline-events?timelineId=${timeline.id}&notebookId=${activeNotebookId}`
+              );
+              const events: TimelineEvent[] = await eventsResponse.json();
+              return events;
+            } catch (error) {
+              console.error(`Failed to load events for timeline ${timeline.id}`, error);
+              return [] as TimelineEvent[];
+            }
+          })
+        );
+
+        return eventsArrays.flat();
       } catch (error) {
         console.error('Failed to load timeline events for notebook', error);
         return [] as TimelineEvent[];
@@ -272,20 +293,17 @@ export default function MapStudio() {
   }, [characters, hoverContent]);
 
   const hoverEvents = useMemo(() => {
-    if (!hoveredIcon?.linkedContentId || !hoverContent) return [] as TimelineEvent[];
-
+    if (!hoveredIcon?.linkedContentId) return [] as TimelineEvent[];
     return timelineEvents.filter(event => {
       if (event.linkedContentId !== hoveredIcon.linkedContentId) {
         return false;
       }
-      // If event has no type, it's a legacy match.
       if (!event.linkedContentType) {
         return true;
       }
-      // Otherwise, types must match.
-      return event.linkedContentType === hoverContent.type;
+      return event.linkedContentType === (hoverContent?.type || event.linkedContentType);
     });
-  }, [hoverContent, hoveredIcon, timelineEvents]);
+  }, [hoverContent?.type, hoveredIcon, timelineEvents]);
 
   const displayedResidents = useMemo(() => hoverCharacters.slice(0, 4), [hoverCharacters]);
   const residentOverflow = hoverCharacters.length - displayedResidents.length;
