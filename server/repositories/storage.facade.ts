@@ -1779,6 +1779,7 @@ export class StorageFacade implements IStorage {
       .orderBy(timelineEvents.startDate);
 
     return results.map((r) => r.timelineEvents);
+    return await contentRepository.getTimelineEventsForNotebook(notebookId, userId);
   }
 
   async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
