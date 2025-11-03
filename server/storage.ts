@@ -3713,6 +3713,30 @@ async getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEve
     .orderBy(timelineEvents.startDate);
 }
 
+async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]> {
+  const hasAccess = await this.validateNotebookOwnership(notebookId, userId);
+  if (!hasAccess) {
+    throw new Error('Unauthorized: You do not have access to this notebook');
+  }
+
+  const timelineIds = await db
+    .select({ id: timelines.id })
+    .from(timelines)
+    .where(eq(timelines.notebookId, notebookId));
+
+  if (!timelineIds.length) {
+    return [];
+  }
+
+  const timelineIdValues = timelineIds.map((timeline) => timeline.id);
+
+  return await db
+    .select()
+    .from(timelineEvents)
+    .where(inArray(timelineEvents.timelineId, timelineIdValues))
+    .orderBy(timelineEvents.startDate);
+}
+
 async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
   // Get the event to find its timeline
   const [existing] = await db.select().from(timelineEvents).where(eq(timelineEvents.id, id));

@@ -66,6 +66,7 @@ router.get("/notebook/:notebookId", readRateLimiter, async (req: any, res) => {
     const { notebookId } = req.params;
 
     if (!notebookId) {
+      return res.status(400).json({ error: 'Notebook ID is required' });
       return res.status(400).json({ error: 'notebookId parameter is required' });
     }
 
@@ -75,6 +76,8 @@ router.get("/notebook/:notebookId", readRateLimiter, async (req: any, res) => {
     console.error('Error fetching notebook timeline events:', error);
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
+      console.warn(`[Security] Unauthorized notebook timeline access attempt - userId: ${userId}, notebookId: ${req.params?.notebookId}`);
+      return res.status(403).json({ error: 'Access denied' });
       console.warn(`[Security] Unauthorized operation - userId: ${userId}`);
       return res.status(404).json({ error: 'Not found' });
     }

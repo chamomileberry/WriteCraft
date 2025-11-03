@@ -24,7 +24,6 @@ import type {
   Character,
   Location,
   Settlement,
-  Timeline,
   TimelineEvent,
   InsertLocation,
   InsertSettlement,
@@ -75,6 +74,8 @@ interface LinkedContentDetail {
   type: LinkedContentType;
   data: Location | Settlement;
 }
+
+const ICON_INTERACTION_RADIUS = 20;
 
 const PREVIEW_CARD_DIMENSIONS = { width: 280, height: 220 };
 
@@ -231,30 +232,13 @@ export default function MapStudio() {
     queryFn: async () => {
       if (!activeNotebookId) return [] as TimelineEvent[];
       try {
-        const timelinesResponse = await apiRequest('GET', `/api/timelines/user?notebookId=${activeNotebookId}`);
-        const timelines: Timeline[] = await timelinesResponse.json();
-        if (!timelines.length) {
+        const response = await apiRequest('GET', `/api/timeline-events/notebook/${activeNotebookId}`);
+        const events: TimelineEvent[] = await response.json();
+        return events;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
           return [] as TimelineEvent[];
         }
-
-        const eventsArrays = await Promise.all(
-          timelines.map(async (timeline) => {
-            try {
-              const eventsResponse = await apiRequest(
-                'GET',
-                `/api/timeline-events?timelineId=${timeline.id}&notebookId=${activeNotebookId}`
-              );
-              const events: TimelineEvent[] = await eventsResponse.json();
-              return events;
-            } catch (error) {
-              console.error(`Failed to load events for timeline ${timeline.id}`, error);
-              return [] as TimelineEvent[];
-            }
-          })
-        );
-
-        return eventsArrays.flat();
-      } catch (error) {
         console.error('Failed to load timeline events for notebook', error);
         return [] as TimelineEvent[];
       }
@@ -635,7 +619,7 @@ export default function MapStudio() {
       setLocationFormName('');
       setLocationFormDescription('');
     } catch (error) {
-      if (error instanceof Error && error.message === 'Request cancelled') {
+      if (error instanceof Error && error.name === 'AbortError') {
         return;
       }
       console.error('Failed to create notebook entry from map', error);
@@ -1100,7 +1084,7 @@ export default function MapStudio() {
       // Check if clicking on an icon
       const clickedIcon = icons.find(icon => {
         const distance = Math.sqrt((icon.x - pos.x) ** 2 + (icon.y - pos.y) ** 2);
-        return distance < 20; // 20px click radius
+        return distance < ICON_INTERACTION_RADIUS; // 20px click radius
       });
 
       if (clickedIcon) {
@@ -1148,7 +1132,7 @@ export default function MapStudio() {
       const hovered = icons.find(icon => {
         if (!icon.linkedContentId) return false;
         const distance = Math.sqrt((icon.x - pos.x) ** 2 + (icon.y - pos.y) ** 2);
-        return distance < 20;
+        return distance < ICON_INTERACTION_RADIUS;
       });
 
       if (hovered) {
