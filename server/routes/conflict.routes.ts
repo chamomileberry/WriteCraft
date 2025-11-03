@@ -76,7 +76,7 @@ Return a JSON object with exactly these fields:
   } catch (error) {
     console.error('Error generating conflicts:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({ error: errorMessage });
@@ -103,7 +103,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error saving conflict:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     res.status(500).json({ error: 'Failed to save conflict' });
   }

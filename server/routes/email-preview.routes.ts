@@ -10,7 +10,7 @@ const router = Router();
  * GET /api/email-preview/:templateType
  * Preview email templates with sample data (admin only)
  */
-router.get('/:templateType', isAuthenticated, requireAdmin, readRateLimiter, async (req, res) => {
+router.get('/:templateType', isAuthenticated, requireAdmin, readRateLimiter, async (req: any, res) => {
   try {
     const { templateType } = req.params;
     const { format = 'html' } = req.query;
@@ -195,7 +195,7 @@ router.get('/:templateType', isAuthenticated, requireAdmin, readRateLimiter, asy
  * GET /api/email-preview
  * List all available email templates
  */
-router.get('/', isAuthenticated, requireAdmin, readRateLimiter, async (req, res) => {
+router.get('/', isAuthenticated, requireAdmin, readRateLimiter, async (req: any, res) => {
   res.json({
     templates: [
       { id: 'subscription-activated', name: 'Subscription Activated', category: 'billing' },

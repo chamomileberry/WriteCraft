@@ -26,7 +26,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error saving event:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       const userId = req.user?.claims?.sub || 'unknown';
@@ -84,7 +84,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   } catch (error) {
     console.error('Error updating event:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {

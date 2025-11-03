@@ -277,7 +277,7 @@ router.get("/", readRateLimiter, async (req: any, res) => {
   }
 });
 
-router.get("/user(/:userId?)", readRateLimiter, async (req: any, res) => {
+router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client-supplied userId)
     const userId = req.user.claims.sub;

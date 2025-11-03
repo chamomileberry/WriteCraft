@@ -59,7 +59,7 @@ router.post("/generate", aiRateLimiter, trackAIUsage('creature_generation'), asy
   } catch (error) {
     console.error('Error generating creature:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.issues });
     }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     if (error instanceof Error && error.message.includes('Unauthorized')) {
