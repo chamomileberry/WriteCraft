@@ -1052,28 +1052,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/timeline-events/notebook/:notebookId", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { notebookId } = req.params;
-
-      if (!notebookId) {
-        return res.status(400).json({ error: 'Notebook ID is required' });
-      }
-
-      const events = await storage.getTimelineEventsForNotebook(notebookId as string, userId);
-      res.json(events);
-    } catch (error) {
-      console.error('Error fetching notebook timeline events:', error);
-      if (error instanceof Error && error.message.includes('Unauthorized')) {
-        const userId = req.user?.claims?.sub || 'unknown';
-        console.warn(`[Security] Unauthorized operation - userId: ${userId}`);
-        return res.status(404).json({ error: 'Not found' });
-      }
-      res.status(500).json({ error: 'Failed to fetch timeline events' });
-    }
-  });
-
   app.post("/api/timeline-events", isAuthenticated, timelineRateLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
