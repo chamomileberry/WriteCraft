@@ -1763,6 +1763,10 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getTimelineEvents(timelineId, userId);
   }
 
+  async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]> {
+    return await contentRepository.getTimelineEventsForNotebook(notebookId, userId);
+  }
+
   async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
     return await contentRepository.updateTimelineEvent(id, userId, updates);
   }
