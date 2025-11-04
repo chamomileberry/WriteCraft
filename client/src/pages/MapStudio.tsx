@@ -261,6 +261,10 @@ export default function MapStudio() {
     return entries;
   }, [localContentOverrides, notebookLocations, notebookSettlements]);
 
+  // Memoized Sets for O(1) lookup performance during hover interactions
+  const notebookLocationIds = useMemo(() => new Set(notebookLocations.map(l => l.id)), [notebookLocations]);
+  const notebookSettlementIds = useMemo(() => new Set(notebookSettlements.map(s => s.id)), [notebookSettlements]);
+
   const hoveredIcon = useMemo(() => {
     return icons.find(icon => icon.id === hoveredIconId) || null;
   }, [icons, hoveredIconId]);
@@ -389,8 +393,8 @@ export default function MapStudio() {
 
     const hasLocal = !!localContentOverrides[icon.linkedContentId];
     const hasQueryData = icon.linkedContentType === 'location'
-      ? notebookLocations.some(location => location.id === icon.linkedContentId)
-      : notebookSettlements.some(settlement => settlement.id === icon.linkedContentId);
+      ? notebookLocationIds.has(icon.linkedContentId)
+      : notebookSettlementIds.has(icon.linkedContentId);
 
     if (hasLocal || hasQueryData) {
       return;
@@ -426,8 +430,8 @@ export default function MapStudio() {
     icons,
     activeNotebookId,
     localContentOverrides,
-    notebookLocations,
-    notebookSettlements,
+    notebookLocationIds,
+    notebookSettlementIds,
   ]);
 
   const handleDialogOpenChange = (open: boolean) => {
