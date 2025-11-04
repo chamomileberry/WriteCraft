@@ -1,7 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import React, { useEffect, useRef, useState } from "react";
-import React, { useEffect, useRef, useState } from "react";
-import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -31,7 +28,6 @@ import type {
   InsertLocation,
   InsertSettlement,
 } from "@shared/schema";
-
 // Terrain color palette
 const TERRAIN_COLORS: Record<string, string> = {
   land: "#8B7355",      // Brown land
@@ -259,6 +255,12 @@ export default function MapStudio() {
         showDataLoadErrorToast('timeline events');
         return [] as TimelineEvent[];
       }
+      console.error('Failed to load timeline events for notebook', error);
+      toast({
+        title: 'Timeline events unavailable',
+        description: 'We could not load notebook timeline events. Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -272,6 +274,10 @@ export default function MapStudio() {
     });
     return entries;
   }, [localContentOverrides, notebookLocations, notebookSettlements]);
+
+  // Memoized Sets for O(1) lookup performance during hover interactions
+  const notebookLocationIds = useMemo(() => new Set(notebookLocations.map(l => l.id)), [notebookLocations]);
+  const notebookSettlementIds = useMemo(() => new Set(notebookSettlements.map(s => s.id)), [notebookSettlements]);
 
   const hoveredIcon = useMemo(() => {
     return icons.find(icon => icon.id === hoveredIconId) || null;
@@ -1315,126 +1321,116 @@ export default function MapStudio() {
         }
       }
     };
+  }, [hoverPosition]);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [historyIndex, history, currentBorder, selectedItem]);
+  useEffect(() => {
+    if (!hoveredIconId) {
+      setHoverPosition(null);
+      return;
+    }
 
-  // Get mouse position relative to canvas with zoom and pan
-  const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
+    const icon = icons.find(item => item.id === hoveredIconId);
+    if (!icon) {
+      setHoverPosition(null);
+      return;
+    }
 
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left - pan.x) / zoom;
-    const y = (e.clientY - rect.top - pan.y) / zoom;
-    return { x, y };
-  };
+    setHoverPosition(mapToScreen(icon.x, icon.y));
+  }, [hoveredIconId, icons, mapToScreen]);
 
-  // Draw a brush stroke between two points
-  const drawBrushStroke = (x1: number, y1: number, x2: number, y2: number) => {
-    const offscreenCanvas = offscreenCanvasRef.current;
-    if (!offscreenCanvas) return;
+  useEffect(() => {
+    if (!layerVisibility.icons) {
+      setHoveredIconId(null);
+      setHoverPosition(null);
+    }
+  }, [layerVisibility.icons]);
 
-  // 1. Get the current *panned* view (the "screen")
-  const screenImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  useEffect(() => {
+    if (!hoveredIconId || !activeNotebookId) {
+      return;
+    }
 
-  // 2. Create a temporary hidden canvas to un-pan the image
-  const offscreenCanvas = document.createElement("canvas");
-  offscreenCanvas.width = canvas.width;
-  offscreenCanvas.height = canvas.height;
-  const offCtx = offscreenCanvas.getContext("2d");
-  if (!offCtx) return;
+    const icon = icons.find(item => item.id === hoveredIconId);
+    if (!icon?.linkedContentId || !icon.linkedContentType) {
+      return;
+    }
 
-  // 3. "Paste" the panned screen onto the hidden canvas,
-  //    but shifted back by the pan amount. This creates the "world" view.
-  offCtx.putImageData(screenImage, -panOffset.x, -panOffset.y);
+    const hasLocal = !!localContentOverrides[icon.linkedContentId];
+    const hasQueryData = icon.linkedContentType === 'location'
+      ? notebookLocationIds.has(icon.linkedContentId)
+      : notebookSettlementIds.has(icon.linkedContentId);
 
-  // 4. Get the image data from the *hidden* canvas. This is the clean "world" state.
-  const worldImageData = offCtx.getImageData(
-  0,
-  0,
-  canvas.width,
-  canvas.height
-  );
+    if (hasLocal || hasQueryData) {
+      return;
+    }
 
-  // 5. Save this "world" state to our history
-  const newHistory = drawingHistory.slice(0, historyStep + 1);
-  setDrawingHistory([...newHistory, worldImageData]);
-  setHistoryStep(newHistory.length);
-  setCanUndo(true);
-  setCanRedo(false);
-  };
+    const controller = new AbortController();
 
-  // Get cursor style based on selected tool
-  const getCursor = () => {
-    switch (selectedTool) {
-      case "pencil":
-        return "crosshair";
-      case "eraser":
-        return "pointer";
-      case "pan":
-        return "grab";
-      case "select":
-        return "default";
-      default:
-        return "pointer";
+    (async () => {
+      try {
+        const endpoint = icon.linkedContentType === 'settlement'
+          ? `/api/settlements/${icon.linkedContentId}?notebookId=${activeNotebookId}`
+          : `/api/locations/${icon.linkedContentId}?notebookId=${activeNotebookId}`;
+        const response = await apiRequest('GET', endpoint, undefined, { signal: controller.signal });
+        const detail = await response.json() as Location | Settlement;
+        setLocalContentOverrides(prev => ({
+          ...prev,
+          [icon.linkedContentId!]: {
+            type: icon.linkedContentType!,
+            data: detail,
+          },
+        }));
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        console.error('Failed to load location preview data', error);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [
+    hoveredIconId,
+    icons,
+    activeNotebookId,
+    localContentOverrides,
+    notebookLocationIds,
+    notebookSettlementIds,
+  ]);
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (isSavingLocation) return;
+    setLocationDialogOpen(open);
+    if (!open) {
+      setPendingIcon(null);
+      setLocationFormName('');
+      setLocationFormDescription('');
     }
   };
 
-  // Put this function near your other helper functions (e.g., after getCursor)
+  // Undo/Redo history
+  const [history, setHistory] = useState<HistoryState[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
 
-  const redrawCanvas = (
-  ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement
-  ) => {
-  if (!ctx || !canvas) return;
-
-  // Clear the canvas completely
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // --- Draw Grid (This grid won't move, it's fixed to the screen) ---
-  ctx.strokeStyle = "#e0e0e0";
-  ctx.lineWidth = 1;
-  // ... (copy your 'for' loops for vertical/horizontal lines here) ...
-
-  // Vertical lines
-  for (let x = 0; x < canvas.width; x += 50) {
-  ctx.beginPath();
-  ctx.moveTo(x, 0);
-  ctx.lineTo(x, canvas.height);
-  ctx.stroke();
-  }
-
-  // Horizontal lines
-  for (let yPos = 0; yPos < canvas.height; yPos += 50) {
-  ctx.beginPath();
-  ctx.moveTo(0, yPos);
-  ctx.lineTo(canvas.width, yPos);
-  ctx.stroke();
-  }
-  // --- End Grid ---
-
-  // --- Draw the History ---
-  // Get the last saved drawing
-  if (drawingHistory.length > 0 && historyStep >= 0) {
-  const currentState = drawingHistory[historyStep];
-  if (currentState) {
-  // Draw it, *shifted by the panOffset*
-  ctx.putImageData(currentState, panOffset.x, panOffset.y);
-  }
-  }
-
-  // Add welcome text (this also won't move)
-  if (historyStep <= 0) { // Only show on empty canvas
-  ctx.fillStyle = "#999999";
-  ctx.font = "24px sans-serif";
-  ctx.fillText("Map Studio - Start Drawing!", 100, 100);
-  }
+  const handleNavigate = (toolId: string) => {
+    if (toolId === 'notebook') {
+      setLocation('/notebook');
+    } else if (toolId === 'projects') {
+      setLocation('/projects');
+    } else if (toolId === 'generators') {
+      setLocation('/generators');
+    } else if (toolId === 'guides') {
+      setLocation('/guides');
+    }
   };
 
-  // ===== TOOLBAR HANDLERS =====
+  const handleCreateNew = () => {
+    setLocation('/notebook');
+  };
 
+  // Handler functions for toolbar actions
   const handleToolChange = (tool: MapTool) => {
     setSelectedTool(tool);
 
@@ -1448,7 +1444,6 @@ export default function MapStudio() {
     } else if (tool === 'pencil') {
       setBrushColor(TERRAIN_COLORS.land);
     }
-    console.log("Selected tool:", tool);
   };
 
   const handleZoomIn = () => {
@@ -1465,11 +1460,9 @@ export default function MapStudio() {
     borders?: MapBorder[];
   }) => {
     const canvas = offscreenCanvasRef.current;
-
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-    
     if (!ctx) return;
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1522,30 +1515,6 @@ export default function MapStudio() {
     const parts = [character.givenName, character.familyName].filter(Boolean);
     if (parts.length) {
       return parts.join(' ');
-    function resize() {
-      if (!canvas || !ctx) return;
-    const ctx = offscreenCanvas.getContext("2d");
-    if (!ctx) return;
-
-    const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-    const steps = Math.max(1, Math.floor(distance / (brushSize / 4)));
-
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
-      const x = x1 + (x2 - x1) * t;
-      const y = y1 + (y2 - y1) * t;
-
-      ctx.beginPath();
-      ctx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
-
-      if (selectedTool === 'eraser') {
-        // Eraser reveals the background
-        ctx.fillStyle = TERRAIN_COLORS.deepWater;
-      } else {
-        ctx.fillStyle = brushColor;
-      }
-
-      ctx.fill();
     }
     if (character.nickname) {
       return character.nickname;
@@ -1858,15 +1827,8 @@ export default function MapStudio() {
       redraw();
     };
 
-    redraw();
-  };
-
-  // Mouse event handlers
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const pos = getMousePos(e);
-    setHoveredIconId(null);
-    setHoverPosition(null);
-
+    resize();
+    window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
   }, [zoom, pan]);
 
@@ -1992,8 +1954,6 @@ export default function MapStudio() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [historyIndex, history, currentBorder, selectedItem]);
-
-  // Get mouse position relative to canvas with zoom and pan
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -2179,139 +2139,6 @@ export default function MapStudio() {
     setHoveredIconId(null);
     setHoverPosition(null);
   };
-
-// ===== CANVAS REDRAW EFFECT =====
-useEffect(() => {
-const canvas = canvasRef.current;
-const ctx = canvas?.getContext("2d");
-if (!canvas || !ctx) return;
-
-redrawCanvas(ctx, canvas);
-
-// This effect runs whenever the pan, zoom, or history changes
-}, [panOffset, zoom, historyStep, drawingHistory]);
-
-  // ===== RENDER =====
-
-      if (locationDialogOpen || isSavingLocation) {
-        return;
-      }
-
-      setPendingIcon({ x: pos.x, y: pos.y, iconType: selectedIconType });
-      setLocationFormName(ICON_METADATA[selectedIconType].label);
-      setLocationFormDescription('');
-      setLocationDialogOpen(true);
-    } else if (selectedTool === 'label') {
-      // Create a label
-      const labelText = prompt('Enter label text:');
-      if (labelText) {
-        const newLabel: MapLabel = {
-          id: `label-${Date.now()}`,
-          text: labelText,
-          x: pos.x,
-          y: pos.y,
-          fontSize: 24,
-          color: '#FFFFFF',
-          fontWeight: 'bold',
-        };
-        setLabels(prev => {
-          const updatedLabels = [...prev, newLabel];
-          saveToHistory({ labels: updatedLabels });
-          return updatedLabels;
-        });
-      }
-    } else if (selectedTool === 'border') {
-      // Add point to current border
-      setCurrentBorder(prev => [...prev, pos]);
-    } else if (selectedTool === 'select') {
-      // Check if clicking on an icon
-      const clickedIcon = icons.find(icon => {
-        const distance = Math.sqrt((icon.x - pos.x) ** 2 + (icon.y - pos.y) ** 2);
-        return distance < ICON_INTERACTION_RADIUS; // 20px click radius
-      });
-
-      if (clickedIcon) {
-        setSelectedItem({ type: 'icon', id: clickedIcon.id });
-        return;
-      }
-
-      // Check if clicking on a label
-      const clickedLabel = labels.find(label => {
-        const ctx = canvasRef.current?.getContext('2d');
-        if (!ctx) return false;
-        ctx.font = `${label.fontWeight} ${label.fontSize}px Arial`;
-        const metrics = ctx.measureText(label.text);
-        const halfWidth = metrics.width / 2;
-        const halfHeight = label.fontSize / 2;
-
-        return pos.x >= label.x - halfWidth &&
-               pos.x <= label.x + halfWidth &&
-               pos.y >= label.y - halfHeight &&
-               pos.y <= label.y + halfHeight;
-      });
-
-      if (clickedLabel) {
-        setSelectedItem({ type: 'label', id: clickedLabel.id });
-        return;
-      }
-
-      // Clear selection if nothing clicked
-      setSelectedItem(null);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (isPanning && lastPoint) {
-      const dx = e.clientX - lastPoint.x;
-      const dy = e.clientY - lastPoint.y;
-      setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-      setLastPoint({ x: e.clientX, y: e.clientY });
-    } else if (isDrawing && lastPoint) {
-      const pos = getMousePos(e);
-      drawBrushStroke(lastPoint.x, lastPoint.y, pos.x, pos.y);
-      setLastPoint(pos);
-    } else if (layerVisibility.icons) {
-      const pos = getMousePos(e);
-      const hovered = icons.find(icon => {
-        if (!icon.linkedContentId) return false;
-        const distance = Math.sqrt((icon.x - pos.x) ** 2 + (icon.y - pos.y) ** 2);
-        return distance < ICON_INTERACTION_RADIUS;
-      });
-
-      if (hovered) {
-        if (hoveredIconId !== hovered.id) {
-          setHoveredIconId(hovered.id);
-        }
-        setHoverPosition(mapToScreen(hovered.x, hovered.y));
-      } else if (hoveredIconId) {
-        setHoveredIconId(null);
-        setHoverPosition(null);
-      }
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (isDrawing) {
-      saveToHistory();
-    }
-    setIsDrawing(false);
-    setIsPanning(false);
-    setLastPoint(null);
-    setHoveredIconId(null);
-    setHoverPosition(null);
-  };
-
-  const handleMouseLeave = () => {
-    if (isDrawing) {
-      saveToHistory();
-    }
-    setIsDrawing(false);
-    setIsPanning(false);
-    setLastPoint(null);
-    setHoveredIconId(null);
-    setHoverPosition(null);
-  };
-
   return (
     <>
       <Dialog open={locationDialogOpen} onOpenChange={handleDialogOpenChange}>
@@ -2609,165 +2436,5 @@ redrawCanvas(ctx, canvas);
       </div>
     </div>
     </>
-
-      {/* Canvas Container */}
-      <div className="flex-1 overflow-hidden relative bg-muted/10">
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full cursor-crosshair"
-          style={{ cursor: selectedTool === 'pan' ? 'grab' : isPanning ? 'grabbing' : 'crosshair' }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-        />
-
-        {/* Icon Library Panel - shown when icon tool is selected */}
-        {selectedTool === 'icon' && (
-          <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm p-4 rounded-lg shadow-lg">
-            <h3 className="font-semibold mb-3">Select Icon Type:</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {Object.entries(ICON_SYMBOLS).map(([type, symbol]) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedIconType(type as IconType)}
-                  className={`p-3 rounded border-2 transition-all hover:scale-105 flex flex-col items-center gap-1 ${
-                    selectedIconType === type ? 'border-primary bg-primary/10' : 'border-border'
-                  }`}
-                  title={type}
-                >
-                  <span className="text-2xl">{symbol}</span>
-                  <span className="text-xs capitalize">{type}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Layer Controls Panel - always visible on the right */}
-        <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm p-4 rounded-lg shadow-lg min-w-[200px]">
-          <h3 className="font-semibold mb-3">Layers</h3>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded">
-              <input
-                type="checkbox"
-                checked={layerVisibility.terrain}
-                onChange={(e) => setLayerVisibility(prev => ({ ...prev, terrain: e.target.checked }))}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">Terrain</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded">
-              <input
-                type="checkbox"
-                checked={layerVisibility.borders}
-                onChange={(e) => setLayerVisibility(prev => ({ ...prev, borders: e.target.checked }))}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">Borders ({borders.length})</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded">
-              <input
-                type="checkbox"
-                checked={layerVisibility.icons}
-                onChange={(e) => setLayerVisibility(prev => ({ ...prev, icons: e.target.checked }))}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">Icons ({icons.length})</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded">
-              <input
-                type="checkbox"
-                checked={layerVisibility.labels}
-                onChange={(e) => setLayerVisibility(prev => ({ ...prev, labels: e.target.checked }))}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">Labels ({labels.length})</span>
-            </label>
-          </div>
-
-          {/* Active Tool Info */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <h4 className="font-semibold text-xs uppercase text-muted-foreground mb-2">Active Tool</h4>
-            <p className="text-sm font-medium capitalize">{selectedTool.replace('-', ' ')}</p>
-            {selectedTool === 'border' && currentBorder.length > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {currentBorder.length} points • Press Enter to finish
-              </p>
-            )}
-          </div>
-        </div>
-
-        {hoverContent && previewPositionStyle && layerVisibility.icons && (
-          <div
-            className="absolute z-30 w-[280px] pointer-events-none"
-            style={{ left: previewPositionStyle.left, top: previewPositionStyle.top }}
-          >
-            <div className="rounded-lg border border-border bg-background/95 backdrop-blur-sm p-4 shadow-lg space-y-3">
-              <div>
-                <p className="text-xs uppercase text-muted-foreground">
-                  {hoverContent.type === 'settlement' ? 'Settlement' : 'Location'} Preview
-                </p>
-                <h3 className="text-sm font-semibold text-foreground">{hoverContent.data.name}</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {truncateText(hoverContent.data.description)}
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Residents</h4>
-                {displayedResidents.length ? (
-                  <ul className="space-y-1">
-                    {displayedResidents.map(resident => (
-                      <li key={resident.id} className="text-xs text-foreground">
-                        {getCharacterDisplayName(resident)}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-muted-foreground">No characters linked to this place yet.</p>
-                )}
-                {residentOverflow > 0 && (
-                  <p className="text-[11px] text-muted-foreground mt-1">+{residentOverflow} more residents</p>
-                )}
-              </div>
-
-              <div>
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Timeline events</h4>
-                {displayedEvents.length ? (
-                  <ul className="space-y-1">
-                    {displayedEvents.map(event => (
-                      <li key={event.id} className="text-xs text-foreground">
-                        <span className="font-medium">{event.title}</span>
-                        {event.startDate && (
-                          <span className="text-muted-foreground"> • {event.startDate}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-muted-foreground">No recorded events here yet.</p>
-                )}
-                {eventOverflow > 0 && (
-                  <p className="text-[11px] text-muted-foreground mt-1">+{eventOverflow} more events</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Instructions Overlay */}
-        <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-sm">
-          <h3 className="font-semibold mb-2">Quick Tips:</h3>
-          <ul className="text-sm space-y-1 text-muted-foreground">
-            <li>• <kbd className="px-1 bg-muted rounded">P</kbd> Pencil • <kbd className="px-1 bg-muted rounded">M</kbd> Mountain • <kbd className="px-1 bg-muted rounded">F</kbd> Forest • <kbd className="px-1 bg-muted rounded">W</kbd> Water</li>
-            <li>• <kbd className="px-1 bg-muted rounded">I</kbd> Place Icon • <kbd className="px-1 bg-muted rounded">L</kbd> Add Label • <kbd className="px-1 bg-muted rounded">B</kbd> Draw Border</li>
-            <li>• <kbd className="px-1 bg-muted rounded">V</kbd> Select • <kbd className="px-1 bg-muted rounded">H</kbd> Pan • <kbd className="px-1 bg-muted rounded">E</kbd> Eraser</li>
-            <li>• <kbd className="px-1 bg-muted rounded">Ctrl+Z</kbd> Undo • <kbd className="px-1 bg-muted rounded">Del</kbd> Delete selected</li>
-            <li>• Border tool: Click to add points, <kbd className="px-1 bg-muted rounded">Enter</kbd> to finish</li>
-          </ul>
-        </div>
-      </div>
-    </div>
   );
 }
