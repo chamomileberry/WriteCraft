@@ -143,6 +143,15 @@ export default function MapStudio() {
   }));
   const activeNotebook = getActiveNotebook();
 
+  // Helper function for showing data load error toasts
+  const showDataLoadErrorToast = useCallback((dataType: string) => {
+    toast({
+      title: `${dataType.charAt(0).toUpperCase() + dataType.slice(1)} unavailable`,
+      description: `We could not load notebook ${dataType}. Please try again.`,
+      variant: 'destructive',
+    });
+  }, [toast]);
+
   // ===== TOOLBAR STATE =====
   const [selectedTool, setSelectedTool] = useState<MapTool>("pencil");
   const [brushSize, setBrushSize] = useState(20);
@@ -193,11 +202,7 @@ export default function MapStudio() {
         return locations;
       } catch (error) {
         console.error('Failed to load locations for notebook', error);
-        toast({
-          title: 'Locations unavailable',
-          description: 'We could not load notebook locations. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('locations');
         return [] as Location[];
       }
     },
@@ -214,11 +219,7 @@ export default function MapStudio() {
         return settlements;
       } catch (error) {
         console.error('Failed to load settlements for notebook', error);
-        toast({
-          title: 'Settlements unavailable',
-          description: 'We could not load notebook settlements. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('settlements');
         return [] as Settlement[];
       }
     },
@@ -235,11 +236,7 @@ export default function MapStudio() {
         return notebookCharacters;
       } catch (error) {
         console.error('Failed to load characters for notebook', error);
-        toast({
-          title: 'Characters unavailable',
-          description: 'We could not load notebook characters. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('characters');
         return [] as Character[];
       }
     },
@@ -259,11 +256,7 @@ export default function MapStudio() {
           return [] as TimelineEvent[];
         }
         console.error('Failed to load timeline events for notebook', error);
-        toast({
-          title: 'Timeline events unavailable',
-          description: 'We could not load notebook timeline events. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('timeline events');
         return [] as TimelineEvent[];
       }
     },
@@ -530,11 +523,7 @@ export default function MapStudio() {
         return locations;
       } catch (error) {
         console.error('Failed to load locations for notebook', error);
-        toast({
-          title: 'Locations unavailable',
-          description: 'We could not load notebook locations. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('locations');
         return [] as Location[];
       }
     },
@@ -551,11 +540,7 @@ export default function MapStudio() {
         return settlements;
       } catch (error) {
         console.error('Failed to load settlements for notebook', error);
-        toast({
-          title: 'Settlements unavailable',
-          description: 'We could not load notebook settlements. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('settlements');
         return [] as Settlement[];
       }
     },
@@ -572,11 +557,7 @@ export default function MapStudio() {
         return notebookCharacters;
       } catch (error) {
         console.error('Failed to load characters for notebook', error);
-        toast({
-          title: 'Characters unavailable',
-          description: 'We could not load notebook characters. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('characters');
         return [] as Character[];
       }
     },
@@ -596,11 +577,7 @@ export default function MapStudio() {
           return [] as TimelineEvent[];
         }
         console.error('Failed to load timeline events for notebook', error);
-        toast({
-          title: 'Timeline events unavailable',
-          description: 'We could not load notebook timeline events. Please try again.',
-          variant: 'destructive',
-        });
+        showDataLoadErrorToast('timeline events');
         return [] as TimelineEvent[];
       }
     },
