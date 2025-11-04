@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-=======
 import React, { useEffect, useRef, useState } from "react";
->>>>>>> 068a811 (Checkpoint before assistant change: Improve drawing canvas functionality with state management and helper functions)
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -619,7 +617,6 @@ export default function MapStudio() {
 
   const handleToolChange = (tool: MapTool) => {
     setSelectedTool(tool);
-<<<<<<< HEAD
 
     // Auto-select appropriate colors for terrain tools
     if (tool === 'mountain') {
@@ -631,9 +628,7 @@ export default function MapStudio() {
     } else if (tool === 'pencil') {
       setBrushColor(TERRAIN_COLORS.land);
     }
-=======
     console.log("Selected tool:", tool);
->>>>>>> 068a811 (Checkpoint before assistant change: Improve drawing canvas functionality with state management and helper functions)
   };
 
   const handleZoomIn = () => {
@@ -651,154 +646,13 @@ export default function MapStudio() {
     borders?: MapBorder[];
   }) => {
     const canvas = offscreenCanvasRef.current;
-=======
-  const handleUndo = () => {
-    if (historyStep <= 0) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-
-    setHistoryStep(historyStep - 1);
-    setCanUndo(historyStep > 1);
-    setCanRedo(true);
-  };
-
-  const handleRedo = () => {
-    if (historyStep >= drawingHistory.length - 1) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-
-    setHistoryStep(historyStep + 1);
-    setCanUndo(historyStep > 1);
-    setCanRedo(true);
-  };
-
-  const handleGrab = () => {
-    setSelectedTool("pan");
-    console.log("Grab tool selected");
-    
-    
-    
-    
-  }
-
-  // ===== MOUSE EVENT HANDLERS =====
-
-  // Mouse down - start drawing
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-
-    const pos = getMousePos(e);
-    setIsDrawing(true);
-    setStartPoint(pos);
-
-    if (selectedTool === "pan") {
-      setPanStart(panOffset);
-    }
-      // For pencil tool, start drawing immediately
-      else if (selectedTool === "pencil") {
-      ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
-      ctx.strokeStyle = currentColor;
-      ctx.lineWidth = brushSize;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-  };
-
-  // Mouse move - continue drawing
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-
-    const pos = getMousePos(e);
-
-    if (selectedTool === "pencil") {
-      // Draw a line to the current position
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-    }
-    // We'll add other tools here later
-
-    if (selectedTool === "pan" && startPoint) {
-    // How far the mouse has moved from its *original* click position
-    const dx = pos.x - startPoint.x;
-    const dy = pos.y - startPoint.y;
-
-      setPanOffset({
-      x: panStart.x + dx,
-      y: panStart.y + dy,
-      });
-
-      } else if (selectedTool === "pencil") {
-      // Draw a line to the current position
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-      }
-  };
-
-  // Mouse up - finish drawing
-  const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-
-    const pos = getMousePos(e);
-
-    if (selectedTool === "pencil") {
-      // Finish the line
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-      ctx.closePath();
-    } 
-      else if (selectedTool === "rectangle" && startPoint) {
-        // Draw rectangle
-        const width = pos.x - startPoint.x;
-        const height = pos.y - startPoint.y;
-        ctx.strokeStyle = currentColor;
-        ctx.lineWidth = brushSize;
-        ctx.strokeRect(startPoint.x, startPoint.y, width, height);
-      } else if (selectedTool === "circle" && startPoint) {
-        // Draw circle
-        const radius = Math.sqrt(
-          Math.pow(pos.x - startPoint.x, 2) + Math.pow(pos.y - startPoint.y, 2)
-        );
-        ctx.strokeStyle = currentColor;
-        ctx.lineWidth = brushSize;
-        ctx.beginPath();
-        ctx.arc(startPoint.x, startPoint.y, radius, 0, 2 * Math.PI);
-        ctx.stroke();
-      }
-      else if (selectedTool !== "pan") {
-      saveToHistory();
-      }
-    
-
-    setIsDrawing(false);
-    setStartPoint(null);
-  };
-
-  // ===== CANVAS INITIALIZATION =====
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
->>>>>>> 068a811 (Checkpoint before assistant change: Improve drawing canvas functionality with state management and helper functions)
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     
     if (!ctx) return;
 
-<<<<<<< HEAD
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     // Remove any future history if we're not at the end
@@ -849,7 +703,6 @@ export default function MapStudio() {
     const parts = [character.givenName, character.familyName].filter(Boolean);
     if (parts.length) {
       return parts.join(' ');
-=======
     function resize() {
       if (!canvas || !ctx) return;
 
@@ -861,7 +714,6 @@ export default function MapStudio() {
       canvas.width = Math.floor(cssW * dpr);
       canvas.height = Math.floor(cssH * dpr);
       redrawCanvas(ctx, canvas);
->>>>>>> 068a811 (Checkpoint before assistant change: Improve drawing canvas functionality with state management and helper functions)
     }
     if (character.nickname) {
       return character.nickname;
@@ -1511,6 +1363,19 @@ redrawCanvas(ctx, canvas);
 
   // ===== RENDER =====
 
+// ===== CANVAS REDRAW EFFECT =====
+useEffect(() => {
+const canvas = canvasRef.current;
+const ctx = canvas?.getContext("2d");
+if (!canvas || !ctx) return;
+
+redrawCanvas(ctx, canvas);
+
+// This effect runs whenever the pan, zoom, or history changes
+}, [panOffset, zoom, historyStep, drawingHistory]);
+
+  // ===== RENDER =====
+
   return (
     <>
       <Dialog open={locationDialogOpen} onOpenChange={handleDialogOpenChange}>
@@ -1571,13 +1436,10 @@ redrawCanvas(ctx, canvas);
         </DialogContent>
       </Dialog>
 
-<<<<<<< HEAD
       <div className="flex flex-col h-screen">
       {/* Main Navigation Header */}
       <Header onNavigate={handleNavigate} onCreateNew={handleCreateNew} />
 
-=======
->>>>>>> 068a811 (Checkpoint before assistant change: Improve drawing canvas functionality with state management and helper functions)
       {/* Map Studio Header */}
       <div className="border-b p-4 flex items-center gap-4">
         <Button
@@ -1606,7 +1468,6 @@ redrawCanvas(ctx, canvas);
         canRedo={canRedo}
       />
 
-<<<<<<< HEAD
       {/* Brush Controls Panel */}
       <div className="border-b p-4 bg-muted/30">
         <div className="max-w-4xl mx-auto flex items-center gap-8">
@@ -1812,7 +1673,7 @@ redrawCanvas(ctx, canvas);
       </div>
     </div>
     </>
-=======
+
       {/* Canvas Container */}
       <div className="flex-1 overflow-hidden relative bg-white">
         <canvas 
@@ -1829,6 +1690,6 @@ redrawCanvas(ctx, canvas);
         />
       </div>
     </div>
->>>>>>> 068a811 (Checkpoint before assistant change: Improve drawing canvas functionality with state management and helper functions)
+
   );
 }}
