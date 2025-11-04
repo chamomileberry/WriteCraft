@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import React, { useEffect, useRef, useState } from "react";
 import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -639,7 +640,6 @@ export default function MapStudio() {
     setZoom(prev => Math.max(prev - 0.25, 0.25)); // Min zoom 25%
   };
 
-<<<<<<< HEAD
   const saveToHistory = (overrides?: {
     icons?: MapIcon[];
     labels?: MapLabel[];
