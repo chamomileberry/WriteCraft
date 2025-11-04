@@ -49,6 +49,40 @@ export function ImageUpload({
   disabled = false,
   visibility = 'private' // Default to private for backward compatibility
 }: ImageUploadProps) {
+
+  // Strict image URL validator: allow http, https, and safe data: URLs. Disallow SVG entirely.
+  function isSafeImageUrl(url: string): boolean {
+    // Remove leading/trailing whitespace
+    url = url.trim();
+    // Quick reject
+    if (!url) return false;
+    // Reject javascript: and other dangerous protocols
+    if (/^javascript:/i.test(url)) return false;
+    if (/^vbscript:/i.test(url)) return false;
+    if (/^file:/i.test(url)) return false;
+    // Accept http/https URLs
+    if (/^https?:\/\//i.test(url)) return true;
+    // For data: URLs, allow only whitelisted image MIME types (exclude SVG)
+    if (/^data:/i.test(url)) {
+      // Data URL format: data:[<mediatype>][;base64],<data>
+      const match = url.match(/^data:(image\/[a-zA-Z0-9\-\+\.]+);base64,/i);
+      if (match) {
+        const mime = match[1].toLowerCase();
+        // Allow PNG, JPEG, GIF, WEBP only (no SVG, BMP, etc); expand as needed
+        if (mime === 'image/png' ||
+            mime === 'image/jpeg' ||
+            mime === 'image/gif' ||
+            mime === 'image/webp') {
+          return true;
+        }
+      }
+      // No match or disallowed MIME type: reject
+      return false;
+    }
+    // Default: reject all other URLs
+    return false;
+  }
+
   const [uploading, setUploading] = useState(false);
   // Validate initial value to prevent XSS
   const [imageUrl, setImageUrl] = useState(value && isSafeImageUrl(value) ? value : '');
