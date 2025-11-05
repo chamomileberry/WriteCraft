@@ -1,64 +1,95 @@
 import { db } from '../db';
-import { 
-  users, 
-  userSubscriptions, 
-  aiUsageLogs, 
+import {
+  users,
+  userSubscriptions,
+  aiUsageLogs,
   aiUsageDailySummary,
-  projects 
+  projects,
+  type UserSubscription as DbUserSubscription
 } from '@shared/schema';
 import { eq, and, sql, inArray } from 'drizzle-orm';
-import { TIER_LIMITS, type SubscriptionTier } from '@shared/types/subscription';
+import { TIER_LIMITS, type TierLimits, type SubscriptionTier } from '@shared/types/subscription';
 import { emailService } from './emailService';
+
+type SubscriptionWithComputedFields = DbUserSubscription & {
+  effectiveTier: SubscriptionTier;
+  limits: TierLimits;
+};
+
+const toSubscriptionWithComputedFields = (
+  subscription: DbUserSubscription,
+  effectiveTier: SubscriptionTier
+): SubscriptionWithComputedFields => ({
+  ...subscription,
+  effectiveTier,
+  limits: TIER_LIMITS[effectiveTier]
+});
+
+const createDefaultFreeSubscription = (): SubscriptionWithComputedFields => {
+  const now = new Date();
+  return toSubscriptionWithComputedFields(
+    {
+      id: 'anonymous-free-tier',
+      userId: '',
+      tier: 'free',
+      status: 'active',
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      stripePriceId: null,
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      trialStart: null,
+      trialEnd: null,
+      pausedAt: null,
+      resumesAt: null,
+      pauseReason: null,
+      gracePeriodStart: null,
+      gracePeriodEnd: null,
+      teamName: null,
+      createdAt: now,
+      updatedAt: now
+    },
+    'free'
+  );
+};
 
 export class SubscriptionService {
   /**
    * Get user's current subscription with tier limits
    */
-  async getUserSubscription(userId: string) {
+  async getUserSubscription(userId: string): Promise<SubscriptionWithComputedFields> {
     if (!userId) {
       console.error('[Subscription] No userId provided to getUserSubscription');
       // Return a basic free tier subscription for unauthenticated requests
-      return {
-        userId: '',
-        tier: 'free' as SubscriptionTier,
-        effectiveTier: 'free' as SubscriptionTier,
-        limits: TIER_LIMITS['free'],
-        status: 'active',
-        cancelAtPeriodEnd: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      return createDefaultFreeSubscription();
     }
-    
+
     const [subscription] = await db
       .select()
       .from(userSubscriptions)
       .where(eq(userSubscriptions.userId, userId))
       .limit(1);
-    
+
     if (!subscription) {
       console.log('[Subscription] No subscription found for user, creating free tier:', userId);
       // Create default free subscription for existing users
       return this.createFreeSubscription(userId);
     }
-    
+
     // If subscription is paused, treat as free tier for feature access
-    const effectiveTier = (subscription.pausedAt && subscription.tier !== 'free') 
-      ? 'free' 
+    const effectiveTier = (subscription.pausedAt && subscription.tier !== 'free')
+      ? 'free'
       : subscription.tier as SubscriptionTier;
-    
-    return {
-      ...subscription,
-      effectiveTier,
-      limits: TIER_LIMITS[effectiveTier]
-    };
+
+    return toSubscriptionWithComputedFields(subscription, effectiveTier);
   }
   
   /**
    * Create free subscription for new/existing users
    * Uses UPSERT to handle conflicts if subscription already exists
    */
-  async createFreeSubscription(userId: string) {
+  async createFreeSubscription(userId: string): Promise<SubscriptionWithComputedFields> {
     const [subscription] = await db
       .insert(userSubscriptions)
       .values({
@@ -73,11 +104,8 @@ export class SubscriptionService {
         }
       })
       .returning();
-    
-    return {
-      ...subscription,
-      limits: TIER_LIMITS[subscription.tier as SubscriptionTier]
-    };
+
+    return toSubscriptionWithComputedFields(subscription, 'free');
   }
   
   /**
@@ -130,7 +158,7 @@ export class SubscriptionService {
           return {
             allowed: true,
             inGracePeriod: true,
-            daysRemaining: graceStatus.daysRemaining,
+            daysRemaining: graceStatus.daysRemaining ?? undefined,
             gracePeriodWarning: `You've reached your limit of ${subscription.limits.maxProjects} projects. ${graceStatus.daysRemaining} day${graceStatus.daysRemaining !== 1 ? 's' : ''} remaining to upgrade.`
           };
         }
@@ -165,7 +193,7 @@ export class SubscriptionService {
           return {
             allowed: true,
             inGracePeriod: true,
-            daysRemaining: graceStatus.daysRemaining,
+            daysRemaining: graceStatus.daysRemaining ?? undefined,
             gracePeriodWarning: `You've reached your limit of ${subscription.limits.maxNotebooks} notebook${subscription.limits.maxNotebooks > 1 ? 's' : ''}. ${graceStatus.daysRemaining} day${graceStatus.daysRemaining !== 1 ? 's' : ''} remaining to upgrade.`
           };
         }
@@ -200,7 +228,7 @@ export class SubscriptionService {
           return {
             allowed: true,
             inGracePeriod: true,
-            daysRemaining: graceStatus.daysRemaining,
+            daysRemaining: graceStatus.daysRemaining ?? undefined,
             gracePeriodWarning: `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. ${graceStatus.daysRemaining} day${graceStatus.daysRemaining !== 1 ? 's' : ''} remaining to upgrade.`
           };
         }

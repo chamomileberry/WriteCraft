@@ -90,7 +90,7 @@ import {
   timelineRelationships, ceremonies, maps, music, dances, laws, policies, potions,
   type PinnedContent, type InsertPinnedContent, pinnedContent,
   type Canvas, type InsertCanvas, canvases,
-  chatMessages,
+  chatMessages, conversationThreads,
   userPreferences, conversationSummaries,
   feedback,
   shares
@@ -4879,29 +4879,16 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
     // Enhanced full-text search using PostgreSQL tsvector with ranking
     const searchQuery = sql`plainto_tsquery('english', ${trimmedQuery})`;
-    return await db.select({
-      id: projects.id,
-      title: projects.title,
-      content: projects.content,
-      excerpt: projects.excerpt,
-      wordCount: projects.wordCount,
-      tags: projects.tags,
-      status: projects.status,
-      searchVector: projects.searchVector,
-      folderId: projects.folderId,
-      userId: projects.userId,
-      createdAt: projects.createdAt,
-      updatedAt: projects.updatedAt,
-      rank: sql<number>`ts_rank(${projects.searchVector}, ${searchQuery})`.as('rank')
-    })
-    .from(projects)
-    .where(
-      and(
-        eq(projects.userId, userId),
-        sql`${projects.searchVector} @@ ${searchQuery}`
+    return await db
+      .select()
+      .from(projects)
+      .where(
+        and(
+          eq(projects.userId, userId),
+          sql`${projects.searchVector} @@ ${searchQuery}`
+        )
       )
-    )
-    .orderBy(desc(sql`ts_rank(${projects.searchVector}, ${searchQuery})`));
+      .orderBy(desc(sql`ts_rank(${projects.searchVector}, ${searchQuery})`));
   }
 
   // Project Section methods
@@ -5525,6 +5512,173 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       ));
   }
 
+  // Conversation thread methods
+  async createConversationThread(thread: InsertConversationThread): Promise<ConversationThread> {
+    const [newThread] = await db
+      .insert(conversationThreads)
+      .values(thread)
+      .returning();
+    return newThread;
+  }
+
+  async getConversationThread(id: string, userId: string): Promise<ConversationThread | undefined> {
+    const [thread] = await db
+      .select()
+      .from(conversationThreads)
+      .where(and(
+        eq(conversationThreads.id, id),
+        eq(conversationThreads.userId, userId)
+      ));
+    return thread || undefined;
+  }
+
+  async getConversationThreads(filters: { userId: string, projectId?: string, guideId?: string, isActive?: boolean }): Promise<ConversationThread[]> {
+    const conditions = [eq(conversationThreads.userId, filters.userId)];
+
+    if (filters.projectId !== undefined) {
+      conditions.push(eq(conversationThreads.projectId, filters.projectId));
+    }
+
+    if (filters.guideId !== undefined) {
+      conditions.push(eq(conversationThreads.guideId, filters.guideId));
+    }
+
+    if (filters.isActive !== undefined) {
+      conditions.push(eq(conversationThreads.isActive, filters.isActive));
+    }
+
+    return await db
+      .select()
+      .from(conversationThreads)
+      .where(and(...conditions))
+      .orderBy(desc(conversationThreads.lastActivityAt));
+  }
+
+  async searchConversationThreads(userId: string, query: string, filters?: { projectId?: string, guideId?: string }): Promise<ConversationThread[]> {
+    const searchPattern = `%${query}%`;
+    const conditions = [eq(conversationThreads.userId, userId)];
+
+    if (filters?.projectId) {
+      conditions.push(eq(conversationThreads.projectId, filters.projectId));
+    }
+
+    if (filters?.guideId) {
+      conditions.push(eq(conversationThreads.guideId, filters.guideId));
+    }
+
+    const searchConditions = or(
+      ilike(conversationThreads.title, searchPattern),
+      ilike(conversationThreads.summary, searchPattern),
+      sql`EXISTS (
+        SELECT 1 FROM unnest(${conversationThreads.tags}) AS tag
+        WHERE tag ILIKE ${searchPattern}
+      )`
+    );
+
+    conditions.push(searchConditions!);
+
+    const threads = await db
+      .select()
+      .from(conversationThreads)
+      .where(and(...conditions))
+      .orderBy(desc(conversationThreads.lastActivityAt));
+
+    const messageConditions = [eq(chatMessages.userId, userId)];
+    if (filters?.projectId) {
+      messageConditions.push(eq(chatMessages.projectId, filters.projectId));
+    }
+    if (filters?.guideId) {
+      messageConditions.push(eq(chatMessages.guideId, filters.guideId));
+    }
+    messageConditions.push(ilike(chatMessages.content, searchPattern));
+
+    const matchingMessages = await db
+      .select({
+        threadId: chatMessages.threadId
+      })
+      .from(chatMessages)
+      .where(and(...messageConditions))
+      .groupBy(chatMessages.threadId);
+
+    const messageThreadIds = matchingMessages
+      .map(m => m.threadId)
+      .filter((id): id is string => id !== null);
+
+    let messageThreads: ConversationThread[] = [];
+    if (messageThreadIds.length > 0) {
+      const messageThreadConditions = [
+        eq(conversationThreads.userId, userId),
+        inArray(conversationThreads.id, messageThreadIds)
+      ];
+
+      messageThreads = await db
+        .select()
+        .from(conversationThreads)
+        .where(and(...messageThreadConditions))
+        .orderBy(desc(conversationThreads.lastActivityAt));
+    }
+
+    const allThreads = [...threads, ...messageThreads];
+    const uniqueThreads = Array.from(new Map(allThreads.map(thread => [thread.id, thread])).values());
+
+    return uniqueThreads.sort((a, b) => {
+      const dateA = a.lastActivityAt ? new Date(a.lastActivityAt).getTime() : 0;
+      const dateB = b.lastActivityAt ? new Date(b.lastActivityAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }
+
+  async updateConversationThread(id: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined> {
+    const [updated] = await db
+      .update(conversationThreads)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(conversationThreads.id, id),
+        eq(conversationThreads.userId, userId)
+      ))
+      .returning();
+
+    return updated || undefined;
+  }
+
+  async updateThreadActivity(threadId: string, userId: string): Promise<void> {
+    await db
+      .update(conversationThreads)
+      .set({
+        lastActivityAt: new Date(),
+        messageCount: sql`${conversationThreads.messageCount} + 1`
+      })
+      .where(and(
+        eq(conversationThreads.id, threadId),
+        eq(conversationThreads.userId, userId)
+      ));
+  }
+
+  async deleteConversationThread(id: string, userId: string): Promise<void> {
+    const [existing] = await db
+      .select()
+      .from(conversationThreads)
+      .where(eq(conversationThreads.id, id));
+
+    if (!existing) {
+      throw new Error('Conversation thread not found');
+    }
+
+    if (existing.userId !== userId) {
+      throw new Error('Unauthorized: You do not own this conversation thread');
+    }
+
+    await db
+      .delete(conversationThreads)
+      .where(and(
+        eq(conversationThreads.id, id),
+        eq(conversationThreads.userId, userId)
+      ));
+  }
+
   // Chat message methods
   async createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage> {
     const [newMessage] = await db
@@ -5558,6 +5712,20 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .limit(limit);
 
     return messages.reverse(); // Return in chronological order
+  }
+
+  async getChatMessagesByThread(threadId: string, userId: string, limit = 50): Promise<ChatMessage[]> {
+    const messages = await db
+      .select()
+      .from(chatMessages)
+      .where(and(
+        eq(chatMessages.threadId, threadId),
+        eq(chatMessages.userId, userId)
+      ))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
+
+    return messages.reverse();
   }
 
   async deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void> {
