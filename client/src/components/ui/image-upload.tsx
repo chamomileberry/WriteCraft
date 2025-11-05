@@ -31,8 +31,8 @@ interface ImageUploadProps {
  * - SVG images (to prevent XSS attacks)
  */
 function isSafeImageUrl(url: string): boolean {
-  // Remove leading/trailing whitespace
-  url = url.trim();
+  // Remove leading/trailing whitespace and control characters to prevent obfuscation
+  url = url.trim().replace(/[\x00-\x1f\x7f-\x9f]/g, "");
 
   // Quick reject
   if (!url) return false;
