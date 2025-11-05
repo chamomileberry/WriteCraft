@@ -700,9 +700,7 @@ export default function MapStudio() {
         setLabels(state.labels);
         setBorders(state.borders);
     }
-    // Call redraw to update the canvas, assuming it's a valid function in scope.
-    redraw();
-  }, [canUndo, historyIndex, history, redraw]);
+  }, [canUndo, historyIndex, history]);
 
   const handleRedo = useCallback(() => {
     if (!canRedo) return;
@@ -723,9 +721,7 @@ export default function MapStudio() {
       setLabels(state.labels);
       setBorders(state.borders);
     }
-    // Call redraw to update the canvas
-    redraw();
-  }, [canRedo, historyIndex, history, redraw]);
+  }, [canRedo, historyIndex, history]);
 
   // Initialize offscreen canvas for drawing operations
   useEffect(() => {
