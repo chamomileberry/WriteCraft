@@ -197,6 +197,9 @@ export default function MapStudio() {
         const locations: Location[] = await response.json();
         return locations;
       } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return [] as Location[];
+        }
         console.error('Failed to load locations for notebook', error);
         showDataLoadErrorToast('locations');
         return [] as Location[];
@@ -214,6 +217,9 @@ export default function MapStudio() {
         const settlements: Settlement[] = await response.json();
         return settlements;
       } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return [] as Settlement[];
+        }
         console.error('Failed to load settlements for notebook', error);
         showDataLoadErrorToast('settlements');
         return [] as Settlement[];
@@ -231,6 +237,9 @@ export default function MapStudio() {
         const notebookCharacters: Character[] = await response.json();
         return notebookCharacters;
       } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return [] as Character[];
+        }
         console.error('Failed to load characters for notebook', error);
         showDataLoadErrorToast('characters');
         return [] as Character[];
@@ -490,15 +499,15 @@ export default function MapStudio() {
     }
   };
 
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     setZoom(prev => Math.min(prev + 0.25, 3)); // Max zoom 300%
-  };
+  }, []);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     setZoom(prev => Math.max(prev - 0.25, 0.25)); // Min zoom 25%
-  };
+  }, []);
 
-  const saveToHistory = (overrides?: {
+  const saveToHistory = useCallback((overrides?: {
     icons?: MapIcon[];
     labels?: MapLabel[];
     borders?: MapBorder[];
@@ -528,7 +537,7 @@ export default function MapStudio() {
     }
 
     setHistory(newHistory);
-  };
+  }, [history, historyIndex, icons, labels, borders]);
 
   const addIconForContent = (content: Location | Settlement, type: LinkedContentType) => {
     if (!pendingIcon) return;
@@ -648,7 +657,7 @@ export default function MapStudio() {
     }
   };
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (!canUndo) return;
 
     const newIndex = historyIndex - 1;
@@ -666,9 +675,9 @@ export default function MapStudio() {
     setLabels(state.labels);
     setBorders(state.borders);
     redraw();
-  };
+  }, [canUndo, historyIndex, history]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (!canRedo) return;
 
     const newIndex = historyIndex + 1;
@@ -686,7 +695,7 @@ export default function MapStudio() {
     setLabels(state.labels);
     setBorders(state.borders);
     redraw();
-  };
+  }, [canRedo, historyIndex, history]);
 
   // Initialize offscreen canvas for drawing operations
   useEffect(() => {
@@ -997,7 +1006,7 @@ export default function MapStudio() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [historyIndex, history, currentBorder, selectedItem]);
+  }, [handleUndo, handleRedo, handleZoomIn, handleZoomOut, currentBorder, selectedItem, saveToHistory]);
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
