@@ -133,11 +133,16 @@ export default function MapStudio() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { activeNotebookId, getActiveNotebook } = useNotebookStore(state => ({
-    activeNotebookId: state.activeNotebookId,
-    getActiveNotebook: state.getActiveNotebook,
-  }));
-  const activeNotebook = getActiveNotebook();
+
+  // Fix: Use separate stable subscriptions instead of creating new objects
+  const activeNotebookId = useNotebookStore(state => state.activeNotebookId);
+  const notebooks = useNotebookStore(state => state.notebooks);
+
+  // Fix: Memoize activeNotebook to prevent infinite re-renders
+  const activeNotebook = useMemo(() => {
+    if (!activeNotebookId) return null;
+    return notebooks.find(nb => nb.id === activeNotebookId) || null;
+  }, [activeNotebookId, notebooks]);
 
   // Helper function for showing data load error toasts
   const showDataLoadErrorToast = useCallback((dataType: string) => {
@@ -186,6 +191,9 @@ export default function MapStudio() {
   const [localContentOverrides, setLocalContentOverrides] = useState<Record<string, LinkedContentDetail>>({});
   const [hoveredIconId, setHoveredIconId] = useState<string | null>(null);
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
+
+  // Fix: Track fetched content IDs to prevent refetching and cascading updates
+  const fetchedContentIdsRef = useRef<Set<string>>(new Set());
 
   const { data: notebookLocations = [] } = useQuery<Location[]>({
     queryKey: ['/api/locations/user', activeNotebookId],
@@ -408,15 +416,21 @@ export default function MapStudio() {
       return;
     }
 
-    // Check if we already have the data locally or in query cache
+    // Fix: Check if we already have the data locally or in query cache
     const hasLocal = localContentOverrides[icon.linkedContentId];
     const hasQueryData = icon.linkedContentType === 'location'
       ? notebookLocationIds.has(icon.linkedContentId)
       : notebookSettlementIds.has(icon.linkedContentId);
 
-    if (hasLocal || hasQueryData) {
+    // Fix: Check if we're already fetching or have fetched this content
+    const alreadyFetched = fetchedContentIdsRef.current.has(icon.linkedContentId);
+
+    if (hasLocal || hasQueryData || alreadyFetched) {
       return;
     }
+
+    // Mark as being fetched
+    fetchedContentIdsRef.current.add(icon.linkedContentId);
 
     const controller = new AbortController();
 
@@ -442,9 +456,12 @@ export default function MapStudio() {
         });
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
+          fetchedContentIdsRef.current.delete(icon.linkedContentId!);
           return;
         }
         console.error('Failed to load location preview data', error);
+        // Remove from fetched set on error so it can be retried
+        fetchedContentIdsRef.current.delete(icon.linkedContentId!);
       }
     })();
 
@@ -455,7 +472,7 @@ export default function MapStudio() {
     activeNotebookId,
     notebookLocationIds,
     notebookSettlementIds,
-    localContentOverrides,
+    // Fix: Removed localContentOverrides from dependencies to prevent cascading updates
   ]);
 
   const handleDialogOpenChange = (open: boolean) => {
@@ -728,8 +745,7 @@ export default function MapStudio() {
     }
   }, []);
 
-  // Redraw the canvas
-  const redraw = () => {
+  const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     const offscreenCanvas = offscreenCanvasRef.current;
     if (!canvas || !offscreenCanvas) return;
@@ -871,7 +887,7 @@ export default function MapStudio() {
     }
 
     ctx.restore();
-  };
+  }, [zoom, pan, layerVisibility, borders, currentBorder, icons, labels, selectedItem]);
 
   // Resize handler
   useEffect(() => {
@@ -890,12 +906,12 @@ export default function MapStudio() {
     resize();
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
-  }, [zoom, pan]);
+  }, [redraw]); // Fix: Only depend on redraw, which includes zoom/pan/etc
 
-  // Redraw when zoom, pan, or any layer changes
+  // Redraw when any drawing state changes
   useEffect(() => {
     redraw();
-  }, [zoom, pan, icons, labels, borders, currentBorder, layerVisibility, selectedItem]);
+  }, [redraw]);
 
   // Keyboard shortcuts
   useEffect(() => {
