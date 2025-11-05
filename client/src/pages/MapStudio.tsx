@@ -408,15 +408,13 @@ export default function MapStudio() {
       return;
     }
 
-    // Check if we already have the data in local cache
-    const checkHasData = () => {
-      const hasQueryData = icon.linkedContentType === 'location'
-        ? notebookLocationIds.has(icon.linkedContentId!)
-        : notebookSettlementIds.has(icon.linkedContentId!);
-      return hasQueryData;
-    };
+    // Check if we already have the data locally or in query cache
+    const hasLocal = localContentOverrides[icon.linkedContentId];
+    const hasQueryData = icon.linkedContentType === 'location'
+      ? notebookLocationIds.has(icon.linkedContentId)
+      : notebookSettlementIds.has(icon.linkedContentId);
 
-    if (checkHasData()) {
+    if (hasLocal || hasQueryData) {
       return;
     }
 
@@ -451,6 +449,7 @@ export default function MapStudio() {
     })();
 
     return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     hoveredIconId,
     icons,
