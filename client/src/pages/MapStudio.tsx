@@ -456,6 +456,7 @@ export default function MapStudio() {
         });
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
+          fetchedContentIdsRef.current.delete(icon.linkedContentId!);
           return;
         }
         console.error('Failed to load location preview data', error);
@@ -744,9 +745,6 @@ export default function MapStudio() {
     }
   }, []);
 
-  // Redraw the canvas
-  // Note: Not using useCallback here because redraw needs to access latest state
-  // and adding all dependencies would trigger unnecessary re-creations
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     const offscreenCanvas = offscreenCanvasRef.current;
