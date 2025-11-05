@@ -449,13 +449,13 @@ export default function MapStudio() {
     })();
 
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     hoveredIconId,
     icons,
     activeNotebookId,
     notebookLocationIds,
     notebookSettlementIds,
+    localContentOverrides,
   ]);
 
   const handleDialogOpenChange = (open: boolean) => {
